@@ -1,21 +1,20 @@
-#include "common.h"
+#include "types.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "weapons/weapon.h"
-
-#include "gameplay/actor.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "weapons/weapon.h"
 
 /// The P08, the P08 with the snail magazine and the Mongoose are this source
 /// built once each, and each declares these values in the manifest.
@@ -28,6 +27,8 @@
 #if !defined(WEAPON_ID) || !defined(P08_FLASH_EFFECT) || !defined(P08_FLASH_WEAPON) || !defined(P08_FIELD_940)
 #error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
 #endif
+
+static void func_p08_8011D1D8(Task* arg0);
 
 static void func_p08_8011D1D8(Task* arg0)
 {

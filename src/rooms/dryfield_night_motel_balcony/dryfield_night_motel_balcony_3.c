@@ -1,23 +1,24 @@
-#include "dryfield_night_motel_balcony_private.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include "rooms/dryfield_night_motel_balcony.h"
 
-#include "gameplay/display.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "dryfield_night_motel_balcony_private.h"
+
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
-
 #include "gameplay/sprites.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-extern TaskDesc D_dryfield_night_motel_balcony_80182834[];
+#include "main/task_types.h"
 
 extern u8** D_dryfield_night_motel_balcony_80182C3C[];
 

@@ -1,5 +1,4 @@
 #include "fs.h"
-#include "mapui/mapui.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -20,6 +19,8 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+
+#include "mapui/map_dryfield.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 static s32 D_8006AC08;

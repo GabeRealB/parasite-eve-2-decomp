@@ -1,51 +1,59 @@
-#include "common.h"
 #include "rooms/acropolis_west_elevator_hall.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "common.h"
+#include "gte.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/model_objects.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/message.h"
+#include "rooms/room.h"
 
-#include "gameplay/animation.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of an elevator-car task, stored at `Task::work`.
 /// `func_acropolis_west_elevator_hall_8017F64C` allocates it with
@@ -55,8 +63,8 @@ typedef struct {
 } AwehElevatorState;
 
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
-extern GpEvsCmd D_acropolis_west_elevator_hall_80184620[];
-extern GpEvsCmd D_acropolis_west_elevator_hall_80184890[];
+extern GpEvsCmd   D_acropolis_west_elevator_hall_80184620[];
+extern GpEvsCmd   D_acropolis_west_elevator_hall_80184890[];
 extern s32        D_acropolis_west_elevator_hall_801849C8;
 extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
 extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
@@ -72,17 +80,17 @@ extern TaskDesc D_acropolis_west_elevator_hall_801802A8[];
 /// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
 /// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
 /// `...80184E04` the blended result that `...80185004` uploads to VRAM.
-extern u16      D_acropolis_west_elevator_hall_80184A04[];
-extern u16      D_acropolis_west_elevator_hall_80184C04[];
+extern u16 D_acropolis_west_elevator_hall_80184A04[];
+extern u16 D_acropolis_west_elevator_hall_80184C04[];
 // Color/byte updates and the GPU upload share the same backing storage.
 typedef union {
-    u16 colors[256];
+    u16    colors[256];
     u_long words[128];
 } AcropolisWestElevatorHallPalette;
 STATIC_ASSERT_SIZEOF(AcropolisWestElevatorHallPalette, 512);
 
 extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
-extern GpImgRec D_acropolis_west_elevator_hall_80185004[];
+extern GpImgRec                         D_acropolis_west_elevator_hall_80185004[];
 
 /// The hall's two elevator-car tasks, spawned by the room task.
 extern Task* D_acropolis_west_elevator_hall_80186AE4[];
@@ -116,29 +124,29 @@ static const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720
 /// in view 5.
 static const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
 
-s32 func_acropolis_west_elevator_hall_8017F470(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_west_elevator_hall_8017F498(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_west_elevator_hall_8017F4C0(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_acropolis_west_elevator_hall_8017F560(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_west_elevator_hall_80180274(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_west_elevator_hall_8017F470(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_west_elevator_hall_8017F498(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpAnimArg D_acropolis_west_elevator_hall_80184598;
-extern GpCopyArg D_acropolis_west_elevator_hall_80184590;
+extern GpAnimArg  D_acropolis_west_elevator_hall_80184598;
+extern GpCopyArg  D_acropolis_west_elevator_hall_80184590;
 extern GpXformArg D_acropolis_west_elevator_hall_801845AC;
 extern GpXformArg D_acropolis_west_elevator_hall_801845C4;
 
 extern GpAnimSet D_acropolis_west_elevator_hall_80184540;
 extern TmdSource D_acropolis_west_elevator_hall_8018050C;
 extern TmdSource D_acropolis_west_elevator_hall_8018077C;
-void func_acropolis_west_elevator_hall_8017F418(Task *);
+void             func_acropolis_west_elevator_hall_8017F418(Task*);
 
-void func_acropolis_west_elevator_hall_8017F134(Task *);
+void func_acropolis_west_elevator_hall_8017F134(Task*);
 
 extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
-extern GpGridParams D_acropolis_west_elevator_hall_801852FC[1];
-extern GpObj4C D_acropolis_west_elevator_hall_80185320[4];
-extern GpObj4C D_acropolis_west_elevator_hall_80185450[5];
-extern GpRoomCoordSet D_acropolis_west_elevator_hall_801869E4[1];
+extern GpGridParams                     D_acropolis_west_elevator_hall_801852FC[1];
+extern GpObj4C                          D_acropolis_west_elevator_hall_80185320[4];
+extern GpObj4C                          D_acropolis_west_elevator_hall_80185450[5];
+extern GpRoomCoordSet                   D_acropolis_west_elevator_hall_801869E4[1];
 
 u8 D_acropolis_west_elevator_hall_801802A4[4] = {
     12,
@@ -805,6 +813,8 @@ GpRoomParamRec * D_acropolis_west_elevator_hall_80186AC4[8] = {
 };
 
 Task * D_acropolis_west_elevator_hall_80186AE4[2] = { 0 };
+
+static void func_acropolis_west_elevator_hall_8017D5FC(Task* task);
 
 /// First state of the hall's mirror task: re-attaches the player's own TMD
 /// source to this task so the reflection draws the player's model, allocates

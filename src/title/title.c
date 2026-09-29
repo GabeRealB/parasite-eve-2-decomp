@@ -1,10 +1,35 @@
-#include "common.h"
+#include "title/title.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
 
-#include "gameplay/display.h"
+#include "common.h"
+
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/fs_types.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
 /// Title-screen work block stored at Task::work (memCalloc 0x18).
 typedef struct _TitleWork {
@@ -16,26 +41,6 @@ typedef struct _TitleWork {
     /* 0x14 */ s32 menuCount;      // number of menu entries
 } TitleWork;
 STATIC_ASSERT_SIZEOF(TitleWork, 0x18);
-
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gamemain.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
-#include <psyq/memory.h>
-#include <psyq/rand.h>
-#include <psyq/stdio.h>
-#include "title/title.h"
 
 /// Retained text labels for the title menu (src/title/title.c).
 extern char Title_StrNewGame[];
@@ -117,6 +122,8 @@ static const char Title_DemoStartMsg[] = "##########DEMO START\n";
 /// the stage and scene it names. The two bytes after the terminator are never
 /// read.
 static const char Title_DemoCardRestoreMsg[44] = "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n\0\x22\xE1";
+
+static void Title_DrawSpriteRow(s32 y, s32 v, s32 color);
 
 static void Title_InitTask(Task* arg0)
 {

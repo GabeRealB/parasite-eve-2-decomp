@@ -1,52 +1,75 @@
-#include "common.h"
+#include "rooms/mist_shooting_gallery.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8018055c.h"
 
-#include "rooms/mist_shooting_gallery.h"
+#include "common.h"
+#include "gte.h"
+
+#include "mist_shooting_gallery_private.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "gameplay/view.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/inventory.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/loadui.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8018055c.h"
+
+#define D_mist_shooting_gallery_80185570 (D_mist_shooting_gallery_80185550 + 4)
+#define D_mist_shooting_gallery_801855C0 (D_mist_shooting_gallery_80185550 + 14)
+#define D_mist_shooting_gallery_801855F0 (D_mist_shooting_gallery_80185550 + 20)
+#define D_mist_shooting_gallery_80185610 (D_mist_shooting_gallery_80185550 + 24)
+#define D_mist_shooting_gallery_80185670 (D_mist_shooting_gallery_80185550 + 36)
+#define D_mist_shooting_gallery_80185678 (D_mist_shooting_gallery_80185550 + 37)
+#define D_mist_shooting_gallery_80185680 (D_mist_shooting_gallery_80185550 + 38)
+#define D_mist_shooting_gallery_80185688 (D_mist_shooting_gallery_80185550 + 39)
+#define D_mist_shooting_gallery_80185690 (D_mist_shooting_gallery_80185550 + 40)
+#define D_mist_shooting_gallery_801856B0 (D_mist_shooting_gallery_80185550 + 44)
 
 /// The four bonus-mode blurbs shown by the gallery's help panel, indexed by
 /// `Mc_SaveData[0].state.gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
@@ -87,14 +110,12 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
 /// `D_mist_shooting_gallery_80184F98` in step with the per-target kill counts
 /// in `MistShootingGalleryWork::pad_0F`.
 typedef struct MistShootingGalleryTarget {
-    /* 0x0 */ s32 points;
+    /* 0x0 */ s32         points;
     /* 0x4 */ const char* name;
 } MistShootingGalleryTarget;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryTarget, 0x8);
 
 extern UiObjectDesc D_mist_shooting_gallery_80185060;
-extern s32          D_mist_shooting_gallery_8018E0BC;
-extern s32          D_mist_shooting_gallery_8018E0C0;
 
 extern TaskDesc D_mist_shooting_gallery_80184F8C;
 extern TaskDesc D_mist_shooting_gallery_801850D0;
@@ -159,11 +180,10 @@ extern UiObjectDesc              D_mist_shooting_gallery_8018507C[];
 extern UiObjectDesc              D_mist_shooting_gallery_8018501C;
 extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13];
 extern GpMsgEntry                D_mist_shooting_gallery_801850E8[];
-extern TaskDesc                  D_mist_shooting_gallery_801856B8[];
-extern TaskDesc                  D_mist_shooting_gallery_801850DC;
-extern GpGridParams              D_mist_shooting_gallery_80185198;
-extern GpGridParams              D_mist_shooting_gallery_801851F8;
-extern GpGridParams              D_mist_shooting_gallery_80189968;
+
+extern TaskDesc     D_mist_shooting_gallery_801850DC;
+extern GpGridParams D_mist_shooting_gallery_80185198;
+extern GpGridParams D_mist_shooting_gallery_801851F8;
 
 /// The jukebox's track lists, one per game mode, each a run of track id and
 /// name pairs.
@@ -191,12 +211,6 @@ extern UiList D_mist_shooting_gallery_80185338;
 extern UiObjectDesc D_mist_shooting_gallery_8018535C;
 
 extern TaskDesc D_mist_shooting_gallery_80185378;
-extern TaskDesc D_mist_shooting_gallery_80185384[];
-
-/// The room's active data bank pointer, and the two banks it chooses between.
-extern GpRoomCoordRec D_mist_shooting_gallery_801853C0[];
-extern GpRoomCoordSet D_mist_shooting_gallery_8018D1B4;
-extern GpRoomCoordSet D_mist_shooting_gallery_8018DF38;
 
 static void func_mist_shooting_gallery_801801E4(s32 arg0);
 static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -204,17 +218,12 @@ static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg
 
 static const char D_mist_shooting_gallery_8017D65C[];
 
-// Indexed views below share one contiguous table.
-extern GpObj4C D_mist_shooting_gallery_8018BDE8[28];
-extern GpObj4C D_mist_shooting_gallery_8018C638[21];
-extern GpRoomBoundVec D_mist_shooting_gallery_8018DFD4[19];
-
-void func_mist_shooting_gallery_8018055C(UiList *, UiObject *);
-void func_mist_shooting_gallery_80180728(Task *);
-void func_mist_shooting_gallery_80180A00(Task *);
-void func_mist_shooting_gallery_80180B64(Task *);
-void func_mist_shooting_gallery_80180F2C(Task *);
-void func_mist_shooting_gallery_801810D8(Task *);
+void func_mist_shooting_gallery_8018055C(UiList*, UiObject*);
+void func_mist_shooting_gallery_80180728(Task*);
+void func_mist_shooting_gallery_80180A00(Task*);
+void func_mist_shooting_gallery_80180B64(Task*);
+void func_mist_shooting_gallery_80180F2C(Task*);
+void func_mist_shooting_gallery_801810D8(Task*);
 
 extern const char D_mist_shooting_gallery_8017D86C[22];
 extern const char D_mist_shooting_gallery_8017D884[19];
@@ -248,19 +257,19 @@ extern const char D_mist_shooting_gallery_8017DA88[27];
 extern const char D_mist_shooting_gallery_8017DAA4[18];
 extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
-s32 func_mist_shooting_gallery_8017FEB0(Task *, s32, s32, s32);
-s32 func_mist_shooting_gallery_8017FEB8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_mist_shooting_gallery_80180000(Task *, s32, s32, GpMessageArg);
-s32 func_mist_shooting_gallery_8018008C(Task *, s32, GpMsg13EF *, GpMessageArg);
-void func_mist_shooting_gallery_8017E234(Task *);
-void func_mist_shooting_gallery_8017E854(Task *);
-void func_mist_shooting_gallery_8017EAE0(Task *);
-void func_mist_shooting_gallery_8017EC58(Task *);
-void func_mist_shooting_gallery_8017F128(Task *);
-void func_mist_shooting_gallery_8017F6C8(Task *);
-void func_mist_shooting_gallery_8017F98C(UiList *, UiObject *);
-void func_mist_shooting_gallery_8017FAE8(Task *);
-void func_mist_shooting_gallery_8017FDD0(Task *);
+s32               func_mist_shooting_gallery_8017FEB0(Task*, s32, s32, s32);
+s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, GpMessageArg);
+s32               func_mist_shooting_gallery_8018008C(Task*, s32, GpMsg13EF*, GpMessageArg);
+void              func_mist_shooting_gallery_8017E234(Task*);
+void              func_mist_shooting_gallery_8017E854(Task*);
+void              func_mist_shooting_gallery_8017EAE0(Task*);
+void              func_mist_shooting_gallery_8017EC58(Task*);
+void              func_mist_shooting_gallery_8017F128(Task*);
+void              func_mist_shooting_gallery_8017F6C8(Task*);
+void              func_mist_shooting_gallery_8017F98C(UiList*, UiObject*);
+void              func_mist_shooting_gallery_8017FAE8(Task*);
+void              func_mist_shooting_gallery_8017FDD0(Task*);
 
 static const char D_mist_shooting_gallery_8017D5E0[12];
 static const char D_mist_shooting_gallery_8017D5EC[16];
@@ -275,8 +284,8 @@ static const char D_mist_shooting_gallery_8017D63C[4];
 static const char D_mist_shooting_gallery_8017D640[8];
 static const char D_mist_shooting_gallery_8017D648[8];
 static const char D_mist_shooting_gallery_8017D650[12];
-void func_mist_shooting_gallery_8017DE7C(UiList *, UiObject *);
-void func_mist_shooting_gallery_8017E090(Task *);
+void              func_mist_shooting_gallery_8017DE7C(UiList*, UiObject*);
+void              func_mist_shooting_gallery_8017E090(Task*);
 
 char D_mist_shooting_gallery_80184DD4[80] = {
     82,
@@ -944,16 +953,9 @@ SVECTOR D_mist_shooting_gallery_80185550[45] = {
     { -390, -2770, 6800, 0 },
 };
 
-#define D_mist_shooting_gallery_80185570 (D_mist_shooting_gallery_80185550 + 4)
-#define D_mist_shooting_gallery_801855C0 (D_mist_shooting_gallery_80185550 + 14)
-#define D_mist_shooting_gallery_801855F0 (D_mist_shooting_gallery_80185550 + 20)
-#define D_mist_shooting_gallery_80185610 (D_mist_shooting_gallery_80185550 + 24)
-#define D_mist_shooting_gallery_80185670 (D_mist_shooting_gallery_80185550 + 36)
-#define D_mist_shooting_gallery_80185678 (D_mist_shooting_gallery_80185550 + 37)
-#define D_mist_shooting_gallery_80185680 (D_mist_shooting_gallery_80185550 + 38)
-#define D_mist_shooting_gallery_80185688 (D_mist_shooting_gallery_80185550 + 39)
-#define D_mist_shooting_gallery_80185690 (D_mist_shooting_gallery_80185550 + 40)
-#define D_mist_shooting_gallery_801856B0 (D_mist_shooting_gallery_80185550 + 44)
+static s32  func_mist_shooting_gallery_8017FA38(s32 score);
+static void func_mist_shooting_gallery_8017FC2C(Task* arg0);
+static void func_mist_shooting_gallery_8017FD40(Task* task);
 
 void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {

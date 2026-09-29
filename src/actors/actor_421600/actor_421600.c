@@ -1,52 +1,62 @@
-#include "common.h"
-#include "rooms/dryfield_water_tower.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80164954.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
+
+#include "rooms/dryfield_water_tower.h"
 
 /// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
 /// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
@@ -200,27 +210,27 @@ typedef struct Actor421600Work {
     /// `key` reads 0x100000, stopping at the first empty one. A cursor into
     /// the same run sits at 0xCE0, which `func_actor_421600_80134AD4` points at
     /// `field_CE4` itself.
-    /* 0xCE4 */ GpRec18           field_CE4[12];
-    /* 0xE04 */ MATRIX            field_E04;
-    /* 0xE24 */ MATRIX            field_E24;
-    /* 0xE44 */ byte              pad_E44[0x20];
-    /* 0xE64 */ s16               field_E64;
-    /* 0xE66 */ u16               field_E66;
-    /* 0xE68 */ byte              pad_E68[8];
-    /* 0xE70 */ s16               field_E70;
-    /* 0xE72 */ s16               field_E72;
-    /* 0xE74 */ s16               field_E74;
-    /* 0xE76 */ byte              pad_E76[2];
-    /* 0xE78 */ s16               field_E78;
-    /* 0xE7A */ byte              pad_E7A[2];
+    /* 0xCE4 */ GpRec18                 field_CE4[12];
+    /* 0xE04 */ MATRIX                  field_E04;
+    /* 0xE24 */ MATRIX                  field_E24;
+    /* 0xE44 */ byte                    pad_E44[0x20];
+    /* 0xE64 */ s16                     field_E64;
+    /* 0xE66 */ u16                     field_E66;
+    /* 0xE68 */ byte                    pad_E68[8];
+    /* 0xE70 */ s16                     field_E70;
+    /* 0xE72 */ s16                     field_E72;
+    /* 0xE74 */ s16                     field_E74;
+    /* 0xE76 */ byte                    pad_E76[2];
+    /* 0xE78 */ s16                     field_E78;
+    /* 0xE7A */ byte                    pad_E7A[2];
     /* 0xE7C */ Actor421600AnimCommand* field_E7C;
-    /* 0xE80 */ s32               field_E80;
-    /* 0xE84 */ s32               field_E84;
-    /* 0xE88 */ s32               field_E88;
-    /* 0xE8C */ s32               field_E8C;
-    /* 0xE90 */ Actor421600IdWord field_E90;
-    /* 0xE94 */ Task*             field_E94;
-    /* 0xE98 */ Task*             field_E98;
+    /* 0xE80 */ s32                     field_E80;
+    /* 0xE84 */ s32                     field_E84;
+    /* 0xE88 */ s32                     field_E88;
+    /* 0xE8C */ s32                     field_E8C;
+    /* 0xE90 */ Actor421600IdWord       field_E90;
+    /* 0xE94 */ Task*                   field_E94;
+    /* 0xE98 */ Task*                   field_E98;
     /// One-shot "already reported" latch `func_actor_421600_80132A00` clears
     /// and dispatches 0x3F1 to slot 3 on, the same handshake actor 00100 keeps
     /// at its own 0xE9C.
@@ -363,11 +373,11 @@ extern u8                  D_actor_421600_80151028[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpCmdArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32  (*call2)(Task*, s32, GpCmdArg*);
+        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
 } Actor421600MessageEntry;
@@ -447,11 +457,11 @@ typedef union {
     struct {
         GpAnimSet* front[5];
         GpAnimSet* back[5];
-        SVECTOR hitOffsets[12];
+        SVECTOR    hitOffsets[12];
     } data;
     Actor421600AnimCommand frontCommand;
     struct {
-        GpAnimSet* front[5];
+        GpAnimSet*             front[5];
         Actor421600AnimCommand command;
     } rear;
 } Actor421600ContactStorage;
@@ -460,14 +470,16 @@ STATIC_ASSERT(OFFSET_OF(Actor421600ContactStorage, rear.command) == 20, actor421
 STATIC_ASSERT(OFFSET_OF(Actor421600ContactStorage, data.hitOffsets) == 40, actor421600_hit_offsets_offset);
 extern Actor421600ContactStorage D_actor_421600_80151090;
 
-typedef struct { GpAnimSet* value; } Actor421600AnimWord;
+typedef struct {
+    GpAnimSet* value;
+} Actor421600AnimWord;
 
 // These bounded symbol views preserve the original independent address loads.
 extern Actor421600AnimCommand Actor421600FrontAnim __asm__("D_actor_421600_80151090");
 extern Actor421600AnimCommand Actor421600RearAnim __asm__("D_actor_421600_80151090+20");
-extern SVECTOR Actor421600HitOffsets[12] __asm__("D_actor_421600_80151090+40");
-extern Actor421600AnimWord Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
-extern Actor421600AnimWord Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
+extern SVECTOR                Actor421600HitOffsets[12] __asm__("D_actor_421600_80151090+40");
+extern Actor421600AnimWord    Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
+extern Actor421600AnimWord    Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
 
 static void func_actor_421600_8013E668(Task* task);
 static void func_actor_421600_8013E858(Task* arg0);
@@ -486,14 +498,14 @@ extern GpAnimSet D_actor_421600_8014D430;
 extern GpAnimSet D_actor_421600_8014D6E4;
 extern GpAnimSet D_actor_421600_8014DA04;
 extern TmdSource D_actor_421600_80143A54;
-s32 func_actor_421600_80132A00(Task *, s32, GpCmdArg *);
-s32 func_actor_421600_8013E42C(Task *, s32, s32);
-s32 func_actor_421600_8013E4EC(Task *);
-s32 func_actor_421600_8013E52C(Task *, s32, GpXformArg *);
-s32 func_actor_421600_8013E62C(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_421600_8013E654(Task *);
-static void func_actor_421600_8013EEC8(Task *);
-void func_actor_421600_8013E424(void);
+s32              func_actor_421600_80132A00(Task*, s32, GpCmdArg*);
+s32              func_actor_421600_8013E42C(Task*, s32, s32);
+s32              func_actor_421600_8013E4EC(Task*);
+s32              func_actor_421600_8013E52C(Task*, s32, GpXformArg*);
+s32              func_actor_421600_8013E62C(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_421600_8013E654(Task*);
+static void      func_actor_421600_8013EEC8(Task*);
+void             func_actor_421600_8013E424(void);
 
 GpU16Pair D_actor_421600_8013EF24[5] = {
     { 30, 0 },
@@ -1665,6 +1677,57 @@ SVECTOR D_actor_421600_80151260 = { 0 };
 
 s16 D_actor_421600_80151268 = 0;
 
+MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
+
+static __inline__ Actor421600UpdateScratch* Actor421600_AllocUpdateScratch(Actor421600UpdateScratch** head);
+static __inline__ s32                       Actor421600_HasPlayerContact(GpRec18* records);
+static void                                 func_actor_421600_80132004(GpCoord* coord, s16 yaw);
+static s32                                  func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32                                  func_actor_421600_8013285C(GpCoord* coord, GpRec18* movement, s16 arg2);
+static void                                 func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
+static s32                                  func_actor_421600_80133334(GpCoord* arg0);
+static void                                 func_actor_421600_80133444(GpCoord* arg0);
+static s32                                  func_actor_421600_801335BC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static void                                 func_actor_421600_80133B30(Task* arg0);
+static s32                                  func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work);
+static void                                 func_actor_421600_80134604(Task* arg0);
+static __inline__ void                      Actor421600_BindMatrices(Task* actor);
+static void                                 func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor);
+static void                                 func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2);
+static __inline__ s32                       Actor421600_FindDamageHit(GpRec18* records,
+                                                                      SVECTOR* pos);
+static void                                 func_actor_421600_801354D8(Task* arg0);
+static void                                 func_actor_421600_80135F6C(Task* arg0);
+static __inline__ s16                       Actor421600_Zone(GpCoord* coord);
+static void                                 func_actor_421600_80136138(Task* arg0);
+static __inline__ void                      Actor421600_ShrinkCoord(GpCoord* coord, s16 y);
+static void                                 func_actor_421600_801366F4(Task* arg0);
+static void                                 func_actor_421600_801369A0(Task* arg0);
+static __inline__ s16                       Actor421600_HasRecord10(Task* arg0);
+static void                                 func_actor_421600_80136C88(Task* arg0);
+static void                                 func_actor_421600_801373D4(Task* arg0);
+static void                                 func_actor_421600_8013848C(Task* arg0);
+static void                                 func_actor_421600_80138750(Task* arg0);
+static void                                 func_actor_421600_80138D24(Task* arg0);
+static void                                 func_actor_421600_8013903C(Task* arg0);
+static void                                 func_actor_421600_801392A8(Task* arg0);
+static void                                 func_actor_421600_8013947C(Task* arg0);
+static void                                 func_actor_421600_80139718(Task* arg0);
+static void                                 func_actor_421600_8013A404(Task* arg0);
+static void                                 func_actor_421600_8013A554(Task* arg0);
+static void                                 func_actor_421600_8013B00C(Task* arg0);
+static void                                 func_actor_421600_8013B4C4(Task* arg0);
+static void                                 func_actor_421600_8013B8E0(Task* arg0);
+static __inline__ s32                       Actor421600_RouteZone(s32 x, s32 z);
+static void                                 func_actor_421600_8013BA70(Task* arg0);
+static void                                 func_actor_421600_8013C8E0(Task* arg0);
+static void                                 func_actor_421600_8013CD3C(Task* arg0);
+static void                                 func_actor_421600_8013D1DC(Task* arg0);
+static void                                 func_actor_421600_8013D658(GpEnemy* enemy, Task* actor);
+static void                                 func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags);
+static void                                 func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
+static s8                                   func_actor_421600_8013E830(s32 arg0, s32 arg1);
+
 static __inline__ Actor421600UpdateScratch* Actor421600_AllocUpdateScratch(Actor421600UpdateScratch** head)
 {
     Actor421600UpdateScratch* p                     = SCRATCH_HEAD_AT(head, Actor421600UpdateScratch) - 1;
@@ -1682,8 +1745,6 @@ static __inline__ s32 Actor421600_HasPlayerContact(GpRec18* records)
     }
     return 0;
 }
-
-MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work

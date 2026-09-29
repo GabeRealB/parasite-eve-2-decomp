@@ -1,29 +1,31 @@
-#include "gameplay/animation.h"
-#include "actors/actor_511000.h"
-#include "common.h"
+#include "rooms/acropolis_helicopter_landing_pad.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_helicopter_landing_pad.h"
 
+#include "common.h"
+
+#include "acropolis_helicopter_landing_pad_private.h"
+
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
-
-extern GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3];
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that
@@ -50,10 +52,6 @@ STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 /// phase tick back from phase 2: `Gp_StateC08.field_A` while it equals 1, `gDisplayState.pendingMode`
 /// while it is non-zero.
 
-/// The `func_800E8634` script pair the phase tick starts on entering phase 2.
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80184124[];
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_801844B4[];
-
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
 /// Per-camera-view visibility table indexed by `(u8)gGameSession->at4.loc.view`:
@@ -64,10 +62,10 @@ extern GpXformArg D_acropolis_helicopter_landing_pad_80182394;
 extern GpXformArg D_acropolis_helicopter_landing_pad_801823AC;
 
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
-s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg * placement, s32 arg3);
+s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
 
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task *, s32, GpAnimArg *, GpMessageArg);
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task *, s32, GpXformArg *, s32);
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, GpAnimArg*, GpMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task*, s32, GpXformArg*, s32);
 
 GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
     { 2003, func_acropolis_helicopter_landing_pad_8017D824 },
@@ -115,6 +113,9 @@ TmdSource D_acropolis_helicopter_landing_pad_801836EC = {
     0, 6956, 0, 1,
     D_acropolis_helicopter_landing_pad_801823E8, D_acropolis_helicopter_landing_pad_801823EC, D_acropolis_helicopter_landing_pad_801829E4, D_acropolis_helicopter_landing_pad_801823C4, D_acropolis_helicopter_landing_pad_80182A3C,
 };
+
+static void func_acropolis_helicopter_landing_pad_8017D658(Task* task);
+static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task);
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
 /// into `Task::work`, marks the model (`field_E = 8`, clears bit 0x80 of

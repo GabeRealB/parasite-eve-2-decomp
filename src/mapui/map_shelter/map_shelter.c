@@ -1,3 +1,128 @@
+#include "mapui/map_shelter.h"
+
+#include <psyq/sys/types.h>
+
+#include "types.h"
+
+#include "actors/actor_503500.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/map.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_tasks.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/gameflag.h"
+#include "main/gfx_types.h"
+#include "main/session.h"
+#include "main/task_types.h"
+
+#include "mappic/mappic.h"
+
+#include "rooms/mine_cavern.h"
+
+#include "rooms/mine_forked_tunnel.h"
+
+#include "rooms/mine_gorge.h"
+
+#include "rooms/mine_mesa.h"
+
+#include "rooms/mine_refuge.h"
+
+#include "rooms/mine_secret_passage.h"
+
+#include "rooms/mine_tunnel.h"
+
+#include "rooms/mine_tunnel_entrance.h"
+
+#include "rooms/shelter_1f_heliport_s4.h"
+
+#include "rooms/shelter_b1_access_tunnel.h"
+
+#include "rooms/shelter_b1_armory.h"
+
+#include "rooms/shelter_b1_control_room.h"
+
+#include "rooms/shelter_b1_control_room_access_tunnel.h"
+
+#include "rooms/shelter_b1_elevator_hall.h"
+
+#include "rooms/shelter_b1_golem_freezer_1.h"
+
+#include "rooms/shelter_b1_main_corridor.h"
+
+#include "rooms/shelter_b1_north_maintenance_walkway.h"
+
+#include "rooms/shelter_b1_pod_access_tunnel.h"
+
+#include "rooms/shelter_b1_pod_service_gantry.h"
+
+#include "rooms/shelter_b1_sleeping_quarters.h"
+
+#include "rooms/shelter_b1_south_maintenance_walkway.h"
+
+#include "rooms/shelter_b1_sterilization_room.h"
+
+#include "rooms/shelter_b1_storeroom.h"
+
+#include "rooms/shelter_b1_transfer_tunnel.h"
+
+#include "rooms/shelter_b1_underground_parking.h"
+
+#include "rooms/shelter_b2_breeding_room.h"
+
+#include "rooms/shelter_b2_elevator.h"
+
+#include "rooms/shelter_b2_elevator_hall.h"
+
+#include "rooms/shelter_b2_laboratory.h"
+
+#include "rooms/shelter_b2_main_corridor.h"
+
+#include "rooms/shelter_b2_north_maintenance_walkway.h"
+
+#include "rooms/shelter_b2_operating_room.h"
+
+#include "rooms/shelter_b2_pod_access_tunnel.h"
+
+#include "rooms/shelter_b2_pod_bottom.h"
+
+#include "rooms/shelter_b2_septic_tank.h"
+
+#include "rooms/shelter_b2_south_maintenance_walkway.h"
+
+#include "rooms/shelter_b3_dumping_hole.h"
+
+#include "rooms/shelter_b3_elevator_hall.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
+
+#include "rooms/shelter_b3_incinerator_control_room.h"
+
+#include "rooms/shelter_b4_lower_sewer.h"
+
+#include "rooms/shelter_b4_reservoir.h"
+
+#include "rooms/shelter_b4_upper_sewer.h"
+
+#include "rooms/shelter_b4_water_supply.h"
+
+#include "rooms/shelter_r36.h"
+
+#include "rooms/shelter_r37.h"
+
+#include "rooms/shelter_r47.h"
+
+#include "rooms/shelter_r48.h"
+
+#include "rooms/shelter_r49.h"
+
 /* The Mesa, mine and Shelter stage's map UI overlay: a hook the stage's rooms
  * call at this map's slot address, and the per-stage tables gameplay and main
  * index by stage. Most point into the stage's room packages or at the map
@@ -5,32 +130,6 @@
  * coordinate and object records itself, and the flagged item and enemy
  * placement lists.
  */
-#include "common.h"
-
-#include "actors/actor.h"
-#include "mappic/mappic.h"
-#include "mapui/map_shelter.h"
-#include "mapui/mapui.h"
-#include "mapui/stage_tables.h"
-#include "rooms/room.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/area_flags.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
-#include "gameplay/map.h"
-#include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
-#include "gameplay/sprites.h"
-
-#include "gameplay/view.h"
-#include "main/gameflag.h"
-#include "main/gfx_types.h"
-#include "main/session.h"
-#include "main/task_types.h"
 
 /// The overlay's own flagged item and enemy placement lists, which the
 /// `GpBit2List` table names before they are defined.

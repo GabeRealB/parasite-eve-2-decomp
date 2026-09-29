@@ -1,23 +1,7 @@
-#ifndef PE_HEALING_H
-#define PE_HEALING_H
+#ifndef INCLUDE_PE_HEALING_H
+#define INCLUDE_PE_HEALING_H
 
 #include "main/task_types.h"
-
-#include "common.h"
-
-/// One 8-byte row of `D_healing_8012FC1C`, indexed by `GpEffWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`). `field_2` is the brightness cap state 1
-/// grows `GpEffWork.scale` toward (and the starting radius in
-/// `func_healing_8012F5E4`). `field_4` is the per-frame radius step and the
-/// yaw passed to `Gfx_RotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
-/// `Gp_SpawnEff` spawn arg and the radius at which state 1 advances to 2.
-typedef struct HealingScale {
-    /* 0x0 */ s16 unk0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} HealingScale;
-STATIC_ASSERT_SIZEOF(HealingScale, 8);
 
 void func_healing_8012F494(Task* arg0);
 
@@ -25,4 +9,4 @@ void func_healing_8012F5E4(Task* arg0);
 
 void func_healing_8012EF34(Task* arg0);
 
-#endif /* PE_HEALING_H */
+#endif // INCLUDE_PE_HEALING_H

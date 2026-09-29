@@ -1,30 +1,37 @@
-#include "common.h"
 #include "rooms/shelter_b1_control_room_access_tunnel.h"
-#include "mapui/map_shelter.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/room_common.h"
 
 /// The room's message table, installed on its task by state 0.
 extern GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
@@ -41,10 +48,10 @@ static void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s
 static void func_shelter_b1_control_room_access_tunnel_8017F22C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_control_room_access_tunnel_8017F8AC(GpCoord* arg0, s16 arg1, u8* arg2);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
     { 5102, func_shelter_b1_control_room_access_tunnel_8017D5EC },
@@ -73,6 +80,11 @@ SVECTOR D_shelter_b1_control_room_access_tunnel_80181EE4[2] = {
     { 0, 190, -15, 0 },
     { 0, 1085, 180, 0 },
 };
+
+static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task);
+static void func_shelter_b1_control_room_access_tunnel_8017D684(Task* task);
+static void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s16 arg1);
 
 s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {

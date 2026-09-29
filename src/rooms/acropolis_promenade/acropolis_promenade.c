@@ -1,59 +1,74 @@
-#include "common.h"
 #include "rooms/acropolis_promenade.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181d28.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/evs.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
+#include "main/stream_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_akropolis.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
+
+#define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
 
 /// Sign pair for one corner of the promenade's ground-glow quad
 /// (`func_acropolis_promenade_8017ED44`). The four entries of
@@ -73,8 +88,8 @@ typedef struct {
 } ApmPropWork;
 STATIC_ASSERT_SIZEOF(ApmPropWork, 0x4);
 
-extern GpEvsCmd D_acropolis_promenade_80180F00[];
-extern GpEvsCmd D_acropolis_promenade_80181068[];
+extern GpEvsCmd     D_acropolis_promenade_80180F00[];
+extern GpEvsCmd     D_acropolis_promenade_80181068[];
 extern s32          D_acropolis_promenade_80181140;
 extern s32          D_acropolis_promenade_80181144;
 extern RoomEventMsg D_acropolis_promenade_801862D0;
@@ -86,9 +101,9 @@ extern Task*        D_acropolis_promenade_801862D8;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpMessageArg, GpMessageArg);
-        s32 (*call1)(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-        s32 (*call2)(Task *, s32, s32, GpMessageArg);
+        s32  (*call0)(Task*, s32, GpMessageArg, GpMessageArg);
+        s32  (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+        s32  (*call2)(Task*, s32, s32, GpMessageArg);
         void (*call3)(void);
     } handler;
 } AcropolisPromenadeMsgEntry;
@@ -104,45 +119,45 @@ extern TaskDesc D_acropolis_promenade_80181148[];
 /// Per-frame path the promenade's streamed scene walks the player's matrix
 /// along, indexed backwards by `0x45 - CdCmd_Queue.field_1EA`, plus the script
 /// pair the scene runs.
-extern SVECTOR D_acropolis_promenade_80181184[];
+extern SVECTOR     D_acropolis_promenade_80181184[];
 extern GpScriptCmd D_acropolis_promenade_80186224[6];
 extern GpScriptRec D_acropolis_promenade_8018623C[2];
 
 extern ApmGlowCorner D_acropolis_promenade_80181AE4[];
 
-extern u16     D_acropolis_promenade_80181B74;
-extern u16     D_acropolis_promenade_80181B76;
-extern u16     D_acropolis_promenade_80181B78[];
+extern u16 D_acropolis_promenade_80181B74;
+extern u16 D_acropolis_promenade_80181B76;
+extern u16 D_acropolis_promenade_80181B78[];
 
 static void func_acropolis_promenade_8017D9E0(Task* arg0);
 static void func_acropolis_promenade_8017DAA4(Task* task);
 static void func_acropolis_promenade_8017DB48(Task* task);
 static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_acropolis_promenade_8017DB9C(Task *);
-void func_acropolis_promenade_8017DF74(Task *);
-void func_acropolis_promenade_8017DFD4(Task *);
+void func_acropolis_promenade_8017DB9C(Task*);
+void func_acropolis_promenade_8017DF74(Task*);
+void func_acropolis_promenade_8017DFD4(Task*);
 
-extern GpGridParams D_acropolis_promenade_801823DC[1];
-extern GpGridParams D_acropolis_promenade_80182BD0[1];
-extern GpObj4C D_acropolis_promenade_80182BF4[6];
-extern GpObj4C D_acropolis_promenade_80182DBC[6];
+extern GpGridParams   D_acropolis_promenade_801823DC[1];
+extern GpGridParams   D_acropolis_promenade_80182BD0[1];
+extern GpObj4C        D_acropolis_promenade_80182BF4[6];
+extern GpObj4C        D_acropolis_promenade_80182DBC[6];
 extern GpRoomCoordSet D_acropolis_promenade_80183A08[1];
 
 extern GpAnimArg D_acropolis_promenade_80180EBC;
 
-extern GpSprtCmd D_acropolis_promenade_80183A20[2];
-extern GpSprtCmd D_acropolis_promenade_80183FF8[11];
-extern GpSprtCmd D_acropolis_promenade_801841A4[5];
-extern GpSprtCmd D_acropolis_promenade_8018462C[9];
-extern GpSprtCmd D_acropolis_promenade_80184CF0[9];
-extern GpSprtCmd D_acropolis_promenade_80185224[9];
-extern GpSprtCmd D_acropolis_promenade_801854EC[8];
-extern GpSprtCmd D_acropolis_promenade_801858C4[9];
-extern GpSprtCmd D_acropolis_promenade_80185F24[10];
-extern GpSprtCmd D_acropolis_promenade_80185F74[2];
-extern GpSprtCmd D_acropolis_promenade_80185F84[2];
-extern GpSprtCmd D_acropolis_promenade_80185F94[2];
+extern GpSprtCmd  D_acropolis_promenade_80183A20[2];
+extern GpSprtCmd  D_acropolis_promenade_80183FF8[11];
+extern GpSprtCmd  D_acropolis_promenade_801841A4[5];
+extern GpSprtCmd  D_acropolis_promenade_8018462C[9];
+extern GpSprtCmd  D_acropolis_promenade_80184CF0[9];
+extern GpSprtCmd  D_acropolis_promenade_80185224[9];
+extern GpSprtCmd  D_acropolis_promenade_801854EC[8];
+extern GpSprtCmd  D_acropolis_promenade_801858C4[9];
+extern GpSprtCmd  D_acropolis_promenade_80185F24[10];
+extern GpSprtCmd  D_acropolis_promenade_80185F74[2];
+extern GpSprtCmd  D_acropolis_promenade_80185F84[2];
+extern GpSprtCmd  D_acropolis_promenade_80185F94[2];
 extern GpSprtElem D_acropolis_promenade_80183A30[74];
 extern GpSprtElem D_acropolis_promenade_80184050[17];
 extern GpSprtElem D_acropolis_promenade_801841CC[56];
@@ -151,12 +166,12 @@ extern GpSprtElem D_acropolis_promenade_80184D38[63];
 extern GpSprtElem D_acropolis_promenade_8018526C[32];
 extern GpSprtElem D_acropolis_promenade_8018552C[46];
 extern GpSprtElem D_acropolis_promenade_8018590C[78];
-s32 func_acropolis_promenade_8017D70C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_promenade_8017D8D8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_promenade_8017D8E0(Task *, s32, s32, GpMessageArg);
-s32 func_acropolis_promenade_8017D938(Task *, s32, s32, GpMessageArg);
-void func_acropolis_promenade_8017D930(void);
-void func_acropolis_promenade_8017D988(Task *);
+s32               func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32               func_acropolis_promenade_8017D8D8(Task*, s32, GpMessageArg, GpMessageArg);
+s32               func_acropolis_promenade_8017D8E0(Task*, s32, s32, GpMessageArg);
+s32               func_acropolis_promenade_8017D938(Task*, s32, s32, GpMessageArg);
+void              func_acropolis_promenade_8017D930(void);
+void              func_acropolis_promenade_8017D988(Task*);
 
 TmdBone D_acropolis_promenade_8017FE04[1] = {
 #include "assets/acropolis_promenade_model_03890_skeleton.inc"
@@ -577,8 +592,6 @@ SVECTOR D_acropolis_promenade_80181B14[12] = {
     { -2150, -360, 8460, 0 },
     { -3400, -370, 2300, 0 },
 };
-
-#define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
 
 u16 D_acropolis_promenade_80181B74 = 32;
 
@@ -2199,6 +2212,8 @@ GpRoomParamRec * D_acropolis_promenade_801862B0[8] = {
 RoomEventMsg D_acropolis_promenade_801862D0 = { 0 };
 
 Task * D_acropolis_promenade_801862D8 = NULL;
+
+static void func_acropolis_promenade_8017D5E4(Task* task);
 
 /// Per-frame state of the room task. The first frame the session's warp is 4
 /// it spawns the streamed-scene task (entry 2 of the task table), once. While

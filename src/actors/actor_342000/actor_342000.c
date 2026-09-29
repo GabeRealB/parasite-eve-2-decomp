@@ -1,47 +1,53 @@
-#include "actors/actor_444000.h"
-#include "rooms/shelter_b3_garbage_incinerator.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
 
+#include "actors/actor_444000.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 /// Per-instance work block for the overlay's model actor.
 ///
@@ -163,9 +169,9 @@ extern GpXformArg D_actor_342000_80164948;
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpCmdArg *, GpXformArg *);
-        void (*call1)(Task *, s32, GpXformArg *);
-        void (*call2)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpCmdArg*, GpXformArg*);
+        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, s32);
     } handler;
 } Actor342000MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor342000MessageEntry, 8);
@@ -179,15 +185,15 @@ extern s16 D_actor_342000_80164810[];
 /// Per-`spawnArg1` translation seeds for the child model's part coordinate.
 extern SVECTOR D_actor_342000_80164900[];
 
-void func_actor_342000_8016201C(Task *);
-void func_actor_342000_801625D8(Task *);
-void func_actor_342000_801628C8(Task *);
-void func_actor_342000_8016382C(Task *);
-void func_actor_342000_80163EAC(Task *);
-void func_actor_342000_80163FB8(Task *, s32, s32);
-void func_actor_342000_80164034(Task *, s32, GpXformArg *);
-void func_actor_342000_801640C0(Task *, s32, GpXformArg *);
-void func_actor_342000_80164110(Task *, s32, GpCmdArg *, GpXformArg *);
+void func_actor_342000_8016201C(Task*);
+void func_actor_342000_801625D8(Task*);
+void func_actor_342000_801628C8(Task*);
+void func_actor_342000_8016382C(Task*);
+void func_actor_342000_80163EAC(Task*);
+void func_actor_342000_80163FB8(Task*, s32, s32);
+void func_actor_342000_80164034(Task*, s32, GpXformArg*);
+void func_actor_342000_801640C0(Task*, s32, GpXformArg*);
+void func_actor_342000_80164110(Task*, s32, GpCmdArg*, GpXformArg*);
 void func_actor_342000_80164154(void);
 void func_actor_342000_801641B4(void);
 void func_actor_342000_801641FC(void);
@@ -390,6 +396,59 @@ TaskDesc D_actor_342000_80164FF8[10] = {
 
 Task * D_actor_342000_80165070 = NULL;
 
+static void func_actor_342000_80163F88(Task* arg0);
+
+extern GpAnimSet* D_actor_342000_801647F8[];
+
+extern GpAnimSet* D_actor_342000_80164800[];
+
+extern GpAnimSet* D_actor_342000_80164808[];
+
+extern Actor342000MessageEntry D_actor_342000_801648E8[3];
+
+/// Animation payload of the 0x3F4 messages sent to the slot-3 task.
+extern GpAnimSet* D_actor_342000_801647E8[4];
+
+/// Placement sent as message 0x3E9 by sequence step 1.
+extern GpXformArg D_actor_342000_80164930;
+
+extern GpXformArg D_actor_342000_80164818[2];
+
+extern GpXformArg D_actor_342000_80164848[2];
+
+extern GpXformArg D_actor_342000_80164878[2];
+
+extern GpXformArg D_actor_342000_801648D0;
+
+extern s32 D_80144A74;
+
+extern s32 D_80144A7C;
+
+void func_80143490(s32 arg0);
+
+/// Spawn table of the event task's children: entry 2 is the script parent,
+/// 3..7 its five script tasks and 8/9 the two effect actors.
+extern TaskDesc D_actor_342000_80164FF8[];
+
+extern GpEvsCmd D_actor_342000_80164968[];
+
+extern GpEvsCmd D_actor_342000_80164E30[];
+
+static s32         func_actor_342000_80161EA4(Task* arg0, u16 arg1);
+static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w);
+static void        func_actor_342000_80162158(Task* arg0);
+static void        func_actor_342000_80162BBC(Task* arg0);
+static inline void Actor342000_CopyMove(GpXformArg* dst, GpXformArg* src);
+static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n);
+static inline s32  Actor342000_Sway(s32 x, s32 d);
+static inline void Actor342000_Add(long* value, s32 delta);
+static inline void Actor342000_Store(long* dst, s32 value);
+static void        func_actor_342000_80162F28(Task* arg0);
+static inline void Actor342000_KillFx(void);
+static inline void Actor342000_SetAction(s16 arg0);
+static inline void Actor342000_SetMode(s16 arg0);
+static inline void Actor342000_EnterArea(void);
+
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0 is
 /// skipped for the eight-slot actor). If every one of them then has
 /// `GpAnimSlot.flags` bit 0x100 set, passes them the
@@ -473,12 +532,6 @@ void func_actor_342000_8016201C(Task* arg0)
     pos.vz = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
-
-static void       func_actor_342000_80163F88(Task* arg0);
-extern GpAnimSet* D_actor_342000_801647F8[];
-extern GpAnimSet* D_actor_342000_80164800[];
-extern GpAnimSet* D_actor_342000_80164808[];
-extern Actor342000MessageEntry D_actor_342000_801648E8[3];
 
 /// Parents the work block's own coordinate to `Actor342000Work::field_2A4`,
 /// hangs the model's part coordinate off it and resets it to an identity
@@ -695,12 +748,6 @@ void func_actor_342000_801628C8(Task* arg0)
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// base weapon id, `Mc_SaveData[0].state.characterId` selects the alternate animation block.
 
-/// Animation payload of the 0x3F4 messages sent to the slot-3 task.
-extern GpAnimSet* D_actor_342000_801647E8[4];
-
-/// Placement sent as message 0x3E9 by sequence step 1.
-extern GpXformArg D_actor_342000_80164930;
-
 /// Per-tick sequence driver of the event task: raises 0x3ED on `field_48`,
 /// then runs the one-shot step latched in `field_68` (warps, animation
 /// changes for the slot-3 task, the step-2 wait on 0x3F0 plus an 11-tick
@@ -819,15 +866,6 @@ static void func_actor_342000_80162BBC(Task* arg0)
     }
     work->field_68 = 0;
 }
-
-extern GpXformArg D_actor_342000_80164818[2];
-extern GpXformArg D_actor_342000_80164848[2];
-extern GpXformArg D_actor_342000_80164878[2];
-extern GpXformArg D_actor_342000_801648D0;
-extern s32        D_80144A74;
-extern s32        D_80144A7C;
-
-void func_80143490(s32 arg0);
 
 static inline void Actor342000_CopyMove(GpXformArg* dst, GpXformArg* src)
 {
@@ -1026,13 +1064,6 @@ static void func_actor_342000_80162F28(Task* arg0)
     }
     work->field_70 = 0;
 }
-
-/// Spawn table of the event task's children: entry 2 is the script parent,
-/// 3..7 its five script tasks and 8/9 the two effect actors.
-extern TaskDesc D_actor_342000_80164FF8[];
-
-extern GpEvsCmd D_actor_342000_80164968[];
-extern GpEvsCmd D_actor_342000_80164E30[];
 
 /// The event task's leaf steps, inlined here; `actor_342000_3.c` carries the
 /// same bodies as out-of-line functions (`func_actor_342000_801641FC`,

@@ -1,33 +1,64 @@
-#ifndef ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H
-#define ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H
+#ifndef INCLUDE_ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H
+#define INCLUDE_ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-#include "common.h"
+extern GpAreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12];
 
-#include <psyq/libgte.h>
+// shelter_b1_north_maintenance_walkway
+extern u8* D_shelter_b1_north_maintenance_walkway_80184B80[];
 
-/// Queues a grey gouraud glow spanning the projected points `arg0[0]` and
-/// `arg0[1]`, of radius `arg1` turned by the angle `arg2`.
-void func_shelter_b1_north_maintenance_walkway_8017DDE0(SVECTOR* arg0, s32 arg1, s32 arg2);
+extern GpViewCountRec D_shelter_b1_north_maintenance_walkway_80184B84[];
 
-/// Queues a red gouraud disc at the projected point `arg0`, of radius `arg1`.
-void func_shelter_b1_north_maintenance_walkway_8017E55C(SVECTOR* arg0, s16 arg1);
+extern GpWarpRec D_shelter_b1_north_maintenance_walkway_80184B88[];
+
+extern GpGridParams D_shelter_b1_north_maintenance_walkway_80184F40;
+
+extern GpViewRec D_shelter_b1_north_maintenance_walkway_80184F64[];
+
+extern GpSprtRec D_shelter_b1_north_maintenance_walkway_801853AC[];
+
+extern GpRoomCoordSet D_shelter_b1_north_maintenance_walkway_801855D4;
+
+extern GpObj4A D_shelter_b1_north_maintenance_walkway_801855EC[];
+
+extern GpObj3A D_shelter_b1_north_maintenance_walkway_801857B4[];
+
+extern GpObj4A D_shelter_b1_north_maintenance_walkway_80185A98[];
+
+extern GpRoomParamRec* D_shelter_b1_north_maintenance_walkway_80185B4C[];
+
+void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task);
 
 void func_shelter_b1_north_maintenance_walkway_8017E8B8(Task* task);
+
 void func_shelter_b1_north_maintenance_walkway_80180EDC(Task* arg0);
+
 void func_shelter_b1_north_maintenance_walkway_80181940(Task* task);
+
 void func_shelter_b1_north_maintenance_walkway_80182228(Task* task);
+
 void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0);
+
 void func_shelter_b1_north_maintenance_walkway_801833C8(Task* task);
+
 void func_shelter_b1_north_maintenance_walkway_80184028(Task* arg0);
+
 void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0);
+
 void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0);
+
 void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0);
-extern GpAreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12];
 
 void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0);
 
-#endif // ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H
+#endif // INCLUDE_ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H

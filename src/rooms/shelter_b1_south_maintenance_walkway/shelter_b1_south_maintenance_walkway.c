@@ -1,50 +1,60 @@
-#include "common.h"
 #include "rooms/shelter_b1_south_maintenance_walkway.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -70,7 +80,7 @@ extern SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[];
 extern RoomHaloShade D_shelter_b1_south_maintenance_walkway_801823E8[];
 
 /// Spawn payload of the task 0x31 the event task may start.
-extern RoomFadeStorage       D_shelter_b1_south_maintenance_walkway_80183634;
+extern RoomFadeStorage  D_shelter_b1_south_maintenance_walkway_80183634;
 extern RoomEventMsg     D_shelter_b1_south_maintenance_walkway_8018363C;
 extern RoomLatchedEvent D_shelter_b1_south_maintenance_walkway_80183648;
 
@@ -86,16 +96,16 @@ static void func_shelter_b1_south_maintenance_walkway_80181518(GpCoord* arg0, s3
 static void func_shelter_b1_south_maintenance_walkway_80181A58(GpCoord* coord, s16 size);
 static void func_shelter_b1_south_maintenance_walkway_80181F84(GpCoord* arg0, s32 arg1);
 
-extern GpGridParams D_shelter_b1_south_maintenance_walkway_801827B8[1];
-extern GpObj3A D_shelter_b1_south_maintenance_walkway_80183274[1];
-extern GpObj4C D_shelter_b1_south_maintenance_walkway_801830AC[6];
-extern GpObj4C D_shelter_b1_south_maintenance_walkway_801832B0[2];
+extern GpGridParams   D_shelter_b1_south_maintenance_walkway_801827B8[1];
+extern GpObj3A        D_shelter_b1_south_maintenance_walkway_80183274[1];
+extern GpObj4C        D_shelter_b1_south_maintenance_walkway_801830AC[6];
+extern GpObj4C        D_shelter_b1_south_maintenance_walkway_801832B0[2];
 extern GpRoomCoordSet D_shelter_b1_south_maintenance_walkway_80183094[1];
-s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_b1_south_maintenance_walkway_8017D5F8(Task *);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, GpMessageArg, GpMessageArg);
+void                  func_shelter_b1_south_maintenance_walkway_8017D5F8(Task*);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { 0, 32, func_shelter_b1_south_maintenance_walkway_8017D5F8, { .model = NULL } };
 
@@ -610,6 +620,11 @@ s8 D_shelter_b1_south_maintenance_walkway_80183644[4] = {
 };
 
 RoomLatchedEvent D_shelter_b1_south_maintenance_walkway_80183648 = { 0 };
+
+static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
+    RoomEventMsg* dst, RoomLatchedEvent* event);
+static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task);
+static void func_shelter_b1_south_maintenance_walkway_8017DA2C(Task* task);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless

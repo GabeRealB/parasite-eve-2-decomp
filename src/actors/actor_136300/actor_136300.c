@@ -1,39 +1,45 @@
-#include "gameplay/evs.h"
-#include "rooms/dryfield_night_garage.h"
-#include "gameplay/scene_runtime.h"
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "actors/actor.h"
 
+#include "common.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
 #include "gameplay/ending.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/dryfield_night_garage.h"
 
 // Retained task-shaped record; preserve the callback's actual ABI.
 typedef struct {
-    u16 flags;
-    u16 priority;
-    void (*callback)(GpEnemy*, Task*);
+    u16   flags;
+    u16   priority;
+    void  (*callback)(GpEnemy*, Task*);
     void* arg;
 } Actor136300RetainedTaskSeed;
 STATIC_ASSERT_SIZEOF(Actor136300RetainedTaskSeed, 12);
@@ -44,7 +50,7 @@ extern Actor136300RetainedTaskSeed D_actor_136300_8013B11C;
 typedef union {
     struct {
         GpAnimSet* sets[15];
-        GpAnimArg arguments[4];
+        GpAnimArg  arguments[4];
     } data;
     s32 words[35];
 } Actor136300AnimCopyB140;
@@ -55,7 +61,7 @@ extern Actor136300AnimCopyB140 D_actor_136300_8013B140;
 typedef union {
     struct {
         GpAnimSet* sets[26];
-        GpAnimArg arguments[2];
+        GpAnimArg  arguments[2];
     } data;
     s32 words[36];
 } Actor136300AnimCopyB2A8;
@@ -93,7 +99,7 @@ extern OverlayWaveCtx D_actor_136300_8013C99C;
 /// Spawn table of the screen-wave task.
 extern TaskDesc D_actor_136300_80132AC4[];
 
-void func_actor_136300_80131E40(Task *);
+void func_actor_136300_80131E40(Task*);
 
 extern GpAnimSet D_actor_136300_80132D34;
 extern GpAnimSet D_actor_136300_80132F0C;
@@ -110,46 +116,46 @@ extern GpAnimSet D_actor_136300_80135508;
 extern GpAnimSet D_actor_136300_80135818;
 extern GpAnimSet D_actor_136300_80135E94;
 extern GpAnimSet D_actor_136300_80136478;
-void func_actor_136300_8013267C(Task *);
-void func_actor_136300_80132854(Task *);
+void             func_actor_136300_8013267C(Task*);
+void             func_actor_136300_80132854(Task*);
 
 extern Actor136300AnimCopyB140 D_actor_136300_8013B140;
-extern GpAnimArg D_actor_136300_8013B1CC;
-extern GpAnimArg D_actor_136300_8013B1E0;
-extern GpAnimArg D_actor_136300_8013B1F4;
-extern GpAnimSet D_actor_136300_8013677C;
-extern GpAnimSet D_actor_136300_80136980;
-extern GpAnimSet D_actor_136300_80136C60;
-extern GpAnimSet D_actor_136300_80136E58;
-extern GpAnimSet D_actor_136300_801371AC;
-extern GpAnimSet D_actor_136300_801373A4;
-extern GpAnimSet D_actor_136300_80137568;
-extern GpAnimSet D_actor_136300_80137828;
-extern GpAnimSet D_actor_136300_801379EC;
-extern GpAnimSet D_actor_136300_80137DA4;
-extern GpAnimSet D_actor_136300_801380D0;
-extern GpAnimSet D_actor_136300_80138388;
-extern GpAnimSet D_actor_136300_80138518;
-extern GpAnimSet D_actor_136300_801387D8;
-extern GpAnimSet D_actor_136300_80138BAC;
-extern GpAnimSet D_actor_136300_80138F9C;
-extern GpAnimSet D_actor_136300_80139308;
-extern GpAnimSet D_actor_136300_80139A04;
-extern GpAnimSet D_actor_136300_80139C7C;
-extern GpAnimSet D_actor_136300_8013A0D0;
-extern GpAnimSet D_actor_136300_8013A364;
-extern GpAnimSet D_actor_136300_8013A6CC;
-extern GpAnimSet D_actor_136300_8013A8A4;
-extern GpAnimSet D_actor_136300_8013ABBC;
-extern GpAnimSet D_actor_136300_8013ADB8;
-extern GpAnimSet D_actor_136300_8013B0F4;
-void func_actor_136300_801328D4(s8);
-void func_actor_136300_801328E0(s32);
-void func_actor_136300_80132910(s32);
-void func_actor_136300_80132998(void);
-void func_actor_136300_801329EC(void);
-void func_actor_136300_80132A4C(s32);
-void func_actor_136300_80132A7C(s32);
+extern GpAnimArg               D_actor_136300_8013B1CC;
+extern GpAnimArg               D_actor_136300_8013B1E0;
+extern GpAnimArg               D_actor_136300_8013B1F4;
+extern GpAnimSet               D_actor_136300_8013677C;
+extern GpAnimSet               D_actor_136300_80136980;
+extern GpAnimSet               D_actor_136300_80136C60;
+extern GpAnimSet               D_actor_136300_80136E58;
+extern GpAnimSet               D_actor_136300_801371AC;
+extern GpAnimSet               D_actor_136300_801373A4;
+extern GpAnimSet               D_actor_136300_80137568;
+extern GpAnimSet               D_actor_136300_80137828;
+extern GpAnimSet               D_actor_136300_801379EC;
+extern GpAnimSet               D_actor_136300_80137DA4;
+extern GpAnimSet               D_actor_136300_801380D0;
+extern GpAnimSet               D_actor_136300_80138388;
+extern GpAnimSet               D_actor_136300_80138518;
+extern GpAnimSet               D_actor_136300_801387D8;
+extern GpAnimSet               D_actor_136300_80138BAC;
+extern GpAnimSet               D_actor_136300_80138F9C;
+extern GpAnimSet               D_actor_136300_80139308;
+extern GpAnimSet               D_actor_136300_80139A04;
+extern GpAnimSet               D_actor_136300_80139C7C;
+extern GpAnimSet               D_actor_136300_8013A0D0;
+extern GpAnimSet               D_actor_136300_8013A364;
+extern GpAnimSet               D_actor_136300_8013A6CC;
+extern GpAnimSet               D_actor_136300_8013A8A4;
+extern GpAnimSet               D_actor_136300_8013ABBC;
+extern GpAnimSet               D_actor_136300_8013ADB8;
+extern GpAnimSet               D_actor_136300_8013B0F4;
+void                           func_actor_136300_801328D4(s8);
+void                           func_actor_136300_801328E0(s32);
+void                           func_actor_136300_80132910(s32);
+void                           func_actor_136300_80132998(void);
+void                           func_actor_136300_801329EC(void);
+void                           func_actor_136300_80132A4C(s32);
+void                           func_actor_136300_80132A7C(s32);
 
 void func_actor_136300_801328E0(s32);
 void func_actor_136300_80132910(s32);

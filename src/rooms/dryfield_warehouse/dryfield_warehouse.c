@@ -1,32 +1,29 @@
-#include "dryfield_warehouse_private.h"
-
-#include "common.h"
-
 #include "rooms/dryfield_warehouse.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/world_collision.h"
-
-#include "gameplay/collision.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "types.h"
+
+#include "dryfield_warehouse_private.h"
+
 #include "gameplay/area.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_collision.h"
 
-extern GpMsgEntry D_dryfield_warehouse_8017F554[];
-extern TaskDesc   D_dryfield_warehouse_8017F56C[];
+#include "main/coord.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
 
 /// Cutscene task spawned by state 0, polled by `Task_PollKill` in state 1 and
 /// killed along with its parent in state 2.
@@ -36,15 +33,6 @@ extern Task* D_dryfield_warehouse_801821B4;
 /// playing. Written by `func_dryfield_warehouse_8017D5E8` and cleared by state 0
 /// of the same task.
 extern s32 D_dryfield_warehouse_801821B8;
-
-extern GpSprtCmd D_dryfield_warehouse_801811A0[2];
-extern GpSprtCmd D_dryfield_warehouse_80181354[6];
-extern GpSprtCmd D_dryfield_warehouse_80181578[6];
-extern GpSprtCmd D_dryfield_warehouse_801815D0[3];
-extern GpSprtCmd D_dryfield_warehouse_801815E8[2];
-extern GpSprtElem D_dryfield_warehouse_801811B0[21];
-extern GpSprtElem D_dryfield_warehouse_80181384[25];
-extern GpSprtElem D_dryfield_warehouse_801815A8[2];
 
 GpSprtCmd D_dryfield_warehouse_801815F8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
@@ -171,6 +159,9 @@ Task * D_dryfield_warehouse_801821BC = NULL;
 Task * D_dryfield_warehouse_801821C0 = NULL;
 
 s16 D_dryfield_warehouse_801821C4 = 0;
+
+static void func_dryfield_warehouse_8017D99C(Task* arg0);
+static void func_dryfield_warehouse_8017D9F8(Task* task);
 
 /// Warehouse ambience: state 0 clears the recorded volume and advances, state 1
 /// maps `gGameSession->at4.loc.view` (the area id) to a target volume - 0x32/0x3C/0x64

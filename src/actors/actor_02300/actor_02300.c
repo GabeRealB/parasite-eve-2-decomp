@@ -1,49 +1,48 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/abs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/gtemac.h>
 
-#include "decomp/common.h"
+#include "common.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
 /// First frame of each animation, indexed by `Actor105600Work::field_694`;
 /// the state handlers offset it to get the frames their cues fire on.
@@ -56,7 +55,7 @@ extern GpU16Pair Actor02300_D159C4[5];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s32 value;
-    u8 retained[4];
+    u8  retained[4];
 } Actor02300Storage7918;
 STATIC_ASSERT_SIZEOF(Actor02300Storage7918, 8);
 
@@ -124,23 +123,23 @@ extern GpAnimSet Actor02300_D1599C;
 extern TmdSource Actor02300_D08E50;
 extern TmdSource Actor02300_D09394;
 extern TmdSource Actor02300_D096BC;
-void Actor02300_Fn00AEC(Task *);
-void Actor02300_Fn00E0C(Task *);
-void Actor02300_Fn011E8(Task *);
-void Actor02300_Fn012E0(Task *);
-void Actor02300_Fn01DF0(Task *);
-void Actor02300_Fn02290(Task *);
-void Actor02300_Fn02518(Task *);
-void Actor02300_Fn0327C(Task *);
-void Actor02300_Fn03828(Task *);
-void Actor02300_Fn03908(Task *);
-void Actor02300_Fn03994(Task *);
-void Actor02300_Fn03A5C(Task *);
-void Actor02300_Fn03AE8(Task *);
-void Actor02300_Fn03BA0(Task *);
-void Actor02300_Fn03BA8(Task *);
-void Actor02300_Fn03CE8(Task *);
-void Actor02300_Fn03EE8(Task *);
+void             Actor02300_Fn00AEC(Task*);
+void             Actor02300_Fn00E0C(Task*);
+void             Actor02300_Fn011E8(Task*);
+void             Actor02300_Fn012E0(Task*);
+void             Actor02300_Fn01DF0(Task*);
+void             Actor02300_Fn02290(Task*);
+void             Actor02300_Fn02518(Task*);
+void             Actor02300_Fn0327C(Task*);
+void             Actor02300_Fn03828(Task*);
+void             Actor02300_Fn03908(Task*);
+void             Actor02300_Fn03994(Task*);
+void             Actor02300_Fn03A5C(Task*);
+void             Actor02300_Fn03AE8(Task*);
+void             Actor02300_Fn03BA0(Task*);
+void             Actor02300_Fn03BA8(Task*);
+void             Actor02300_Fn03CE8(Task*);
+void             Actor02300_Fn03EE8(Task*);
 
 s16 Actor02300_D03F44[32] = {
     0,
@@ -1210,6 +1209,19 @@ TaskFunc Actor02300_D15D38[15] = {
     Actor02300_Fn012E0,
     Actor02300_Fn03AE8,
 };
+
+static __inline__ void Actor02300_SpawnDust(Task* actor);
+static void            Actor02300_Fn00084(Task* arg0);
+static void            Actor02300_Fn0150C(Task* arg0);
+static void            Actor02300_Fn01698(Task* arg0);
+static void            Actor02300_Fn018A4(Task* arg0);
+static void            Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1);
+static void            Actor02300_Fn028AC(GpEnemy* enemy, Task* actor);
+static inline void     _actor02300ApplyReaction(Task* actor);
+static inline void     _actor02300StepRoot(Task* actor);
+static inline void     _actor02300TickAnim(Task* actor);
+static inline void     _actor02300Draw(Task* actor, GpCoord* coord);
+static void            Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor);
 
 /// Dust puff of the per-frame state: every third call spawns a spark effect at
 /// part 3 with a random upward offset, out of an 8-byte `G_SCRATCH_HEAD` block.

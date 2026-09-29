@@ -1,53 +1,48 @@
-#ifndef ROOMS_DRYFIELD_NIGHT_GAS_STATION_H
-#define ROOMS_DRYFIELD_NIGHT_GAS_STATION_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_NIGHT_GAS_STATION_H
+#define INCLUDE_ROOMS_DRYFIELD_NIGHT_GAS_STATION_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
-#include "main/ui_types.h"
 
-/// The block the room's effect task carries as its `spawnArg2`.
-/// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands
-/// `Gp_SpawnEff` in `pos`, sets `active` once game flag nibble 0x63 has been
-/// seen clear, and stores the per-anchor effect roll in `kind`. The bytes
-/// around those fields are not reached here.
-typedef struct DryfieldNightGasStationEffWork {
-    byte    pad_0[0x10];
-    SVECTOR pos;
-    byte    pad_18[0xC];
-    s16     active;
-    s16     kind;
-} DryfieldNightGasStationEffWork;
+extern GpAreaVariant D_dryfield_night_gas_station_80190624[12];
 
-/// The room's task descriptor table; its spawners pick an entry by index.
-extern TaskDesc D_dryfield_night_gas_station_801888A0[];
+// dryfield_night_gas_station
+extern GpRoomCoordRec D_dryfield_night_gas_station_80189DB0[];
 
-/// Handle of the task spawned from entry 0 of `D_dryfield_night_gas_station_801888A0`,
-/// or NULL while none runs. `func_dryfield_night_gas_station_801807D4` either
-/// passes it an argument or kills it.
-extern Task* D_dryfield_night_gas_station_801907A4;
+extern GpRoomObjRec D_dryfield_night_gas_station_80189DD0[];
 
-/// Handle of the task spawned from entry 1 or 3 of
-/// `D_dryfield_night_gas_station_801888A0`, or NULL while none runs.
-extern Task* D_dryfield_night_gas_station_801907A8;
+extern u8* D_dryfield_night_gas_station_80189E70[];
 
-/// UI descriptor of the help-line box (`func_dryfield_night_gas_station_8017ECF0`)
-/// that the "Play Data" and usage panels open beside their lists.
-extern UiObjectDesc D_dryfield_night_gas_station_80183FAC;
+extern GpViewCountRec D_dryfield_night_gas_station_80189E80[];
+
+extern GpWarpRec D_dryfield_night_gas_station_80189E88[];
+
+extern GpViewRec D_dryfield_night_gas_station_8018B780[];
+
+extern GpSprtRec D_dryfield_night_gas_station_8018F6C4[];
+
+extern GpRoomParamRec* D_dryfield_night_gas_station_80190780[];
 
 void func_dryfield_night_gas_station_80181D80(Task* task);
+
 void func_dryfield_night_gas_station_801827E4(Task* task);
+
 void func_dryfield_night_gas_station_801830CC(Task* task);
+
 void func_dryfield_night_gas_station_80180E9C(Task* task);
 
 void func_dryfield_night_gas_station_8017E9F8(Task* task);
 
-extern GpAreaVariant D_dryfield_night_gas_station_80190624[12];
+/// Task entries the Dryfield-at-night map UI overlay's stage tables name, each
+/// room's entry task started for its location, and the models its enemy
+/// descriptors attach.
+void func_dryfield_night_gas_station_8017FB70(Task* task);
 
-#endif // ROOMS_DRYFIELD_NIGHT_GAS_STATION_H
+#endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_GAS_STATION_H

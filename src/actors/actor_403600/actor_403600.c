@@ -1,45 +1,52 @@
-#include "actor_403600.h"
+#include "actor_403600_private.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/rand.h"
-#include "psyq/inline_c.h"
-#include "psyq/gtemac.h"
+#include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
+#include <psyq/rand.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "actors/actors_shared_80131fc8.h"
-#include "actors/actor.h"
 #include "actors/actor_403600.h"
-#include "actors/actor_303600.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actor.h"
+
+#include "actors/actors_shared_80131fc8.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/loading.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// A quad of the screen distortion grid. Its texture is the copy of the frame
 /// the grid is drawn over, which is wider than one texture page reaches, so a
@@ -133,19 +140,13 @@ extern s32           D_actor_403600_80142120[];
 
 void func_actor_403600_80134398(Task* arg0);
 
-extern s32           D_actor_403600_80160698;
-extern GpCoord*      D_actor_403600_801606A0;
 static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
 static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1);
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
-void        func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 
-void func_actor_403600_80134288(Task *);
-
-extern GpU16Pair D_actor_403600_80150E9C;
-extern GpU16Pair D_actor_403600_80150EB0;
+void func_actor_403600_80134288(Task*);
 
 extern GpU16Pair D_actor_403600_801420D4[5];
 
@@ -182,9 +183,9 @@ s32 D_actor_403600_80142120[32] = {
     0x807060, 0x706050, 0x605040, 0x504030, 0x403020, 0x302010, 0x201000, 0x100000,
 };
 
-void func_actor_403600_80134288(Task *);
-void func_actor_403600_80134398(Task *);
-void func_actor_403600_80135C28(Task *);
+void func_actor_403600_80134288(Task*);
+void func_actor_403600_80134398(Task*);
+void func_actor_403600_80135C28(Task*);
 
 TaskDesc D_actor_403600_801421A0[4] = {
     { 0, 95, func_actor_403600_80134288, { .model = NULL } },
@@ -968,6 +969,46 @@ GpAnimSet D_actor_403600_801604DC = {
     D_actor_403600_80160154, D_actor_403600_801604B4,
     { NULL, D_actor_403600_8015FF10.words, NULL, NULL, D_actor_403600_8015FF7C, NULL, NULL, NULL },
 };
+
+/// Scratch-pad frame of a triangle pass that works in the frame of a reference
+/// coordinate: the GTE state the pass restores on exit, the model-to-reference
+/// matrix it builds, and the element being worked on.
+typedef struct {
+    VECTOR  trans;    // GTE translation on entry
+    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
+    SVECTOR verts[3]; // The element's vertices in the reference frame, clamped to y <= 0
+    s32     index[3]; // The element's vertex indices
+    MATRIX  savedRot; // GTE rotation on entry
+    MATRIX  local;    // Model-to-reference transform
+} _Actor403600TriScratch;
+
+/// Scratch-pad frame of a quad pass that draws the model in the frame of a
+/// reference coordinate: the GTE state the pass restores on exit, the
+/// model-to-reference matrix it builds, and the element being drawn.
+typedef struct {
+    VECTOR  trans;    // GTE translation on entry
+    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
+    SVECTOR verts[4]; // The element's vertices in the reference frame, clamped to y <= 0
+    s32     index[4]; // The element's vertex indices
+    MATRIX  savedRot; // GTE rotation on entry
+    MATRIX  local;    // Model-to-reference transform
+} _Actor403600QuadScratch;
+
+static void        func_actor_403600_801327A0(Actor403600GridQuad* arg0);
+static void        func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex* arg2, s32 fade);
+static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out);
+static inline void _actor403600TrailTick(ActorEffectState* state);
+static inline s32  _actor403600TrailEmpty(ActorEffectState* state);
+static u32*        func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+static u32*        func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+static u32*        func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Links, at ordering-table depth `otz`, the primitives that copy the frame
 /// drawn so far into the 320x240 VRAM rectangle at (0x1C0, 0x100). Linked at
@@ -3167,18 +3208,6 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-/// Scratch-pad frame of a triangle pass that works in the frame of a reference
-/// coordinate: the GTE state the pass restores on exit, the model-to-reference
-/// matrix it builds, and the element being worked on.
-typedef struct {
-    VECTOR  trans;    // GTE translation on entry
-    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
-    SVECTOR verts[3]; // The element's vertices in the reference frame, clamped to y <= 0
-    s32     index[3]; // The element's vertex indices
-    MATRIX  savedRot; // GTE rotation on entry
-    MATRIX  local;    // Model-to-reference transform
-} _Actor403600TriScratch;
-
 static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
@@ -3254,18 +3283,6 @@ static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32*
     }
     return tmdDrawStreamGt3(ws, flags, stream);
 }
-
-/// Scratch-pad frame of a quad pass that draws the model in the frame of a
-/// reference coordinate: the GTE state the pass restores on exit, the
-/// model-to-reference matrix it builds, and the element being drawn.
-typedef struct {
-    VECTOR  trans;    // GTE translation on entry
-    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
-    SVECTOR verts[4]; // The element's vertices in the reference frame, clamped to y <= 0
-    s32     index[4]; // The element's vertex indices
-    MATRIX  savedRot; // GTE rotation on entry
-    MATRIX  local;    // Model-to-reference transform
-} _Actor403600QuadScratch;
 
 static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {

@@ -1,52 +1,60 @@
-#include "common.h"
+#include "rooms/mist_shooting_gallery.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "rooms/mist_shooting_gallery.h"
-#include "rooms/room.h"
+#include "mist_shooting_gallery_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/area.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/pad_input.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
 
 /// The five round scripts of the gallery mini-game, indexed by
 /// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
@@ -97,7 +105,6 @@ typedef struct _MistShootingGalleryBeamScratch {
 } MistShootingGalleryBeamScratch;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryBeamScratch, 0x20);
 
-extern TaskDesc D_mist_shooting_gallery_801856B8[];
 extern TaskDesc D_mist_shooting_gallery_801856D0;
 extern TaskDesc D_80134F94;
 /// The wave script the round loop walks: a run of records sharing
@@ -169,10 +176,10 @@ static const MistShootingGalleryRounds D_mist_shooting_gallery_8017DB8C = {
     },
 };
 
-void func_mist_shooting_gallery_80184C0C(Task *);
+void func_mist_shooting_gallery_80184C0C(Task*);
 
-void func_mist_shooting_gallery_801849BC(Task *);
-void func_mist_shooting_gallery_80184B10(Task *);
+void func_mist_shooting_gallery_801849BC(Task*);
+void func_mist_shooting_gallery_80184B10(Task*);
 
 TaskDesc D_mist_shooting_gallery_801856B8[2] = {
     { 0, 192, func_mist_shooting_gallery_801849BC, { .model = NULL } },
@@ -2661,6 +2668,8 @@ s32 D_mist_shooting_gallery_8018E0BC = 0;
 s32 D_mist_shooting_gallery_8018E0C0 = 0;
 
 Task * D_mist_shooting_gallery_8018E0C4 = NULL;
+
+static void func_mist_shooting_gallery_801847D4(u8 arg0);
 
 /// Per-frame update for one gallery muzzle-flash / tracer effect. The task's
 /// `GpEffWork` holds the tracer's endpoint (`pos`), its spin angle (`angle`)

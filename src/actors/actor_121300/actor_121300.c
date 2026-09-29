@@ -1,40 +1,48 @@
-#include "common.h"
-#include "rooms/dryfield_r08.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
+#include "common.h"
 
+#include "actors/actor.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/dryfield_r08.h"
 
 /// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
 /// spawners the scene script calls, 3 by the waypoint walker for each new
@@ -174,36 +182,36 @@ extern OverlayWaveCtx* D_actor_121300_8013D414;
 extern OverlayWaveRec6 D_actor_121300_8013D420[13];
 extern OverlayWaveRec6 D_actor_121300_8013D470[30];
 
-extern TaskDesc D_actor_121300_8013BBCC[];
-extern u_long      D_actor_121300_8013BBE8[];
-extern u_long      D_actor_121300_8013BFD0[];
-extern u_long      D_actor_121300_8013C3B8[];
-extern u_long      D_actor_121300_8013C7A0[];
-extern u_long      D_actor_121300_8013C9D0[];
-extern s16      D_actor_121300_8013CC04;
-extern GpAnimSet * D_actor_121300_8013CC08[4];
+extern TaskDesc   D_actor_121300_8013BBCC[];
+extern u_long     D_actor_121300_8013BBE8[];
+extern u_long     D_actor_121300_8013BFD0[];
+extern u_long     D_actor_121300_8013C3B8[];
+extern u_long     D_actor_121300_8013C7A0[];
+extern u_long     D_actor_121300_8013C9D0[];
+extern s16        D_actor_121300_8013CC04;
+extern GpAnimSet* D_actor_121300_8013CC08[4];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpXformArg *);
-        void (*call1)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, s32);
         void (*call2)(s32, s32, s32);
     } handler;
 } Actor121300MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor121300MessageEntry, 8);
 
 extern Actor121300MessageEntry D_actor_121300_8013CC88[3];
-extern GpXformArg D_actor_121300_8013CCA0;
-extern GpEvsCmd D_actor_121300_8013CE08[];
-extern GpEvsCmd D_actor_121300_8013D2E8[];
-extern Task*    D_actor_121300_8013D418;
-extern u16      D_actor_121300_8013D41C;
+extern GpXformArg              D_actor_121300_8013CCA0;
+extern GpEvsCmd                D_actor_121300_8013CE08[];
+extern GpEvsCmd                D_actor_121300_8013D2E8[];
+extern Task*                   D_actor_121300_8013D418;
+extern u16                     D_actor_121300_8013D41C;
 
-void func_actor_121300_80131EB0(Task *);
+void func_actor_121300_80131EB0(Task*);
 
-void func_actor_121300_8013411C(Task *, s32, GpXformArg *);
-void func_actor_121300_801341A8(Task *, s32, s32);
+void func_actor_121300_8013411C(Task*, s32, GpXformArg*);
+void func_actor_121300_801341A8(Task*, s32, s32);
 void func_actor_121300_80134224(s32, s32, s32);
 
 extern TmdSource D_actor_121300_80139B80;
@@ -212,22 +220,22 @@ extern TmdSource D_actor_121300_8013A050;
 extern TmdSource D_actor_121300_8013A2AC;
 extern TmdSource D_actor_121300_8013A494;
 extern TmdSource D_actor_121300_8013A67C;
-void func_actor_121300_801326EC(Task *);
-void func_actor_121300_8013293C(Task *);
-void func_actor_121300_80133064(Task *);
-void func_actor_121300_8013322C(Task *);
-void func_actor_121300_80133D98(Task *);
-void func_actor_121300_8013400C(Task *);
-void func_actor_121300_801340F0(Task *);
-void func_actor_121300_80134250(s16);
-void func_actor_121300_80134270(void);
-void func_actor_121300_8013427C(void);
-void func_actor_121300_801342D4(s32);
-void func_actor_121300_80134304(s32);
-void func_actor_121300_80134334(s32);
-void func_actor_121300_80134364(void);
-void func_actor_121300_80134384(void);
-void func_actor_121300_801343A4(void);
+void             func_actor_121300_801326EC(Task*);
+void             func_actor_121300_8013293C(Task*);
+void             func_actor_121300_80133064(Task*);
+void             func_actor_121300_8013322C(Task*);
+void             func_actor_121300_80133D98(Task*);
+void             func_actor_121300_8013400C(Task*);
+void             func_actor_121300_801340F0(Task*);
+void             func_actor_121300_80134250(s16);
+void             func_actor_121300_80134270(void);
+void             func_actor_121300_8013427C(void);
+void             func_actor_121300_801342D4(s32);
+void             func_actor_121300_80134304(s32);
+void             func_actor_121300_80134334(s32);
+void             func_actor_121300_80134364(void);
+void             func_actor_121300_80134384(void);
+void             func_actor_121300_801343A4(void);
 
 TmdBone D_actor_121300_801343CC[19] = {
 #include "assets/actor_121300_model_07D60_skeleton.inc"
@@ -791,6 +799,15 @@ u16 D_actor_121300_8013D41C = 0;
 OverlayWaveRec6 D_actor_121300_8013D420[13] = { 0 };
 
 OverlayWaveRec6 D_actor_121300_8013D470[30] = { 0 };
+
+static s32         func_actor_121300_80132818(Task* arg0);
+static void        func_actor_121300_8013343C(Task* arg0, s16 arg1);
+static void        func_actor_121300_80133580(Task* arg0, s16 arg1);
+static void        func_actor_121300_80133730(Task* arg0);
+static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim);
+static inline void func_actor_121300_SetCC04(s32 v);
+static void        func_actor_121300_80133854(Task* arg0);
+static void        func_actor_121300_80133BFC(Task* arg0);
 
 /// Screen-wave task spawned from `D_actor_121300_8013BBCC` with the cutscene
 /// actor's `Actor121300Work::wave` ramp as its argument. State 0 seeds the

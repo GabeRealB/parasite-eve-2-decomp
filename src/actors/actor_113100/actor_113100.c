@@ -1,42 +1,44 @@
-#include "common.h"
-#include "rooms/mist_parking.h"
-
-#include <psyq/abs.h>
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013231c.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
-#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "rooms/mist_parking.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a twenty-part rig and the model state, the
@@ -85,11 +87,11 @@ extern TaskDesc D_actor_113100_80144308[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *, Actor113100SpawnAnim *);
-        s32 (*call4)(Task *, s32, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*, Actor113100SpawnAnim*);
+        s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor113100MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor113100MsgEntry, 8);
@@ -99,7 +101,7 @@ extern Actor113100MsgEntry D_actor_113100_80144338[];
 /// Animation bank table the 0x7D3 handler `func_actor_113100_801331E8` indexes
 /// by the animation id it has latched into `Actor113100Work::model.bank`; the
 /// entry is the `void*` its `func_800B3F84` call passes on.
-extern GpAnimSet* D_actor_113100_80144250[36];
+extern GpAnimSet*  D_actor_113100_80144250[36];
 extern GpAnimSet** D_actor_113100_801442E0[1];
 
 /// Per-animation byte the same handler copies into
@@ -166,13 +168,13 @@ static const TaskFuncTable4 D_actor_113100_80131E48 = { {
 } };
 
 extern TmdSource D_actor_113100_80139664;
-void func_actor_113100_80132E98(Task *);
+void             func_actor_113100_80132E98(Task*);
 
-s32 func_actor_113100_80132790(Task *, s32, s32, s32);
-s32 func_actor_113100_801328EC(Task *, s32, GpXformArg *, Actor113100SpawnAnim *);
-s32 func_actor_113100_801331E8(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_113100_8013333C(Task *, s32, GpXformArg *);
-s32 func_actor_113100_801333B8(Task *, s32, GpCmdArg *);
+s32 func_actor_113100_80132790(Task*, s32, s32, s32);
+s32 func_actor_113100_801328EC(Task*, s32, GpXformArg*, Actor113100SpawnAnim*);
+s32 func_actor_113100_801331E8(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_113100_8013333C(Task*, s32, GpXformArg*);
+s32 func_actor_113100_801333B8(Task*, s32, GpCmdArg*);
 
 TmdBone D_actor_113100_8013346C[20] = {
 #include "assets/actor_113100_model_07844_skeleton.inc"
@@ -1264,9 +1266,9 @@ u8 D_actor_113100_801442E4[36] = {
     0, 1, 1, 0,
 };
 
-void func_actor_113100_80132AD8(Task *);
-void func_actor_113100_80132C9C(Task *);
-void func_actor_113100_80132E98(Task *);
+void             func_actor_113100_80132AD8(Task*);
+void             func_actor_113100_80132C9C(Task*);
+void             func_actor_113100_80132E98(Task*);
 extern TmdSource D_actor_113100_80139B98;
 extern TmdSource D_actor_113100_80139860;
 extern TmdSource D_actor_113100_80139908;

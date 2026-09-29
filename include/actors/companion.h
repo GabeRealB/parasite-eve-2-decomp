@@ -1,10 +1,7 @@
-#ifndef ACTORS_COMPANION_H
-#define ACTORS_COMPANION_H
+#ifndef INCLUDE_ACTORS_COMPANION_H
+#define INCLUDE_ACTORS_COMPANION_H
 
-// Gameplay import names for actor_800100 code and data at their fixed addresses.
-// The actor image uses the corresponding func_actor_800100_ / D_actor_800100_ names.
-
-#include "common.h"
+#include "types.h"
 
 #include "main/task_types.h"
 
@@ -24,4 +21,4 @@ extern u8 D_80167230[];
 /// `Mc_SaveData[0].state.companionType == 1`.
 void func_80166E94(Task* arg0, s32 arg1);
 
-#endif // ACTORS_COMPANION_H
+#endif // INCLUDE_ACTORS_COMPANION_H

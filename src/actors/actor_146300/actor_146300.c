@@ -1,14 +1,17 @@
-#include "gameplay/evs.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
@@ -16,33 +19,28 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 // The engine copies words across the exported animation bank and its
 // following argument records. Both views cover the complete backing object.
 typedef union {
     struct {
         GpAnimSet* sets[18];
-        GpAnimArg arguments[3];
+        GpAnimArg  arguments[3];
     } data;
     s32 words[33];
 } Actor146300AnimCopy7898;
 STATIC_ASSERT_SIZEOF(Actor146300AnimCopy7898, 132);
 
 extern Actor146300AnimCopy7898 D_actor_146300_80137898;
-
-
-
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
 /// and kept both in `D_actor_146300_80142828` and at `Task::work`; every other
@@ -93,26 +91,26 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor146300MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor146300MsgEntry, 8);
 
 extern Actor146300MsgEntry D_actor_146300_801427A0[];
 
-extern GpAnimArg D_actor_146300_80137AAC;
-extern GpAnimArg D_actor_146300_80137B10;
-extern GpAnimArg D_actor_146300_80137B38;
-extern GpAnimArg D_actor_146300_80137B60;
+extern GpAnimArg  D_actor_146300_80137AAC;
+extern GpAnimArg  D_actor_146300_80137B10;
+extern GpAnimArg  D_actor_146300_80137B38;
+extern GpAnimArg  D_actor_146300_80137B60;
 extern GpXformArg D_actor_146300_80137C10;
-extern GpEvsCmd D_actor_146300_801386C0[];
-extern GpEvsCmd D_actor_146300_80138810[];
-extern GpEvsCmd D_actor_146300_801388D0[];
-extern GpEvsCmd D_actor_146300_80138A38[];
-extern GpEvsCmd D_actor_146300_80138AC8[];
-extern s32 D_actor_146300_80142824;
+extern GpEvsCmd   D_actor_146300_801386C0[];
+extern GpEvsCmd   D_actor_146300_80138810[];
+extern GpEvsCmd   D_actor_146300_801388D0[];
+extern GpEvsCmd   D_actor_146300_80138A38[];
+extern GpEvsCmd   D_actor_146300_80138AC8[];
+extern s32        D_actor_146300_80142824;
 
 static void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
 static void func_actor_146300_801327A4(Task* task);
@@ -123,12 +121,12 @@ static void func_actor_146300_8013291C(void);
 
 extern TmdSource D_actor_146300_8013ED68;
 extern TmdSource D_actor_146300_8013EF64;
-void func_actor_146300_801326CC(Task *);
-void func_actor_146300_80132B1C(Task *);
+void             func_actor_146300_801326CC(Task*);
+void             func_actor_146300_80132B1C(Task*);
 
-s32 func_actor_146300_8013299C(Task *, s32, GpAnimArg *);
-s32 func_actor_146300_80132A2C(Task *, s32, s32);
-s32 func_actor_146300_80132A98(Task *, s32, GpXformArg *);
+s32 func_actor_146300_8013299C(Task*, s32, GpAnimArg*);
+s32 func_actor_146300_80132A2C(Task*, s32, s32);
+s32 func_actor_146300_80132A98(Task*, s32, GpXformArg*);
 s32 func_actor_146300_80132B14(void);
 
 extern GpAnimArg D_actor_146300_80137A20;
@@ -138,37 +136,37 @@ extern GpAnimArg D_actor_146300_80137B74;
 extern GpAnimArg D_actor_146300_80137B88;
 extern GpAnimArg D_actor_146300_80137BC4;
 extern GpCopyArg D_actor_146300_80137BD8;
-void func_actor_146300_80132418(s32);
+void             func_actor_146300_80132418(s32);
 
-extern GpAnimArg D_actor_146300_8013791C;
-extern GpAnimArg D_actor_146300_80137930;
-extern GpAnimArg D_actor_146300_80137944;
-extern GpAnimArg D_actor_146300_80137958;
-extern GpAnimArg D_actor_146300_8013796C;
-extern GpAnimArg D_actor_146300_80137980;
-extern GpAnimArg D_actor_146300_80137994;
-extern GpAnimArg D_actor_146300_801379A8;
-extern GpAnimArg D_actor_146300_801379BC;
-extern GpAnimArg D_actor_146300_801379D0;
-extern GpAnimArg D_actor_146300_801379E4;
-extern GpAnimArg D_actor_146300_801379F8;
-extern GpAnimArg D_actor_146300_80137A0C;
-extern GpAnimArg D_actor_146300_80137A5C;
-extern GpAnimArg D_actor_146300_80137A70;
-extern GpAnimArg D_actor_146300_80137A84;
-extern GpAnimArg D_actor_146300_80137AC0;
-extern GpAnimArg D_actor_146300_80137AD4;
-extern GpAnimArg D_actor_146300_80137AE8;
-extern GpAnimArg D_actor_146300_80137AFC;
-extern GpAnimArg D_actor_146300_80137B24;
-extern GpAnimArg D_actor_146300_80137B4C;
-extern GpAnimArg D_actor_146300_80137B9C;
-extern GpAnimArg D_actor_146300_80137BB0;
+extern GpAnimArg  D_actor_146300_8013791C;
+extern GpAnimArg  D_actor_146300_80137930;
+extern GpAnimArg  D_actor_146300_80137944;
+extern GpAnimArg  D_actor_146300_80137958;
+extern GpAnimArg  D_actor_146300_8013796C;
+extern GpAnimArg  D_actor_146300_80137980;
+extern GpAnimArg  D_actor_146300_80137994;
+extern GpAnimArg  D_actor_146300_801379A8;
+extern GpAnimArg  D_actor_146300_801379BC;
+extern GpAnimArg  D_actor_146300_801379D0;
+extern GpAnimArg  D_actor_146300_801379E4;
+extern GpAnimArg  D_actor_146300_801379F8;
+extern GpAnimArg  D_actor_146300_80137A0C;
+extern GpAnimArg  D_actor_146300_80137A5C;
+extern GpAnimArg  D_actor_146300_80137A70;
+extern GpAnimArg  D_actor_146300_80137A84;
+extern GpAnimArg  D_actor_146300_80137AC0;
+extern GpAnimArg  D_actor_146300_80137AD4;
+extern GpAnimArg  D_actor_146300_80137AE8;
+extern GpAnimArg  D_actor_146300_80137AFC;
+extern GpAnimArg  D_actor_146300_80137B24;
+extern GpAnimArg  D_actor_146300_80137B4C;
+extern GpAnimArg  D_actor_146300_80137B9C;
+extern GpAnimArg  D_actor_146300_80137BB0;
 extern GpXformArg D_actor_146300_80137BE0;
 extern GpXformArg D_actor_146300_80137BF8;
-void func_actor_146300_801323E0(void);
+void              func_actor_146300_801323E0(void);
 
-void func_actor_146300_80131ECC(Task *);
+void func_actor_146300_80131ECC(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1497,6 +1495,9 @@ Actor146300Work * D_actor_146300_80142828 = NULL;
 Task * D_actor_146300_8014282C = NULL;
 
 Task * D_actor_146300_80142830 = NULL;
+
+static void func_actor_146300_8013224C(void);
+static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task);
 
 void func_actor_146300_80131ECC(Task* task)
 {

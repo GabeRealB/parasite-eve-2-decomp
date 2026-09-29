@@ -1,55 +1,67 @@
-#include "common.h"
 #include "rooms/dryfield_water_hole.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
+
+#define D_dryfield_water_hole_8017FCC4 (D_dryfield_water_hole_8017FCBC + 1)
+#define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
+#define D_dryfield_water_hole_8017FD04 (D_dryfield_water_hole_8017FCBC + 9)
 
 // One live spotlight is followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[1];
-    u8 retained[540];
+    u8          retained[540];
 } DryfieldWaterHoleSpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldWaterHoleSpotLightStorage, 648);
 
@@ -99,24 +111,24 @@ static void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVEC
 static void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-extern GpGridParams D_dryfield_water_hole_80180260[1];
-extern GpObj3A D_dryfield_water_hole_80181F28[2];
-extern GpObj4C D_dryfield_water_hole_80181724[14];
-extern GpObj4C D_dryfield_water_hole_80181B4C[7];
-extern GpObj4C D_dryfield_water_hole_80181D60[6];
+extern GpGridParams   D_dryfield_water_hole_80180260[1];
+extern GpObj3A        D_dryfield_water_hole_80181F28[2];
+extern GpObj4C        D_dryfield_water_hole_80181724[14];
+extern GpObj4C        D_dryfield_water_hole_80181B4C[7];
+extern GpObj4C        D_dryfield_water_hole_80181D60[6];
 extern GpRoomBoundVec D_dryfield_water_hole_80182824[9];
 extern GpRoomCoordSet D_dryfield_water_hole_80182468[1];
 extern GpRoomCoordSet D_dryfield_water_hole_8018278C[1];
 
-s32 func_dryfield_water_hole_8017D5E8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_water_hole_8017D5F0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_water_hole_8017D73C(Task *, s32, s32, s32);
-s32 func_dryfield_water_hole_8017D784(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_water_hole_8017D78C(Task *, s32, s32, s32);
-void func_dryfield_water_hole_8017DFA0(Task *);
+s32  func_dryfield_water_hole_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_water_hole_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
+s32  func_dryfield_water_hole_8017D784(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
+void func_dryfield_water_hole_8017DFA0(Task*);
 
 extern DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
-extern GpPointLight D_dryfield_water_hole_80181FA0[6];
+extern GpPointLight                      D_dryfield_water_hole_80181FA0[6];
 
 GpMsgEntry D_dryfield_water_hole_8017FC5C[6] = {
     { 5102, func_dryfield_water_hole_8017D5F0 },
@@ -151,10 +163,6 @@ SVECTOR D_dryfield_water_hole_8017FCBC[12] = {
     { 18300, -1750, -2095, 0 },
     { 19300, -1750, -2095, 0 },
 };
-
-#define D_dryfield_water_hole_8017FCC4 (D_dryfield_water_hole_8017FCBC + 1)
-#define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
-#define D_dryfield_water_hole_8017FD04 (D_dryfield_water_hole_8017FCBC + 9)
 
 SVECTOR D_dryfield_water_hole_8017FD1C[2] = { 0 };
 
@@ -1030,6 +1038,10 @@ GpRoomParamRec * D_dryfield_water_hole_801828AC[8] = {
 u8 * D_dryfield_water_hole_801828CC = NULL;
 
 s16 D_dryfield_water_hole_801828D0 = 0;
+
+static void func_dryfield_water_hole_8017D7DC(Task* arg0);
+static void func_dryfield_water_hole_8017D838(Task* task);
+static void func_dryfield_water_hole_8017D898(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.

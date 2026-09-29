@@ -1,40 +1,51 @@
-#include "dryfield_factory_private.h"
-
-#include "common.h"
 #include "rooms/dryfield_factory.h"
-#include "rooms/dryfield_night_factory.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
-#include "gameplay/captions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/loading.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
+#include "common.h"
+#include "gte.h"
+
+#include "dryfield_factory_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "rooms/dryfield_night_factory.h"
+
+#include "rooms/room_common.h"
 
 /// The room script task's work block as the prompt-spawning state reads it:
 /// `promptKind` is the display mode forwarded to `func_800D4E78`, read signed.
@@ -43,18 +54,18 @@ typedef struct RoomUtil21Work {
     /* 0x0E */ s8   promptKind;
 } RoomUtil21Work;
 
-extern TaskDesc       D_dryfield_factory_80186E88[];
+extern TaskDesc D_dryfield_factory_80186E88[];
 typedef struct {
-    s32 id;
+    s32  id;
     void (*handler)(Task*);
 } FactoryControlMessageEntry;
 STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
 
 extern FactoryControlMessageEntry D_dryfield_factory_80186EA0[2];
-extern OverlayHotspot D_dryfield_factory_80186EB0[];
-extern SVECTOR        D_dryfield_factory_80186EF8;
-extern SVECTOR        D_dryfield_factory_80186F00;
-extern SVECTOR        D_dryfield_factory_80186F08;
+extern OverlayHotspot             D_dryfield_factory_80186EB0[];
+extern SVECTOR                    D_dryfield_factory_80186EF8;
+extern SVECTOR                    D_dryfield_factory_80186F00;
+extern SVECTOR                    D_dryfield_factory_80186F08;
 
 static void func_dryfield_factory_80180A4C(Task* task);
 static void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant);
@@ -83,15 +94,9 @@ static const TaskFuncTable7 D_dryfield_factory_8017D678 = {
     },
 };
 
-extern GpGridParams D_dryfield_factory_80187BF8;
-extern GpObj4C D_dryfield_factory_80189694[14];
-extern GpObj4C D_dryfield_factory_80189ABC[20];
-extern GpRoomBoundVec D_dryfield_factory_8018A2A4[20];
-extern GpRoomCoordSet D_dryfield_factory_8018A28C[1];
-
-void func_dryfield_factory_8018169C(Task *);
-void func_dryfield_factory_80181718(Task *);
-void func_dryfield_factory_80181768(Task *);
+void func_dryfield_factory_8018169C(Task*);
+void func_dryfield_factory_80181718(Task*);
+void func_dryfield_factory_80181768(Task*);
 
 TaskDesc D_dryfield_factory_801826B0 = { 0, 32, func_dryfield_factory_8017D85C, { .model = NULL } };
 
@@ -902,6 +907,11 @@ s16 D_dryfield_factory_80187B0C[48] = {
     68,
     -1,
 };
+
+static void func_dryfield_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_dryfield_factory_80180DE8(Task* task, s16 step);
+static void func_dryfield_factory_801810D8(Task* task);
+static void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Idle state of the room's script task. It counts down the delay the prompt
 /// state armed and, once that is spent and no cap is playing, hit-tests the

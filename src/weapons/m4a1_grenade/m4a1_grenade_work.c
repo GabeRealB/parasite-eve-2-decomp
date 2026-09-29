@@ -1,6 +1,6 @@
-#include "common.h"
+#include "m4a1_grenade_private.h"
 
-#include "weapons/m4a1_grenade.h"
+#include "types.h"
 
 /// Sits in the middle of this package's trailing data, so it is its own unit:
 /// splat lists an object in the linker script at its first subsegment, and

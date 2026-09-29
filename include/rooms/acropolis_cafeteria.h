@@ -1,27 +1,74 @@
-#ifndef ROOMS_ACROPOLIS_CAFETERIA_H
-#define ROOMS_ACROPOLIS_CAFETERIA_H
+#ifndef INCLUDE_ROOMS_ACROPOLIS_CAFETERIA_H
+#define INCLUDE_ROOMS_ACROPOLIS_CAFETERIA_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
-
-#include "main/tmd.h"
-
-#include "common.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
-
-extern TaskDesc D_acropolis_cafeteria_80184178[];
+#include "main/tmd_types.h"
 
 extern TaskDesc D_acropolis_cafeteria_80182AD8[4];
 
-void func_acropolis_cafeteria_8017E708(Task* task);
-void func_acropolis_cafeteria_8017F390(Task* task);
-void func_acropolis_cafeteria_8017E89C(Task* task);
-void func_acropolis_cafeteria_8017F948(Task* task);
-void func_acropolis_cafeteria_801803AC(Task* task);
-void func_acropolis_cafeteria_80180C94(Task* task);
 extern TmdSource D_acropolis_cafeteria_80184E5C;
+
 extern GpAreaVariant D_acropolis_cafeteria_80189DCC[11];
+
+/// Models those descriptors attach.
+extern TmdSource D_acropolis_cafeteria_801858C4;
+
+extern TmdSource D_acropolis_cafeteria_8018625C;
+
+extern TmdSource D_acropolis_cafeteria_80186CAC;
+
+extern TmdSource D_acropolis_cafeteria_80187518;
+
+/// Models the Akropolis map UI overlay's enemy descriptors attach.
+extern TmdSource D_acropolis_cafeteria_8018D230;
+
+extern TmdSource D_acropolis_cafeteria_8018D57C;
+
+// acropolis_cafeteria
+extern GpRoomObjRec D_acropolis_cafeteria_8018753C[];
+
+extern u8* D_acropolis_cafeteria_801875AC[];
+
+extern GpViewCountRec D_acropolis_cafeteria_801875BC[];
+
+extern GpRoomCoordRec D_acropolis_cafeteria_801875C4[];
+
+extern GpWarpRec D_acropolis_cafeteria_801875E4[];
+
+extern GpSprtRec D_acropolis_cafeteria_8018C48C[];
+
+extern GpViewRec D_acropolis_cafeteria_8018C5AC[];
+
+extern GpRoomParamRec* D_acropolis_cafeteria_8018CA2C[];
+
+void func_acropolis_cafeteria_8017E708(Task* task);
+
+void func_acropolis_cafeteria_8017F390(Task* task);
+
+void func_acropolis_cafeteria_8017E89C(Task* task);
+
+void func_acropolis_cafeteria_8017F948(Task* task);
+
+void func_acropolis_cafeteria_801803AC(Task* task);
+
+void func_acropolis_cafeteria_80180C94(Task* task);
 
 void func_acropolis_cafeteria_8017EA90(Task* task);
 
-#endif // ROOMS_ACROPOLIS_CAFETERIA_H
+void func_acropolis_cafeteria_80181E70(Task* task);
+
+void func_acropolis_cafeteria_8017E424(Task* task);
+
+void func_acropolis_cafeteria_801827C4(Task* task);
+
+void func_acropolis_cafeteria_8018286C(Task* task);
+
+#endif // INCLUDE_ROOMS_ACROPOLIS_CAFETERIA_H

@@ -1,48 +1,58 @@
-#include "common.h"
-#include "rooms/shelter_b6_corridor.h"
-#include "rooms/shelter_b6_training_room.h"
-#include "rooms/neo_ark_eve_access_tunnel.h"
+#include "actor_205200_private.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "actors/actor_205200.h"
-#include "actors/actor.h"
+#include "common.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/view.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "rooms/neo_ark_eve_access_tunnel.h"
+
+#include "rooms/shelter_b6_corridor.h"
+
+#include "rooms/shelter_b6_training_room.h"
 
 /// Work block of the controller task, allocated by its setup handler
 /// `func_actor_205200_8014A72C`. It spawns the parts, tracks the live ones
@@ -82,33 +92,26 @@ typedef struct Actor205200Part {
 } Actor205200Part;
 STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
-extern s32             D_actor_205200_8014CA5C;
-extern OverlayWaveCtx* D_actor_205200_80156814;
-extern OverlayWaveRec  D_actor_205200_80156818[10];
-extern OverlayWaveRec  D_actor_205200_80156868[30];
-// The task starts at row 1 and draws rows -1 through 28.
-extern POLY_FT4 D_actor_205200_80156958[2][30][8];
-extern u16             D_actor_205200_8014C9CC[];
-extern s16             D_actor_205200_8014CA1C[];
-extern TaskDesc        D_actor_205200_8014CA60[];
+extern s32 D_actor_205200_8014CA5C;
+
+extern u16      D_actor_205200_8014C9CC[];
+extern s16      D_actor_205200_8014CA1C[];
+extern TaskDesc D_actor_205200_8014CA60[];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor205200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor205200MessageEntry, 8);
 
 extern Actor205200MessageEntry D_actor_205200_8014CA78[2];
-extern TaskDesc        D_actor_205200_8014CA44[];
-/// Context of the screen-wave task: `func_actor_205200_8014AB98` sets its
-/// length and peak and spawns the task with it, and the controller's state
-/// handlers drive its ramp `state` - 2 while idle, 1 to ramp the wave down.
-extern OverlayWaveCtx D_actor_205200_8015B458;
-extern GpPairSrcE     D_actor_205200_8014C9BC;
-extern SVECTOR*       D_actor_205200_8014CA24[];
-extern u16*           D_actor_205200_8014CA34[];
+extern TaskDesc                D_actor_205200_8014CA44[];
+
+extern GpPairSrcE D_actor_205200_8014C9BC;
+extern SVECTOR*   D_actor_205200_8014CA24[];
+extern u16*       D_actor_205200_8014CA34[];
 
 static void func_actor_205200_8014AB98(Task* arg0);
 static void func_actor_205200_8014ACD4(Task* arg0);
@@ -116,14 +119,14 @@ static s32  func_actor_205200_8014B914(s32 arg0);
 static void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1);
 static void func_actor_205200_8014BA94(Task* arg0);
 
-void func_actor_205200_80149E54(Task *);
+void func_actor_205200_80149E54(Task*);
 
-void func_actor_205200_80149E54(Task *);
+void func_actor_205200_80149E54(Task*);
 
-void func_actor_205200_8014B8C0(Task *);
-void func_actor_205200_8014B978(Task *);
+void func_actor_205200_8014B8C0(Task*);
+void func_actor_205200_8014B978(Task*);
 
-s32 func_actor_205200_8014B94C(Task *, s32, GpCmdArg *);
+s32 func_actor_205200_8014B94C(Task*, s32, GpCmdArg*);
 
 GpPairSrcE D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0, 0 };
 
@@ -226,6 +229,12 @@ TmdSource D_actor_205200_801517EC = {
     0, 18392, 6232, 19,
     D_actor_205200_8014CD34, D_actor_205200_8014CD80, D_actor_205200_8014D740, D_actor_205200_8014CA88, D_actor_205200_8014E1D0,
 };
+
+static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task);
+static void func_actor_205200_8014A958(GpEnemy* enemy, Task* task);
+static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014B048(Task* arg0, s32 arg1);
+static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1);
 
 /// Screen-wave task, spawned through `D_actor_205200_8014CA44` with the
 /// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and

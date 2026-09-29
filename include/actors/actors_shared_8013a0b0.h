@@ -1,9 +1,7 @@
-#ifndef ACTORS_SHARED_8013A0B0_H
-#define ACTORS_SHARED_8013A0B0_H
+#ifndef INCLUDE_ACTORS_ACTORS_SHARED_8013A0B0_H
+#define INCLUDE_ACTORS_ACTORS_SHARED_8013A0B0_H
 
 #include "common.h"
-
-#include "main/task_types.h"
 
 /// Status flags at + 0xFC of the `Task::work` work block, read through two
 /// widths: bit 0 as a halfword, then bits 0x102 as a word. In
@@ -20,10 +18,4 @@ typedef struct ActorsShared8013a0b0Work {
     /* 0xFC */ ActorsShared8013a0b0Flags flags_FC;
 } ActorsShared8013a0b0Work;
 
-/// Returns 1 when bit 0 of `flags_FC`'s halfword or any of bits 0x102 of the
-/// whole word is set, 0 otherwise. Shared by `actor_400600` and
-/// `actor_405800`; `actor_400600` calls it unprototyped, sometimes without an
-/// argument, so the caller's own `Task*` stays in `$a0` without a copy.
-s32 ActorsShared8013a0b0(Task* arg0);
-
-#endif
+#endif // INCLUDE_ACTORS_ACTORS_SHARED_8013A0B0_H

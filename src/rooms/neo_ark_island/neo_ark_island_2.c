@@ -1,35 +1,39 @@
-#include "neo_ark_island_private.h"
 #include "rooms/neo_ark_island.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room_common.h"
+
+#include "neo_ark_island_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
 
 static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -42,11 +46,6 @@ static void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* rgb);
 /// Offsets from the parent coordinate of the two points whose trails
 /// `func_neo_ark_island_80180600` records.
 /// The second of those offsets, which the recording frames read by name.
-
-extern GpGridParams D_neo_ark_island_801826C8[1];
-extern GpObj4C D_neo_ark_island_80183CC8[4];
-extern GpObj4C D_neo_ark_island_80183DF8[3];
-extern GpRoomCoordSet D_neo_ark_island_80183CB0[1];
 
 TaskDesc D_neo_ark_island_80181B30 = { 0, 192, func_neo_ark_island_8017D650, { .model = NULL } };
 

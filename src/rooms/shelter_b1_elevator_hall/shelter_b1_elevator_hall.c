@@ -1,30 +1,33 @@
+#include "rooms/shelter_b1_elevator_hall.h"
+
+#include "types.h"
+
 #include "shelter_b1_elevator_hall_private.h"
-#include "mapui/map_shelter.h"
-
-#include "common.h"
-
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[];
-extern TaskDesc   D_shelter_b1_elevator_hall_80182CAC;
-extern TaskDesc   D_shelter_b1_elevator_hall_80182CE8;
-extern GpSaveLoc  D_shelter_b1_elevator_hall_801849F8;
-extern RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
+#include "mapui/map_shelter.h"
+
+#include "rooms/room_common.h"
+
+extern GpSaveLoc D_shelter_b1_elevator_hall_801849F8;
 
 static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
 static void func_shelter_b1_elevator_hall_8017DC20(Task* task);

@@ -1,18 +1,22 @@
-#include "common.h"
+#include "rooms/acropolis_observatory.h"
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
+#include "acropolis_observatory_private.h"
+
 #include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
+#include "main/stream_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
@@ -20,16 +24,9 @@ extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
 /// Set once the room task has spawned the streamed scene for this visit.
 extern s32 D_acropolis_observatory_8017E7D8;
 
-/// The room's task table: the two streamed-scene rides, then the fade-out and
-/// fade-in tasks they spawn.
-extern TaskDesc D_acropolis_observatory_8017E7DC[];
-
-/// The observatory scene task's descriptor.
-extern TaskDesc D_acropolis_observatory_8017FE6C;
-
-s32 func_acropolis_observatory_8017D618(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_observatory_8017D7BC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_observatory_8017D7C4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_observatory_8017D618(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_acropolis_observatory_8017D7BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
     { 5102, func_acropolis_observatory_8017D618 },
@@ -39,6 +36,9 @@ GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
 };
 
 s32 D_acropolis_observatory_8017E7D8 = 0;
+
+static void func_acropolis_observatory_8017D834(Task* task);
+static void func_acropolis_observatory_8017D8AC(Task* task);
 
 /// Message gate for the observatory's two hotspots: copies the incoming record
 /// to the outgoing one, then edits the copy according to the message id and the

@@ -1,17 +1,14 @@
-#ifndef ROOMS_ROOM_COMMON_H
-#define ROOMS_ROOM_COMMON_H
+#ifndef INCLUDE_ROOMS_ROOM_COMMON_H
+#define INCLUDE_ROOMS_ROOM_COMMON_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include "overlay.h"
-
 #include "gameplay/display.h"
-#include "gameplay/inventory.h"
-#include "gameplay/message.h"
 
 #include "main/coord.h"
-#include "main/task_types.h"
 #include "main/ui_types.h"
 
 /// Repeated room allocation containing fade work and the following zero word.
@@ -19,7 +16,7 @@
 /// bytes; an unused field and padding at a TU boundary remain possible.
 typedef struct RoomFadeStorage {
     GpFadeWork fade;
-    u32 retained;
+    u32        retained;
 } RoomFadeStorage;
 STATIC_ASSERT_SIZEOF(RoomFadeStorage, 8);
 
@@ -47,10 +44,6 @@ typedef struct RoomTextBlock {
     /* 0x10 */ TextLineNode  lines[2];
 } RoomTextBlock;
 STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
-
-/// Shop stock uses gameplay's pickup/purchase quantity limits. Item ids
-/// 0xA0–0xBF index `Gp_StackLimits[id - 0xA0]`.
-typedef GpItemA0 RoomShopStock;
 
 /// 0xA4 work block a shop / vending-machine panel task allocates and parks in
 /// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of
@@ -133,285 +126,6 @@ typedef struct _RoomEventReq {
     /* 0x12 */ s16 itemId;
 } RoomEventReq;
 STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
-
-// =============================================================================
-// Functions — shared room library (src/lib)
-// =============================================================================
-
-/// Inserts a '.' into a digit string so `decimals` characters sit after the
-/// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
-/// one to the right to open a slot. No-op when `decimals <= 0`.
-void Room_Util01(u8* str, s32 decimals);
-/// Resets both action-prompt slots before a script's first cursor scan and
-/// steps the caller on one state.
-void Room_Util04(Task* task);
-/// Steps the caller on one state and does nothing else; state tables use it as
-/// a one-frame filler.
-void Room_Util26(Task* task);
-void Room_Util08(Task* task, s32 arg1, GpXformArg* placement);
-s32  Room_Util18(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
-void Room_Util19(Task* task, s32 arg1, s32 arg2);
-/// Latches the room script's argument into the byte `actor_101600_text` reads
-/// back with `lb`, so it is signed.
-void Room_Util36(s32 arg0);
-void Room_SaveUi01(Task* task);
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
-/// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
-/// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
-/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is
-/// `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0x10 scratch
-/// layout as `Room_Draw13`.
-void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when the OTZ is at least
-/// 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
-/// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
-/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is
-/// `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0xC scratch
-/// layout as `Room_Draw25`.
-void Room_Draw20(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Handwritten GTE routine. Projects the world-space point `arg0` through
-/// `gGfxViewCoord.workm` and emits screen-aligned quads there; `arg1` is a signed
-/// half-extent divided by the projected depth and `arg2` packs the primitive's
-/// page/blend bits.
-void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when the OTZ is at least
-/// 0x11, queues four gouraud `POLY_G4` wedges around the projected centre.
-/// `arg1` is a signed half-extent; the on-screen radius is `arg1 * 64 / otz`.
-void Room_Draw25(SVECTOR* arg0, s16 arg1);
-/// Same four-wedge gouraud disc as `Room_Draw25` (same 0xC scratch layout),
-/// but `arg2` scales the inner vertex by the frame-counter blend byte
-/// `((field_8 & 1) * 8 | 0x20)`: red is `blend * ((arg2 << 16) >> 24)`,
-/// green `blend * (((arg2 << 16) >> 20) & 1)`, blue `blend * (arg2 & 1)`.
-void Room_Draw30(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Same body as `Room_Draw30`, but green is `blend * (((arg2 << 16) >> 20) & 3)`
-/// and blue `blend * (arg2 & 3)`.
-void Room_Draw29(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
-/// non-negative, queues four gouraud `POLY_G4` wedges around the projected
-/// centre. `arg1` is a signed half-extent; the on-screen radius is
-/// `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the lit inner
-/// vertex, OR'd with the frame-counter blend bit so each wedge fades to black.
-void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Same four-wedge gouraud disc as `Room_Draw13`, but the scratch block keeps
-/// `radius` at 0x4 and `flag` at 0x8.
-void Room_Draw31(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
-/// non-negative, queues two gouraud `POLY_G4` diamonds and two gouraud
-/// `LINE_G3` diagonals around the projected centre. Same 0x10 scratch layout
-/// as `Room_Draw13`. `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 32 / otz`. `arg1` scales `gDisplayState.animFrame` into `rsin`
-/// so the lit vertex pulses as `rsin(...) / 34 + 0x78` on red.
-void Room_Draw38(SVECTOR* arg0, s16 arg1, s32 arg2);
-/// Same two-diamond gouraud plus two `LINE_G3` diagonals as `Room_Draw38`
-/// (same 0x10 scratch layout), but the lit vertex pulses as
-/// `rsin(...) / 34 + 0x78` on green and blue rather than red.
-void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Same two-diamond gouraud plus two `LINE_G3` diagonals as `Room_Draw18`
-/// (same 0x10 scratch layout), but the on-screen radius is
-/// `(s16)arg2 * 48 / otz` rather than `* 32`.
-void Room_Draw32(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
-/// non-negative, queues a sixteen-wedge gouraud disc plus two inner cross
-/// wedges around the projected centre. `arg2` is a signed half-extent;
-/// on-screen radii are `(s16)arg2 * 64 / otz` (outer) and `(s16)arg2 * 8 / otz`
-/// (inner). `arg1` scales `gDisplayState.animFrame` into `rsin` so the lit vertex
-/// pulses as `rsin(...) / 34 + 0x78` on green and blue.
-void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// `Room_Draw05`'s tinted twin: same sixteen-wedge gouraud disc and two inner
-/// cross wedges, with the colour supplied instead of pulsed. `arg1` is the
-/// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
-/// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the tint into four nibbles,
-/// `[shift][r][g][b]`: each colour nibble is scaled to 8 bits by `<< 4`, and
-/// bit 0 of `gDisplayState.animFrame` is added to all three channels shifted
-/// left by the top nibble, so the disc flickers on alternating frames. The
-/// outer ring draws at half brightness first and full brightness second; the
-/// inner cross uses the halved colour throughout.
-void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
-/// `arg0`'s world position (`workm.t` through `GsWSMATRIX`). `arg1` is the
-/// radius in world units (scaled by 64 and divided by the projected OTZ after
-/// it is incremented) and `arg2` the RGB triple, which only lights the ring's
-/// inner vertex so each `POLY_G4` fades to black. Dropped when `gte_stflg` is
-/// negative.
-void Room_Draw10(GpCoord* arg0, s32 arg1, u8* arg2);
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
-/// 0x2A, clut 0x42CB). `arg1` selects one of four 24-texel UV columns
-/// `(arg1 & 3) * 24 + 0x60` at v=0..0x17. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the RGB on all
-/// three channels. Dropped when `gte_stflg` is negative.
-void Room_Draw14(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Scales the unit quad `D_80111E38` by `arg1`, rotates it by `arg0->workm`
-/// and adds `workm.t`, then projects the four corners through `GsWSMATRIX`.
-/// When `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4`
-/// (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F) coloured
-/// `(arg2, arg2, arg2)`. Same 0x38 scratch layout as `GpQuadScratch`
-/// (`otz` is not incremented).
-void Room_Draw16(GpCoord* arg0, s32 arg1, s32 arg2);
-/// Rotates the local offset `arg1` out of `arg0`'s space and translates it by
-/// the coordinate, then projects it through `GsWSMATRIX`. When the OTZ is at
-/// least 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
-/// `(arg2 & 0x3F) | 0x4380`) whose `arg2`-selected 40-texel UV column sits at
-/// v 0..0x27, with RGB 0x20 / 0x30 alternating on the parity of
-/// `gDisplayState.animFrame`. `arg3` is a signed half-extent; the on-screen
-/// radius is `(s16)arg3 * 39 / otz`.
-void Room_Draw35(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
-/// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
-/// with `gGfxViewCoord.workm` and adds `arg0->workm.t`, then projects the four
-/// corners through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
-/// semi-transparent `POLY_FT4` (tpage 0x28, clut 0x428C) coloured
-/// `(0x30, 0x20, 0x20)`. The frame counter picks between two UV columns:
-/// `u` is `(field_8 & 1) * 32` plus 0xC0 / 0xDF, at v = 0x38..0x57. Same 0x38
-/// scratch layout as `GpQuadScratch` (`otz` is not incremented).
-void Room_Draw06(GpCoord* arg0, s32 arg1);
-/// Projects two world-space points (`arg0` and `arg0 + 1`) through
-/// `gGfxViewCoord.workm` and, when the second OTZ is at least 0x11, queues
-/// gouraud `POLY_G4` wedges: a half-disc at each projected centre plus
-/// connecting slices. `arg1` is a signed half-extent; on-screen radii are
-/// `(s16)arg1 * 64 / otz`. `arg2` is a signed angle offset. The first OTZ is
-/// clamped to 0x10.
-void Room_Draw11(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex is
-/// scaled by the frame-counter blend byte `((field_8 & 1) * 8 | 0x20)`: red
-/// is `blend * ((arg3 << 16) >> 24)`, green `blend * (((arg3 << 16) >> 20) & 1)`,
-/// blue `blend * (arg3 & 1)`. `arg2` is still the signed angle offset.
-void Room_Draw12(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Same two-point gouraud wedges as `Room_Draw11`, but the sweep is anchored to
-/// the screen-space angle between the two projected centres (`ratan2` of their
-/// delta) instead of an `arg2` offset, both `gte_stflg` results are tested and
-/// neither OTZ is clamped. The lit vertex takes the frame-counter blend byte
-/// `((field_8 & 1) * 16) | 0x20`.
-void Room_Draw08(SVECTOR* arg0, s32 arg1);
-/// Same two-point gouraud wedges as `Room_Draw08` -- the sweep is anchored to
-/// the `ratan2` of the two projected centres and both `gte_stflg` results are
-/// tested -- but the lit vertex is coloured from `arg2` instead of a grey ramp:
-/// each of the three nibbles of `arg2` moves into the high nibble of a channel
-/// and is OR'd with the frame-counter blend bit `(field_8 & 1) * 8`.
-void Room_Draw01(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Same two-point gouraud wedges as `Room_Draw12`, but the green/blue masks
-/// are `& 3` rather than `& 1`.
-void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex's RGB
-/// is `((field_8 & 1) * 16) | 0x20` rather than `* 8`.
-void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Draws seven gouraud `POLY_G4` quads connecting two eight-slot coordinate
-/// trails (`arg0` and `arg1`), walking backwards from `arg2`. Each quad is
-/// the `workm.t` of two adjacent slots on both trails, projected through
-/// `GsWSMATRIX`. The leading edge is scaled by `0x40 - 9 * i` and the
-/// trailing edge by nine less. `arg3` packs three 2-bit RGB channels at bits
-/// 8, 4 and 0. Dropped when `gte_stflg` is negative.
-void Room_Draw03(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-/// Same eight-wedge gouraud ring as `Room_Draw10`, but the scratch block keeps
-/// `radius` at 0xC and `flag` at 0x10. `arg1` is still the signed half-extent
-/// `(s16)arg1 * 64 / (otz + 1)`, and `arg2` still tints only the inner vertex.
-void Room_Draw04(GpCoord* arg0, s32 arg1, u8* arg2);
-/// Same sixteen-wedge gouraud ring as `Room_Draw09`, but the scratch block
-/// keeps `flag` at 0xC with `rOuter`/`rInner` at 0x10/0x14. `arg1` is the
-/// inner half-extent and `arg2` the extra outer width.
-void Room_Draw07(GpCoord* arg0, s32 arg1, s32 arg2, u8* arg3);
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// `gte_stflg` is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a two-ring billboard. `arg1` is a signed half-extent; on-screen radii
-/// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
-/// (inner). The RGB triple tints the inner vertex of the inner ring at full
-/// brightness and the outer ring at half, so each wedge fades to a black rim.
-void Room_DrawBillboard(GpCoord* arg0, s16 arg1, u8* arg2);
-/// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
-/// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
-/// height. Left vertices take `arg5`, right vertices take `arg6`.
-void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
-/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
-/// `LINE_F2`s -- top, right, bottom and left -- each linked into
-/// `gGpuCurrentOt[1]`.
-void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b);
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent shade-tex
-/// `POLY_FT4` (tpage 0x2B, clut 0x43D3) rotated about the projected centre.
-/// `arg1` selects the 32-texel UV column `(s16)arg1 << 5` at v=0xE0..0xFF.
-/// `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
-/// `arg3 + 0x400` through `rsin`/`rcos`.
-void Room_Draw27(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Draws the tapered light beam between the two local-space points `arg1` and
-/// `arg2` of `arg0`: both are rotated by the coordinate's `workm`, offset by
-/// its translation and projected through `GsWSMATRIX`, then joined by three
-/// `POLY_G4`s per quarter turn -- a wedge on each end cap and a side quad
-/// between the two circles. `arg3` is a signed half-extent, giving the screen
-/// radii `(s16)arg3 * 64 / otz0` and `(s16)arg3 * 64 / otz1`. Nothing is drawn
-/// when the far end's `otz` is below 0x11.
-void Room_Draw24(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
-/// Draws one light shaft: `arg1` is rotated by `arg0`'s `workm`, offset by its
-/// translation and projected through `GsWSMATRIX` with a single `RTPS` into a
-/// 0x14 scratch block, and is dropped when `otz` is below 0x11. `arg3` is a
-/// signed half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`
-/// and the two `POLY_G4` halves narrow with distance; `arg2` scales
-/// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
-/// `rsin(...) / 34 + 0x78` on green and blue. Two gouraud `LINE_G3` diagonals
-/// cross the same centre.
-void Room_Draw37(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
-/// Same rotated shade-tex `POLY_FT4` as `Room_Draw27` (same 0x1C scratch
-/// layout, tpage 0x2B, clut 0x43D3), but `arg1` selects the UV column
-/// `(arg1 & 0xFFFF) << 5` rather than `(s16)arg1 << 5`.
-void Room_Draw19(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// `gte_stflg` is non-negative and `otz` is at least 0x41, queues one
-/// semi-transparent shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4383) rotated
-/// about the projected centre. `arg1` selects a 48-texel UV tile in a 5-wide
-/// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
-/// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
-/// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
-/// `rsin`/`rcos`. The primitive is carved from `gGpuPrimCursor` before the
-/// flag test.
-void Room_Draw39(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent raw-tex
-/// `POLY_FT4` (tpage 0x2C, clut 0x43D3) rotated about the projected centre.
-/// `arg1` selects a 32-texel UV column on the 0xE0..0xFF texture row:
-/// u = `arg1 * 32`. `arg2` is a signed half-extent; the on-screen radius is
-/// `arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
-/// `arg3 + 0x400` through `rsin`/`rcos`.
-void Room_Draw40(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent shade-tex
-/// `POLY_FT4` (tpage 0x2B, clut 0x4393). `arg1` selects a 56-texel UV tile in
-/// a 4-wide 2-row grid: u = `(arg1 & 3) * 56`, v = `((arg1 & 7) >> 2) * 56`.
-/// `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 55 / otz`. The quad is axis-aligned and 2*radius on a side,
-/// shifted up so the projected point sits at three-quarters height
-/// (`y0 = sy - r - r/2`, `y2 = sy + r/2`). Same 0x18 scratch layout as
-/// `Room_Draw14` (`otz` is not incremented).
-void Room_Draw41(GpCoord* arg0, s32 arg1, s32 arg2);
-/// Same axis-aligned shade-tex `POLY_FT4` as `Room_Draw41` (same 0x18 scratch
-/// layout, tpage 0x2B, `(s16)arg2 * 55 / otz` radius, three-quarter-height
-/// shift), but clut is 0x43D2 and the 56-texel row is biased to v+0x70..v-0x59
-/// rather than v..v+0x37.
-void Room_Draw23(GpCoord* arg0, s32 arg1, s32 arg2);
-/// `Room_Draw23` with `s16` arguments: the tile index uses signed `% 4` /
-/// `% 8` rather than masks and the half-extent is already a halfword.
-void Room_Draw28(GpCoord* arg0, s16 arg1, s16 arg2);
-/// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
-/// slot 8.
-void Room_Draw42(s32 tpage, s16 arg1);
-/// Queues the room's 16x24 action-prompt cursor icon at (`x`, `y`) into the head
-/// of the current OT; `variant` selects the palette and 0 draws nothing.
-void Room_Draw36(s32 x, s32 y, s32 variant);
-void Room_Script10(Task* task);
-void Room_Script11(Task* task);
-void Room_Script21(Task* task);
-
-/// Fills the "Play Data" item-usage panel's `RoomItemUsage` block from the
-/// save's per-item use counters, then seeds `list` with the row count.
-void RoomsShared80180c98(UiList* list, UiObject* obj);
-
-/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the save's
-/// per-slot Parasite Energy use counters, then seeds `list` with the row count.
-void RoomsShared80180f94(UiList* list, UiObject* obj);
-
-/// Appends `item` to the shop list the panel's task owns, keeping one entry per
-/// item kind (a higher level of the same kind replaces the entry it finds).
-void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item);
 
 /// The scratch block a room's sprite or light-shaft drawer takes from
 /// `G_SCRATCH_HEAD` for one projected point: `vec` is the point in world
@@ -643,4 +357,4 @@ typedef struct RoomAmbienceEntry {
 } RoomAmbienceEntry;
 STATIC_ASSERT_SIZEOF(RoomAmbienceEntry, 0x8);
 
-#endif // ROOMS_ROOM_COMMON_H
+#endif // INCLUDE_ROOMS_ROOM_COMMON_H

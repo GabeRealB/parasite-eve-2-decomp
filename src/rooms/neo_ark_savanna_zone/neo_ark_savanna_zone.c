@@ -1,47 +1,57 @@
-#include "common.h"
 #include "rooms/neo_ark_savanna_zone.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern SVECTOR D_neo_ark_savanna_zone_8017F9D4[2];
 
@@ -65,18 +75,18 @@ static void func_neo_ark_savanna_zone_8017E0DC(GpCoord* arg0, s16 arg1, u8* rgb)
 static void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_savanna_zone_8017EFE0(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_neo_ark_savanna_zone_8017FBD0[1];
-extern GpObj3A D_neo_ark_savanna_zone_801808CC[1];
-extern GpObj4C D_neo_ark_savanna_zone_801804EC[4];
-extern GpObj4C D_neo_ark_savanna_zone_8018061C[5];
+extern GpGridParams   D_neo_ark_savanna_zone_8017FBD0[1];
+extern GpObj3A        D_neo_ark_savanna_zone_801808CC[1];
+extern GpObj4C        D_neo_ark_savanna_zone_801804EC[4];
+extern GpObj4C        D_neo_ark_savanna_zone_8018061C[5];
 extern GpRoomBoundVec D_neo_ark_savanna_zone_80180908[5];
 extern GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1];
-extern TaskDesc D_8014D8A4;
-s32 func_neo_ark_savanna_zone_8017D77C(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_savanna_zone_8017D8F0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_savanna_zone_8017D8F8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_savanna_zone_8017D900(Task *, s32, GpMessageArg, GpMessageArg);
-void func_neo_ark_savanna_zone_8017D5E4(Task *);
+extern TaskDesc       D_8014D8A4;
+s32                   func_neo_ark_savanna_zone_8017D77C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                   func_neo_ark_savanna_zone_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_neo_ark_savanna_zone_8017D8F8(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_neo_ark_savanna_zone_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
+void                  func_neo_ark_savanna_zone_8017D5E4(Task*);
 
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, func_neo_ark_savanna_zone_8017D5E4, { .model = NULL } };
 
@@ -478,6 +488,10 @@ GpSaveLoc D_neo_ark_savanna_zone_80180990 = { 0 };
 s8 D_neo_ark_savanna_zone_80180998 = 0;
 
 RoomLatchedEvent D_neo_ark_savanna_zone_8018099C = { 0 };
+
+static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static void           func_neo_ark_savanna_zone_8017D908(Task* task);
+static void           func_neo_ark_savanna_zone_8017D94C(Task* task);
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
 /// the event's CAP command; state 1 waits for it to finish and, when the event

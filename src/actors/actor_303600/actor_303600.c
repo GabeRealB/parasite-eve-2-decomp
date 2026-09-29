@@ -1,36 +1,40 @@
 #include "actors/actor_303600.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "actors/actor.h"
+#include "common.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "overlay.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Work block for the `actor_303600` overlay's cutscene controller.
 ///
@@ -99,16 +103,16 @@ typedef struct Actor303600RigWork {
 } Actor303600RigWork;
 STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
 
-extern Task*      D_actor_303600_8016E4C0;
-extern Task*      D_actor_303600_8016E4C4;
-extern TaskDesc   D_actor_303600_80162E98[];
-extern TaskDesc   D_actor_303600_8016E468[];
+extern Task*    D_actor_303600_8016E4C0;
+extern Task*    D_actor_303600_8016E4C4;
+extern TaskDesc D_actor_303600_80162E98[];
+extern TaskDesc D_actor_303600_8016E468[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor303600MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor303600MsgEntry, 8);
@@ -134,14 +138,14 @@ static void func_actor_303600_80162A04(Task* task);
 static void func_actor_303600_80162A0C(Task* task);
 
 extern TmdSource D_actor_303600_8016A3E4;
-s32 func_actor_303600_80162870(Task *, s32, GpCmdArg *);
-void func_actor_303600_801628E4(Task *);
-void func_actor_303600_80162A7C(Task *);
+s32              func_actor_303600_80162870(Task*, s32, GpCmdArg*);
+void             func_actor_303600_801628E4(Task*);
+void             func_actor_303600_80162A7C(Task*);
 
-void func_actor_303600_80161E60(Task *);
-void func_actor_303600_8016216C(Task *);
-void func_actor_303600_801622E8(Task *);
-void func_actor_303600_801623CC(Task *);
+void func_actor_303600_80161E60(Task*);
+void func_actor_303600_8016216C(Task*);
+void func_actor_303600_801622E8(Task*);
+void func_actor_303600_801623CC(Task*);
 void func_actor_303600_801624B0(void);
 void func_actor_303600_8016253C(void);
 void func_actor_303600_80162600(s16);
@@ -16860,6 +16864,10 @@ GsF_LIGHT D_actor_303600_8016E490[3] = {
 Task * D_actor_303600_8016E4C0 = NULL;
 
 Task * D_actor_303600_8016E4C4 = NULL;
+
+static void func_actor_303600_80161F40(Task* arg0);
+static void func_actor_303600_801626C0(Task* task);
+static void func_actor_303600_801627B8(Task* task);
 
 /// Entry 3 of `D_actor_303600_80162E98`, spawned by the teardown and by
 /// command 8: every frame it covers the screen with an opaque black tile,

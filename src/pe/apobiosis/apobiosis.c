@@ -1,29 +1,75 @@
-#include "common.h"
 #include "pe/apobiosis.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// 0x28-byte scratch block `func_apobiosis_80130630` takes from
+/// `G_SCRATCH_HEAD` to draw one burst shard. `v0` is the effect coordinate's
+/// world position and `v1` that position plus the offset vector `arg1`;
+/// both are projected through `GsWSMATRIX` with one `RTPS` each,
+/// giving `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever
+/// projection ran last (a negative value drops the quad) and `otz` is the
+/// first projection's `gte_stszotz`, incremented by 1 before it becomes both
+/// the radius divisor and the OT bucket. `dx` / `dy` hold the current
+/// `(arg3 * 23 / otz) * rsin|rcos(angle) >> 12` half-extents; only their low
+/// halves are read back.
+typedef struct ApobiosisShardScratch {
+    /* 0x00 */ SVECTOR v0;
+    /* 0x08 */ SVECTOR v1;
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ s32     flag;
+    /* 0x18 */ s32     dx;
+    /* 0x1C */ s32     dy;
+    /* 0x20 */ s16     sx0;
+    /* 0x22 */ s16     sy0;
+    /* 0x24 */ s16     sx1;
+    /* 0x26 */ s16     sy1;
+} ApobiosisShardScratch;
+STATIC_ASSERT_SIZEOF(ApobiosisShardScratch, 0x28);
+
+/// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
+/// `GpEffWork.index` / `step` (`Gp_StateC08.field_0 % 10 - 1`, so the
+/// burst scales with the combo counter). `field_0` is half the number of ring
+/// points the cast lays out, `field_2` the ring radius it draws them at and
+/// `field_4` the per-frame growth added to the cast's `GpEffWork.scale`.
+/// `field_6` is the shard radius `func_apobiosis_8012FE10` hands to
+/// `func_apobiosis_8013017C` / `func_apobiosis_80130630` - doubled while the
+/// shard is still parented to the cast (state 1), plain once it flies free
+/// (state 2).
+typedef struct ApobiosisStep {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ u16 field_6;
+} ApobiosisStep;
+STATIC_ASSERT_SIZEOF(ApobiosisStep, 0x8);
 
 static void func_apobiosis_8012F808(s16 bright);
 static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);

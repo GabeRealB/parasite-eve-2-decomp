@@ -1,0 +1,16 @@
+#ifndef SRC_ROOMS_SHELTER_B3_INCINERATOR_CONTROL_ROOM_SHELTER_B3_INCINERATOR_CONTROL_ROOM_PRIVATE_H
+#define SRC_ROOMS_SHELTER_B3_INCINERATOR_CONTROL_ROOM_SHELTER_B3_INCINERATOR_CONTROL_ROOM_PRIVATE_H
+
+#include "gameplay/area_flags.h"
+
+#include "main/task_types.h"
+
+#include "rooms/room.h"
+
+extern GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5];
+
+extern Task* D_shelter_b3_incinerator_control_room_80182A54;
+
+extern RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
+
+#endif // SRC_ROOMS_SHELTER_B3_INCINERATOR_CONTROL_ROOM_SHELTER_B3_INCINERATOR_CONTROL_ROOM_PRIVATE_H

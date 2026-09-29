@@ -1,44 +1,44 @@
-#include "gameplay/evs.h"
 #include "rooms/neo_ark_forest_zone.h"
-#include "neo_ark_forest_zone_private.h"
 
-#include "gameplay/pairsrc.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/stdio.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/stdio.h>
-#include "rooms/room.h"
+#include "neo_ark_forest_zone_private.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/room.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/animation.h"
-
-extern SVECTOR D_neo_ark_forest_zone_80182094[2];
+#include "mapui/map_neo_ark.h"
 
 /// A placement for a spawned task: the x and z written into its coordinate
 /// translation (y is always zero) and the Y rotation passed to
@@ -52,7 +52,7 @@ typedef struct NeoArkForestZoneSpawnPos {
 
 /// Enemy parameters shared by the spawn-slot controllers.
 extern GpPairSrcE D_neo_ark_forest_zone_80182D1C;
-extern GpU16Pair D_neo_ark_forest_zone_80182D04[6];
+extern GpU16Pair  D_neo_ark_forest_zone_80182D04[6];
 
 /// How many spawns each session slot arms, indexed by
 /// `gGameSession->at4.loc.place`, for the second and the first arming task
@@ -86,15 +86,15 @@ extern s16 D_neo_ark_forest_zone_80182D6A;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpMessageArg, GpMessageArg);
-        s32 (*call1)(Task *, s32, u8 *, GpMessageArg);
-        void (*call2)(Task *, s32, s32);
+        s32  (*call0)(Task*, s32, GpMessageArg, GpMessageArg);
+        s32  (*call1)(Task*, s32, u8*, GpMessageArg);
+        void (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkForestZone2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkForestZone2MsgEntry, 8);
 
 extern NeoArkForestZone2MsgEntry D_neo_ark_forest_zone_80182D6C[];
-extern GpMsgEntry D_neo_ark_forest_zone_80182DC8[];
+extern GpMsgEntry                D_neo_ark_forest_zone_80182DC8[];
 
 /// Spawn placements of the first and the second arming task, indexed by the
 /// placement request minus one.
@@ -103,13 +103,6 @@ extern NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5];
 
 /// `Gp_StateF0.field_6` as seen on the previous frame.
 extern s16 D_neo_ark_forest_zone_80182DC4;
-
-/// The payload the room sends with message 0x7DB.
-extern GpCmdArg D_neo_ark_forest_zone_80182E44;
-
-/// The room's five pending spawn values; a positive entry is handed to the
-/// first waiting object and then cleared.
-extern u16 D_neo_ark_forest_zone_80182E54[5];
 
 static void func_neo_ark_forest_zone_801804B0(Task* task);
 static void func_neo_ark_forest_zone_80180620(Task* task);
@@ -123,20 +116,20 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     taskKill,
 } };
 
-s32 func_neo_ark_forest_zone_80180A60(Task *, s32, GpCmdArg *, GpMessageArg);
-s32 func_neo_ark_forest_zone_801813BC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_forest_zone_801813C4(Task *, s32, u8 *, GpMessageArg);
-s32 func_neo_ark_forest_zone_80181494(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_forest_zone_801814B0(Task *, s32, u8 *, GpMessageArg);
-void func_neo_ark_forest_zone_801803B4(Task *, s32, s32);
+s32  func_neo_ark_forest_zone_80180A60(Task*, s32, GpCmdArg*, GpMessageArg);
+s32  func_neo_ark_forest_zone_801813BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_forest_zone_801813C4(Task*, s32, u8*, GpMessageArg);
+s32  func_neo_ark_forest_zone_80181494(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, GpMessageArg);
+void func_neo_ark_forest_zone_801803B4(Task*, s32, s32);
 
-extern GpGridParams D_neo_ark_forest_zone_80182274[1];
-extern GpObj4C D_neo_ark_forest_zone_801826B4[6];
-extern GpObj4C D_neo_ark_forest_zone_801829D0[10];
+extern GpGridParams   D_neo_ark_forest_zone_80182274[1];
+extern GpObj4C        D_neo_ark_forest_zone_801826B4[6];
+extern GpObj4C        D_neo_ark_forest_zone_801829D0[10];
 extern GpRoomCoordSet D_neo_ark_forest_zone_8018269C[1];
 
-void func_neo_ark_forest_zone_80181430(Task *);
-void func_neo_ark_forest_zone_8018151C(Task *);
+void func_neo_ark_forest_zone_80181430(Task*);
+void func_neo_ark_forest_zone_8018151C(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -644,6 +637,12 @@ TaskDesc D_neo_ark_forest_zone_80182E18 = { 0, 32, func_neo_ark_forest_zone_8018
 
 TaskDesc D_neo_ark_forest_zone_80182E24 = { 0, 32, func_neo_ark_forest_zone_80181430, { .model = NULL } };
 
+static void func_neo_ark_forest_zone_80180BB4(Task* arg0);
+
+static void func_neo_ark_forest_zone_80180D24(Task* arg0);
+
+static void func_neo_ark_forest_zone_80181508(Task* arg0);
+
 /// 0x13F4 handler of the first arming state's message table: a positive
 /// `arg2` fills the first free spawn slot with 110% of it, clamped to the
 /// room's ceiling, and releases the `Gp_StateF0` reference (or marks it for
@@ -1096,9 +1095,6 @@ static void func_neo_ark_forest_zone_80181508(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
-
-static void func_neo_ark_forest_zone_80180BB4(Task* arg0);
-static void func_neo_ark_forest_zone_80180D24(Task* arg0);
 
 /// State table of the second arming task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {

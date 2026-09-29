@@ -1,36 +1,46 @@
-#include "common.h"
 #include "rooms/shelter_b1_pod_service_gantry.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/direction.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
+
+#include "shelter_b1_pod_service_gantry_private.h"
+
+#include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
 // Two live spotlights are followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[2];
-    u8 retained[756];
+    u8          retained[756];
 } ShelterB1PodServiceGantrySpotLightStorage;
 STATIC_ASSERT_SIZEOF(ShelterB1PodServiceGantrySpotLightStorage, 972);
 
@@ -41,10 +51,9 @@ typedef struct {
     s16   state;
 } _GantryWork;
 
-extern TaskDesc       D_8013FB50;
-extern TaskDesc       D_8016EA28;
-extern TaskDesc       D_801718F0;
-extern GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540[];
+extern TaskDesc D_8013FB50;
+extern TaskDesc D_8016EA28;
+extern TaskDesc D_801718F0;
 
 /// The room's message table, published in `Task::msgTable`.
 extern GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
@@ -57,12 +66,12 @@ static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
     { func_shelter_b1_pod_service_gantry_8017D81C, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
 };
 
-s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_pod_service_gantry_8017D80C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_pod_service_gantry_8017D814(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_pod_service_gantry_8017D80C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_pod_service_gantry_8017D814(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpPointLight D_shelter_b1_pod_service_gantry_80181DC8[9];
+extern GpPointLight                              D_shelter_b1_pod_service_gantry_80181DC8[9];
 extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
 
 GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {

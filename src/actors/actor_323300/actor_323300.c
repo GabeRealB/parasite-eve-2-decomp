@@ -1,40 +1,45 @@
-#include "common.h"
-#include "rooms/dryfield_toilet.h"
-
-#include <psyq/abs.h>
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/message.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-#include "overlay.h"
-#include <psyq/memory.h>
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
+
+#include "rooms/dryfield_toilet.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, the
@@ -96,7 +101,7 @@ extern GpMsgEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
 /// `func_actor_323300_801628B8` index by the 0x504 block's bank byte.
-extern GpAnimSet* D_actor_323300_80172548[4];
+extern GpAnimSet*  D_actor_323300_80172548[4];
 extern GpAnimSet** D_actor_323300_80172558[1];
 
 /// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
@@ -116,10 +121,10 @@ extern GpAnimArg D_actor_323300_801725DC;
 /// block's bank index, one `void*` per bank. `func_actor_323300_80162BE4`
 /// applies the preset `D_actor_323300_80174A74` through it and places the
 /// actor at `D_actor_323300_80174AB0`.
-extern GpAnimSet* D_actor_323300_80174A60[4];
+extern GpAnimSet*  D_actor_323300_80174A60[4];
 extern GpAnimSet** D_actor_323300_80174A70[1];
-extern GpAnimArg  D_actor_323300_80174A74;
-extern GpXformArg D_actor_323300_80174AB0;
+extern GpAnimArg   D_actor_323300_80174A74;
+extern GpXformArg  D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -151,21 +156,21 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
     func_actor_323300_8016269C,
 } };
 
-s32 func_actor_323300_80162208(Task *, s32, s32, s32);
-s32 func_actor_323300_80162360(Task *, s32, GpCmdArg *, GpXformArg *);
-s32 func_actor_323300_801628B8(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_323300_801629F0(Task *, s32, GpXformArg *, s32);
+s32 func_actor_323300_80162208(Task*, s32, s32, s32);
+s32 func_actor_323300_80162360(Task*, s32, GpCmdArg*, GpXformArg*);
+s32 func_actor_323300_801628B8(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_323300_801629F0(Task*, s32, GpXformArg*, s32);
 
 extern TmdSource D_actor_323300_80169200;
 extern TmdSource D_actor_323300_8017128C;
-void func_actor_323300_80162630(Task *);
-void func_actor_323300_80163840(Task *);
+void             func_actor_323300_80162630(Task*);
+void             func_actor_323300_80163840(Task*);
 
 extern GpAnimSet D_actor_323300_80173DE4;
 extern GpAnimSet D_actor_323300_80174200;
 extern GpAnimSet D_actor_323300_80174A38;
 
-extern GpAnimSet * D_actor_323300_80174A60[4];
+extern GpAnimSet* D_actor_323300_80174A60[4];
 
 TmdBone D_actor_323300_801638AC[19] = {
 #include "assets/actor_323300_model_073E0_skeleton.inc"
@@ -430,6 +435,11 @@ GpAnimArg D_actor_323300_80174A88[2] = {
 };
 
 GpXformArg D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
+
+static void func_actor_323300_80162A6C(Task* arg0, ToiletMorphTarget* arg1, s32 arg2);
+static void func_actor_323300_80162BE4(Task* arg0);
+static void func_actor_323300_80162DF0(Task* arg0);
+static void func_actor_323300_80163188(GpCoord* coord, s16 angle);
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
 /// seeds the `GpRec18` collision table and the display node at +0x480, then

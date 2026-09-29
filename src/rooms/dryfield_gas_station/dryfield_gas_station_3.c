@@ -1,50 +1,60 @@
-#include "dryfield_gas_station_private.h"
+#include "rooms/dryfield_gas_station.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/dryfield_gas_station.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "dryfield_gas_station_private.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-
-#include "gameplay/attachment_state.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
 #include "overlay.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "gameplay/animation.h"
+#include "rooms/room_common.h"
+
+#define D_dryfield_gas_station_80182E5C (D_dryfield_gas_station_80182E44[1])
+#define D_dryfield_gas_station_80182E74 (D_dryfield_gas_station_80182E44[2])
 
 /// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_gas_station_801807E0` and hung off `Task::work` (0x1C).
@@ -68,10 +78,10 @@ typedef struct DgsWork {
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
 extern GpAnimSet* D_dryfield_gas_station_80182E30[5];
-extern GpEvsCmd D_dryfield_gas_station_80182E8C[];
-extern GpEvsCmd D_dryfield_gas_station_8018303C[];
-extern TaskDesc   D_dryfield_gas_station_8018312C[];
-extern SVECTOR    D_dryfield_gas_station_80183144;
+extern GpEvsCmd   D_dryfield_gas_station_80182E8C[];
+extern GpEvsCmd   D_dryfield_gas_station_8018303C[];
+
+extern SVECTOR D_dryfield_gas_station_80183144;
 
 /// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
 /// `DgsWork` block is set up, so the room's script helpers can reach it.
@@ -81,15 +91,15 @@ extern Task* D_dryfield_gas_station_80184BD4;
 void func_dryfield_gas_station_80180944(void);
 void func_dryfield_gas_station_80180B2C(s16);
 
-extern GpGridParams D_dryfield_gas_station_80183EA4[1];
-extern GpObj4C D_dryfield_gas_station_80184350[11];
-extern GpObj4C D_dryfield_gas_station_80184694[10];
+extern GpGridParams   D_dryfield_gas_station_80183EA4[1];
+extern GpObj4C        D_dryfield_gas_station_80184350[11];
+extern GpObj4C        D_dryfield_gas_station_80184694[10];
 extern GpRoomCoordSet D_dryfield_gas_station_80184B48[1];
-extern TaskDesc D_80142604;
-extern TaskDesc D_8014D8A4;
-void func_dryfield_gas_station_801807E0(Task *);
-void func_dryfield_gas_station_80180984(Task *);
-void func_dryfield_gas_station_80180A60(void);
+extern TaskDesc       D_80142604;
+extern TaskDesc       D_8014D8A4;
+void                  func_dryfield_gas_station_801807E0(Task*);
+void                  func_dryfield_gas_station_80180984(Task*);
+void                  func_dryfield_gas_station_80180A60(void);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1444,8 +1454,9 @@ Task * D_dryfield_gas_station_80184BD4 = NULL;
 
 RoomCutsceneRec D_dryfield_gas_station_80184BD8 = { 0 };
 
-#define D_dryfield_gas_station_80182E5C (D_dryfield_gas_station_80182E44[1])
-#define D_dryfield_gas_station_80182E74 (D_dryfield_gas_station_80182E44[2])
+static void func_dryfield_gas_station_801803C0(Task* task);
+static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 /// Carries out the script command in `DgsWork::field_4`, then clears it (the
 /// multi-frame commands return early until they finish). 1 places the owner at

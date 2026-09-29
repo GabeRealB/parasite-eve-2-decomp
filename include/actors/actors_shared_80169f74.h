@@ -1,11 +1,7 @@
-#ifndef ACTORS_SHARED_80169F74_H
-#define ACTORS_SHARED_80169F74_H
+#ifndef INCLUDE_ACTORS_ACTORS_SHARED_80169F74_H
+#define INCLUDE_ACTORS_ACTORS_SHARED_80169F74_H
 
-#include "common.h"
-
-#include "gameplay/message.h"
-
-#include "main/task_types.h"
+#include "types.h"
 
 /// Work block hanging off `Task::work`. Only the prefix this body reaches is
 /// described: `yaw` is the heading taken from the root coordinate's Z-axis
@@ -15,6 +11,4 @@ typedef struct ActorsShared80169f74Work {
     /* 0x16 */ s16  yaw;
 } ActorsShared80169f74Work;
 
-s32 ActorsShared80169f74(Task* task, s32 arg1, GpXformArg* placement);
-
-#endif
+#endif // INCLUDE_ACTORS_ACTORS_SHARED_80169F74_H

@@ -1,26 +1,37 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-
-#include <psyq/libgte.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/shelter_b1_north_maintenance_walkway.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "shelter_b1_north_maintenance_walkway_private.h"
+
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/sprites.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -39,17 +50,13 @@ extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[];
 static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
-/// Spawn payload of the task 0x31 the event task may start.
-extern RoomFadeStorage       D_shelter_b1_north_maintenance_walkway_80185B6C;
-extern RoomEventMsg     D_shelter_b1_north_maintenance_walkway_80185B74;
-extern RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;
 
-void func_shelter_b1_north_maintenance_walkway_8017D60C(Task *);
-s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-void func_shelter_b1_north_maintenance_walkway_8017D918(Task *);
-s32 func_shelter_b1_north_maintenance_walkway_8017DA34(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_north_maintenance_walkway_8017DA3C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_north_maintenance_walkway_8017DA44(Task *, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b1_north_maintenance_walkway_8017D60C(Task*);
+s32  func_shelter_b1_north_maintenance_walkway_8017D7A4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+void func_shelter_b1_north_maintenance_walkway_8017D918(Task*);
+s32  func_shelter_b1_north_maintenance_walkway_8017DA34(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_north_maintenance_walkway_8017DA3C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_north_maintenance_walkway_8017DA44(Task*, s32, GpMessageArg, GpMessageArg);
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { 0, 32, func_shelter_b1_north_maintenance_walkway_8017D60C, { .model = NULL } };
 
@@ -95,6 +102,11 @@ SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[6] = {
 SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[1] = {
     { 749, -1283, 2310, 0 },
 };
+
+static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
+    RoomEventMsg* dst, RoomLatchedEvent* event);
+static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0);
+static void func_shelter_b1_north_maintenance_walkway_8017DAF4(Task* task);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless

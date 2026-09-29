@@ -1,25 +1,42 @@
-#include "dryfield_night_garage_private.h"
+#include "rooms/dryfield_night_garage.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/dryfield_night_garage.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
+#include "gte.h"
+#include "types.h"
+
+#include "dryfield_night_garage_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/inventory.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
-#include "gameplay/enemy.h"
-#include "gameplay/message.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
@@ -27,29 +44,19 @@
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/inventory.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield_full.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/direction_input.h"
-
-#include "gameplay/evs.h"
-
-extern s32            D_dryfield_night_garage_80182DE0;
-extern s32            D_dryfield_night_garage_80182DE4;
 extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
 extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
-
-/// Descriptor of the task `func_dryfield_night_garage_80180D4C` spawns.
-extern TaskDesc D_dryfield_night_garage_80183380[];
 
 /// The garage's two point-pair runs, 8-byte `SVECTOR`s laid back to back from
 /// `801833A4`: four pairs the visit-3/15 case sweeps (`A4[0]`, `A4[2]`, `A4[4]`,
@@ -67,24 +74,19 @@ extern GpAreaTmdRec D_dryfield_night_garage_801874A4[2];
 
 extern TaskDesc D_8013B11C[];
 
-extern GpGridParams D_dryfield_night_garage_80183DD4;
 extern GpGridParams D_dryfield_night_garage_801843D4[1];
-extern GpObj4C D_dryfield_night_garage_8018630C[14];
-extern GpObj4C D_dryfield_night_garage_80186734[12];
-extern GpObj4C D_dryfield_night_garage_80186D7C[16];
-extern GpObj4C D_dryfield_night_garage_8018723C[7];
+extern GpObj4C      D_dryfield_night_garage_8018630C[14];
+extern GpObj4C      D_dryfield_night_garage_80186734[12];
+
+extern GpObj4C        D_dryfield_night_garage_8018723C[7];
 extern GpRoomBoundVec D_dryfield_night_garage_8018751C[16];
 extern GpRoomCoordSet D_dryfield_night_garage_80186D64[1];
 
-void func_dryfield_night_garage_80180B20(Task *);
-void func_dryfield_night_garage_80180CEC(Task *);
-void func_dryfield_night_garage_80180D4C(Task *);
+void func_dryfield_night_garage_80180B20(Task*);
+void func_dryfield_night_garage_80180CEC(Task*);
+void func_dryfield_night_garage_80180D4C(Task*);
 
-extern GpAnimSet D_dryfield_night_garage_80182140;
-extern GpAnimSet D_dryfield_night_garage_80182514;
-extern GpAnimSet D_dryfield_night_garage_80182904;
-extern GpAnimSet D_dryfield_night_garage_80182C70;
-void func_dryfield_night_garage_801809A4(Task *);
+void func_dryfield_night_garage_801809A4(Task*);
 void func_dryfield_night_garage_80180AB0(void);
 
 TaskDesc D_dryfield_night_garage_80182C98[2] = {
@@ -1730,6 +1732,8 @@ GpAreaApplyRec D_dryfield_night_garage_80187620[2] = {
 s32 D_dryfield_night_garage_80187628 = 0;
 
 GpItemMap * D_dryfield_night_garage_8018762C = NULL;
+
+static void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_dryfield_night_garage_801809A4(Task* arg0)
 {

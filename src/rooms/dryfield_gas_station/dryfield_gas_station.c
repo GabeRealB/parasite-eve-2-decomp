@@ -1,39 +1,46 @@
-#include "gameplay/message.h"
-#include "common.h"
+#include "rooms/dryfield_gas_station.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/dryfield_gas_station.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
 
-#include "gameplay/captions.h"
+#include "common.h"
+
+#include "dryfield_gas_station_private.h"
+
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/object_task.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
-/// The cutscene script `func_dryfield_gas_station_8017FD54` fills in before
-/// spawning the cutscene task with it.
-extern RoomCutsceneRec D_dryfield_gas_station_80184BD8;
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -100,36 +107,33 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call2)(s32, s32, s32);
     } handler;
 } DryfieldGasStationMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldGasStationMessageEntry, 8);
 
 extern DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5];
-extern TaskDesc D_dryfield_gas_station_80181E7C[];
-extern Task*    D_dryfield_gas_station_80184BCC;
-extern Task*    D_dryfield_gas_station_80184BD0;
 
 static void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj);
 static void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj);
 static void func_dryfield_gas_station_8017F478(Task* task);
 
-void func_dryfield_gas_station_8017D6F8(UiList *, UiObject *);
-void func_dryfield_gas_station_8017DEC4(UiList *, UiObject *);
-void func_dryfield_gas_station_8017E8DC(Task *);
-void func_dryfield_gas_station_8017ED88(Task *);
-void func_dryfield_gas_station_8017EF48(Task *);
-void func_dryfield_gas_station_8017F13C(UiList *, UiObject *);
-void func_dryfield_gas_station_8017F220(UiList *, UiObject *);
-void func_dryfield_gas_station_8017F2E8(UiList *, UiObject *);
-void func_dryfield_gas_station_8017F3B0(UiList *, UiObject *);
-void func_dryfield_gas_station_8017F4B4(Task *);
+void func_dryfield_gas_station_8017D6F8(UiList*, UiObject*);
+void func_dryfield_gas_station_8017DEC4(UiList*, UiObject*);
+void func_dryfield_gas_station_8017E8DC(Task*);
+void func_dryfield_gas_station_8017ED88(Task*);
+void func_dryfield_gas_station_8017EF48(Task*);
+void func_dryfield_gas_station_8017F13C(UiList*, UiObject*);
+void func_dryfield_gas_station_8017F220(UiList*, UiObject*);
+void func_dryfield_gas_station_8017F2E8(UiList*, UiObject*);
+void func_dryfield_gas_station_8017F3B0(UiList*, UiObject*);
+void func_dryfield_gas_station_8017F4B4(Task*);
 
-void func_dryfield_gas_station_8017F4B4(Task *);
-void func_dryfield_gas_station_8017FCBC(Task *);
+void func_dryfield_gas_station_8017F4B4(Task*);
+void func_dryfield_gas_station_8017FCBC(Task*);
 
-void func_dryfield_gas_station_8017FE20(Task *);
+void func_dryfield_gas_station_8017FE20(Task*);
 
 u8 D_dryfield_gas_station_80181AF8[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -278,8 +282,8 @@ UiListItemFunc D_dryfield_gas_station_80181DE4[4] = {
 
 UiList D_dryfield_gas_station_80181DF4 = { D_dryfield_gas_station_80181DE4, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_dryfield_gas_station_8017F4B4(Task *);
-void func_dryfield_gas_station_8017FCBC(Task *);
+void func_dryfield_gas_station_8017F4B4(Task*);
+void func_dryfield_gas_station_8017FCBC(Task*);
 
 TaskDesc D_dryfield_gas_station_80181E18[3] = {
     { 0, 32, func_dryfield_gas_station_8017F4B4, { .model = NULL } },
@@ -292,7 +296,7 @@ TaskDesc D_dryfield_gas_station_80181E3C[2] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_gas_station_8017FA20(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_gas_station_8017FA20(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_gas_station_8017FB94(s32, s32, s32);
 s32 func_dryfield_gas_station_8017FD4C(void);
 s32 func_dryfield_gas_station_8017FD54(s32, s32, s32);
@@ -304,6 +308,16 @@ DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { 5106, { .call2 = func_dryfield_gas_station_8017FB94 } },
     { 2147483647, { .call0 = NULL } },
 };
+
+/// Title of the "Telephone" menu. A byte after its terminator is not zero,
+/// so the string stays assembly.
+static const char D_dryfield_gas_station_8017D638[];
+
+static void func_dryfield_gas_station_8017EDE4(u8* str, s32 decimals);
+static u8*  func_dryfield_gas_station_8017EE54(u8* buf, s32 value, s32 decimals);
+static void func_dryfield_gas_station_8017F038(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_dryfield_gas_station_8017FEDC(Task* arg0);
+static void func_dryfield_gas_station_8017FF84(Task* task);
 
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and
@@ -942,9 +956,6 @@ void func_dryfield_gas_station_8017E8DC(Task* task)
     }
 }
 
-/// Title of the "Telephone" menu. A byte after its terminator is not zero,
-/// so the string stays assembly.
-static const char D_dryfield_gas_station_8017D638[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_gas_station_8017D638[12] = "Telephone\0\0\x12";
 

@@ -1,21 +1,20 @@
-#include "common.h"
+#include "types.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "weapons/weapon.h"
-
-#include "gameplay/actor.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "weapons/weapon.h"
 
 /// The weapon's index: 0x10 for the M4A1, 0x14 and 0x15 for its two upgrades.
 /// The three packages are this source built once each, and each declares its
@@ -23,6 +22,8 @@
 #ifndef WEAPON_ID
 #error "WEAPON_ID is a per-package build parameter"
 #endif
+
+static void func_m4a1_8011D1C4(Task* arg0);
 
 static void func_m4a1_8011D1C4(Task* arg0)
 {

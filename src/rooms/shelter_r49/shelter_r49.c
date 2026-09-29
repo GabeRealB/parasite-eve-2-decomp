@@ -1,16 +1,18 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_r49.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
+#include "types.h"
 
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 extern GpMsgEntry D_shelter_r49_8017D9D8[];
 
@@ -25,10 +27,10 @@ static const TaskFuncTable3 D_shelter_r49_8017D5C4 = {
     { func_shelter_r49_8017D648, func_shelter_r49_8017D6B4, taskKill },
 };
 
-s32 func_shelter_r49_8017D5EC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r49_8017D5F4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_r49_8017D638(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r49_8017D640(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r49_8017D5EC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r49_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_r49_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r49_8017D640(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_r49_8017D9D8[5] = {
     { 5102, func_shelter_r49_8017D5F4 },

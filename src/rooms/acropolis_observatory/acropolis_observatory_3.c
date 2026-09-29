@@ -1,44 +1,55 @@
-#include "common.h"
 #include "rooms/acropolis_observatory.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
+#include "acropolis_observatory_private.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_targets.h"
-
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/wipsys.h"
-
+#include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/animation.h"
-
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_akropolis.h"
 
 /// 8-byte work block the observatory's scene task keeps at `Task::work`
 /// (`memCalloc(8, 0)` in state 0 of `func_acropolis_observatory_8017E19C`).
@@ -78,11 +89,6 @@ STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 /// cutscene/among-us mode flag). `Mc_SaveData[0].state.at4.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
 
-/// Payloads the observatory scene task sends: `..._8017FE60` is the record
-/// slot-3 msg 0x3F4 takes, and `..._8017FE68` holds one `s16` per `step` -- the
-/// `field_4` the follow-up 0x3F4 record is sent with, or a negative value when
-/// that step sends nothing.
-extern s32 D_acropolis_observatory_8017FE60;
 extern s16 D_acropolis_observatory_8017FE68[];
 
 /// Per-view spawn table for the observatory's ambient effect. Entry `i` of
@@ -92,18 +98,16 @@ extern s16 D_acropolis_observatory_8017FE68[];
 extern SVECTOR D_acropolis_observatory_8017FE78[8];
 extern u16     D_acropolis_observatory_8017FEB8[8];
 
-extern GpGridParams D_acropolis_observatory_80180A50[1];
-extern GpObj4C D_acropolis_observatory_80180A74[10];
-extern GpObj4C D_acropolis_observatory_80180D6C[9];
+extern GpGridParams   D_acropolis_observatory_80180A50[1];
+extern GpObj4C        D_acropolis_observatory_80180A74[10];
+extern GpObj4C        D_acropolis_observatory_80180D6C[9];
 extern GpRoomCoordSet D_acropolis_observatory_8018177C[1];
 
-void func_acropolis_observatory_8017E19C(Task *);
+void func_acropolis_observatory_8017E19C(Task*);
 
-extern GpAnimSet D_acropolis_observatory_8017FE38;
-
-extern GpSprtCmd D_acropolis_observatory_80181794[2];
-extern GpSprtCmd D_acropolis_observatory_80181B78[7];
-extern GpSprtCmd D_acropolis_observatory_80182074[22];
+extern GpSprtCmd  D_acropolis_observatory_80181794[2];
+extern GpSprtCmd  D_acropolis_observatory_80181B78[7];
+extern GpSprtCmd  D_acropolis_observatory_80182074[22];
 extern GpSprtElem D_acropolis_observatory_801817A4[49];
 extern GpSprtElem D_acropolis_observatory_80181BB0[61];
 

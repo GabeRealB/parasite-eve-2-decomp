@@ -1,47 +1,65 @@
-#include "mist_parking_private.h"
+#include "rooms/mist_parking.h"
 
-#include "gameplay/message.h"
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/mist_parking.h"
-#include "rooms/acropolis_square.h"
 
-#include "gameplay/actor.h"
+#include "common.h"
+
+#include "mist_parking_private.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/inventory.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+/// Task descriptor tables the room spawns its tasks from.
+extern TaskDesc D_mist_parking_801869B8[];
+
+/// The "%" suffix appended to the play-data percentages.
+extern u8 D_mist_parking_80186718[];
+
+/// The item id the shop list's cursor last rested on.
+extern s32 D_mist_parking_8018644C;
 
 extern UiObjectDesc D_800611E4;
 
@@ -115,38 +133,38 @@ extern u16 D_mist_parking_80186534[];
 
 static void func_mist_parking_80181E50(Task* task);
 
-void func_mist_parking_8017DF68(UiList *, UiObject *);
+void func_mist_parking_8017DF68(UiList*, UiObject*);
 
-void func_mist_parking_8017E90C(Task *);
-void func_mist_parking_8017EB5C(UiList *, UiObject *);
-void func_mist_parking_8017ED7C(Task *);
-void func_mist_parking_8017EF24(Task *);
-void func_mist_parking_8017F108(UiList *, UiObject *);
-void func_mist_parking_8017F31C(Task *);
-void func_mist_parking_8017FDB8(UiList *, UiObject *);
-void func_mist_parking_8017FE74(Task *);
+void func_mist_parking_8017E90C(Task*);
+void func_mist_parking_8017EB5C(UiList*, UiObject*);
+void func_mist_parking_8017ED7C(Task*);
+void func_mist_parking_8017EF24(Task*);
+void func_mist_parking_8017F108(UiList*, UiObject*);
+void func_mist_parking_8017F31C(Task*);
+void func_mist_parking_8017FDB8(UiList*, UiObject*);
+void func_mist_parking_8017FE74(Task*);
 
-void func_mist_parking_8017E90C(Task *);
-void func_mist_parking_8017F49C(Task *);
-void func_mist_parking_8017F764(Task *);
-void func_mist_parking_8017F938(Task *);
-void func_mist_parking_8017FF9C(Task *);
-void func_mist_parking_801800D0(UiList *, UiObject *);
-void func_mist_parking_8018089C(UiList *, UiObject *);
-void func_mist_parking_801812B4(Task *);
-void func_mist_parking_80181760(Task *);
-void func_mist_parking_80181920(Task *);
-void func_mist_parking_80181B14(UiList *, UiObject *);
-void func_mist_parking_80181BF8(UiList *, UiObject *);
-void func_mist_parking_80181CC0(UiList *, UiObject *);
-void func_mist_parking_80181D88(UiList *, UiObject *);
-void func_mist_parking_80181E8C(Task *);
-void func_mist_parking_80182628(Task *);
+void func_mist_parking_8017E90C(Task*);
+void func_mist_parking_8017F49C(Task*);
+void func_mist_parking_8017F764(Task*);
+void func_mist_parking_8017F938(Task*);
+void func_mist_parking_8017FF9C(Task*);
+void func_mist_parking_801800D0(UiList*, UiObject*);
+void func_mist_parking_8018089C(UiList*, UiObject*);
+void func_mist_parking_801812B4(Task*);
+void func_mist_parking_80181760(Task*);
+void func_mist_parking_80181920(Task*);
+void func_mist_parking_80181B14(UiList*, UiObject*);
+void func_mist_parking_80181BF8(UiList*, UiObject*);
+void func_mist_parking_80181CC0(UiList*, UiObject*);
+void func_mist_parking_80181D88(UiList*, UiObject*);
+void func_mist_parking_80181E8C(Task*);
+void func_mist_parking_80182628(Task*);
 
-s32 func_mist_parking_801823F8(s32, s32, s32);
-s32 func_mist_parking_801826B8(void);
-s32 func_mist_parking_801826C0(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_mist_parking_801826E8(Task *, s32, GpMsg13EF *);
+s32  func_mist_parking_801823F8(s32, s32, s32);
+s32  func_mist_parking_801826B8(void);
+s32  func_mist_parking_801826C0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_mist_parking_801826E8(Task*, s32, GpMsg13EF*);
 void func_mist_parking_80182750(s32);
 void func_mist_parking_801827A0(s32);
 
@@ -1260,8 +1278,8 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpMsg13EF *);
-        s32 (*call2)(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call2)(Task*, s32, GpSaveLoc*, GpSaveLoc*);
         s32 (*call3)(s32, s32, s32);
     } handler;
 } MistParkingMessageEntry;
@@ -2009,6 +2027,153 @@ GpAnimSet D_mist_parking_8018D734 = {
     { NULL, D_mist_parking_8018D444.words, NULL, NULL, D_mist_parking_8018D498, NULL, NULL, NULL },
 };
 
+/// Texts and panel descriptors of the shop list's two special rows (ids
+/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
+extern u8 D_mist_parking_80186480[];
+
+extern u8 D_mist_parking_8018646C[];
+
+extern u8 D_mist_parking_8018647C[];
+
+extern UiObjectDesc D_mist_parking_801865E4;
+
+extern UiObjectDesc D_mist_parking_80186638;
+
+extern RoomShopTier D_mist_parking_801863B0[13];
+
+/// Messages of the shop's panels.
+extern u8 D_mist_parking_80186450[];
+
+extern u8 D_mist_parking_80186464[];
+
+extern u8 D_mist_parking_801864BC[];
+
+extern u8 D_mist_parking_801864C4[];
+
+extern u8 D_mist_parking_801864D0[];
+
+extern u8 D_mist_parking_801864D8[];
+
+extern u8 D_mist_parking_801864E0[];
+
+extern u8 D_mist_parking_801864F4[];
+
+extern u8 D_mist_parking_80186504[];
+
+extern u8 D_mist_parking_80186524[];
+
+extern u8 D_mist_parking_80186530[];
+
+/// Row handlers, lists and panel descriptors of the shop's panels.
+extern UiListItemFunc D_mist_parking_80186538[];
+
+extern UiList D_mist_parking_80186540;
+
+extern UiList D_mist_parking_8018656C;
+
+extern UiObjectDesc D_mist_parking_801865AC;
+
+extern UiObjectDesc D_mist_parking_801865C8;
+
+extern UiObjectDesc D_mist_parking_80186600;
+
+extern UiObjectDesc D_mist_parking_80186654;
+
+extern UiObjectDesc D_mist_parking_80186670;
+
+/// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
+extern UiObjectDesc D_mist_parking_80186590;
+
+/// Labels, suffix and holder texts of the play-data summary rows.
+extern u8 D_mist_parking_801866C0[];
+
+extern u8 D_mist_parking_801866F0[];
+
+extern u8 D_mist_parking_801866C8[];
+
+extern u8 D_mist_parking_801866CC[];
+
+extern u8 D_mist_parking_801866D4[];
+
+extern u8 D_mist_parking_801866E0[];
+
+extern u8 D_mist_parking_801866F8[];
+
+extern u8 D_mist_parking_80186700[];
+
+extern u8 D_mist_parking_80186708[];
+
+extern u8 D_mist_parking_80186710[];
+
+extern u8 D_mist_parking_8018671C[];
+
+extern u8 D_mist_parking_80186748[];
+
+extern u8 D_mist_parking_8018676C[];
+
+extern u8 D_mist_parking_8018679C[];
+
+extern u8 D_mist_parking_801867D0[];
+
+extern u8 D_mist_parking_80186804[];
+
+extern u8 D_mist_parking_8018683C[];
+
+extern u8 D_mist_parking_80186870[];
+
+extern u8 D_mist_parking_801868A8[];
+
+/// "Telephone", the title `func_mist_parking_80181468` draws, with two stray
+/// non-zero bytes after its terminator that C cannot place, so the string
+/// stays assembly.
+static const char D_mist_parking_8017D770[];
+
+/// Lists of the usage panel and of the play-data menu, and the descriptor of
+/// the frame the usage panel spawns.
+extern UiList D_mist_parking_8018690C;
+
+extern UiList D_mist_parking_80186994;
+
+extern UiObjectDesc D_mist_parking_80186930;
+
+/// List of the menu panel `func_mist_parking_80181920` draws.
+extern UiList D_mist_parking_801868E4;
+
+/// Texts of the four menu rows below, and the panels two of them open.
+extern u8 D_mist_parking_80186698[];
+
+extern u8 D_mist_parking_801866A0[];
+
+extern u8 D_mist_parking_801866AC[];
+
+extern u8 D_mist_parking_801866B8[];
+
+extern UiObjectDesc D_mist_parking_8018694C;
+
+extern UiObjectDesc D_mist_parking_80186968;
+
+extern GpEvsCmd D_mist_parking_80186EFC[];
+
+static void func_mist_parking_801827C0(Task* arg0);
+
+static void func_mist_parking_80182888(Task* task);
+
+extern MistParkingMessageEntry D_mist_parking_80186BB8[5];
+
+extern GpEvsCmd D_mist_parking_80186C5C[];
+
+extern GpEvsCmd D_mist_parking_80186DC4[];
+
+static u16*       func_mist_parking_8017D8F8(s32 mode);
+static void       func_mist_parking_8017E3F4(RoomShopList* shop, UiObject* obj, s32 item);
+static void       func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj);
+static inline s32 _mist_parkingAddItemCount(s32 item, s32 count);
+static void       func_mist_parking_80180C98(UiList* list, UiObject* obj);
+static void       func_mist_parking_80180F94(UiList* list, UiObject* obj);
+static void       func_mist_parking_801817BC(u8* str, s32 decimals);
+static u8*        func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals);
+static void       func_mist_parking_80181A10(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists and the high halfword one of
 /// the group's four; `Mc_SaveData[0].state.gameMode` 2 and above has groups of its own,
@@ -2209,14 +2374,6 @@ static u16* func_mist_parking_8017D8F8(s32 mode)
     return D_mist_parking_80186534;
 }
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-extern u8           D_mist_parking_80186480[];
-extern u8           D_mist_parking_8018646C[];
-extern u8           D_mist_parking_8018647C[];
-extern UiObjectDesc D_mist_parking_801865E4;
-extern UiObjectDesc D_mist_parking_80186638;
-
 /// Draws one row of the shop list and handles its input. Row 0xFFFE is greyed
 /// out unless `Gp_HasMappedItem` answers non-zero and opens its own panel;
 /// row 0xFFFC is greyed out while the scan holds item 0x8F. Any other row is
@@ -2372,8 +2529,6 @@ static void func_mist_parking_8017E3F4(RoomShopList* shop, UiObject* obj, s32 it
     shop->list.field_4++;
 }
 
-extern RoomShopTier D_mist_parking_801863B0[13];
-
 /// Fills `shop` with the ids the vending machine currently offers, then sorts
 /// them by `Gp_ItemSortKey` and caps the visible row count at 9.
 ///
@@ -2502,33 +2657,6 @@ static const u8 D_mist_parking_8017D6EC[] = "Notice";
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
 static const char D_mist_parking_8017D6F4[8] = "Charge\0\xE2";
-
-/// Messages of the shop's panels.
-extern u8 D_mist_parking_80186450[];
-extern u8 D_mist_parking_80186464[];
-extern u8 D_mist_parking_801864BC[];
-extern u8 D_mist_parking_801864C4[];
-extern u8 D_mist_parking_801864D0[];
-extern u8 D_mist_parking_801864D8[];
-extern u8 D_mist_parking_801864E0[];
-extern u8 D_mist_parking_801864F4[];
-extern u8 D_mist_parking_80186504[];
-extern u8 D_mist_parking_80186524[];
-extern u8 D_mist_parking_80186530[];
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-extern UiListItemFunc D_mist_parking_80186538[];
-extern UiList         D_mist_parking_80186540;
-extern UiList         D_mist_parking_8018656C;
-extern UiObjectDesc   D_mist_parking_801865AC;
-extern UiObjectDesc   D_mist_parking_801865C8;
-extern UiObjectDesc   D_mist_parking_80186600;
-extern UiObjectDesc   D_mist_parking_80186654;
-extern UiObjectDesc   D_mist_parking_80186670;
-
-/// Work pair of the charge panel `func_mist_parking_8017F49C`.
-extern s32        D_mist_parking_80195310;
-extern GpItemMap* D_mist_parking_80195314;
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through
@@ -3194,9 +3322,6 @@ void func_mist_parking_8017FE74(Task* task)
     }
 }
 
-/// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
-extern UiObjectDesc D_mist_parking_80186590;
-
 /// Opens the panel `D_mist_parking_80186590` with the task's `spawnArg1` as
 /// its parameter, setting frame timing 0 and the session's UI flag while it is
 /// open; once the panel reports -1 or 6 it is torn down, and ten frames later
@@ -3237,27 +3362,6 @@ void func_mist_parking_8017FF9C(Task* task)
         }
     }
 }
-
-/// Labels, suffix and holder texts of the play-data summary rows.
-extern u8 D_mist_parking_801866C0[];
-extern u8 D_mist_parking_801866F0[];
-extern u8 D_mist_parking_801866C8[];
-extern u8 D_mist_parking_801866CC[];
-extern u8 D_mist_parking_801866D4[];
-extern u8 D_mist_parking_801866E0[];
-extern u8 D_mist_parking_801866F8[];
-extern u8 D_mist_parking_80186700[];
-extern u8 D_mist_parking_80186708[];
-extern u8 D_mist_parking_80186710[];
-extern u8 D_mist_parking_8018671C[];
-extern u8 D_mist_parking_80186748[];
-extern u8 D_mist_parking_8018676C[];
-extern u8 D_mist_parking_8018679C[];
-extern u8 D_mist_parking_801867D0[];
-extern u8 D_mist_parking_80186804[];
-extern u8 D_mist_parking_8018683C[];
-extern u8 D_mist_parking_80186870[];
-extern u8 D_mist_parking_801868A8[];
 
 void func_mist_parking_801800D0(UiList* arg0, UiObject* arg1)
 {
@@ -3669,18 +3773,8 @@ void func_mist_parking_8018089C(UiList* prompt, UiObject* obj)
 static const char D_mist_parking_8017D75C[] = "Weapon Data";
 static const char D_mist_parking_8017D768[] = "PE Data";
 
-/// "Telephone", the title `func_mist_parking_80181468` draws, with two stray
-/// non-zero bytes after its terminator that C cannot place, so the string
-/// stays assembly.
-static const char D_mist_parking_8017D770[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_mist_parking_8017D770[12] = "Telephone\0\xF2\xEF";
-
-/// Lists of the usage panel and of the play-data menu, and the descriptor of
-/// the frame the usage panel spawns.
-extern UiList       D_mist_parking_8018690C;
-extern UiList       D_mist_parking_80186994;
-extern UiObjectDesc D_mist_parking_80186930;
 
 /// Builds the item-usage panel's three parallel arrays from the save's
 /// per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
@@ -4125,17 +4219,6 @@ static u8* func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals)
     return buf;
 }
 
-/// List of the menu panel `func_mist_parking_80181920` draws.
-extern UiList D_mist_parking_801868E4;
-
-/// Texts of the four menu rows below, and the panels two of them open.
-extern u8           D_mist_parking_80186698[];
-extern u8           D_mist_parking_801866A0[];
-extern u8           D_mist_parking_801866AC[];
-extern u8           D_mist_parking_801866B8[];
-extern UiObjectDesc D_mist_parking_8018694C;
-extern UiObjectDesc D_mist_parking_80186968;
-
 void func_mist_parking_80181920(Task* task)
 {
     UiObject* obj;
@@ -4448,13 +4531,6 @@ void func_mist_parking_80181E8C(Task* task)
     }
 }
 
-extern GpEvsCmd D_mist_parking_80186EFC[];
-extern GpEvsCmd D_mist_parking_8018F0A4[];
-extern GpEvsCmd D_mist_parking_8018F194[];
-
-/// The scene record the room hands the cutscene runner.
-extern RoomCutsceneRec D_mist_parking_8019533C;
-
 s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
 {
     GameSession* session;
@@ -4510,9 +4586,6 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-static void func_mist_parking_801827C0(Task* arg0);
-static void func_mist_parking_80182888(Task* task);
-
 /// State handlers of the task `func_mist_parking_80182898` runs: its set-up,
 /// an empty per-frame state and the kill.
 static const TaskFuncTable3 D_mist_parking_8017D7DC = {
@@ -4555,13 +4628,6 @@ s32 func_mist_parking_801826C0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc*
     *dst = *src;
     return 1;
 }
-
-extern MistParkingMessageEntry D_mist_parking_80186BB8[5];
-extern GpEvsCmd D_mist_parking_80186C5C[];
-extern GpEvsCmd D_mist_parking_80186DC4[];
-extern GpEvsCmd D_mist_parking_8018DF34[];
-extern GpEvsCmd D_mist_parking_8018EDBC[];
-extern GpEvsCmd D_mist_parking_8018EFE4[];
 
 s32 func_mist_parking_801826E8(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
@@ -4612,9 +4678,6 @@ static void func_mist_parking_80182888(Task* task)
 {
     char pad[0x10];
 }
-
-extern GpCopyArg D_mist_parking_8018D82C;
-extern s8  D_mist_parking_8018DA28[];
 
 /// Runs the handler for the task's state from a stack copy of
 /// `D_mist_parking_8017D7DC`.

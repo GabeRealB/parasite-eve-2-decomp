@@ -1,12 +1,11 @@
 #ifndef OVERLAY_H
 #define OVERLAY_H
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "gameplay/enemy.h"

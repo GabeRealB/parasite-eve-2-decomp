@@ -1,68 +1,44 @@
-#include "gameplay/evs.h"
-#include "dryfield_night_motel_loft_private.h"
-
-#include "common.h"
-
 #include "rooms/dryfield_night_motel_loft.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/world_targets.h"
+#include "types.h"
 
-#include "gameplay/world_state.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "gameplay/area.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "dryfield_night_motel_loft_private.h"
 
 #include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
 extern GpObj4C D_dryfield_night_motel_loft_801803F4[14];
-
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[];
-
-/// One-entry task table spawning the loft's cap-script task
-/// (`func_dryfield_night_motel_loft_8017D6F8`).
-extern TaskDesc D_dryfield_night_motel_loft_8017EB4C[];
-
-extern GpEvsCmd D_dryfield_night_motel_loft_8017EB78[];
 
 /// The room's 0x7DB payload buffer.
 extern GpCmdArg D_dryfield_night_motel_loft_8018092C;
-
-void func_dryfield_night_motel_loft_8017D6F8(Task* arg0);
 
 extern GpAreaTmdRec D_dryfield_night_motel_loft_8018081C[2];
 extern GpAreaTmdRec D_dryfield_night_motel_loft_80180834[3];
 extern GpAreaTmdRec D_dryfield_night_motel_loft_80180858[2];
 extern GpAreaTmdRec D_dryfield_night_motel_loft_80180870[2];
-
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F2D0[2];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F2E0[2];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F390[3];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F4AC[3];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F654[3];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F770[3];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017F97C[6];
-extern GpSprtCmd D_dryfield_night_motel_loft_8017FB64[4];
-extern GpSprtElem D_dryfield_night_motel_loft_8017F2F0[8];
-extern GpSprtElem D_dryfield_night_motel_loft_8017F3A8[13];
-extern GpSprtElem D_dryfield_night_motel_loft_8017F4C4[20];
-extern GpSprtElem D_dryfield_night_motel_loft_8017F66C[13];
-extern GpSprtElem D_dryfield_night_motel_loft_8017F788[25];
-extern GpSprtElem D_dryfield_night_motel_loft_8017F9AC[22];
 
 GpXformArg D_dryfield_night_motel_loft_8017FB84[2] = {
     { { 0, 0, 0xFFFF, 0 }, { 0, 0, 0, 0 } },
@@ -213,6 +189,9 @@ GpRoomParamRec * D_dryfield_night_motel_loft_8018090C[8] = {
 };
 
 GpCmdArg D_dryfield_night_motel_loft_8018092C = { 0 };
+
+static void func_dryfield_night_motel_loft_8017D808(Task* arg0);
+static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

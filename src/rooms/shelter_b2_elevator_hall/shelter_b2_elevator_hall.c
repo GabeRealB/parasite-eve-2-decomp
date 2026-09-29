@@ -1,51 +1,94 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/shelter_b2_elevator_hall.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "gte.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
+
+/// Task descriptor `func_shelter_b2_elevator_hall_8017D610` spawns when a
+/// gated event fires.
+extern TaskDesc D_shelter_b2_elevator_hall_80183790;
+
+/// Message table `func_shelter_b2_elevator_hall_8017DCBC` installs on its task.
+extern GpMsgEntry D_shelter_b2_elevator_hall_801837A8[];
+
+/// Per-index channel shifts `func_shelter_b2_elevator_hall_8017FF20` applies to
+/// its brightness to colour the flash.
+extern RoomHaloShade D_shelter_b2_elevator_hall_801838B8[];
+
+/// Positions `func_shelter_b2_elevator_hall_80182260` places its two trail
+/// anchors at; the second entry is also named on its own below.
+extern SVECTOR D_shelter_b2_elevator_hall_801838CC[];
+
+/// Copy of the message that fired a gated event, kept for the task
+/// `func_shelter_b2_elevator_hall_8017D774` to warp from.
+extern RoomEventMsg D_shelter_b2_elevator_hall_80184D7C;
+
+/// Copy of the request that fired a gated event, whose cap command and voice
+/// lines the task `func_shelter_b2_elevator_hall_8017D774` plays.
+extern RoomEventReq D_shelter_b2_elevator_hall_80184D88;
+
+/// Event task: plays the recorded request's cap command and voice lines, then
+/// copies the recorded message's area, warp and room into the save location,
+/// spawns task 0x11 and ends.
+void func_shelter_b2_elevator_hall_8017D774(Task* task);
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -72,13 +115,12 @@ static void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* 
 static void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_elevator_hall_80182DD0(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_shelter_b2_elevator_hall_8017D774(Task *);
-void func_shelter_b2_elevator_hall_8017D8E4(Task *);
-s32 func_shelter_b2_elevator_hall_8017DAD4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_elevator_hall_8017DC70(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_hall_8017DC78(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_hall_8017DC80(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_hall_8017DC88(Task *, s32, s32, GpMessageArg);
+void func_shelter_b2_elevator_hall_8017D8E4(Task*);
+s32  func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_elevator_hall_8017DC70(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_hall_8017DC78(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_hall_8017DC80(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, GpMessageArg);
 
 TaskDesc D_shelter_b2_elevator_hall_80183790 = { 0, 32, func_shelter_b2_elevator_hall_8017D774, { .model = NULL } };
 
@@ -689,6 +731,10 @@ u8 D_shelter_b2_elevator_hall_80184D84[4] = {
 };
 
 RoomEventReq D_shelter_b2_elevator_hall_80184D88 = { 0 };
+
+static s32  func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMsg* msg);
+static void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Gates an event on a game-flag nibble and a collected item: returns 1 when
 /// the nibble already shows the event done, 0 (running the request's refusal

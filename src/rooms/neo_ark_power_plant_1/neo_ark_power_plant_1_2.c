@@ -1,50 +1,55 @@
-#include "neo_ark_power_plant_1_private.h"
+#include "rooms/neo_ark_power_plant_1.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/neo_ark_power_plant_1.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/display.h"
+#include "neo_ark_power_plant_1_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/pad_script.h"
+#include "rooms/room_common.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[1];
-        GpCopyArg copy;
+        GpCopyArg  copy;
     } data;
     s32 words[3];
 } NeoArkPowerPlant1AnimStorageEEC0;
@@ -59,16 +64,16 @@ extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
 static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpGridParams D_neo_ark_power_plant_1_80180090[1];
-extern GpObj3A D_neo_ark_power_plant_1_80181B60[1];
-extern GpObj4C D_neo_ark_power_plant_1_8018155C[10];
-extern GpObj4C D_neo_ark_power_plant_1_80181854[7];
+extern GpGridParams   D_neo_ark_power_plant_1_80180090[1];
+extern GpObj3A        D_neo_ark_power_plant_1_80181B60[1];
+extern GpObj4C        D_neo_ark_power_plant_1_8018155C[10];
+extern GpObj4C        D_neo_ark_power_plant_1_80181854[7];
 extern GpRoomCoordSet D_neo_ark_power_plant_1_8017FB80[1];
 
 extern GpAnimArg D_neo_ark_power_plant_1_8017EB40;
 extern GpAnimArg D_neo_ark_power_plant_1_8017EEAC;
 
-extern GpAnimSet D_neo_ark_power_plant_1_8017EAF0;
+extern GpAnimSet                        D_neo_ark_power_plant_1_8017EAF0;
 extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -1031,7 +1036,7 @@ s32 D_neo_ark_power_plant_1_80181BA8[3] = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
-};/// Draws the glows of the current view: a fixed set of emitter positions per
+}; /// Draws the glows of the current view: a fixed set of emitter positions per
 /// view, each with its own size and tint. In views 6 and 7 the extra emitter
 /// `D_neo_ark_power_plant_1_8017F1C0` glows while nibble 0x148 is clear;
 /// once it is set, and while no event runs and nibble 0xDE is clear, it

@@ -1,193 +1,11 @@
 #include "room_effects.h"
-#include "pe/ofuda.h"
-#include "pe/pepper_spray.h"
-#include "pe/plasma.h"
-#include "pe/flare.h"
-#include "weapons/gunblade.h"
-#include "weapons/m4a1_hammer.h"
-#include "actors/actor_800100.h"
-#include "pe/energyball.h"
-#include "pe/antibody.h"
-#include "pe/energyshot.h"
-#include "pe/apobiosis.h"
-#include "pe/inferno.h"
-#include "pe/lifedrain.h"
-#include "actors/actor_510900.h"
-#include "weapons/mp5a5.h"
-#include "weapons/p229.h"
-#include "weapons/m4a1_bayonet.h"
-#include "weapons/tonfa_baton.h"
-#include "weapons/m4a1_javelin.h"
-#include "weapons/m4a1_pyke.h"
-#include "pe/combustion.h"
-#include "pe/necrosis.h"
-#include "pe/healing.h"
-#include "pe/metabolism.h"
-#include "pe/pyrokinesis.h"
-#include "weapons/hypervelocity.h"
-#include "rooms/dryfield_r08.h"
-#include "rooms/mist_shooting_gallery.h"
-#include "rooms/shelter_1f_tent.h"
-#include "rooms/neo_ark_r26.h"
-#include "rooms/shelter_1f_guardroom.h"
-#include "rooms/shelter_1f_heliport.h"
-#include "rooms/shelter_r49.h"
-#include "rooms/neo_ark_altar.h"
-#include "rooms/neo_ark_power_plant_1.h"
-#include "rooms/neo_ark_eve_elevator.h"
-#include "rooms/neo_ark_eve_access_tunnel.h"
-#include "rooms/shelter_1f_airlock.h"
-#include "rooms/shelter_r47.h"
-#include "rooms/shelter_b3_incinerator_control_room.h"
-#include "rooms/shelter_b2_elevator.h"
-#include "rooms/shelter_b1_underground_parking.h"
-#include "rooms/shelter_b1_access_tunnel.h"
-#include "rooms/shelter_b1_armory.h"
-#include "rooms/mine_forked_tunnel.h"
-#include "rooms/mine_refuge.h"
-#include "rooms/mine_tunnel.h"
-#include "rooms/mine_tunnel_entrance.h"
-#include "rooms/dryfield_night_underpass.h"
-#include "rooms/dryfield_night_cellar.h"
-#include "rooms/dryfield_night_motel_room_6.h"
-#include "rooms/dryfield_night_motel_room_5.h"
-#include "rooms/dryfield_night_trailer_coach.h"
-#include "rooms/dryfield_night_factory.h"
-#include "rooms/dryfield_night_breezeway.h"
-#include "rooms/dryfield_night_water_tank.h"
-#include "rooms/dryfield_night_water_tower.h"
-#include "rooms/dryfield_night_g_r_kitchen.h"
-#include "rooms/dryfield_night_toilet.h"
-#include "rooms/dryfield_night_parking_lot.h"
-#include "rooms/dryfield_night_motel_room_4.h"
-#include "rooms/dryfield_night_motel_room_3.h"
-#include "rooms/dryfield_night_motel_room_2.h"
-#include "rooms/dryfield_night_motel_room_1.h"
-#include "rooms/dryfield_night_warehouse.h"
-#include "rooms/dryfield_night_general_store.h"
-#include "rooms/dryfield_motel_room_6.h"
-#include "rooms/dryfield_junk_yard.h"
-#include "rooms/dryfield_driveway.h"
-#include "rooms/dryfield_garage.h"
-#include "rooms/dryfield_factory.h"
-#include "rooms/dryfield_water_tower.h"
-#include "rooms/dryfield_parking_lot.h"
-#include "rooms/dryfield_motel_room_2.h"
-#include "rooms/dryfield_motel_room_1.h"
-#include "rooms/dryfield_souvenir_shop.h"
-#include "rooms/dryfield_general_store.h"
-#include "rooms/dryfield_underpass.h"
-#include "rooms/acropolis_hallway.h"
-#include "rooms/neo_ark_substation.h"
-#include "rooms/neo_ark_submarine_tunnel.h"
-#include "rooms/shelter_b2_breeding_room.h"
-#include "rooms/mine_secret_passage.h"
-#include "rooms/neo_ark_south_promenade.h"
-#include "rooms/neo_ark_pyramid.h"
-#include "rooms/neo_ark_power_plant_2.h"
-#include "rooms/neo_ark_north_promenade.h"
-#include "rooms/shelter_1f_vehicular_airlock.h"
-#include "rooms/shelter_b2_north_maintenance_walkway.h"
-#include "rooms/shelter_b2_elevator_hall.h"
-#include "rooms/shelter_b1_transfer_tunnel.h"
-#include "rooms/shelter_b1_storeroom.h"
-#include "rooms/shelter_b1_south_maintenance_walkway.h"
-#include "rooms/shelter_b1_elevator_hall.h"
-#include "rooms/shelter_1f_bulwark.h"
-#include "rooms/shelter_b2_pod_access_tunnel.h"
-#include "rooms/shelter_b2_pod_bottom.h"
-#include "rooms/dryfield_main_street.h"
-#include "rooms/shelter_b1_golem_freezer_1.h"
-#include "rooms/neo_ark_submarine_gallery.h"
-#include "rooms/dryfield_night_r08.h"
-#include "rooms/shelter_b1_north_maintenance_walkway.h"
-#include "rooms/shelter_b2_main_corridor.h"
-#include "rooms/shelter_1f_parking_garage.h"
-#include "rooms/dryfield_back_street.h"
-#include "rooms/neo_ark_bridge.h"
-#include "rooms/shelter_b6_corridor.h"
-#include "rooms/shelter_b6_growth_room.h"
-#include "rooms/neo_ark_shrine.h"
-#include "rooms/neo_ark_savanna_zone.h"
-#include "rooms/neo_ark_garden.h"
-#include "rooms/neo_ark_island.h"
-#include "rooms/neo_ark_pavilion.h"
-#include "rooms/neo_ark_observatory.h"
-#include "rooms/shelter_r48.h"
-#include "rooms/shelter_b4_water_supply.h"
-#include "rooms/shelter_b3_elevator_hall.h"
-#include "rooms/dryfield_night_motel_lobby.h"
-#include "rooms/shelter_b3_garbage_incinerator.h"
-#include "rooms/shelter_b3_dumping_hole.h"
-#include "rooms/shelter_b2_septic_tank.h"
-#include "rooms/shelter_b2_laboratory.h"
-#include "rooms/shelter_b2_south_maintenance_walkway.h"
-#include "rooms/shelter_b1_control_room_access_tunnel.h"
-#include "rooms/shelter_b1_pod_service_gantry.h"
-#include "rooms/shelter_b1_control_room.h"
-#include "rooms/shelter_b1_pod_access_tunnel.h"
-#include "rooms/shelter_b1_sterilization_room.h"
-#include "rooms/shelter_b1_main_corridor.h"
-#include "rooms/shelter_b1_sleeping_quarters.h"
-#include "rooms/dryfield_night_garage.h"
-#include "rooms/dryfield_water_tank.h"
-#include "rooms/dryfield_night_driveway.h"
-#include "rooms/neo_ark_r31.h"
-#include "rooms/dryfield_night_dilapidated_house.h"
-#include "rooms/dryfield_night_souvenir_shop.h"
-#include "rooms/dryfield_night_saloon_g_r.h"
-#include "rooms/dryfield_night_main_street.h"
-#include "rooms/shelter_b2_operating_room.h"
-#include "rooms/neo_ark_forest_zone.h"
-#include "rooms/shelter_b4_upper_sewer.h"
-#include "rooms/shelter_b4_lower_sewer.h"
-#include "rooms/mine_mesa.h"
-#include "rooms/dryfield_night_junk_yard.h"
-#include "rooms/dryfield_night_water_hole.h"
-#include "rooms/dryfield_cellar.h"
-#include "rooms/dryfield_trailer_coach.h"
-#include "rooms/dryfield_g_r_kitchen.h"
-#include "rooms/dryfield_saloon_g_r.h"
-#include "rooms/dryfield_dilapidated_house.h"
-#include "rooms/dryfield_warehouse.h"
-#include "rooms/dryfield_gas_station.h"
-#include "rooms/mine_cavern.h"
-#include "rooms/acropolis_bridge.h"
-#include "rooms/shelter_b4_reservoir.h"
-#include "rooms/dryfield_toilet.h"
-#include "rooms/acropolis_fountain.h"
-#include "rooms/acropolis_roof_garden.h"
-#include "rooms/acropolis_forked_road.h"
-#include "rooms/mine_gorge.h"
-#include "rooms/acropolis_patio.h"
-#include "rooms/dryfield_water_hole.h"
-#include "rooms/acropolis_sanctuary.h"
-#include "rooms/acropolis_cafeteria.h"
-#include "rooms/neo_ark_woodland_path.h"
-#include "rooms/acropolis_fire_escape.h"
-#include "rooms/acropolis_plaza.h"
-#include "rooms/acropolis_promenade.h"
-#include "rooms/acropolis_security_room.h"
-#include "rooms/dryfield_night_motel_balcony.h"
-#include "rooms/dryfield_breezeway.h"
-#include "rooms/shelter_b6_training_room.h"
-#include "rooms/mist_parking.h"
-#include "rooms/acropolis_square.h"
-#include "rooms/acropolis_observatory.h"
-#include "rooms/acropolis_east_elevator_hall.h"
-#include "rooms/acropolis_west_elevator_hall.h"
-#include "rooms/acropolis_helicopter_landing_pad.h"
-#include "rooms/dryfield_night_back_street.h"
-#include "rooms/dryfield_night_gas_station.h"
-#include "rooms/dryfield_motel_balcony.h"
-#include "rooms/shelter_b6_nursery.h"
-#include "rooms/dryfield_night_motel_loft.h"
 
 #include <psyq/sys/types.h>
-#include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
+#include <psyq/memory.h>
 
 #include "common.h"
 #include "gte.h"
@@ -208,6 +26,10 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
+#include "actors/actor_510900.h"
+
+#include "actors/actor_800100.h"
+
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -217,7 +39,366 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-#include <psyq/memory.h>
+
+#include "pe/antibody.h"
+
+#include "pe/apobiosis.h"
+
+#include "pe/combustion.h"
+
+#include "pe/energyball.h"
+
+#include "pe/energyshot.h"
+
+#include "pe/flare.h"
+
+#include "pe/healing.h"
+
+#include "pe/inferno.h"
+
+#include "pe/lifedrain.h"
+
+#include "pe/metabolism.h"
+
+#include "pe/necrosis.h"
+
+#include "pe/ofuda.h"
+
+#include "pe/pepper_spray.h"
+
+#include "pe/plasma.h"
+
+#include "pe/pyrokinesis.h"
+
+#include "rooms/acropolis_bridge.h"
+
+#include "rooms/acropolis_cafeteria.h"
+
+#include "rooms/acropolis_east_elevator_hall.h"
+
+#include "rooms/acropolis_fire_escape.h"
+
+#include "rooms/acropolis_forked_road.h"
+
+#include "rooms/acropolis_fountain.h"
+
+#include "rooms/acropolis_hallway.h"
+
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
+#include "rooms/acropolis_observatory.h"
+
+#include "rooms/acropolis_patio.h"
+
+#include "rooms/acropolis_plaza.h"
+
+#include "rooms/acropolis_promenade.h"
+
+#include "rooms/acropolis_roof_garden.h"
+
+#include "rooms/acropolis_sanctuary.h"
+
+#include "rooms/acropolis_security_room.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/acropolis_west_elevator_hall.h"
+
+#include "rooms/dryfield_back_street.h"
+
+#include "rooms/dryfield_breezeway.h"
+
+#include "rooms/dryfield_cellar.h"
+
+#include "rooms/dryfield_dilapidated_house.h"
+
+#include "rooms/dryfield_driveway.h"
+
+#include "rooms/dryfield_factory.h"
+
+#include "rooms/dryfield_g_r_kitchen.h"
+
+#include "rooms/dryfield_garage.h"
+
+#include "rooms/dryfield_gas_station.h"
+
+#include "rooms/dryfield_general_store.h"
+
+#include "rooms/dryfield_junk_yard.h"
+
+#include "rooms/dryfield_main_street.h"
+
+#include "rooms/dryfield_motel_balcony.h"
+
+#include "rooms/dryfield_motel_room_1.h"
+
+#include "rooms/dryfield_motel_room_2.h"
+
+#include "rooms/dryfield_motel_room_6.h"
+
+#include "rooms/dryfield_night_back_street.h"
+
+#include "rooms/dryfield_night_breezeway.h"
+
+#include "rooms/dryfield_night_cellar.h"
+
+#include "rooms/dryfield_night_dilapidated_house.h"
+
+#include "rooms/dryfield_night_driveway.h"
+
+#include "rooms/dryfield_night_factory.h"
+
+#include "rooms/dryfield_night_g_r_kitchen.h"
+
+#include "rooms/dryfield_night_garage.h"
+
+#include "rooms/dryfield_night_gas_station.h"
+
+#include "rooms/dryfield_night_general_store.h"
+
+#include "rooms/dryfield_night_junk_yard.h"
+
+#include "rooms/dryfield_night_main_street.h"
+
+#include "rooms/dryfield_night_motel_balcony.h"
+
+#include "rooms/dryfield_night_motel_lobby.h"
+
+#include "rooms/dryfield_night_motel_loft.h"
+
+#include "rooms/dryfield_night_motel_room_1.h"
+
+#include "rooms/dryfield_night_motel_room_2.h"
+
+#include "rooms/dryfield_night_motel_room_3.h"
+
+#include "rooms/dryfield_night_motel_room_4.h"
+
+#include "rooms/dryfield_night_motel_room_5.h"
+
+#include "rooms/dryfield_night_motel_room_6.h"
+
+#include "rooms/dryfield_night_parking_lot.h"
+
+#include "rooms/dryfield_night_r08.h"
+
+#include "rooms/dryfield_night_saloon_g_r.h"
+
+#include "rooms/dryfield_night_souvenir_shop.h"
+
+#include "rooms/dryfield_night_toilet.h"
+
+#include "rooms/dryfield_night_trailer_coach.h"
+
+#include "rooms/dryfield_night_underpass.h"
+
+#include "rooms/dryfield_night_warehouse.h"
+
+#include "rooms/dryfield_night_water_hole.h"
+
+#include "rooms/dryfield_night_water_tank.h"
+
+#include "rooms/dryfield_night_water_tower.h"
+
+#include "rooms/dryfield_parking_lot.h"
+
+#include "rooms/dryfield_r08.h"
+
+#include "rooms/dryfield_saloon_g_r.h"
+
+#include "rooms/dryfield_souvenir_shop.h"
+
+#include "rooms/dryfield_toilet.h"
+
+#include "rooms/dryfield_trailer_coach.h"
+
+#include "rooms/dryfield_underpass.h"
+
+#include "rooms/dryfield_warehouse.h"
+
+#include "rooms/dryfield_water_hole.h"
+
+#include "rooms/dryfield_water_tank.h"
+
+#include "rooms/dryfield_water_tower.h"
+
+#include "rooms/mine_cavern.h"
+
+#include "rooms/mine_forked_tunnel.h"
+
+#include "rooms/mine_gorge.h"
+
+#include "rooms/mine_mesa.h"
+
+#include "rooms/mine_refuge.h"
+
+#include "rooms/mine_secret_passage.h"
+
+#include "rooms/mine_tunnel.h"
+
+#include "rooms/mine_tunnel_entrance.h"
+
+#include "rooms/mist_parking.h"
+
+#include "rooms/mist_shooting_gallery.h"
+
+#include "rooms/neo_ark_altar.h"
+
+#include "rooms/neo_ark_bridge.h"
+
+#include "rooms/neo_ark_eve_access_tunnel.h"
+
+#include "rooms/neo_ark_eve_elevator.h"
+
+#include "rooms/neo_ark_forest_zone.h"
+
+#include "rooms/neo_ark_garden.h"
+
+#include "rooms/neo_ark_island.h"
+
+#include "rooms/neo_ark_north_promenade.h"
+
+#include "rooms/neo_ark_observatory.h"
+
+#include "rooms/neo_ark_pavilion.h"
+
+#include "rooms/neo_ark_power_plant_1.h"
+
+#include "rooms/neo_ark_power_plant_2.h"
+
+#include "rooms/neo_ark_pyramid.h"
+
+#include "rooms/neo_ark_r26.h"
+
+#include "rooms/neo_ark_savanna_zone.h"
+
+#include "rooms/neo_ark_shrine.h"
+
+#include "rooms/neo_ark_south_promenade.h"
+
+#include "rooms/neo_ark_submarine_gallery.h"
+
+#include "rooms/neo_ark_submarine_tunnel.h"
+
+#include "rooms/neo_ark_substation.h"
+
+#include "rooms/neo_ark_woodland_path.h"
+
+#include "rooms/shelter_1f_airlock.h"
+
+#include "rooms/shelter_1f_bulwark.h"
+
+#include "rooms/shelter_1f_guardroom.h"
+
+#include "rooms/shelter_1f_heliport.h"
+
+#include "rooms/shelter_1f_parking_garage.h"
+
+#include "rooms/shelter_1f_tent.h"
+
+#include "rooms/shelter_1f_vehicular_airlock.h"
+
+#include "rooms/shelter_b1_access_tunnel.h"
+
+#include "rooms/shelter_b1_armory.h"
+
+#include "rooms/shelter_b1_control_room.h"
+
+#include "rooms/shelter_b1_control_room_access_tunnel.h"
+
+#include "rooms/shelter_b1_elevator_hall.h"
+
+#include "rooms/shelter_b1_golem_freezer_1.h"
+
+#include "rooms/shelter_b1_main_corridor.h"
+
+#include "rooms/shelter_b1_north_maintenance_walkway.h"
+
+#include "rooms/shelter_b1_pod_access_tunnel.h"
+
+#include "rooms/shelter_b1_pod_service_gantry.h"
+
+#include "rooms/shelter_b1_sleeping_quarters.h"
+
+#include "rooms/shelter_b1_south_maintenance_walkway.h"
+
+#include "rooms/shelter_b1_sterilization_room.h"
+
+#include "rooms/shelter_b1_storeroom.h"
+
+#include "rooms/shelter_b1_transfer_tunnel.h"
+
+#include "rooms/shelter_b1_underground_parking.h"
+
+#include "rooms/shelter_b2_breeding_room.h"
+
+#include "rooms/shelter_b2_elevator.h"
+
+#include "rooms/shelter_b2_elevator_hall.h"
+
+#include "rooms/shelter_b2_laboratory.h"
+
+#include "rooms/shelter_b2_main_corridor.h"
+
+#include "rooms/shelter_b2_north_maintenance_walkway.h"
+
+#include "rooms/shelter_b2_operating_room.h"
+
+#include "rooms/shelter_b2_pod_access_tunnel.h"
+
+#include "rooms/shelter_b2_pod_bottom.h"
+
+#include "rooms/shelter_b2_septic_tank.h"
+
+#include "rooms/shelter_b2_south_maintenance_walkway.h"
+
+#include "rooms/shelter_b3_dumping_hole.h"
+
+#include "rooms/shelter_b3_elevator_hall.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
+
+#include "rooms/shelter_b3_incinerator_control_room.h"
+
+#include "rooms/shelter_b4_lower_sewer.h"
+
+#include "rooms/shelter_b4_reservoir.h"
+
+#include "rooms/shelter_b4_upper_sewer.h"
+
+#include "rooms/shelter_b4_water_supply.h"
+
+#include "rooms/shelter_b6_corridor.h"
+
+#include "rooms/shelter_b6_growth_room.h"
+
+#include "rooms/shelter_b6_nursery.h"
+
+#include "rooms/shelter_b6_training_room.h"
+
+#include "rooms/shelter_r47.h"
+
+#include "rooms/shelter_r48.h"
+
+#include "rooms/shelter_r49.h"
+
+#include "weapons/gunblade.h"
+
+#include "weapons/hypervelocity.h"
+
+#include "weapons/m4a1_bayonet.h"
+
+#include "weapons/m4a1_hammer.h"
+
+#include "weapons/m4a1_javelin.h"
+
+#include "weapons/m4a1_pyke.h"
+
+#include "weapons/mp5a5.h"
+
+#include "weapons/p229.h"
+
+#include "weapons/tonfa_baton.h"
 
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
@@ -294,9 +475,6 @@ void Gp_FadeWaveTask(Task* arg0);
 static void Gp_KillState1CTask(Task* arg0);
 
 static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
-
-
-
 
 // Retained effect slots without a proven owning room. See the local type audit.
 void func_8018345C(Task* task);

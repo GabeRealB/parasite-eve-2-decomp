@@ -1,40 +1,43 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80164954.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/animation.h"
-#include "gameplay/damage.h"
+#include "gameplay/collision.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 /// Psy-Q `RotMatrixY`.
 
@@ -45,7 +48,7 @@
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     SVECTOR value;
-    u8 retained[8];
+    u8      retained[8];
 } Actor323400Storage1218;
 STATIC_ASSERT_SIZEOF(Actor323400Storage1218, 16);
 
@@ -64,11 +67,11 @@ extern u8 D_actor_323400_80171080[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpCmdArg *, s32);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32  (*call2)(Task*, s32, GpCmdArg*, s32);
+        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
 } Actor323400MessageEntry;
@@ -83,7 +86,7 @@ extern Actor323400MessageEntry D_actor_323400_801711D4[7];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpEffArg value;
-    u8 retained[88];
+    u8       retained[88];
 } Actor323400Storage1228;
 STATIC_ASSERT_SIZEOF(Actor323400Storage1228, 96);
 
@@ -117,13 +120,13 @@ static const GpEnemyTaskFuncTable3 D_actor_323400_80161E34 = {
 };
 
 extern TmdSource D_actor_323400_80169878;
-s32 func_actor_323400_80164764(Task *, s32, s32);
-s32 func_actor_323400_80164824(Task *);
-s32 func_actor_323400_80164874(Task *, s32, GpXformArg *);
-s32 func_actor_323400_80164974(Task *, s32, GpCmdArg *, s32);
-s32 func_actor_323400_80164A50(Task *, s32, GpAnimArg *, s32);
-void func_actor_323400_8016475C(void);
-void func_actor_323400_80164CEC(Task *);
+s32              func_actor_323400_80164764(Task*, s32, s32);
+s32              func_actor_323400_80164824(Task*);
+s32              func_actor_323400_80164874(Task*, s32, GpXformArg*);
+s32              func_actor_323400_80164974(Task*, s32, GpCmdArg*, s32);
+s32              func_actor_323400_80164A50(Task*, s32, GpAnimArg*, s32);
+void             func_actor_323400_8016475C(void);
+void             func_actor_323400_80164CEC(Task*);
 
 GpU16Pair D_actor_323400_80164D48[5] = {
     { 30, 0 },
@@ -1207,6 +1210,16 @@ TaskDesc D_actor_323400_8017120C = { 257, 96, func_actor_323400_80164CEC, { .mod
 Actor323400Storage1218 D_actor_323400_80171218 = { 0 };
 
 Actor323400Storage1228 D_actor_323400_80171228 = { { 0 }, { 0 } };
+
+static void func_actor_323400_80161E8C(GpCoord* coord, s16 yaw);
+static s32  func_actor_323400_80162198(GpCoord* coord, GpRec18* recs, s16 count);
+static s32  func_actor_323400_801624E0(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32  func_actor_323400_80162A2C(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32  func_actor_323400_80162BD0(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void func_actor_323400_8016331C(Task* task);
+static s32  func_actor_323400_80163448(Task* task, Actor323000Work* work);
+static void func_actor_323400_80163B58(Task* task);
+static void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

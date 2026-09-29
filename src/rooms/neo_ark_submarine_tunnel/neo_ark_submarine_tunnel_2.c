@@ -1,39 +1,48 @@
 #include "rooms/neo_ark_submarine_tunnel.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "neo_ark_submarine_tunnel_private.h"
+
+#include "actors/task_tables.h"
+
+#include "actors/waypoints.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
 #include "overlay.h"
 
 /// Right shifts applied to the red, green and blue channels of the burst's
@@ -46,10 +55,10 @@ static void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s16 arg1, u8* 
 static void func_neo_ark_submarine_tunnel_80180840(GpCoord* coord, s16 size);
 static void func_neo_ark_submarine_tunnel_80180D6C(GpCoord* arg0, s32 arg1);
 
-extern GpGridParams D_neo_ark_submarine_tunnel_801824DC[1];
-extern GpObj3A D_neo_ark_submarine_tunnel_8018781C[3];
-extern GpObj4C D_neo_ark_submarine_tunnel_80187248[6];
-extern GpObj4C D_neo_ark_submarine_tunnel_801874D8[11];
+extern GpGridParams   D_neo_ark_submarine_tunnel_801824DC[1];
+extern GpObj3A        D_neo_ark_submarine_tunnel_8018781C[3];
+extern GpObj4C        D_neo_ark_submarine_tunnel_80187248[6];
+extern GpObj4C        D_neo_ark_submarine_tunnel_801874D8[11];
 extern GpRoomCoordSet D_neo_ark_submarine_tunnel_80187230[1];
 
 extern TaskDesc D_80147E48;
@@ -1508,7 +1517,7 @@ OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13] = { 0 };
 
 OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[32] = { 0 };
 
-OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20 = { 0 };/// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
+OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20 = { 0 }; /// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
 /// into `D_80115734`, `D_80115730` and `D_80115754` and then idles; the burst
 /// task below spawns its effects from `D_80115730`.
 void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0)

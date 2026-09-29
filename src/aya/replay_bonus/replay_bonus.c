@@ -1,26 +1,37 @@
-#include "common.h"
+#include "replay_bonus_private.h"
 
-#include "aya/replay_bonus.h"
-#include "psyq/libpress.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libpress.h>
 
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
+#include "types.h"
 
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/inventory.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
 #include "gameplay/weapon_data.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+void func_replay_bonus_80115ED0(Task* arg0);
 
 static const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
@@ -28,8 +39,20 @@ extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
-extern u8           D_replay_bonus_801192AC;
-extern s32          D_replay_bonus_80119284;
+
+extern s32 D_replay_bonus_80119284;
+
+static void       func_replay_bonus_801158C0(void);
+void              func_replay_bonus_801159A0(Task* arg0);
+static inline u16 _replayBonusUpgradeCost(s32 slot, s32 from);
+static void       func_replay_bonus_80115D60(UiList* list, UiObject* ctx);
+static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx);
+void              func_replay_bonus_801166AC(Task* arg0);
+void              func_replay_bonus_80116964(Task* arg0);
+static inline s32 _replayBonusShopTier(void);
+static inline s32 _replayBonusShopItem(s32 col);
+void              func_replay_bonus_80116AC0(Task* arg0);
+void              func_replay_bonus_80116D68(Task* arg0);
 
 static void func_replay_bonus_801158C0(void)
 {

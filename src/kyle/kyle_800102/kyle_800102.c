@@ -1,29 +1,46 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include "kyle/kyle_800102.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+
+#include "gte.h"
+#include "types.h"
+
+#include "kyle_800102_private.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "weapons/weapon.h"
 
+/// One entry of the task's state table; the dispatcher passes the task itself.
+typedef void (*Kyle800102StateFn)(Task* task);
+
 static void func_kyle_800102_80168270(Task* arg0);
+
+static void func_kyle_800102_80167A84(Task* arg0);
+static void func_kyle_800102_80167DE0(Task* arg0);
+static void func_kyle_800102_80168244(Task* arg0);
 
 /// Spawn state: allocates the work block, seeds the thrown object at the
 /// muzzle coordinate and links its two `GpObj` nodes.

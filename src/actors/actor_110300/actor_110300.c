@@ -1,21 +1,23 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session_types.h"
 #include "main/task.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// The block above, published by `func_actor_110300_80131F9C` from the task's
 /// `Task::work`.
@@ -46,8 +48,8 @@ extern u8 D_actor_110300_8013A084[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor110300MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor110300MsgEntry, 8);
@@ -63,11 +65,11 @@ static void func_actor_110300_80132208(void);
 
 extern TmdSource D_actor_110300_80137AF0;
 extern TmdSource D_actor_110300_80137EF8;
-void func_actor_110300_80131F9C(Task *);
-void func_actor_110300_80131FF8(Task *);
+void             func_actor_110300_80131F9C(Task*);
+void             func_actor_110300_80131FF8(Task*);
 
-s32 func_actor_110300_80132280(Task *, s32, GpAnimArg *);
-s32 func_actor_110300_801322E0(Task *, s32, s32);
+s32 func_actor_110300_80132280(Task*, s32, GpAnimArg*);
+s32 func_actor_110300_801322E0(Task*, s32, s32);
 
 TmdBone D_actor_110300_8013234C[20] = {
 #include "assets/actor_110300_model_05CD0_skeleton.inc"
@@ -301,6 +303,8 @@ Actor110300Work * D_actor_110300_8013A0A0 = NULL;
 Task * D_actor_110300_8013A0A4 = NULL;
 
 Task * D_actor_110300_8013A0A8 = NULL;
+
+static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task);
 
 /// Step 0 of the `func_actor_110300_80131F9C` dispatcher: allocate the work
 /// block, publish it, and hand the model's animation context its slot array.

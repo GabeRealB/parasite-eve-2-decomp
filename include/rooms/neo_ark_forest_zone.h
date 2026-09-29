@@ -1,16 +1,45 @@
-#ifndef ROOMS_NEO_ARK_FOREST_ZONE_H
-#define ROOMS_NEO_ARK_FOREST_ZONE_H
+#ifndef INCLUDE_ROOMS_NEO_ARK_FOREST_ZONE_H
+#define INCLUDE_ROOMS_NEO_ARK_FOREST_ZONE_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-void func_neo_ark_forest_zone_8017E3C0(Task* arg0);
-void func_neo_ark_forest_zone_8017E420(Task* task);
-void func_neo_ark_forest_zone_8017EE84(Task* task);
-void func_neo_ark_forest_zone_8017F76C(Task* task);
 extern GpAreaVariant D_neo_ark_forest_zone_80182968[13];
+
+// neo_ark_forest_zone
+extern GpRoomObjRec D_neo_ark_forest_zone_801820A4[];
+
+extern GpRoomCoordRec D_neo_ark_forest_zone_801820B4[];
+
+extern u8* D_neo_ark_forest_zone_801820BC[];
+
+extern GpViewCountRec D_neo_ark_forest_zone_801820C0[];
+
+extern GpWarpRec D_neo_ark_forest_zone_801820C4[];
+
+extern GpViewRec D_neo_ark_forest_zone_80182298[];
+
+extern GpSprtRec D_neo_ark_forest_zone_80182594[];
+
+extern GpRoomParamRec* D_neo_ark_forest_zone_80182CE4[];
+
+void func_neo_ark_forest_zone_8017E3C0(Task* arg0);
+
+void func_neo_ark_forest_zone_8017E420(Task* task);
+
+void func_neo_ark_forest_zone_8017EE84(Task* task);
+
+void func_neo_ark_forest_zone_8017F76C(Task* task);
 
 void func_neo_ark_forest_zone_8017DC20(Task* task);
 
-#endif // ROOMS_NEO_ARK_FOREST_ZONE_H
+void func_neo_ark_forest_zone_8017DBBC(Task* task);
+
+#endif // INCLUDE_ROOMS_NEO_ARK_FOREST_ZONE_H

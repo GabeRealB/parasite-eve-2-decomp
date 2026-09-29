@@ -41,6 +41,16 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
+
 TILE Gp_FadeTiles[2];
 
 DR_TPAGE Gp_FadeTpages[2];
@@ -52,76 +62,6 @@ static inline u16 _gpAdvanceAreaCd(void);
 static void Gp_InitStageVisit(GpAreaKey* arg0);
 
 void func_80724748(GpAreaKey* arg0);
-
-extern GpViewCountTbl D_map_akropolis_8017ABC0;
-
-extern GpViewCountTbl D_map_dryfield_8017AA28;
-
-extern GpViewCountTbl D_map_dryfield_full_8017A93C;
-
-extern GpViewCountTbl D_map_shelter_8017B110;
-
-extern GpViewCountTbl D_map_neo_ark_8017AB88;
-
-extern GpViewIndexTbl D_map_akropolis_8017AC68;
-
-extern GpViewIndexTbl D_map_dryfield_8017ABFC;
-
-extern GpViewIndexTbl D_map_dryfield_full_8017AB10;
-
-extern GpViewIndexTbl D_map_shelter_8017B548;
-
-extern GpViewIndexTbl D_map_neo_ark_8017ADB0;
-
-extern GpSprtTbl D_map_akropolis_8017AB1C;
-
-extern GpSprtTbl D_map_dryfield_8017AC98;
-
-extern GpSprtTbl D_map_dryfield_full_8017ABAC;
-
-extern GpSprtTbl D_map_shelter_8017B610;
-
-extern GpSprtTbl D_map_neo_ark_8017AE38;
-
-extern GpRoomObjTbl D_map_akropolis_8017AAC8;
-
-extern GpRoomObjTbl D_map_dryfield_8017AAC4;
-
-extern GpRoomObjTbl D_map_dryfield_full_8017A9D8;
-
-extern GpRoomObjTbl D_map_shelter_8017B3B8;
-
-extern GpRoomObjTbl D_map_neo_ark_8017ACA0;
-
-extern GpWarpRec* D_map_akropolis_8017AB20[];
-
-extern GpWarpRec* D_map_dryfield_8017A8F8[];
-
-extern GpWarpRec* D_map_dryfield_full_8017A80C[];
-
-extern GpWarpRec* D_map_shelter_8017AF88[];
-
-extern GpWarpRec* D_map_neo_ark_8017AA80[];
-
-extern GpRoomCoordRec* D_map_akropolis_8017AA28[];
-
-extern GpRoomCoordRec* D_map_dryfield_8017A860[];
-
-extern GpRoomCoordRec* D_map_dryfield_full_8017A774[];
-
-extern GpRoomCoordRec* D_map_shelter_8017AEC4[];
-
-extern GpRoomCoordRec* D_map_neo_ark_8017A9FC[];
-
-extern GpRoomParamRec** D_map_akropolis_8017AC6C[];
-
-extern GpRoomParamRec** D_map_dryfield_8017AC9C[];
-
-extern GpRoomParamRec** D_map_dryfield_full_8017ABB0[];
-
-extern GpRoomParamRec** D_map_shelter_8017B614[];
-
-extern GpRoomParamRec** D_map_neo_ark_8017AE3C[];
 
 static inline u16 _gpAdvanceAreaCd(void)
 {

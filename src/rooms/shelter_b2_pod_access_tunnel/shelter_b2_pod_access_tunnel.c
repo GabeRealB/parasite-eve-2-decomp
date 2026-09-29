@@ -1,25 +1,32 @@
-#include "shelter_b2_pod_access_tunnel_private.h"
-#include "mapui/map_shelter.h"
+#include "rooms/shelter_b2_pod_access_tunnel.h"
 
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "shelter_b2_pod_access_tunnel_private.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
 #include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -27,10 +34,7 @@ extern u8 D_shelter_b2_pod_access_tunnel_80185708[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern u8 D_shelter_b2_pod_access_tunnel_80185708_value __asm__("D_shelter_b2_pod_access_tunnel_80185708");
 
-extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BC0;
-extern GpMsgEntry       D_shelter_b2_pod_access_tunnel_80183BCC[];
-extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BFC;
-extern RoomFadeStorage       D_shelter_b2_pod_access_tunnel_801856F8;
+extern RoomFadeStorage  D_shelter_b2_pod_access_tunnel_801856F8;
 extern RoomEventMsg     D_shelter_b2_pod_access_tunnel_80185700;
 extern RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C;
 
@@ -85,6 +89,12 @@ u8 D_shelter_b2_pod_access_tunnel_80185708[4] = {
 };
 
 RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C = { 0 };
+
+static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
+
+static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task);
+
+static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
 /// Runs the room's pending event once its request has been accepted. State 0
 /// runs the event's CAP command; state 1 waits for it and, when the event asks
@@ -187,9 +197,6 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
     }
     return 1;
 }
-
-static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
-static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task);
 
 /// The three states `func_shelter_b2_pod_access_tunnel_8017DC14` dispatches
 /// the room task through: set-up, an idle tick, and removal.

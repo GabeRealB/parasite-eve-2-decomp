@@ -1,71 +1,80 @@
 #include "actor_503500_private.h"
-#include "rooms/shelter_r48.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
-#include "actors/actor_503500.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
+
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "rooms/shelter_r48.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
 /// The 0x160 work block cleared by func_actor_503500_801372C8.
 typedef struct Actor503500Work160 {
-    MATRIX light;
-    MATRIX color;
+    MATRIX            light;
+    MATRIX            color;
     Actor503500Slot40 slot40;
-    GpRec18 rec60[8];
-    GpEffArg field_120;
+    GpRec18           rec60[8];
+    GpEffArg          field_120;
     Actor503500FixVec rot;
     Actor503500FixVec vel;
     Actor503500FixVec pos;
-    s16 field_158;
-    u16 field_15A;
-    s8 field_15C;
-    s8 field_15D;
-    s8 field_15E;
-    s8 field_15F;
+    s16               field_158;
+    u16               field_15A;
+    s8                field_15C;
+    s8                field_15D;
+    s8                field_15E;
+    s8                field_15F;
 } Actor503500Work160;
 STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 
@@ -127,7 +136,7 @@ static void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* 
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     Actor503500Work value;
-    u8 retained[8];
+    u8              retained[8];
 } Actor5035003Storage6574;
 STATIC_ASSERT_SIZEOF(Actor5035003Storage6574, 2032);
 
@@ -156,22 +165,10 @@ static s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
 /// Asks slot `slot` to die: `arg2` becomes its `field_7E0`/`field_2A` flag
 /// and `arg3` its `field_752` countdown.
 static void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
-/// Animation-preset table indexed by preset id; `func_actor_503500_80135FB4`
-/// and `func_actor_503500_80132F64` hand entry pointers to
-/// `func_actor_503500_80135950`.
-extern GpAnimArg D_actor_503500_8016EAC0[];
-/// Applies preset `arg2` to the boss block's animation slots; `arg1` and `arg3`
-/// are passed by every caller but the body ignores them. Always returns 0.
-s32 func_actor_503500_80135950(Task* arg0, s32 arg1,
-                               GpAnimArg* arg2, s32 arg3);
 
-/// Animation-bank table indexed by `GpAnimArg::animBlock.index`.
-extern GpAnimSet* D_actor_503500_8016EA54[20];
-extern GpAnimSet* D_actor_503500_8016EAA4[5];
-extern GpAnimSet** D_actor_503500_8016EAB8[2];
-static void  func_actor_503500_80136450(Task* arg0);
-static void  func_actor_503500_801369E4(Task* arg0);
-static void  func_actor_503500_80136A80(Task* arg0);
+static void func_actor_503500_80136450(Task* arg0);
+static void func_actor_503500_801369E4(Task* arg0);
+static void func_actor_503500_80136A80(Task* arg0);
 /// Republishes the boss's four cached matrices (`arg1`) and/or re-seeds its
 /// display state (`arg2`).
 static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2);
@@ -192,77 +189,20 @@ static void func_actor_503500_80136A88(Task* arg0);
 static void func_actor_503500_80136AEC(Task* arg0);
 static void func_actor_503500_80136D30(Task* arg0);
 static void func_actor_503500_80136DDC(Task* arg0);
-/// `TaskDesc` table `func_actor_503500_80132F64` and
-/// `func_actor_503500_80135D00` spawn slot enemies from.
-extern TaskDesc D_actor_503500_8016E924[];
-/// Initial position of the boss's collision node, copied into both the
-/// enemy's `field_1C` and `field_5D4`'s `field_10/12/14`.
-extern SVECTOR  D_actor_503500_8016EC50;
-extern SVECTOR  D_actor_503500_8016EF58[];
+
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132F64`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-/// Per-spawn enemy parameter table indexed by `Task::spawnArg1`;
-/// `func_actor_503500_8013BEE4` and `func_actor_503500_8013ECBC` park the row
-/// in `GpEnemy::param` and seed the enemy's HP from its `hpMax`.
-extern GpPairSrcE D_actor_503500_8016E7EC[];
-static void       func_actor_503500_80136228(Task* arg0);
+static void func_actor_503500_80136228(Task* arg0);
 
-/// Attack lists for `func_actor_503500_801338E8`, indexed by the phase bit
-/// (`field_774` bit 3), the height band `field_7DC` and the yaw bucket
-/// `field_7DE`; each entry points at a NULL-terminated `Actor503500Step` run.
-extern Actor503500Step** D_actor_503500_8016EF10[2][3];
-/// Yaw-bucket thresholds, same `[phase][band]` indexing: ascending `|yaw|`
-/// limits scanned until one is not below the current yaw offset.
-extern s16* D_actor_503500_8016EF28[2][3];
-/// Slot table walked by `func_actor_503500_80133D40`: four slot ids, tried in
-/// order, and the per-entry value handed to `func_actor_503500_80136F40` as
-/// its last argument when that slot is picked.
-extern s16 D_actor_503500_8016EF40[];
-extern s16 D_actor_503500_8016EF48[];
-/// Second slot table for `func_actor_503500_80133FD8`; shares the per-entry
-/// values in `D_actor_503500_8016EF40`.
-extern s16 D_actor_503500_8016EF50[];
-/// Per-sub-state speed class: 1 and 2 pick the slower yaw-tracking rates.
-extern s8 D_actor_503500_8016E8FC[];
-/// Main-executable yaw rotation: rotates `m` about Y by `angle`.
-/// Per-slot camera masks: bits 0x08/0x10/0x20/0x40 are yaw sectors around the
-/// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
-extern u8 D_actor_503500_8016E910[];
-/// Effect offsets `func_actor_503500_80137678` cycles through, three entries.
-extern SVECTOR D_actor_503500_8016F078[];
-/// Effect offsets `func_actor_503500_80139014` cycles through, three entries.
-extern SVECTOR D_actor_503500_8016F0D0[];
-/// Main-executable counter the actor paces periodic effects by (its value
-/// modulo 6 or 12, its low bits).
-/// The same pair for the 0x160 enemy at `D_actor_503500_80176D88`: a world
-/// translation seeded into the task's own coordinate and the local offset its
-/// `GpEnemy::bodyPos` and display node share.
-extern SVECTOR         D_actor_503500_8016F060;
-extern SVECTOR         D_actor_503500_8016F068;
 extern Actor503500Work160 D_actor_503500_80176D88;
-/// Per-slot tables of the 0x2EC enemies in `D_actor_503500_80176EE8`: world
-/// translation and rotation of the task's coordinate (indexed by
-/// `spawnArg1 - 2`), the local offset its `GpEnemy::bodyPos` and display node
-/// share, and the vector seeded into `field_294` / `field_29C` (indexed by
-/// `spawnArg1`).
-extern SVECTOR            D_actor_503500_8016F090[];
-extern SVECTOR            D_actor_503500_8016F0A0[];
-extern SVECTOR            D_actor_503500_8016F0B0;
-extern Actor503500UVec    D_actor_503500_8016F0A8[];
+
 extern Actor503500Work2EC D_actor_503500_80176EE8[2];
-/// Rest offset of the same enemies' `field_29C`, indexed by `spawnArg1 - 2`
-/// (the bytes of `D_actor_503500_8016F0A8[2..]`, named on their own because the
-/// code indexes from here), and the local vector `func_actor_503500_80138A30`
-/// rotates by `field_2A4` and adds to it every frame.
-extern Actor503500UVec D_actor_503500_8016F0B8[];
-extern SVECTOR         D_actor_503500_8016F0C8;
-static void            func_actor_503500_8013A900(Task* arg0);
-/// Translation `func_actor_503500_801374BC` seeds into each of the two effect
-/// tasks it hangs off the task's own coordinate.
-extern SVECTOR D_actor_503500_8016F070;
+
+static void func_actor_503500_8013A900(Task* arg0);
+
 /// Re-places a display node and its record table: `arg2` is the node's
 /// `GpRec18` table and `arg3` the record count.
 static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
@@ -277,16 +217,13 @@ static void func_actor_503500_80138C08(Task* arg0);
 static void func_actor_503500_801395BC(Task* arg0);
 static void func_actor_503500_8013A470(SVECTOR* pts, GpCoord* coords, s32 phase);
 static void func_actor_503500_80137048(Task* arg0, s32 rate);
-/// The animation preset `func_actor_503500_80136D30` re-applies when the boss
-/// finishes the clip it was gating on.
-extern GpAnimArg         D_actor_503500_8016EAD4;
-extern GpGridParams D_actor_503500_8016F03C;
-static void              func_actor_503500_80132F64(Task* arg0);
-static void              func_actor_503500_80133270(Task* arg0);
-static void              func_actor_503500_801372C8(Task* arg0);
-static void              func_actor_503500_8013815C(Task* arg0);
-static void              func_actor_503500_8013852C(Task* arg0);
-static void              func_actor_503500_80138898(Task* arg0);
+
+static void func_actor_503500_80132F64(Task* arg0);
+static void func_actor_503500_80133270(Task* arg0);
+static void func_actor_503500_801372C8(Task* arg0);
+static void func_actor_503500_8013815C(Task* arg0);
+static void func_actor_503500_8013852C(Task* arg0);
+static void func_actor_503500_80138898(Task* arg0);
 
 static void func_actor_503500_80138454(Task* arg0);
 static void func_actor_503500_80138490(Task* arg0, s32 arg1);
@@ -314,6 +251,13 @@ u16 D_actor_503500_80176D64[18] = { 0 };
 Actor503500Work160 D_actor_503500_80176D88 = { 0 };
 
 Actor503500Work2EC D_actor_503500_80176EE8[2] = { 0 };
+
+static inline void func_actor_503500_SetBossState(Task* arg0, s16 state);
+static void        func_actor_503500_801360A4(s32 arg0, s16 arg1);
+static void        func_actor_503500_80137678(Task* arg0);
+static void        func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+static void        func_actor_503500_80139014(Task* arg0);
+static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
 
 /// State-0 init of the boss: clears and seeds its work block, links the
 /// second body part's display node, spawns slot enemies 1..11 from

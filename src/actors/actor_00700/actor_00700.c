@@ -1,45 +1,52 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 typedef union Actor00700HitRecord {
     GpRec18 rec;
@@ -230,12 +237,12 @@ extern s16 Actor00700_D07598[];
 /// `hpMax` seeds the health), and the second argument of `func_800B3F84`.
 extern struct GpU16Pair Actor00700_D06DDC;
 extern GpPairSrcE       Actor00700_D06DE0;
-extern GpAnimSet* Actor00700_D06E6C[11];
+extern GpAnimSet*       Actor00700_D06E6C[11];
 
 /// The same three for the second body, used by `Actor00700_Fn01FE0`.
 extern GpPairSrcE       Actor00700_D07588;
 extern struct GpU16Pair Actor00700_D07584;
-extern GpAnimSet* Actor00700_D075B4[2];
+extern GpAnimSet*       Actor00700_D075B4[2];
 
 static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor);
 static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1);
@@ -266,8 +273,8 @@ static const GpEnemyTaskFuncTable3 Actor00700_D00004 = {
     { Actor00700_Fn00060, Actor00700_Fn0188C, Actor00700_Fn01434 },
 };
 
-static void Actor00700_Fn01830(Task *);
-static void Actor00700_Fn034BC(Task *);
+static void Actor00700_Fn01830(Task*);
+static void Actor00700_Fn034BC(Task*);
 
 TmdBone Actor00700_D03670[7] = {
 #include "assets/actor_100700_model_04EB4_skeleton.inc"
@@ -712,6 +719,13 @@ ActorSpriteUv Actor00700_D075BC[8] = {
     { 64, 0, 224, 0 },
     { 96, 0, 224, 0 },
 };
+
+static void Actor00700_Fn00334(Task* actor);
+static void Actor00700_Fn008B4(Task* arg0);
+static void Actor00700_Fn00BC0(Task* arg0);
+static void Actor00700_Fn00F20(Task* arg0);
+static void Actor00700_Fn01148(Task* arg0);
+static void Actor00700_Fn012E4(Task* arg0);
 
 /// The first body's set-up handler: allocate the work block, rebind the
 /// model's light and colour matrices into it, then link the four collision

@@ -1,35 +1,39 @@
-#include "dryfield_night_motel_loft_private.h"
+#include "rooms/dryfield_night_motel_loft.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/libgs.h>
 
-#include "rooms/dryfield_night_motel_loft.h"
-#include "rooms/room_common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "dryfield_night_motel_loft_private.h"
 
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
 #include "gameplay/loading.h"
-
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/direction_input.h"
-
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_targets.h"
+#include "rooms/room_common.h"
 
 /// Scratch block one triangle is built in: the GTE depth and flag of its
 /// projection, then its three corners in world space.
@@ -65,11 +69,7 @@ extern GpGridParams D_dryfield_night_motel_loft_8017F120;
 static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade);
 
-// Indexed views below share one contiguous table.
-extern GpRoomCoordSet D_dryfield_night_motel_loft_8018004C[1];
-
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
-extern GpObj4C D_dryfield_night_motel_loft_80180064[12];
 
 TmdBone D_dryfield_night_motel_loft_8017E888[1] = {
 #include "assets/dryfield_night_motel_loft_model_01538_skeleton.inc"

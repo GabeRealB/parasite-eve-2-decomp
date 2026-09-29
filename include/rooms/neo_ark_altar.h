@@ -1,17 +1,34 @@
-#ifndef ROOMS_NEO_ARK_ALTAR_H
-#define ROOMS_NEO_ARK_ALTAR_H
+#ifndef INCLUDE_ROOMS_NEO_ARK_ALTAR_H
+#define INCLUDE_ROOMS_NEO_ARK_ALTAR_H
 
-#include "common.h"
+#include "types.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-/// Two-entry spawn table: entry 0 is `func_neo_ark_altar_8017DBF0`, which
-/// starts entry 1, the streaming task `func_neo_ark_altar_8017DA40`, on the
-/// display list. The altar's cutscene driver and its task both spawn entry 0.
-extern TaskDesc D_neo_ark_altar_8017EFC0[];
+// neo_ark_altar
+extern GpRoomObjRec D_neo_ark_altar_8017F094[];
 
-void func_neo_ark_altar_8017DC40(s32 arg0);
+extern GpRoomCoordRec D_neo_ark_altar_8017F0C4[];
+
+extern u8* D_neo_ark_altar_8017F0EC[];
+
+extern GpViewCountRec D_neo_ark_altar_8017F0F8[];
+
+extern GpWarpRec D_neo_ark_altar_8017F0FC[];
+
+extern GpViewRec D_neo_ark_altar_8017F5A0[];
+
+extern GpSprtRec D_neo_ark_altar_8017FE38[];
+
+extern GpRoomParamRec* D_neo_ark_altar_8018005C[];
 
 void func_neo_ark_altar_8017EF84(Task* unused);
 
-#endif // ROOMS_NEO_ARK_ALTAR_H
+void func_neo_ark_altar_8017D9E8(Task* task);
+
+#endif // INCLUDE_ROOMS_NEO_ARK_ALTAR_H

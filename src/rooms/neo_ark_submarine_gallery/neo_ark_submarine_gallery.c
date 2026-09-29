@@ -1,46 +1,51 @@
-#include "neo_ark_submarine_gallery_private.h"
 #include "rooms/neo_ark_submarine_gallery.h"
-#include "mapui/map_neo_ark.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/rand.h>
-#include "rooms/room.h"
+
+#include "gte.h"
+#include "types.h"
+
+#include "neo_ark_submarine_gallery_private.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "overlay.h"
-#include "rooms/room_common.h"
+#include "main/task_types.h"
 
-#include "gameplay/area_flags.h"
+#include "mapui/map_neo_ark.h"
+
+#include "overlay.h"
+
+#include "rooms/room_common.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-
-extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[];
-extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
-extern TaskDesc   D_neo_ark_submarine_gallery_801818AC;
-extern s16        D_neo_ark_submarine_gallery_801818B8;
 
 /// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
 /// the same shape `D_mine_mesa_80189B38` has.
@@ -62,6 +67,15 @@ GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
 RoomFadeStorage D_neo_ark_submarine_gallery_8018591C = { 0 };
 
 GpSaveLoc D_neo_ark_submarine_gallery_80185924 = { 0 };
+
+static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
+
+static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
+
+static s32  func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1);
+static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0);
+static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0);
+static void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0);
 
 /// Water-refraction ripple over parts of the screen, drawn only in some views
 /// of areas 27, 14, 15, 13, 30 and 29; every other view returns at once. The
@@ -767,9 +781,6 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
     }
     SCRATCH_POP_BYTES(0x40);
 }
-
-static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
-static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_submarine_gallery_8017EBCC`: set-up, idle, then kill.

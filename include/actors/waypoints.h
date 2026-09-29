@@ -1,5 +1,5 @@
-#ifndef ACTORS_WAYPOINTS_H
-#define ACTORS_WAYPOINTS_H
+#ifndef INCLUDE_ACTORS_WAYPOINTS_H
+#define INCLUDE_ACTORS_WAYPOINTS_H
 
 #include "common.h"
 
@@ -10,4 +10,4 @@ typedef union ActorWaypointHeight {
 } ActorWaypointHeight;
 STATIC_ASSERT_SIZEOF(ActorWaypointHeight, 4);
 
-#endif // ACTORS_WAYPOINTS_H
+#endif // INCLUDE_ACTORS_WAYPOINTS_H

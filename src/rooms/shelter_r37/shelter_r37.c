@@ -1,29 +1,33 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_r37.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "main/session.h"
-#include "main/task.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 /// The room's message table, handed to its event task in state 0.
 extern GpMsgEntry D_shelter_r37_8017D6D0[];
 
-s32 func_shelter_r37_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r37_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_r37_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r37_8017D624(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r37_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r37_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_r37_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r37_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_r37_8017D6D0[5] = {
     { 5102, func_shelter_r37_8017D5D8 },
@@ -266,6 +270,9 @@ GpRoomParamRec * D_shelter_r37_8017DED8[8] = {
     D_shelter_r37_8017DEB0,
     D_shelter_r37_8017DEB0,
 };
+
+static void func_shelter_r37_8017D62C(Task* task);
+static void func_shelter_r37_8017D670(Task* task);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
 s32 func_shelter_r37_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

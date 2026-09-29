@@ -1,44 +1,49 @@
-#include "common.h"
-
-#include "actors/actor.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
 typedef struct Actor103800Work {
@@ -136,7 +141,7 @@ typedef struct Actor03800MoveScratch {
 } Actor03800MoveScratch;
 STATIC_ASSERT_SIZEOF(Actor03800MoveScratch, 0x18);
 
-extern void* D_80067704[1];
+extern void*     D_80067704[1];
 extern TmdSource Actor03800_D0459C;
 extern TmdSource Actor03800_D046A0;
 extern TmdSource Actor03800_D047A4;
@@ -145,7 +150,7 @@ extern TmdSource Actor03800_D0492C;
 
 extern s16        Actor03800_D05F90[];
 extern s16        Actor03800_D05FA8[];
-extern GpU16Pair Actor03800_D05F40[1];
+extern GpU16Pair  Actor03800_D05F40[1];
 extern GpPairSrcE Actor03800_D05F44;
 extern GpAnimSet* Actor03800_D05F60[12];
 
@@ -194,7 +199,7 @@ extern GpAnimSet Actor03800_D05B84;
 extern GpAnimSet Actor03800_D05E14;
 extern GpAnimSet Actor03800_D05F18;
 extern TmdSource Actor03800_D043A0;
-static void Actor03800_Fn0315C(Task *);
+static void      Actor03800_Fn0315C(Task*);
 
 TmdBone Actor03800_D038D0[6] = {
 #include "assets/actor_103800_model_043A0_skeleton.inc"
@@ -674,6 +679,19 @@ s16 Actor03800_D05F90[12] = {
 s16 Actor03800_D05FA8[2] = {
     2, 1,
 };
+
+static void        Actor03800_Fn01150(Task* arg0);
+static void        Actor03800_Fn012B4(Task* arg0);
+static void        Actor03800_Fn01520(Task* arg0);
+static void        Actor03800_Fn0166C(Task* arg0);
+static void        Actor03800_Fn01948(Task* arg0);
+static void        Actor03800_Fn01AD0(Task* arg0);
+static void        Actor03800_Fn01C50(Task* arg0);
+static void        Actor03800_Fn01EEC(Task* arg0);
+static void        Actor03800_Fn02068(Task* arg0);
+static void        Actor03800_Fn021E4(Task* arg0);
+static void        Actor03800_Fn02584(Task* arg0);
+static inline void _actor03800TickAnim(Task* task);
 
 static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 {

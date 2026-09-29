@@ -1,30 +1,27 @@
-#include "dryfield_toilet_private.h"
+#include "rooms/dryfield_toilet.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "dryfield_toilet_private.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-
-#include "gameplay/animation.h"
-
-/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
-/// type 7): the one the running scene starts and the one it parks in
-/// `D_801156D0` for the task that follows it.
-extern GpEvsCmd D_dryfield_toilet_80180C58[];
-extern GpEvsCmd D_dryfield_toilet_80180F40[];
+#include "main/task_types.h"
 
 /// The room task's message table (published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
@@ -34,19 +31,18 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, s32, s32);
-        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(Task*, s32, s32, s32);
+        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
     } handler;
 } DryfieldToiletMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldToiletMessageEntry, 8);
 
 extern DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6];
-extern s32 D_dryfield_toilet_801802D4;
+extern s32                        D_dryfield_toilet_801802D4;
 
 /// The template the room's collision grid is restored from, and the grid
 /// itself.
 extern GpGridParams D_dryfield_toilet_80180314;
-extern GpGridParams D_dryfield_toilet_80181404;
 
 static void func_dryfield_toilet_8017D940(Task* arg0);
 static void func_dryfield_toilet_8017D9D4(Task* task);
@@ -56,11 +52,11 @@ static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
 };
 
-s32 func_dryfield_toilet_8017D810(s32, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_toilet_8017D884(Task *, s32, s32, s32);
+s32 func_dryfield_toilet_8017D810(s32, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_toilet_8017D884(Task*, s32, s32, s32);
 s32 func_dryfield_toilet_8017D8B8(void);
 s32 func_dryfield_toilet_8017D8C0(void);
-s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg*, RoomEventMsg*);
 
 DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
     { 5102, { .call2 = func_dryfield_toilet_8017D810 } },
@@ -152,6 +148,8 @@ GpAnimSet D_dryfield_toilet_80180B64 = {
     D_dryfield_toilet_801808B4, D_dryfield_toilet_80180B3C,
     { NULL, D_dryfield_toilet_8018063C.words, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },
 };
+
+static void func_dryfield_toilet_8017D5E4(void);
 
 /// Restores one face of the room's collision grid (its normal, four corners and
 /// face record) from the template, then slides the four corners 2000 units toward

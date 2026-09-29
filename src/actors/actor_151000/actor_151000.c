@@ -1,49 +1,45 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/gfx.h"
-#include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-#include "gameplay/evs.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[3];
-        GpAnimArg arguments[6];
+        GpAnimArg  arguments[6];
     } data;
     s32 words[33];
 } Actor151000AnimStorage336C;
 STATIC_ASSERT_SIZEOF(Actor151000AnimStorage336C, 132);
 
 extern Actor151000AnimStorage336C D_actor_151000_8013336C;
-
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -79,17 +75,17 @@ extern TaskDesc D_actor_151000_80133360;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, VECTOR *, s32);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, VECTOR*, s32);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor151000MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor151000MsgEntry, 8);
 
 extern Actor151000MsgEntry D_actor_151000_8013D2B0[];
-extern u8         D_actor_151000_8013D2EC[];
+extern u8                  D_actor_151000_8013D2EC[];
 
 static void func_actor_151000_80132084(Task* task);
 static void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
@@ -101,19 +97,19 @@ static void func_actor_151000_801326AC(void);
 static void func_actor_151000_80132A38(Task* task);
 
 extern TmdSource D_actor_151000_80139270;
-void func_actor_151000_801323F4(Task *);
+void             func_actor_151000_801323F4(Task*);
 
-s32 func_actor_151000_80132738(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_151000_801327C8(Task *, s32, s32);
-s32 func_actor_151000_80132810(Task *, s32, GpXformArg *);
-s32 func_actor_151000_8013288C(Task *, s32, GpCmdArg *);
-s32 func_actor_151000_801328DC(Task *, s32, VECTOR *, s32);
+s32 func_actor_151000_80132738(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_151000_801327C8(Task*, s32, s32);
+s32 func_actor_151000_80132810(Task*, s32, GpXformArg*);
+s32 func_actor_151000_8013288C(Task*, s32, GpCmdArg*);
+s32 func_actor_151000_801328DC(Task*, s32, VECTOR*, s32);
 
 extern GpAnimArg D_actor_151000_801333F0;
 extern GpAnimArg D_actor_151000_80133404;
-void func_actor_151000_80131EE0(s32);
+void             func_actor_151000_80131EE0(s32);
 
-void func_actor_151000_80131E24(Task *);
+void func_actor_151000_80131E24(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -784,6 +780,8 @@ Actor151000Work * D_actor_151000_8013D37C = NULL;
 Task * D_actor_151000_8013D380 = NULL;
 
 s16 D_actor_151000_8013D384 = 0;
+
+static void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task);
 
 /// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
 /// draws a full-screen black `TILE` into ordering table slot 0xA; once it is

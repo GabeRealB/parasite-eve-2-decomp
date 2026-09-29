@@ -1,40 +1,40 @@
-#include "gameplay/evs.h"
 #include "rooms/dryfield_night_junk_yard.h"
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-
 #include "gameplay/sprites.h"
+#include "gameplay/world_targets.h"
+
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-
-#include "gameplay/world_targets.h"
+#include "main/task_types.h"
 
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
 extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
 /// Payload of the 0x7DA message the entry task sends to the slot-4 task.
-extern s32 D_dryfield_night_junk_yard_801805A0;
+extern s32      D_dryfield_night_junk_yard_801805A0;
 extern GpEvsCmd D_dryfield_night_junk_yard_801805A4[];
 
-s32 func_dryfield_night_junk_yard_8017D5F4(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_junk_yard_8017D6A4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_junk_yard_8017D6AC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_junk_yard_8017D82C(Task *, s32, RoomEventMsg *, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D5F4(Task*, s32, s32, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 extern GpAnimArg D_dryfield_night_junk_yard_80180584;
-extern GpCmdArg D_dryfield_night_junk_yard_80180598;
-extern GpCmdArg D_dryfield_night_junk_yard_8018059C;
-void func_dryfield_night_junk_yard_8017D894(u8);
+extern GpCmdArg  D_dryfield_night_junk_yard_80180598;
+extern GpCmdArg  D_dryfield_night_junk_yard_8018059C;
+void             func_dryfield_night_junk_yard_8017D894(u8);
 
 GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { 5102, func_dryfield_night_junk_yard_8017D6AC },
@@ -71,6 +71,9 @@ GpEvsCmd D_dryfield_night_junk_yard_801805A4[17] = {
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
+
+static void func_dryfield_night_junk_yard_8017D8B0(Task* task);
+static void func_dryfield_night_junk_yard_8017D958(Task* task);
 
 /// Handler for message 0x13F0 in the room's message table, keyed by `arg2`.
 /// Point 6 plays CAP command 0xC until nibble 0x3A is set, and 6 after. Point 8

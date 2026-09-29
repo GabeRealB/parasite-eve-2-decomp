@@ -1,16 +1,19 @@
-#include "common.h"
-#include "rooms/room.h"
+#include "rooms/dryfield_night_r08.h"
+
+#include "types.h"
 
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/evs.h"
 #include "main/fs.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
 extern s32 D_80133898;
 extern s32 D_801341E0;
@@ -18,10 +21,10 @@ extern s32 D_801341E0;
 /// `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
 extern GpMsgEntry D_dryfield_night_r08_80180544[];
 
-s32 func_dryfield_night_r08_8017D5F0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_r08_8017D5F8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_dryfield_night_r08_8017D620(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_r08_8017D628(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_r08_8017D5F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_r08_8017D5F8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_dryfield_night_r08_8017D620(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_r08_8017D628(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_dryfield_night_r08_80180544[5] = {
     { 5102, func_dryfield_night_r08_8017D5F8 },
@@ -30,6 +33,9 @@ GpMsgEntry D_dryfield_night_r08_80180544[5] = {
     { 5104, func_dryfield_night_r08_8017D620 },
     { 0x7FFFFFFF, NULL },
 };
+
+static void func_dryfield_night_r08_8017D630(Task* arg0);
+static void func_dryfield_night_r08_8017D6B0(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.

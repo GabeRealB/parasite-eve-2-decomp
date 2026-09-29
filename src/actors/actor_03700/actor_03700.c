@@ -1,40 +1,46 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/abs.h>
+
 #include "common.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include <psyq/abs.h>
-
-#include "gameplay/animation.h"
+#include "main/wipsys_types.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -136,7 +142,7 @@ extern GpAnimSet* Actor03700_D080E4[6];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, s32, s32);
+        s32 (*call0)(Task*, s32, s32, s32);
     } handler;
 } Actor03700RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor03700RecoveredMsgEntry, 8);
@@ -191,9 +197,9 @@ static void Actor03700_Fn033F0(Task* task);
 static void Actor03700_Fn034A0(Task* task);
 static void Actor03700_Fn0355C(Task* task);
 
-static void Actor03700_Fn02FA8(Task *);
+static void Actor03700_Fn02FA8(Task*);
 
-s32 Actor03700_Fn034F8(Task *, s32, s32, s32);
+s32 Actor03700_Fn034F8(Task*, s32, s32, s32);
 
 TmdBone Actor03700_D03638[6] = {
 #include "assets/actor_103700_model_04200_skeleton.inc"
@@ -596,6 +602,11 @@ Actor03700RecoveredMsgEntry Actor03700_D08108[2] = {
     { 2014, { .call0 = Actor03700_Fn034F8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
+
+static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2);
+static inline void Actor03700_SwayInline(Task* task, s32 arg1);
+static inline void _actor03700UpdateColor(Task* task);
+static inline void _actor03700SpawnRemains(Task* task);
 
 /// The bob step of `Actor03700_Fn032BC`, which `Actor03700_Fn029C0` carries
 /// expanded in place rather than as a call.

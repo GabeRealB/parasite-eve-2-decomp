@@ -1,36 +1,35 @@
-#include "common.h"
+#include "rooms/dryfield_motel_room_3.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-
-#include "main/session.h"
-#include "main/task.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/task_types.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_motel_room_3_8017D6B4[];
 
-s32 func_dryfield_motel_room_3_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_room_3_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_motel_room_3_8017D600(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_room_3_8017D608(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_motel_room_3_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_motel_room_3_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_motel_room_3_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_motel_room_3_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_motel_room_3_8017DDA0[1];
-extern GpObj4C D_dryfield_motel_room_3_8017DFC4[11];
-extern GpObj4C D_dryfield_motel_room_3_8017E308[1];
+extern GpGridParams   D_dryfield_motel_room_3_8017DDA0[1];
+extern GpObj4C        D_dryfield_motel_room_3_8017DFC4[11];
+extern GpObj4C        D_dryfield_motel_room_3_8017E308[1];
 extern GpRoomCoordSet D_dryfield_motel_room_3_8017E4D4[1];
 
 GpMsgEntry D_dryfield_motel_room_3_8017D6B4[5] = {
@@ -460,6 +459,9 @@ GpRoomParamRec * D_dryfield_motel_room_3_8017E524[8] = {
     D_dryfield_motel_room_3_8017E504,
     D_dryfield_motel_room_3_8017E504,
 };
+
+static void func_dryfield_motel_room_3_8017D610(Task* task);
+static void func_dryfield_motel_room_3_8017D654(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_motel_room_3_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

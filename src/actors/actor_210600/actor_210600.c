@@ -1,40 +1,42 @@
 #include "actors/actor_210600.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/damage.h"
+#include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
-#include "overlay.h"
-#include <psyq/memory.h>
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Dual-width view of the animation rate in the work block. The message
 /// handler `func_actor_210600_8014B770` arms it as one halfword, while the
@@ -110,9 +112,9 @@ extern u8 D_actor_210600_8015A4B4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor210600MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor210600MessageEntry, 8);
@@ -130,10 +132,10 @@ extern SVECTOR D_actor_210600_8015D318;
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 extern TmdSource D_actor_210600_801594D8;
-s32 func_actor_210600_8014B5F4(Task *, s32, s32);
-s32 func_actor_210600_8014B6A0(Task *, s32, GpXformArg *);
-s32 func_actor_210600_8014B770(Task *, s32, GpCmdArg *);
-void func_actor_210600_8014BA3C(Task *);
+s32              func_actor_210600_8014B5F4(Task*, s32, s32);
+s32              func_actor_210600_8014B6A0(Task*, s32, GpXformArg*);
+s32              func_actor_210600_8014B770(Task*, s32, GpCmdArg*);
+void             func_actor_210600_8014BA3C(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -417,6 +419,22 @@ GpAnimSet D_actor_210600_8015D2E8 = {
 SVECTOR D_actor_210600_8015D310 = { 0 };
 
 SVECTOR D_actor_210600_8015D318 = { 0 };
+
+static void            func_actor_210600_80149E30(GpCoord* coord, s16 yaw);
+static s32             func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count);
+static s32             func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32             func_actor_210600_8014A9D0(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32             func_actor_210600_8014AB74(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void            func_actor_210600_8014B2C0(Task* task);
+static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale);
+static void            func_actor_210600_8014B434(GpEnemy* enemy, Task* task);
+static void            func_actor_210600_8014B7B0(GpCoord* coord, s16 scale);
+static void            func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task);
+static void            func_actor_210600_8014BA98(GpCoord* coord, s16 yaw);
+static s32             func_actor_210600_8014BDA4(GpCoord* coord, GpRec18* recs, s16 count);
+static s32             func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32             func_actor_210600_8014C638(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32             func_actor_210600_8014C7DC(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

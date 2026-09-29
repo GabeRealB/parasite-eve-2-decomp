@@ -1,26 +1,37 @@
-#include "common.h"
 #include "rooms/shelter_b1_sleeping_quarters.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "shelter_b1_sleeping_quarters_private.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018054C[];
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018055C[];

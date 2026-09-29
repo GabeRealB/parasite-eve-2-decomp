@@ -1,60 +1,67 @@
-#include "acropolis_helicopter_landing_pad_private.h"
+#include "rooms/acropolis_helicopter_landing_pad.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/rooms_shared_8017d830.h"
-#include "rooms/acropolis_helicopter_landing_pad.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "acropolis_helicopter_landing_pad_private.h"
+
+#include "actors/actor_511000.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/geometry.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
+
 #include "rooms/room_common.h"
 
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/actor_511000.h"
-#include "gameplay/evs.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/world_targets.h"
-
-extern GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9];
+extern GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
 /// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
 /// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
@@ -89,26 +96,20 @@ typedef struct AhlpFlareScratch {
 } AhlpFlareScratch;
 STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
 
-extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
-extern s32       D_acropolis_helicopter_landing_pad_80184EE0[12];
-extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
+extern SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12];
+extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
 
 static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
 static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord);
 
-/// The whole-unit delta of the last step
-/// `func_acropolis_helicopter_landing_pad_801819C0` applied.
-extern SVECTOR D_acropolis_helicopter_landing_pad_80187F88;
-
-void func_acropolis_helicopter_landing_pad_8017EB58(Task *);
-void func_acropolis_helicopter_landing_pad_8017ED00(Task *);
+void func_acropolis_helicopter_landing_pad_8017EB58(Task*);
+void func_acropolis_helicopter_landing_pad_8017ED00(Task*);
 
 extern GpGridParams D_acropolis_helicopter_landing_pad_80185998[1];
-extern GpObj3A D_acropolis_helicopter_landing_pad_80186128[2];
+
 extern GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16];
-extern GpRoomCoordSet D_acropolis_helicopter_landing_pad_80186AE8[1];
 
 GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { 5102, func_acropolis_helicopter_landing_pad_8017E3F0 },
@@ -1397,6 +1398,12 @@ GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16] = {
     { NULL, NULL, NULL, { -6098, 0, 3342, 0 }, { { -1437, 6080, 1741, 0 }, { 1437, 6080, -1740, 0 }, { -1437, -6080, 1741, 0 }, { 1437, -6080, -1740, 0 } }, { 3159, 0, 2608, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 9, 10, 1, 0 },
     { NULL, NULL, NULL, { -5856, 0, 4064, 0 }, { { 1437, 6080, -1741, 0 }, { -1437, 6080, 1740, 0 }, { 1437, -6080, -1741, 0 }, { -1437, -6080, 1740, 0 } }, { -3161, 0, -2610, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 10, 9, 129, 0 },
 };
+
+static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0);
+static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0);
+static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
+static s32  func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
 {

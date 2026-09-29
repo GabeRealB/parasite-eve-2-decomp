@@ -1,49 +1,57 @@
-#include "common.h"
-#include "rooms/shelter_b1_pod_service_gantry.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
-#include "psyq/abs.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/shelter_b1_pod_service_gantry.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Reach it with
@@ -266,7 +274,7 @@ extern Task* D_actor_560800_8017578C;
 extern GpAnimSet* D_actor_560800_8016EA40[13];
 
 extern ActorAnimStep D_actor_560800_8016EBE8[];
-extern GpXformArg D_actor_560800_8016F1CC[6];
+extern GpXformArg    D_actor_560800_8016F1CC[6];
 
 /// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
 /// second argument: a null entry then one animation set per slot of
@@ -314,29 +322,29 @@ static void func_actor_560800_80134258(Task* arg0);
 static void func_actor_560800_80134384(Task* arg0);
 static void func_actor_560800_80134BFC(Task* arg0);
 
-extern TaskDesc D_actor_560800_8016EA28[];
-extern TaskDesc D_actor_560800_8017575C[];
-extern GpAnimSet* D_actor_560800_8016EA74[];
-extern GpAnimSet* D_actor_560800_8016EB04[];
-extern GpAnimSet* D_actor_560800_8016EB30[];
+extern TaskDesc      D_actor_560800_8016EA28[];
+extern TaskDesc      D_actor_560800_8017575C[];
+extern GpAnimSet*    D_actor_560800_8016EA74[];
+extern GpAnimSet*    D_actor_560800_8016EB04[];
+extern GpAnimSet*    D_actor_560800_8016EB30[];
 extern ActorAnimStep D_actor_560800_8016EC1C[36];
 extern ActorAnimStep D_actor_560800_8016ECAC[6];
 extern ActorAnimStep D_actor_560800_8016ECC4[46];
-extern GpXformArg D_actor_560800_8016F154;
+extern GpXformArg    D_actor_560800_8016F154;
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpCmdArg *);
-        void (*call1)(Task *, s32, GpXformArg *);
-        void (*call2)(Task *, s32, VECTOR *);
-        void (*call3)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, VECTOR*);
+        void (*call3)(Task*, s32, s32);
     } handler;
 } Actor560800MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor560800MessageEntry, 8);
 
 extern Actor560800MessageEntry D_actor_560800_8016F34C[2];
-extern s32      D_actor_560800_8016F57C[];
+extern s32                     D_actor_560800_8016F57C[];
 
 static s32 func_actor_560800_80132498(Task* arg0);
 
@@ -352,16 +360,16 @@ extern GpAnimSet D_actor_560800_801752C0;
 extern TmdSource D_actor_560800_80172788;
 extern TmdSource D_actor_560800_8017359C;
 extern TmdSource D_actor_560800_80173D48;
-void func_actor_560800_80137820(Task *);
-void func_actor_560800_80137BEC(Task *);
-void func_actor_560800_80137F58(Task *, s32, VECTOR *);
-void func_actor_560800_801384EC(Task *, s32, GpCmdArg *);
-void func_actor_560800_801386D4(Task *);
-void func_actor_560800_80138A4C(Task *, s32, GpCmdArg *);
-void func_actor_560800_80138FC8(Task *);
-void func_actor_560800_80139360(Task *, s32, s32);
-void func_actor_560800_801393EC(Task *, s32, s32);
-void func_actor_560800_80139440(Task *, s32, GpXformArg *);
+void             func_actor_560800_80137820(Task*);
+void             func_actor_560800_80137BEC(Task*);
+void             func_actor_560800_80137F58(Task*, s32, VECTOR*);
+void             func_actor_560800_801384EC(Task*, s32, GpCmdArg*);
+void             func_actor_560800_801386D4(Task*);
+void             func_actor_560800_80138A4C(Task*, s32, GpCmdArg*);
+void             func_actor_560800_80138FC8(Task*);
+void             func_actor_560800_80139360(Task*, s32, s32);
+void             func_actor_560800_801393EC(Task*, s32, s32);
+void             func_actor_560800_80139440(Task*, s32, GpXformArg*);
 
 extern GpAnimSet D_actor_560800_80150C20;
 extern GpAnimSet D_actor_560800_80150F18;
@@ -454,47 +462,47 @@ extern TmdSource D_actor_560800_8014F250;
 extern TmdSource D_actor_560800_8014F6A4;
 extern TmdSource D_actor_560800_8014FEA8;
 extern TmdSource D_actor_560800_801502EC;
-void func_actor_560800_801326C4(Task *);
-void func_actor_560800_80132A14(Task *);
-void func_actor_560800_80132C60(Task *);
-void func_actor_560800_80132F64(Task *);
-void func_actor_560800_80133204(void);
-void func_actor_560800_80133648(u32);
-void func_actor_560800_80133750(s32);
-void func_actor_560800_80134B14(s32);
-void func_actor_560800_80135AEC(s32);
-void func_actor_560800_80135D54(Task *);
-void func_actor_560800_80135FA0(Task *);
-void func_actor_560800_80136094(Task *);
-void func_actor_560800_801361A0(Task *, s32, s32);
-void func_actor_560800_801361F4(Task *, s32, GpXformArg *);
-void func_actor_560800_80136280(s32);
-void func_actor_560800_801362B0(s32);
-void func_actor_560800_801362E0(s16);
-void func_actor_560800_8013631C(s16);
-void func_actor_560800_80136358(s16);
-void func_actor_560800_80136378(s16);
-void func_actor_560800_801363F8(u16);
-void func_actor_560800_801364A0(u16);
-void func_actor_560800_80136548(void);
-void func_actor_560800_801365B0(s16);
-void func_actor_560800_801365D0(u16);
-void func_actor_560800_80136678(s32);
-void func_actor_560800_801366B0(Task *);
-void func_actor_560800_801367C0(s16);
-void func_actor_560800_801367E0(s16);
-void func_actor_560800_80136818(void);
-void func_actor_560800_80136878(void);
-void func_actor_560800_80136910(void);
-void func_actor_560800_80136930(s32);
-void func_actor_560800_801369A0(void);
-void func_actor_560800_801369E0(Task *);
-void func_actor_560800_80136A20(void);
-void func_actor_560800_80136A54(void);
-void func_actor_560800_80136A88(Task *);
+void             func_actor_560800_801326C4(Task*);
+void             func_actor_560800_80132A14(Task*);
+void             func_actor_560800_80132C60(Task*);
+void             func_actor_560800_80132F64(Task*);
+void             func_actor_560800_80133204(void);
+void             func_actor_560800_80133648(u32);
+void             func_actor_560800_80133750(s32);
+void             func_actor_560800_80134B14(s32);
+void             func_actor_560800_80135AEC(s32);
+void             func_actor_560800_80135D54(Task*);
+void             func_actor_560800_80135FA0(Task*);
+void             func_actor_560800_80136094(Task*);
+void             func_actor_560800_801361A0(Task*, s32, s32);
+void             func_actor_560800_801361F4(Task*, s32, GpXformArg*);
+void             func_actor_560800_80136280(s32);
+void             func_actor_560800_801362B0(s32);
+void             func_actor_560800_801362E0(s16);
+void             func_actor_560800_8013631C(s16);
+void             func_actor_560800_80136358(s16);
+void             func_actor_560800_80136378(s16);
+void             func_actor_560800_801363F8(u16);
+void             func_actor_560800_801364A0(u16);
+void             func_actor_560800_80136548(void);
+void             func_actor_560800_801365B0(s16);
+void             func_actor_560800_801365D0(u16);
+void             func_actor_560800_80136678(s32);
+void             func_actor_560800_801366B0(Task*);
+void             func_actor_560800_801367C0(s16);
+void             func_actor_560800_801367E0(s16);
+void             func_actor_560800_80136818(void);
+void             func_actor_560800_80136878(void);
+void             func_actor_560800_80136910(void);
+void             func_actor_560800_80136930(s32);
+void             func_actor_560800_801369A0(void);
+void             func_actor_560800_801369E0(Task*);
+void             func_actor_560800_80136A20(void);
+void             func_actor_560800_80136A54(void);
+void             func_actor_560800_80136A88(Task*);
 
-void func_actor_560800_801321A0(Task *);
-void func_actor_560800_80135F50(Task *);
+void func_actor_560800_801321A0(Task*);
+void func_actor_560800_80135F50(Task*);
 
 TmdBone D_actor_560800_801394CC[19] = {
 #include "assets/actor_560800_model_0C410_skeleton.inc"
@@ -4550,6 +4558,54 @@ u32 D_actor_560800_801757A8 = 0;
 
 Task * D_actor_560800_801757AC = NULL;
 
+extern GpXformArg* D_actor_560800_8016F35C[];
+
+extern GpXformArg* D_actor_560800_8016F3E4[];
+
+extern GpXformArg* D_actor_560800_8016F46C[];
+
+extern GpXformArg* D_actor_560800_8016F4F4[];
+
+extern Actor560800MessageEntry D_actor_560800_801756D4[3];
+
+extern u16 D_actor_560800_801756EC[];
+
+extern s32 D_actor_560800_801756FC[];
+
+extern s32 D_actor_560800_80175714[];
+
+extern s32 D_actor_560800_8017572C[];
+
+/// Per-frame handler of a model task: state 0 allocates its
+/// `Actor560800ModelWork`, parents the root coordinate to `gGfxViewCoord`,
+/// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
+/// to identity. States 2/5 lift the root
+/// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
+/// 3 by 1 in steps of 0xA; 4 and 6 hand off to `func_actor_560800_80138BCC` /
+/// `func_actor_560800_80138D04`. Every state but 0 advances the two frame
+/// counters. Each case needs its own matrix pointer (and case 0 its own work
+/// pointer): a pointer shared across cases is a global pseudo, so the local
+/// 0x1000 constant takes `$v0` from it.
+extern Actor560800MessageEntry D_actor_560800_80175744[3];
+
+static s32         func_actor_560800_80132340(Task* arg0);
+static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate);
+static void        func_actor_560800_80133540(u32 arg0);
+static inline void Actor560800_PlayAnim(Task* task, u16 anim);
+static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC);
+static inline void Actor560800_PlaySe(s16 arg4);
+static inline void Actor560800_PlaySeB(s32 arg4);
+static inline void Actor560800_SpawnSparksA(Task* task);
+static inline void Actor560800_SpawnSparksB(Task* task);
+static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 clip);
+static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate);
+static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate);
+static void        func_actor_560800_80135BD8(Task* arg0);
+static void        func_actor_560800_80136AA8(Task* arg0);
+static void        func_actor_560800_801376E0(Task* arg0);
+static void        func_actor_560800_80138BCC(Task* task);
+static void        func_actor_560800_80138D04(Task* task);
+
 void func_actor_560800_801321A0(Task* task)
 {
     u8          slotParam[4];
@@ -5250,11 +5306,6 @@ void func_actor_560800_80133648(u32 arg0)
             break;
     }
 }
-
-extern GpXformArg* D_actor_560800_8016F35C[];
-extern GpXformArg* D_actor_560800_8016F3E4[];
-extern GpXformArg* D_actor_560800_8016F46C[];
-extern GpXformArg* D_actor_560800_8016F4F4[];
 
 void func_actor_560800_80133750(s32 arg0)
 {
@@ -7240,9 +7291,6 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, GpCmdArg* msg)
     }
 }
 
-extern Actor560800MessageEntry D_actor_560800_801756D4[3];
-extern u16  D_actor_560800_801756EC[];
-
 /// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
 /// roots the model at `gGfxViewCoord`, reparents the spawner's task, spawns the
 /// eight part tasks and swaps `Gp_LcgState` out for a zero seed; state 2 grows
@@ -7344,10 +7392,6 @@ void func_actor_560800_801386D4(Task* task)
     w->world.t[1] = pos.vy - 0x78;
     w->world.t[2] = pos.vz;
 }
-
-extern s32 D_actor_560800_801756FC[];
-extern s32 D_actor_560800_80175714[];
-extern s32 D_actor_560800_8017572C[];
 
 void func_actor_560800_80138A4C(Task* task, s32 msgId, GpCmdArg* msg)
 {
@@ -7550,18 +7594,6 @@ static void func_actor_560800_80138D04(Task* task)
     coord->flg         = 0;
     coord->coord.t[1] += 100;
 }
-
-/// Per-frame handler of a model task: state 0 allocates its
-/// `Actor560800ModelWork`, parents the root coordinate to `gGfxViewCoord`,
-/// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
-/// to identity. States 2/5 lift the root
-/// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
-/// 3 by 1 in steps of 0xA; 4 and 6 hand off to `func_actor_560800_80138BCC` /
-/// `func_actor_560800_80138D04`. Every state but 0 advances the two frame
-/// counters. Each case needs its own matrix pointer (and case 0 its own work
-/// pointer): a pointer shared across cases is a global pseudo, so the local
-/// 0x1000 constant takes `$v0` from it.
-extern Actor560800MessageEntry D_actor_560800_80175744[3];
 
 void func_actor_560800_80138FC8(Task* task)
 {

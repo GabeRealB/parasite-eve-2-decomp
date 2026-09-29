@@ -17,7 +17,11 @@
 #include "task.h"
 #include "main/task_types.h"
 
-#include "actors/actor.h"
+#include "actors/actor_800100.h"
+
+#include "actors/actor_800200.h"
+
+#include "actors/actor_800300.h"
 
 #include "aya/aya.h"
 
@@ -29,7 +33,25 @@
 
 #include "kyle/kyle.h"
 
-#include "rooms/room.h"
+#include "kyle/kyle_800102.h"
+
+#include "rooms/acropolis_bridge.h"
+
+#include "rooms/acropolis_cafeteria.h"
+
+#include "rooms/acropolis_fountain.h"
+
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
+#include "rooms/acropolis_security_room.h"
+
+#include "weapons/grenade_pistol.h"
+
+#include "weapons/hypervelocity.h"
+
+#include "weapons/m4a1_grenade.h"
+
+#include "weapons/tonfa_baton.h"
 
 #include "weapons/weapon.h"
 

@@ -1,27 +1,34 @@
-#include "common.h"
 #include "rooms/neo_ark_bridge.h"
-#include "mapui/map_neo_ark.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "gte.h"
+#include "types.h"
 
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
 s32     rcos(s32);
@@ -31,13 +38,13 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// The room's message table.
 extern GpMsgEntry D_neo_ark_bridge_80181F30[];
 
-s32 func_neo_ark_bridge_8017E82C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_bridge_8017E834(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_bridge_8017E878(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_bridge_8017E880(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_bridge_8017E82C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_bridge_8017E834(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_bridge_8017E878(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_bridge_8017E880(Task*, s32, GpMessageArg, GpMessageArg);
 
-void func_neo_ark_bridge_8017D638(Task *);
-void func_neo_ark_bridge_8017E28C(Task *);
+void func_neo_ark_bridge_8017D638(Task*);
+void func_neo_ark_bridge_8017E28C(Task*);
 
 TaskDesc D_neo_ark_bridge_80181F18 = { 0, 192, func_neo_ark_bridge_8017D638, { .model = NULL } };
 
@@ -50,6 +57,9 @@ GpMsgEntry D_neo_ark_bridge_80181F30[5] = {
     { 5104, func_neo_ark_bridge_8017E878 },
     { 0x7FFFFFFF, NULL },
 };
+
+static void func_neo_ark_bridge_8017E888(Task* arg0);
+static void func_neo_ark_bridge_8017E8F4(Task* task);
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row

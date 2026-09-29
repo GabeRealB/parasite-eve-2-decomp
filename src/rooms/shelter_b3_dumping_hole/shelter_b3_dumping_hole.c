@@ -1,23 +1,28 @@
-#include "gameplay/message.h"
-#include "mapui/map_shelter.h"
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "gameplay/evs.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "common.h"
 
-#include "gameplay/animation.h"
+#include "shelter_b3_dumping_hole_private.h"
 
 #include "actors/actor_403200.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -30,20 +35,18 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call2)(s32, s32, s32);
     } handler;
 } ShelterB3DumpingHoleMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB3DumpingHoleMessageEntry, 8);
 
 extern ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6];
-extern TaskDesc D_shelter_b3_dumping_hole_80189ADC[];
-extern GpEvsCmd D_shelter_b3_dumping_hole_8018B080[];
-extern GpEvsCmd D_shelter_b3_dumping_hole_8018B428[];
+
 extern TaskDesc D_80164B78;
 
 s32 func_shelter_b3_dumping_hole_8017D758(void);
-s32 func_shelter_b3_dumping_hole_8017D760(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b3_dumping_hole_8017D760(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b3_dumping_hole_8017D82C(s32, s32, s32);
 s32 func_shelter_b3_dumping_hole_8017D868(void);
 s32 func_shelter_b3_dumping_hole_8017D870(void);
@@ -195,7 +198,11 @@ GpAnimSet * D_shelter_b3_dumping_hole_801880A0[6] = {
     &D_actor_403200_8015F748,
     &D_actor_403200_8015EC00,
     NULL,
-};/// Message-table handler that accepts every message without acting on it.
+}; /// Message-table handler that accepts every message without acting on it.
+
+static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0);
+static void func_shelter_b3_dumping_hole_8017D998(Task* task);
+
 s32 func_shelter_b3_dumping_hole_8017D758(void)
 {
     return 0;

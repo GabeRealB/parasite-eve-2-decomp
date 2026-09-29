@@ -1,38 +1,51 @@
-#include "common.h"
 #include "rooms/dryfield_night_r08.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield_full.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
+
+#define D_dryfield_night_r08_801805BC (D_dryfield_night_r08_801805AC + 2)
+#define D_dryfield_night_r08_801805CC (D_dryfield_night_r08_801805AC + 4)
+#define D_dryfield_night_r08_801805DC (D_dryfield_night_r08_801805AC + 6)
+#define D_dryfield_night_r08_80180664 (D_dryfield_night_r08_801805AC + 23)
+#define D_dryfield_night_r08_8018066C (D_dryfield_night_r08_801805AC + 24)
 
 extern SVECTOR D_dryfield_night_r08_8018056C[];
 /// The two offsets from the parent object the beam trail task starts from:
@@ -46,7 +59,7 @@ static void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_dryfield_night_r08_80181474[1];
+extern GpGridParams   D_dryfield_night_r08_80181474[1];
 extern GpRoomCoordSet D_dryfield_night_r08_8018189C[1];
 
 SVECTOR D_dryfield_night_r08_8018056C[8] = {
@@ -1016,12 +1029,6 @@ GpRoomParamRec * D_dryfield_night_r08_8018195C[8] = {
     D_dryfield_night_r08_80181954,
     D_dryfield_night_r08_8018193C,
 };
-
-#define D_dryfield_night_r08_801805BC (D_dryfield_night_r08_801805AC + 2)
-#define D_dryfield_night_r08_801805CC (D_dryfield_night_r08_801805AC + 4)
-#define D_dryfield_night_r08_801805DC (D_dryfield_night_r08_801805AC + 6)
-#define D_dryfield_night_r08_80180664 (D_dryfield_night_r08_801805AC + 23)
-#define D_dryfield_night_r08_8018066C (D_dryfield_night_r08_801805AC + 24)
 
 /// On the task's first tick, stores three fixed ids into `D_80115758`,
 /// `D_8011572C` and `D_80115750`, then draws the placements the current camera

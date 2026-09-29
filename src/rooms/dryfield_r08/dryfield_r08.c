@@ -1,44 +1,50 @@
-#include "common.h"
 #include "rooms/dryfield_r08.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room.h"
 
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];
 extern s32     D_dryfield_r08_80180C24;
 
-/// The room's active data bank pointer, which starts out holding bank 0, and
-/// the two banks `func_dryfield_r08_8017F438` chooses between.
-extern GpRoomCoordRec D_dryfield_r08_8017F708[];
 extern GpRoomCoordSet D_dryfield_r08_801809C0;
 extern GpRoomCoordSet D_dryfield_r08_80180B58;
 
@@ -672,6 +678,8 @@ GpRoomParamRec * D_dryfield_r08_80180C04[8] = {
 };
 
 s32 D_dryfield_r08_80180C24 = 0;
+
+static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1);
 
 void func_dryfield_r08_8017D5F8(Task* task)
 {

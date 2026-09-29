@@ -1,48 +1,58 @@
-#include "common.h"
 #include "rooms/dryfield_night_driveway.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/evs.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "overlay.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "overlay.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -55,7 +65,7 @@ extern u8 D_dryfield_night_driveway_80182120_value __asm__("D_dryfield_night_dri
 typedef union {
     struct {
         GpAnimSet* sets[4];
-        GpAnimArg arguments[2];
+        GpAnimArg  arguments[2];
     } data;
     s32 words[14];
 } DryfieldNightDrivewayAnimStorageF8C4;
@@ -97,10 +107,10 @@ extern RoomLatchedEvent D_dryfield_night_driveway_80182124;
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
 static void func_dryfield_night_driveway_8017DD7C(Task* task);
 
-extern GpGridParams D_dryfield_night_driveway_80180C0C[1];
-extern GpObj3A D_dryfield_night_driveway_80181FFC[2];
-extern GpObj4C D_dryfield_night_driveway_801818E8[6];
-extern GpObj4C D_dryfield_night_driveway_80181DC8[4];
+extern GpGridParams   D_dryfield_night_driveway_80180C0C[1];
+extern GpObj3A        D_dryfield_night_driveway_80181FFC[2];
+extern GpObj4C        D_dryfield_night_driveway_801818E8[6];
+extern GpObj4C        D_dryfield_night_driveway_80181DC8[4];
 extern GpRoomBoundVec D_dryfield_night_driveway_80182074[11];
 extern GpRoomCoordSet D_dryfield_night_driveway_80181DB0[1];
 
@@ -110,18 +120,18 @@ extern GpAnimSet D_dryfield_night_driveway_8017EE30;
 extern GpAnimSet D_dryfield_night_driveway_8017F044;
 extern GpAnimSet D_dryfield_night_driveway_8017F324;
 extern GpCopyArg D_dryfield_night_driveway_8017F378;
-s32 func_dryfield_night_driveway_8017D7A0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_driveway_8017DC94(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_driveway_8017DCE4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_driveway_8017DCEC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_driveway_8017DCF4(Task *, s32, GpMessageArg, GpMessageArg);
-void func_dryfield_night_driveway_8017DC6C(s32);
-void func_dryfield_night_driveway_8017DC78(s16);
-void func_dryfield_night_driveway_8017DC88(u8);
+s32              func_dryfield_night_driveway_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32              func_dryfield_night_driveway_8017DC94(Task*, s32, s32, GpMessageArg);
+s32              func_dryfield_night_driveway_8017DCE4(Task*, s32, GpMessageArg, GpMessageArg);
+s32              func_dryfield_night_driveway_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
+s32              func_dryfield_night_driveway_8017DCF4(Task*, s32, GpMessageArg, GpMessageArg);
+void             func_dryfield_night_driveway_8017DC6C(s32);
+void             func_dryfield_night_driveway_8017DC78(s16);
+void             func_dryfield_night_driveway_8017DC88(u8);
 
-void func_dryfield_night_driveway_8017D608(Task *);
-void func_dryfield_night_driveway_8017DAF4(Task *);
-void func_dryfield_night_driveway_8017DB8C(Task *);
+void func_dryfield_night_driveway_8017D608(Task*);
+void func_dryfield_night_driveway_8017DAF4(Task*);
+void func_dryfield_night_driveway_8017DB8C(Task*);
 
 TaskDesc D_dryfield_night_driveway_8017E678 = { 0, 32, func_dryfield_night_driveway_8017D608, { .model = NULL } };
 
@@ -1271,6 +1281,8 @@ u8 D_dryfield_night_driveway_80182120[4] = {
 };
 
 RoomLatchedEvent D_dryfield_night_driveway_80182124 = { 0 };
+
+static void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1);
 
 /// The room's event task, spawned by the event gate. State 0 runs the latched
 /// event's CAP command; state 1 waits for it to finish and, when the event

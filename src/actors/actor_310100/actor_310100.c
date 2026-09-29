@@ -1,31 +1,38 @@
-#include "rooms/acropolis_plaza.h"
 #include "actors/actor_310100.h"
-#include "common.h"
-#include "actors/actor.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "actors/actors_shared_8013411c.h"
+
+#include "common.h"
+
+#include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
+
+#include "rooms/acropolis_plaza.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
@@ -118,24 +125,23 @@ void func_actor_310100_80162F34(Task* task);
 
 extern TaskDesc D_actor_310100_801798E4;
 extern TaskDesc D_actor_310100_801798F0;
-extern TaskDesc D_actor_310100_801798FC[];
-extern TaskDesc D_actor_310100_80179920[];
+
 extern GpAnimSet* D_actor_310100_80179754[16];
 extern GpAnimSet* D_actor_310100_80179794[26];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *);
-        void (*call1)(Task *, s32, GpXformArg *);
-        void (*call2)(Task *, s32, s32);
-        void (*call3)(Task *, s32, s32, GpXformArg *);
+        void (*call0)(Task*);
+        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, s32);
+        void (*call3)(Task*, s32, s32, GpXformArg*);
     } handler;
 } Actor310100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor310100MessageEntry, 8);
 
 extern Actor310100MessageEntry D_actor_310100_801798B4[6];
-extern s16*     D_actor_310100_8017989C[];
+extern s16*                    D_actor_310100_8017989C[];
 
 extern s16 D_actor_310100_80179830[12];
 extern s16 D_actor_310100_80179848[16];
@@ -145,14 +151,14 @@ extern TmdSource D_actor_310100_80168C00;
 extern TmdSource D_actor_310100_8016D48C;
 extern TmdSource D_actor_310100_801730B0;
 extern TmdSource D_actor_310100_801779AC;
-void func_actor_310100_801620FC(Task *);
-void func_actor_310100_80162284(Task *);
-void func_actor_310100_801627BC(Task *);
-void func_actor_310100_801629FC(Task *);
-void func_actor_310100_80162F88(Task *);
-void func_actor_310100_8016309C(Task *);
-void func_actor_310100_801631B0(Task *);
-void func_actor_310100_801632B0(Task *);
+void             func_actor_310100_801620FC(Task*);
+void             func_actor_310100_80162284(Task*);
+void             func_actor_310100_801627BC(Task*);
+void             func_actor_310100_801629FC(Task*);
+void             func_actor_310100_80162F88(Task*);
+void             func_actor_310100_8016309C(Task*);
+void             func_actor_310100_801631B0(Task*);
+void             func_actor_310100_801632B0(Task*);
 
 TmdBone D_actor_310100_801633BC[19] = {
 #include "assets/actor_310100_model_06DE0_skeleton.inc"
@@ -634,11 +640,11 @@ s32 D_actor_310100_801798A8[3] = {
     0x51050008, 0x51050009, 0x5105000A,
 };
 
-void func_actor_310100_80162C64(Task *, s32, s32, GpXformArg *);
-void func_actor_310100_80162CDC(Task *, s32, s32);
-void func_actor_310100_80162D50(Task *, s32, GpXformArg *);
-void func_actor_310100_80162EC8(Task *, s32, GpXformArg *);
-void func_actor_310100_80162F34(Task *);
+void func_actor_310100_80162C64(Task*, s32, s32, GpXformArg*);
+void func_actor_310100_80162CDC(Task*, s32, s32);
+void func_actor_310100_80162D50(Task*, s32, GpXformArg*);
+void func_actor_310100_80162EC8(Task*, s32, GpXformArg*);
+void func_actor_310100_80162F34(Task*);
 
 Actor310100MessageEntry D_actor_310100_801798B4[6] = {
     { 2003, { .call1 = func_actor_310100_80162D50 } },
@@ -664,6 +670,12 @@ TaskDesc D_actor_310100_80179920[3] = {
     { 257, 192, func_actor_310100_8016309C, { .model = &D_actor_310100_801730B0 } },
     { 257, 192, func_actor_310100_801632B0, { .model = &D_actor_310100_801779AC } },
 };
+
+static void func_actor_310100_80161F80(Task* task);
+
+static void func_actor_310100_801625E4(Task* task, s32 arg1);
+
+static void func_actor_310100_80162414(Task* task, s32 arg1);
 
 static s32 func_actor_310100_80161E24(Task* task)
 {
@@ -878,8 +890,6 @@ void func_actor_310100_80162284(Task* task)
             break;
     }
 }
-
-static void func_actor_310100_80161F80(Task* task);
 
 /// Spawns the display model for `D_actor_310100_801798FC`: allocates the 0x50C
 /// work block into `task->work`, hands it the view coordinate and the two TMD
@@ -1280,8 +1290,6 @@ void func_actor_310100_80162F34(Task* task)
     }
     task->state = 3;
 }
-
-static void func_actor_310100_801625E4(Task* task, s32 arg1);
 
 /// Second state handler of the display model spawned from
 /// `D_actor_310100_801798FC` (descriptor arg 0x80168C00): the spawn tick hands

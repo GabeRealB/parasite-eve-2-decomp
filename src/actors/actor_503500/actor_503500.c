@@ -1,23 +1,25 @@
-#include "common.h"
-
 #include "actors/actor_503500.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "common.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/mem.h"
-#include "main/session_types.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
@@ -45,16 +47,16 @@ STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor503500MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor503500MsgEntry, 8);
 
 extern Actor503500MsgEntry D_actor_503500_80146888[];
-static void       func_actor_503500_801324C4(Task* task);
-static void       func_actor_503500_801324EC(Task* arg0);
+static void                func_actor_503500_801324C4(Task* task);
+static void                func_actor_503500_801324EC(Task* arg0);
 /// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
 extern GpScriptCmd D_actor_503500_801468A8[2];
 extern GpScriptRec D_actor_503500_801468B0[2];
@@ -63,14 +65,14 @@ extern GpScriptRec D_actor_503500_801468B0[2];
 extern DVECTOR_XZ D_actor_503500_80147D90[];
 extern DVECTOR_XZ D_actor_503500_80148330[];
 
-extern u32 D_actor_503500_8014735C[1];
+extern u32     D_actor_503500_8014735C[1];
 extern SVECTOR D_actor_503500_80147360[92];
 extern TmdBone D_actor_503500_80147338[1];
-extern u32 D_actor_503500_80147640[459];
+extern u32     D_actor_503500_80147640[459];
 
-s32 func_actor_503500_80132508(Task *, s32, GpXformArg *);
-s32 func_actor_503500_80132584(Task *, s32, s32);
-s32 func_actor_503500_80132664(Task *, s32, GpCmdArg *);
+s32 func_actor_503500_80132508(Task*, s32, GpXformArg*);
+s32 func_actor_503500_80132584(Task*, s32, s32);
+s32 func_actor_503500_80132664(Task*, s32, GpCmdArg*);
 
 Actor503500MsgEntry D_actor_503500_80146888[4] = {
     { 2004, { .call1 = func_actor_503500_80132508 } },
@@ -851,6 +853,9 @@ DVECTOR_XZ D_actor_503500_80148330[360] = {
     { 7960, 7039 },
     { 7960, 7040 },
 };
+
+static void func_actor_503500_8013223C(Task* arg0);
+static void func_actor_503500_80132430(Task* arg0);
 
 static void func_actor_503500_8013223C(Task* arg0)
 {

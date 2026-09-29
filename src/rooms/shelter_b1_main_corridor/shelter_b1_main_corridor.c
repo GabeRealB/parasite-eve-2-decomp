@@ -1,50 +1,65 @@
-#include "common.h"
 #include "rooms/shelter_b1_main_corridor.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 extern SVECTOR D_shelter_b1_main_corridor_801831E8[2];
 
@@ -56,7 +71,7 @@ extern u8 D_shelter_b1_main_corridor_80185D44[4];
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } ShelterB1MainCorridorHaloStorage;
 STATIC_ASSERT_SIZEOF(ShelterB1MainCorridorHaloStorage, 20);
 extern ShelterB1MainCorridorHaloStorage D_shelter_b1_main_corridor_801831D4;
@@ -70,7 +85,7 @@ extern RoomEventMsg D_shelter_b1_main_corridor_80185D2C;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomEventReq value;
-    u8 retained[12];
+    u8           retained[12];
 } ShelterB1MainCorridorStorage5D48;
 STATIC_ASSERT_SIZEOF(ShelterB1MainCorridorStorage5D48, 32);
 
@@ -126,13 +141,13 @@ static void func_shelter_b1_main_corridor_801817C8(GpCoord* arg0, s16 arg1, u8* 
 static void func_shelter_b1_main_corridor_8018204C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_main_corridor_801826CC(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_shelter_b1_main_corridor_8017D784(Task *);
-void func_shelter_b1_main_corridor_8017D8F4(Task *);
-s32 func_shelter_b1_main_corridor_8017DA8C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_main_corridor_8017DCEC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_main_corridor_8017DCF4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_main_corridor_8017DCFC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_main_corridor_8017DD04(Task *, s32, s32, s32);
+void func_shelter_b1_main_corridor_8017D784(Task*);
+void func_shelter_b1_main_corridor_8017D8F4(Task*);
+s32  func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b1_main_corridor_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_main_corridor_8017DCF4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_main_corridor_8017DCFC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
 
 TaskDesc D_shelter_b1_main_corridor_8018308C = { 0, 32, func_shelter_b1_main_corridor_8017D784, { .model = NULL } };
 
@@ -1438,6 +1453,13 @@ u8 D_shelter_b1_main_corridor_80185D44[4] = {
 ShelterB1MainCorridorStorage5D48 D_shelter_b1_main_corridor_80185D48 = { { 0 }, { 0 } };
 
 RoomLatchedEvent D_shelter_b1_main_corridor_80185D68 = { 0, 0, 0, 0 };
+
+static s32            func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMsg* msg);
+static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void           func_shelter_b1_main_corridor_8017DD4C(Task* task);
+static void           func_shelter_b1_main_corridor_8017DD90(Task* task);
+static void           func_shelter_b1_main_corridor_8017F064(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void           func_shelter_b1_main_corridor_8017F488(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The corridor's event gate: given a request and the incoming message,
 /// answers whether the event fires. A nibble already in its fired state (set,

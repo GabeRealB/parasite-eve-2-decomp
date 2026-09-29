@@ -1,61 +1,71 @@
 #include "rooms/shelter_b2_septic_tank.h"
-#include "mapui/map_shelter.h"
-#include "gameplay/evs.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/direction_input.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
-#include "gameplay/message.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-
-#include "gameplay/animation.h"
+#include "rooms/room_common.h"
 
 /// The room's message table, installed by its first task state.
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
-extern GpEvsCmd D_shelter_b2_septic_tank_80183004[];
-extern GpEvsCmd D_shelter_b2_septic_tank_8018310C[];
-
-/// Height of the water surfaces.
-extern s16 D_shelter_b2_septic_tank_801832BC;
+extern GpEvsCmd   D_shelter_b2_septic_tank_80183004[];
+extern GpEvsCmd   D_shelter_b2_septic_tank_8018310C[];
 
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
@@ -94,31 +104,31 @@ static void func_shelter_b2_septic_tank_80181B34(GpCoord* arg0, GpCoord* arg1, s
 static void func_shelter_b2_septic_tank_801821B4(GpCoord* arg0, s16 arg1, u8* arg2);
 
 extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
-extern RoomFadeStorage       D_shelter_b2_septic_tank_80187034;
+extern RoomFadeStorage  D_shelter_b2_septic_tank_80187034;
 extern RoomEventMsg     D_shelter_b2_septic_tank_8018703C;
 extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent D_shelter_b2_septic_tank_80187048;
 
-void func_shelter_b2_septic_tank_8017EA50(Task *);
+void func_shelter_b2_septic_tank_8017EA50(Task*);
 
-extern GpAnimArg D_shelter_b2_septic_tank_80182F80;
-extern GpAnimArg D_shelter_b2_septic_tank_80182FC0;
-extern GpCmdArg D_shelter_b2_septic_tank_80182FA0;
-extern GpCmdArg D_shelter_b2_septic_tank_80182FA4;
-extern GpCmdArg D_shelter_b2_septic_tank_80182FA8;
-extern GpCopyArg D_shelter_b2_septic_tank_80182F78;
+extern GpAnimArg  D_shelter_b2_septic_tank_80182F80;
+extern GpAnimArg  D_shelter_b2_septic_tank_80182FC0;
+extern GpCmdArg   D_shelter_b2_septic_tank_80182FA0;
+extern GpCmdArg   D_shelter_b2_septic_tank_80182FA4;
+extern GpCmdArg   D_shelter_b2_septic_tank_80182FA8;
+extern GpCopyArg  D_shelter_b2_septic_tank_80182F78;
 extern GpXformArg D_shelter_b2_septic_tank_80182FD4;
 extern GpXformArg D_shelter_b2_septic_tank_80182FEC;
-void func_shelter_b2_septic_tank_8017D97C(s32);
-void func_shelter_b2_septic_tank_8017D9A0(void);
+void              func_shelter_b2_septic_tank_8017D97C(s32);
+void              func_shelter_b2_septic_tank_8017D9A0(void);
 
 extern TaskDesc D_80147E48;
 
-s32 func_shelter_b2_septic_tank_8017D7AC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_septic_tank_8017D7B4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_septic_tank_8017D904(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_septic_tank_8017D90C(Task *, s32, RoomEventMsg *, GpMessageArg);
-void func_shelter_b2_septic_tank_8017D614(Task *);
+s32  func_shelter_b2_septic_tank_8017D7AC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_septic_tank_8017D904(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, GpMessageArg);
+void func_shelter_b2_septic_tank_8017D614(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1633,6 +1643,10 @@ u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 RoomLatchedEvent D_shelter_b2_septic_tank_80187048 = { 0, 0, 0, 0 };
 
 u8 * D_shelter_b2_septic_tank_80187054 = NULL;
+
+static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void           func_shelter_b2_septic_tank_8017DA18(Task* arg0);
+static void           func_shelter_b2_septic_tank_8017DA74(Task* task);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless

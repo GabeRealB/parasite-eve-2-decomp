@@ -1,27 +1,25 @@
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include "rooms/acropolis_fountain.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "types.h"
+
+#include "acropolis_fountain_private.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
 #include "gameplay/message.h"
 
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
 extern GpMsgEntry D_acropolis_fountain_8017E764[];
 extern TaskDesc   D_acropolis_fountain_8017E78C[];
-extern u8         D_acropolis_fountain_80183BB0;
-extern u8         D_acropolis_fountain_80183BB1;
 
 static void func_acropolis_fountain_8017D960(Task* arg0);
 static void func_acropolis_fountain_8017D9BC(Task* task);
@@ -32,11 +30,11 @@ static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
     { func_acropolis_fountain_8017D960, func_acropolis_fountain_8017D9BC, taskKill },
 };
 
-s32 func_acropolis_fountain_8017D604(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_fountain_8017D774(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_fountain_8017D77C(Task *, s32, s32, s32);
-s32 func_acropolis_fountain_8017D7F4(Task *, s32, s32, s32);
-void func_acropolis_fountain_8017D868(Task *);
+s32  func_acropolis_fountain_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_acropolis_fountain_8017D774(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_acropolis_fountain_8017D77C(Task*, s32, s32, s32);
+s32  func_acropolis_fountain_8017D7F4(Task*, s32, s32, s32);
+void func_acropolis_fountain_8017D868(Task*);
 
 GpMsgEntry D_acropolis_fountain_8017E764[5] = {
     { 5102, func_acropolis_fountain_8017D604 },

@@ -1,40 +1,60 @@
-#include "common.h"
+#include "actor_300700_private.h"
 
-#include "actors/actor.h"
-#include "actors/actor_300700.h"
-#include "actors/actor_300700_spawn2.h"
-#include "psyq/inline_c.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actor_300700_spawn2_private.h"
+
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+extern GpU16Pair D_actor_300700_80165B64;
+
+extern GpPairSrcE D_actor_300700_80165B68;
+
+extern u16 D_actor_300700_80165B78[8];
+
+extern GpAnimSet* D_actor_300700_80165B94[2];
 
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
@@ -94,30 +114,7 @@ static void func_actor_300700_801628C8(Task* arg0);
 static void func_actor_300700_801633B8(Task* arg0);
 static void func_actor_300700_80162EFC(Task* arg0);
 
-/// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
-extern u16 D_actor_300700_80165B78[];
-
-/// Spawn pair table packed by `Gp_PackPair`, and the enemy record whose
-/// `pairTable` points at it and whose `hpMax` seeds the enemy's `field_40`.
-extern GpU16Pair  D_actor_300700_80165B64;
-extern GpPairSrcE D_actor_300700_80165B68;
-/// Pose source handed to `func_800B3F84` as its animation data record.
-extern GpAnimSet* D_actor_300700_80165B94[2];
-
-/// The second variant's pair of the same kind, and its pose source.
-extern GpU16Pair  D_actor_300700_80169328;
-extern GpPairSrcE D_actor_300700_8016932C;
-extern u32        D_actor_300700_801693B8;
-
-/// Per-`field_F` roll thresholds and the timer tables picked by the second
-/// roll, for the two idle transitions of `func_actor_300700_80163D64`.
-extern s16 D_actor_300700_8016933C[];
-extern u16 D_actor_300700_8016934C[];
-extern s16 D_actor_300700_8016936C[];
-extern u16 D_actor_300700_8016937C[];
-extern s16 D_actor_300700_8016939C[];
-
-static void func_actor_300700_8016335C(Task *);
+static void func_actor_300700_8016335C(Task*);
 
 TmdBone D_actor_300700_80165490[4] = {
 #include "assets/actor_300700_model_03CA4_skeleton.inc"
@@ -228,6 +225,10 @@ TmdSource D_actor_300700_80167400 = {
     0, 5164, 2392, 7,
     D_actor_300700_80165CB8, D_actor_300700_80165CD4, D_actor_300700_80165F44, D_actor_300700_80165BBC, D_actor_300700_801662CC,
 };
+
+static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1);
+static void func_actor_300700_80162130(GpEnemy* arg0, Task* arg1);
+static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1);
 
 static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
 {

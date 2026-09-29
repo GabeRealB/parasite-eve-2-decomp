@@ -1,42 +1,46 @@
-#include "common.h"
 #include "rooms/dryfield_night_motel_room_2.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/display.h"
-#include "gameplay/message.h"
+#include "actors/task_tables.h"
 
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "rooms/room_common.h"
 
 // One live spotlight is followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[1];
-    u8 retained[324];
+    u8          retained[324];
 } DryfieldNightMotelRoom2SpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom2SpotLightStorage, 432);
 
@@ -48,19 +52,19 @@ extern GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA44[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA54[];
 
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_2_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_motel_room_2_8017D660(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_2_8017D668(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_motel_room_2_8017D660(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D668(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_night_motel_room_2_8017E184[1];
-extern GpObj3A D_dryfield_night_motel_room_2_80180580[2];
-extern GpObj4C D_dryfield_night_motel_room_2_80180158[8];
-extern GpObj4C D_dryfield_night_motel_room_2_801803B8[6];
+extern GpGridParams   D_dryfield_night_motel_room_2_8017E184[1];
+extern GpObj3A        D_dryfield_night_motel_room_2_80180580[2];
+extern GpObj4C        D_dryfield_night_motel_room_2_80180158[8];
+extern GpObj4C        D_dryfield_night_motel_room_2_801803B8[6];
 extern GpRoomCoordSet D_dryfield_night_motel_room_2_80180928[1];
 
 extern DryfieldNightMotelRoom2SpotLightStorage D_dryfield_night_motel_room_2_80180778;
-extern GpPointLight D_dryfield_night_motel_room_2_801805F8[4];
+extern GpPointLight                            D_dryfield_night_motel_room_2_801805F8[4];
 
 GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
     { 5102, func_dryfield_night_motel_room_2_8017D5D8 },
@@ -1042,6 +1046,10 @@ GpRoomParamRec * D_dryfield_night_motel_room_2_80180A90[8] = {
     D_dryfield_night_motel_room_2_80180A68,
     D_dryfield_night_motel_room_2_80180A68,
 };
+
+static void func_dryfield_night_motel_room_2_8017D670(Task* task);
+static void func_dryfield_night_motel_room_2_8017D6B4(Task* task);
+static void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
 s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

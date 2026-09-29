@@ -1,37 +1,36 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013231c.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/item_pickup.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/item_pickup.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 extern GpImgRec D_actor_113000_8013AB6C[2];
 
 /// Animation source table `func_actor_113000_80132208` indexes by the preset's
 /// bank index and hands `func_800B3F84` as its data argument.
-extern GpAnimSet* D_actor_113000_8013AB8C[9];
+extern GpAnimSet*  D_actor_113000_8013AB8C[9];
 extern GpAnimSet** D_actor_113000_8013ABB0[1];
 
 /// Work block this actor allocates in its spawn handler and parks in
@@ -70,10 +69,10 @@ STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
-        s32 (*call3)(Task *, s32, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
+        s32 (*call3)(Task*, s32, s32, s32);
     } handler;
 } Actor113000MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor113000MessageEntry, 8);
@@ -92,8 +91,6 @@ static const TaskFuncTable3 D_actor_113000_80131E24 = { {
     Gp_EnemyTaskExit,
 } };
 
-
-
 extern GpAnimSet D_actor_113000_80137BB4;
 extern GpAnimSet D_actor_113000_80138014;
 extern GpAnimSet D_actor_113000_8013839C;
@@ -103,11 +100,11 @@ extern GpAnimSet D_actor_113000_801396D8;
 extern GpAnimSet D_actor_113000_80139C8C;
 extern GpAnimSet D_actor_113000_80139F04;
 extern TmdSource D_actor_113000_801378E0;
-s32 func_actor_113000_80132208(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_113000_8013231C(Task *, s32, GpXformArg *);
-s32 func_actor_113000_80132398(Task *, s32, s32, s32);
-s32 func_actor_113000_80132474(Task *, s32, s32);
-void func_actor_113000_80131F38(Task *);
+s32              func_actor_113000_80132208(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_113000_8013231C(Task*, s32, GpXformArg*);
+s32              func_actor_113000_80132398(Task*, s32, s32, s32);
+s32              func_actor_113000_80132474(Task*, s32, s32);
+void             func_actor_113000_80131F38(Task*);
 
 TmdBone D_actor_113000_80132534[20] = {
 #include "assets/actor_113000_model_05AC0_skeleton.inc"
@@ -1166,7 +1163,10 @@ Actor113000MessageEntry D_actor_113000_8013ABC0[5] = {
     { 2005, { .call3 = func_actor_113000_80132398 } },
     { 2016, { .call2 = func_actor_113000_80132474 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// Texture-upload state: runs the countdown at `field_4C2` down one a frame
+}; /// Texture-upload state: runs the countdown at `field_4C2` down one a frame
+
+static void func_actor_113000_80131E30(Task* arg0);
+
 /// while `field_4C4` names the upload step in progress, and on the frame it
 /// underflows posts that step's image over the 0x20x0x10 rect at y 0x28 --
 /// reloading the countdown from `field_4C0` and advancing `field_4C4` for

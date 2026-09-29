@@ -1,36 +1,44 @@
-#include "common.h"
 #include "rooms/mine_tunnel_entrance.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
-
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room_common.h"
 
 /// The room's message table, which the room task answers messages with.
 extern GpMsgEntry D_mine_tunnel_entrance_8017DAF0[];
@@ -57,14 +65,14 @@ static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
     taskKill,
 };
 
-s32 func_mine_tunnel_entrance_8017D5E8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_tunnel_entrance_8017D5F0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_mine_tunnel_entrance_8017D634(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_tunnel_entrance_8017D63C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_tunnel_entrance_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_mine_tunnel_entrance_8017D634(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_tunnel_entrance_8017D63C(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_mine_tunnel_entrance_8017E0C0[1];
-extern GpObj4C D_mine_tunnel_entrance_8017ECEC[8];
-extern GpObj4C D_mine_tunnel_entrance_8017EF4C[4];
+extern GpGridParams   D_mine_tunnel_entrance_8017E0C0[1];
+extern GpObj4C        D_mine_tunnel_entrance_8017ECEC[8];
+extern GpObj4C        D_mine_tunnel_entrance_8017EF4C[4];
 extern GpRoomBoundVec D_mine_tunnel_entrance_8017F38C[7];
 extern GpRoomCoordSet D_mine_tunnel_entrance_8017ECD4[1];
 

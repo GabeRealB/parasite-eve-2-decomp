@@ -1,35 +1,44 @@
-#include "common.h"
 #include "rooms/shelter_1f_airlock.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#define D_shelter_1f_airlock_8017E4C4 (D_shelter_1f_airlock_8017E4BC + 1)
+#define D_shelter_1f_airlock_8017E4D4 (D_shelter_1f_airlock_8017E4BC + 3)
 
 /// The room's message table, handed to its event task in state 0.
 extern GpMsgEntry D_shelter_1f_airlock_8017E494[];
@@ -42,15 +51,15 @@ static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-s32 func_shelter_1f_airlock_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_airlock_8017D5D8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_1f_airlock_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_airlock_8017D624(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_1f_airlock_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_airlock_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_shelter_1f_airlock_8017E838[1];
-extern GpObj3A D_shelter_1f_airlock_8017F7B8[2];
-extern GpObj4C D_shelter_1f_airlock_8017F430[6];
-extern GpObj4C D_shelter_1f_airlock_8017F5F8[4];
+extern GpGridParams   D_shelter_1f_airlock_8017E838[1];
+extern GpObj3A        D_shelter_1f_airlock_8017F7B8[2];
+extern GpObj4C        D_shelter_1f_airlock_8017F430[6];
+extern GpObj4C        D_shelter_1f_airlock_8017F5F8[4];
 extern GpRoomCoordSet D_shelter_1f_airlock_8017F418[1];
 
 GpMsgEntry D_shelter_1f_airlock_8017E494[5] = {
@@ -461,8 +470,8 @@ GpRoomParamRec * D_shelter_1f_airlock_8017F84C[8] = {
     D_shelter_1f_airlock_8017F83C,
 };
 
-#define D_shelter_1f_airlock_8017E4C4 (D_shelter_1f_airlock_8017E4BC + 1)
-#define D_shelter_1f_airlock_8017E4D4 (D_shelter_1f_airlock_8017E4BC + 3)
+static void func_shelter_1f_airlock_8017D62C(Task* task);
+static void func_shelter_1f_airlock_8017D670(Task* task);
 
 s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {

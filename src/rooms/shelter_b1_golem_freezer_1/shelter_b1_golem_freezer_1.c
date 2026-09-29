@@ -1,35 +1,48 @@
-#include "common.h"
 #include "rooms/shelter_b1_golem_freezer_1.h"
-#include "mapui/map_shelter.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
-#define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/direction_input.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room_common.h"
+
+#define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 extern void func_80131E70(void);
 extern void func_80131E24(void);
@@ -37,7 +50,7 @@ extern void func_80131E24(void);
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 
-extern s16 D_shelter_b1_golem_freezer_1_8017E6D0[3];
+extern s16          D_shelter_b1_golem_freezer_1_8017E6D0[3];
 extern GpGridParams D_shelter_b1_golem_freezer_1_8017E714;
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
@@ -47,10 +60,10 @@ static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* arg0, s16* arg1);
 static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
-s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_golem_freezer_1_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_golem_freezer_1_8017D624(Task *, s32, RoomEventMsg *, GpMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_golem_freezer_1_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
     { 5102, func_shelter_b1_golem_freezer_1_8017D5D8 },
@@ -406,6 +419,9 @@ GpRoomParamRec * D_shelter_b1_golem_freezer_1_8017F290[8] = {
     D_shelter_b1_golem_freezer_1_8017F280,
     D_shelter_b1_golem_freezer_1_8017F280,
 };
+
+static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0);
+static void func_shelter_b1_golem_freezer_1_8017D6DC(Task* task);
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
 s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

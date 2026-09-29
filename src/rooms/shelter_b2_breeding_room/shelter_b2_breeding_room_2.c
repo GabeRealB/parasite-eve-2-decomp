@@ -1,30 +1,43 @@
-#include "common.h"
 #include "rooms/shelter_b2_breeding_room.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "shelter_b2_breeding_room_private.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "overlay.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "overlay.h"
+
+#include "rooms/room_common.h"
+
+#define D_shelter_b2_breeding_room_80180470 (D_shelter_b2_breeding_room_80180450 + 4)
+#define D_shelter_b2_breeding_room_80180480 (D_shelter_b2_breeding_room_80180450 + 6)
+#define D_shelter_b2_breeding_room_801804C0 (D_shelter_b2_breeding_room_80180450 + 14)
 
 static void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_breeding_room_8017E3D4(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -1487,10 +1500,6 @@ GpRoomParamRec * D_shelter_b2_breeding_room_801847F4[8] = {
     D_shelter_b2_breeding_room_801847CC,
     D_shelter_b2_breeding_room_801847CC,
 };
-
-#define D_shelter_b2_breeding_room_80180470 (D_shelter_b2_breeding_room_80180450 + 4)
-#define D_shelter_b2_breeding_room_80180480 (D_shelter_b2_breeding_room_80180450 + 6)
-#define D_shelter_b2_breeding_room_801804C0 (D_shelter_b2_breeding_room_80180450 + 14)
 
 /// Room light task. Its first frame sets the effect ids in `D_80115734`,
 /// `D_80115730` and `D_80115754`; every frame it draws the glows of the lights

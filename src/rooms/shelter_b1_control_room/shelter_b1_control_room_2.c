@@ -1,45 +1,58 @@
-#include "common.h"
 #include "rooms/shelter_b1_control_room.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
+#include "shelter_b1_control_room_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "actors/task_tables.h"
-
-#include "gameplay/area_flags.h"
-
-extern TaskDesc D_shelter_b1_control_room_80181BBC[];
+#define D_shelter_b1_control_room_80181C3C (D_shelter_b1_control_room_80181BD4 + 13)
 
 static void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-void func_shelter_b1_control_room_8017EF24(Task *);
-void func_shelter_b1_control_room_8017F100(Task *);
+void func_shelter_b1_control_room_8017EF24(Task*);
+void func_shelter_b1_control_room_8017F100(Task*);
 
 extern SVECTOR D_shelter_b1_control_room_80181D20[7];
 extern SVECTOR D_shelter_b1_control_room_80181D58[56];
@@ -732,8 +745,6 @@ GpAreaApplyRec D_shelter_b1_control_room_80183BE0[2] = {
     { 4, 18, 12, 0 },
     { 255, 0, 0, 0 },
 };
-
-#define D_shelter_b1_control_room_80181C3C (D_shelter_b1_control_room_80181BD4 + 13)
 
 /// Streamed-scene task. It blanks the display and queues CD command 0x61 on
 /// the stream slot of the current location with its view replaced by 0x64,

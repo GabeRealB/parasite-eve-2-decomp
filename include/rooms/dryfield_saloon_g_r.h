@@ -1,11 +1,37 @@
-#ifndef ROOMS_DRYFIELD_SALOON_G_R_H
-#define ROOMS_DRYFIELD_SALOON_G_R_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_SALOON_G_R_H
+#define INCLUDE_ROOMS_DRYFIELD_SALOON_G_R_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-void func_dryfield_saloon_g_r_8017DA70(Task* arg0);
 extern GpAreaVariant D_dryfield_saloon_g_r_80181B1C[13];
 
-#endif // ROOMS_DRYFIELD_SALOON_G_R_H
+// dryfield_saloon_g_r
+extern GpRoomObjRec D_dryfield_saloon_g_r_8017EDA0[];
+
+extern u8* D_dryfield_saloon_g_r_8017EDD0[];
+
+extern GpViewCountRec D_dryfield_saloon_g_r_8017EDD8[];
+
+extern GpRoomCoordRec D_dryfield_saloon_g_r_8017EDDC[];
+
+extern GpWarpRec D_dryfield_saloon_g_r_8017EDEC[];
+
+extern GpViewRec D_dryfield_saloon_g_r_8017F7A4[];
+
+extern GpSprtRec D_dryfield_saloon_g_r_80180E2C[];
+
+extern GpRoomParamRec* D_dryfield_saloon_g_r_80181BBC[];
+
+void func_dryfield_saloon_g_r_8017DA70(Task* arg0);
+
+void func_dryfield_saloon_g_r_8017DA18(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_SALOON_G_R_H

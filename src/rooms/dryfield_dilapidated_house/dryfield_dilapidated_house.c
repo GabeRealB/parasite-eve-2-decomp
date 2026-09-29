@@ -1,60 +1,74 @@
-#include "gameplay/animation.h"
 #include "rooms/dryfield_dilapidated_house.h"
-#include "actors/actor_521100.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "common.h"
+#include "gte.h"
+
+#include "actors/actor_521100.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/effects.h"
 #include "gameplay/ending.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/evs.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
 #include "overlay.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
@@ -62,7 +76,7 @@ extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
     GpSpotLight active[1];
-    u8 retained[756];
+    u8          retained[756];
 } DryfieldDilapidatedHouseSpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldDilapidatedHouseSpotLightStorage, 864);
 
@@ -179,11 +193,11 @@ extern RECT D_dryfield_dilapidated_house_80183E84;
 extern s32            D_dryfield_dilapidated_house_80189B70;
 extern s32            D_dryfield_dilapidated_house_80189B6C;
 extern s32            D_dryfield_dilapidated_house_80183EFC;
-extern GpEvsCmd D_dryfield_dilapidated_house_80184408[];
-extern GpEvsCmd D_dryfield_dilapidated_house_80184C60[];
+extern GpEvsCmd       D_dryfield_dilapidated_house_80184408[];
+extern GpEvsCmd       D_dryfield_dilapidated_house_80184C60[];
 extern TaskDesc       D_dryfield_dilapidated_house_80183EB4[];
-extern GpEvsCmd D_dryfield_dilapidated_house_80184EA0[];
-extern GpEvsCmd D_dryfield_dilapidated_house_801855F0[];
+extern GpEvsCmd       D_dryfield_dilapidated_house_80184EA0[];
+extern GpEvsCmd       D_dryfield_dilapidated_house_801855F0[];
 extern GpAreaApplyRec D_dryfield_dilapidated_house_80189AA0[];
 extern GpAreaApplyRec D_dryfield_dilapidated_house_80189B24[];
 
@@ -255,40 +269,40 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
 static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
-extern GpGridParams D_dryfield_dilapidated_house_801872E4[1];
-extern GpObj3A D_dryfield_dilapidated_house_80189260[1];
-extern GpObj4C D_dryfield_dilapidated_house_80188D08[9];
-extern GpObj4C D_dryfield_dilapidated_house_80188FB4[9];
+extern GpGridParams   D_dryfield_dilapidated_house_801872E4[1];
+extern GpObj3A        D_dryfield_dilapidated_house_80189260[1];
+extern GpObj4C        D_dryfield_dilapidated_house_80188D08[9];
+extern GpObj4C        D_dryfield_dilapidated_house_80188FB4[9];
 extern GpRoomBoundVec D_dryfield_dilapidated_house_801899A0[22];
 extern GpRoomCoordSet D_dryfield_dilapidated_house_801898FC[1];
-extern GpScriptCmd D_dryfield_dilapidated_house_80189B30[2];
-extern GpScriptCmd D_dryfield_dilapidated_house_80189B40[4];
-extern GpScriptCmd D_dryfield_dilapidated_house_80189B5C[2];
-extern GpScriptRec D_dryfield_dilapidated_house_80189B38[2];
-extern GpScriptRec D_dryfield_dilapidated_house_80189B50[3];
-extern GpScriptRec D_dryfield_dilapidated_house_80189B64[2];
-extern SVECTOR D_dryfield_dilapidated_house_80189CA0[40];
-s32 func_dryfield_dilapidated_house_8017E56C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_dilapidated_house_8017E574(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_dilapidated_house_8017E684(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_dilapidated_house_8017E68C(Task *, s32, GpMsg13EF *, GpMessageArg);
-void func_dryfield_dilapidated_house_8017D64C(Task *);
-void func_dryfield_dilapidated_house_8017DE88(Task *);
-void func_dryfield_dilapidated_house_8017E144(Task *);
-void func_dryfield_dilapidated_house_8017E2B0(Task *);
-void func_dryfield_dilapidated_house_8017E6DC(Task *);
-void func_dryfield_dilapidated_house_8017E780(Task *);
-void func_dryfield_dilapidated_house_8017E858(Task *);
-void func_dryfield_dilapidated_house_8017E8A8(s32);
-void func_dryfield_dilapidated_house_8017E8C8(void);
-void func_dryfield_dilapidated_house_8017E8E8(s32);
-void func_dryfield_dilapidated_house_8017E970(s32);
-void func_dryfield_dilapidated_house_8017EA10(s32);
-void func_dryfield_dilapidated_house_8017EA7C(void);
-void func_dryfield_dilapidated_house_80180F04(Task *);
-void func_dryfield_dilapidated_house_80181134(Task *);
-void func_dryfield_dilapidated_house_801812E8(Task *);
-void func_dryfield_dilapidated_house_8018145C(Task *);
+extern GpScriptCmd    D_dryfield_dilapidated_house_80189B30[2];
+extern GpScriptCmd    D_dryfield_dilapidated_house_80189B40[4];
+extern GpScriptCmd    D_dryfield_dilapidated_house_80189B5C[2];
+extern GpScriptRec    D_dryfield_dilapidated_house_80189B38[2];
+extern GpScriptRec    D_dryfield_dilapidated_house_80189B50[3];
+extern GpScriptRec    D_dryfield_dilapidated_house_80189B64[2];
+extern SVECTOR        D_dryfield_dilapidated_house_80189CA0[40];
+s32                   func_dryfield_dilapidated_house_8017E56C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_dryfield_dilapidated_house_8017E684(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_dilapidated_house_8017E68C(Task*, s32, GpMsg13EF*, GpMessageArg);
+void                  func_dryfield_dilapidated_house_8017D64C(Task*);
+void                  func_dryfield_dilapidated_house_8017DE88(Task*);
+void                  func_dryfield_dilapidated_house_8017E144(Task*);
+void                  func_dryfield_dilapidated_house_8017E2B0(Task*);
+void                  func_dryfield_dilapidated_house_8017E6DC(Task*);
+void                  func_dryfield_dilapidated_house_8017E780(Task*);
+void                  func_dryfield_dilapidated_house_8017E858(Task*);
+void                  func_dryfield_dilapidated_house_8017E8A8(s32);
+void                  func_dryfield_dilapidated_house_8017E8C8(void);
+void                  func_dryfield_dilapidated_house_8017E8E8(s32);
+void                  func_dryfield_dilapidated_house_8017E970(s32);
+void                  func_dryfield_dilapidated_house_8017EA10(s32);
+void                  func_dryfield_dilapidated_house_8017EA7C(void);
+void                  func_dryfield_dilapidated_house_80180F04(Task*);
+void                  func_dryfield_dilapidated_house_80181134(Task*);
+void                  func_dryfield_dilapidated_house_801812E8(Task*);
+void                  func_dryfield_dilapidated_house_8018145C(Task*);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
     { 0, 192, func_dryfield_dilapidated_house_8017D64C, { .model = NULL } },
@@ -2084,6 +2098,16 @@ GpCoord D_dryfield_dilapidated_house_80189DE0[8] = { 0 };
 
 GpCoord D_dryfield_dilapidated_house_8018A060[8] = { 0 };
 
+/// Prism corners in model space, eight per prism: `[0..3]` the lit ring and
+/// `[4..7]` the far ring. Callers pick a prism by passing 0, 8 or 0x10.
+extern SVECTOR D_dryfield_dilapidated_house_80186884[];
+
+/// Eight-slot trail coordinates, one array per end of the pair. Every entry is
+/// parented to `gGfxViewCoord`.
+extern GpCoord D_dryfield_dilapidated_house_80189DE0[8];
+
+extern GpCoord D_dryfield_dilapidated_house_8018A060[8];
+
 /// Task that ripples the whole screen: it redraws the frame just rendered as a
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine
 /// waves. The first frame gives every column and row edge a random phase
@@ -3805,10 +3829,6 @@ static void func_dryfield_dilapidated_house_801815B8(Task* arg0)
     taskKill(arg0);
 }
 
-/// Prism corners in model space, eight per prism: `[0..3]` the lit ring and
-/// `[4..7]` the far ring. Callers pick a prism by passing 0, 8 or 0x10.
-extern SVECTOR D_dryfield_dilapidated_house_80186884[];
-
 /// Draws one prism from `D_dryfield_dilapidated_house_80186884[arg1..]` as five
 /// gouraud `POLY_G4`: four sides joining the lit ring to the far ring, then a
 /// cap over the lit ring. Each corner is rotated by `coord`'s `workm` and moved
@@ -3931,11 +3951,6 @@ static void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1)
 /// frame and `[1]` the second ring; `D_dryfield_dilapidated_house_80186944[1]` is
 /// `[1]` under its own name, because the per-frame path in state 1 rebuilds
 /// its address from scratch.
-
-/// Eight-slot trail coordinates, one array per end of the pair. Every entry is
-/// parented to `gGfxViewCoord`.
-extern GpCoord D_dryfield_dilapidated_house_80189DE0[8];
-extern GpCoord D_dryfield_dilapidated_house_8018A060[8];
 
 /// Per-frame twin trail. State 0 places the object's coordinate at
 /// `D_dryfield_dilapidated_house_80186944[0]` and the second ring at `[1]`,

@@ -1,65 +1,82 @@
-#include "rooms/shelter_b4_lower_sewer.h"
-#include "rooms/shelter_b2_main_corridor.h"
-#include "rooms/neo_ark_island.h"
-#include "rooms/neo_ark_pavilion.h"
-#include "rooms/neo_ark_submarine_tunnel.h"
-#include "rooms/neo_ark_submarine_gallery.h"
-#include "rooms/neo_ark_bridge.h"
-#include "rooms/shelter_b4_upper_sewer.h"
-#include "rooms/shelter_b2_septic_tank.h"
-#include "rooms/shelter_b4_reservoir.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
+#include "actors/waypoints.h"
+
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
 #include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "rooms/neo_ark_bridge.h"
+
+#include "rooms/neo_ark_island.h"
+
+#include "rooms/neo_ark_pavilion.h"
+
+#include "rooms/neo_ark_submarine_gallery.h"
+
+#include "rooms/neo_ark_submarine_tunnel.h"
+
+#include "rooms/shelter_b2_main_corridor.h"
+
+#include "rooms/shelter_b2_septic_tank.h"
+
+#include "rooms/shelter_b4_lower_sewer.h"
+
+#include "rooms/shelter_b4_reservoir.h"
+
+#include "rooms/shelter_b4_upper_sewer.h"
 
 typedef struct {
     TaskFunc funcs[15];
 } TaskFuncTable15;
-
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include <psyq/abs.h>
-#include <psyq/memory.h>
 
 typedef struct Actor100400QuadWork {
     /* 0x00 */ GpEnemy* field_0;
@@ -93,7 +110,7 @@ typedef struct Actor100400TextQuadScratch {
     /* 0x0C */ long screen3;
     /* 0x10 */ long perspective;
     /* 0x14 */ long flags;
-    /* 0x18 */ s32 depth;
+    /* 0x18 */ s32  depth;
 } Actor100400TextQuadScratch;
 STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
 
@@ -138,89 +155,89 @@ typedef union Actor100400Flags {
 } Actor100400Flags;
 
 typedef struct Actor100400Work {
-    /* 0x000 */ GpAnimCtx          anim;
-    /* 0x014 */ GpAnimSlot         slots[15];
-    /* 0x26C */ byte               poses[0xF0];
-    /* 0x35C */ GpObj              obj_35C;
-    /* 0x37C */ GpObj              obj_37C;
-    /* 0x39C */ GpRec18            field_39C[6];
-    /* 0x42C */ GpObj              obj_42C;
-    /* 0x44C */ GpRec18            field_44C[6];
-    /* 0x4DC */ GpObj              obj_4DC;
-    /* 0x4FC */ GpRec18            rec_4FC[3];
-    /* 0x544 */ byte               pad_544[2];
-    /* 0x546 */ u16                field_546;
-    /* 0x548 */ byte               pad_548[4];
-    /* 0x54C */ s16                field_54C;
-    /* 0x54E */ s16                field_54E;
-    /* 0x550 */ s16                field_550;
-    /* 0x552 */ byte               pad_552[2];
-    /* 0x554 */ s16                field_554;
-    /* 0x556 */ s16                field_556;
-    /* 0x558 */ s16                field_558;
-    /* 0x55A */ byte               pad_55A[0xA];
-    /* 0x564 */ s16                field_564;
-    /* 0x566 */ byte               pad_566[2];
-    /* 0x568 */ s16                field_568;
-    /* 0x56A */ byte               pad_56A[2];
-    /* 0x56C */ SVECTOR            field_56C;
-    /* 0x574 */ SVECTOR            field_574;
-    /* 0x57C */ MATRIX             field_57C;
-    /* 0x59C */ MATRIX             field_59C;
-    /* 0x5BC */ MATRIX             field_5BC;
-    /* 0x5DC */ GpEffArg           field_5DC;
-    /* 0x5E4 */ SVECTOR            field_5E4;
-    /* 0x5EC */ SVECTOR            field_5EC;
-    /* 0x5F4 */ SVECTOR            field_5F4;
-    /* 0x5FC */ byte               pad_5FC[0xC];
-    /* 0x608 */ SVECTOR* field_608;
-    /* 0x60C */ SVECTOR* field_60C;
-    /* 0x610 */ s32                field_610;
-    /* 0x614 */ s16                field_614[3];
-    /* 0x61A */ byte               pad_61A[2];
-    /* 0x61C */ s16                field_61C;
-    /* 0x61E */ s16                field_61E;
-    /* 0x620 */ s16                field_620;
-    /* 0x622 */ s16                field_622;
-    /* 0x624 */ s16                field_624;
-    /* 0x626 */ s16                field_626;
-    /* 0x628 */ s16                field_628;
-    /* 0x62A */ s16                field_62A;
-    /* 0x62C */ Actor100400Flags   flags_62C;
-    /* 0x630 */ s16                field_630;
-    /* 0x632 */ s16                field_632;
-    /* 0x634 */ u16                field_634;
-    /* 0x636 */ s16                field_636;
-    /* 0x638 */ s16                field_638;
-    /* 0x63A */ u16                field_63A;
-    /* 0x63C */ s16                field_63C;
-    /* 0x63E */ s16                field_63E;
-    /* 0x640 */ s16                field_640;
-    /* 0x642 */ s16                field_642;
-    /* 0x644 */ s16                field_644;
-    /* 0x646 */ s16                field_646;
-    /* 0x648 */ s16                field_648;
-    /* 0x64A */ s16                field_64A;
-    /* 0x64C */ s16                field_64C;
-    /* 0x64E */ s16                field_64E;
-    /* 0x650 */ s16                field_650;
-    /* 0x652 */ s16                field_652;
-    /* 0x654 */ s16                field_654;
-    /* 0x656 */ byte               pad_656[2];
-    /* 0x658 */ u16                field_658;
-    /* 0x65A */ u8                 field_65A;
-    /* 0x65B */ u8                 field_65B;
-    /* 0x65C */ byte               pad_65C[1];
-    /* 0x65D */ u8                 field_65D;
-    /* 0x65E */ u8                 field_65E;
-    /* 0x65F */ u8                 field_65F;
-    /* 0x660 */ u8                 field_660;
-    /* 0x661 */ u8                 field_661;
-    /* 0x662 */ byte               pad_662[1];
-    /* 0x663 */ u8                 field_663;
-    /* 0x664 */ u8                 field_664;
-    /* 0x665 */ s8                 field_665;
-    /* 0x666 */ u8                 field_666;
+    /* 0x000 */ GpAnimCtx        anim;
+    /* 0x014 */ GpAnimSlot       slots[15];
+    /* 0x26C */ byte             poses[0xF0];
+    /* 0x35C */ GpObj            obj_35C;
+    /* 0x37C */ GpObj            obj_37C;
+    /* 0x39C */ GpRec18          field_39C[6];
+    /* 0x42C */ GpObj            obj_42C;
+    /* 0x44C */ GpRec18          field_44C[6];
+    /* 0x4DC */ GpObj            obj_4DC;
+    /* 0x4FC */ GpRec18          rec_4FC[3];
+    /* 0x544 */ byte             pad_544[2];
+    /* 0x546 */ u16              field_546;
+    /* 0x548 */ byte             pad_548[4];
+    /* 0x54C */ s16              field_54C;
+    /* 0x54E */ s16              field_54E;
+    /* 0x550 */ s16              field_550;
+    /* 0x552 */ byte             pad_552[2];
+    /* 0x554 */ s16              field_554;
+    /* 0x556 */ s16              field_556;
+    /* 0x558 */ s16              field_558;
+    /* 0x55A */ byte             pad_55A[0xA];
+    /* 0x564 */ s16              field_564;
+    /* 0x566 */ byte             pad_566[2];
+    /* 0x568 */ s16              field_568;
+    /* 0x56A */ byte             pad_56A[2];
+    /* 0x56C */ SVECTOR          field_56C;
+    /* 0x574 */ SVECTOR          field_574;
+    /* 0x57C */ MATRIX           field_57C;
+    /* 0x59C */ MATRIX           field_59C;
+    /* 0x5BC */ MATRIX           field_5BC;
+    /* 0x5DC */ GpEffArg         field_5DC;
+    /* 0x5E4 */ SVECTOR          field_5E4;
+    /* 0x5EC */ SVECTOR          field_5EC;
+    /* 0x5F4 */ SVECTOR          field_5F4;
+    /* 0x5FC */ byte             pad_5FC[0xC];
+    /* 0x608 */ SVECTOR*         field_608;
+    /* 0x60C */ SVECTOR*         field_60C;
+    /* 0x610 */ s32              field_610;
+    /* 0x614 */ s16              field_614[3];
+    /* 0x61A */ byte             pad_61A[2];
+    /* 0x61C */ s16              field_61C;
+    /* 0x61E */ s16              field_61E;
+    /* 0x620 */ s16              field_620;
+    /* 0x622 */ s16              field_622;
+    /* 0x624 */ s16              field_624;
+    /* 0x626 */ s16              field_626;
+    /* 0x628 */ s16              field_628;
+    /* 0x62A */ s16              field_62A;
+    /* 0x62C */ Actor100400Flags flags_62C;
+    /* 0x630 */ s16              field_630;
+    /* 0x632 */ s16              field_632;
+    /* 0x634 */ u16              field_634;
+    /* 0x636 */ s16              field_636;
+    /* 0x638 */ s16              field_638;
+    /* 0x63A */ u16              field_63A;
+    /* 0x63C */ s16              field_63C;
+    /* 0x63E */ s16              field_63E;
+    /* 0x640 */ s16              field_640;
+    /* 0x642 */ s16              field_642;
+    /* 0x644 */ s16              field_644;
+    /* 0x646 */ s16              field_646;
+    /* 0x648 */ s16              field_648;
+    /* 0x64A */ s16              field_64A;
+    /* 0x64C */ s16              field_64C;
+    /* 0x64E */ s16              field_64E;
+    /* 0x650 */ s16              field_650;
+    /* 0x652 */ s16              field_652;
+    /* 0x654 */ s16              field_654;
+    /* 0x656 */ byte             pad_656[2];
+    /* 0x658 */ u16              field_658;
+    /* 0x65A */ u8               field_65A;
+    /* 0x65B */ u8               field_65B;
+    /* 0x65C */ byte             pad_65C[1];
+    /* 0x65D */ u8               field_65D;
+    /* 0x65E */ u8               field_65E;
+    /* 0x65F */ u8               field_65F;
+    /* 0x660 */ u8               field_660;
+    /* 0x661 */ u8               field_661;
+    /* 0x662 */ byte             pad_662[1];
+    /* 0x663 */ u8               field_663;
+    /* 0x664 */ u8               field_664;
+    /* 0x665 */ s8               field_665;
+    /* 0x666 */ u8               field_666;
 } Actor100400Work;
 
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
@@ -233,11 +250,11 @@ typedef struct Actor100400Work {
 typedef struct Actor100400AreaConfig {
     /* 0x00 */ SVECTOR** waypointSets;
     /* 0x04 */ SVECTOR*  records;
-    /* 0x08 */ s16*                height;
-    /* 0x0C */ s16                 area;
-    /* 0x0E */ s16                 room;
-    /* 0x10 */ u16                 flags;
-    /* 0x12 */ byte                pad_12[2];
+    /* 0x08 */ s16*      height;
+    /* 0x0C */ s16       area;
+    /* 0x0E */ s16       room;
+    /* 0x10 */ u16       flags;
+    /* 0x12 */ byte      pad_12[2];
 } Actor100400AreaConfig;
 STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
 
@@ -372,30 +389,30 @@ static void Actor00400_Fn09FDC(Task* arg0);
 extern GpPairSrcE Actor00400_D0FDC8;
 /// Pair table `Actor00400_Fn0A190` packs, at index 1, into the marker object's
 /// `key`.
-extern GpU16Pair Actor00400_D0FDC0[2];
+extern GpU16Pair             Actor00400_D0FDC0[2];
 extern TaskDesc              Actor00400_D16028[];
 extern Actor100400AreaConfig Actor00400_D15F20[];
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpCmdArg *);
-        void (*call1)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call1)(Task*, s32, s32);
     } handler;
 } Actor00400RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor00400RecoveredMsgEntry, 8);
 
 extern Actor00400RecoveredMsgEntry Actor00400_D16010[3];
 
-extern u16   Actor00400_D1609C[8];
+extern u16        Actor00400_D1609C[8];
 extern GpAnimSet* Actor00400_D1604C[20];
-extern TmdSource Actor00400_D0E5B8;
-extern TmdSource Actor00400_D0E970;
-extern TmdSource Actor00400_D0ED28;
-extern TmdSource Actor00400_D0F25C;
-extern TmdSource Actor00400_D0F790;
-extern TmdSource Actor00400_D0FD9C;
-extern void* D_800678F0[1];
+extern TmdSource  Actor00400_D0E5B8;
+extern TmdSource  Actor00400_D0E970;
+extern TmdSource  Actor00400_D0ED28;
+extern TmdSource  Actor00400_D0F25C;
+extern TmdSource  Actor00400_D0F790;
+extern TmdSource  Actor00400_D0FD9C;
+extern void*      D_800678F0[1];
 
 /* Inline rotation traversal helpers. Every ancestor rotation is copied out
    and renormalised before it is fed to the GTE, instead of being loaded
@@ -421,11 +438,11 @@ extern GpAnimSet Actor00400_D15624;
 extern GpAnimSet Actor00400_D15B34;
 extern GpAnimSet Actor00400_D15EF8;
 extern TmdSource Actor00400_D0DD54;
-void Actor00400_Fn076E8(Task *);
-void Actor00400_Fn08004(Task *);
-void Actor00400_Fn0805C(Task *, s32, GpCmdArg *);
-void Actor00400_Fn08354(Task *, s32, s32);
-void Actor00400_Fn08948(Task *);
+void             Actor00400_Fn076E8(Task*);
+void             Actor00400_Fn08004(Task*);
+void             Actor00400_Fn0805C(Task*, s32, GpCmdArg*);
+void             Actor00400_Fn08354(Task*, s32, s32);
+void             Actor00400_Fn08948(Task*);
 
 TmdBone Actor00400_D0AB0C[15] = {
 #include "assets/actor_100400_model_0DD54_skeleton.inc"
@@ -1182,6 +1199,53 @@ u16 Actor00400_D1609C[8] = {
     270,
     290,
 };
+
+static void Actor00400_Fn0A468(Task* arg0);
+
+static void Actor00400_Fn0A4BC(Task* arg0);
+
+static void Actor00400_Fn0A2F4(Task* arg0);
+
+static void Actor00400_Fn0A364(Task* arg0);
+
+static void Actor00400_Fn0962C(Task* arg0);
+
+static void Actor00400_Fn058C4(Task* arg0);
+
+static __inline__ s32      Actor00400_AccumulateRotation(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
+static __inline__ GpCoord* Actor00400_LocalizeRotation(GpCoord* arg0, MATRIX* arg1);
+static void                Actor00400_Fn001AC(GpCoord* coord, u16 phase, u16 kind, u32 arg3);
+static void                Actor00400_Fn00A14(Task* arg0);
+static void                Actor00400_Fn00B48(Task* arg0);
+static void                Actor00400_Fn00C84(Task* arg0);
+static void                Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
+static void                Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2);
+static void                Actor00400_Fn01454(Task* arg0);
+static void                Actor00400_Fn016A4(Task* arg0, s32 arg1);
+static void                Actor00400_Fn01B90(Task* arg0);
+static void                Actor00400_Fn02D48(Task* arg0);
+static void                Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1);
+static void                Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade);
+static __inline__ s32      Actor00400_ApplyAreaConfig(Task* arg0);
+static __inline__ void     Actor00400_AttachHead(Task* arg0, GpEnemy* obj,
+                                                 Actor100400Work* work, s32 hide);
+static __inline__ void     Actor00400_UpdateColor(Task* arg0, GpCoord* coord,
+                                                  Actor100400Work* work, TmdObject* ctx);
+static inline void         Actor00400_TurnToward(Task* arg0, SVECTOR* target, s32 step, s32 range);
+static inline void         Actor00400_SpawnRing(Task* arg0, Actor100400Work* work, GpCoord* coord);
+static void                Actor00400_Fn05320(Task* arg0);
+static void                Actor00400_Fn05D00(Task* arg0);
+static void                Actor00400_Fn05EA4(Task* arg0);
+static void                Actor00400_Fn061E8(Task* arg0);
+static void                Actor00400_Fn06380(Task* arg0);
+static inline void         Actor00400_SpawnMarker(Task* arg0);
+static void                Actor00400_Fn064B0(Task* arg0);
+static void                Actor00400_Fn06798(Task* arg0);
+static void                Actor00400_Fn06A44(Task* arg0);
+static inline s32          Actor00400_ConsumeStateRequest(Actor100400Work* work);
+static void                Actor00400_Fn07400(Task* arg0);
+static void                Actor00400_Fn07518(Task* arg0);
+static inline s32          Actor00400_TakeStateRequest(Task* arg0);
 
 /// Accumulate `arg0`'s parent chain into `arg1`: seed it with the node's own
 /// rotation, then pre-multiply by each (renormalised) ancestor up to but not
@@ -4387,9 +4451,6 @@ static void Actor00400_Fn06F64(Task* arg0)
     }
 }
 
-static void Actor00400_Fn0A468(Task* arg0);
-static void Actor00400_Fn0A4BC(Task* arg0);
-
 /// Per-frame callback for the text actor's fourth task. Same frame gate as
 /// `Actor00400_Fn06B7C`, but the draw half only recolours the actor: case 0
 /// runs this frame's state handler, lerps the root coordinate's height a
@@ -4550,9 +4611,6 @@ static void Actor00400_Fn0762C(Task* arg0, s16 arg1, s16 arg2)
     arg0->extra.tmd->coords->flg         = 0;
 }
 
-static void Actor00400_Fn0A2F4(Task* arg0);
-static void Actor00400_Fn0A364(Task* arg0);
-
 /// Two-state dispatcher over a handler table built on the stack.
 void Actor00400_Fn076E8(Task* task)
 {
@@ -4617,9 +4675,6 @@ static void Actor00400_Fn077F4(Task* arg0)
         fns.funcs[(s16)work->field_63A](arg0);
     }
 }
-
-static void Actor00400_Fn0962C(Task* arg0);
-static void Actor00400_Fn058C4(Task* arg0);
 
 static void Actor00400_Fn078C8(Task* arg0)
 {

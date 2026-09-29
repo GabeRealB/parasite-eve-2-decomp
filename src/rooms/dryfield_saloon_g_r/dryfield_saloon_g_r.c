@@ -1,39 +1,53 @@
-#include "common.h"
 #include "rooms/dryfield_saloon_g_r.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
+
 #include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#define D_dryfield_saloon_g_r_8017ED4C (D_dryfield_saloon_g_r_8017ECE4 + 13)
+#define D_dryfield_saloon_g_r_8017ED54 (D_dryfield_saloon_g_r_8017ECE4[14])
+#define D_dryfield_saloon_g_r_8017ED6C (D_dryfield_saloon_g_r_8017ECE4[17])
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -71,21 +85,21 @@ static void func_dryfield_saloon_g_r_8017DEC4(GpCoord* coord);
 static void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
-void func_dryfield_saloon_g_r_8017D74C(Task *);
-s32 func_dryfield_saloon_g_r_8017D8BC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_saloon_g_r_8017D994(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_saloon_g_r_8017D99C(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_saloon_g_r_8017D9C4(Task *, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_saloon_g_r_8017D74C(Task*);
+s32  func_dryfield_saloon_g_r_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_saloon_g_r_8017D994(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_saloon_g_r_8017D9C4(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_saloon_g_r_8017F780[1];
-extern GpObj3A D_dryfield_saloon_g_r_801817B0[2];
-extern GpObj4C D_dryfield_saloon_g_r_80180EC8[16];
-extern GpObj4C D_dryfield_saloon_g_r_80181388[14];
+extern GpGridParams   D_dryfield_saloon_g_r_8017F780[1];
+extern GpObj3A        D_dryfield_saloon_g_r_801817B0[2];
+extern GpObj4C        D_dryfield_saloon_g_r_80180EC8[16];
+extern GpObj4C        D_dryfield_saloon_g_r_80181388[14];
 extern GpRoomCoordSet D_dryfield_saloon_g_r_80181AC8[1];
 
-extern GpSprtCmd D_dryfield_saloon_g_r_8017F978[2];
-extern GpSprtCmd D_dryfield_saloon_g_r_8017FADC[3];
-extern GpSprtCmd D_dryfield_saloon_g_r_8017FC0C[4];
+extern GpSprtCmd  D_dryfield_saloon_g_r_8017F978[2];
+extern GpSprtCmd  D_dryfield_saloon_g_r_8017FADC[3];
+extern GpSprtCmd  D_dryfield_saloon_g_r_8017FC0C[4];
 extern GpSprtElem D_dryfield_saloon_g_r_8017F988[17];
 extern GpSprtElem D_dryfield_saloon_g_r_8017FAF4[14];
 
@@ -1220,9 +1234,7 @@ u8 D_dryfield_saloon_g_r_80181BE4[4] = {
 
 RoomEventReq D_dryfield_saloon_g_r_80181BE8 = { 0 };
 
-#define D_dryfield_saloon_g_r_8017ED4C (D_dryfield_saloon_g_r_8017ECE4 + 13)
-#define D_dryfield_saloon_g_r_8017ED54 (D_dryfield_saloon_g_r_8017ECE4[14])
-#define D_dryfield_saloon_g_r_8017ED6C (D_dryfield_saloon_g_r_8017ECE4[17])
+static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when

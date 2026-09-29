@@ -1,39 +1,48 @@
-#include "common.h"
-#include "rooms/dryfield_garage.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 #include <psyq/abs.h>
 
+#include "common.h"
+
 #include "actors/actor.h"
-#include "actors/actors_shared_80133c6c.h"
 
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/dryfield_garage.h"
 
 /// Work block this overlay hangs off `Task::work`; each pair at
 /// 0x4C0 and 0x4C8 is a request code plus its phase counter, reset together.
@@ -85,9 +94,9 @@ extern Task* D_actor_120300_80141BA8;
 /// black.
 extern TaskDesc D_actor_120300_80141B6C[];
 
-extern GpAnimSet*     D_actor_120300_801408CC[];
+extern GpAnimSet* D_actor_120300_801408CC[];
 extern GpAnimSet* D_actor_120300_80140910[19];
-extern s16            D_actor_120300_8014095C[];
+extern s16        D_actor_120300_8014095C[];
 
 /// Animation id per `Actor120300Work::field_4D4`; -1 skips the restart.
 extern s16 D_actor_120300_80140980[];
@@ -99,42 +108,42 @@ extern s32 D_actor_120300_80140A20[9];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpXformArg *);
-        void (*call1)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, s32);
     } handler;
 } Actor120300MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor120300MessageEntry, 8);
 
 extern Actor120300MessageEntry D_actor_120300_80140A44[2];
-extern GpXformArg D_actor_120300_80140A54[13];
-extern GpEvsCmd D_actor_120300_80140B94[];
-extern GpEvsCmd D_actor_120300_80141524[];
-extern GpEvsCmd D_actor_120300_801416D4[];
-extern GpEvsCmd D_actor_120300_801417AC[];
-extern GpEvsCmd D_actor_120300_80141884[];
-extern GpEvsCmd D_actor_120300_8014195C[];
-extern GpEvsCmd D_actor_120300_80141A34[];
+extern GpXformArg              D_actor_120300_80140A54[13];
+extern GpEvsCmd                D_actor_120300_80140B94[];
+extern GpEvsCmd                D_actor_120300_80141524[];
+extern GpEvsCmd                D_actor_120300_801416D4[];
+extern GpEvsCmd                D_actor_120300_801417AC[];
+extern GpEvsCmd                D_actor_120300_80141884[];
+extern GpEvsCmd                D_actor_120300_8014195C[];
+extern GpEvsCmd                D_actor_120300_80141A34[];
 
 extern TmdSource D_actor_120300_80139A04;
 extern TmdSource D_actor_120300_80139EDC;
 extern TmdSource D_actor_120300_8013A4D0;
-void func_actor_120300_80132004(Task *);
-void func_actor_120300_801321C8(Task *);
-void func_actor_120300_80133330(s32);
-void func_actor_120300_801337C4(Task *);
-void func_actor_120300_80133B5C(Task *);
-void func_actor_120300_80133C38(Task *, s32, s32);
-void func_actor_120300_80133C6C(Task *, s32, GpXformArg *);
-void func_actor_120300_80133D04(s32);
-void func_actor_120300_80133DA4(void);
-void func_actor_120300_80133DD4(void);
-void func_actor_120300_80133DF4(void);
-void func_actor_120300_80133E14(s16);
-void func_actor_120300_80133E34(s16);
-void func_actor_120300_80133E54(void);
-void func_actor_120300_80133E94(void);
-void func_actor_120300_80133EE4(void);
-void func_actor_120300_80133F14(Task *);
+void             func_actor_120300_80132004(Task*);
+void             func_actor_120300_801321C8(Task*);
+void             func_actor_120300_80133330(s32);
+void             func_actor_120300_801337C4(Task*);
+void             func_actor_120300_80133B5C(Task*);
+void             func_actor_120300_80133C38(Task*, s32, s32);
+void             func_actor_120300_80133C6C(Task*, s32, GpXformArg*);
+void             func_actor_120300_80133D04(s32);
+void             func_actor_120300_80133DA4(void);
+void             func_actor_120300_80133DD4(void);
+void             func_actor_120300_80133DF4(void);
+void             func_actor_120300_80133E14(s16);
+void             func_actor_120300_80133E34(s16);
+void             func_actor_120300_80133E54(void);
+void             func_actor_120300_80133E94(void);
+void             func_actor_120300_80133EE4(void);
+void             func_actor_120300_80133F14(Task*);
 
 TmdBone D_actor_120300_80133F98[20] = {
 #include "assets/actor_120300_model_07BE4_skeleton.inc"
@@ -1412,6 +1421,18 @@ TaskDesc D_actor_120300_80141B6C[5] = {
 
 Task * D_actor_120300_80141BA8 = NULL;
 
+static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec);
+static s32         func_actor_120300_80131EE0(Task* arg0);
+static inline s16  _actor120300InitChild(Task* arg0, s32 part);
+static inline void _actor120300PlayAnim(Task* task, u16 anim);
+static inline void _actor120300SetAnim(Task* task, u16 anim);
+static void        func_actor_120300_80132338(Task* arg0);
+static inline void _actor120300BlendAll(Task* task, u16 anim);
+static inline void _actor120300ResetAll(Task* task, u16 anim);
+static void        func_actor_120300_80132C60(Task* arg0);
+static s32         func_actor_120300_801334A4(Task* arg0);
+static void        func_actor_120300_801335D8(Task* arg0);
+
 /// Fill part-1 translation and hand it to `func_800D7A9C`. `vec` is a
 /// parameter rather than a local so its address stays out of the CSE class of
 /// the `ScaleMatrix` argument that follows.
@@ -1620,18 +1641,18 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
 /// Sends `target` message 0x3E8 for the player's equipped weapon: the block
 /// index is `Player_Status.weapon` plus 1 when `Mc_SaveData[0].state.characterId` is 1,
 /// plus 0x22 otherwise, and `blend`/`frames` go to `field_8`/`field_C`.
-#define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                              \
-    {                                                                                                \
-        GpAnimArg _msg;                                                                              \
-        s32       _weaponId;                                                                         \
-                                                                                                     \
-        _weaponId            = Player_Status.weapon;                                                 \
+#define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                                    \
+    {                                                                                                      \
+        GpAnimArg _msg;                                                                                    \
+        s32       _weaponId;                                                                               \
+                                                                                                           \
+        _weaponId            = Player_Status.weapon;                                                       \
         _msg.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
-        _msg.field_4         = 1;                                                                    \
-        _msg.field_8         = (blend);                                                              \
-        _msg.field_C         = (frames);                                                             \
-        _msg.field_10        = 0;                                                                    \
-        Gp_DispatchMsgPtr((target), 0x3E8, &_msg, 0);                                            \
+        _msg.field_4         = 1;                                                                          \
+        _msg.field_8         = (blend);                                                                    \
+        _msg.field_C         = (frames);                                                                   \
+        _msg.field_10        = 0;                                                                          \
+        Gp_DispatchMsgPtr((target), 0x3E8, &_msg, 0);                                                      \
     }
 
 /// Request handler for the code latched in `field_4C0`. While the session

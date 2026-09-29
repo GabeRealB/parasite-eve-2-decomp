@@ -1,31 +1,34 @@
-#include "common.h"
 #include "rooms/shelter_b1_sleeping_quarters.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "shelter_b1_sleeping_quarters_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
-
-/// Per-palette channel shifts for the halo, indexed by the palette the spawn
-/// argument selects.
-extern s16 D_shelter_b1_sleeping_quarters_8018064C[][3];
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 static void func_shelter_b1_sleeping_quarters_8017EE58(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b1_sleeping_quarters_8017F0DC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);

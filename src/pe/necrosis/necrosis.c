@@ -1,30 +1,61 @@
 #include "pe/necrosis.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/effects.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// One 4-byte row of `D_necrosis_801306BC`, indexed by `GpEffWork.index`
+/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
+/// parameter (plus `field_22 * 0x60` each frame) and is copied into the
+/// first `GpObj.radius`. `field_2` is the last `GpEffWork.age` tick
+/// of the spawn loop; state 2 waits an extra 0x10 ticks past it. `field_2 +
+/// 0xC` is also the pad-rumble duration at ignition.
+typedef struct NecrosisStep {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ s16 field_2;
+} NecrosisStep;
+STATIC_ASSERT_SIZEOF(NecrosisStep, 4);
+
+/// Collision pair allocated by `func_necrosis_8012EF34` (`memCalloc(0x58)`)
+/// and stored in `Task::work`. `obj` is linked on list 1, `obj2` on list 7;
+/// both point `ctx.recs` at the one-element `rec` table (terminator `field_0
+/// = 2`).
+typedef struct NecrosisWork {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpObj   obj2;
+    /* 0x40 */ GpRec18 rec;
+} NecrosisWork;
+STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
 
 /// Per-level tuning for the necrosis burst: rows are PE levels 1-3, selected
 /// by `index`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is

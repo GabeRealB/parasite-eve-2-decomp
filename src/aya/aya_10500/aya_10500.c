@@ -1,9 +1,23 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 
-#include "aya/aya.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/item_pickup.h"
+
+struct _GpImgRec;
+
+extern struct _GpImgRec* D_aya_10500_8011D168[];
+
+extern struct _GpImgRec* D_aya_10500_8011D170[];
+
+extern struct _GpImgRec* D_aya_10500_8011D180[];
+
+extern struct _GpImgRec* D_aya_10500_8011D190[];
+
+extern struct _GpImgRec* D_aya_10500_8011D1A8[];
+
+extern struct _GpImgRec* D_aya_10500_8011D1B0[];
 
 /* The costume's texture animation: five images, each with the one-image upload
  * list that places it, and the frame lists that sequence those uploads. The

@@ -1,56 +1,65 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
+#include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80132074.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/abs.h>
-#include <psyq/memory.h>
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -85,7 +94,7 @@ typedef struct Actor00300MainWork {
     /* 0x5F8 */ u8             pad_5F8[0x10];
     /* 0x608 */ MATRIX         matrix608;
     /* 0x628 */ u8             pad_628[0x20];
-    /* 0x648 */ SVECTOR*            field_648;
+    /* 0x648 */ SVECTOR*       field_648;
     /* 0x64C */ u8             pad_64C[0x1A];
     /* 0x666 */ s16            field_666;
     /* 0x668 */ u8             pad_668[0x20];
@@ -133,7 +142,7 @@ typedef struct Actor100300Work {
     /* 0x604 */ byte              pad_604[4];
     /* 0x608 */ MATRIX            field_608;
     /* 0x628 */ MATRIX            field_628;
-    /* 0x648 */ SVECTOR*               field_648;
+    /* 0x648 */ SVECTOR*          field_648;
     /* 0x64C */ byte              pad_64C[0x8];
     /* 0x654 */ struct GpEffWork* field_654;
     /* 0x658 */ s32               field_658;
@@ -212,22 +221,22 @@ static void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1);
 
 extern GpPairSrcE           Actor00300_D15FE8;
 extern Actor00300AreaConfig Actor00300_D16020[15];
-extern SVECTOR* Actor00300_D16278[15][2];
+extern SVECTOR*             Actor00300_D16278[15][2];
 extern TaskDesc             Actor00300_D162F0[];
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor00300RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor00300RecoveredMsgEntry, 8);
 
 extern Actor00300RecoveredMsgEntry Actor00300_D16314[5];
-extern GpAnimSet* Actor00300_D1633C[22];
+extern GpAnimSet*                  Actor00300_D1633C[22];
 
 /// State handlers of the task `Actor00300_Fn04770` dispatches, indexed by
 /// `Task::state`. The first sets the task up and moves it to state 1.
@@ -262,13 +271,13 @@ extern GpAnimSet Actor00300_D15594;
 extern GpAnimSet Actor00300_D15FB0;
 extern TmdSource Actor00300_D09E84;
 extern TmdSource Actor00300_D0A120;
-s32 Actor00300_Fn05304(Task *, s32, GpAnimArg *);
-s32 Actor00300_Fn05388(Task *, s32, GpXformArg *);
-s32 Actor00300_Fn053EC(Task *, s32, s32);
-s32 Actor00300_Fn05434(Task *, s32, GpCmdArg *);
-void Actor00300_Fn04770(Task *);
-void Actor00300_Fn05138(Task *);
-void Actor00300_Fn0521C(Task *);
+s32              Actor00300_Fn05304(Task*, s32, GpAnimArg*);
+s32              Actor00300_Fn05388(Task*, s32, GpXformArg*);
+s32              Actor00300_Fn053EC(Task*, s32, s32);
+s32              Actor00300_Fn05434(Task*, s32, GpCmdArg*);
+void             Actor00300_Fn04770(Task*);
+void             Actor00300_Fn05138(Task*);
+void             Actor00300_Fn0521C(Task*);
 
 TmdBone Actor00300_D054B4[19] = {
 #include "assets/actor_100300_model_09E84_skeleton.inc"
@@ -1258,6 +1267,38 @@ s16 Actor00300_D16394[18] = {
     0,
 };
 
+/// Scratchpad block the hit and push tick works in: the push-out delta, its
+/// normal, the two points of the sight test (the first also serves as the
+/// effect offset), and the normal rotated into the grid's frame.
+typedef struct _Actor00300HitScratch {
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    SVECTOR        from;
+    SVECTOR        to;
+    VECTOR         push;
+} _Actor00300HitScratch;
+
+extern TmdSource Actor00300_D0AA18;
+
+extern TmdSource Actor00300_D0AECC;
+
+extern TmdSource Actor00300_D0B640;
+
+extern TmdSource Actor00300_D0BE44;
+
+extern TmdSource Actor00300_D0C2C4;
+
+extern void* D_80067704[1];
+
+static void            Actor00300_Fn00078(GpCoord* coord, s16 size);
+static inline s16      _actor00300TiltMagnitude(s8 value);
+static void            Actor00300_Fn03618(Task* arg0);
+static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1);
+static void            Actor00300_Fn03F40(GpEnemy* arg0, Task* arg1);
+static void            Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1);
+static void            Actor00300_Fn04370(GpEnemy* arg0, Task* arg1);
+static void            Actor00300_Fn04664(GpCoord* arg0, s32 arg1);
+
 /// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
 /// intensity, projects `coord` and draws two `POLY_FT4` glow billboards around
 /// it, the outer one half again as large as `size`; when
@@ -1611,17 +1652,6 @@ static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     task->msgTable        = Actor00300_D16314;
     task->state           = 1;
 }
-
-/// Scratchpad block the hit and push tick works in: the push-out delta, its
-/// normal, the two points of the sight test (the first also serves as the
-/// effect offset), and the normal rotated into the grid's frame.
-typedef struct _Actor00300HitScratch {
-    GpDeltaScratch delta;
-    VECTOR         normal;
-    SVECTOR        from;
-    SVECTOR        to;
-    VECTOR         push;
-} _Actor00300HitScratch;
 
 /// Copies the world positions of two coordinates into the scratch block and
 /// runs `Actor00300_Fn04B14` on the segment between them. When it reports no
@@ -2818,13 +2848,6 @@ static void Actor00300_Fn0340C(Task* arg0)
     }
     SCRATCH_POP(MATRIX);
 }
-
-extern TmdSource Actor00300_D0AA18;
-extern TmdSource Actor00300_D0AECC;
-extern TmdSource Actor00300_D0B640;
-extern TmdSource Actor00300_D0BE44;
-extern TmdSource Actor00300_D0C2C4;
-extern void* D_80067704[1];
 
 static void Actor00300_Fn03618(Task* arg0)
 {

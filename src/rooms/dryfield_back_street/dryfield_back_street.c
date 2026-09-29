@@ -1,41 +1,52 @@
-#include "common.h"
 #include "rooms/dryfield_back_street.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_back_street_8017F964[];
@@ -54,15 +65,15 @@ static void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s16 arg1, u8* rgb)
 static void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_dryfield_back_street_8017D5D0(Task *);
-s32 func_dryfield_back_street_8017D748(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_back_street_8017D89C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_back_street_8017D8A4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_back_street_8017D8AC(Task *, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_back_street_8017D5D0(Task*);
+s32  func_dryfield_back_street_8017D748(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_back_street_8017D89C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_back_street_8017D8A4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_back_street_8017D8AC(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_back_street_80180284[1];
-extern GpObj4C D_dryfield_back_street_801804C0[6];
-extern GpObj4C D_dryfield_back_street_80180688[11];
+extern GpGridParams   D_dryfield_back_street_80180284[1];
+extern GpObj4C        D_dryfield_back_street_801804C0[6];
+extern GpObj4C        D_dryfield_back_street_80180688[11];
 extern GpRoomCoordSet D_dryfield_back_street_80180FF8[1];
 
 extern TaskDesc D_8014D8A4;
@@ -810,6 +821,9 @@ GpRoomParamRec * D_dryfield_back_street_80181034[8] = {
 };
 
 s32 D_dryfield_back_street_80181054 = 0;
+
+static void func_dryfield_back_street_8017D8B4(Task* task);
+static void func_dryfield_back_street_8017D910(Task* task);
 
 /// Back street ambience: state 0 clears the recorded volume and advances, state
 /// 1 maps the current camera view to a target volume and stereo pan - 0x1E/+4,

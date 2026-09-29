@@ -1,37 +1,48 @@
-#include "common.h"
 #include "rooms/dryfield_night_general_store.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "overlay.h"
+#include "dryfield_night_general_store_private.h"
 
 #include "actors/task_tables.h"
+
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
 
-extern GpGridParams D_dryfield_night_general_store_8017F484[1];
-extern GpObj3A D_dryfield_night_general_store_801855C4[4];
-extern GpObj4C D_dryfield_night_general_store_801847D0[28];
-extern GpObj4C D_dryfield_night_general_store_80185020[19];
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "overlay.h"
+
+#include "rooms/room_common.h"
+
+extern GpGridParams   D_dryfield_night_general_store_8017F484[1];
+extern GpObj3A        D_dryfield_night_general_store_801855C4[4];
+extern GpObj4C        D_dryfield_night_general_store_801847D0[28];
+extern GpObj4C        D_dryfield_night_general_store_80185020[19];
 extern GpRoomBoundVec D_dryfield_night_general_store_801857DC[17];
 extern GpRoomCoordSet D_dryfield_night_general_store_801847B8[1];
 
@@ -2014,6 +2025,8 @@ u8 D_dryfield_night_general_store_801858C6 = 0;
 u8 D_dryfield_night_general_store_801858C7 = 3;
 
 RoomEventReq D_dryfield_night_general_store_801858C8 = { 0, 0, 0, 0, 0, 0 };
+
+static void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1);
 
 /// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
 /// a fan of gouraud wedges around each projected point, joined by wedges

@@ -1,37 +1,42 @@
-#include "shelter_r36_private.h"
 #include "rooms/shelter_r36.h"
-#include "mapui/map_shelter.h"
 
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
+#include "types.h"
 
-#include "gameplay/evs.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/text.h"
-
-#include "gameplay/message.h"
+#include "shelter_r36_private.h"
 
 #include "actors/task_tables.h"
+
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 extern GpEvsCmd D_shelter_r36_8017DF2C[];
 extern GpEvsCmd D_shelter_r36_8017E5A4[];
@@ -44,14 +49,10 @@ extern GpMsgEntry D_shelter_r36_8017E97C[];
 /// The room's two event tasks, one per arrival warp.
 extern TaskDesc D_shelter_r36_8017DF14[];
 
-/// Two-entry spawn table: entry 0 is `func_shelter_r36_8017DBC0`, which starts
-/// entry 1, the stream task `func_shelter_r36_8017DA34`, on the display list.
-extern TaskDesc D_shelter_r36_8017E9A4[];
-
-s32 func_shelter_r36_8017D8C8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r36_8017D8D0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_r36_8017D914(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r36_8017D91C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r36_8017D8C8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r36_8017D8D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_r36_8017D914(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r36_8017D91C(Task*, s32, GpMessageArg, GpMessageArg);
 
 extern GpAnimArg D_shelter_r36_8017DC10;
 extern GpAnimArg D_shelter_r36_8017DC54;
@@ -67,12 +68,12 @@ extern GpAnimArg D_shelter_r36_8017DD6C;
 extern GpAnimArg D_shelter_r36_8017DD80;
 extern GpAnimArg D_shelter_r36_8017DD94;
 extern GpAnimArg D_shelter_r36_8017DDD0;
-extern GpCmdArg D_shelter_r36_8017DC24;
-extern GpCmdArg D_shelter_r36_8017DC28;
-void func_shelter_r36_8017D5E8(Task *);
-void func_shelter_r36_8017D738(void);
-void func_shelter_r36_8017D7B4(Task *);
-void func_shelter_r36_8017D870(s32);
+extern GpCmdArg  D_shelter_r36_8017DC24;
+extern GpCmdArg  D_shelter_r36_8017DC28;
+void             func_shelter_r36_8017D5E8(Task*);
+void             func_shelter_r36_8017D738(void);
+void             func_shelter_r36_8017D7B4(Task*);
+void             func_shelter_r36_8017D870(s32);
 
 GpAnimArg D_shelter_r36_8017DC10 = { { .index = 1 }, 1, 0, 0, 0 };
 
@@ -646,6 +647,9 @@ GpRoomParamRec * D_shelter_r36_8017FAE4[8] = {
     D_shelter_r36_8017FABC,
     D_shelter_r36_8017FABC,
 };
+
+static void func_shelter_r36_8017D924(Task* task);
+static void func_shelter_r36_8017D9CC(Task* task);
 
 /// Entry 0 of `D_shelter_r36_8017DF14`, spawned on arrival by warp 1. If
 /// event nibble 0x113 is clear it starts CAP slot 1; otherwise it loads CAP

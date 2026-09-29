@@ -1,59 +1,71 @@
-#include "shelter_r47_private.h"
-#include "mapui/map_shelter.h"
+#include "rooms/shelter_r47.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-#include "rooms/shelter_r47.h"
+#include "common.h"
 
+#include "shelter_r47_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/action_prompt.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/action_prompt.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 #include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
     GpSpotLight active[2];
-    u8 retained[756];
+    u8          retained[756];
 } ShelterR47SpotLightStorage;
 STATIC_ASSERT_SIZEOF(ShelterR47SpotLightStorage, 972);
 
@@ -75,74 +87,13 @@ extern s32 D_80142C24;
 extern s32 D_801432FC;
 extern s32 D_80143494;
 
-/// Row labels of the "Play Data" statistics panel.
-extern u8 D_shelter_r47_80186C10[];
-extern u8 D_shelter_r47_80186C18[];
-extern u8 D_shelter_r47_80186C1C[];
-extern u8 D_shelter_r47_80186C24[];
-extern u8 D_shelter_r47_80186C30[];
-extern u8 D_shelter_r47_80186C40[];
-extern u8 D_shelter_r47_80186C48[];
-extern u8 D_shelter_r47_80186C50[];
-extern u8 D_shelter_r47_80186C58[];
-/// Unit suffix appended to the panel's counts.
-extern u8 D_shelter_r47_80186C60[];
-/// The "%" suffix the room's percentage formatters append.
-extern u8 D_shelter_r47_80186C68[];
-/// Help lines shown for the panel's rows, by row.
-extern u8 D_shelter_r47_80186C6C[];
-extern u8 D_shelter_r47_80186C98[];
-extern u8 D_shelter_r47_80186CBC[];
-extern u8 D_shelter_r47_80186CEC[];
-extern u8 D_shelter_r47_80186D20[];
-extern u8 D_shelter_r47_80186D54[];
-extern u8 D_shelter_r47_80186D8C[];
-extern u8 D_shelter_r47_80186DC0[];
-extern u8 D_shelter_r47_80186DF8[];
-
-extern u8     D_shelter_r47_80186BE8[];
-extern u8     D_shelter_r47_80186BF0[];
-extern u8     D_shelter_r47_80186BFC[];
-extern u8     D_shelter_r47_80186C08[];
-extern UiList D_shelter_r47_80186E34;
-extern UiList D_shelter_r47_80186E5C;
-/// UI object descriptor that the "Play Data" page tasks spawn as a child on
-/// their first frame.
-extern UiObjectDesc D_shelter_r47_80186E80;
-extern UiObjectDesc D_shelter_r47_80186E9C;
-extern UiObjectDesc D_shelter_r47_80186EB8;
-extern UiList       D_shelter_r47_80186EE4;
-
-/// Task descriptor table: the room spawns entry 0 with a cutscene record as its
-/// argument, and `func_shelter_r47_8017F628` spawns entry 1 while it waits for
-/// the player to skip.
-extern TaskDesc D_shelter_r47_80186F08[];
-
-/// Message table the room's controller task answers with.
-extern GpMsgEntry D_shelter_r47_80186F2C[];
-
-/// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
-/// payload of the 0x3E8 message.
-extern GpAnimArg D_shelter_r47_80186F5C;
-
-extern TaskDesc D_shelter_r47_80186F70[];
-extern TaskDesc D_shelter_r47_80186F94[];
-
-/// Hotspot table hit-tested by `func_shelter_r47_80182B9C`.
-extern OverlayHotspot D_shelter_r47_80186FB4[];
-
-extern TaskDesc D_shelter_r47_80187020;
-
 /// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
-
-extern TaskDesc D_shelter_r47_801872F0;
-extern TaskDesc D_shelter_r47_80187618;
 
 /// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
 /// room toggles the first node and the tenth, which the code also names on its
 /// own as `D_shelter_r47_8018787C[12]`.
 
-extern Task*          D_shelter_r47_8018A68C;
+extern Task* D_shelter_r47_8018A68C;
 
 /// Task spawned by the room's cap script; polled and cleared by
 /// `func_shelter_r47_80180714`.
@@ -156,7 +107,7 @@ static void func_shelter_r47_8017F5EC(Task* task);
 static void func_shelter_r47_8017FB94(Task* task);
 static void func_shelter_r47_8017FCC0(Task* task);
 
-extern GpPointLight D_shelter_r47_80189E90[9];
+extern GpPointLight               D_shelter_r47_80189E90[9];
 extern ShelterR47SpotLightStorage D_shelter_r47_8018A1F0;
 
 TaskDesc D_shelter_r47_8018760C = { 0, 192, func_shelter_r47_8018580C, { .model = NULL } };
@@ -1329,6 +1280,13 @@ u8 D_shelter_r47_8018A697 = 0;
 
 RoomCutsceneRec D_shelter_r47_8018A698 = { 0 };
 
+static const char D_shelter_r47_8017D638[];
+
+static void func_shelter_r47_8017EF58(u8* str, s32 decimals);
+static u8*  func_shelter_r47_8017EFC8(u8* buf, s32 value, s32 decimals);
+static void func_shelter_r47_8017F1AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b);
+
 void func_shelter_r47_8017D86C(UiList* arg0, UiObject* arg1)
 {
     u8  buf[0x20];
@@ -1960,8 +1918,6 @@ void func_shelter_r47_8017EA50(Task* task)
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_shelter_r47_8017D638[12] = "Telephone\0\xDC"
                                                "2";
-
-static const char D_shelter_r47_8017D638[];
 
 void func_shelter_r47_8017EC04(Task* task)
 {

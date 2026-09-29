@@ -1,68 +1,335 @@
-#include "common.h"
-#include "rooms/mine_mesa.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+#include <psyq/stdio.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "actors/actor_400100.h"
-#include "actors/actor_400100_facing.h"
-#include "actors/actor_400100_motion.h"
-#include "actors/actor_400100_update.h"
-#include "actors/actors_shared_80169f74.h"
-#include "psyq/abs.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "actors/actor.h"
+
+#include "actors/actors_shared_80169f74.h"
+
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
-#include <psyq/memory.h>
-#include <psyq/stdio.h>
+#include "main/wipsys_types.h"
 
-// Each handler receives the argument view used by its message ID.
+#include "overlay.h"
+
+#include "rooms/mine_mesa.h"
+
+/// 0x98-byte object embedded four times in `Actor00100Work` at 0x908. The
+/// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;
+/// `flags` is that node's flag halfword.
+typedef struct Actor00100Obj {
+    /* 0x00 */ byte     pad_0[8];
+    /* 0x08 */ GpCoord* coord;
+    /* 0x0C */ GpRec18* hits;
+    /* 0x10 */ s16      field_10;
+    /* 0x12 */ s16      field_12;
+    /* 0x14 */ s16      field_14;
+    /* 0x16 */ byte     pad_16[2];
+    /* 0x18 */ s32      field_18;
+    /* 0x1C */ u16      field_1C;
+    /* 0x1E */ u16      flags;
+    /* 0x20 */ GpRec18  field_20;
+    /* 0x38 */ GpRec18  field_38;
+    /* 0x50 */ byte     pad_50[0x48];
+} Actor00100Obj;
+STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
+
+typedef struct Actor00100AnimCommand {
+    GpAnimSet* sets[9];
+} Actor00100AnimCommand;
+STATIC_ASSERT_SIZEOF(Actor00100AnimCommand, 0x24);
+
+typedef struct Actor00100Work {
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ s16  field_2;
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[2];
+    /// The coordinate the actor was placed at, and a second one a fixed step
+    /// ahead of it; `Actor00100_Fn02C54` latches both at spawn time.
+    /* 0x00C */ u16  field_C;
+    /* 0x00E */ u16  field_E;
+    /* 0x010 */ u16  field_10;
+    /* 0x012 */ u16  field_12;
+    /* 0x014 */ s16  field_14;
+    /* 0x016 */ byte pad_16[6];
+    /// First of the two animation contexts, with the 0x12 slots it drives.
+    /* 0x01C */ GpAnimCtx              anim0;
+    /* 0x030 */ GpAnimSlot             slot0;
+    /* 0x058 */ byte                   pad_58[2];
+    /* 0x05A */ u16                    field_5A;
+    /* 0x05C */ byte                   pad_5C[0xC];
+    /* 0x068 */ u16                    field_68;
+    /* 0x06A */ byte                   pad_6A[0x296];
+    /* 0x300 */ byte                   data0[0x120];
+    /* 0x420 */ GpAnimCtx              anim1;
+    /* 0x434 */ GpAnimSlot             slot1;
+    /* 0x45C */ byte                   pad_45C[0x10];
+    /* 0x46C */ u16                    field_46C;
+    /* 0x46E */ byte                   pad_46E[0x296];
+    /* 0x704 */ byte                   data1[0x124];
+    /* 0x828 */ u16                    field_828;
+    /* 0x82A */ u16                    field_82A;
+    /* 0x82C */ s16                    field_82C;
+    /* 0x82E */ u16                    field_82E;
+    /* 0x830 */ u16                    field_830;
+    /* 0x832 */ u16                    field_832;
+    /* 0x834 */ u16                    field_834;
+    /* 0x836 */ s16                    field_836;
+    /* 0x838 */ s16                    field_838;
+    /* 0x83A */ u16                    field_83A;
+    /* 0x83C */ byte                   pad_83C[2];
+    /* 0x83E */ u16                    field_83E;
+    /* 0x840 */ u16                    field_840;
+    /* 0x842 */ s16                    field_842;
+    /* 0x844 */ u16                    field_844;
+    /* 0x846 */ byte                   pad_846[6];
+    /* 0x84C */ u32                    field_84C;
+    /* 0x850 */ byte                   pad_850[0x40];
+    /* 0x890 */ GpEffArg               field_890;
+    /* 0x898 */ SVECTOR                field_898;
+    /* 0x8A0 */ byte                   pad_8A0[8];
+    /* 0x8A8 */ SVECTOR                field_8A8;
+    /* 0x8B0 */ SVECTOR                field_8B0;
+    /* 0x8B8 */ byte                   pad_8B8[0x20];
+    /* 0x8D8 */ s32                    field_8D8;
+    /* 0x8DC */ s32                    field_8DC;
+    /* 0x8E0 */ s32                    field_8E0;
+    /* 0x8E4 */ byte                   pad_8E4[4];
+    /* 0x8E8 */ s16                    field_8E8;
+    /* 0x8EA */ byte                   field_8EA;
+    /* 0x8EB */ byte                   pad_8EB[0x1D];
+    /* 0x908 */ Actor00100Obj          objs[4];
+    /* 0xB68 */ byte                   pad_B68[0x18];
+    /* 0xB80 */ MATRIX                 field_B80;
+    /* 0xBA0 */ MATRIX                 field_BA0;
+    /* 0xBC0 */ byte                   pad_BC0[0x20];
+    /* 0xBE0 */ s16                    field_BE0;
+    /* 0xBE2 */ byte                   pad_BE2[2];
+    /* 0xBE4 */ u16                    field_BE4;
+    /* 0xBE6 */ byte                   pad_BE6[0x12];
+    /* 0xBF8 */ Actor00100AnimCommand* field_BF8;
+    /* 0xBFC */ s32                    field_BFC;
+    /* 0xC00 */ s32                    field_C00;
+    /* 0xC04 */ s32                    field_C04;
+    /* 0xC08 */ s32                    field_C08;
+    /// Last message opcode/operands, kept for the debug display: the three
+    /// bytes of `GpCmdArg` are latched here verbatim.
+    /* 0xC0C */ u8   field_C0C;
+    /* 0xC0D */ u8   field_C0D;
+    /* 0xC0E */ u8   field_C0E;
+    /* 0xC0F */ byte pad_C0F[9];
+    /* 0xC18 */ s16  field_C18;
+    /* 0xC1A */ s16  field_C1A;
+    /* 0xC1C */ byte pad_C1C[2];
+    /* 0xC1E */ u16  field_C1E;
+    /* 0xC20 */ u16  field_C20;
+    /* 0xC22 */ s16  field_C22;
+    /* 0xC24 */ u16  field_C24;
+    /* 0xC26 */ s16  field_C26;
+    /* 0xC28 */ s16  field_C28;
+    /* 0xC2A */ s16  field_C2A;
+} Actor00100Work;
+
+typedef struct Actor00100Record {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[0x14];
+} Actor00100Record;
+STATIC_ASSERT_SIZEOF(Actor00100Record, 0x18);
+
+/// Alternate view of the work block: this table overlaps the object storage.
+typedef struct Actor00100RecordWork {
+    /* 0x000 */ byte             pad_0[0xB0C];
+    /* 0xB0C */ Actor00100Record records[5];
+} Actor00100RecordWork;
+
+typedef struct Actor00100AngleScratch {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 z;
+    /* 0x06 */ s16 pad_6;
+    /* 0x08 */ s16 yaw;
+    /* 0x0A */ s16 targetYaw;
+    /* 0x0C */ s16 delta;
+    /* 0x0E */ s16 pad_E;
+} Actor00100AngleScratch;
+STATIC_ASSERT_SIZEOF(Actor00100AngleScratch, 0x10);
+
+typedef struct Actor00100ProjectScratch {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 z;
+    /* 0x06 */ s16 pad_6;
+    /* 0x08 */ s16 screenX;
+    /* 0x0A */ s16 screenY;
+    /* 0x0C */ s32 dp;
+    /* 0x10 */ s32 flag;
+    /* 0x14 */ s32 pad_14;
+    /* 0x18 */ s32 depth;
+    /* 0x1C */ s16 yaw;
+    /* 0x1E */ s16 targetYaw;
+    /* 0x20 */ s16 delta;
+    /* 0x22 */ s16 pad_22;
+} Actor00100ProjectScratch;
+STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
+
+/// 0x70-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn01388`, the
+/// 16-slot variant of the `Actor00100_Fn00508` walk. `flags` keeps the current
+/// record's `field_4` bit 0x80, which gates `blocked` for kind 0x10000.
+typedef struct Actor00100AvoidScratch16 {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s32      flags;
+    /* 0x38 */ s16      angle[16];
+    /* 0x58 */ s8       ok[16];
+    /* 0x68 */ s16      face;
+    /* 0x6A */ s16      diff;
+    /* 0x6C */ u8       i;
+    /* 0x6D */ u8       j;
+    /* 0x6E */ u8       count;
+    /* 0x6F */ u8       blocked;
+} Actor00100AvoidScratch16;
+STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch16, 0x70);
+
+/// One entry of `Actor00100_D00004`: a translation plus the yaw applied after
+/// it. The first component is signed, the rest are not (the code sign-extends
+/// them at the use site).
+typedef struct Actor00100PoseRow {
+    /* 0x00 */ s16 vx;
+    /* 0x02 */ u16 vy;
+    /* 0x04 */ u16 vz;
+    /* 0x06 */ u16 yaw;
+} Actor00100PoseRow;
+STATIC_ASSERT_SIZEOF(Actor00100PoseRow, 0x8);
+
+/// Four poses `Actor00100_Fn00E58` picks between when the 0x104 message arms
+/// the actor. Alignment stays 2 so a whole-table copy stays unaligned.
+typedef struct Actor00100PoseTable {
+    /* 0x00 */ Actor00100PoseRow rows[4];
+} Actor00100PoseTable;
+STATIC_ASSERT_SIZEOF(Actor00100PoseTable, 0x20);
+
+/// Source of the four halfwords the 0x1602 handler latches into
+/// `Actor00100Work.field_C1E..field_C24`.
+typedef struct Actor00100PoseSrcRow {
+    /* 0x00 */ u16 vx;
+    /* 0x02 */ u16 vy;
+    /* 0x04 */ u16 vz;
+    /* 0x06 */ u16 yaw;
+} Actor00100PoseSrcRow;
+STATIC_ASSERT_SIZEOF(Actor00100PoseSrcRow, 0x8);
+
+typedef struct Actor00100PoseSrc {
+    /* 0x00 */ Actor00100PoseSrcRow rows[4];
+} Actor00100PoseSrc;
+STATIC_ASSERT_SIZEOF(Actor00100PoseSrc, 0x20);
+
+typedef struct {
+    u8  pad0[0x8C0];
+    s32 field_8C0, field_8C4, field_8C8;
+    u8  pad8CC[4];
+    s16 field_8D0, field_8D2, field_8D4;
+    u8  pad8D6[0x2A];
+    s32 field_900;
+    u8  field_904, field_905;
+    s16 field_906;
+    u8  pad908[0x2E8];
+    s16 field_BF0, field_BF2, field_BF4;
+    u8  padBF6[0x28];
+    s16 field_C1E;
+} Actor00100FacingWork;
+
+STATIC_ASSERT_SIZEOF(Actor00100FacingWork, 0xC20);
+
+typedef struct Actor00100StateTable {
+    TaskFunc fn[39];
+} Actor00100StateTable;
+STATIC_ASSERT_SIZEOF(Actor00100StateTable, 0x9C);
+
+extern Actor00100PoseSrc Actor00100_D0BDB4;
+
+extern GpPairSrcE Actor00100_D0BDA4;
+
+extern GpAnimSet* Actor00100_D1B944[26];
+
+extern TmdSource Actor00100_D10D60;
+
+extern TmdSource Actor00100_D11234;
+
+extern TmdSource Actor00100_D11F90;
+
+extern TmdSource Actor00100_D12470;
+
+extern Actor00100AnimCommand Actor00100_D1B9AC;
+
+extern SVECTOR Actor00100_D1BA90;
+
+extern Actor00100AnimCommand Actor00100_D1B9D0;
+
+s32 Actor00100_Fn0B264(Task* task);
+
+s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
+
 typedef struct {
     s32 id;
     union {
-        s32 (*command)(Task*, s32, GpCmdArg*);
+        s32  (*command)(Task*, s32, GpCmdArg*);
         void (*reset)(void);
-        s32 (*value)(Task*, s32, s32);
-        s32 (*task)(Task*);
-        s32 (*placement)(Task*, s32, GpXformArg*);
+        s32  (*value)(Task*, s32, s32);
+        s32  (*task)(Task*);
+        s32  (*placement)(Task*, s32, GpXformArg*);
     } handler;
 } Actor00100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor00100MessageEntry, 8);
@@ -113,6 +380,7 @@ typedef struct Actor00100DamageWork {
     u8      pad_BE6[0x44];
     s16     field_C2A;
 } Actor00100DamageWork;
+
 typedef struct Actor00100DamageScratch {
     s32 field_0;
     s32 field_4;
@@ -134,44 +402,398 @@ typedef struct Actor00100DamageScratch {
 } Actor00100DamageScratch;
 
 static void Actor00100_Fn02788(Task* arg0);
+
 static void Actor00100_Fn0B3B4(Task* task);
+
 static void Actor00100_Fn0B658(Task* arg0);
 
 extern GpAnimSet Actor00100_D129A4;
+
 extern GpAnimSet Actor00100_D12C60;
+
 extern GpAnimSet Actor00100_D13294;
+
 extern GpAnimSet Actor00100_D1386C;
+
 extern GpAnimSet Actor00100_D13CA0;
+
 extern GpAnimSet Actor00100_D14378;
+
 extern GpAnimSet Actor00100_D14978;
+
 extern GpAnimSet Actor00100_D14BD4;
+
 extern GpAnimSet Actor00100_D151F8;
+
 extern GpAnimSet Actor00100_D15648;
+
 extern GpAnimSet Actor00100_D15C2C;
+
 extern GpAnimSet Actor00100_D15DA8;
+
 extern GpAnimSet Actor00100_D1644C;
+
 extern GpAnimSet Actor00100_D16E64;
+
 extern GpAnimSet Actor00100_D17284;
+
 extern GpAnimSet Actor00100_D17548;
+
 extern GpAnimSet Actor00100_D17A4C;
+
 extern GpAnimSet Actor00100_D17FCC;
+
 extern GpAnimSet Actor00100_D1857C;
+
 extern GpAnimSet Actor00100_D18C3C;
+
 extern GpAnimSet Actor00100_D190D0;
+
 extern GpAnimSet Actor00100_D19918;
+
 extern GpAnimSet Actor00100_D1A0B4;
+
 extern GpAnimSet Actor00100_D1A8C0;
+
 extern GpAnimSet Actor00100_D1B0D4;
+
 extern GpAnimSet Actor00100_D1B388;
+
 extern GpAnimSet Actor00100_D1B6A8;
 
 extern TmdSource Actor00100_D108C0;
-s32 Actor00100_Fn00E58(Task *, s32, GpCmdArg *);
-s32 Actor00100_Fn0B1A4(Task *, s32, s32);
-s32 Actor00100_Fn0B264(Task *);
-s32 Actor00100_Fn0B2B4(Task *, s32, GpXformArg *);
+
+s32 Actor00100_Fn00E58(Task*, s32, GpCmdArg*);
+
+s32 Actor00100_Fn0B2B4(Task*, s32, GpXformArg*);
+
 void Actor00100_Fn0B134(void);
-void Actor00100_Fn0BD28(Task *);
+
+void Actor00100_Fn0BD28(Task*);
+
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} Actor00100PoseBank12494;
+
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor00100PoseBank129CC;
+
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} Actor00100PoseBank12C88;
+
+typedef union {
+    GpPackedPose poses[11];
+    GpPackedSvec words[33];
+} Actor00100PoseBank132BC;
+
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} Actor00100PoseBank13894;
+
+typedef union {
+    GpPackedPose poses[19];
+    GpPackedSvec words[57];
+} Actor00100PoseBank13CC8;
+
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} Actor00100PoseBank143A0;
+
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor00100PoseBank149A0;
+
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} Actor00100PoseBank14BFC;
+
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} Actor00100PoseBank15220;
+
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} Actor00100PoseBank15670;
+
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor00100PoseBank15C54;
+
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} Actor00100PoseBank15DD0;
+
+typedef union {
+    GpPackedPose poses[30];
+    GpPackedSvec words[90];
+} Actor00100PoseBank16474;
+
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} Actor00100PoseBank16E8C;
+
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor00100PoseBank172AC;
+
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} Actor00100PoseBank17570;
+
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} Actor00100PoseBank17A74;
+
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} Actor00100PoseBank17FF4;
+
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} Actor00100PoseBank185A4;
+
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} Actor00100PoseBank18C64;
+
+typedef union {
+    GpPackedPose poses[21];
+    GpPackedSvec words[63];
+} Actor00100PoseBank190F8;
+
+typedef union {
+    GpPackedPose poses[20];
+    GpPackedSvec words[60];
+} Actor00100PoseBank19940;
+
+typedef union {
+    GpPackedPose poses[15];
+    GpPackedSvec words[45];
+} Actor00100PoseBank1A0DC;
+
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} Actor00100PoseBank1A8E8;
+
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor00100PoseBank1B0FC;
+
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor00100PoseBank1B3B0;
+
+typedef struct Actor00100MoveWork {
+    /* 0x00 */ u8  pad_0[0xC];
+    /* 0x0C */ s16 pos[2][2];
+    /* 0x14 */ s16 index;
+} Actor00100MoveWork;
+
+extern s8 Actor00100_D1B6D0[25 * 25];
+
+static const GpEnemyTaskFuncTable4 Actor00100_D001A0;
+
+static void Actor00100_Fn0B4D8(Task* arg0);
+
+static void Actor00100_Fn0B52C(Task* arg0);
+
+static void Actor00100_Fn0B730(Task* arg0);
+
+static void Actor00100_Fn0B7DC(Task* arg0);
+
+static void Actor00100_Fn0B8D8(Task* arg0);
+
+static void Actor00100_Fn0B98C(Task* arg0);
+
+static void Actor00100_Fn0BA70(Task* arg0);
+
+static void Actor00100_Fn0BB2C(Task* arg0);
+
+static void Actor00100_Fn0BC14(Task* task);
+
+static void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task);
+
+static __inline__ s16      Actor00100_FacingAway(GpCoord* p);
+static __inline__ void     Actor00100_ScaleTransform(MATRIX* matrix, s16 amount);
+static __inline__ s16      Actor00100_HasRecord10(Task* actor);
+static __inline__ void     Actor00100_PositionDelta(GpCoord* coord, SVECTOR* pos);
+static __inline__ s32      Actor00100_OutsideRadius(SVECTOR* pos, s32 radius);
+static __inline__ s16      Actor00100_InRegion(Task* actor);
+static __inline__ s16      Actor00100_InDirection(Task* actor, VECTOR* motion);
+static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head);
+static __inline__ s32      Actor00100_FindDamageHit(GpRec18* records, SVECTOR* pos);
+static __inline__ void     Actor00100_SetHitState(Actor00100DamageWork* work);
+static void                Actor00100_Fn001FC(GpCoord* coord, s16 yaw);
+static s32                 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32                 Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32                 Actor00100_Fn00BF8(Task* arg0);
+static s32                 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static void                Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
+static void                Actor00100_Fn01D74(Task* arg0);
+static s32                 Actor00100_Fn01EEC(Task* arg0, Actor00100Work* arg1);
+static void                Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1);
+static void                Actor00100_Fn0375C(Task* arg0);
+static void                Actor00100_Fn04270(Task* arg0);
+static void                Actor00100_Fn04864(Task* arg0);
+static void                Actor00100_Fn0503C(Task* arg0);
+static void                Actor00100_Fn061FC(Task* arg0);
+static void                Actor00100_Fn06398(Task* arg0);
+static void                Actor00100_Fn06654(Task* arg0);
+static void                Actor00100_Fn06C10(Task* arg0);
+static void                Actor00100_Fn070DC(Task* arg0);
+static void                Actor00100_Fn0747C(Task* arg0);
+static void                Actor00100_Fn07650(Task* arg0);
+static void                Actor00100_Fn0782C(Task* arg0);
+static void                Actor00100_Fn08588(Task* arg0);
+static void                Actor00100_Fn08A14(Task* arg0);
+static void                Actor00100_Fn08E7C(Task* arg0);
+static void                Actor00100_Fn09310(Task* arg0);
+static void                Actor00100_Fn09724(Task* arg0);
+static void                Actor00100_Fn09CCC(Task* arg0);
+static void                Actor00100_Fn0A288(GpEnemy* enemy, Task* actor);
+static s16                 Actor00100_Fn0B13C(Task* arg0);
+static void                Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2);
+static void                Actor00100_Fn0BC1C(Task* arg0);
+
+static __inline__ s16 Actor00100_FacingAway(GpCoord* p)
+{
+    s16 angle = ratan2(-p->coord.m[2][0], p->coord.m[2][2]);
+    s32 value = angle;
+    if (value < 0)
+        value = -value;
+    if (value >= 0x501) {
+        if (p->coord.t[0] < 0x2AF9)
+            return 1;
+        if ((s16)ratan2(-p->coord.m[2][0], p->coord.m[2][2]) >= 0x708)
+            return 1;
+        if ((s16)ratan2(-p->coord.m[2][0], p->coord.m[2][2]) <= 0)
+            return 1;
+    }
+    return 0;
+}
+
+static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
+{
+    ActorScaleMatrixScratch* head;
+    ActorScaleMatrixScratch* scratch;
+    SVECTOR*                 vec;
+
+    head                                  = SCRATCH_HEAD(ActorScaleMatrixScratch);
+    scratch                               = head - 1;
+    SCRATCH_HEAD(ActorScaleMatrixScratch) = scratch;
+    scratch->scale.vz                     = amount;
+    scratch->scale.vy                     = amount;
+    head[-1].scale.vx                     = amount;
+    ScaleMatrix(matrix, &scratch->scale);
+    scratch->trans.vx = matrix->t[0];
+    scratch->trans.vy = matrix->t[1];
+    scratch->trans.vz = matrix->t[2];
+    gte_lddp(amount);
+    vec = &(head - 1)->trans;
+    gte_ldsv(vec);
+    gte_gpf12();
+    gte_stsv(vec);
+    matrix->t[0] = scratch->trans.vx;
+    matrix->t[1] = scratch->trans.vy;
+    matrix->t[2] = scratch->trans.vz;
+    SCRATCH_POP(ActorScaleMatrixScratch);
+}
+
+static __inline__ s16 Actor00100_HasRecord10(Task* actor)
+{
+    Actor00100RecordWork* work  = (Actor00100RecordWork*)((Actor00100Work*)actor->work);
+    s16                   found = 0;
+    s16                   i;
+    for (i = 0; i < 5; i++) {
+        if (!work->records[i].field_0) {
+            break;
+        }
+        if ((work->records[i].field_0 & 0xFFFF0000) == 0x100000) {
+            found = 1;
+        }
+    }
+    return found;
+}
+
+static __inline__ void Actor00100_PositionDelta(GpCoord* coord, SVECTOR* pos)
+{
+    pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+}
+
+static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
+{
+    OverlayRangeScratch* head;
+    OverlayRangeScratch* scratch;
+    head                              = SCRATCH_HEAD(OverlayRangeScratch);
+    scratch                           = head - 1;
+    SCRATCH_HEAD(OverlayRangeScratch) = scratch;
+    scratch->dx                       = pos->vx;
+    scratch->dz                       = pos->vz;
+    scratch->r                        = radius;
+    scratch->dx                      *= scratch->dx;
+    scratch->dz                      *= scratch->dz;
+    scratch->r                       *= scratch->r;
+    SCRATCH_POP(OverlayRangeScratch);
+    return scratch->dx + scratch->dz >= scratch->r;
+}
+
+static __inline__ s16 Actor00100_InRegion(Task* actor)
+{
+    GpCoord* coord = actor->extra.tmd->coords;
+    if ((u32)(coord->coord.t[0] - 0x1541) < 0x196DU) {
+        if (coord->coord.t[2] < 0x5B4)
+            return 1;
+    }
+    return 0;
+}
+
+static __inline__ s16 Actor00100_InDirection(Task* actor, VECTOR* motion)
+{
+    GpCoord* coord = actor->extra.tmd->coords;
+    if (abs((s16)ratan2(motion->vx, motion->vz)) >= 0x501) {
+        if (coord->coord.t[0] < 0x2AF9)
+            return 1;
+        if ((s16)ratan2(motion->vx, motion->vz) >= 0x708)
+            return 1;
+        if ((s16)ratan2(motion->vx, motion->vz) <= 0)
+            return 1;
+    }
+    return 0;
+}
+
+static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head)
+{
+    SVECTOR* p                     = SCRATCH_HEAD_AT(head, SVECTOR) - 1;
+    SCRATCH_HEAD_AT(head, SVECTOR) = p;
+    return p;
+}
+
+// Each handler receives the argument view used by its message ID.
 
 GpU16Pair Actor00100_D0BD90[5] = {
     { 30, 0 },
@@ -311,10 +933,6 @@ TmdSource Actor00100_D12470 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} Actor00100PoseBank12494;
 
 Actor00100PoseBank12494 Actor00100_D12494 = { .poses = {
 #include "assets/actor_400100_animation_129A4_bank1.inc"
@@ -338,10 +956,6 @@ GpAnimSet Actor00100_D129A4 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[5];
-    GpPackedSvec words[15];
-} Actor00100PoseBank129CC;
 
 Actor00100PoseBank129CC Actor00100_D129CC = { .poses = {
 #include "assets/actor_400100_animation_12C60_bank1.inc"
@@ -365,10 +979,6 @@ GpAnimSet Actor00100_D12C60 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} Actor00100PoseBank12C88;
 
 Actor00100PoseBank12C88 Actor00100_D12C88 = { .poses = {
 #include "assets/actor_400100_animation_13294_bank1.inc"
@@ -392,10 +1002,6 @@ GpAnimSet Actor00100_D13294 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[11];
-    GpPackedSvec words[33];
-} Actor00100PoseBank132BC;
 
 Actor00100PoseBank132BC Actor00100_D132BC = { .poses = {
 #include "assets/actor_400100_animation_1386C_bank1.inc"
@@ -419,10 +1025,6 @@ GpAnimSet Actor00100_D1386C = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} Actor00100PoseBank13894;
 
 Actor00100PoseBank13894 Actor00100_D13894 = { .poses = {
 #include "assets/actor_400100_animation_13CA0_bank1.inc"
@@ -446,10 +1048,6 @@ GpAnimSet Actor00100_D13CA0 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[19];
-    GpPackedSvec words[57];
-} Actor00100PoseBank13CC8;
 
 Actor00100PoseBank13CC8 Actor00100_D13CC8 = { .poses = {
 #include "assets/actor_400100_animation_14378_bank1.inc"
@@ -473,10 +1071,6 @@ GpAnimSet Actor00100_D14378 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[14];
-    GpPackedSvec words[42];
-} Actor00100PoseBank143A0;
 
 Actor00100PoseBank143A0 Actor00100_D143A0 = { .poses = {
 #include "assets/actor_400100_animation_14978_bank1.inc"
@@ -500,10 +1094,6 @@ GpAnimSet Actor00100_D14978 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} Actor00100PoseBank149A0;
 
 Actor00100PoseBank149A0 Actor00100_D149A0 = { .poses = {
 #include "assets/actor_400100_animation_14BD4_bank1.inc"
@@ -527,10 +1117,6 @@ GpAnimSet Actor00100_D14BD4 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[12];
-    GpPackedSvec words[36];
-} Actor00100PoseBank14BFC;
 
 Actor00100PoseBank14BFC Actor00100_D14BFC = { .poses = {
 #include "assets/actor_400100_animation_151F8_bank1.inc"
@@ -554,10 +1140,6 @@ GpAnimSet Actor00100_D151F8 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} Actor00100PoseBank15220;
 
 Actor00100PoseBank15220 Actor00100_D15220 = { .poses = {
 #include "assets/actor_400100_animation_15648_bank1.inc"
@@ -581,10 +1163,6 @@ GpAnimSet Actor00100_D15648 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[12];
-    GpPackedSvec words[36];
-} Actor00100PoseBank15670;
 
 Actor00100PoseBank15670 Actor00100_D15670 = { .poses = {
 #include "assets/actor_400100_animation_15C2C_bank1.inc"
@@ -608,10 +1186,6 @@ GpAnimSet Actor00100_D15C2C = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} Actor00100PoseBank15C54;
 
 Actor00100PoseBank15C54 Actor00100_D15C54 = { .poses = {
 #include "assets/actor_400100_animation_15DA8_bank1.inc"
@@ -635,10 +1209,6 @@ GpAnimSet Actor00100_D15DA8 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} Actor00100PoseBank15DD0;
 
 Actor00100PoseBank15DD0 Actor00100_D15DD0 = { .poses = {
 #include "assets/actor_400100_animation_1644C_bank1.inc"
@@ -662,10 +1232,6 @@ GpAnimSet Actor00100_D1644C = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[30];
-    GpPackedSvec words[90];
-} Actor00100PoseBank16474;
 
 Actor00100PoseBank16474 Actor00100_D16474 = { .poses = {
 #include "assets/actor_400100_animation_16E64_bank1.inc"
@@ -689,10 +1255,6 @@ GpAnimSet Actor00100_D16E64 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[12];
-    GpPackedSvec words[36];
-} Actor00100PoseBank16E8C;
 
 Actor00100PoseBank16E8C Actor00100_D16E8C = { .poses = {
 #include "assets/actor_400100_animation_17284_bank1.inc"
@@ -716,10 +1278,6 @@ GpAnimSet Actor00100_D17284 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} Actor00100PoseBank172AC;
 
 Actor00100PoseBank172AC Actor00100_D172AC = { .poses = {
 #include "assets/actor_400100_animation_17548_bank1.inc"
@@ -743,10 +1301,6 @@ GpAnimSet Actor00100_D17548 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} Actor00100PoseBank17570;
 
 Actor00100PoseBank17570 Actor00100_D17570 = { .poses = {
 #include "assets/actor_400100_animation_17A4C_bank1.inc"
@@ -770,10 +1324,6 @@ GpAnimSet Actor00100_D17A4C = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} Actor00100PoseBank17A74;
 
 Actor00100PoseBank17A74 Actor00100_D17A74 = { .poses = {
 #include "assets/actor_400100_animation_17FCC_bank1.inc"
@@ -797,10 +1347,6 @@ GpAnimSet Actor00100_D17FCC = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[14];
-    GpPackedSvec words[42];
-} Actor00100PoseBank17FF4;
 
 Actor00100PoseBank17FF4 Actor00100_D17FF4 = { .poses = {
 #include "assets/actor_400100_animation_1857C_bank1.inc"
@@ -824,10 +1370,6 @@ GpAnimSet Actor00100_D1857C = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} Actor00100PoseBank185A4;
 
 Actor00100PoseBank185A4 Actor00100_D185A4 = { .poses = {
 #include "assets/actor_400100_animation_18C3C_bank1.inc"
@@ -851,10 +1393,6 @@ GpAnimSet Actor00100_D18C3C = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} Actor00100PoseBank18C64;
 
 Actor00100PoseBank18C64 Actor00100_D18C64 = { .poses = {
 #include "assets/actor_400100_animation_190D0_bank1.inc"
@@ -878,10 +1416,6 @@ GpAnimSet Actor00100_D190D0 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[21];
-    GpPackedSvec words[63];
-} Actor00100PoseBank190F8;
 
 Actor00100PoseBank190F8 Actor00100_D190F8 = { .poses = {
 #include "assets/actor_400100_animation_19918_bank1.inc"
@@ -905,10 +1439,6 @@ GpAnimSet Actor00100_D19918 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[20];
-    GpPackedSvec words[60];
-} Actor00100PoseBank19940;
 
 Actor00100PoseBank19940 Actor00100_D19940 = { .poses = {
 #include "assets/actor_400100_animation_1A0B4_bank1.inc"
@@ -932,10 +1462,6 @@ GpAnimSet Actor00100_D1A0B4 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[15];
-    GpPackedSvec words[45];
-} Actor00100PoseBank1A0DC;
 
 Actor00100PoseBank1A0DC Actor00100_D1A0DC = { .poses = {
 #include "assets/actor_400100_animation_1A8C0_bank1.inc"
@@ -959,10 +1485,6 @@ GpAnimSet Actor00100_D1A8C0 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[14];
-    GpPackedSvec words[42];
-} Actor00100PoseBank1A8E8;
 
 Actor00100PoseBank1A8E8 Actor00100_D1A8E8 = { .poses = {
 #include "assets/actor_400100_animation_1B0D4_bank1.inc"
@@ -986,10 +1508,6 @@ GpAnimSet Actor00100_D1B0D4 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[5];
-    GpPackedSvec words[15];
-} Actor00100PoseBank1B0FC;
 
 Actor00100PoseBank1B0FC Actor00100_D1B0FC = { .poses = {
 #include "assets/actor_400100_animation_1B388_bank1.inc"
@@ -1013,10 +1531,6 @@ GpAnimSet Actor00100_D1B388 = {
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} Actor00100PoseBank1B3B0;
 
 Actor00100PoseBank1B3B0 Actor00100_D1B3B0 = { .poses = {
 #include "assets/actor_400100_animation_1B6A8_bank1.inc"
@@ -1754,16 +2268,7 @@ static __inline__ void Actor00100_SetHitState(Actor00100DamageWork* work)
         work->field_0 = 0x14;
 }
 
-typedef struct Actor00100MoveWork {
-    /* 0x00 */ u8  pad_0[0xC];
-    /* 0x0C */ s16 pos[2][2];
-    /* 0x14 */ s16 index;
-} Actor00100MoveWork;
-
 // Transition durations indexed by previous * 25 + next animation.
-extern s8 Actor00100_D1B6D0[25 * 25];
-
-static const GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
@@ -5406,17 +5911,6 @@ static void Actor00100_Fn09CCC(Task* arg0)
     }
     SCRATCH_POP_BYTES(0x14);
 }
-
-static void Actor00100_Fn0B4D8(Task* arg0);
-static void Actor00100_Fn0B52C(Task* arg0);
-static void Actor00100_Fn0B730(Task* arg0);
-static void Actor00100_Fn0B7DC(Task* arg0);
-static void Actor00100_Fn0B8D8(Task* arg0);
-static void Actor00100_Fn0B98C(Task* arg0);
-static void Actor00100_Fn0BA70(Task* arg0);
-static void Actor00100_Fn0BB2C(Task* arg0);
-static void Actor00100_Fn0BC14(Task* task);
-static void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task);
 
 /// Per-state handlers the per-frame update calls, indexed by the work block's
 /// `field_0`, called unconditionally; a null entry is a state with no handler.

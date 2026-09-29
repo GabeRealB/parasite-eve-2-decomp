@@ -1,43 +1,44 @@
 #include "actor_143000_private.h"
 
-#include "actor_143000_capture.h"
-
-#include "common.h"
-#include "rooms/shelter_b2_laboratory.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
+#include <psyq/strings.h>
 
-#include "actors/actor_143000.h"
-#include "psyq/strings.h"
-#include "rooms/room_common.h"
+#include "common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/world_targets.h"
+#include "actor_143000_capture_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_actor_143000_80135C0C[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern u8 D_actor_143000_80135C0C_value __asm__("D_actor_143000_80135C0C");
-
 
 /// Work block of the actor's callback task. `promptKind` is the picked hotspot's
 /// prompt display mode, copied from its `Actor143000Rect::field_A` by
@@ -78,16 +79,10 @@ typedef struct Actor143000Rect {
 } Actor143000Rect;
 STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
 
-
-
 extern TaskDesc        D_actor_143000_80134558;
 extern u8              D_actor_143000_80134570[];
 extern Actor143000Rect D_actor_143000_80134580[];
 extern const char*     D_actor_143000_801345F8[3];
-extern TaskDesc        D_actor_143000_801350B0[];
-extern s32             D_actor_143000_80135C00;
-extern s32             D_actor_143000_80135C04;
-extern char            D_actor_143000_80135C20[];
 
 static void func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
 static void func_actor_143000_80132A04(Task* arg0);
@@ -103,8 +98,8 @@ static s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
 static void func_actor_143000_80133C2C(void);
 static void func_actor_143000_80133C90(Task* task);
 
-void func_actor_143000_80133578(Task *);
-void func_actor_143000_801335C8(Task *);
+void func_actor_143000_80133578(Task*);
+void func_actor_143000_801335C8(Task*);
 
 extern const char D_actor_143000_80131E54[14];
 extern const char D_actor_143000_80131E64[14];
@@ -275,6 +270,12 @@ GpAnimSet D_actor_143000_80135068 = {
 Actor143000CaptureArgs D_actor_143000_80135090 = { 129, 39, 164, 90, 10, 0 };
 
 Actor143000CaptureArgs D_actor_143000_801350A0 = { 38, 138, 250, 75, 8, 0 };
+
+static void func_actor_143000_80131F80(Task* task);
+static void func_actor_143000_801324C8(Task* arg0);
+static void func_actor_143000_801325F0(Task* arg0);
+static void func_actor_143000_80132D10(Task* arg0);
+static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b);
 
 /// Per-frame cursor driver of the action prompt, run as state 1 of the prompt
 /// task that `func_actor_143000_80133578` dispatches.

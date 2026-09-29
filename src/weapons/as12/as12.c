@@ -1,21 +1,26 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 
-#include "gameplay/display.h"
+#include "types.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/items.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+static void func_as12_8011D1DC(Task* arg0);
 
 /// Per-frame firing state machine for the AS12 automatic shotgun. Case 0 arms
 /// the shot and queues the ready animation, choosing the long variant when the

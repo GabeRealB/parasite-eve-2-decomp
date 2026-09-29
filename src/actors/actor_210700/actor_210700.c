@@ -1,30 +1,32 @@
 #include "actors/actor_210700.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/item_pickup.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/item_pickup.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 extern GpImgRec D_actor_210700_8015858C[2];
 
@@ -79,7 +81,7 @@ STATIC_ASSERT_SIZEOF(Actor210700Anim, 0x18);
 
 /// Animation sources the 0x7D3 handler loads, indexed by its payload's
 /// `field_0`.
-extern GpAnimSet* D_actor_210700_801585AC[7];
+extern GpAnimSet*  D_actor_210700_801585AC[7];
 extern GpAnimSet** D_actor_210700_801585C8[1];
 
 /// The actor's message table, parked in `Task::msgTable`: 0x7D3
@@ -90,9 +92,9 @@ extern GpAnimSet** D_actor_210700_801585C8[1];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, Actor210700Anim *, s32);
-        s32 (*call1)(Task *, s32, GpXformArg *, s32);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, Actor210700Anim*, s32);
+        s32 (*call1)(Task*, s32, GpXformArg*, s32);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor210700MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor210700MsgEntry, 8);
@@ -117,8 +119,6 @@ static const TaskFuncTable3 D_actor_210700_80149E24 = { {
     func_actor_210700_8014A1E8,
 } };
 
-
-
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
     GpPackedPose poses[49];
@@ -132,11 +132,11 @@ extern GpAnimSet D_actor_210700_8015754C;
 extern GpAnimSet D_actor_210700_8015799C;
 extern GpAnimSet D_actor_210700_80157C24;
 extern TmdSource D_actor_210700_80156504;
-s32 func_actor_210700_8014A224(Task *, s32, Actor210700Anim *, s32);
-s32 func_actor_210700_8014A344(Task *, s32, GpXformArg *, s32);
-s32 func_actor_210700_8014A3D4(Task *, s32, s32);
-s32 func_actor_210700_8014A4B0(Task *, s32, s32);
-void func_actor_210700_80149F38(Task *);
+s32              func_actor_210700_8014A224(Task*, s32, Actor210700Anim*, s32);
+s32              func_actor_210700_8014A344(Task*, s32, GpXformArg*, s32);
+s32              func_actor_210700_8014A3D4(Task*, s32, s32);
+s32              func_actor_210700_8014A4B0(Task*, s32, s32);
+void             func_actor_210700_80149F38(Task*);
 
 Actor210700PoseBank750 D_actor_210700_8014A570 = { .poses = {
 #include "assets/actor_210700_animation_01E2C_bank1.inc"
@@ -1157,7 +1157,10 @@ Actor210700MsgEntry D_actor_210700_801585D8[5] = {
     { 2005, { .call2 = func_actor_210700_8014A3D4 } },
     { 2016, { .call2 = func_actor_210700_8014A4B0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// Texture-upload step, run by the tick state: while `field_53C` names an
+}; /// Texture-upload step, run by the tick state: while `field_53C` names an
+
+static void func_actor_210700_80149E30(Task* arg0);
+
 /// upload in progress, counts `field_53A` down one a frame, and on the frame
 /// it underflows posts that step's image over the 0x18x0x10 rect at y 0x28.
 /// Steps 1 and 2 then reload the countdown from `field_538` and advance to the

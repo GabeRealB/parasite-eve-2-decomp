@@ -1,53 +1,63 @@
-#include "gameplay/evs.h"
 #include "rooms/dryfield_night_water_hole.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/captions.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/animation.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
 #include "overlay.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/light.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/area_flags.h"
+#include "rooms/room.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -154,13 +164,13 @@ static void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32
 static void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2);
 
-void func_dryfield_night_water_hole_8017E630(Task *);
+void func_dryfield_night_water_hole_8017E630(Task*);
 
-extern GpGridParams D_dryfield_night_water_hole_80180F50[1];
-extern GpObj3A D_dryfield_night_water_hole_80182D58[2];
-extern GpObj4C D_dryfield_night_water_hole_801824BC[12];
-extern GpObj4C D_dryfield_night_water_hole_8018284C[9];
-extern GpObj4C D_dryfield_night_water_hole_80182AF8[8];
+extern GpGridParams   D_dryfield_night_water_hole_80180F50[1];
+extern GpObj3A        D_dryfield_night_water_hole_80182D58[2];
+extern GpObj4C        D_dryfield_night_water_hole_801824BC[12];
+extern GpObj4C        D_dryfield_night_water_hole_8018284C[9];
+extern GpObj4C        D_dryfield_night_water_hole_80182AF8[8];
 extern GpRoomBoundVec D_dryfield_night_water_hole_801834C8[12];
 extern GpRoomBoundVec D_dryfield_night_water_hole_80183528[12];
 extern GpRoomCoordSet D_dryfield_night_water_hole_8018307C[1];
@@ -174,11 +184,11 @@ extern GpRoomParamRec D_dryfield_night_water_hole_801835B0[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835B8[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835C0[1];
 
-s32 func_dryfield_night_water_hole_8017DAD4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_water_hole_8017DADC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_water_hole_8017DC28(Task *, s32, s32, s32);
-s32 func_dryfield_night_water_hole_8017DD5C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-void func_dryfield_night_water_hole_8017D7E8(Task *);
+s32  func_dryfield_night_water_hole_8017DAD4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_water_hole_8017DADC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
+s32  func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+void func_dryfield_night_water_hole_8017D7E8(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1275,6 +1285,10 @@ s16 D_dryfield_night_water_hole_8018362C[2] = {
 };
 
 RoomDeparture D_dryfield_night_water_hole_80183630 = { 0 };
+
+static s32  func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
+static void func_dryfield_night_water_hole_8017D958(Task* arg0);
+static void func_dryfield_night_water_hole_8017DF28(Task* task);
 
 /// Answers the code in `in->field_0` in `out->field_3`, unless `in->field_5`
 /// is set. Six codes have an answer, each from a progress nibble: 2 is 2 once

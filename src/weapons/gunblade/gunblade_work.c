@@ -1,14 +1,10 @@
-#include "common.h"
+#include "gunblade_private.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include "types.h"
 
-#include "weapons/gunblade.h"
-
-#include "gameplay/display.h"
 #include "gameplay/effects.h"
 
+#include "main/coord.h"
 #include "main/task_types.h"
 
 /// Zeroed work area at the very end of the package, so it is its own unit:

@@ -1,50 +1,79 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
-#include "psyq/abs.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80133eb8.h"
-#include "actors/actors_shared_80169f74.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
+
+/// Animation-state view shared by actor_401000 and actor_401800. Each actor
+/// owns a larger work block; these are the fields their animation driver uses.
+typedef struct ActorsShared80133eb8Work {
+    /* 0x000 */ byte           pad_0[0x1C];
+    /* 0x01C */ ActorAnimRig19 rig;
+    /* 0x458 */ ActorAnimRig19 blend;
+    /* 0x894 */ byte           pad_894[4];
+    /* 0x898 */ s16            field_898; // Pending clip change: cross-fade, reset, running
+    /* 0x89A */ s16            field_89A; // Nonzero while pose blending is active
+    /* 0x89C */ s16            field_89C; // Previous clip
+    /* 0x89E */ s16            field_89E; // Requested clip
+    /* 0x8A0 */ u16            field_8A0; // Frames since the clip change
+    /* 0x8A2 */ s16            field_8A2; // Body slot rate
+    /* 0x8A4 */ byte           pad_8A4[2];
+    /* 0x8A6 */ s16            field_8A6; // Blend clip change request
+    /* 0x8A8 */ s16            field_8A8; // Blend clip
+    /* 0x8AA */ u16            field_8AA; // Blend slot rate
+    /* 0x8AC */ s16            field_8AC; // Blend weight
+    /* 0x8AE */ s16            field_8AE; // Target head yaw
+    /* 0x8B0 */ s16            field_8B0; // Current head yaw
+    /* 0x8B2 */ byte           pad_8B2[2];
+    /* 0x8B4 */ s32            field_8B4; // Last animation event index
+} ActorsShared80133eb8Work;
+STATIC_ASSERT_SIZEOF(ActorsShared80133eb8Work, 0x8B8);
 
 /// XZ patrol point in `Actor401800Work.field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -292,11 +321,11 @@ extern ActorSpawnParamRow D_actor_401800_8013E700[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
-        s32 (*call4)(Task *, s32, u16 *);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, s32);
+        s32  (*call4)(Task*, s32, u16*);
         void (*call5)(void);
     } handler;
 } Actor401800MessageEntry;
@@ -310,7 +339,7 @@ extern Actor401800MessageEntry D_actor_401800_80155A80[8];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpXformArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor401800Storage5AD8;
 STATIC_ASSERT_SIZEOF(Actor401800Storage5AD8, 32);
 
@@ -379,14 +408,14 @@ extern GpAnimSet D_actor_401800_80151C0C;
 extern GpAnimSet D_actor_401800_8015256C;
 
 extern TmdSource D_actor_401800_80143918;
-s32 func_actor_401800_8013DCBC(Task *, s32, GpAnimArg *);
-s32 func_actor_401800_8013DD2C(Task *, s32, s32);
-s32 func_actor_401800_8013DDEC(Task *);
-s32 func_actor_401800_8013DE3C(Task *, s32, GpXformArg *);
-s32 func_actor_401800_8013DF3C(Task *);
-s32 func_actor_401800_8013DF80(Task *, s32, u16 *);
-void func_actor_401800_8013DCB4(void);
-void func_actor_401800_8013E68C(Task *);
+s32              func_actor_401800_8013DCBC(Task*, s32, GpAnimArg*);
+s32              func_actor_401800_8013DD2C(Task*, s32, s32);
+s32              func_actor_401800_8013DDEC(Task*);
+s32              func_actor_401800_8013DE3C(Task*, s32, GpXformArg*);
+s32              func_actor_401800_8013DF3C(Task*);
+s32              func_actor_401800_8013DF80(Task*, s32, u16*);
+void             func_actor_401800_8013DCB4(void);
+void             func_actor_401800_8013E68C(Task*);
 
 extern GpAnimSet D_actor_401800_80146F38;
 extern GpAnimSet D_actor_401800_80147518;
@@ -1451,6 +1480,39 @@ SVECTOR D_actor_401800_80155AD0 = { 0 };
 Actor401800Storage5AD8 D_actor_401800_80155AD8 = { 0 };
 
 GpDelayArg D_actor_401800_80155AF8 = { 0 };
+
+static s32             func_actor_401800_801323D4(GpCoord* coord, GpRec18* recs, s16 count);
+static __inline__ void Actor401800_BindMatrices(Task* actor);
+static void            func_actor_401800_80134C94(Task* arg0);
+static void            func_actor_401800_80135DAC(Task* arg0);
+static void            func_actor_401800_80135F58(Task* arg0);
+static __inline__ s32  Actor401800_OutOfRange(SVECTOR* d, s16 r);
+static __inline__ s32  Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r);
+static void            func_actor_401800_80136560(Task* arg0);
+static void            func_actor_401800_80136EAC(Task* arg0);
+static void            func_actor_401800_80137714(Task* arg0);
+static void            func_actor_401800_80137DDC(Task* arg0);
+static __inline__ void Actor401800_ViewWalk(GpCoord* coord, SVECTOR* svp, SVECTOR* dir);
+static __inline__ void Actor401800_SetGrabAnim(void);
+static void            func_actor_401800_80138C28(Task* arg0);
+static void            func_actor_401800_80138F5C(Task* arg0);
+static void            func_actor_401800_80139118(Task* arg0);
+static void            func_actor_401800_8013945C(Task* arg0);
+static void            func_actor_401800_8013971C(Task* arg0);
+static void            func_actor_401800_80139870(Task* arg0);
+static void            func_actor_401800_801399C4(Task* arg0);
+static void            func_actor_401800_80139B18(Task* arg0);
+static void            func_actor_401800_80139D60(Task* arg0);
+static void            func_actor_401800_8013A034(Task* arg0);
+static void            func_actor_401800_8013A2E8(Task* arg0);
+static void            func_actor_401800_8013AB64(Task* arg0);
+static void            func_actor_401800_8013AF1C(Task* arg0);
+static void            func_actor_401800_8013B444(Task* arg0);
+static void            func_actor_401800_8013B784(Task* arg0);
+static void            func_actor_401800_8013BB10(Task* arg0);
+static void            func_actor_401800_8013BF48(Task* arg0);
+static void            func_actor_401800_8013CD98(Task* arg0);
+static void            func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

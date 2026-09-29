@@ -1,26 +1,61 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include "weapons/tonfa_baton.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "tonfa_baton_private.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
-
-#include "gameplay/effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// 0x18-byte scratchpad block `func_tonfa_baton_8011DBFC` reserves for one
+/// frame of the swing. `dir` receives the third column of the weapon's
+/// coordinate matrix from `Gfx_MatrixCol2`; each axis is then scaled to
+/// 1/84th and multiplied by the swing flag to give the per-frame translation
+/// added to the coordinate.
+typedef struct TonfaSwing {
+    /* 0x00 */ s32     vx;
+    /* 0x04 */ s32     vy;
+    /* 0x08 */ s32     vz;
+    /* 0x0C */ byte    pad_C[4];
+    /* 0x10 */ SVECTOR dir;
+} TonfaSwing;
+STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
+
+/// 0x2C-byte scratch `func_tonfa_baton_8011D6B0` carves off `G_SCRATCH_HEAD`
+/// for one trail segment: `v` is the quad's four corners, taken from the
+/// translation of the two trail coordinates at each end of the segment, `flag`
+/// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its
+/// `gte_stszotz`, which picks the OT bucket the `POLY_G4` is linked into.
+typedef struct _TonfaBeamScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     flag;
+    /* 0x28 */ s32     unused;
+} TonfaBeamScratch;
+STATIC_ASSERT_SIZEOF(TonfaBeamScratch, 0x2C);
 
 static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags);
 
@@ -36,6 +71,11 @@ static SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
 static SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
 
 static void func_tonfa_baton_8011DB78(Task* task);
+
+static void func_tonfa_baton_8011DA48(Task* arg0);
+static void func_tonfa_baton_8011DA74(Task* arg0);
+static void func_tonfa_baton_8011DB6C(Task* arg0);
+static void func_tonfa_baton_8011DBFC(Task* arg0);
 
 void func_tonfa_baton_8011D1EC(Task* task)
 {

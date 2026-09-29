@@ -1,65 +1,222 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80133cd0.h"
-#include "actors/actors_shared_80134810.h"
-#include "actors/actors_shared_80136288.h"
-#include "actors/actors_shared_80136938.h"
-#include "actors/actors_shared_80136c80.h"
-#include "actors/actors_shared_8013777c.h"
-#include "actors/actors_shared_80137cf4.h"
-#include "actors/actors_shared_80137e18.h"
-#include "actors/actors_shared_80137ea8.h"
-#include "actors/actors_shared_80137f1c.h"
-#include "actors/actors_shared_80138570.h"
-#include "actors/actors_shared_80138640.h"
-#include "actors/actors_shared_801511c8.h"
+
 #include "actors/actors_shared_801673f8.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/gfxgte.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "rooms/shelter_b3_dumping_hole.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
+
+/// Work block the carriers hang off their context's 0x1C slot (the task's
+/// `Task::work`, which is not a `TaskIdMap` here). The three `GpObj`s are the
+/// display nodes `ActorsShared80138570` unlinks on its own exit path.
+///
+/// `field_36C` is the mode this body dispatches on - the sibling state machine
+/// `ActorsShared80137e18` writes is the `field_36A`/`field_36E` pair, and this
+/// one counts its own reaction out in `field_36E`. `field_370`/`field_372`/
+/// `field_374` are the same (helper id, id the slots last saw, frames spent on
+/// it) triple `Actor107000Work` keeps at 0x370 and `Actor207200Work` at 0x48C,
+/// and `field_394` is the same already-reacted flag `ActorShared8014d378Work`
+/// reads at 0x394.
+typedef struct ActorShared80136288Work {
+    /* 0x000 */ byte  pad_0[0x1DC];
+    /* 0x1DC */ GpObj field_1DC;
+    /* 0x1FC */ byte  pad_1FC[0x30];
+    /* 0x22C */ GpObj field_22C;
+    /* 0x24C */ byte  pad_24C[0x60];
+    /* 0x2AC */ GpObj field_2AC;
+    /* 0x2CC */ byte  pad_2CC[0xA0];
+    /* 0x36C */ s16   field_36C; // mode this handler dispatches on
+    /* 0x36E */ u16   field_36E; // frames the reaction has run; 0x3D moves to mode 2
+    /* 0x370 */ s16   field_370; // helper id the six slots are rebound to
+    /* 0x372 */ u16   field_372; // id the six helper slots last saw
+    /* 0x374 */ u16   field_374; // frames spent on the current helper id
+    /* 0x376 */ byte  pad_376[0x1E];
+    /* 0x394 */ u16   field_394; // non-zero: this frame has spent its reaction
+} ActorShared80136288Work;
+
+/// Ground-burst work allocated by the specimen's setup handler and advanced
+/// by ActorsShared80136c80. The collision node points at the capsule, whose
+/// contact table occupies the final 0x18 bytes.
+typedef struct ActorsShared80136938Work {
+    /* 0x00 */ SVECTOR      vec;
+    /* 0x08 */ GpObj        obj;
+    /* 0x28 */ GpActorD4Rec rec;
+    /* 0x40 */ GpRec18      rec2;
+} ActorsShared80136938Work;
+STATIC_ASSERT_SIZEOF(ActorsShared80136938Work, 0x58);
+
+/// Movement work the tick reaches through `Task::work`. This is the head of the
+/// block each carrier's own work type overlays (`Actor107000Work` from 0x214
+/// on, `Actor207000Work` from its own), so the two are views of one block, not
+/// one layout.
+///
+/// `field_0`/`field_2`/`field_4` are the per-frame velocity the tick folds onto
+/// the model: negated into `recs[0]`'s position and added to the coordinate's
+/// own translation. `recs[1]` is the collision record the hit test walks, and
+/// `field_26` the flag word it trims to 0x3FFF once a hit lands.
+typedef struct ActorsShared80136c80Work {
+    /* 0x00 */ u16     field_0;
+    /* 0x02 */ u16     field_2;
+    /* 0x04 */ u16     field_4;
+    /* 0x06 */ byte    pad_6[0x20];
+    /* 0x26 */ u16     field_26;
+    /* 0x28 */ GpRec18 recs[2];
+} ActorsShared80136c80Work;
+STATIC_ASSERT_SIZEOF(ActorsShared80136c80Work, 0x58);
+
+/// The part of the carriers' work block this body touches. Each carrier's block
+/// is its own type (`Actor107000Work`, ...); the shared unit only names the two
+/// collision-record tables `func_800E0C10` and `Gp_ClearRec18Occupied` walk,
+/// and the step's own position and speed scalars. It overlaps the carriers'
+/// own layouts - `Actor107000Work::field_2CC`, an `s16`, sits where the second
+/// table starts - so the two are views of one block, not one layout.
+typedef struct ActorsShared8013777cWork {
+    /* 0x000 */ byte    pad_0[0x24C];
+    /* 0x24C */ GpRec18 field_24C[4]; // collision table; `func_800E0C10` steps it with count 4
+    /* 0x2AC */ byte    pad_2AC[0x20];
+    /* 0x2CC */ GpRec18 field_2CC;    // second record table, wiped once the step is done
+    /* 0x2E4 */ s16     field_2E4;    // armed to 0x400 when the step is taken
+    /* 0x2E6 */ byte    pad_2E6[0x56];
+    /* 0x33C */ VECTOR3 field_33C;    // position the mode-2 arm snaps back to
+    /* 0x348 */ byte    pad_348[0x30];
+    /* 0x378 */ u16     field_378;    // forward speed; a step loses a quarter of it
+    /* 0x37A */ byte    pad_37A[0x12];
+    /* 0x38C */ s16     field_38C;    // latched step mode
+    /* 0x38E */ byte    pad_38E[0xA];
+    /* 0x398 */ s16     field_398;    // vertical speed, -0x50 while a step runs
+    /* 0x39A */ u16     field_39A;    // non-zero once the step has been taken
+} ActorsShared8013777cWork;
+
+/// The part of the carriers' work block this body touches. Each carrier's block
+/// is its own type (`Actor107000Work`, ...); the shared unit only names the
+/// animation triple - the id being played, the id the six helper slots last
+/// saw and the frames spent on it.
+typedef struct ActorsShared80137cf4Work {
+    /* 0x000 */ byte pad_0[0x370];
+    /* 0x370 */ s16  field_370; // animation id the work is playing
+    /* 0x372 */ u16  field_372; // id the six helper slots last saw
+    /* 0x374 */ u16  field_374; // frames spent on the current id
+} ActorsShared80137cf4Work;
+
+/// Work block the carriers hang off `Task::work`. `coord` is the extra
+/// `GpCoord` this body wires as `sub` of the model's second part;
+/// `scale` is that node's X/Y/Z in 4096-per-unit fixed point, which
+/// `ActorsShared80137ea8` then reads as `field_34E` for the Y component.
+/// `field_36A` is 5 when the 0x600A5 spawn is already armed.
+typedef struct ActorShared80137e18Work {
+    /* 0x000 */ byte    pad_0[0x2EC];
+    /* 0x2EC */ GpCoord coord;
+    /* 0x33C */ byte    pad_33C[0x10];
+    /* 0x34C */ SVECTOR scale;
+    /* 0x354 */ byte    pad_354[0x16];
+    /* 0x36A */ s16     field_36A;
+    /* 0x36C */ byte    pad_36C[2];
+    /* 0x36E */ s16     field_36E;
+} ActorShared80137e18Work;
+STATIC_ASSERT_SIZEOF(ActorShared80137e18Work, 0x370);
+
+/// Work block the carriers hang off `Task::work`. `coord` is the extra
+/// `GpCoord` `ActorsShared80137e18` wires as `sub` of the model's
+/// second part; `field_34E` is that node's Y scale in 4096-per-unit fixed
+/// point, the middle of the X/Y/Z trio that spawn path arms to 0x1000.
+typedef struct ActorShared80137ea8Work {
+    /* 0x000 */ byte    pad_0[0x2EC];
+    /* 0x2EC */ GpCoord coord;
+    /* 0x33C */ byte    pad_33C[0x12];
+    /* 0x34E */ u16     field_34E; // Y scale; 4096 = one unit
+} ActorShared80137ea8Work;
+STATIC_ASSERT_SIZEOF(ActorShared80137ea8Work, 0x350);
+
+/// View of the work field used by both specimen actor overlays.
+typedef struct ActorsShared80137f1cWork {
+    /* 0x000 */ byte pad_0[0x384];
+    /* 0x384 */ s16  field_384; // scale delta; 4096 is one unit
+} ActorsShared80137f1cWork;
+
+/// Work block the enemy's spawn function parks in the task's `Task::work`
+/// slot (that slot is not a `TaskIdMap` here). Only the three `GpObj` display
+/// nodes are reached from this shared body -- `ActorsShared80138570` is the
+/// exit callback that unlinks all three -- so the type stops after the last
+/// one; whatever each overlay keeps around them differs per actor.
+typedef struct ActorShared80138570Work {
+    /* 0x000 */ byte  pad_0[0x1DC];
+    /* 0x1DC */ GpObj field_1DC;
+    /* 0x1FC */ byte  pad_1FC[0x30];
+    /* 0x22C */ GpObj field_22C;
+    /* 0x24C */ byte  pad_24C[0x60];
+    /* 0x2AC */ GpObj field_2AC;
+} ActorShared80138570Work;
+
+typedef struct ActorShared80138640Work {
+    /* 0x000 */ byte    pad_0[0x33C];
+    /* 0x33C */ VECTOR3 field_33C; ///< previous frame's coord translation
+    /* 0x348 */ byte    pad_348[0x30];
+    /* 0x378 */ s16     field_378; ///< forward speed, 4096 = 1.0
+    /* 0x37A */ byte    pad_37A[0x1E];
+    /* 0x398 */ s16     field_398; ///< vertical speed, whole units
+} ActorShared80138640Work;
+
+/// Work block of the task served by this shared body. Only the `GpObj` display
+/// node at 0x8 is reached from here -- `ActorsShared801511c8` is the exit
+/// callback that unlinks it -- so the type stops there; whatever each overlay
+/// keeps after it differs per actor.
+typedef struct ActorShared801511c8Work {
+    /* 0x00 */ byte  pad_0[0x8];
+    /* 0x08 */ GpObj obj;
+} ActorShared801511c8Work;
 
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor07000RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor07000RecoveredMsgEntry, 8);
@@ -198,13 +355,13 @@ extern GpAnimSet Actor07000_D07D1C;
 extern GpAnimSet Actor07000_D07E64;
 extern GpAnimSet Actor07000_D08008;
 extern TmdSource Actor07000_D079C8;
-s32 Actor07000_Fn01FF8(Task *, s32, GpCmdArg *);
-s32 Actor07000_Fn05AB8(Task *, s32, GpCmdArg *);
-void Actor07000_Fn02548(Task *);
-void Actor07000_Fn02D10(Task *);
-void Actor07000_Fn05E6C(Task *);
-void Actor07000_Fn06338(Task *);
-void Actor07000_Fn067B4(Task *);
+s32              Actor07000_Fn01FF8(Task*, s32, GpCmdArg*);
+s32              Actor07000_Fn05AB8(Task*, s32, GpCmdArg*);
+void             Actor07000_Fn02548(Task*);
+void             Actor07000_Fn02D10(Task*);
+void             Actor07000_Fn05E6C(Task*);
+void             Actor07000_Fn06338(Task*);
+void             Actor07000_Fn067B4(Task*);
 
 GpU16Pair Actor07000_D06924 = { 30, 7 };
 
@@ -807,33 +964,6 @@ TaskDesc Actor07000_D0D7D0[2] = {
 
 TaskDesc Actor07000_D0D7E8 = { 257, 96, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
 
-/// Rebinds the animation id `field_2B8` to the specimen's two helper slots
-/// unless `field_2D2` suppresses the rebind. When the id has changed since the
-/// last frame `field_2BA` follows it, the frame count `field_2BC` restarts and
-/// both slots are pointed at the new id; otherwise the count ticks and the
-/// slots advance by one frame.
-static __inline__ void Actor107000_TickAnim(Task* task)
-{
-    Actor107000Work* work = (Actor107000Work*)task->work;
-    s32              i;
-    if (work->field_2D2 == 0) {
-        if (work->field_2B8 != work->field_2BA) {
-            work->field_2BA = work->field_2B8;
-            work->field_2BC = 0;
-            for (i = 1; i < 3; i++) {
-                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
-            }
-        } else {
-            work->field_2BC++;
-            for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            }
-        }
-    }
-}
-
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
 /// the same `GpAnimCtx`, seven animation slots instead of three, then three
@@ -901,13 +1031,13 @@ STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 /// Node 3's pair table, packed by `Gp_PackPair` into `obj1B4`, and the enemy
 /// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
 /// `field_40`.
-extern GpU16Pair  Actor07000_D06924;
+extern GpU16Pair Actor07000_D06924;
+
 extern GpPairSrcE Actor07000_D06928;
 
 extern u32 Actor07000_D06938[];
-extern u32 Actor07000_D06944[];
 
-/// Message dispatch table the caged specimen's spawn parks in `Task::msgTable`.
+extern u32 Actor07000_D06944[];
 
 extern Actor07000RecoveredMsgEntry Actor07000_D08030[2];
 
@@ -929,7 +1059,9 @@ extern GpPairSrcE Actor07000_D08080;
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`, one per
 /// random variant the roll selects.
 extern TmdSource Actor07000_D0AB40;
+
 extern TmdSource Actor07000_D0B194;
+
 extern TmdSource Actor07000_D0B730;
 
 /// The animation data `func_800B3F84` seeds the second form's slots from.
@@ -947,37 +1079,67 @@ extern Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2];
 extern TaskDesc Actor07000_D0D7D0[];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
+
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn00478(Task* arg0);
+
 static void Actor07000_Fn00654(Task* arg0);
+
 static void Actor07000_Fn00854(Task* arg0);
+
 static void Actor07000_Fn00A1C(Task* arg0);
+
 static void Actor07000_Fn00F6C(Task* arg0, s32 arg1);
+
 static void Actor07000_Fn0107C(Task* arg0);
+
 static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task);
+
 static void Actor07000_Fn016A8(Task* arg0, u8 arg1);
+
 static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn01EB0(Task* arg0);
+
 static void Actor07000_Fn025A4(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn026BC(Task* arg0);
+
 static void Actor07000_Fn027D0(Task* task);
+
 static void Actor07000_Fn02860(Task* arg0);
+
 static void Actor07000_Fn02914(GpEnemy* arg0, Task* task);
+
 static void Actor07000_Fn02984(Task* task);
+
 static void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1);
+
 static void Actor07000_Fn02BB8(Task* arg0);
+
 static void Actor07000_Fn02CAC(Task* task);
+
 static void Actor07000_Fn02D78(Task* task);
+
 static void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2);
+
 static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2);
+
 static void Actor07000_Fn03E08(Task* arg0);
+
 static void Actor07000_Fn04274(Task* arg0, s32 arg1);
+
 static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
+
 /// Picks the reaction branch the specimen takes on this hit and stores it in
 /// `field_382`, then hands back the collision record the caller armed. A
 /// countdown of 0xBB8 or more, or a record with no slot matching the 0x10000
@@ -987,26 +1149,81 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
 static void Actor07000_Fn046B8(Task* arg0, s32 arg1);
-static s32  Actor07000_Fn047F4(GpCoord* arg0, u32* arg1);
+
+static s32 Actor07000_Fn047F4(GpCoord* arg0, u32* arg1);
+
 static void Actor07000_Fn049C0(Task* arg0);
+
 static void Actor07000_Fn04B18(Task* arg0);
+
 static void Actor07000_Fn04E60(Task* arg0);
+
 static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1);
+
 static void Actor07000_Fn0595C(Task* arg0);
+
 static void Actor07000_Fn05ED4(Task* arg0);
+
 static void Actor07000_Fn05F84(Task* task);
+
 static void Actor07000_Fn05FF8(Task* arg0);
+
 static void Actor07000_Fn06088(Task* arg0);
+
 static void Actor07000_Fn060FC(Task* arg0);
+
 static void Actor07000_Fn062A8(Task* arg0);
+
 static void Actor07000_Fn06390(Task* arg0);
+
 static void Actor07000_Fn0662C(Task* arg0);
+
 static void Actor07000_Fn066FC(Task* dst, Task* src);
+
 static void Actor07000_Fn06750(Task* task);
+
 static void Actor07000_Fn06820(Task* arg0);
+
 static void Actor07000_Fn068B4(Task* arg0);
+
 static void Actor07000_Fn068F0(Task* arg0);
+
+static __inline__ void Actor107000_TickAnim(Task* task);
+static inline s32      _actor07000ClampToZero(s32 value);
+static __inline__ void update_animation(Task* task);
+static __inline__ void update_color(GpEnemy* enemy, GpCoord* coord);
+static __inline__ void rotate_parts(Task* arg0);
+
+/// Rebinds the animation id `field_2B8` to the specimen's two helper slots
+/// unless `field_2D2` suppresses the rebind. When the id has changed since the
+/// last frame `field_2BA` follows it, the frame count `field_2BC` restarts and
+/// both slots are pointed at the new id; otherwise the count ticks and the
+/// slots advance by one frame.
+static __inline__ void Actor107000_TickAnim(Task* task)
+{
+    Actor107000Work* work = (Actor107000Work*)task->work;
+    s32              i;
+    if (work->field_2D2 == 0) {
+        if (work->field_2B8 != work->field_2BA) {
+            work->field_2BA = work->field_2B8;
+            work->field_2BC = 0;
+            for (i = 1; i < 3; i++) {
+                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
+            }
+        } else {
+            work->field_2BC++;
+            for (i = 1; i < 3; i++) {
+                Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            }
+        }
+    }
+}
+
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+
+/// Message dispatch table the caged specimen's spawn parks in `Task::msgTable`.
 
 /// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
 /// first: it allocates the `Actor107000SpawnWork` block, wires the enemy's four

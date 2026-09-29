@@ -1,33 +1,46 @@
 #include "rooms/shelter_b6_growth_room.h"
 
-#include "rooms/stage_tables.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
-#include "rooms/room_common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "shelter_b6_growth_room_private.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "mapui/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "common.h"
-#include "gte.h"
+#include "rooms/room_common.h"
+
+#define D_shelter_b6_growth_room_8017F298 (D_shelter_b6_growth_room_8017F258 + 8)
+#define D_shelter_b6_growth_room_8017F2C8 (D_shelter_b6_growth_room_8017F258 + 14)
+#define D_shelter_b6_growth_room_8017F300 (D_shelter_b6_growth_room_8017F258 + 21)
 
 static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
@@ -38,7 +51,6 @@ extern TaskDesc D_80135E78;
 
 /// The layout template and the live copy the reset below restores from it.
 extern GpGridParams D_shelter_b6_growth_room_8017F234;
-extern GpGridParams D_shelter_b6_growth_room_8017FAF0;
 
 SVECTOR D_shelter_b6_growth_room_8017F194[4] = {
     { -4096, 0, 0, 0 },
@@ -788,10 +800,6 @@ GpAreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
     { 3, 32, 21, 1 },
     { 255, 0, 0, 0 },
 };
-
-#define D_shelter_b6_growth_room_8017F298 (D_shelter_b6_growth_room_8017F258 + 8)
-#define D_shelter_b6_growth_room_8017F2C8 (D_shelter_b6_growth_room_8017F258 + 14)
-#define D_shelter_b6_growth_room_8017F300 (D_shelter_b6_growth_room_8017F258 + 21)
 
 /// Resets the live layout lists from the template: the four-entry vector list
 /// and its 12-byte records, then the eight-entry list, which is afterwards

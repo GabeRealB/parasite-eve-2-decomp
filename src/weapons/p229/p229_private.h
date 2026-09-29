@@ -1,0 +1,11 @@
+#ifndef SRC_WEAPONS_P229_P229_PRIVATE_H
+#define SRC_WEAPONS_P229_P229_PRIVATE_H
+
+#include "types.h"
+
+/// The four flash angles rolled on the frame the shot goes off, one per
+/// `func_p229_8011D860` quad. Each is a fixed quadrant (`i << 10`) plus a
+/// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
+extern s16 D_p229_8012B658[4];
+
+#endif // SRC_WEAPONS_P229_P229_PRIVATE_H

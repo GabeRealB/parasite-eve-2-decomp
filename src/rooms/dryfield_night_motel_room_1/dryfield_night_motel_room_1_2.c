@@ -1,28 +1,34 @@
-#include "common.h"
+#include "rooms/dryfield_night_motel_room_1.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "rooms/dryfield_night_motel_room_1.h"
-#include "rooms/room_common.h"
+#include "common.h"
 
-#include "gameplay/loading.h"
+#include "dryfield_night_motel_room_1_private.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/room.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
 
 // One live spotlight is followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[1];
-    u8 retained[324];
+    u8          retained[324];
 } DryfieldNightMotelRoom1SpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom1SpotLightStorage, 432);
 
@@ -30,14 +36,14 @@ STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom1SpotLightStorage, 432);
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA5C[];
 
-extern GpGridParams D_dryfield_night_motel_room_1_8017E098[1];
-extern GpObj3A D_dryfield_night_motel_room_1_801806C0[1];
-extern GpObj4C D_dryfield_night_motel_room_1_8017FF04[8];
-extern GpObj4C D_dryfield_night_motel_room_1_801804AC[7];
+extern GpGridParams   D_dryfield_night_motel_room_1_8017E098[1];
+extern GpObj3A        D_dryfield_night_motel_room_1_801806C0[1];
+extern GpObj4C        D_dryfield_night_motel_room_1_8017FF04[8];
+extern GpObj4C        D_dryfield_night_motel_room_1_801804AC[7];
 extern GpRoomCoordSet D_dryfield_night_motel_room_1_80180494[1];
 
 extern DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4;
-extern GpPointLight D_dryfield_night_motel_room_1_80180164[4];
+extern GpPointLight                            D_dryfield_night_motel_room_1_80180164[4];
 
 SVECTOR D_dryfield_night_motel_room_1_8017DA54[1] = {
     { 1920, -970, 470, 0 },

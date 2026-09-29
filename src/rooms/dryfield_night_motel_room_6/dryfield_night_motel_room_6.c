@@ -1,53 +1,65 @@
-#include "common.h"
 #include "rooms/dryfield_night_motel_room_6.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/gtemac.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-#include "rooms/acropolis_square.h"
+#include <psyq/inline_c.h>
 
-#include "gameplay/actor.h"
+#include "gte.h"
+#include "types.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/animation.h"
-#include "gameplay/captions.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/model_objects.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -115,9 +127,6 @@ extern UiList D_dryfield_night_motel_room_6_80182E4C;
 /// is parented to, by `Task::spawnArg1`.
 extern u8 D_dryfield_night_motel_room_6_80182E70[];
 
-/// Task descriptor of the held-object reflections the mirror spawns.
-extern TaskDesc D_dryfield_night_motel_room_6_80182E74[];
-
 /// Task table of the room's cutscene: entry 0 is the cutscene task
 /// `func_dryfield_night_motel_room_6_801811F0`, entry 1 the sound task
 /// `func_dryfield_night_motel_room_6_80181A0C` it runs alongside the scene.
@@ -151,32 +160,32 @@ static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 
 static void func_dryfield_night_motel_room_6_80181C34(Task* task);
 static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 
-void func_dryfield_night_motel_room_6_8017D6DC(UiList *, UiObject *);
-void func_dryfield_night_motel_room_6_8017DEA8(UiList *, UiObject *);
-void func_dryfield_night_motel_room_6_8017E8C0(Task *);
-void func_dryfield_night_motel_room_6_8017ED6C(Task *);
-void func_dryfield_night_motel_room_6_8017EF2C(Task *);
-void func_dryfield_night_motel_room_6_8017F120(UiList *, UiObject *);
-void func_dryfield_night_motel_room_6_8017F204(UiList *, UiObject *);
-void func_dryfield_night_motel_room_6_8017F2CC(UiList *, UiObject *);
-void func_dryfield_night_motel_room_6_8017F394(UiList *, UiObject *);
+void func_dryfield_night_motel_room_6_8017D6DC(UiList*, UiObject*);
+void func_dryfield_night_motel_room_6_8017DEA8(UiList*, UiObject*);
+void func_dryfield_night_motel_room_6_8017E8C0(Task*);
+void func_dryfield_night_motel_room_6_8017ED6C(Task*);
+void func_dryfield_night_motel_room_6_8017EF2C(Task*);
+void func_dryfield_night_motel_room_6_8017F120(UiList*, UiObject*);
+void func_dryfield_night_motel_room_6_8017F204(UiList*, UiObject*);
+void func_dryfield_night_motel_room_6_8017F2CC(UiList*, UiObject*);
+void func_dryfield_night_motel_room_6_8017F394(UiList*, UiObject*);
 
-void func_dryfield_night_motel_room_6_801811F0(Task *);
-void func_dryfield_night_motel_room_6_80181A0C(Task *);
+void func_dryfield_night_motel_room_6_801811F0(Task*);
+void func_dryfield_night_motel_room_6_80181A0C(Task*);
 
-void func_dryfield_night_motel_room_6_801811F0(Task *);
-void func_dryfield_night_motel_room_6_80181A0C(Task *);
+void func_dryfield_night_motel_room_6_801811F0(Task*);
+void func_dryfield_night_motel_room_6_80181A0C(Task*);
 
-extern GpGridParams D_dryfield_night_motel_room_6_80183984[1];
-extern GpObj4C D_dryfield_night_motel_room_6_80185A48[10];
-extern GpObj4C D_dryfield_night_motel_room_6_80185D40[15];
+extern GpGridParams   D_dryfield_night_motel_room_6_80183984[1];
+extern GpObj4C        D_dryfield_night_motel_room_6_80185A48[10];
+extern GpObj4C        D_dryfield_night_motel_room_6_80185D40[15];
 extern GpRoomCoordSet D_dryfield_night_motel_room_6_80185A30[1];
-s32 func_dryfield_night_motel_room_6_8018175C(Task *, s32, s32, s32);
-s32 func_dryfield_night_motel_room_6_80181B74(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_6_80181B7C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_motel_room_6_80181BF8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_6_80181C00(Task *, s32, s32, GpMessageArg);
-void func_dryfield_night_motel_room_6_8018189C(Task *);
+s32                   func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
+s32                   func_dryfield_night_motel_room_6_80181B74(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_night_motel_room_6_80181B7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_dryfield_night_motel_room_6_80181BF8(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, GpMessageArg);
+void                  func_dryfield_night_motel_room_6_8018189C(Task*);
 
 u8 D_dryfield_night_motel_room_6_80182B50[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -332,7 +341,7 @@ u8 D_dryfield_night_motel_room_6_80182E70[4] = {
     8,
 };
 
-void func_dryfield_night_motel_room_6_80180FD0(Task *);
+void func_dryfield_night_motel_room_6_80180FD0(Task*);
 
 TaskDesc D_dryfield_night_motel_room_6_80182E74[2] = {
     { 0, 112, func_dryfield_night_motel_room_6_801811A0, { .model = NULL } },
@@ -1446,6 +1455,20 @@ Task * D_dryfield_night_motel_room_6_801862B4 = NULL;
 
 RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8 = { 0 };
 
+/// "Telephone", the title of the menu panel
+/// `func_dryfield_night_motel_room_6_8017EA74` runs. Two non-zero bytes follow
+/// its terminator, so it stays assembly.
+static const char D_dryfield_night_motel_room_6_8017D638[];
+
+static void func_dryfield_night_motel_room_6_8017E2A4(UiList* list, UiObject* obj);
+static void func_dryfield_night_motel_room_6_8017E5A0(UiList* list, UiObject* obj);
+static void func_dryfield_night_motel_room_6_8017EDC8(u8* str, s32 decimals);
+static u8*  func_dryfield_night_motel_room_6_8017EE38(u8* buf, s32 value, s32 decimals);
+static void func_dryfield_night_motel_room_6_8017F01C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_dryfield_night_motel_room_6_8017F498(Task* task);
+static void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s32 arg2);
+
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and
 /// two percentages printed with two decimals and a "%" suffix. While the row is
@@ -2086,10 +2109,6 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
     }
 }
 
-/// "Telephone", the title of the menu panel
-/// `func_dryfield_night_motel_room_6_8017EA74` runs. Two non-zero bytes follow
-/// its terminator, so it stays assembly.
-static const char D_dryfield_night_motel_room_6_8017D638[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_night_motel_room_6_8017D638[12] = "Telephone\0\xDF\xDC";
 

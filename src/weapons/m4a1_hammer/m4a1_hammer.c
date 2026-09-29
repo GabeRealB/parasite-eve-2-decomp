@@ -1,28 +1,59 @@
 #include "weapons/m4a1_hammer.h"
 
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
+#include "m4a1_hammer_private.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// 0x20-byte scratch block `func_m4a1_hammer_8011E29C` carves off
+/// `G_SCRATCH_HEAD` for the hammer's shock trail.
+///
+/// `vec` is the effect coordinate's world position (`workm.t`) truncated to
+/// s16; it and the caller's endpoint `SVECTOR` are projected by one `RTPS`
+/// each, filling `sxy0` / `sxy1` through `gte_stsxy`. `flag` is `gte_stflg` of
+/// whichever projection just ran - both are tested, so an off-screen endpoint
+/// drops the whole strip - and `otz` is `gte_stszotz` of the first point,
+/// bumped once per surviving projection so it serves as both the divisor of
+/// the strip's half-width and the OT index the primitive is queued at. `dx` /
+/// `dy` are that half-width rotated by `(size * 23 / otz) * rsin|rcos(angle)
+/// >> 12`, applied once at the strip's own screen angle and once at 90 degrees
+/// to it to give the `POLY_FT4` its four corners.
+typedef struct _M4a1HammerTrailScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ DVECTOR sxy0;
+    /* 0x1C */ DVECTOR sxy1;
+} M4a1HammerTrailScratch;
+STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
 
 static void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 

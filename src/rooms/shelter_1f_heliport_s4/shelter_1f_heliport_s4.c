@@ -1,29 +1,33 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_1f_heliport_s4.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "main/session.h"
-#include "main/task.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 /// The room's message table, handed to its event task in state 0.
 extern GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[];
 
-s32 func_shelter_1f_heliport_s4_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_heliport_s4_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_1f_heliport_s4_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_heliport_s4_8017D624(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_heliport_s4_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_1f_heliport_s4_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_heliport_s4_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
     { 5102, func_shelter_1f_heliport_s4_8017D5D8 },
@@ -289,6 +293,9 @@ GpRoomParamRec * D_shelter_1f_heliport_s4_8017E060[8] = {
     D_shelter_1f_heliport_s4_8017E058,
     D_shelter_1f_heliport_s4_8017E058,
 };
+
+static void func_shelter_1f_heliport_s4_8017D62C(Task* task);
+static void func_shelter_1f_heliport_s4_8017D670(Task* task);
 
 s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {

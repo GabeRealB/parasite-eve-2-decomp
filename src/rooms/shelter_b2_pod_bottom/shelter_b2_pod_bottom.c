@@ -1,34 +1,38 @@
-#include "common.h"
 #include "rooms/shelter_b2_pod_bottom.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
+#include "types.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "shelter_b2_pod_bottom_private.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
+#include "main/coord.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
 
-void       func_80162B0C(s32);
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+void func_80162B0C(s32);
 
 extern u8         D_80165F48;
 extern u8         D_80166848;
@@ -42,15 +46,14 @@ static const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
     { func_shelter_b2_pod_bottom_8017D648, func_shelter_b2_pod_bottom_8017D6F8, taskKill },
 };
 
-s32 func_shelter_b2_pod_bottom_8017D5EC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_pod_bottom_8017D5F4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_pod_bottom_8017D638(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_pod_bottom_8017D640(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_pod_bottom_8017D5EC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_pod_bottom_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b2_pod_bottom_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_pod_bottom_8017D640(Task*, s32, GpMessageArg, GpMessageArg);
 
 extern GpGridParams D_shelter_b2_pod_bottom_80182B5C[1];
-extern GpObj4C D_shelter_b2_pod_bottom_80186FA8[20];
-extern GpObj4C D_shelter_b2_pod_bottom_80188670[1];
-extern GpRoomBoundVec D_shelter_b2_pod_bottom_801886BC[17];
+extern GpObj4C      D_shelter_b2_pod_bottom_80186FA8[20];
+
 extern GpRoomCoordSet D_shelter_b2_pod_bottom_80186F90[1];
 
 GpMsgEntry D_shelter_b2_pod_bottom_80181C6C[5] = {

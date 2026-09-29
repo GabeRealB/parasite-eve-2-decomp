@@ -1,41 +1,48 @@
-#include "common.h"
-#include "rooms/dryfield_night_main_street.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include "psyq/libgpu.h"
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80133c6c.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/dryfield_night_main_street.h"
 
 extern GpXformArg D_actor_136100_8013F334[2];
 
@@ -108,41 +115,41 @@ extern GpXformArg D_actor_136100_8013F3DC;
 extern GpAnimSet* D_actor_136100_8013F180[8];
 extern GpAnimSet* D_actor_136100_8013F1A0[13];
 extern GpAnimSet* D_actor_136100_8013F1D4[6];
-extern s16     D_actor_136100_8013F218[];
-extern s32 D_actor_136100_8013F224[8];
-extern s32 D_actor_136100_8013F244[32];
-extern s32 D_actor_136100_8013F2C4[12];
+extern s16        D_actor_136100_8013F218[];
+extern s32        D_actor_136100_8013F224[8];
+extern s32        D_actor_136100_8013F244[32];
+extern s32        D_actor_136100_8013F2C4[12];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpXformArg *);
-        void (*call1)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, s32);
     } handler;
 } Actor136100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor136100MessageEntry, 8);
 
 extern Actor136100MessageEntry D_actor_136100_8013F2F4[2];
-extern GpXformArg D_actor_136100_8013F364;
-extern GpXformArg D_actor_136100_8013F37C;
-extern GpXformArg D_actor_136100_8013F394;
-extern GpXformArg D_actor_136100_8013F3AC;
-extern GpXformArg D_actor_136100_8013F3F4;
-extern GpXformArg D_actor_136100_8013F40C;
-extern GpXformArg D_actor_136100_8013F424;
-extern GpXformArg D_actor_136100_8013F43C;
-extern GpXformArg D_actor_136100_8013F454;
-extern GpEvsCmd D_actor_136100_8013F46C[];
-extern GpEvsCmd D_actor_136100_8013F784[];
-extern GpEvsCmd D_actor_136100_8013F94C[];
-extern GpEvsCmd D_actor_136100_8013FAE4[];
-extern GpEvsCmd D_actor_136100_8013FC64[];
-extern GpEvsCmd D_actor_136100_8013FD84[];
-extern GpEvsCmd D_actor_136100_80140114[];
-extern GpEvsCmd D_actor_136100_801402C4[];
-extern GpEvsCmd D_actor_136100_801404EC[];
-extern GpEvsCmd D_actor_136100_8014063C[];
-extern Task*   D_actor_136100_8014078C;
+extern GpXformArg              D_actor_136100_8013F364;
+extern GpXformArg              D_actor_136100_8013F37C;
+extern GpXformArg              D_actor_136100_8013F394;
+extern GpXformArg              D_actor_136100_8013F3AC;
+extern GpXformArg              D_actor_136100_8013F3F4;
+extern GpXformArg              D_actor_136100_8013F40C;
+extern GpXformArg              D_actor_136100_8013F424;
+extern GpXformArg              D_actor_136100_8013F43C;
+extern GpXformArg              D_actor_136100_8013F454;
+extern GpEvsCmd                D_actor_136100_8013F46C[];
+extern GpEvsCmd                D_actor_136100_8013F784[];
+extern GpEvsCmd                D_actor_136100_8013F94C[];
+extern GpEvsCmd                D_actor_136100_8013FAE4[];
+extern GpEvsCmd                D_actor_136100_8013FC64[];
+extern GpEvsCmd                D_actor_136100_8013FD84[];
+extern GpEvsCmd                D_actor_136100_80140114[];
+extern GpEvsCmd                D_actor_136100_801402C4[];
+extern GpEvsCmd                D_actor_136100_801404EC[];
+extern GpEvsCmd                D_actor_136100_8014063C[];
+extern Task*                   D_actor_136100_8014078C;
 
 static void func_actor_136100_80132748(Task* arg0);
 static void func_actor_136100_80133238(Task* arg0);
@@ -170,26 +177,26 @@ extern GpAnimSet D_actor_136100_8013F154;
 extern TmdSource D_actor_136100_8013A500;
 extern TmdSource D_actor_136100_8013A9D8;
 extern TmdSource D_actor_136100_8013AFCC;
-void func_actor_136100_801320E0(Task *);
-void func_actor_136100_80132284(Task *);
-void func_actor_136100_80133690(void);
-void func_actor_136100_8013379C(s32);
-void func_actor_136100_80133BC8(Task *);
-void func_actor_136100_801344AC(Task *);
-void func_actor_136100_80134588(Task *);
-void func_actor_136100_8013467C(void);
-void func_actor_136100_801346EC(Task *, s32, s32);
-void func_actor_136100_80134720(Task *, s32, GpXformArg *);
-void func_actor_136100_801347B8(void);
-void func_actor_136100_80134838(s16);
-void func_actor_136100_80134858(s16);
-void func_actor_136100_80134878(s16);
-void func_actor_136100_80134898(void);
-void func_actor_136100_801348C8(void);
-void func_actor_136100_801348F8(void);
-void func_actor_136100_80134924(void);
-void func_actor_136100_80134964(void);
-void func_actor_136100_801349B4(s32);
+void             func_actor_136100_801320E0(Task*);
+void             func_actor_136100_80132284(Task*);
+void             func_actor_136100_80133690(void);
+void             func_actor_136100_8013379C(s32);
+void             func_actor_136100_80133BC8(Task*);
+void             func_actor_136100_801344AC(Task*);
+void             func_actor_136100_80134588(Task*);
+void             func_actor_136100_8013467C(void);
+void             func_actor_136100_801346EC(Task*, s32, s32);
+void             func_actor_136100_80134720(Task*, s32, GpXformArg*);
+void             func_actor_136100_801347B8(void);
+void             func_actor_136100_80134838(s16);
+void             func_actor_136100_80134858(s16);
+void             func_actor_136100_80134878(s16);
+void             func_actor_136100_80134898(void);
+void             func_actor_136100_801348C8(void);
+void             func_actor_136100_801348F8(void);
+void             func_actor_136100_80134924(void);
+void             func_actor_136100_80134964(void);
+void             func_actor_136100_801349B4(s32);
 
 TmdBone D_actor_136100_80134A94[20] = {
 #include "assets/actor_136100_model_086E0_skeleton.inc"
@@ -1279,6 +1286,20 @@ TaskDesc D_actor_136100_80140744[6] = {
 
 Task * D_actor_136100_8014078C = NULL;
 
+static s32         func_actor_136100_80131EC4(Task* arg0);
+static s32         func_actor_136100_80131FBC(Task* arg0);
+static void        func_actor_136100_801323F8(Task* arg0);
+static inline void func_actor_136100_SetAnim(Task* task, s16 anim);
+static inline void func_actor_136100_ResetSlots(Task* task, s32 count);
+static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s32 speed);
+static void        func_actor_136100_80132BC0(Task* arg0);
+static void        func_actor_136100_80132E78(Task* arg0);
+static void        func_actor_136100_80133558(Task* arg0);
+static s32         func_actor_136100_80133904(Task* task);
+static void        func_actor_136100_80133A88(Task* arg0);
+static inline s16  func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* evtSub);
+static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec);
+
 static s32 func_actor_136100_80131EC4(Task* arg0)
 {
     Actor136100Work* work;
@@ -1472,22 +1493,22 @@ void func_actor_136100_80132284(Task* arg0)
 /// A macro rather than an inline: the record must be one frame slot shared by
 /// every expansion, while the work pointer and the id stay per-expansion
 /// pseudos -- shared, they globalise into one register across the switch.
-#define func_actor_136100_SendWeaponRec(task, anim, a, b)                                         \
-    {                                                                                             \
-        Actor136100Work* msgWork;                                                                 \
-        s32              weaponId;                                                                \
-        s32              id;                                                                      \
-                                                                                                  \
-        msgWork             = (Actor136100Work*)(task)->work;                                     \
-        weaponId            = Player_Status.weapon;                                               \
+#define func_actor_136100_SendWeaponRec(task, anim, a, b)                                               \
+    {                                                                                                   \
+        Actor136100Work* msgWork;                                                                       \
+        s32              weaponId;                                                                      \
+        s32              id;                                                                            \
+                                                                                                        \
+        msgWork             = (Actor136100Work*)(task)->work;                                           \
+        weaponId            = Player_Status.weapon;                                                     \
         id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        rec.animBlock.index = id;                                                                 \
-        msgWork->field_4DE  = anim;                                                               \
-        rec.field_4         = anim;                                                               \
-        rec.field_8         = a;                                                                  \
-        rec.field_C         = b;                                                                  \
-        rec.field_10        = 0;                                                                  \
-        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);                                \
+        rec.animBlock.index = id;                                                                       \
+        msgWork->field_4DE  = anim;                                                                     \
+        rec.field_4         = anim;                                                                     \
+        rec.field_8         = a;                                                                        \
+        rec.field_C         = b;                                                                        \
+        rec.field_10        = 0;                                                                        \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);                                      \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -1549,19 +1570,19 @@ static void func_actor_136100_801323F8(Task* arg0)
     work->field_4C4 = 0;
 }
 
-#define func_actor_136100_PlayAnimRec(task, anim, blend, speed)         \
-    {                                                                   \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work;     \
-                                                                        \
-        if (animWork->field_4C0 != NULL) {                              \
-            rec.animBlock.ptr   = D_actor_136100_8013F1D4;             \
-            animWork->field_4E2 = anim;                                 \
-            rec.field_4         = anim;                                 \
-            rec.field_8         = blend;                                \
-            rec.field_C         = speed;                                \
-            rec.field_10        = 0;                                    \
+#define func_actor_136100_PlayAnimRec(task, anim, blend, speed)     \
+    {                                                               \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work; \
+                                                                    \
+        if (animWork->field_4C0 != NULL) {                          \
+            rec.animBlock.ptr   = D_actor_136100_8013F1D4;          \
+            animWork->field_4E2 = anim;                             \
+            rec.field_4         = anim;                             \
+            rec.field_8         = blend;                            \
+            rec.field_C         = speed;                            \
+            rec.field_10        = 0;                                \
             Gp_DispatchMsgPtr(animWork->field_4C0, 0x3F4, &rec, 0); \
-        }                                                               \
+        }                                                           \
     }
 
 /// Record `id` as the work block's current animation (`field_4E0`).
@@ -2167,19 +2188,19 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 /// Send the 0x3F4 animation record for `anim` to the `field_4C0` task, if any.
 /// A macro: `anim` must stay a literal per expansion, or both constant loads
 /// share one register and the two branches cross-jump earlier.
-#define func_actor_136100_SendAnimRec(task, anim)                       \
-    {                                                                   \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work;     \
-                                                                        \
-        if (animWork->field_4C0 != NULL) {                              \
-            rec.animBlock.ptr   = D_actor_136100_8013F1D4;             \
-            animWork->field_4E2 = anim;                                 \
-            rec.field_4         = anim;                                 \
-            rec.field_8         = 0;                                    \
-            rec.field_C         = 0;                                    \
-            rec.field_10        = 0;                                    \
+#define func_actor_136100_SendAnimRec(task, anim)                   \
+    {                                                               \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work; \
+                                                                    \
+        if (animWork->field_4C0 != NULL) {                          \
+            rec.animBlock.ptr   = D_actor_136100_8013F1D4;          \
+            animWork->field_4E2 = anim;                             \
+            rec.field_4         = anim;                             \
+            rec.field_8         = 0;                                \
+            rec.field_C         = 0;                                \
+            rec.field_10        = 0;                                \
             Gp_DispatchMsgPtr(animWork->field_4C0, 0x3F4, &rec, 0); \
-        }                                                               \
+        }                                                           \
     }
 
 /// `func_actor_136100_80134A18`'s body over the shared `rec` slot: count the
@@ -2193,9 +2214,9 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
         while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {         \
             n += 1;                                                \
         }                                                          \
-        rec.animBlock.ptr = &D_actor_136100_8013F180[0];  \
-        rec.field_4         = n & 0xFFFF;                          \
-        Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3F7, &rec, 0); \
+        rec.animBlock.ptr = &D_actor_136100_8013F180[0];           \
+        rec.field_4       = n & 0xFFFF;                            \
+        Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3F7, &rec, 0);     \
     }
 
 /// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.

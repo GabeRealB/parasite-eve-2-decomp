@@ -1,22 +1,42 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include "weapons/m4a1_bayonet.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "m4a1_bayonet_private.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
-
-#include "gameplay/effects.h"
 #include "gameplay/scene.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// 0x2C-byte scratch `func_m4a1_bayonet_8011D69C` carves off `G_SCRATCH_HEAD`
+/// for one ribbon segment: `v` is the quad's four corners, taken from the
+/// translation of the two trail coordinates at each end of the segment, `flag`
+/// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its
+/// `gte_stszotz`, which picks the OT bucket the `POLY_G4` is linked into.
+typedef struct _M4a1BayonetBeamScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     flag;
+    /* 0x28 */ s32     unused;
+} M4a1BayonetBeamScratch;
+STATIC_ASSERT_SIZEOF(M4a1BayonetBeamScratch, 0x2C);
 
 static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
 

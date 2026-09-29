@@ -1,43 +1,49 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
+
 #include "actors/actor.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// 0x348-byte work block `Actor02500_Fn00078` allocates and hangs off
 /// `Task::work`. It opens with the animation context (`func_800B3F84`
@@ -128,13 +134,13 @@ extern s16                  Actor02500_D05B48[];
 extern s16                  Actor02500_D05B58[];
 extern s16                  Actor02500_D05B68[];
 extern s16                  Actor02500_D05B78[];
-extern TaskDesc Actor02500_D05B88[];
-extern GpAnimSet* Actor02500_D05BA0[12];
+extern TaskDesc             Actor02500_D05B88[];
+extern GpAnimSet*           Actor02500_D05BA0[12];
 extern s16                  Actor02500_D05BD0[];
 extern Actor02500OffsetPair Actor02500_D05BE8[];
-extern TmdSource Actor02500_D04448;
-extern TmdSource Actor02500_D0478C;
-extern TmdSource Actor02500_D04AD0;
+extern TmdSource            Actor02500_D04448;
+extern TmdSource            Actor02500_D0478C;
+extern TmdSource            Actor02500_D04AD0;
 extern void*                D_80067704[1];
 
 static void Actor02500_Fn00078(GpEnemy* ctx, Task* actor);
@@ -179,8 +185,8 @@ extern GpAnimSet Actor02500_D057D4;
 extern GpAnimSet Actor02500_D05998;
 extern GpAnimSet Actor02500_D05B08;
 extern TmdSource Actor02500_D03F20;
-void Actor02500_Fn01E04(Task *);
-void Actor02500_Fn02574(Task *);
+void             Actor02500_Fn01E04(Task*);
+void             Actor02500_Fn02574(Task*);
 
 TmdBone Actor02500_D02914[5] = {
 #include "assets/actor_102500_model_03F20_skeleton.inc"
@@ -560,6 +566,14 @@ Actor02500OffsetPair Actor02500_D05BE8[8] = {
     { -4096, 0 },
     { -2896, 2896 },
 };
+
+static void Actor02500_Fn00494(Task* actor);
+static void Actor02500_Fn00B18(Task* actor);
+static void Actor02500_Fn00DD8(Task* actor);
+static void Actor02500_Fn01144(Task* actor);
+static void Actor02500_Fn012F0(Task* actor);
+static void Actor02500_Fn016FC(Task* arg0);
+static void Actor02500_Fn0184C(Task* arg0);
 
 static void Actor02500_Fn00078(GpEnemy* ctx, Task* actor)
 {

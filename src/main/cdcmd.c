@@ -1,5 +1,4 @@
 #include "main/fs.h"
-#include "rooms/acropolis_plaza.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libcd.h>
@@ -21,12 +20,18 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
-#include "main/stream_types.h"
 #include "stream.h"
+#include "main/stream_types.h"
 
 #include "gameplay/scene_runtime.h"
 
-#include "mapui/mapui.h"
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/acropolis_plaza.h"
 
 static void* D_8006AC00;
 

@@ -1,18 +1,23 @@
-#include "common.h"
 #include "rooms/shelter_b1_sleeping_quarters.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
 
 void func_shelter_b1_sleeping_quarters_8017D778(Task* task);
 
@@ -21,15 +26,15 @@ extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
 /// The room's message table, which its cap scripts index.
 extern GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[];
 
-s32 func_shelter_b1_sleeping_quarters_8017D668(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_sleeping_quarters_8017D670(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b1_sleeping_quarters_8017D770(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D668(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D670(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task*, s32, s32, GpMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D770(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern u32 D_shelter_b1_sleeping_quarters_80180308[1];
+extern u32     D_shelter_b1_sleeping_quarters_80180308[1];
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018030C[22];
 extern TmdBone D_shelter_b1_sleeping_quarters_801802E4[1];
-extern u32 D_shelter_b1_sleeping_quarters_801803BC[78];
+extern u32     D_shelter_b1_sleeping_quarters_801803BC[78];
 
 TmdBone D_shelter_b1_sleeping_quarters_801802E4[1] = {
 #include "assets/shelter_b1_sleeping_quarters_model_02F34_skeleton.inc"
@@ -63,6 +68,9 @@ GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
 };
 
 TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { 0, 192, func_shelter_b1_sleeping_quarters_8017D778, { .model = NULL } };
+
+static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task);
+static void func_shelter_b1_sleeping_quarters_8017D880(Task* task);
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.

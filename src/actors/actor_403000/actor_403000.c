@@ -1,50 +1,59 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80164954.h"
-#include "psyq/abs.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 /// One of the four display nodes the spawn handler `func_actor_403000_801343B8`
 /// links in a row from 0xB50 of the work block: the `GpObj` list node `Gp_LinkObj`
@@ -453,7 +462,7 @@ extern u8 D_actor_403000_80158D48[];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpMoveArg value;
-    u8 retained[12];
+    u8        retained[12];
 } Actor403000Storage8DB0;
 STATIC_ASSERT_SIZEOF(Actor403000Storage8DB0, 32);
 
@@ -465,7 +474,7 @@ extern Actor403000Storage8DB0 D_actor_403000_80158DB0;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpXformArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor403000Storage8D90;
 STATIC_ASSERT_SIZEOF(Actor403000Storage8D90, 32);
 
@@ -548,11 +557,11 @@ extern GpAnimSet* D_actor_403000_80158C28[8];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, Actor403000Event *);
-        s32 (*call2)(Task *, s32, GpAnimArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, Actor403000Event*);
+        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
 } Actor403000MessageEntry;
@@ -560,10 +569,13 @@ STATIC_ASSERT_SIZEOF(Actor403000MessageEntry, 8);
 
 extern Actor403000MessageEntry D_actor_403000_80158CA8[7];
 // Preserve the unreferenced zero tail; fields versus alignment is unresolved.
-typedef struct { GpDelayArg value; u8 retained[8]; } Actor403000DelayStorage;
+typedef struct {
+    GpDelayArg value;
+    u8         retained[8];
+} Actor403000DelayStorage;
 STATIC_ASSERT_SIZEOF(Actor403000DelayStorage, 32);
 extern Actor403000DelayStorage D_actor_403000_80158DD0;
-extern s8         D_actor_403000_80158364[];
+extern s8                      D_actor_403000_80158364[];
 
 extern GpCmdArg D_actor_403000_80158D8C;
 
@@ -610,13 +622,13 @@ extern GpAnimSet D_actor_403000_80157944;
 extern GpAnimSet D_actor_403000_80158154;
 extern GpAnimSet D_actor_403000_8015833C;
 extern TmdSource D_actor_403000_80145324;
-s32 func_actor_403000_801324EC(Task *, s32, Actor403000Event *);
-s32 func_actor_403000_8013D268(Task *, s32, s32);
-s32 func_actor_403000_8013D324(Task *);
-s32 func_actor_403000_8013D364(Task *, s32, GpXformArg *);
-s32 func_actor_403000_8013D464(Task *, s32, GpAnimArg *);
-static void func_actor_403000_8013D59C(Task *);
-void func_actor_403000_8013D260(void);
+s32              func_actor_403000_801324EC(Task*, s32, Actor403000Event*);
+s32              func_actor_403000_8013D268(Task*, s32, s32);
+s32              func_actor_403000_8013D324(Task*);
+s32              func_actor_403000_8013D364(Task*, s32, GpXformArg*);
+s32              func_actor_403000_8013D464(Task*, s32, GpAnimArg*);
+static void      func_actor_403000_8013D59C(Task*);
+void             func_actor_403000_8013D260(void);
 
 GpU16Pair D_actor_403000_8013D9E0[4] = {
     { 30, 7 },
@@ -1798,6 +1810,46 @@ SVECTOR D_actor_403000_80158DF0[18] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
 };
+
+static void                func_actor_403000_801327B0(GpCoord* coord, SVECTOR* pos, s32 arg2);
+static void                func_actor_403000_801330D4(GpCoord* parent);
+static void                func_actor_403000_801332E8(Task* arg0);
+static void                func_actor_403000_80133444(Task* arg0);
+static void                func_actor_403000_801336B4(Task* arg0);
+static s32                 func_actor_403000_801337E0(Task* arg0, Actor403000AnimWork* work);
+static s32                 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2);
+static void                func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1);
+static void                func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2);
+static s32                 func_actor_403000_80134E00(Task* arg0);
+static inline s32          func_actor_403000_FindHit(SVECTOR* pos, GpRec18* records);
+static inline s16          func_actor_403000_WrapAngle(s16 angle);
+static inline void         func_actor_403000_PlaySound(Task* arg0, GpEnemy* enemy, s32 id);
+static void                func_actor_403000_80135F08(Task* arg0);
+static __inline__ void     Actor403000_FaceScale(GpCoord* coord, s16 sy);
+static void                func_actor_403000_8013603C(Task* arg0);
+static void                func_actor_403000_801365D0(Task* arg0);
+static void                func_actor_403000_80136B14(Task* arg0);
+static void                func_actor_403000_80136D68(Task* arg0);
+static __inline__ void     Actor403000_ScaleVec(SVECTOR* v, u16 k);
+static __inline__ SVECTOR* Actor403000_PushVec(void);
+static __inline__ void     Actor403000_PopVec(void);
+static inline s8           Actor403000_Cell(GpCoord* coord);
+static void                func_actor_403000_80137084(Task* arg0);
+static void                func_actor_403000_801384E8(Task* arg0);
+static void                func_actor_403000_801386E8(Task* arg0);
+static void                func_actor_403000_80138DB0(Task* arg0);
+static void                func_actor_403000_801399A0(Task* arg0);
+static void                func_actor_403000_80139AE0(Task* arg0);
+static void                func_actor_403000_8013A08C(Task* arg0);
+static void                func_actor_403000_8013A678(Task* arg0);
+static void                func_actor_403000_8013ACBC(Task* arg0);
+static void                func_actor_403000_8013B238(Task* arg0);
+static __inline__ s32      Actor403000_Outside(SVECTOR* v, s32 r);
+static void                func_actor_403000_8013BDE0(Task* arg0);
+static void                func_actor_403000_8013C050(Task* arg0);
+static void                func_actor_403000_8013C2D4(Task* arg0);
+static void                func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1);
+static s32                 func_actor_403000_8013D98C(s32 arg0);
 
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work

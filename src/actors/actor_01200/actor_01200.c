@@ -1,49 +1,53 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135990.h"
-#include "psyq/abs.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
-#include <psyq/memory.h>
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Work block this overlay parks in `Task::work`. `field_0` is the
 /// substate the message handler below switches on; the three bytes at 0x194
@@ -112,17 +116,17 @@ typedef struct Actor01200StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[10];
 } Actor01200StateTable;
 
-extern GpPairSrcE Actor01200_D04034;
+extern GpPairSrcE  Actor01200_D04034;
 extern GpScriptCmd Actor01200_D04044[3];
 extern GpScriptRec Actor01200_D04050[3];
-extern GpAnimSet* Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
+extern GpAnimSet*  Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor01200RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor01200RecoveredMsgEntry, 8);
@@ -138,11 +142,11 @@ static void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1);
 static void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1);
 
 extern TmdSource Actor01200_D05934;
-void Actor01200_Fn03FD4(Task *);
+void             Actor01200_Fn03FD4(Task*);
 
-s32 Actor01200_Fn03A00(Task *, s32, s32);
-s32 Actor01200_Fn03ABC(Task *, s32, GpCmdArg *);
-s32 Actor01200_Fn03B70(Task *, s32, GpXformArg *);
+s32 Actor01200_Fn03A00(Task*, s32, s32);
+s32 Actor01200_Fn03ABC(Task*, s32, GpCmdArg*);
+s32 Actor01200_Fn03B70(Task*, s32, GpXformArg*);
 
 GpU16Pair Actor01200_D04030[1] = {
     { 24, 7 },
@@ -608,6 +612,25 @@ Actor01200RecoveredMsgEntry Actor01200_D07058[4] = {
 TaskDesc Actor01200_D07078 = { 1, 96, Actor01200_Fn03FD4, { .model = &Actor01200_D05934 } };
 
 SVECTOR Actor01200_D07084 = { 0 };
+
+static s16             Actor01200_Fn00130(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* push);
+static s32             Actor01200_Fn0067C(GpCoord* coord, GpRec18* movement, s16 count);
+static __inline__ void Actor01200_ResetSlots(Actor01200Work* arg0);
+static __inline__ void Actor01200_TickSlots(Task* arg0);
+static void            Actor01200_Fn00820(Task* arg0);
+static s32             Actor01200_Fn00990(Actor01200Work* arg0);
+static void            Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn01040(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn01234(GpEnemy* arg0, Task* arg1);
+static __inline__ void Actor01200_FaceScale(GpCoord* coord, s16 s);
+static void            Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2);
+static void            Actor01200_Fn02918(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn03294(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn03C40(GpCoord* coord, s16 scale);
 
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a

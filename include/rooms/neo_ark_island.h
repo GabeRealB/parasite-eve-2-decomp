@@ -1,25 +1,61 @@
-#ifndef ROOMS_NEO_ARK_ISLAND_H
-#define ROOMS_NEO_ARK_ISLAND_H
+#ifndef INCLUDE_ROOMS_NEO_ARK_ISLAND_H
+#define INCLUDE_ROOMS_NEO_ARK_ISLAND_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "actors/waypoints.h"
 
 #include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-#include "actors/waypoints.h"
-#include <psyq/libgte.h>
-
 // Room data exported to the shared waypoint actor.
 extern SVECTOR* D_neo_ark_island_80181CE8[4];
+
 extern SVECTOR D_neo_ark_island_80181CF8[7];
+
 extern ActorWaypointHeight D_neo_ark_island_80181C24;
 
 extern TaskDesc D_neo_ark_island_80181B30;
-void func_neo_ark_island_8017FB2C(Task* arg0);
-void func_neo_ark_island_8017EB68(Task* task);
-void func_neo_ark_island_8017EFE8(Task* task);
-void func_neo_ark_island_8017FB9C(Task* task);
-void func_neo_ark_island_80180600(Task* task);
-void func_neo_ark_island_80180EE8(Task* task);
+
 extern GpAreaVariant D_neo_ark_island_80183F48[13];
 
-#endif
+// neo_ark_island
+extern GpRoomObjRec D_neo_ark_island_80181B94[];
+
+extern GpRoomCoordRec D_neo_ark_island_80181BA4[];
+
+extern u8* D_neo_ark_island_80181BAC[];
+
+extern GpViewCountRec D_neo_ark_island_80181BB0[];
+
+extern GpWarpRec D_neo_ark_island_80181BB4[];
+
+extern GpViewRec D_neo_ark_island_801826EC[];
+
+extern GpSprtRec D_neo_ark_island_80183B14[];
+
+extern GpRoomParamRec* D_neo_ark_island_80183FE8[];
+
+void func_neo_ark_island_8017FB2C(Task* arg0);
+
+void func_neo_ark_island_8017EB68(Task* task);
+
+void func_neo_ark_island_8017EFE8(Task* task);
+
+void func_neo_ark_island_8017FB9C(Task* task);
+
+void func_neo_ark_island_80180600(Task* task);
+
+void func_neo_ark_island_80180EE8(Task* task);
+
+void func_neo_ark_island_8017EB10(Task* task);
+
+#endif // INCLUDE_ROOMS_NEO_ARK_ISLAND_H

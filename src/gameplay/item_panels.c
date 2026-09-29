@@ -1,5 +1,6 @@
 #include "gameplay/item_menu.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/memory.h>
@@ -15,8 +16,6 @@
 #include "items.h"
 #include "gameplay/map.h"
 
-#include "mapui/stage_tables.h"
-
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
@@ -29,6 +28,16 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
 
 typedef struct {
     /* 0x0 */ u8 src;

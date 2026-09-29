@@ -1,38 +1,45 @@
-#include "common.h"
 #include "rooms/neo_ark_r31.h"
-#include "mapui/map_neo_ark.h"
-#include "rooms/room.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "gameplay/evs.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/direction_input.h"
-#include "mapui/stage_tables.h"
 
-extern s32 D_neo_ark_r31_8017DC54;
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/fs_types.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
 
 /// Room message handler table installed into `Task::msgTable`.
 extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
 extern s32        D_80133F90;
 extern s32        D_80134470;
 
-s32 func_neo_ark_r31_8017D8B0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_r31_8017D8B8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_r31_8017D8FC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_r31_8017D904(Task *, s32, GpMessageArg, GpMessageArg);
-void func_neo_ark_r31_8017D5D0(Task *);
+s32  func_neo_ark_r31_8017D8B0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_r31_8017D8B8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_r31_8017D8FC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_r31_8017D904(Task*, s32, GpMessageArg, GpMessageArg);
+void func_neo_ark_r31_8017D5D0(Task*);
 
 TaskDesc D_neo_ark_r31_8017D9E8 = { 0, 192, func_neo_ark_r31_8017D5D0, { .model = NULL } };
 
@@ -133,6 +140,9 @@ GpRoomParamRec * D_neo_ark_r31_8017DC34[8] = {
 };
 
 s32 D_neo_ark_r31_8017DC54 = 0;
+
+static void func_neo_ark_r31_8017D90C(Task* arg0);
+static void func_neo_ark_r31_8017D980(Task* task);
 
 void func_neo_ark_r31_8017D5D0(Task* task)
 {

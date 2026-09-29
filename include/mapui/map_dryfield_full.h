@@ -1,9 +1,278 @@
-#ifndef MAP_DRYFIELD_FULL_H
-#define MAP_DRYFIELD_FULL_H
+#ifndef INCLUDE_MAPUI_MAP_DRYFIELD_FULL_H
+#define INCLUDE_MAPUI_MAP_DRYFIELD_FULL_H
 
+#include "types.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/direction.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/map.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_tasks.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/gfx_types.h"
+#include "main/task_types.h"
+
+extern GfxImageSlot D_map_dryfield_full_801799A4[];
+
+extern TaskIdPair D_map_dryfield_full_8017D238[];
+
+extern TaskIdPair D_map_dryfield_full_8017D594[];
+
+/// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
+extern u8 D_map_dryfield_full_80179ADC[];
+
+/// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
+extern GpMapRec D_map_dryfield_full_80179AE0[];
+
+/// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
+/// map picture its map room id selects.
+extern GpMapMark D_map_dryfield_full_80179D10[];
+
+/// This stage's `D_8010F0E0` entry, ended by a room id of 0.
+extern GpMapFlagIcon D_map_dryfield_full_80179E48[];
+
+/// This stage's `D_8010F0CC` entry, ended by a room id of 0.
+extern GpMapIcon D_map_dryfield_full_80179F04[];
+
+/// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
+extern GpMapName D_map_dryfield_full_80179F4C[];
+
+/// This stage's `Gp_Bit2Banks` list table, by room, ended by a -1 list.
+extern GpBit2List D_map_dryfield_full_8017A46C[];
+
+/// This stage's `D_8010FABC` entry: the task each room starts, keyed by
+/// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
+extern GpTaskDesc D_map_dryfield_full_8017A5AC[];
+
+/// This stage's flag table for `Gp_LookupStageFlag`.
+extern u16 D_map_dryfield_full_8017A738[];
+
+/// This stage's entries in `Gp_RoomCoordTables`, `Gp_WarpTables`,
+/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
+/// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
+/// one pointer per room into that room's package.
+extern GpRoomCoordRec* D_map_dryfield_full_8017A774[];
+
+extern GpWarpRec* D_map_dryfield_full_8017A80C[];
+
+extern GpViewCountTbl D_map_dryfield_full_8017A93C;
+
+extern GpRoomObjTbl D_map_dryfield_full_8017A9D8;
+
+extern GpViewTbl D_map_dryfield_full_8017AA74;
+
+extern GpViewIndexTbl D_map_dryfield_full_8017AB10;
+
+extern GpSprtTbl D_map_dryfield_full_8017ABAC;
+
+extern GpRoomParamRec** D_map_dryfield_full_8017ABB0[];
+
+/// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
+/// records point at them, one list per location.
+extern GpAreaPlace D_map_dryfield_full_8017AC48[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AD18[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AD48[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AD78[];
+
+extern GpAreaPlace D_map_dryfield_full_8017ADA8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017ADF8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AE78[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AE98[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AEC8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AF18[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AF58[];
+
+extern GpAreaPlace D_map_dryfield_full_8017AFE8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B048[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B0B8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B128[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B1A8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B1C8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B2B8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B308[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B358[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B408[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B438[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B4A8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B508[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B558[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B5D8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B648[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B6A8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B708[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B798[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B7D8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B858[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B8C8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B938[];
+
+extern GpAreaPlace D_map_dryfield_full_8017B998[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BA08[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BA38[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BAB8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BB28[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BB78[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BBE8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BC08[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BCC8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BD38[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BDF8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BE58[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BE78[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BEA8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BF08[];
+
+extern GpAreaPlace D_map_dryfield_full_8017BF88[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C038[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C0B8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C158[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C198[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C1B8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C228[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C238[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C288[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C2A8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C378[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C448[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C4E8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C538[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C568[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C578[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C5B8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C698[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C768[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C7F8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C828[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C878[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C8B8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C8E8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C948[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C968[];
+
+extern GpAreaPlace D_map_dryfield_full_8017C9C8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CA28[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CA88[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CAC8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CAF8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CB58[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CB98[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CBF8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CC78[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CCE8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CD08[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CD38[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CD48[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CD88[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CDE8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CEA8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CF58[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CF78[];
+
+extern GpAreaPlace D_map_dryfield_full_8017CFD8[];
+
+extern GpAreaPlace D_map_dryfield_full_8017D018[];
+
+extern GpAreaPlace D_map_dryfield_full_8017D038[];
+
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
+/// location, each ended by a key of -1.
+extern GpGiveRec D_map_dryfield_full_8017D0B8[];
+
+extern GpGiveRec D_map_dryfield_full_8017D1CC[];
 
 /// Updates the outgoing room marker state for this stage.
 s32 func_map_dryfield_full_80179954(RoomEventMsg* in, RoomEventMsg* out);
 
-#endif
+#endif // INCLUDE_MAPUI_MAP_DRYFIELD_FULL_H

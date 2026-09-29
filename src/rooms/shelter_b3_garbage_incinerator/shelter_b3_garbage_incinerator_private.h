@@ -1,8 +1,80 @@
-#ifndef SHELTER_B3_GARBAGE_INCINERATOR_PRIVATE_H
-#define SHELTER_B3_GARBAGE_INCINERATOR_PRIVATE_H
+#ifndef SRC_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_SHELTER_B3_GARBAGE_INCINERATOR_PRIVATE_H
+#define SRC_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_SHELTER_B3_GARBAGE_INCINERATOR_PRIVATE_H
 
-#include "gameplay/area_flags.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "rooms/shelter_b3_garbage_incinerator.h"
+#include "types.h"
 
-#endif
+#include "gameplay/cap.h"
+#include "gameplay/collision.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+
+#include "main/task_types.h"
+#include "main/text.h"
+
+#include "overlay.h"
+
+extern TaskDesc D_shelter_b3_garbage_incinerator_801855E0;
+
+extern TaskDesc D_shelter_b3_garbage_incinerator_80185BA0;
+
+extern GpGridParams D_shelter_b3_garbage_incinerator_80188388[1];
+
+extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018DCF0[1];
+
+extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018E598[1];
+
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018E5B0[22];
+
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018EC38[20];
+
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018F228[17];
+
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018F734[6];
+
+extern GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1];
+
+extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
+
+extern Task* D_shelter_b3_garbage_incinerator_8018FC34;
+
+extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
+
+extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
+
+extern GpCapEntry* D_shelter_b3_garbage_incinerator_8018FC40;
+
+extern GlyphUvwh* D_shelter_b3_garbage_incinerator_8018FC44;
+
+extern GpEvt12* D_shelter_b3_garbage_incinerator_8018FC48;
+
+extern s16 D_shelter_b3_garbage_incinerator_8018FC4C;
+
+extern s16 D_shelter_b3_garbage_incinerator_8018FC4E;
+
+extern s16 D_shelter_b3_garbage_incinerator_8018FC50;
+
+extern s16 D_shelter_b3_garbage_incinerator_8018FC52;
+
+extern s16 D_shelter_b3_garbage_incinerator_8018FC54;
+
+extern s16 D_shelter_b3_garbage_incinerator_8018FC56;
+
+extern u16 D_shelter_b3_garbage_incinerator_8018FC58;
+
+extern u8 D_shelter_b3_garbage_incinerator_8018FC5C[4];
+
+extern OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FC60[10];
+
+extern OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FCB0[30];
+
+extern POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
+
+void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2);
+
+void func_shelter_b3_garbage_incinerator_801853C4(void);
+
+#endif // SRC_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_SHELTER_B3_GARBAGE_INCINERATOR_PRIVATE_H

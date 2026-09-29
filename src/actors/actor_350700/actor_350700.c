@@ -1,34 +1,36 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// Optional start animation for the same handler: the preset's `field_4`
 /// and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2 once
@@ -36,9 +38,9 @@
 typedef GpSpawnAnimArg Actor350700SpawnAnim;
 
 /// Animation bank tables of the enemy actor and of the parent block.
-extern GpAnimSet* D_actor_350700_80169CF8[5];
+extern GpAnimSet*  D_actor_350700_80169CF8[5];
 extern GpAnimSet** D_actor_350700_80169D0C[1];
-extern GpAnimSet* D_actor_350700_801708C0[6];
+extern GpAnimSet*  D_actor_350700_801708C0[6];
 extern GpAnimSet** D_actor_350700_801708D8[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
@@ -49,11 +51,11 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpCmdArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, GpXformArg *, Actor350700SpawnAnim *);
-        s32 (*call5)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
+        s32 (*call5)(Task*, s32, s32);
     } handler;
 } Actor350700MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor350700MsgEntry, 8);
@@ -64,7 +66,7 @@ extern Actor350700MsgEntry D_actor_350700_80169D1C[];
 /// and the message table it points the parent's `Task::msgTable` at: ids
 /// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
 /// `func_actor_350700_801636A8`, terminated by 0x7FFFFFFF.
-extern TaskDesc   D_actor_350700_801708DC[];
+extern TaskDesc            D_actor_350700_801708DC[];
 extern Actor350700MsgEntry D_actor_350700_8017090C[];
 
 static void func_actor_350700_80161E88(Task* arg0);
@@ -148,22 +150,20 @@ extern TmdSource D_actor_350700_8016E86C;
 extern TmdSource D_actor_350700_8016ECC0;
 extern TmdSource D_actor_350700_8016F1B0;
 extern TmdSource D_actor_350700_8016F5F4;
-s32 func_actor_350700_801630C0(Task *, s32, GpXformArg *, Actor350700SpawnAnim *);
-s32 func_actor_350700_801636A8(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_350700_801637C4(Task *, s32, GpXformArg *);
-s32 func_actor_350700_80163840(Task *, s32, s32);
-s32 func_actor_350700_8016395C(void);
-void func_actor_350700_80163274(Task *);
-void func_actor_350700_80163350(Task *);
+s32              func_actor_350700_801630C0(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
+s32              func_actor_350700_801636A8(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_350700_801637C4(Task*, s32, GpXformArg*);
+s32              func_actor_350700_80163840(Task*, s32, s32);
+s32              func_actor_350700_8016395C(void);
+void             func_actor_350700_80163274(Task*);
+void             func_actor_350700_80163350(Task*);
 
-
-
-s32 func_actor_350700_801621B4(Task *, s32, GpXformArg *, Actor350700SpawnAnim *);
-s32 func_actor_350700_80162860(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_350700_80162998(Task *, s32, GpXformArg *);
-s32 func_actor_350700_80162A14(Task *, s32, s32);
-s32 func_actor_350700_80162AF4(Task *, s32, GpCmdArg *);
-void func_actor_350700_80162398(Task *);
+s32  func_actor_350700_801621B4(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
+s32  func_actor_350700_80162860(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_350700_80162998(Task*, s32, GpXformArg*);
+s32  func_actor_350700_80162A14(Task*, s32, s32);
+s32  func_actor_350700_80162AF4(Task*, s32, GpCmdArg*);
+void func_actor_350700_80162398(Task*);
 
 TmdBone D_actor_350700_80163964[19] = {
 #include "assets/actor_350700_model_068A8_skeleton.inc"
@@ -583,7 +583,7 @@ Actor350700MsgEntry D_actor_350700_8017090C[6] = {
     { 2013, { .call4 = func_actor_350700_801630C0 } },
     { 2011, { .call0 = func_actor_350700_8016395C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// Per-frame tick of the enemy actor: dispatches through the local two-entry table
+}; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
 /// the counter at `walk.motion` indexes, then integrates the local-space `step`
 /// into the 16.16 accumulators at `walk.acc`, adds their high halves to the
 /// root coordinate's translation and truncates them back to 16 bits. Ticks the

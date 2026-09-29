@@ -1,55 +1,58 @@
-#include "common.h"
+#include "rooms/dryfield_night_dilapidated_house.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/dryfield_night_dilapidated_house.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "dryfield_night_dilapidated_house_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "dryfield_night_dilapidated_house_private.h"
-
-#include "gameplay/animation.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
 
 /// The prism corners, eight per prism: a lit ring of four, then the far ring.
 extern SVECTOR D_dryfield_night_dilapidated_house_801872CC[];
 
 extern GpGridParams D_dryfield_night_dilapidated_house_80187D44[1];
-extern GpObj3A D_dryfield_night_dilapidated_house_80189F08[1];
-extern GpObj4C D_dryfield_night_dilapidated_house_801892A0[8];
-extern GpObj4C D_dryfield_night_dilapidated_house_80189B78[12];
-extern GpRoomBoundVec D_dryfield_night_dilapidated_house_8018A054[12];
-extern GpRoomCoordSet D_dryfield_night_dilapidated_house_80189B60[1];
 
-void func_dryfield_night_dilapidated_house_8017DB20(Task *);
-void func_dryfield_night_dilapidated_house_8017DCE0(Task *);
+extern GpObj4C D_dryfield_night_dilapidated_house_801892A0[8];
+
+void func_dryfield_night_dilapidated_house_8017DB20(Task*);
+void func_dryfield_night_dilapidated_house_8017DCE0(Task*);
 
 TaskDesc D_dryfield_night_dilapidated_house_8017E6F4 = { 0, 32, func_dryfield_night_dilapidated_house_8017D764, { .model = NULL } };
 
@@ -2281,6 +2284,8 @@ DryfieldNightDilapidatedHouseSpotLightStorage D_dryfield_night_dilapidated_house
         0x40, 0xEC, 0x60, 0xF3,
     },
 };
+
+static void func_dryfield_night_dilapidated_house_8017DD30(GpCoord* coord, s16 arg1);
 
 /// Entry 1 of the room's two-entry descriptor table, the task that plays a
 /// stream. It blanks the display and allocates the auxiliary buffers, looks

@@ -1,49 +1,59 @@
-#include "mine_secret_passage_private.h"
 #include "rooms/mine_secret_passage.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017ff88.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "overlay.h"
+#include "mine_secret_passage_private.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
+#include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "overlay.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } MineSecretPassageHaloStorage;
 STATIC_ASSERT_SIZEOF(MineSecretPassageHaloStorage, 20);
 extern MineSecretPassageHaloStorage D_mine_secret_passage_80180F88;
@@ -67,10 +77,10 @@ static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size);
 static void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1);
 static void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_mine_secret_passage_801815E0[1];
-extern GpObj3A D_mine_secret_passage_801831A8[2];
-extern GpObj4C D_mine_secret_passage_80182DCC[10];
-extern GpObj4C D_mine_secret_passage_801830C4[3];
+extern GpGridParams   D_mine_secret_passage_801815E0[1];
+extern GpObj3A        D_mine_secret_passage_801831A8[2];
+extern GpObj4C        D_mine_secret_passage_80182DCC[10];
+extern GpObj4C        D_mine_secret_passage_801830C4[3];
 extern GpRoomBoundVec D_mine_secret_passage_801833A0[9];
 extern GpRoomCoordSet D_mine_secret_passage_80182DB4[1];
 
@@ -1001,6 +1011,9 @@ GpRoomParamRec * D_mine_secret_passage_80183420[8] = {
 };
 
 RoomFadeStorage D_mine_secret_passage_80183440 = { 0 };
+
+static void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// Publishes this passage's four emitter ids on the task's first tick - the
 /// `D_8011573C` / `D_80115744` / `D_80115728` / `D_80115720` slots take

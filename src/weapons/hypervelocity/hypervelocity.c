@@ -1,36 +1,113 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include "weapons/hypervelocity.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/items.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "hypervelocity_private.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
+
+/// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
+/// frame of the barrel's recoil kick. `dir` receives the third column of the
+/// weapon coordinate matrix from `Gfx_MatrixCol2`; each axis is then scaled by
+/// the remaining recoil ticks over a per-tick divisor, negated, and added to
+/// the coordinate's translation so the gun rides back along its own barrel.
+typedef struct HyperRecoil {
+    /* 0x00 */ s32     vx;
+    /* 0x04 */ s32     vy;
+    /* 0x08 */ s32     vz;
+    /* 0x0C */ byte    pad_C[4];
+    /* 0x10 */ SVECTOR dir;
+} HyperRecoil;
+STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
+
+/// 0x118-byte scratchpad block `func_hypervelocity_8011DF34` reserves for one
+/// half of the round's trail. The trail is a 16-segment tube: `rim` is the
+/// wide ring, pushed `back` along the round's own -Z so it trails behind, and
+/// `hub` the narrow ring sitting on the round itself. Both rings are built in
+/// the round's frame, rotated by its `workm` and shifted onto its world
+/// position, then projected a segment at a time - `sxy0`..`sxy3` are the four
+/// screen corners of the current quad, `flag` the `gte_stflg` that rejects a
+/// segment behind the eye and `otz` its `gte_stszotz` depth, which also picks
+/// the OT bucket.
+typedef struct HyperTrailScratch {
+    /* 0x000 */ SVECTOR rim[16];
+    /* 0x080 */ SVECTOR hub[16];
+    /* 0x100 */ s32     otz;
+    /* 0x104 */ s32     flag;
+    /* 0x108 */ DVECTOR sxy0;
+    /* 0x10C */ DVECTOR sxy1;
+    /* 0x110 */ DVECTOR sxy2;
+    /* 0x114 */ DVECTOR sxy3;
+} HyperTrailScratch;
+STATIC_ASSERT_SIZEOF(HyperTrailScratch, 0x118);
+
+/// 0x58-byte scratchpad block `func_hypervelocity_8011EC1C` reserves for the
+/// discharge cone. `hub` is the square collar sitting on the round itself and
+/// `rim` the flared mouth in front of it; both are the unit quad
+/// `D_80111E38` scaled in the round's own frame, rotated by its `workm` and
+/// shifted onto its world position. Two opposed walls are then projected a
+/// wall at a time - `sxy0`..`sxy3` are the four screen corners of the current
+/// wall, `flag` the `gte_stflg` that rejects a wall behind the eye and `otz`
+/// its `gte_stszotz` depth, which also picks the OT bucket.
+typedef struct HyperConeScratch {
+    /* 0x00 */ SVECTOR rim[4];
+    /* 0x20 */ SVECTOR hub[4];
+    /* 0x40 */ s32     otz;
+    /* 0x44 */ s32     flag;
+    /* 0x48 */ DVECTOR sxy0;
+    /* 0x4C */ DVECTOR sxy1;
+    /* 0x50 */ DVECTOR sxy2;
+    /* 0x54 */ DVECTOR sxy3;
+} HyperConeScratch;
+STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
+
+/// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
+/// `Task::work`. It leads with the `GpObj` list node `func_hypervelocity_8011F11C`
+/// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry
+/// `GpRec18` collision table `obj.ctx.recs` points at, and its `flags` is set
+/// to 2 (the last-element bit) instead of going through `Gp_InitRec18Table`.
+typedef struct HyperBeam {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[1];
+} HyperBeam;
+STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
 
 /// Translation of the round's own coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x240, 0x80)`.
@@ -42,6 +119,12 @@ static void func_hypervelocity_8011F6A0(Task* task);
 static void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side);
 static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang);
 static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
+
+static void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb);
+static void func_hypervelocity_8011F374(Task* arg0);
+static void func_hypervelocity_8011F570(Task* arg0);
+static void func_hypervelocity_8011F694(Task* arg0);
+static void func_hypervelocity_8011F724(Task* arg0);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
 /// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift

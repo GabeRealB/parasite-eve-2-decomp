@@ -1,41 +1,53 @@
-#include "common.h"
 #include "rooms/shelter_b3_incinerator_control_room.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "types.h"
+
+#include "shelter_b3_incinerator_control_room_private.h"
+
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern UiObjectDesc D_800611E4;
 
-extern s32            D_801360E4;
-extern s32            D_80136804;
+extern s32 D_801360E4;
+extern s32 D_80136804;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
@@ -98,38 +110,27 @@ extern TaskDesc D_shelter_b3_incinerator_control_room_80181814[];
 /// Message table of the room's message task.
 extern GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[];
 
-/// Area records the room's message task applies when the room is entered by
-/// warp 4.
-extern GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[];
-
-/// The cutscene's sound task, killed when the scene is skipped.
-extern Task* D_shelter_b3_incinerator_control_room_80182A54;
-
-/// Parameters of the cutscene `func_shelter_b3_incinerator_control_room_8017FB20`
-/// starts.
-extern RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
-
 static void func_shelter_b3_incinerator_control_room_8017F44C(Task* task);
 
-void func_shelter_b3_incinerator_control_room_8017D6CC(UiList *, UiObject *);
-void func_shelter_b3_incinerator_control_room_8017DE98(UiList *, UiObject *);
-void func_shelter_b3_incinerator_control_room_8017E8B0(Task *);
-void func_shelter_b3_incinerator_control_room_8017ED5C(Task *);
-void func_shelter_b3_incinerator_control_room_8017EF1C(Task *);
-void func_shelter_b3_incinerator_control_room_8017F110(UiList *, UiObject *);
-void func_shelter_b3_incinerator_control_room_8017F1F4(UiList *, UiObject *);
-void func_shelter_b3_incinerator_control_room_8017F2BC(UiList *, UiObject *);
-void func_shelter_b3_incinerator_control_room_8017F384(UiList *, UiObject *);
-void func_shelter_b3_incinerator_control_room_8017F488(Task *);
+void func_shelter_b3_incinerator_control_room_8017D6CC(UiList*, UiObject*);
+void func_shelter_b3_incinerator_control_room_8017DE98(UiList*, UiObject*);
+void func_shelter_b3_incinerator_control_room_8017E8B0(Task*);
+void func_shelter_b3_incinerator_control_room_8017ED5C(Task*);
+void func_shelter_b3_incinerator_control_room_8017EF1C(Task*);
+void func_shelter_b3_incinerator_control_room_8017F110(UiList*, UiObject*);
+void func_shelter_b3_incinerator_control_room_8017F1F4(UiList*, UiObject*);
+void func_shelter_b3_incinerator_control_room_8017F2BC(UiList*, UiObject*);
+void func_shelter_b3_incinerator_control_room_8017F384(UiList*, UiObject*);
+void func_shelter_b3_incinerator_control_room_8017F488(Task*);
 
-void func_shelter_b3_incinerator_control_room_8017F488(Task *);
-void func_shelter_b3_incinerator_control_room_8017F9F4(Task *);
+void func_shelter_b3_incinerator_control_room_8017F488(Task*);
+void func_shelter_b3_incinerator_control_room_8017F9F4(Task*);
 
-s32 func_shelter_b3_incinerator_control_room_8017FA84(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b3_incinerator_control_room_8017FB20(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FA84(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b3_incinerator_control_room_8017FB20(Task*, s32, s32, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task*, s32, s32, GpMessageArg);
 
 u8 D_shelter_b3_incinerator_control_room_801814F4[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -278,8 +279,8 @@ UiListItemFunc D_shelter_b3_incinerator_control_room_801817E0[4] = {
 
 UiList D_shelter_b3_incinerator_control_room_801817F0 = { D_shelter_b3_incinerator_control_room_801817E0, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_shelter_b3_incinerator_control_room_8017F488(Task *);
-void func_shelter_b3_incinerator_control_room_8017F9F4(Task *);
+void func_shelter_b3_incinerator_control_room_8017F488(Task*);
+void func_shelter_b3_incinerator_control_room_8017F9F4(Task*);
 
 TaskDesc D_shelter_b3_incinerator_control_room_80181814[3] = {
     { 0, 32, func_shelter_b3_incinerator_control_room_8017F488, { .model = NULL } },
@@ -295,6 +296,14 @@ GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
     { 5106, func_shelter_b3_incinerator_control_room_8017FBE8 },
     { 0x7FFFFFFF, NULL },
 };
+
+static void func_shelter_b3_incinerator_control_room_8017E294(UiList* list, UiObject* obj);
+static void func_shelter_b3_incinerator_control_room_8017E590(UiList* list, UiObject* obj);
+static void func_shelter_b3_incinerator_control_room_8017EDB8(u8* str, s32 decimals);
+static u8*  func_shelter_b3_incinerator_control_room_8017EE28(u8* buf, s32 value, s32 decimals);
+static void func_shelter_b3_incinerator_control_room_8017F00C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task);
+static void func_shelter_b3_incinerator_control_room_8017FCA8(Task* task);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of

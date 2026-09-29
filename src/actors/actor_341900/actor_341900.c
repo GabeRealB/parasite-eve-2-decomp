@@ -1,39 +1,45 @@
-#include "actors/actor_444000.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
+#include "actors/actor_444000.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
+#include "main/coord.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-
-#include "gameplay/world_targets.h"
-
-#include "gameplay/animation.h"
 
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
@@ -199,16 +205,16 @@ typedef struct {
     s32 id;
     union {
         void (*call0)(void);
-        void (*call1)(Task *, s32, Actor341900AnimCmd *);
-        void (*call2)(Task *, s32, GpXformArg *);
-        void (*call3)(Task *, s32, s32);
+        void (*call1)(Task*, s32, Actor341900AnimCmd*);
+        void (*call2)(Task*, s32, GpXformArg*);
+        void (*call3)(Task*, s32, s32);
     } handler;
 } Actor341900MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor341900MessageEntry, 8);
 
 extern Actor341900MessageEntry D_actor_341900_80163A38[2];
-extern GpXformArg D_actor_341900_80163A48;
-extern GpXformArg D_actor_341900_80163A60;
+extern GpXformArg              D_actor_341900_80163A48;
+extern GpXformArg              D_actor_341900_80163A60;
 extern Actor341900MessageEntry D_actor_341900_80163A78[4];
 /// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
 /// `func_actor_341900_801635A4` also warps slot 3 to the last one.
@@ -224,29 +230,29 @@ extern GpEvsCmd D_actor_341900_80163FB0[];
 extern TaskDesc D_actor_341900_80164190[];
 
 extern GpOverlayIds D_actor_341900_80163B40;
-void func_actor_341900_80162200(Task *);
-void func_actor_341900_801625B4(Task *);
-void func_actor_341900_80162708(Task *);
-void func_actor_341900_80162EFC(Task *);
-void func_actor_341900_80163148(Task *);
-void func_actor_341900_80163334(s16);
-void func_actor_341900_80163388(s32);
-void func_actor_341900_801633C0(s32);
-void func_actor_341900_801633F8(void);
-void func_actor_341900_80163438(void);
-void func_actor_341900_80163488(void);
-void func_actor_341900_801634D0(void);
-void func_actor_341900_80163534(void);
-void func_actor_341900_80163564(s16);
-void func_actor_341900_80163584(s16);
-void func_actor_341900_801635A4(void);
-void func_actor_341900_80163638(void);
-void func_actor_341900_80163658(void);
-void func_actor_341900_80163678(void);
+void                func_actor_341900_80162200(Task*);
+void                func_actor_341900_801625B4(Task*);
+void                func_actor_341900_80162708(Task*);
+void                func_actor_341900_80162EFC(Task*);
+void                func_actor_341900_80163148(Task*);
+void                func_actor_341900_80163334(s16);
+void                func_actor_341900_80163388(s32);
+void                func_actor_341900_801633C0(s32);
+void                func_actor_341900_801633F8(void);
+void                func_actor_341900_80163438(void);
+void                func_actor_341900_80163488(void);
+void                func_actor_341900_801634D0(void);
+void                func_actor_341900_80163534(void);
+void                func_actor_341900_80163564(s16);
+void                func_actor_341900_80163584(s16);
+void                func_actor_341900_801635A4(void);
+void                func_actor_341900_80163638(void);
+void                func_actor_341900_80163658(void);
+void                func_actor_341900_80163678(void);
 
-void func_actor_341900_80161FD0(Task *, s32, Actor341900AnimCmd *);
-void func_actor_341900_80163224(Task *, s32, s32);
-void func_actor_341900_801632A0(Task *, s32, GpXformArg *);
+void func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*);
+void func_actor_341900_80163224(Task*, s32, s32);
+void func_actor_341900_801632A0(Task*, s32, GpXformArg*);
 void func_actor_341900_8016332C(void);
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -440,6 +446,12 @@ TaskDesc D_actor_341900_80164190[10] = {
 };
 
 Task * D_actor_341900_80164208 = NULL;
+
+static s32         func_actor_341900_80161E58(Task* arg0, u16 arg1);
+static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n);
+static void        func_actor_341900_80162330(Task* arg0);
+static void        func_actor_341900_801628B8(Task* arg0);
+static void        func_actor_341900_80162AD4(Task* arg0);
 
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0
 /// is skipped for the eight-slot actor). If every one of them then has

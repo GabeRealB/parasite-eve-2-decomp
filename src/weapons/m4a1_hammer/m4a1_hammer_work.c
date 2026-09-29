@@ -1,12 +1,9 @@
-#include "common.h"
+#include "m4a1_hammer_private.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 
-#include "weapons/m4a1_hammer.h"
-
-#include "gameplay/display.h"
+#include "types.h"
 
 #include "main/task_types.h"
 

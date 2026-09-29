@@ -1,35 +1,40 @@
-#include "gameplay/evs.h"
 #include "mist_parking_private.h"
 
-#include "common.h"
-#include <psyq/libgte.h>
-#include "rooms/room_common.h"
+#include "types.h"
+
 #include "rooms/mist_parking.h"
 
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-
+#include "gameplay/inventory.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/starter_inventory.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
-#include "gameplay/item_menu.h"
-#include "gameplay/message.h"
-
-#include "gameplay/animation.h"
+#include "rooms/room_common.h"
 
 void func_mist_parking_8018345C(Task* arg0);
-
 
 extern GpEvsCmd D_mist_parking_8018F374[];
 extern GpEvsCmd D_mist_parking_8018F4AC[];
@@ -38,8 +43,8 @@ extern GpEvsCmd D_mist_parking_8018F824[];
 extern GpEvsCmd D_mist_parking_8018F9A4[];
 extern GpEvsCmd D_mist_parking_8018FA4C[];
 extern GpEvsCmd D_mist_parking_8018FB3C[];
-extern s32 D_mist_parking_8018FBFC[];
-extern s32 D_mist_parking_8018FC10[];
+extern s32      D_mist_parking_8018FBFC[];
+extern s32      D_mist_parking_8018FC10[];
 
 static void func_mist_parking_801833F8(Task* task);
 
@@ -72,44 +77,18 @@ extern GpAnimArg D_mist_parking_8018DE88;
 extern GpAnimArg D_mist_parking_8018DEB0;
 extern GpAnimArg D_mist_parking_8018DEC4;
 extern GpAnimArg D_mist_parking_8018DED8;
-extern GpCopyArg D_mist_parking_8018D82C;
 
-extern GpAnimSet D_mist_parking_80187594;
-extern GpAnimSet D_mist_parking_80187D34;
-extern GpAnimSet D_mist_parking_8018821C;
-extern GpAnimSet D_mist_parking_801886F8;
-extern GpAnimSet D_mist_parking_80188CC0;
-extern GpAnimSet D_mist_parking_80189074;
-extern GpAnimSet D_mist_parking_80189770;
-extern GpAnimSet D_mist_parking_80189C48;
-extern GpAnimSet D_mist_parking_8018A340;
-extern GpAnimSet D_mist_parking_8018A620;
-extern GpAnimSet D_mist_parking_8018A9A4;
-extern GpAnimSet D_mist_parking_8018AC64;
-extern GpAnimSet D_mist_parking_8018B054;
-extern GpAnimSet D_mist_parking_8018B454;
-extern GpAnimSet D_mist_parking_8018B790;
-extern GpAnimSet D_mist_parking_8018BCA0;
-extern GpAnimSet D_mist_parking_8018BFCC;
-extern GpAnimSet D_mist_parking_8018C3A0;
-extern GpAnimSet D_mist_parking_8018C70C;
-extern GpAnimSet D_mist_parking_8018CB34;
-extern GpAnimSet D_mist_parking_8018CDB0;
-extern GpAnimSet D_mist_parking_8018D220;
-extern GpAnimSet D_mist_parking_8018D41C;
-extern GpAnimSet D_mist_parking_8018D734;
-extern TmdSource D_mist_parking_80187294;
-void func_mist_parking_80182A44(Task *);
-void func_mist_parking_80182F60(Task *);
+void func_mist_parking_80182A44(Task*);
+void func_mist_parking_80182F60(Task*);
 void func_mist_parking_80183100(s32);
 void func_mist_parking_8018312C(s32);
 void func_mist_parking_8018316C(s32);
 void func_mist_parking_801831F0(s32);
 void func_mist_parking_8018326C(s32);
-void func_mist_parking_801832AC(Task *);
-void func_mist_parking_801834D4(Task *);
+void func_mist_parking_801832AC(Task*);
+void func_mist_parking_801834D4(Task*);
 void func_mist_parking_8018354C(void);
-void func_mist_parking_8018357C(Task *);
+void func_mist_parking_8018357C(Task*);
 void func_mist_parking_80183600(void);
 
 TaskDesc D_mist_parking_8018D75C[9] = {
@@ -761,6 +740,10 @@ s32 D_mist_parking_8018FC10[5] = {
     50, 1, 1, 1, 1,
 };
 
+/// The two text lines of the block `func_mist_parking_80183304` shows, and
+/// the alternative pair it uses when the task's `spawnArg1` is 1.
+extern u8* D_mist_parking_8018DF24[4];
+
 void func_mist_parking_80182A44(Task* task)
 {
     s32                   i;
@@ -1060,10 +1043,6 @@ void func_mist_parking_801832AC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// The two text lines of the block `func_mist_parking_80183304` shows, and
-/// the alternative pair it uses when the task's `spawnArg1` is 1.
-extern u8* D_mist_parking_8018DF24[4];
-
 /// Allocates a two-line text block, parks it at `Task::work`, spawns it and
 /// steps the task on; `func_mist_parking_80183434` is set as the exit
 /// callback.
@@ -1134,8 +1113,6 @@ static void func_mist_parking_80183434(Task* arg0)
     taskKill(arg0);
     Stage_SetEndingFlag();
 }
-
-extern s32 D_mist_parking_8019531C;
 
 void func_mist_parking_8018345C(Task* arg0)
 {

@@ -1,55 +1,67 @@
-#include "common.h"
-#include "rooms/dryfield_night_motel_balcony.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/inline_c.h"
+#include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "actors/actor.h"
-
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/light.h"
-#include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "rooms/dryfield_night_motel_balcony.h"
 
 extern GpImgRec D_actor_403100_801555EC[2];
 
@@ -362,9 +374,9 @@ extern GpAnimSet D_actor_403100_8014DACC;
 extern GpAnimSet D_actor_403100_8014E060;
 extern GpAnimSet D_actor_403100_8014EC10;
 extern GpAnimSet D_actor_403100_8014F70C;
-void func_actor_403100_8013D564(Task *, s32, u16 *);
-void func_actor_403100_8013D5F4(void);
-void func_actor_403100_8013D608(Task *, s32, s32);
+void             func_actor_403100_8013D564(Task*, s32, u16*);
+void             func_actor_403100_8013D5F4(void);
+void             func_actor_403100_8013D608(Task*, s32, s32);
 
 extern GpAnimSet D_actor_403100_801479D0;
 extern GpAnimSet D_actor_403100_801481EC;
@@ -392,9 +404,9 @@ extern GpAnimSet D_actor_403100_8015324C;
 extern GpAnimSet D_actor_403100_8015374C;
 
 extern TmdSource D_actor_403100_801475F0;
-void func_actor_403100_8013E04C(Task *);
-void func_actor_403100_8013E0A4(Task *);
-void func_actor_403100_8013E0FC(Task *);
+void             func_actor_403100_8013E04C(Task*);
+void             func_actor_403100_8013E0A4(Task*);
+void             func_actor_403100_8013E0FC(Task*);
 
 extern u_long D_actor_403100_80153774[1950];
 
@@ -3237,8 +3249,8 @@ typedef struct {
     s32 id;
     union {
         void (*call0)(void);
-        void (*call1)(Task *, s32, s32);
-        void (*call2)(Task *, s32, u16 *);
+        void (*call1)(Task*, s32, s32);
+        void (*call2)(Task*, s32, u16*);
     } handler;
 } Actor403100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor403100MessageEntry, 8);
@@ -3318,6 +3330,251 @@ s16 D_actor_403100_80155810 = 0;
 
 Actor403100Entry D_actor_403100_80155814[28] = { 0 };
 
+/// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `field_8` is
+/// this actor's `GpCoord`.
+extern Actor403100Work* D_actor_403100_80155808;
+
+extern GpEnemy* D_actor_403100_8015580C;
+
+extern GpEffArg D_actor_403100_80155630;
+
+extern Actor403100MessageEntry D_actor_403100_801556EC[4];
+
+extern GpAnimSet* D_actor_403100_8015572C[26];
+
+extern Actor403100QuadEntry D_actor_403100_801557E0[2];
+
+extern Actor403100AnimTable D_actor_403100_8015570C;
+
+extern u8 D_80165FC0;
+
+static void func_actor_403100_801326DC(Actor403100Work* work);
+
+static void func_actor_403100_8013712C(Task* arg0);
+
+static void func_actor_403100_8013C008(s16 arg0, s16 arg1);
+
+static void func_actor_403100_8013D74C(Task* arg0);
+
+static s32 func_actor_403100_80133928(void);
+
+static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
+
+static void func_actor_403100_8013E6F0(Task* arg0);
+
+static void func_actor_403100_8013F12C(Task* task);
+
+static void func_actor_403100_8013E16C(void);
+
+static void func_actor_403100_8013E174(void);
+
+static void func_actor_403100_8013E1E4(void);
+
+static void func_actor_403100_8013E2BC(void);
+
+static void func_actor_403100_8013BA64(Task* arg0);
+
+static void func_actor_403100_8013C214(Task* arg0);
+
+static void func_actor_403100_8013CBE0(Task* arg0);
+
+static void func_actor_403100_8013CDC0(void);
+
+static void func_actor_403100_8013D2A0(s16 arg0);
+
+static void func_actor_403100_8013D6B4(Task* arg0);
+
+static void func_actor_403100_8013D700(Task* arg0);
+
+static void func_actor_403100_80136830(Task* arg0);
+
+static void func_actor_403100_80137268(Task* task);
+
+static void func_actor_403100_80137310(Task* task);
+
+static void func_actor_403100_8013BB8C(Task* arg0);
+
+static void func_actor_403100_8013BDE4(Task* arg0);
+
+static void func_actor_403100_8013BEF0(Task* arg0);
+
+static void func_actor_403100_8013D88C(Task* arg0);
+
+static void func_actor_403100_8013D8F4(Task* arg0);
+
+static void func_actor_403100_8013DA6C(Task* task);
+
+static void func_actor_403100_8013DAC4(Task* arg0);
+
+static void func_actor_403100_8013DB48(Task* arg0);
+
+static void func_actor_403100_8013DC18(Task* arg0);
+
+static void func_actor_403100_8013DCAC(Task* arg0);
+
+static void func_actor_403100_8013DD78(Task* arg0);
+
+static void func_actor_403100_8013DE0C(Task* arg0);
+
+static void func_actor_403100_8013DEA0(Task* arg0);
+
+static void func_actor_403100_8013DF0C(Task* task);
+
+static void func_actor_403100_8013DF64(Task* task);
+
+static void func_actor_403100_8013DFBC(Task* arg0);
+
+static void func_actor_403100_8013E6A0(Task* arg0);
+
+static void func_actor_403100_8013E784(Task* arg0);
+
+static void func_actor_403100_8013E7C8(Task* arg0);
+
+static void func_actor_403100_8013E88C(Task* arg0);
+
+static void func_actor_403100_8013E920(Task* arg0);
+
+static void func_actor_403100_8013ED50(Task* arg0);
+
+static void func_actor_403100_8013EDDC(Task* task);
+
+static void func_actor_403100_8013EE28(Task* arg0);
+
+static void func_actor_403100_8013EEB0(Task* task);
+
+static void func_actor_403100_8013EEB8(Task* arg0);
+
+static void func_actor_403100_8013EF24(Task* task);
+
+static void func_actor_403100_8013EF2C(Task* task);
+
+static void func_actor_403100_8013EF34(Task* task);
+
+static void func_actor_403100_8013EF58(Task* task);
+
+static void func_actor_403100_8013EF60(Task* task);
+
+static void func_actor_403100_8013EFC0(Task* task);
+
+static void func_actor_403100_8013EFC8(Task* arg0);
+
+static void func_actor_403100_8013F034(Task* arg0);
+
+static void func_actor_403100_8013F0A8(Task* arg0);
+
+static void func_actor_403100_8013F18C(Task* task);
+
+static void func_actor_403100_8013F1D8(Task* task);
+
+static void func_actor_403100_8013F230(Task* task);
+
+static void func_actor_403100_8013F270(Task* task);
+
+static void func_actor_403100_8013F2D8(Task* task);
+
+static void func_actor_403100_8013F344(Task* task);
+
+static void func_actor_403100_8013F3AC(Task* task);
+
+static void func_actor_403100_8013F3EC(Task* arg0);
+
+static void func_actor_403100_8013F488(Task* task);
+
+static void func_actor_403100_8013F4E0(Task* task);
+
+static void func_actor_403100_8013F520(Task* task);
+
+static void func_actor_403100_8013F588(Task* task);
+
+static void func_actor_403100_8013F6B0(Task* task);
+
+static void func_actor_403100_8013F6F4(Task* task);
+
+static void func_actor_403100_8013F76C(Task* task);
+
+static void func_actor_403100_8013F7AC(Task* task);
+
+static void func_actor_403100_8013F7B4(Task* task);
+
+static void func_actor_403100_8013F7BC(Task* task);
+
+/// The scratch-pad block of turning model part 3 toward a point: the matrices
+/// the turn is built in, and the pitch and yaw toward the point.
+typedef struct Actor403100AimScratch {
+    MATRIX  mats[4];
+    SVECTOR angles;
+} Actor403100AimScratch;
+STATIC_ASSERT_SIZEOF(Actor403100AimScratch, 0x88);
+
+static __inline__ s32  Actor403100_FindRegion(s16 x, s16 z);
+static __inline__ s32  Actor403100_FindEffectRegion(s16 x, s16 z);
+static __inline__ s32  Actor403100_AccumulateRotation(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
+static __inline__ s32  Actor403100_LocalizeRotation(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
+static __inline__ s16  Actor403100_TestFlags(void);
+static __inline__ s16  Actor403100_TestFlags104(void);
+static __inline__ s16  Actor403100_TestFlags12C(void);
+static void            func_actor_403100_80132320(Task* arg0);
+static void            func_actor_403100_80132528(Task* arg0);
+static void            func_actor_403100_801331D4(Task* arg0);
+static void            func_actor_403100_8013335C(Task* arg0);
+static inline void     _actor403100SetRootYaw(Task* task);
+static inline void     _actor403100ScaleRoot(Task* task, s16 factor);
+static inline void     _actor403100UpdateColor(Task* task, GpCoord* coord);
+static void            func_actor_403100_801339EC(Task* arg0);
+static __inline__ void _actor403100PlaceSpawned(GpCoord* coord, s32 i);
+static __inline__ void _actor403100SetObjFlags(GpObj* obj, s32 mask, s32 bits);
+static void            func_actor_403100_80134D50(Task* arg0);
+static void            func_actor_403100_8013506C(Task* arg0);
+static void            func_actor_403100_801351F8(Task* arg0);
+static void            func_actor_403100_8013539C(Task* arg0);
+static void            func_actor_403100_801354A0(Task* arg0);
+static void            func_actor_403100_801355D4(Task* arg0);
+static void            func_actor_403100_801356F4(Task* arg0);
+static void            func_actor_403100_8013588C(Task* arg0);
+static void            func_actor_403100_801359DC(Task* arg0);
+static void            func_actor_403100_80135AE0(Task* arg0);
+static void            func_actor_403100_80135C00(Task* arg0);
+static void            func_actor_403100_80135F30(Task* arg0);
+static void            func_actor_403100_80136100(Task* arg0);
+static void            func_actor_403100_8013631C(Task* arg0);
+static void            func_actor_403100_80136610(Task* arg0);
+static inline void     _actor403100RunHook(void);
+static inline void     _actor403100TurnPart6(Task* task);
+static inline void     _actor403100PitchArms(Task* task);
+static void            func_actor_403100_801375B8(Task* task);
+static void            func_actor_403100_801376D8(Task* arg0);
+static void            func_actor_403100_801379B4(Task* arg0);
+static void            func_actor_403100_80137CA8(Task* task);
+static void            func_actor_403100_80137DC4(Task* arg0);
+static void            func_actor_403100_80137F4C(Task* task);
+static void            func_actor_403100_80138048(Task* arg0);
+static void            func_actor_403100_8013842C(Task* arg0);
+static void            func_actor_403100_80138610(Task* arg0);
+static void            func_actor_403100_801386DC(Task* arg0);
+static void            func_actor_403100_80138790(Task* arg0);
+static void            func_actor_403100_80138844(Task* arg0);
+static void            func_actor_403100_80138AB4(Task* task);
+static void            func_actor_403100_80138C18(Task* task);
+static void            func_actor_403100_80138D08(Task* arg0);
+static void            func_actor_403100_80138DB0(Task* arg0);
+static void            func_actor_403100_80138F88(Task* arg0);
+static void            func_actor_403100_8013922C(Task* arg0);
+static void            func_actor_403100_801395EC(Task* arg0);
+static void            func_actor_403100_80139818(Task* arg0);
+static void            func_actor_403100_80139E80(Task* arg0);
+static void            func_actor_403100_8013A064(Task* arg0);
+static void            func_actor_403100_8013A254(Task* task);
+static void            func_actor_403100_8013A4C8(Task* arg0);
+static void            func_actor_403100_8013A5AC(Task* arg0);
+static void            func_actor_403100_8013A81C(Task* arg0);
+static void            func_actor_403100_8013AA04(Task* arg0);
+static void            func_actor_403100_8013AC04(Task* task);
+static void            func_actor_403100_8013AE28(Task* task);
+static inline void     _actor403100StepRoot(TmdObject* obj, GpCoord* coords);
+static inline s32      Actor403100CoordToViewInline(GpCoord* coord, SVECTOR* pos);
+static inline void     Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame);
+static s32             func_actor_403100_8013E450(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
+
 static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
 {
     Actor403100RectEntry* region;
@@ -3394,100 +3651,9 @@ static __inline__ s32 Actor403100_LocalizeRotation(GpCoord* arg0, MATRIX* arg1, 
     return 1;
 }
 
-/// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `field_8` is
-/// this actor's `GpCoord`.
-extern Actor403100Work* D_actor_403100_80155808;
-extern GpEnemy*         D_actor_403100_8015580C;
-
-extern GpEffArg D_actor_403100_80155630;
-
-extern Actor403100MessageEntry D_actor_403100_801556EC[4];
-extern GpAnimSet* D_actor_403100_8015572C[26];
-extern Actor403100QuadEntry D_actor_403100_801557E0[2];
-
-extern Actor403100AnimTable D_actor_403100_8015570C;
-
-extern u8 D_80165FC0;
-
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
 
 /* Defined later in this file. */
-static void func_actor_403100_801326DC(Actor403100Work* work);
-static void func_actor_403100_8013712C(Task* arg0);
-static void func_actor_403100_8013C008(s16 arg0, s16 arg1);
-static void func_actor_403100_8013D74C(Task* arg0);
-static s32  func_actor_403100_80133928(void);
-static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
-
-static void func_actor_403100_8013E6F0(Task* arg0);
-static void func_actor_403100_8013F12C(Task* task);
-static void func_actor_403100_8013E16C(void);
-static void func_actor_403100_8013E174(void);
-static void func_actor_403100_8013E1E4(void);
-static void func_actor_403100_8013E2BC(void);
-static void func_actor_403100_8013BA64(Task* arg0);
-static void func_actor_403100_8013C214(Task* arg0);
-static void func_actor_403100_8013CBE0(Task* arg0);
-static void func_actor_403100_8013CDC0(void);
-static void func_actor_403100_8013D2A0(s16 arg0);
-static void func_actor_403100_8013D6B4(Task* arg0);
-static void func_actor_403100_8013D700(Task* arg0);
-static void func_actor_403100_80136830(Task* arg0);
-static void func_actor_403100_80137268(Task* task);
-static void func_actor_403100_80137310(Task* task);
-static void func_actor_403100_8013BB8C(Task* arg0);
-static void func_actor_403100_8013BDE4(Task* arg0);
-static void func_actor_403100_8013BEF0(Task* arg0);
-static void func_actor_403100_8013D88C(Task* arg0);
-static void func_actor_403100_8013D8F4(Task* arg0);
-static void func_actor_403100_8013DA6C(Task* task);
-static void func_actor_403100_8013DAC4(Task* arg0);
-static void func_actor_403100_8013DB48(Task* arg0);
-static void func_actor_403100_8013DC18(Task* arg0);
-static void func_actor_403100_8013DCAC(Task* arg0);
-static void func_actor_403100_8013DD78(Task* arg0);
-static void func_actor_403100_8013DE0C(Task* arg0);
-static void func_actor_403100_8013DEA0(Task* arg0);
-static void func_actor_403100_8013DF0C(Task* task);
-static void func_actor_403100_8013DF64(Task* task);
-static void func_actor_403100_8013DFBC(Task* arg0);
-static void func_actor_403100_8013E6A0(Task* arg0);
-static void func_actor_403100_8013E784(Task* arg0);
-static void func_actor_403100_8013E7C8(Task* arg0);
-static void func_actor_403100_8013E88C(Task* arg0);
-static void func_actor_403100_8013E920(Task* arg0);
-static void func_actor_403100_8013ED50(Task* arg0);
-static void func_actor_403100_8013EDDC(Task* task);
-static void func_actor_403100_8013EE28(Task* arg0);
-static void func_actor_403100_8013EEB0(Task* task);
-static void func_actor_403100_8013EEB8(Task* arg0);
-static void func_actor_403100_8013EF24(Task* task);
-static void func_actor_403100_8013EF2C(Task* task);
-static void func_actor_403100_8013EF34(Task* task);
-static void func_actor_403100_8013EF58(Task* task);
-static void func_actor_403100_8013EF60(Task* task);
-static void func_actor_403100_8013EFC0(Task* task);
-static void func_actor_403100_8013EFC8(Task* arg0);
-static void func_actor_403100_8013F034(Task* arg0);
-static void func_actor_403100_8013F0A8(Task* arg0);
-static void func_actor_403100_8013F18C(Task* task);
-static void func_actor_403100_8013F1D8(Task* task);
-static void func_actor_403100_8013F230(Task* task);
-static void func_actor_403100_8013F270(Task* task);
-static void func_actor_403100_8013F2D8(Task* task);
-static void func_actor_403100_8013F344(Task* task);
-static void func_actor_403100_8013F3AC(Task* task);
-static void func_actor_403100_8013F3EC(Task* arg0);
-static void func_actor_403100_8013F488(Task* task);
-static void func_actor_403100_8013F4E0(Task* task);
-static void func_actor_403100_8013F520(Task* task);
-static void func_actor_403100_8013F588(Task* task);
-static void func_actor_403100_8013F6B0(Task* task);
-static void func_actor_403100_8013F6F4(Task* task);
-static void func_actor_403100_8013F76C(Task* task);
-static void func_actor_403100_8013F7AC(Task* task);
-static void func_actor_403100_8013F7B4(Task* task);
-static void func_actor_403100_8013F7BC(Task* task);
 
 static __inline__ s16 Actor403100_TestFlags(void)
 {
@@ -7169,14 +7335,6 @@ static void func_actor_403100_8013B3C4(Task* arg0)
         D_actor_403100_80155808->field_5FA            = 0;
     }
 }
-
-/// The scratch-pad block of turning model part 3 toward a point: the matrices
-/// the turn is built in, and the pitch and yaw toward the point.
-typedef struct Actor403100AimScratch {
-    MATRIX  mats[4];
-    SVECTOR angles;
-} Actor403100AimScratch;
-STATIC_ASSERT_SIZEOF(Actor403100AimScratch, 0x88);
 
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
 {

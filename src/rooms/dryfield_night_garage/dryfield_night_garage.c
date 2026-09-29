@@ -1,44 +1,55 @@
-#include "dryfield_night_garage_private.h"
-#include "mapui/map_dryfield_full.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
 #include "rooms/dryfield_night_garage.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "dryfield_night_garage_private.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/player_state.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/inventory.h"
-#include "gameplay/message.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "mapui/map_dryfield_full.h"
 
-extern GpObj4C D_dryfield_night_garage_80186D7C[16];
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+/// Shop stock uses gameplay's pickup/purchase quantity limits. Item ids
+/// 0xA0–0xBF index `Gp_StackLimits[id - 0xA0]`.
+typedef GpItemA0 RoomShopStock;
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
@@ -164,45 +175,33 @@ extern GpEvsCmd D_dryfield_night_garage_80181C7C[];
 /// Two layout templates and the live copy the resets restore from them.
 extern GpGridParams D_dryfield_night_garage_80181D7C;
 extern GpGridParams D_dryfield_night_garage_80181E40;
-extern GpGridParams D_dryfield_night_garage_80183DD4;
 
-extern TaskDesc D_dryfield_night_garage_80182C98[];
-extern s32      D_dryfield_night_garage_80182DE0;
-extern s32      D_dryfield_night_garage_80182DE4;
-extern GpEvsCmd D_dryfield_night_garage_80182DF8[];
-extern GpEvsCmd D_dryfield_night_garage_801831B8[];
 /// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
 /// room toggles the first node and the third.
 
-/// Work pair of the charge panel `func_dryfield_night_garage_8017F2F8`: the
-/// animated quantity in 24.8 fixed point, and the item map of the slot being
-/// charged.
-extern s32        D_dryfield_night_garage_80187628;
-extern GpItemMap* D_dryfield_night_garage_8018762C;
-
 static void func_dryfield_night_garage_80180604(s32 arg0);
 
-void func_dryfield_night_garage_8017DDC4(UiList *, UiObject *);
+void func_dryfield_night_garage_8017DDC4(UiList*, UiObject*);
 
-void func_dryfield_night_garage_8017E768(Task *);
-void func_dryfield_night_garage_8017E9B8(UiList *, UiObject *);
-void func_dryfield_night_garage_8017EBD8(Task *);
-void func_dryfield_night_garage_8017ED80(Task *);
-void func_dryfield_night_garage_8017EF64(UiList *, UiObject *);
-void func_dryfield_night_garage_8017F178(Task *);
-void func_dryfield_night_garage_8017FC14(UiList *, UiObject *);
-void func_dryfield_night_garage_8017FCD0(Task *);
+void func_dryfield_night_garage_8017E768(Task*);
+void func_dryfield_night_garage_8017E9B8(UiList*, UiObject*);
+void func_dryfield_night_garage_8017EBD8(Task*);
+void func_dryfield_night_garage_8017ED80(Task*);
+void func_dryfield_night_garage_8017EF64(UiList*, UiObject*);
+void func_dryfield_night_garage_8017F178(Task*);
+void func_dryfield_night_garage_8017FC14(UiList*, UiObject*);
+void func_dryfield_night_garage_8017FCD0(Task*);
 
-s32 func_dryfield_night_garage_801800C8(Task *, s32, GpMsg13EF *, s32);
-s32 func_dryfield_night_garage_80180300(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_garage_80180358(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_garage_80180360(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_garage_801803A4(Task *, s32, GpMessageArg, GpMessageArg);
-void func_dryfield_night_garage_8017E768(Task *);
-void func_dryfield_night_garage_8017F2F8(Task *);
-void func_dryfield_night_garage_8017F5C0(Task *);
-void func_dryfield_night_garage_8017F794(Task *);
-void func_dryfield_night_garage_8017FDF8(Task *);
+s32  func_dryfield_night_garage_801800C8(Task*, s32, GpMsg13EF*, s32);
+s32  func_dryfield_night_garage_80180300(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_garage_80180358(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_garage_80180360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_garage_801803A4(Task*, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_night_garage_8017E768(Task*);
+void func_dryfield_night_garage_8017F2F8(Task*);
+void func_dryfield_night_garage_8017F5C0(Task*);
+void func_dryfield_night_garage_8017F794(Task*);
+void func_dryfield_night_garage_8017FDF8(Task*);
 
 u16 D_dryfield_night_garage_801815F8[4] = {
     140, 143, 0xFFFF, 0,
@@ -796,6 +795,13 @@ GpAnimSet D_dryfield_night_garage_80182C70 = {
     D_dryfield_night_garage_80182AA8, D_dryfield_night_garage_80182C48,
     { NULL, D_dryfield_night_garage_8018292C.words, NULL, NULL, D_dryfield_night_garage_80182980, NULL, NULL, NULL },
 };
+
+static u16*       func_dryfield_night_garage_8017D754(s32 mode);
+static void       func_dryfield_night_garage_8017E250(RoomShopList* shop, UiObject* obj, s32 item);
+static void       func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* obj);
+static inline s32 _dryfieldNightGarageAddItemCount(s32 item, s32 count);
+static void       func_dryfield_night_garage_8017FF2C(Task* task);
+static void       func_dryfield_night_garage_801803AC(Task* task);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40

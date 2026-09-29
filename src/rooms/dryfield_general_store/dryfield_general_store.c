@@ -1,39 +1,47 @@
-#include "gameplay/evs.h"
 #include "rooms/dryfield_general_store.h"
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/object_task.h"
-#include "gameplay/world_targets.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -67,36 +75,36 @@ extern TaskDesc   D_dryfield_general_store_8017E4C0;
 extern s32        D_dryfield_general_store_8017E55C;
 extern s32        D_dryfield_general_store_8017E560;
 extern s32        D_dryfield_general_store_8017E564;
-extern GpEvsCmd D_dryfield_general_store_8017E568[];
+extern GpEvsCmd   D_dryfield_general_store_8017E568[];
 
 static void func_dryfield_general_store_8017DEAC(Task* arg0);
 static void func_dryfield_general_store_8017DF4C(Task* task);
 
-extern GpAnimArg D_dryfield_general_store_8017E4FC;
-extern GpCopyArg D_dryfield_general_store_8017E4E0;
+extern GpAnimArg     D_dryfield_general_store_8017E4FC;
+extern GpCopyArg     D_dryfield_general_store_8017E4E0;
 extern GpOverrideArg D_dryfield_general_store_8017E554;
-extern GpXformArg D_dryfield_general_store_8017E524;
-extern GpXformArg D_dryfield_general_store_8017E53C;
-extern s32 D_dryfield_general_store_8017E560;
-void func_dryfield_general_store_8017E130(s32);
+extern GpXformArg    D_dryfield_general_store_8017E524;
+extern GpXformArg    D_dryfield_general_store_8017E53C;
+extern s32           D_dryfield_general_store_8017E560;
+void                 func_dryfield_general_store_8017E130(s32);
 
-extern GpGridParams D_dryfield_general_store_8017F238[1];
-extern GpObj3A D_dryfield_general_store_80184F78[4];
-extern GpObj4C D_dryfield_general_store_801840EC[28];
-extern GpObj4C D_dryfield_general_store_8018493C[21];
+extern GpGridParams   D_dryfield_general_store_8017F238[1];
+extern GpObj3A        D_dryfield_general_store_80184F78[4];
+extern GpObj4C        D_dryfield_general_store_801840EC[28];
+extern GpObj4C        D_dryfield_general_store_8018493C[21];
 extern GpRoomBoundVec D_dryfield_general_store_80185500[17];
 extern GpRoomCoordSet D_dryfield_general_store_801854E8[1];
 
-s32 func_dryfield_general_store_8017D8D4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_general_store_8017DD58(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_general_store_8017DDC0(Task *, s32, s32, s32);
-s32 func_dryfield_general_store_8017DDF4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_general_store_8017DDFC(Task *, s32, RoomEventMsg *, GpMessageArg);
-void func_dryfield_general_store_8017D764(Task *);
-void func_dryfield_general_store_8017DAC0(Task *);
-void func_dryfield_general_store_8017DC78(Task *);
-void func_dryfield_general_store_8017DFB4(Task *);
-void func_dryfield_general_store_8017E064(Task *);
+s32  func_dryfield_general_store_8017D8D4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_general_store_8017DD58(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_general_store_8017DDC0(Task*, s32, s32, s32);
+s32  func_dryfield_general_store_8017DDF4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, GpMessageArg);
+void func_dryfield_general_store_8017D764(Task*);
+void func_dryfield_general_store_8017DAC0(Task*);
+void func_dryfield_general_store_8017DC78(Task*);
+void func_dryfield_general_store_8017DFB4(Task*);
+void func_dryfield_general_store_8017E064(Task*);
 
 TaskDesc D_dryfield_general_store_8017E158 = { 0, 32, func_dryfield_general_store_8017D764, { .model = NULL } };
 
@@ -2106,6 +2114,8 @@ u8 D_dryfield_general_store_8018570A = 0;
 u8 D_dryfield_general_store_8018570B = 208;
 
 RoomEventReq D_dryfield_general_store_8018570C = { 0, 0, 0, 0, 0, 0 };
+
+static s32 func_dryfield_general_store_8017D600(RoomEventReq* req, RoomEventMsg* msg);
 
 /// The room's event gate, through which the clock arm of
 /// `func_dryfield_general_store_8017D8D4` passes its warp. Returns 1 when game-flag

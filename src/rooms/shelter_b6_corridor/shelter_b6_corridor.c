@@ -1,56 +1,61 @@
-#include "common.h"
 #include "rooms/shelter_b6_corridor.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 #include <psyq/rand.h>
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "common.h"
+#include "gte.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/message.h"
-
-#include "gameplay/animation.h"
+#define D_shelter_b6_corridor_8017F844 (D_shelter_b6_corridor_8017F834 + 2)
+#define D_shelter_b6_corridor_8017F874 (D_shelter_b6_corridor_8017F834 + 8)
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -77,7 +82,7 @@ extern OverlayWaveRec D_shelter_b6_corridor_801805BC[30];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     POLY_FT4 value[2][30][8];
-    u8 retained[4];
+    u8       retained[4];
 } ShelterB6CorridorStorage06AC;
 STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage06AC, 19204);
 
@@ -88,32 +93,32 @@ extern ShelterB6CorridorStorage06AC D_shelter_b6_corridor_801806AC;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s16 value;
-    u8 retained[6];
+    u8  retained[6];
 } ShelterB6CorridorStorage51B0;
 STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage51B0, 8);
 
 extern ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
-extern s32 D_shelter_b6_corridor_801851B8;
+extern s32                          D_shelter_b6_corridor_801851B8;
 
 static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
 extern GpAnimArg D_shelter_b6_corridor_8017F27C;
-extern GpCmdArg D_shelter_b6_corridor_8017F34C;
-extern GpCmdArg D_shelter_b6_corridor_8017F350;
+extern GpCmdArg  D_shelter_b6_corridor_8017F34C;
+extern GpCmdArg  D_shelter_b6_corridor_8017F350;
 extern GpCopyArg D_shelter_b6_corridor_8017F260;
-void func_shelter_b6_corridor_8017E19C(s32);
-void func_shelter_b6_corridor_8017E204(void);
+void             func_shelter_b6_corridor_8017E19C(s32);
+void             func_shelter_b6_corridor_8017E204(void);
 
 void func_shelter_b6_corridor_8017E19C(s32);
 void func_shelter_b6_corridor_8017E204(void);
 
-s32 func_shelter_b6_corridor_8017DEA8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b6_corridor_8017DEB0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b6_corridor_8017DF48(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b6_corridor_8017E020(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b6_corridor_8017E028(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_b6_corridor_8017D5D0(Task *);
+s32  func_shelter_b6_corridor_8017DEA8(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b6_corridor_8017DF48(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b6_corridor_8017E020(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b6_corridor_8017E028(Task*, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b6_corridor_8017D5D0(Task*);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
     { 0, 192, func_shelter_b6_corridor_8017D5D0, { .model = NULL } },
@@ -578,8 +583,8 @@ ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0 = { 0, { 0, 0, 0, 0,
 
 s32 D_shelter_b6_corridor_801851B8 = 0;
 
-#define D_shelter_b6_corridor_8017F844 (D_shelter_b6_corridor_8017F834 + 2)
-#define D_shelter_b6_corridor_8017F874 (D_shelter_b6_corridor_8017F834 + 8)
+static void func_shelter_b6_corridor_8017E064(Task* arg0);
+static void func_shelter_b6_corridor_8017E12C(Task* task);
 
 /// Task that ripples the whole screen. On its first frame it gives each of the
 /// 9 column and 30 row edges a random phase offset and speed, takes its

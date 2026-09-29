@@ -1,52 +1,62 @@
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/dryfield_motel_balcony.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/items.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
 #include "gameplay/area.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -56,7 +66,7 @@ extern u8 D_dryfield_motel_balcony_8018672C[4];
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } DryfieldMotelBalconyHaloStorage;
 STATIC_ASSERT_SIZEOF(DryfieldMotelBalconyHaloStorage, 20);
 extern DryfieldMotelBalconyHaloStorage D_dryfield_motel_balcony_801822AC;
@@ -89,21 +99,21 @@ static void func_dryfield_motel_balcony_801809AC(GpCoord* arg0, s16 arg1, u8* ar
 static void func_dryfield_motel_balcony_80181230(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_dryfield_motel_balcony_801818B0(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_dryfield_motel_balcony_80182B5C[1];
-extern GpObj3A D_dryfield_motel_balcony_80186130[2];
-extern GpObj4C D_dryfield_motel_balcony_80185DA0[8];
-extern GpObj4C D_dryfield_motel_balcony_80186000[4];
+extern GpGridParams   D_dryfield_motel_balcony_80182B5C[1];
+extern GpObj3A        D_dryfield_motel_balcony_80186130[2];
+extern GpObj4C        D_dryfield_motel_balcony_80185DA0[8];
+extern GpObj4C        D_dryfield_motel_balcony_80186000[4];
 extern GpRoomBoundVec D_dryfield_motel_balcony_80186600[23];
 extern GpRoomCoordSet D_dryfield_motel_balcony_801865E8[1];
 
 extern GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1];
 
-s32 func_dryfield_motel_balcony_8017D8BC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_motel_balcony_8017DB1C(Task *, s32, s32, s32);
-s32 func_dryfield_motel_balcony_8017DB6C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_balcony_8017DB74(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_balcony_8017DB7C(Task *, s32, GpMessageArg, GpMessageArg);
-void func_dryfield_motel_balcony_8017D74C(Task *);
+s32  func_dryfield_motel_balcony_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_motel_balcony_8017DB1C(Task*, s32, s32, s32);
+s32  func_dryfield_motel_balcony_8017DB6C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_motel_balcony_8017DB74(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_motel_balcony_8017DB7C(Task*, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_motel_balcony_8017D74C(Task*);
 
 TaskDesc D_dryfield_motel_balcony_80182270 = { 0, 32, func_dryfield_motel_balcony_8017D74C, { .model = NULL } };
 
@@ -1814,6 +1824,12 @@ u8 D_dryfield_motel_balcony_8018672C[4] = {
 };
 
 RoomEventReq D_dryfield_motel_balcony_80186730 = { 0 };
+
+static s32  func_dryfield_motel_balcony_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_motel_balcony_8017DB84(Task* task);
+static void func_dryfield_motel_balcony_8017DBC8(Task* arg0);
+static void func_dryfield_motel_balcony_8017E248(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_motel_balcony_8017E66C(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The balcony's event gate. A request whose flag nibble already records the
 /// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One

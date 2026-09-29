@@ -1,51 +1,59 @@
-#include "common.h"
 #include "rooms/mine_forked_tunnel.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
@@ -90,8 +98,8 @@ extern TaskDesc D_mine_forked_tunnel_80181B74[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, s32, s32);
     } handler;
 } MineForkedTunnelMessageEntry;
 STATIC_ASSERT_SIZEOF(MineForkedTunnelMessageEntry, 8);
@@ -129,8 +137,8 @@ extern SVECTOR D_mine_forked_tunnel_8018362C[];
 
 extern TaskDesc   D_mine_forked_tunnel_80183104[];
 extern GpMsgEntry D_mine_forked_tunnel_80181C80[];
-extern GpEvsCmd D_mine_forked_tunnel_801831AC[];
-extern GpEvsCmd D_mine_forked_tunnel_801834F4[];
+extern GpEvsCmd   D_mine_forked_tunnel_801831AC[];
+extern GpEvsCmd   D_mine_forked_tunnel_801834F4[];
 
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0);
 static void func_mine_forked_tunnel_8017D724(Task* arg0);
@@ -163,29 +171,27 @@ static const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
     { func_mine_forked_tunnel_8017E1E8, func_mine_forked_tunnel_8017E24C, taskKill },
 };
 
-extern u32 D_mine_forked_tunnel_801807FC[1];
+extern u32     D_mine_forked_tunnel_801807FC[1];
 extern SVECTOR D_mine_forked_tunnel_80180800[20];
 extern SVECTOR D_mine_forked_tunnel_801808A0[12];
 extern TmdBone D_mine_forked_tunnel_801807D8[1];
-extern u32 D_mine_forked_tunnel_80180900[104];
+extern u32     D_mine_forked_tunnel_80180900[104];
 
-void func_mine_forked_tunnel_8017DBE4(Task *);
+s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, GpMessageArg);
+s32 func_mine_forked_tunnel_8017E19C(Task*, s32, GpMsg13EF*, GpMessageArg);
 
-s32 func_mine_forked_tunnel_8017E0E8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_forked_tunnel_8017E0F0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_mine_forked_tunnel_8017E134(Task *, s32, s32, GpMessageArg);
-s32 func_mine_forked_tunnel_8017E19C(Task *, s32, GpMsg13EF *, GpMessageArg);
+void func_mine_forked_tunnel_8017E2E0(Task*);
+void func_mine_forked_tunnel_8017E38C(Task*);
 
-void func_mine_forked_tunnel_8017E2E0(Task *);
-void func_mine_forked_tunnel_8017E38C(Task *);
-
-extern GpCopyArg D_mine_forked_tunnel_8018312C;
-extern GpGridParams D_mine_forked_tunnel_80183D70;
-extern GpObj4C D_mine_forked_tunnel_80184F50[6];
-extern GpObj4C D_mine_forked_tunnel_80185118[6];
+extern GpCopyArg      D_mine_forked_tunnel_8018312C;
+extern GpGridParams   D_mine_forked_tunnel_80183D70;
+extern GpObj4C        D_mine_forked_tunnel_80184F50[6];
+extern GpObj4C        D_mine_forked_tunnel_80185118[6];
 extern GpRoomBoundVec D_mine_forked_tunnel_80185564[8];
 extern GpRoomCoordSet D_mine_forked_tunnel_80184F38[1];
-void func_mine_forked_tunnel_8017E2B4(void);
+void                  func_mine_forked_tunnel_8017E2B4(void);
 
 TmdBone D_mine_forked_tunnel_8017E828[1] = {
 #include "assets/mine_forked_tunnel_model_031F4_skeleton.inc"
@@ -781,16 +787,15 @@ SVECTOR D_mine_forked_tunnel_801819C4[54] = {
     { 173, 0, 0, 0 },
 };
 
-void func_mine_forked_tunnel_8017DBE4(Task *);
-void func_mine_forked_tunnel_8017DDE8(Task *);
+void func_mine_forked_tunnel_8017DDE8(Task*);
 
 TaskDesc D_mine_forked_tunnel_80181B74[2] = {
     { 1, 192, func_mine_forked_tunnel_8017DBE4, { .model = &D_mine_forked_tunnel_801807B4 } },
     { 1, 192, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
 };
 
-s32 func_mine_forked_tunnel_8017D8EC(Task *, s32, GpCmdArg *);
-s32 func_mine_forked_tunnel_8017DD08(Task *, s32, s32, s32);
+s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, GpCmdArg*);
+s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 
 MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
     { 2005, { .call1 = func_mine_forked_tunnel_8017DD08 } },
@@ -1810,6 +1815,8 @@ GpRoomParamRec * D_mine_forked_tunnel_801855C0[8] = {
     D_mine_forked_tunnel_801855B0,
     D_mine_forked_tunnel_801855B0,
 };
+
+static void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {

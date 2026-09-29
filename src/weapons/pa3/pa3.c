@@ -1,22 +1,26 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "weapons/weapon.h"
 
-#include "gameplay/display.h"
+#include "types.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/items.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "weapons/weapon.h"
 
 /// The PA3 and SP12 shotguns are this source built once each, and each declares
 /// these values in the manifest. `WEAPON_ID` is the weapon's index (0xD and
@@ -26,6 +30,8 @@
 #if !defined(WEAPON_ID) || !defined(PA3_FIELD_979)
 #error "WEAPON_ID and PA3_FIELD_979 are per-package build parameters"
 #endif
+
+static void func_pa3_8011D1DC(Task* arg0);
 
 /// Per-frame firing state machine for the shotgun. Case 0 arms the shot -
 /// clearing the recoil counters, priming the `field_979` grace at `PA3_FIELD_979` and the

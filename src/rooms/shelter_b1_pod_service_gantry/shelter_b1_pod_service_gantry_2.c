@@ -1,27 +1,31 @@
-#include "common.h"
 #include "rooms/shelter_b1_pod_service_gantry.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room_common.h"
+
+#include "shelter_b1_pod_service_gantry_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-
+#include "gameplay/area_flags.h"
 #include "gameplay/effects.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-
-#include "gameplay/area_flags.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// Scratch block the room's spinning-sprite draw takes from `G_SCRATCH_HEAD`
 /// and zeroes before use. `vec` is the coordinate's translation, projected

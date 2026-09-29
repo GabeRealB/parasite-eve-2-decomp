@@ -1,14 +1,11 @@
-#ifndef ACTORS_SHARED_80135C4C_H
-#define ACTORS_SHARED_80135C4C_H
+#ifndef INCLUDE_ACTORS_ACTORS_SHARED_80135C4C_H
+#define INCLUDE_ACTORS_ACTORS_SHARED_80135C4C_H
 
 #include "common.h"
 
 #include "gameplay/actor.h"
-#include "gameplay/collision.h"
-#include "gameplay/enemy.h"
 
 #include "main/session_types.h"
-#include "main/task_types.h"
 
 /// Collision object and its single record, allocated by the shared setup body.
 typedef struct ActorsShared80135c4cObjWork {
@@ -21,15 +18,4 @@ typedef struct ActorsShared80135c4cObjWork {
 } ActorsShared80135c4cObjWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80135c4cObjWork, 0x40);
 
-/// Sparse view of the parent work block. The setup copies this halfword into
-/// the new collision object's trailing metadata.
-typedef struct ActorsShared80135c4cParentWork {
-    /* 0x000 */ byte pad_0[0x3AC];
-    /* 0x3AC */ u16  field_3AC;
-} ActorsShared80135c4cParentWork;
-
-extern GpU16Pair ActorsShared80135c4cPair;
-
-void ActorsShared80135c4c(GpEnemy* enemy, Task* task);
-
-#endif
+#endif // INCLUDE_ACTORS_ACTORS_SHARED_80135C4C_H

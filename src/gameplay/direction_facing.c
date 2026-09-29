@@ -1,9 +1,4 @@
 #include "gameplay/area_transitions.h"
-#include "rooms/shelter_b4_reservoir.h"
-#include "rooms/acropolis_helicopter_landing_pad.h"
-#include "rooms/acropolis_fountain.h"
-#include "rooms/shelter_b4_water_supply.h"
-#include "rooms/acropolis_bridge.h"
 
 #include "common.h"
 
@@ -23,6 +18,16 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+
+#include "rooms/acropolis_bridge.h"
+
+#include "rooms/acropolis_fountain.h"
+
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
+#include "rooms/shelter_b4_reservoir.h"
+
+#include "rooms/shelter_b4_water_supply.h"
 
 /// 8-byte pair of byte-table pointers at `D_801149FC`. `Gp_MsgPlayerDirFacing`
 /// indexes by `(Gp_DirByte & 0x70) >> 4`. `Gp_DirFlags & 0x100` selects

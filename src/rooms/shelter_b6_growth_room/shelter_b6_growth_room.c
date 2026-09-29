@@ -1,32 +1,36 @@
-#include "common.h"
-#include "mapui/map_neo_ark.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_b6_growth_room.h"
 
+#include "types.h"
+
+#include "shelter_b6_growth_room_private.h"
+
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-extern TaskDesc       D_80135E78;
-extern GpMsgEntry     D_shelter_b6_growth_room_8017F16C[];
-extern GpAreaApplyRec D_shelter_b6_growth_room_801807C8[];
-extern u8             D_80136110[];
-extern u8             D_80136308[];
+#include "mapui/map_neo_ark.h"
+
+extern TaskDesc   D_80135E78;
+extern GpMsgEntry D_shelter_b6_growth_room_8017F16C[];
+
+extern u8 D_80136110[];
+extern u8 D_80136308[];
 
 extern void func_801327A8(void);
 extern void func_80132834(void);
 
-s32 func_shelter_b6_growth_room_8017D5E8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b6_growth_room_8017D5F0(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_b6_growth_room_8017D634(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b6_growth_room_8017D6C8(Task *, s32, RoomEventMsg *, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_b6_growth_room_8017D634(Task*, s32, s32, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D6C8(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 GpMsgEntry D_shelter_b6_growth_room_8017F16C[5] = {
     { 5102, func_shelter_b6_growth_room_8017D5F0 },
@@ -35,6 +39,9 @@ GpMsgEntry D_shelter_b6_growth_room_8017F16C[5] = {
     { 5104, func_shelter_b6_growth_room_8017D634 },
     { 0x7FFFFFFF, NULL },
 };
+
+static void func_shelter_b6_growth_room_8017D71C(Task* arg0);
+static void func_shelter_b6_growth_room_8017D7CC(Task* task);
 
 /// The room's handler for message 0x13F1: accepts it and does nothing.
 s32 func_shelter_b6_growth_room_8017D5E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

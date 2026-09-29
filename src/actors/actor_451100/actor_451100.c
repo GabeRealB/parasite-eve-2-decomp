@@ -1,50 +1,44 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
-#include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task.h"
-
-#include "gameplay/animation.h"
-
-#include "gameplay/evs.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[4];
-        GpCopyArg copy;
-        GpAnimArg arguments[5];
-        GpEvsCmd commands[6];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[5];
+        GpEvsCmd   commands[6];
     } data;
     s32 words[67];
 } Actor451100AnimStorage510C;
 STATIC_ASSERT_SIZEOF(Actor451100AnimStorage510C, 268);
 
 extern Actor451100AnimStorage510C D_actor_451100_8013510C;
-
 
 /// Work block of the actor `func_actor_451100_801322D4` dispatches, published
 /// by its spawn handler so the actor's message handlers and animation helpers
@@ -69,20 +63,20 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpCmdArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, VECTOR *);
-        s32 (*call5)(Task *, s32, VECTOR *, s32);
-        s32 (*call6)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, VECTOR*);
+        s32 (*call5)(Task*, s32, VECTOR*, s32);
+        s32 (*call6)(Task*, s32, s32);
     } handler;
 } Actor451100MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor451100MsgEntry, 8);
 
 extern Actor451100MsgEntry D_actor_451100_8013F704[];
-extern TaskDesc   D_actor_451100_8014E6E4[];
+extern TaskDesc            D_actor_451100_8014E6E4[];
 extern Actor451100MsgEntry D_actor_451100_8014E6B4[];
-extern u8         D_actor_451100_8014E6FC[];
+extern u8                  D_actor_451100_8014E6FC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -103,72 +97,65 @@ static void func_actor_451100_80132E34(Task* task);
 
 extern TmdSource D_actor_451100_80146060;
 extern TmdSource D_actor_451100_80146318;
-void func_actor_451100_80132BD4(Task *);
-void func_actor_451100_801330B0(Task *);
+void             func_actor_451100_80132BD4(Task*);
+void             func_actor_451100_801330B0(Task*);
 
-s32 func_actor_451100_80132E98(Task *, s32, GpAnimArg *);
-s32 func_actor_451100_80132F04(Task *, s32, s32);
-s32 func_actor_451100_80132F68(Task *, s32, GpXformArg *);
+s32 func_actor_451100_80132E98(Task*, s32, GpAnimArg*);
+s32 func_actor_451100_80132F04(Task*, s32, s32);
+s32 func_actor_451100_80132F68(Task*, s32, GpXformArg*);
 s32 func_actor_451100_80132FE0(void);
-s32 func_actor_451100_80132FE8(Task *, s32, VECTOR *);
+s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*);
 
-s32 func_actor_451100_80132538(Task *, s32, GpAnimArg *);
-s32 func_actor_451100_801325C8(Task *, s32, s32);
-s32 func_actor_451100_80132610(Task *, s32, GpXformArg *);
-s32 func_actor_451100_8013268C(Task *, s32, GpCmdArg *);
-s32 func_actor_451100_801326B0(Task *, s32, VECTOR *, s32);
-void func_actor_451100_801322D4(Task *);
+s32  func_actor_451100_80132538(Task*, s32, GpAnimArg*);
+s32  func_actor_451100_801325C8(Task*, s32, s32);
+s32  func_actor_451100_80132610(Task*, s32, GpXformArg*);
+s32  func_actor_451100_8013268C(Task*, s32, GpCmdArg*);
+s32  func_actor_451100_801326B0(Task*, s32, VECTOR*, s32);
+void func_actor_451100_801322D4(Task*);
 
-extern GpAnimArg D_actor_451100_80134D98;
-extern GpAnimArg D_actor_451100_80134DAC;
-extern GpAnimArg D_actor_451100_80134DC0;
-extern GpAnimArg D_actor_451100_80134DD4;
-extern GpAnimArg D_actor_451100_80134DE8;
-extern GpAnimArg D_actor_451100_80134DFC;
-extern GpAnimArg D_actor_451100_80134E10;
-extern GpAnimArg D_actor_451100_80134E24;
-extern GpAnimArg D_actor_451100_80134E38;
-extern GpAnimArg D_actor_451100_80134E4C;
-extern GpAnimArg D_actor_451100_80134E60;
-extern GpAnimArg D_actor_451100_80134E74;
-extern GpAnimArg D_actor_451100_80134E88;
-extern GpAnimArg D_actor_451100_80134E9C;
-extern GpAnimArg D_actor_451100_80134EB0;
-extern GpAnimArg D_actor_451100_80134EC4;
-extern GpAnimArg D_actor_451100_80134ED8;
-extern GpAnimArg D_actor_451100_80134EEC;
-extern GpAnimArg D_actor_451100_80134F00;
-extern GpAnimArg D_actor_451100_80134F14;
-extern GpAnimArg D_actor_451100_80134F28;
-extern GpAnimArg D_actor_451100_80134F3C;
-extern GpAnimArg D_actor_451100_80134F50;
-extern GpAnimArg D_actor_451100_80134F64;
-extern GpAnimArg D_actor_451100_80134F78;
-extern GpAnimArg D_actor_451100_80134F8C;
-extern GpAnimArg D_actor_451100_80134FA0;
-extern GpAnimArg D_actor_451100_80134FB4;
-extern GpAnimArg D_actor_451100_80134FC8;
-extern GpAnimArg D_actor_451100_80134FDC;
-extern GpAnimArg D_actor_451100_80134FF0;
-extern GpAnimArg D_actor_451100_80135004;
-extern GpAnimArg D_actor_451100_80135018;
-extern GpAnimArg D_actor_451100_8013502C;
-extern GpAnimArg D_actor_451100_801350D0;
-extern GpAnimArg D_actor_451100_801350E4;
-extern GpAnimArg D_actor_451100_801350F8;
+extern GpAnimArg  D_actor_451100_80134D98;
+extern GpAnimArg  D_actor_451100_80134DAC;
+extern GpAnimArg  D_actor_451100_80134DC0;
+extern GpAnimArg  D_actor_451100_80134DD4;
+extern GpAnimArg  D_actor_451100_80134DE8;
+extern GpAnimArg  D_actor_451100_80134DFC;
+extern GpAnimArg  D_actor_451100_80134E10;
+extern GpAnimArg  D_actor_451100_80134E24;
+extern GpAnimArg  D_actor_451100_80134E38;
+extern GpAnimArg  D_actor_451100_80134E4C;
+extern GpAnimArg  D_actor_451100_80134E60;
+extern GpAnimArg  D_actor_451100_80134E74;
+extern GpAnimArg  D_actor_451100_80134E88;
+extern GpAnimArg  D_actor_451100_80134E9C;
+extern GpAnimArg  D_actor_451100_80134EB0;
+extern GpAnimArg  D_actor_451100_80134EC4;
+extern GpAnimArg  D_actor_451100_80134ED8;
+extern GpAnimArg  D_actor_451100_80134EEC;
+extern GpAnimArg  D_actor_451100_80134F00;
+extern GpAnimArg  D_actor_451100_80134F14;
+extern GpAnimArg  D_actor_451100_80134F28;
+extern GpAnimArg  D_actor_451100_80134F3C;
+extern GpAnimArg  D_actor_451100_80134F50;
+extern GpAnimArg  D_actor_451100_80134F64;
+extern GpAnimArg  D_actor_451100_80134F78;
+extern GpAnimArg  D_actor_451100_80134F8C;
+extern GpAnimArg  D_actor_451100_80134FA0;
+extern GpAnimArg  D_actor_451100_80134FB4;
+extern GpAnimArg  D_actor_451100_80134FC8;
+extern GpAnimArg  D_actor_451100_80134FDC;
+extern GpAnimArg  D_actor_451100_80134FF0;
+extern GpAnimArg  D_actor_451100_80135004;
+extern GpAnimArg  D_actor_451100_80135018;
+extern GpAnimArg  D_actor_451100_8013502C;
+extern GpAnimArg  D_actor_451100_801350D0;
+extern GpAnimArg  D_actor_451100_801350E4;
+extern GpAnimArg  D_actor_451100_801350F8;
 extern GpXformArg D_actor_451100_80135040;
 extern GpXformArg D_actor_451100_80135058;
 extern GpXformArg D_actor_451100_80135070;
 extern GpXformArg D_actor_451100_80135088;
 extern GpXformArg D_actor_451100_801350A0;
 extern GpXformArg D_actor_451100_801350B8;
-
-
-
-
-
-
-
 
 extern Actor451100AnimStorage510C D_actor_451100_8013510C;
 
@@ -1631,6 +1618,9 @@ Actor260500Work * D_actor_451100_8014E744 = NULL;
 Task * D_actor_451100_8014E748 = NULL;
 
 s16 D_actor_451100_8014E74C = 0;
+
+static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task);
+static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task);
 
 /// State 0 of the `func_actor_451100_801322D4` dispatcher: allocates the work
 /// block, publishes it in `D_actor_451100_8014E744` and on the task's work

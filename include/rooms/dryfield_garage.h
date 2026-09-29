@@ -1,13 +1,20 @@
-#ifndef ROOMS_DRYFIELD_GARAGE_H
-#define ROOMS_DRYFIELD_GARAGE_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_GARAGE_H
+#define INCLUDE_ROOMS_DRYFIELD_GARAGE_H
 
-#include "main/task_types.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
 
 #include "gameplay/area.h"
-
-#include "gameplay/collision.h"
-
 #include "gameplay/area_flags.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/task_types.h"
 
 extern GpAreaApplyRec D_dryfield_garage_80180204[6];
 
@@ -19,6 +26,25 @@ extern GpGridFace D_dryfield_garage_8017E1F4[54];
 
 extern GpAreaVariant D_dryfield_garage_801800E0[13];
 
+// dryfield_garage
+extern GpRoomObjRec D_dryfield_garage_8017DCDC[];
+
+extern u8* D_dryfield_garage_8017DCEC[];
+
+extern GpViewCountRec D_dryfield_garage_8017DCF0[];
+
+extern GpRoomCoordRec D_dryfield_garage_8017DCF4[];
+
+extern GpWarpRec D_dryfield_garage_8017DCFC[];
+
+extern GpViewRec D_dryfield_garage_8017E670[];
+
+extern GpSprtRec D_dryfield_garage_8017F5E8[];
+
+extern GpRoomParamRec* D_dryfield_garage_801801E4[];
+
 void func_dryfield_garage_8017DC68(Task* unused);
 
-#endif // ROOMS_DRYFIELD_GARAGE_H
+void func_dryfield_garage_8017DC10(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_GARAGE_H

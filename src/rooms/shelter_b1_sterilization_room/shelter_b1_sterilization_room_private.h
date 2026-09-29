@@ -1,17 +1,75 @@
-#ifndef SHELTER_B1_STERILIZATION_ROOM_PRIVATE_H
-#define SHELTER_B1_STERILIZATION_ROOM_PRIVATE_H
+#ifndef SRC_ROOMS_SHELTER_B1_STERILIZATION_ROOM_SHELTER_B1_STERILIZATION_ROOM_PRIVATE_H
+#define SRC_ROOMS_SHELTER_B1_STERILIZATION_ROOM_SHELTER_B1_STERILIZATION_ROOM_PRIVATE_H
+
+#include "types.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/collision.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
 
 #include "main/task_types.h"
 
-#include "common.h"
+#include "rooms/room.h"
+
+/// The room's task descriptor table; its spawners pick an entry by index.
+extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
+
+/// One bit per entry of `D_shelter_b1_sterilization_room_80188504` already
+/// spawned, so each is spawned only once until the mask is cleared.
+extern s32 D_shelter_b1_sterilization_room_8018C340;
+
+extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885AC;
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885C0;
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885D4;
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885E8;
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885FC;
+
+extern GpAnimArg D_shelter_b1_sterilization_room_80188610;
+
+extern GpXformArg D_shelter_b1_sterilization_room_80188638;
+
+extern GpXformArg D_shelter_b1_sterilization_room_80188650;
+
+extern GpU16Pair D_shelter_b1_sterilization_room_80188738;
+
+extern GpEvsCmd D_shelter_b1_sterilization_room_8018873C[37];
+
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188AB4[20];
+
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188ED4[11];
+
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188FDC[8];
+
+extern GpGridParams D_shelter_b1_sterilization_room_80189E44;
+
+extern GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28];
+
+extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2];
+
+extern Task* D_shelter_b1_sterilization_room_8018C33C;
+
+extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_shelter_b1_sterilization_room_8018118C(s32);
-void func_shelter_b1_sterilization_room_801813A0(Task *);
-void func_shelter_b1_sterilization_room_801814FC(Task *);
-void func_shelter_b1_sterilization_room_80181588(Task *);
-void func_shelter_b1_sterilization_room_80181634(Task *);
-void func_shelter_b1_sterilization_room_801816E0(Task *);
-void func_shelter_b1_sterilization_room_801817EC(Task *);
 
-#endif // SHELTER_B1_STERILIZATION_ROOM_PRIVATE_H
+void func_shelter_b1_sterilization_room_801813A0(Task*);
+
+void func_shelter_b1_sterilization_room_801814FC(Task*);
+
+void func_shelter_b1_sterilization_room_80181588(Task*);
+
+void func_shelter_b1_sterilization_room_80181634(Task*);
+
+void func_shelter_b1_sterilization_room_801816E0(Task*);
+
+void func_shelter_b1_sterilization_room_801817EC(Task*);
+
+#endif // SRC_ROOMS_SHELTER_B1_STERILIZATION_ROOM_SHELTER_B1_STERILIZATION_ROOM_PRIVATE_H

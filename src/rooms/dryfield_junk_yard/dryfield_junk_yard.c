@@ -1,45 +1,52 @@
-#include "common.h"
 #include "rooms/dryfield_junk_yard.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "common.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
-
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
 
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
     GpSpotLight active[2];
-    u8 retained[648];
+    u8          retained[648];
 } DryfieldJunkYardSpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldJunkYardSpotLightStorage, 864);
 
@@ -68,19 +75,19 @@ void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 /// `Gp_DispatchMsg` to walk.
 extern GpMsgEntry D_dryfield_junk_yard_8017DD20[];
 extern TaskDesc   D_dryfield_junk_yard_8017DD48[];
-extern GpAnimArg D_dryfield_junk_yard_8017DD88;
-extern GpAnimArg D_dryfield_junk_yard_8017DDD8;
-extern GpAnimArg D_dryfield_junk_yard_8017DDEC;
+extern GpAnimArg  D_dryfield_junk_yard_8017DD88;
+extern GpAnimArg  D_dryfield_junk_yard_8017DDD8;
+extern GpAnimArg  D_dryfield_junk_yard_8017DDEC;
 extern GpXformArg D_dryfield_junk_yard_8017DE00;
 extern GpXformArg D_dryfield_junk_yard_8017DE18;
 extern GpXformArg D_dryfield_junk_yard_8017DE30;
-extern GpEvsCmd D_dryfield_junk_yard_8017DE48[];
-extern GpEvsCmd D_dryfield_junk_yard_8017E028[];
-extern GpEvsCmd D_dryfield_junk_yard_8017E160[];
-extern GpEvsCmd D_dryfield_junk_yard_8017E2B0[];
-extern GpEvsCmd D_dryfield_junk_yard_8017E3D0[];
-extern GpEvsCmd D_dryfield_junk_yard_8017E490[];
-extern GpEvsCmd D_dryfield_junk_yard_8017E658[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017DE48[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017E028[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017E160[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017E2B0[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017E3D0[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017E490[];
+extern GpEvsCmd   D_dryfield_junk_yard_8017E658[];
 
 static void func_dryfield_junk_yard_8017D658(Task* task);
 static void func_dryfield_junk_yard_8017D708(Task* arg0);
@@ -95,31 +102,31 @@ static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
 /// Name the room task's second state hands to `func_80724608`.
 static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 
-void func_dryfield_junk_yard_8017D848(Task *);
-s32 func_dryfield_junk_yard_8017D994(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_junk_yard_8017DA44(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_junk_yard_8017DA4C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_junk_yard_8017DB78(Task *, s32, GpMsg13EF *, GpMessageArg);
+void func_dryfield_junk_yard_8017D848(Task*);
+s32  func_dryfield_junk_yard_8017D994(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_junk_yard_8017DA44(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_junk_yard_8017DB78(Task*, s32, GpMsg13EF*, GpMessageArg);
 
-extern GpAnimArg D_dryfield_junk_yard_8017DD60;
-extern GpAnimArg D_dryfield_junk_yard_8017DD74;
-extern GpAnimArg D_dryfield_junk_yard_8017DD88;
-extern GpAnimArg D_dryfield_junk_yard_8017DD9C;
-extern GpAnimArg D_dryfield_junk_yard_8017DDB0;
-extern GpAnimArg D_dryfield_junk_yard_8017DDC4;
-extern GpAnimArg D_dryfield_junk_yard_8017DDEC;
-extern GpGridParams D_dryfield_junk_yard_8017F4C8[1];
-extern GpObj3A D_dryfield_junk_yard_80181518[1];
-extern GpObj4C D_dryfield_junk_yard_80180C7C[10];
-extern GpObj4C D_dryfield_junk_yard_80180F74[19];
+extern GpAnimArg      D_dryfield_junk_yard_8017DD60;
+extern GpAnimArg      D_dryfield_junk_yard_8017DD74;
+extern GpAnimArg      D_dryfield_junk_yard_8017DD88;
+extern GpAnimArg      D_dryfield_junk_yard_8017DD9C;
+extern GpAnimArg      D_dryfield_junk_yard_8017DDB0;
+extern GpAnimArg      D_dryfield_junk_yard_8017DDC4;
+extern GpAnimArg      D_dryfield_junk_yard_8017DDEC;
+extern GpGridParams   D_dryfield_junk_yard_8017F4C8[1];
+extern GpObj3A        D_dryfield_junk_yard_80181518[1];
+extern GpObj4C        D_dryfield_junk_yard_80180C7C[10];
+extern GpObj4C        D_dryfield_junk_yard_80180F74[19];
 extern GpRoomBoundVec D_dryfield_junk_yard_80181BCC[8];
 extern GpRoomCoordSet D_dryfield_junk_yard_80181BB4[1];
-extern GpXformArg D_dryfield_junk_yard_8017DE00;
-extern TaskDesc D_8014D8A4;
-void func_dryfield_junk_yard_8017DC54(s8);
+extern GpXformArg     D_dryfield_junk_yard_8017DE00;
+extern TaskDesc       D_8014D8A4;
+void                  func_dryfield_junk_yard_8017DC54(s8);
 
 extern DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854;
-extern GpPointLight D_dryfield_junk_yard_80181554[8];
+extern GpPointLight                     D_dryfield_junk_yard_80181554[8];
 
 GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
     { 5102, func_dryfield_junk_yard_8017DA4C },

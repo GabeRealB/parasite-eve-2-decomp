@@ -1,59 +1,70 @@
-#include "gameplay/animation.h"
 #include "rooms/acropolis_sanctuary.h"
-#include "actors/actor_210700.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d830.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "actors/actor_210700.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/inventory.h"
-#include "gameplay/items.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-
-#include "gameplay/attachment_state.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_akropolis.h"
+
 #include "overlay.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 extern GpAnimSet* D_acropolis_sanctuary_80180918[9];
 
@@ -188,10 +199,10 @@ extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
 extern GpXformArg     D_acropolis_sanctuary_801808BC;
 extern GpAnimArg      D_acropolis_sanctuary_801809F8;
 extern GpAnimArg      D_acropolis_sanctuary_80180A0C;
-extern GpAnimArg D_acropolis_sanctuary_80180AE8;
-extern GpEvsCmd D_acropolis_sanctuary_80180B0C[];
-extern GpEvsCmd D_acropolis_sanctuary_80181664[];
-extern GpEvsCmd D_acropolis_sanctuary_80181814[];
+extern GpAnimArg      D_acropolis_sanctuary_80180AE8;
+extern GpEvsCmd       D_acropolis_sanctuary_80180B0C[];
+extern GpEvsCmd       D_acropolis_sanctuary_80181664[];
+extern GpEvsCmd       D_acropolis_sanctuary_80181814[];
 extern TaskDesc       D_acropolis_sanctuary_80182240;
 extern GpGridParams   D_acropolis_sanctuary_801822EC;
 extern GpMsgEntry     D_acropolis_sanctuary_80182310[];
@@ -213,8 +224,8 @@ extern SVECTOR D_acropolis_sanctuary_80186C94;
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
 /// `func_800E8634` is started on.
 extern GpAnimSet* D_acropolis_sanctuary_801820E4[1];
-extern GpEvsCmd D_acropolis_sanctuary_801820F0[];
-extern GpEvsCmd D_acropolis_sanctuary_801821C8[];
+extern GpEvsCmd   D_acropolis_sanctuary_801820F0[];
+extern GpEvsCmd   D_acropolis_sanctuary_801821C8[];
 
 static void func_acropolis_sanctuary_8017D5E0(Task* task);
 static void func_acropolis_sanctuary_8017D930(Task* arg0);
@@ -237,51 +248,51 @@ static const AcsSpriteLevels D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
-s32 func_acropolis_sanctuary_8017F918(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_sanctuary_8017F918(Task*, s32, GpMessageArg, GpMessageArg);
 
-void func_acropolis_sanctuary_8017DA40(Task *);
+void func_acropolis_sanctuary_8017DA40(Task*);
 
 void func_acropolis_sanctuary_8017DCE0(s32);
 
-extern GpGridParams D_acropolis_sanctuary_80183568;
-extern GpObj4C D_acropolis_sanctuary_8018358C[18];
+extern GpGridParams   D_acropolis_sanctuary_80183568;
+extern GpObj4C        D_acropolis_sanctuary_8018358C[18];
 extern GpRoomCoordSet D_acropolis_sanctuary_801843EC[1];
 
-extern GpAnimArg D_acropolis_sanctuary_80180904;
-extern GpAnimArg D_acropolis_sanctuary_80180944;
-extern GpAnimArg D_acropolis_sanctuary_80180958;
-extern GpAnimArg D_acropolis_sanctuary_8018096C;
-extern GpAnimArg D_acropolis_sanctuary_80180980;
-extern GpAnimArg D_acropolis_sanctuary_80180994;
-extern GpAnimArg D_acropolis_sanctuary_801809A8;
-extern GpAnimArg D_acropolis_sanctuary_801809BC;
-extern GpAnimArg D_acropolis_sanctuary_801809D0;
-extern GpAnimArg D_acropolis_sanctuary_801809E4;
-extern GpAnimArg D_acropolis_sanctuary_80180A20;
-extern GpAnimArg D_acropolis_sanctuary_80180A34;
-extern GpAnimArg D_acropolis_sanctuary_80180A48;
-extern GpAnimArg D_acropolis_sanctuary_80180A5C;
-extern GpAnimArg D_acropolis_sanctuary_80180A70;
-extern GpAnimArg D_acropolis_sanctuary_80180A84;
-extern GpAnimArg D_acropolis_sanctuary_80180A98;
-extern GpAnimArg D_acropolis_sanctuary_80180AAC;
-extern GpAnimArg D_acropolis_sanctuary_80180AC0;
-extern GpAnimArg D_acropolis_sanctuary_80180AD4;
-extern GpCopyArg D_acropolis_sanctuary_8018093C;
+extern GpAnimArg    D_acropolis_sanctuary_80180904;
+extern GpAnimArg    D_acropolis_sanctuary_80180944;
+extern GpAnimArg    D_acropolis_sanctuary_80180958;
+extern GpAnimArg    D_acropolis_sanctuary_8018096C;
+extern GpAnimArg    D_acropolis_sanctuary_80180980;
+extern GpAnimArg    D_acropolis_sanctuary_80180994;
+extern GpAnimArg    D_acropolis_sanctuary_801809A8;
+extern GpAnimArg    D_acropolis_sanctuary_801809BC;
+extern GpAnimArg    D_acropolis_sanctuary_801809D0;
+extern GpAnimArg    D_acropolis_sanctuary_801809E4;
+extern GpAnimArg    D_acropolis_sanctuary_80180A20;
+extern GpAnimArg    D_acropolis_sanctuary_80180A34;
+extern GpAnimArg    D_acropolis_sanctuary_80180A48;
+extern GpAnimArg    D_acropolis_sanctuary_80180A5C;
+extern GpAnimArg    D_acropolis_sanctuary_80180A70;
+extern GpAnimArg    D_acropolis_sanctuary_80180A84;
+extern GpAnimArg    D_acropolis_sanctuary_80180A98;
+extern GpAnimArg    D_acropolis_sanctuary_80180AAC;
+extern GpAnimArg    D_acropolis_sanctuary_80180AC0;
+extern GpAnimArg    D_acropolis_sanctuary_80180AD4;
+extern GpCopyArg    D_acropolis_sanctuary_8018093C;
 extern GpOverlayIds D_acropolis_sanctuary_80180AFC;
-extern GpXformArg D_acropolis_sanctuary_80180844;
-extern GpXformArg D_acropolis_sanctuary_8018085C;
-extern GpXformArg D_acropolis_sanctuary_8018088C;
-extern GpXformArg D_acropolis_sanctuary_801808A4;
-extern GpXformArg D_acropolis_sanctuary_801808D4;
-extern GpXformArg D_acropolis_sanctuary_801808EC;
-void func_acropolis_sanctuary_8017D8A0(u32);
-void func_acropolis_sanctuary_8017D8CC(void);
+extern GpXformArg   D_acropolis_sanctuary_80180844;
+extern GpXformArg   D_acropolis_sanctuary_8018085C;
+extern GpXformArg   D_acropolis_sanctuary_8018088C;
+extern GpXformArg   D_acropolis_sanctuary_801808A4;
+extern GpXformArg   D_acropolis_sanctuary_801808D4;
+extern GpXformArg   D_acropolis_sanctuary_801808EC;
+void                func_acropolis_sanctuary_8017D8A0(u32);
+void                func_acropolis_sanctuary_8017D8CC(void);
 
-s32 func_acropolis_sanctuary_8017D73C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_sanctuary_8017D808(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_sanctuary_8017D810(Task *, s32, s32, GpMessageArg);
-s32 func_acropolis_sanctuary_8017D848(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_acropolis_sanctuary_8017D808(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, GpMessageArg);
+s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -2245,6 +2256,10 @@ u32 D_acropolis_sanctuary_80186C8C = 0xB000000;
 Task * D_acropolis_sanctuary_80186C90 = NULL;
 
 SVECTOR D_acropolis_sanctuary_80186C94 = { 0, 0, 0, 0 };
+
+static s32  func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void func_acropolis_sanctuary_801802E0(Task* task);
 
 /// The room task's per-frame state. Once the session reaches phase 3
 /// (`GameFlag_GetNibble(2)` still 0), advances that flag and applies the

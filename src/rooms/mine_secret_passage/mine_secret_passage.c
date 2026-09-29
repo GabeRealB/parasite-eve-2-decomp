@@ -1,37 +1,36 @@
-#include "mine_secret_passage_private.h"
-#include "mapui/map_shelter.h"
+#include "rooms/mine_secret_passage.h"
 
-#include "common.h"
-#include "rooms/room.h"
+#include "types.h"
+
+#include "mine_secret_passage_private.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "rooms/room_common.h"
 
 /// Staging save location this room's warp handler latches: `field_2` /
 /// `field_4` / `field_1` take the three bytes the outgoing location carries.
 extern GpSaveLoc D_mine_secret_passage_80183448;
-
-extern TaskDesc D_mine_secret_passage_80180EBC;
-
-/// The passage's message table, which the room task answers messages with.
-extern GpMsgEntry D_mine_secret_passage_80180E8C[];
-
-/// 0x1E pair this room hands `Task_Spawn` for the helper it raises in state 4,
-/// the same shape `D_mine_mesa_80189B38` has.
-extern RoomFadeStorage D_mine_secret_passage_80183440;
 
 static void func_mine_secret_passage_8017D8C8(Task* arg0);
 static void func_mine_secret_passage_8017D914(Task* arg0);

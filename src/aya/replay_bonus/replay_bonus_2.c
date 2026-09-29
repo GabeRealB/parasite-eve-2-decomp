@@ -1,26 +1,44 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/strings.h>
+
 #include "common.h"
 
-#include "aya/replay_bonus.h"
-#include "psyq/libpress.h"
-#include "psyq/strings.h"
-
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/scene_runtime.h"
+#include "replay_bonus_private.h"
 
 #include "gameplay/inventory.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/scene_runtime.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+/// CPU address of an STF buffer, also used to relocate its encoded words.
+typedef union ReplayBonusStfAddress {
+    ReplayBonusStfFile* file;
+    s32                 address;
+} ReplayBonusStfAddress __attribute__((transparent_union));
+STATIC_ASSERT_SIZEOF(ReplayBonusStfAddress, 4);
+
+void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj);
 
 extern u8           D_replay_bonus_801157A8[];
 extern u8           D_replay_bonus_801157B0[];
@@ -40,11 +58,28 @@ extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
 extern s32          D_replay_bonus_80119284;
 
-void func_replay_bonus_80116EC0(void);
-
 static void func_replay_bonus_80117E04(void);
 static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds);
 static void func_replay_bonus_80118F00(s32 arg0);
+
+static void        func_replay_bonus_80117194(Task* arg0);
+static s32         func_replay_bonus_801173A8(void);
+static s16         func_replay_bonus_80117484(s32 arg0, s32 arg1);
+static s32         func_replay_bonus_80117598(s32 arg0);
+static s16         func_replay_bonus_801175D0(UiList* list, UiObject* ctx, s32 index);
+static s32         func_replay_bonus_801175F0(UiList* list, UiObject* ctx);
+static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id);
+static s32         func_replay_bonus_801177A0(void);
+static void        func_replay_bonus_80117848(Task* arg0);
+static void        func_replay_bonus_801178C0(Task* arg0);
+static void        func_replay_bonus_80117924(Task* arg0);
+void               func_replay_bonus_8011797C(Task* arg0);
+void               func_replay_bonus_80117A08(Task* arg0);
+static void        func_replay_bonus_80117DE0(u8 arg0);
+static s32         func_replay_bonus_80118B6C(ReplayBonusStfAddress base, s32 index);
+void               func_replay_bonus_80118C64(Task* arg0);
+void               func_replay_bonus_80118D7C(Task* arg0);
+void               func_replay_bonus_80118E3C(Task* arg0);
 
 static void func_replay_bonus_80117194(Task* arg0)
 {

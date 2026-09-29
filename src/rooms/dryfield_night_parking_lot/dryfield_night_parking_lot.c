@@ -1,40 +1,36 @@
-#include "gameplay/evs.h"
 #include "rooms/dryfield_night_parking_lot.h"
+
+#include "types.h"
+
 #include "dryfield_night_parking_lot_private.h"
 
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_dryfield_night_parking_lot_8018156C[4];
-
-/// Descriptor of the event task the event gate spawns.
-extern TaskDesc D_dryfield_night_parking_lot_8017EC54;
-
-/// The room's message table, published in `Task::msgTable` by the entry task
-/// (ids 0x13EE-0x13F2).
-extern GpMsgEntry D_dryfield_night_parking_lot_8017EC60[];
-
-/// Argument the 0x13EF handler passes to `func_800E8614`.
-extern GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[];
 
 /// The `GpAreaApplyRec` list the 0x11 event applies when it fires.
 
@@ -60,6 +56,10 @@ u8 D_dryfield_night_parking_lot_8018156C[4] = {
 };
 
 RoomEventReq D_dryfield_night_parking_lot_80181570 = { 0 };
+
+static s32  func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_parking_lot_8017DBB0(Task* task);
+static void func_dryfield_night_parking_lot_8017DC28(Task* task);
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing

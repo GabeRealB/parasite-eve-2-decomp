@@ -1,26 +1,43 @@
-#ifndef ROOMS_DRYFIELD_NIGHT_GARAGE_H
-#define ROOMS_DRYFIELD_NIGHT_GARAGE_H
-
-#include "gameplay/area.h"
+#ifndef INCLUDE_ROOMS_DRYFIELD_NIGHT_GARAGE_H
+#define INCLUDE_ROOMS_DRYFIELD_NIGHT_GARAGE_H
 
 #include "types.h"
 
-#include "common.h"
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-/// Returns the task of the room work object whose id is the current area and
-/// stage with `arg0` in bits 12 and up, or NULL when there is none.
-Task* func_dryfield_night_garage_80180A64(s32 arg0);
+extern TaskDesc D_dryfield_night_garage_80183380[2];
+
+extern TaskDesc D_dryfield_night_garage_80181C2C;
+
+extern GpAreaVariant D_dryfield_night_garage_801874BC[12];
+
+// dryfield_night_garage
+extern GpRoomCoordRec D_dryfield_night_garage_801833F4[];
+
+extern GpRoomObjRec D_dryfield_night_garage_80183404[];
+
+extern u8* D_dryfield_night_garage_80183434[];
+
+extern GpViewCountRec D_dryfield_night_garage_8018343C[];
+
+extern GpWarpRec D_dryfield_night_garage_80183440[];
+
+extern GpViewRec D_dryfield_night_garage_801843F8[];
+
+extern GpSprtRec D_dryfield_night_garage_80186258[];
+
+extern GpRoomParamRec* D_dryfield_night_garage_801875B8[];
 
 void func_dryfield_night_garage_80180414(s32 arg0);
 
-extern TaskDesc D_dryfield_night_garage_80183380[2];
-
-void func_dryfield_night_garage_801807E4(Task* arg0);
-extern TaskDesc D_dryfield_night_garage_80181C2C;
-extern GpAreaVariant D_dryfield_night_garage_801874BC[12];
-
 void func_dryfield_night_garage_80181518(Task* unused);
 
-#endif // ROOMS_DRYFIELD_NIGHT_GARAGE_H
+void func_dryfield_night_garage_801803BC(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_GARAGE_H

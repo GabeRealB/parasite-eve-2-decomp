@@ -1,49 +1,81 @@
-#include "common.h"
 #include "rooms/acropolis_patio.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
-#include "gameplay/actor.h"
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/evs.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "mapui/map_akropolis.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+/// 0x78 stack scratch the patio's look-at task
+/// (`func_acropolis_patio_8017DE2C`) builds each frame and hands to
+/// `func_800B0CF4`.
+///
+/// Only `coord.coord.t` is written - the world point Aya is asked to face,
+/// `(-0x1F40, 0, 0x384)` with the patio's own approach offset subtracted from
+/// Z - and it is the only part `func_800B0CF4` reads, so the rest of the
+/// block is left uninitialised. It is a `GpCoord` rather than a bare
+/// `VECTOR` because that is what puts the translation at +0x18, the same
+/// offset the callee reads the skeleton's own `GpCoord.coord.t` from.
+typedef struct ApLookAtWork {
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ byte    pad_50[0x28];
+} ApLookAtWork;
+STATIC_ASSERT_SIZEOF(ApLookAtWork, 0x78);
+
+/// The three grey levels a flickering sprite
+/// (`func_acropolis_patio_8017E324`) picks its colour from, one per animation
+/// column. The task copies the whole set onto its stack before indexing it.
+typedef struct ApGreyLevels {
+    u8 level[3];
+} ApGreyLevels;
 
 typedef struct {
     /* 0x0 */ u16 field_0;
@@ -60,30 +92,30 @@ extern TaskDesc D_acropolis_patio_80182800;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(s32, s32, AcropolisPatioMsg8 *, AcropolisPatioMsg8 *);
-        s32 (*call2)(s32, s32, s32);
-        void (*call3)(s32, s32, AcropolisPatioMsg8 *);
+        s32  (*call0)(void);
+        s32  (*call1)(s32, s32, AcropolisPatioMsg8*, AcropolisPatioMsg8*);
+        s32  (*call2)(s32, s32, s32);
+        void (*call3)(s32, s32, AcropolisPatioMsg8*);
     } handler;
 } AcropolisPatioMessageEntry;
 STATIC_ASSERT_SIZEOF(AcropolisPatioMessageEntry, 8);
 
 extern AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6];
-extern GpXformArg D_acropolis_patio_80180428;
-extern s32      D_acropolis_patio_80180440;
-extern s32      D_acropolis_patio_8018044C;
-extern GpXformArg D_acropolis_patio_8018046C;
-extern Task*    D_acropolis_patio_80187060;
-extern GpEvsCmd D_acropolis_patio_80180DEC[];
-extern GpEvsCmd D_acropolis_patio_80180EDC[];
-extern u8       D_acropolis_patio_80187064;
-extern u8       D_acropolis_patio_80187065;
-extern GpEvsCmd D_acropolis_patio_80180484[];
-extern GpEvsCmd D_acropolis_patio_801806AC[];
-extern GpEvsCmd D_acropolis_patio_8018082C[];
-extern GpEvsCmd D_acropolis_patio_80180C64[];
-extern GpEvsCmd D_acropolis_patio_8018280C[];
-extern GpEvsCmd D_acropolis_patio_80182BE4[];
+extern GpXformArg                 D_acropolis_patio_80180428;
+extern s32                        D_acropolis_patio_80180440;
+extern s32                        D_acropolis_patio_8018044C;
+extern GpXformArg                 D_acropolis_patio_8018046C;
+extern Task*                      D_acropolis_patio_80187060;
+extern GpEvsCmd                   D_acropolis_patio_80180DEC[];
+extern GpEvsCmd                   D_acropolis_patio_80180EDC[];
+extern u8                         D_acropolis_patio_80187064;
+extern u8                         D_acropolis_patio_80187065;
+extern GpEvsCmd                   D_acropolis_patio_80180484[];
+extern GpEvsCmd                   D_acropolis_patio_801806AC[];
+extern GpEvsCmd                   D_acropolis_patio_8018082C[];
+extern GpEvsCmd                   D_acropolis_patio_80180C64[];
+extern GpEvsCmd                   D_acropolis_patio_8018280C[];
+extern GpEvsCmd                   D_acropolis_patio_80182BE4[];
 
 /// The 14 anchor points of the patio's fountain spray, in the room object's own
 /// space. The first three double as the jitter centres for the mist burst.
@@ -104,43 +136,43 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
-extern GpGridParams D_acropolis_patio_80183DF8[1];
-extern GpObj3A D_acropolis_patio_80184964[2];
-extern GpObj4C D_acropolis_patio_80183E1C[14];
-extern GpObj4C D_acropolis_patio_80184244[12];
-extern GpObj4C D_acropolis_patio_801845D4[12];
+extern GpGridParams   D_acropolis_patio_80183DF8[1];
+extern GpObj3A        D_acropolis_patio_80184964[2];
+extern GpObj4C        D_acropolis_patio_80183E1C[14];
+extern GpObj4C        D_acropolis_patio_80184244[12];
+extern GpObj4C        D_acropolis_patio_801845D4[12];
 extern GpRoomCoordSet D_acropolis_patio_80186D44[1];
 
-extern GpAnimArg D_acropolis_patio_8018261C;
+extern GpAnimArg  D_acropolis_patio_8018261C;
 extern GpXformArg D_acropolis_patio_80182690;
 extern GpXformArg D_acropolis_patio_801827BC;
 extern GpXformArg D_acropolis_patio_801827D4;
-void func_acropolis_patio_8017DFE4(s32);
+void              func_acropolis_patio_8017DFE4(s32);
 
-extern GpAnimArg D_acropolis_patio_8018270C;
-extern GpAnimArg D_acropolis_patio_80182720;
-extern GpCopyArg D_acropolis_patio_801825C4;
+extern GpAnimArg  D_acropolis_patio_8018270C;
+extern GpAnimArg  D_acropolis_patio_80182720;
+extern GpCopyArg  D_acropolis_patio_801825C4;
 extern GpXformArg D_acropolis_patio_80182630;
 extern GpXformArg D_acropolis_patio_80182678;
-void func_acropolis_patio_8017DFE4(s32);
-void func_acropolis_patio_8017E024(void);
-void func_acropolis_patio_8017E054(Task *);
+void              func_acropolis_patio_8017DFE4(s32);
+void              func_acropolis_patio_8017E024(void);
+void              func_acropolis_patio_8017E054(Task*);
 
-extern GpSprtCmd D_acropolis_patio_80184AF0[2];
-extern GpSprtCmd D_acropolis_patio_80184D1C[7];
-extern GpSprtCmd D_acropolis_patio_801850D8[15];
-extern GpSprtCmd D_acropolis_patio_8018527C[5];
-extern GpSprtCmd D_acropolis_patio_801852A4[2];
-extern GpSprtCmd D_acropolis_patio_801853B8[4];
-extern GpSprtCmd D_acropolis_patio_8018557C[5];
-extern GpSprtCmd D_acropolis_patio_80185A04[20];
-extern GpSprtCmd D_acropolis_patio_80185E50[15];
-extern GpSprtCmd D_acropolis_patio_80185EC8[2];
-extern GpSprtCmd D_acropolis_patio_80185ED8[2];
-extern GpSprtCmd D_acropolis_patio_80185EE8[2];
-extern GpSprtCmd D_acropolis_patio_80185F08[2];
-extern GpSprtCmd D_acropolis_patio_80185F18[2];
-extern GpSprtCmd D_acropolis_patio_80185F28[2];
+extern GpSprtCmd  D_acropolis_patio_80184AF0[2];
+extern GpSprtCmd  D_acropolis_patio_80184D1C[7];
+extern GpSprtCmd  D_acropolis_patio_801850D8[15];
+extern GpSprtCmd  D_acropolis_patio_8018527C[5];
+extern GpSprtCmd  D_acropolis_patio_801852A4[2];
+extern GpSprtCmd  D_acropolis_patio_801853B8[4];
+extern GpSprtCmd  D_acropolis_patio_8018557C[5];
+extern GpSprtCmd  D_acropolis_patio_80185A04[20];
+extern GpSprtCmd  D_acropolis_patio_80185E50[15];
+extern GpSprtCmd  D_acropolis_patio_80185EC8[2];
+extern GpSprtCmd  D_acropolis_patio_80185ED8[2];
+extern GpSprtCmd  D_acropolis_patio_80185EE8[2];
+extern GpSprtCmd  D_acropolis_patio_80185F08[2];
+extern GpSprtCmd  D_acropolis_patio_80185F18[2];
+extern GpSprtCmd  D_acropolis_patio_80185F28[2];
 extern GpSprtElem D_acropolis_patio_80184B00[27];
 extern GpSprtElem D_acropolis_patio_80184D54[45];
 extern GpSprtElem D_acropolis_patio_80185150[15];
@@ -149,25 +181,25 @@ extern GpSprtElem D_acropolis_patio_801853D8[21];
 extern GpSprtElem D_acropolis_patio_801855A4[56];
 extern GpSprtElem D_acropolis_patio_80185AA4[47];
 
-extern GpAnimArg D_acropolis_patio_8018037C;
-extern GpAnimSet * D_acropolis_patio_80180364[6];
+extern GpAnimArg  D_acropolis_patio_8018037C;
+extern GpAnimSet* D_acropolis_patio_80180364[6];
 extern GpXformArg D_acropolis_patio_801802EC;
 extern GpXformArg D_acropolis_patio_80180304;
 extern GpXformArg D_acropolis_patio_8018031C;
 extern GpXformArg D_acropolis_patio_80180334;
 extern GpXformArg D_acropolis_patio_8018034C;
-void func_acropolis_patio_8017DF38(s32);
-void func_acropolis_patio_8017DF48(void);
-void func_acropolis_patio_8017DF70(u8);
+void              func_acropolis_patio_8017DF38(s32);
+void              func_acropolis_patio_8017DF48(void);
+void              func_acropolis_patio_8017DF70(u8);
 
-s32 func_acropolis_patio_8017D7D0(s32, s32, AcropolisPatioMsg8 *, AcropolisPatioMsg8 *);
-s32 func_acropolis_patio_8017DCE4(s32, s32, s32);
-s32 func_acropolis_patio_8017DD44(void);
-s32 func_acropolis_patio_8017DD4C(s32, s32, s32);
-void func_acropolis_patio_8017DA5C(Task *);
-void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8 *);
-void func_acropolis_patio_8017DD80(Task *);
-void func_acropolis_patio_8017DE2C(Task *);
+s32  func_acropolis_patio_8017D7D0(s32, s32, AcropolisPatioMsg8*, AcropolisPatioMsg8*);
+s32  func_acropolis_patio_8017DCE4(s32, s32, s32);
+s32  func_acropolis_patio_8017DD44(void);
+s32  func_acropolis_patio_8017DD4C(s32, s32, s32);
+void func_acropolis_patio_8017DA5C(Task*);
+void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8*);
+void func_acropolis_patio_8017DD80(Task*);
+void func_acropolis_patio_8017DE2C(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {

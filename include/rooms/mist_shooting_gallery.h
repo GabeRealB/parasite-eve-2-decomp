@@ -1,15 +1,16 @@
-#ifndef ROOMS_MIST_SHOOTING_GALLERY_H
-#define ROOMS_MIST_SHOOTING_GALLERY_H
-
-#include "gameplay/area.h"
-
-#include "main/ui_types.h"
-
-#include "types.h"
+#ifndef INCLUDE_ROOMS_MIST_SHOOTING_GALLERY_H
+#define INCLUDE_ROOMS_MIST_SHOOTING_GALLERY_H
 
 #include "common.h"
 
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
 #include "main/task_types.h"
+#include "main/ui_types.h"
 
 /// Per-run state of the Mist shooting gallery mini-game: a 0x24-byte
 /// `memCalloc` allocation that `func_mist_shooting_gallery_80182B1C` stores at
@@ -40,8 +41,32 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryWork, 0x24);
 
 extern Task* D_mist_shooting_gallery_8018E0C4;
 
-s32 func_mist_shooting_gallery_80184470(s32 score);
-s32 func_mist_shooting_gallery_80184970(s32 arg0);
+extern TaskDesc D_mist_shooting_gallery_80185384[3];
+
+extern TaskDesc D_mist_shooting_gallery_801856B8[2];
+
+extern GpAreaVariant D_mist_shooting_gallery_8018DF74[12];
+
+extern UiObjectDesc D_mist_shooting_gallery_80185000;
+
+extern UiObjectDesc D_mist_shooting_gallery_80184F70;
+
+// mist_shooting_gallery
+extern GpRoomObjRec D_mist_shooting_gallery_801853A8[];
+
+extern u8* D_mist_shooting_gallery_801853B8[];
+
+extern GpViewCountRec D_mist_shooting_gallery_801853BC[];
+
+extern GpRoomCoordRec D_mist_shooting_gallery_801853C0[];
+
+extern GpWarpRec D_mist_shooting_gallery_801853C8[];
+
+extern GpViewRec D_mist_shooting_gallery_8018998C[];
+
+extern GpSprtRec D_mist_shooting_gallery_8018BD10[];
+
+extern GpRoomParamRec* D_mist_shooting_gallery_8018E09C[];
 
 void func_mist_shooting_gallery_80180390(s32 arg0);
 
@@ -53,23 +78,16 @@ void func_mist_shooting_gallery_801848B4(void);
 
 void func_mist_shooting_gallery_80184954(void);
 
-extern TaskDesc D_mist_shooting_gallery_80185384[3];
-
-extern TaskDesc D_mist_shooting_gallery_801856B8[2];
-
 void func_mist_shooting_gallery_8017DCAC(s32 mode);
 
 s32 func_mist_shooting_gallery_8017F95C(s32 unused);
 
-extern GpAreaVariant D_mist_shooting_gallery_8018DF74[12];
-extern UiObjectDesc D_mist_shooting_gallery_80185000;
-
 void func_mist_shooting_gallery_8017FBD8(void);
-
-extern UiObjectDesc D_mist_shooting_gallery_80184F70;
 
 void func_mist_shooting_gallery_801811EC(Task* unused);
 
 void func_mist_shooting_gallery_80182064(Task* task);
 
-#endif // ROOMS_MIST_SHOOTING_GALLERY_H
+void func_mist_shooting_gallery_8018018C(Task* task);
+
+#endif // INCLUDE_ROOMS_MIST_SHOOTING_GALLERY_H

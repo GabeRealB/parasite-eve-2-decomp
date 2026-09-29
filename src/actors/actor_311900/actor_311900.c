@@ -1,28 +1,31 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-
-#include "gameplay/damage.h"
+#include "gameplay/animation.h"
 #include "gameplay/enemy.h"
+#include "gameplay/loading.h"
+#include "gameplay/scene_runtime.h"
+
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
-#include "overlay.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
@@ -77,8 +80,8 @@ static void func_actor_311900_8016281C(Task* task);
 
 extern TmdSource D_actor_311900_80168784;
 extern TmdSource D_actor_311900_8016DF4C;
-void func_actor_311900_8016222C(Task *);
-void func_actor_311900_8016249C(Task *);
+void             func_actor_311900_8016222C(Task*);
+void             func_actor_311900_8016249C(Task*);
 
 TmdBone D_actor_311900_801628B0[20] = {
 #include "assets/actor_311900_model_06964_skeleton.inc"
@@ -219,6 +222,9 @@ TaskDesc D_actor_311900_8016EC00 = { 1, 96, func_actor_311900_8016249C, { .model
 TaskDesc D_actor_311900_8016EC0C = { 1, 96, func_actor_311900_8016222C, { .model = &D_actor_311900_80168784 } };
 
 u16 D_actor_311900_8016EC18[4][256] = { 0 };
+
+static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
+static void func_actor_311900_80162100(Task* task);
 
 /// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
 /// to grey, one step per call in the work block's `field_4C8`: step 0 reads the

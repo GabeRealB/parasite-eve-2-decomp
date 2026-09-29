@@ -1,38 +1,46 @@
-#include "common.h"
 #include "rooms/neo_ark_submarine_tunnel.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "gte.h"
+#include "types.h"
+
+#include "neo_ark_submarine_tunnel_private.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "overlay.h"
+#include "main/task_types.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
+#include "mapui/map_neo_ark.h"
+
+#include "overlay.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -47,19 +55,11 @@ extern s32 D_80136108;
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
 /// original reached it.
-extern TaskDesc       D_neo_ark_submarine_tunnel_80181A34[];
-extern OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20;
+extern TaskDesc D_neo_ark_submarine_tunnel_80181A34[];
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
 extern s32 D_neo_ark_submarine_tunnel_80181A4C;
-
-/// The ramp and tint the wave task was spawned with.
-extern OverlayWaveCtx* D_neo_ark_submarine_tunnel_8018790C;
-
-/// Phase records of the wave's 11 column edges and 30 row edges.
-extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13];
-extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[32];
 
 /// Message handlers this room's task answers, installed into pointer slot 7.
 extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
@@ -67,29 +67,28 @@ extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
 /// The tunnel's own script blob and the byte recording which of its scenes has
 /// already been staged.
 extern GpEvsCmd D_neo_ark_submarine_tunnel_80181AF0[];
-extern u8  D_neo_ark_submarine_tunnel_80181DF0;
 
 static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
 static void func_neo_ark_submarine_tunnel_8017F414(Task* task);
 
-s32 func_neo_ark_submarine_tunnel_8017F064(Task *, s32, RoomEventMsg *, GpMessageArg);
-s32 func_neo_ark_submarine_tunnel_8017F27C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_submarine_tunnel_8017F284(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_submarine_tunnel_8017F2C8(Task *, s32, s32, s32);
+s32 func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32 func_neo_ark_submarine_tunnel_8017F27C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_submarine_tunnel_8017F284(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 
-void func_neo_ark_submarine_tunnel_8017E828(Task *);
+void func_neo_ark_submarine_tunnel_8017E828(Task*);
 
 extern GpAnimSet D_neo_ark_submarine_tunnel_801814A0;
 extern GpAnimSet D_neo_ark_submarine_tunnel_80181A0C;
 
-void func_neo_ark_submarine_tunnel_8017D634(Task *);
-void func_neo_ark_submarine_tunnel_8017E288(Task *);
+void func_neo_ark_submarine_tunnel_8017D634(Task*);
+void func_neo_ark_submarine_tunnel_8017E288(Task*);
 
 extern GpAnimArg D_neo_ark_submarine_tunnel_80181A88;
 extern GpAnimArg D_neo_ark_submarine_tunnel_80181A9C;
 extern GpCopyArg D_neo_ark_submarine_tunnel_80181A80;
-void func_neo_ark_submarine_tunnel_8017F318(s32);
-void func_neo_ark_submarine_tunnel_8017F398(s32);
+void             func_neo_ark_submarine_tunnel_8017F318(s32);
+void             func_neo_ark_submarine_tunnel_8017F398(s32);
 
 TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { 0, 192, func_neo_ark_submarine_tunnel_8017D634, { .model = NULL } };
 

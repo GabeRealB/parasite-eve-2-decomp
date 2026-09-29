@@ -1,37 +1,35 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/tmd.h"
-
-#include "gameplay/evs.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// The first enemy's work block, published by its spawn handler.
 extern Actor151000Work* D_actor_535700_80146844;
@@ -67,25 +65,25 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call3)(Task *, s32, GpCmdArg *);
-        s32 (*call4)(Task *, s32, GpXformArg *);
-        s32 (*call5)(Task *, s32, VECTOR *);
-        s32 (*call6)(Task *, s32, VECTOR *, s32);
-        s32 (*call7)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call3)(Task*, s32, GpCmdArg*);
+        s32 (*call4)(Task*, s32, GpXformArg*);
+        s32 (*call5)(Task*, s32, VECTOR*);
+        s32 (*call6)(Task*, s32, VECTOR*, s32);
+        s32 (*call7)(Task*, s32, s32);
     } handler;
 } Actor535700MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor535700MsgEntry, 8);
 
 extern Actor535700MsgEntry D_actor_535700_8013DAAC[];
-extern u8         D_actor_535700_8013DAE8[];
+extern u8                  D_actor_535700_8013DAE8[];
 
 /// The second enemy's message table, the `TaskDesc` table its sub-model task
 /// comes from, and the animation data its work block's slots are seeded from.
 extern Actor535700MsgEntry D_actor_535700_801467E0[];
-extern TaskDesc   D_actor_535700_80146810[];
-extern u8         D_actor_535700_80146828[];
+extern TaskDesc            D_actor_535700_80146810[];
+extern u8                  D_actor_535700_80146828[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -106,44 +104,43 @@ static void func_actor_535700_80133108(Task* task);
 static void func_actor_535700_80133180(Task* task);
 
 extern TmdSource D_actor_535700_80139A6C;
-void func_actor_535700_80132478(Task *);
+void             func_actor_535700_80132478(Task*);
 
-s32 func_actor_535700_801327BC(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_535700_8013284C(Task *, s32, s32);
-s32 func_actor_535700_80132894(Task *, s32, GpXformArg *);
-s32 func_actor_535700_80132910(Task *, s32, GpCmdArg *);
-s32 func_actor_535700_80132960(Task *, s32, VECTOR *, s32);
+s32 func_actor_535700_801327BC(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_535700_8013284C(Task*, s32, s32);
+s32 func_actor_535700_80132894(Task*, s32, GpXformArg*);
+s32 func_actor_535700_80132910(Task*, s32, GpCmdArg*);
+s32 func_actor_535700_80132960(Task*, s32, VECTOR*, s32);
 
 extern TmdSource D_actor_535700_80142E58;
 extern TmdSource D_actor_535700_8014339C;
-s32 func_actor_535700_801331E4(Task *, s32, GpAnimArg *);
-s32 func_actor_535700_80133250(Task *, s32, s32);
-s32 func_actor_535700_801332B4(Task *, s32, GpXformArg *);
-s32 func_actor_535700_8013332C(void);
-s32 func_actor_535700_80133334(Task *, s32, VECTOR *);
-void func_actor_535700_80132F20(Task *);
-void func_actor_535700_801333FC(Task *);
+s32              func_actor_535700_801331E4(Task*, s32, GpAnimArg*);
+s32              func_actor_535700_80133250(Task*, s32, s32);
+s32              func_actor_535700_801332B4(Task*, s32, GpXformArg*);
+s32              func_actor_535700_8013332C(void);
+s32              func_actor_535700_80133334(Task*, s32, VECTOR*);
+void             func_actor_535700_80132F20(Task*);
+void             func_actor_535700_801333FC(Task*);
 
 void func_actor_535700_80131EF0(s32);
 void func_actor_535700_80131F2C(void);
 
-
-extern GpAnimArg D_actor_535700_80133478;
-extern GpAnimArg D_actor_535700_801334A4;
-extern GpAnimArg D_actor_535700_801334B8;
-extern GpAnimArg D_actor_535700_801334CC;
-extern GpAnimArg D_actor_535700_801334F4;
-extern GpAnimArg D_actor_535700_80133508;
-extern GpAnimArg D_actor_535700_8013351C;
-extern GpAnimArg D_actor_535700_80133530;
-extern GpAnimArg D_actor_535700_80133544;
-extern GpAnimArg D_actor_535700_80133558;
-extern GpAnimArg D_actor_535700_8013356C;
-extern GpAnimArg D_actor_535700_80133580;
-extern GpAnimArg D_actor_535700_80133594;
-extern GpAnimArg D_actor_535700_801335A8;
-extern GpAnimArg D_actor_535700_80133684;
-extern GpCmdArg D_actor_535700_8013348C;
+extern GpAnimArg  D_actor_535700_80133478;
+extern GpAnimArg  D_actor_535700_801334A4;
+extern GpAnimArg  D_actor_535700_801334B8;
+extern GpAnimArg  D_actor_535700_801334CC;
+extern GpAnimArg  D_actor_535700_801334F4;
+extern GpAnimArg  D_actor_535700_80133508;
+extern GpAnimArg  D_actor_535700_8013351C;
+extern GpAnimArg  D_actor_535700_80133530;
+extern GpAnimArg  D_actor_535700_80133544;
+extern GpAnimArg  D_actor_535700_80133558;
+extern GpAnimArg  D_actor_535700_8013356C;
+extern GpAnimArg  D_actor_535700_80133580;
+extern GpAnimArg  D_actor_535700_80133594;
+extern GpAnimArg  D_actor_535700_801335A8;
+extern GpAnimArg  D_actor_535700_80133684;
+extern GpCmdArg   D_actor_535700_8013348C;
 extern GpXformArg D_actor_535700_80133698;
 extern GpXformArg D_actor_535700_801336B0;
 extern GpXformArg D_actor_535700_801336C8;
@@ -161,10 +158,10 @@ extern GpXformArg D_actor_535700_801337D0;
 extern GpXformArg D_actor_535700_801337E8;
 extern GpXformArg D_actor_535700_80133800;
 extern GpXformArg D_actor_535700_80133818;
-void func_actor_535700_80131EF0(s32);
-void func_actor_535700_80131F2C(void);
+void              func_actor_535700_80131EF0(s32);
+void              func_actor_535700_80131F2C(void);
 
-void func_actor_535700_80131E24(Task *);
+void func_actor_535700_80131E24(Task*);
 
 TaskDesc D_actor_535700_8013346C = { 0, 192, func_actor_535700_80131E24, { .model = NULL } };
 
@@ -1091,6 +1088,9 @@ Actor151000Work * D_actor_535700_80146844 = NULL;
 Task * D_actor_535700_80146848 = NULL;
 
 s16 D_actor_535700_8014684C = 0;
+
+static void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task);
+static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task);
 
 /// The fade task: while `D_actor_535700_80146840` is non-zero, draws a
 /// full-screen black `TILE` into ordering table slot 0xA; once it reaches zero

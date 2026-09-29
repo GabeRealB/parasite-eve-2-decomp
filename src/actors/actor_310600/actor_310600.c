@@ -1,30 +1,35 @@
 #include "actors/actor_310600.h"
-#include "rooms/acropolis_cafeteria.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "rooms/acropolis_cafeteria.h"
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
@@ -83,10 +88,10 @@ extern TaskDesc D_actor_310600_801796A4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32, s32);
-        void (*call3)(Task *, s32, VECTOR *);
+        s32  (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32  (*call1)(Task*, s32, GpXformArg*);
+        s32  (*call2)(Task*, s32, s32, s32);
+        void (*call3)(Task*, s32, VECTOR*);
     } handler;
 } Actor310600MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor310600MsgEntry, 8);
@@ -100,9 +105,9 @@ extern SVECTOR D_actor_310600_80179694;
 extern s32     D_actor_310600_8017969C;
 extern s32     D_actor_310600_801796A0;
 
-extern GpAnimSet* D_actor_310600_8017962C[5];
+extern GpAnimSet*  D_actor_310600_8017962C[5];
 extern GpAnimSet** D_actor_310600_80179640[1]; // animation bank table `work->field_476` indexes
-extern s8    D_actor_310600_80179644[]; // extra ticks owed to the animation id in `work->field_475`
+extern s8          D_actor_310600_80179644[];  // extra ticks owed to the animation id in `work->field_475`
 
 /// Spawn table of the follow-up task queued once the cue has fired five times.
 
@@ -160,13 +165,13 @@ static const VECTOR D_actor_310600_80161E54 = { 0, 0, 0x200000, 0 };
 
 extern TmdSource D_actor_310600_8016C7F8;
 extern TmdSource D_actor_310600_8016CD50;
-void func_actor_310600_8016274C(Task *);
-void func_actor_310600_801629CC(Task *);
+void             func_actor_310600_8016274C(Task*);
+void             func_actor_310600_801629CC(Task*);
 
-s32 func_actor_310600_8016246C(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_310600_801625F0(Task *, s32, s32, s32);
-s32 func_actor_310600_80162C18(Task *, s32, GpXformArg *);
-void func_actor_310600_80162C94(Task *, s32, VECTOR *);
+s32  func_actor_310600_8016246C(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_310600_801625F0(Task*, s32, s32, s32);
+s32  func_actor_310600_80162C18(Task*, s32, GpXformArg*);
+void func_actor_310600_80162C94(Task*, s32, VECTOR*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {

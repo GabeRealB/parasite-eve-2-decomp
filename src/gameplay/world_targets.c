@@ -5,6 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
+#include <psyq/stdio.h>
 
 #include "common.h"
 #include "gte.h"
@@ -14,6 +15,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "geometry.h"
 #include "gameplay/hud_sprites.h"
@@ -30,8 +32,6 @@
 #include "gameplay/world_state.h"
 #include "world_state.h"
 
-#include "aya/aya.h"
-#include "gameplay/damage.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -41,7 +41,6 @@
 #include "main/sound.h"
 #include "main/text.h"
 #include "main/ui.h"
-#include <psyq/stdio.h>
 
 /// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before

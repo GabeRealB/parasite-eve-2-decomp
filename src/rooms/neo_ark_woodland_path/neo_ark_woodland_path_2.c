@@ -1,41 +1,47 @@
-#include "gameplay/pairsrc.h"
 #include "rooms/neo_ark_woodland_path.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/libgs.h>
 #include <psyq/stdio.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-/// The distance between `a` and `b`, spelled as a conditional subtraction.
-#define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
+#include "common.h"
+#include "gte.h"
+
+#include "neo_ark_woodland_path_private.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include <psyq/stdio.h>
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
+
+/// The distance between `a` and `b`, spelled as a conditional subtraction.
 
 /// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
 /// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
@@ -70,7 +76,7 @@ extern u16 D_neo_ark_woodland_path_80184A60[5];
 /// symbol in a register and takes the offset as the load's displacement, while
 /// naming `D_...8494C` addresses it directly.
 extern GpPairSrcE D_neo_ark_woodland_path_80184948;
-extern GpU16Pair D_neo_ark_woodland_path_80184930[6];
+extern GpU16Pair  D_neo_ark_woodland_path_80184930[6];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
 /// `func_neo_ark_woodland_path_80180C6C` adds the slot's spawn count to it and
@@ -106,9 +112,9 @@ extern u8 D_neo_ark_woodland_path_80184980[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpMessageArg, GpMessageArg);
-        s32 (*call1)(Task *, s32, u8 *, GpMessageArg);
-        void (*call2)(Task *, s32, s32);
+        s32  (*call0)(Task*, s32, GpMessageArg, GpMessageArg);
+        s32  (*call1)(Task*, s32, u8*, GpMessageArg);
+        void (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkWoodlandPath2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkWoodlandPath2MsgEntry, 8);
@@ -161,25 +167,20 @@ typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x26 */ s16  chance;
 } NeoArkWoodlandPathTrailObj;
 
-/// World position (`workm.t`) of model parts 15 and 18 of the slot-3 task, as
-/// `func_neo_ark_woodland_path_8017EA08` last saw them. Each frame it compares
-/// the parts against these entries to measure how far they moved.
-extern SVECTOR D_neo_ark_woodland_path_80181684[2];
-
 static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2);
 static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
 
-s32 func_neo_ark_woodland_path_80180B18(Task *, s32, GpCmdArg *, GpMessageArg);
-s32 func_neo_ark_woodland_path_80181474(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_woodland_path_8018147C(Task *, s32, u8 *, GpMessageArg);
-s32 func_neo_ark_woodland_path_8018154C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_woodland_path_80181568(Task *, s32, u8 *, GpMessageArg);
-void func_neo_ark_woodland_path_8018046C(Task *, s32, s32);
+s32  func_neo_ark_woodland_path_80180B18(Task*, s32, GpCmdArg*, GpMessageArg);
+s32  func_neo_ark_woodland_path_80181474(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_woodland_path_8018147C(Task*, s32, u8*, GpMessageArg);
+s32  func_neo_ark_woodland_path_8018154C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_woodland_path_80181568(Task*, s32, u8*, GpMessageArg);
+void func_neo_ark_woodland_path_8018046C(Task*, s32, s32);
 
-void func_neo_ark_woodland_path_801814E8(Task *);
-void func_neo_ark_woodland_path_801815D4(Task *);
+void func_neo_ark_woodland_path_801814E8(Task*);
+void func_neo_ark_woodland_path_801815D4(Task*);
 
 GpU16Pair D_neo_ark_woodland_path_80184930[6] = {
     { 30, 7 },
@@ -272,6 +273,15 @@ u16 D_neo_ark_woodland_path_80184A60[5] = {
     0,
     0,
 };
+
+static void func_neo_ark_woodland_path_801814D4(Task* arg0);
+
+static void func_neo_ark_woodland_path_801815C0(Task* arg0);
+
+static void func_neo_ark_woodland_path_80180568(Task* task);
+static void func_neo_ark_woodland_path_801806D8(Task* task);
+static void func_neo_ark_woodland_path_80180C6C(Task* task);
+static void func_neo_ark_woodland_path_80180DDC(Task* task);
 
 /// Scatters effects around the slot-3 task's model while its root coordinate
 /// is at a y of 0x12C or more (y grows downward) and no event is running.
@@ -1042,8 +1052,6 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
     D_neo_ark_woodland_path_80184992 = 0;
 }
 
-static void func_neo_ark_woodland_path_801814D4(Task* arg0);
-
 /// State handlers of the first arming sequence's entry task
 /// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
@@ -1267,8 +1275,6 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     }
     D_neo_ark_woodland_path_80184992 = 0;
 }
-
-static void func_neo_ark_woodland_path_801815C0(Task* arg0);
 
 /// State handlers of the second arming sequence's entry task
 /// `func_neo_ark_woodland_path_801815D4`: arm, run, advance, then kill.

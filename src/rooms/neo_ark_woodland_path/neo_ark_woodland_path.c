@@ -1,38 +1,45 @@
-#include "common.h"
 #include "rooms/neo_ark_woodland_path.h"
-#include "mapui/map_neo_ark.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/rand.h>
-#include "rooms/room.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/world_targets.h"
+#include "gte.h"
+#include "types.h"
 
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "overlay.h"
+#include "neo_ark_woodland_path_private.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "overlay.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -42,19 +49,16 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// `func_neo_ark_woodland_path_8017E944`.
 extern GpMsgEntry D_neo_ark_woodland_path_80181650[];
 
-/// Spawn descriptor of the arming task, and the task spawned from it, which
-/// the room's 0x13EF and 0x13F4 handlers forward their messages to.
-extern TaskDesc D_neo_ark_woodland_path_80184A44[];
-extern Task*    D_neo_ark_woodland_path_80181680;
+extern Task* D_neo_ark_woodland_path_80181680;
 
-s32 func_neo_ark_woodland_path_8017E888(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_woodland_path_8017E890(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_woodland_path_8017E8D4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_woodland_path_8017E8DC(Task *, s32, s32, s32);
-s32 func_neo_ark_woodland_path_8017E910(Task *, s32, s32, s32);
+s32 func_neo_ark_woodland_path_8017E888(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_woodland_path_8017E890(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_woodland_path_8017E8DC(Task*, s32, s32, s32);
+s32 func_neo_ark_woodland_path_8017E910(Task*, s32, s32, s32);
 
-void func_neo_ark_woodland_path_8017D694(Task *);
-void func_neo_ark_woodland_path_8017E2E8(Task *);
+void func_neo_ark_woodland_path_8017D694(Task*);
+void func_neo_ark_woodland_path_8017E2E8(Task*);
 
 extern GpRoomParamRec D_neo_ark_woodland_path_801848E8[1];
 extern GpRoomParamRec D_neo_ark_woodland_path_801848F0[1];
@@ -1132,6 +1136,9 @@ GpRoomParamRec * D_neo_ark_woodland_path_80184910[8] = {
     D_neo_ark_woodland_path_801848E8,
     D_neo_ark_woodland_path_801848E8,
 };
+
+static void func_neo_ark_woodland_path_8017E944(Task* arg0);
+static void func_neo_ark_woodland_path_8017E9A8(Task* task);
 
 /// Draws the water-refraction ripple for the views that have one (views of
 /// areas 27, 14, 15, 13, 30 and 29; every other view returns at once). The

@@ -1,46 +1,51 @@
-#include "common.h"
-#include "rooms/neo_ark_power_plant_2.h"
-#include "rooms/neo_ark_power_plant_1.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013391c.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/neo_ark_power_plant_1.h"
+
+#include "rooms/neo_ark_power_plant_2.h"
 
 /// Spawn offsets at `D_actor_105400_80133A30`: the spawn reads only the second
 /// vector, `field_8`, into the enemy's body position and the second list
@@ -56,25 +61,25 @@ extern Actor05300SpawnPos D_actor_105400_80133A20[2];
 extern Actor05300Clip     D_actor_105400_8013CE84[];
 extern Actor05300SndRow   D_actor_105400_8013CE64[];
 extern u32                D_actor_105400_8013CE5C;
-extern s32 D_actor_105400_8013CE50[3];
+extern s32                D_actor_105400_8013CE50[3];
 extern SVECTOR            D_actor_105400_80133A40[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
-        s16 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
+        s16 (*call0)(Task*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor105400MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor105400MsgEntry, 8);
 
-extern Actor105400MsgEntry         D_actor_105400_80133A00[];
-extern Actor05400Pose     D_actor_105400_80133A30;
-extern GpPairSrcE         D_actor_105400_8013CE30;
-extern u32                D_actor_105400_8013CE60;
-extern GpAnimSet*         D_actor_105400_8013CEB8[];
-extern TaskDesc           D_actor_105400_8013CEA0[2];
+extern Actor105400MsgEntry D_actor_105400_80133A00[];
+extern Actor05400Pose      D_actor_105400_80133A30;
+extern GpPairSrcE          D_actor_105400_8013CE30;
+extern u32                 D_actor_105400_8013CE60;
+extern GpAnimSet*          D_actor_105400_8013CEB8[];
+extern TaskDesc            D_actor_105400_8013CEA0[2];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -93,11 +98,11 @@ extern GpAnimSet D_actor_105400_8013C5E0;
 extern GpAnimSet D_actor_105400_8013CA20;
 extern GpAnimSet D_actor_105400_8013CE08;
 extern TmdSource D_actor_105400_8013C46C;
-void func_actor_105400_801337DC(Task *);
-void func_actor_105400_801339A4(Task *);
+void             func_actor_105400_801337DC(Task*);
+void             func_actor_105400_801339A4(Task*);
 
-s16 Actor05400_Fn01B70(Task *);
-s32 func_actor_105400_8013391C(Task *, s32, GpCmdArg *);
+s16 Actor05400_Fn01B70(Task*);
+s32 func_actor_105400_8013391C(Task*, s32, GpCmdArg*);
 
 Actor105400MsgEntry D_actor_105400_80133A00[3] = {
     { 2011, { .call1 = func_actor_105400_8013391C } },
@@ -284,6 +289,15 @@ GpAnimSet * D_actor_105400_8013CEB8[4] = {
     &D_actor_105400_8013CA20,
     &D_actor_105400_8013CE08,
 };
+
+static void        func_actor_105400_80131E3C(Task* arg0);
+static void        func_actor_105400_8013222C(Task* arg0);
+static inline void _actor105400PoseTick(Task* arg0);
+static void        func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1);
+static void        func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1);
+static void        func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1);
+static void        func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1);
+static void        func_actor_105400_80133468(GpEnemy* arg0, Task* arg1);
 
 /// Hit handler of the main body, the first step of the tick. After the
 /// cooldown `field_332` has run out, each of the two contact records the

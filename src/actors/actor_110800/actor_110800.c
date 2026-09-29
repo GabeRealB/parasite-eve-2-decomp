@@ -1,22 +1,24 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
@@ -46,8 +48,8 @@ extern u8 D_actor_110800_80139EF4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor110800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor110800MsgEntry, 8);
@@ -62,11 +64,11 @@ static void func_actor_110800_801324AC(void);
 
 extern TmdSource D_actor_110800_80137D94;
 extern TmdSource D_actor_110800_80138048;
-void func_actor_110800_801322A0(Task *);
-void func_actor_110800_801322FC(Task *);
+void             func_actor_110800_801322A0(Task*);
+void             func_actor_110800_801322FC(Task*);
 
-s32 func_actor_110800_80132524(Task *, s32, GpAnimArg *);
-s32 func_actor_110800_80132584(Task *, s32, s32);
+s32 func_actor_110800_80132524(Task*, s32, GpAnimArg*);
+s32 func_actor_110800_80132584(Task*, s32, s32);
 
 TmdBone D_actor_110800_801325F0[20] = {
 #include "assets/actor_110800_model_05F74_skeleton.inc"
@@ -300,6 +302,9 @@ Actor110300Work * D_actor_110800_80139F10 = NULL;
 Task * D_actor_110800_80139F14 = NULL;
 
 Task * D_actor_110800_80139F18 = NULL;
+
+static void func_actor_110800_80131E24(GpEnemy* enemy, Task* task);
+static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task);
 
 /// Step 0 of the `func_actor_110800_801322A0` dispatcher: allocate the work
 /// block, publish it, and hand the model's animation context its slot array.

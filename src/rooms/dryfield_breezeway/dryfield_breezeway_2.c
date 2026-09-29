@@ -1,53 +1,62 @@
-#include "dryfield_breezeway_private.h"
+#include "rooms/dryfield_breezeway.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "rooms/dryfield_breezeway.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "dryfield_breezeway_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-extern GpImgRec D_dryfield_breezeway_80183144[2];
+#include "rooms/room_common.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -179,10 +188,6 @@ typedef struct DbwBeamEdge {
 } DbwBeamEdge;
 STATIC_ASSERT_SIZEOF(DbwBeamEdge, 0x12);
 
-/// Room task published by `func_dryfield_breezeway_8017E010` and
-/// `func_dryfield_breezeway_8017E114` once they have built its work block.
-extern Task* D_dryfield_breezeway_801843C0;
-
 /// Placement this room hands on with message 0x7D4 from
 /// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
@@ -215,11 +220,6 @@ extern OverlayHotspot D_dryfield_breezeway_80182E00[];
 /// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
 /// on.
 extern OverlayHotspot D_dryfield_breezeway_80182DDC[];
-
-/// Data block in the room's trailing blob that
-/// `func_dryfield_breezeway_8017FF7C` hands to both of the per-view drawers
-/// below, together with the room task's coordinate frame.
-extern u8 D_dryfield_breezeway_80183164[];
 
 static void func_dryfield_breezeway_8017E464(Task* arg0);
 static void func_dryfield_breezeway_8017E65C(Task* task);
@@ -260,14 +260,14 @@ void func_dryfield_breezeway_8017E2D4(void);
 void func_dryfield_breezeway_8017E350(void);
 void func_dryfield_breezeway_8017E370(s16);
 
-void func_dryfield_breezeway_8017E010(Task *);
-void func_dryfield_breezeway_8017E114(Task *);
+void func_dryfield_breezeway_8017E010(Task*);
+void func_dryfield_breezeway_8017E114(Task*);
 void func_dryfield_breezeway_8017E350(void);
 void func_dryfield_breezeway_8017E390(void);
 
-s32 func_dryfield_breezeway_8017FBC8(Task *, s32, s32, s32);
-void func_dryfield_breezeway_8017FA80(Task *);
-void func_dryfield_breezeway_8017FC38(Task *);
+s32  func_dryfield_breezeway_8017FBC8(Task*, s32, s32, s32);
+void func_dryfield_breezeway_8017FA80(Task*);
+void func_dryfield_breezeway_8017FC38(Task*);
 
 TaskDesc D_dryfield_breezeway_80181DD4 = { 0, 32, func_dryfield_breezeway_8017D79C, { .model = NULL } };
 
@@ -446,6 +446,18 @@ GpImgRec D_dryfield_breezeway_80182F24[2] = {
     { 255, 0, { 0, 0, 0, 0 }, NULL },
 };
 
+/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
+/// type 7): the table the spawned task starts from and the event-command
+/// stream it parks in `D_801156D0` for the task that follows it. Both live in
+/// the room's trailing data blob.
+extern GpEvsCmd D_dryfield_breezeway_80181E70[];
+
+extern GpEvsCmd D_dryfield_breezeway_80181F90[];
+
+static void func_dryfield_breezeway_8017DEC0(Task* arg0);
+static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_dryfield_breezeway_8017F538(Task* task);
+
 /// The one state machine that arms the breezeway, switched on the room task's
 /// `DbwWork.field_C`:
 ///
@@ -535,13 +547,6 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
             return;
     }
 }
-
-/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
-/// type 7): the table the spawned task starts from and the event-command
-/// stream it parks in `D_801156D0` for the task that follows it. Both live in
-/// the room's trailing data blob.
-extern GpEvsCmd D_dryfield_breezeway_80181E70[];
-extern GpEvsCmd D_dryfield_breezeway_80181F90[];
 
 /// The long-lived half of the arming pair: `func_dryfield_breezeway_8017E010`
 /// is the same state 0 with no sequencer and no cutscene behind it, and is the

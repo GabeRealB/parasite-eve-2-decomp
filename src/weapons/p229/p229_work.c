@@ -1,6 +1,6 @@
-#include "common.h"
+#include "p229_private.h"
 
-#include "weapons/p229.h"
+#include "types.h"
 
 /// The four flash angles rolled on the frame the shot goes off, one per
 /// `func_p229_8011D860` quad. Each is a fixed quadrant (`i << 10`) plus a

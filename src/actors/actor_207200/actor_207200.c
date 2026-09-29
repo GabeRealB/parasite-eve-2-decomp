@@ -1,28 +1,31 @@
-#include "common.h"
+#include "actor_207200_private.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "actors/actor.h"
-#include "actors/actors_shared_8014df20.h"
-#include "actors/actor_207200.h"
+#include "common.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -31,8 +34,53 @@
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+/// 0x2B0-byte work block the enemy's spawn function allocates with `memCalloc`
+/// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
+/// here). It embeds three `GpObj` list nodes; the first points its `ctx.recs` at
+/// the `GpActorD4Rec` that follows it, the other two point straight at their
+/// own `GpRec18` table, and `Gp_InitRec18Table` zeroes each table.
+/// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.
+typedef struct ActorShared8014df20Work {
+    /* 0x000 */ GpAnimCtx    context;
+    /* 0x014 */ GpAnimSlot   slots[3];
+    /* 0x08C */ byte         field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x0BC */ MATRIX       field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX       field_DC;       // light matrix, TmdObject::lightMtx
+    /* 0x0FC */ GpObj        field_FC;
+    /* 0x11C */ GpActorD4Rec field_11C;
+    /* 0x134 */ GpRec18      field_134[1];
+    /* 0x14C */ GpObj        field_14C;
+    /* 0x16C */ GpRec18      field_16C[1];
+    /* 0x184 */ GpObj        field_184;
+    /* 0x1A4 */ GpRec18      field_1A4[4];
+    /* 0x204 */ byte         pad_204[0x50];
+    /* 0x254 */ s32          field_254; // position restored when the push-back conflicts
+    /* 0x258 */ s32          field_258;
+    /* 0x25C */ s32          field_25C;
+    /* 0x260 */ byte         pad_260[0x2C];
+    /* 0x28C */ s16          field_28C;
+    /* 0x28E */ s16          field_28E;
+    /* 0x290 */ s16          field_290;
+    /* 0x292 */ s16          field_292;
+    /* 0x294 */ byte         pad_294[6];
+    /* 0x29A */ s16          field_29A;
+    /* 0x29C */ byte         pad_29C[4];
+    /* 0x2A0 */ s16          field_2A0;
+    /* 0x2A2 */ byte         pad_2A2[2];
+    /* 0x2A4 */ s16          field_2A4;
+    /* 0x2A6 */ s16          field_2A6;
+    /* 0x2A8 */ s16          field_2A8;
+    /* 0x2AA */ s16          field_2AA;
+    /* 0x2AC */ s16          field_2AC;
+    /* 0x2AE */ byte         pad_2AE[2];
+} ActorShared8014df20Work;
+STATIC_ASSERT_SIZEOF(ActorShared8014df20Work, 0x2B0);
 
 extern GpPairSrcE D_actor_207200_8014DBBC;
 extern u8         D_actor_207200_8014E7B0[];
@@ -53,7 +101,7 @@ static void func_actor_207200_8014B21C(Task* task);
 static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
 
 extern TmdSource D_actor_207200_8014E4C8;
-void func_actor_207200_8014AC9C(Task *);
+void             func_actor_207200_8014AC9C(Task*);
 
 GpU16Pair D_actor_207200_8014DBB8[1] = { 0 };
 
@@ -160,6 +208,11 @@ SVECTOR D_actor_207200_8014E7BC = { 0, -100, 0, 0 };
 SVECTOR D_actor_207200_8014E7C4 = { 0, 0, 100, 0 };
 
 GpU16Pair D_actor_207200_8014E7CC[2] = { {25,11}, {10,0} };
+
+static void            func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1);
+static void            func_actor_207200_8014A588(Task* arg0);
+static __inline__ void _actor207200TickAnim(Task* task);
+static void            func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1);
 
 static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 {

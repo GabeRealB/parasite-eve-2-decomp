@@ -1,0 +1,75 @@
+#ifndef SRC_ROOMS_DRYFIELD_NIGHT_TRAILER_COACH_DRYFIELD_NIGHT_TRAILER_COACH_PRIVATE_H
+#define SRC_ROOMS_DRYFIELD_NIGHT_TRAILER_COACH_DRYFIELD_NIGHT_TRAILER_COACH_PRIVATE_H
+
+#include "types.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/evs.h"
+#include "gameplay/inventory.h"
+#include "gameplay/message.h"
+
+#include "main/task_types.h"
+
+#include "rooms/room.h"
+
+extern GpXformArg D_dryfield_night_trailer_coach_80187988;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_801879D0;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_801879F8;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187A0C;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187A34;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187A98;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187AAC;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187AD4;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187B10;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187B24;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187B60;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187B74;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187B88;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187BC4;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187BD8;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187BEC;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187C3C;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187CA0;
+
+extern GpCopyArg D_dryfield_night_trailer_coach_80187CE4;
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188708[14];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188858[14];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_801889A8[57];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188F00[16];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80189080[24];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_801892C0[13];
+
+extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
+
+extern s32 D_dryfield_night_trailer_coach_8018C210;
+
+extern GpItemMap* D_dryfield_night_trailer_coach_8018C214;
+
+extern Task* D_dryfield_night_trailer_coach_8018C218;
+
+extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
+
+#endif // SRC_ROOMS_DRYFIELD_NIGHT_TRAILER_COACH_DRYFIELD_NIGHT_TRAILER_COACH_PRIVATE_H

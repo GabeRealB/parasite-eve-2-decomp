@@ -1,9 +1,10 @@
-#ifndef ACTORS_SHARED_80163354_H
-#define ACTORS_SHARED_80163354_H
+#ifndef INCLUDE_ACTORS_ACTORS_SHARED_80163354_H
+#define INCLUDE_ACTORS_ACTORS_SHARED_80163354_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
-
-#include "main/task_types.h"
 
 /// 0x90-byte scratchpad frame `ActorsShared80163354` carves off
 /// `G_SCRATCH_HEAD` to draw a textured quad between two model parts: both
@@ -30,10 +31,4 @@ typedef struct ActorsShared80163354Scratch {
 } ActorsShared80163354Scratch;
 STATIC_ASSERT_SIZEOF(ActorsShared80163354Scratch, 0x90);
 
-/// Draws a semi-transparent textured quad between model parts `firstJoint` and
-/// `secondJoint`: the segment joining them in view space is widened by `width`
-/// either side at height `height`, pulled in by half its length at both ends,
-/// and shaded grey `shade`. Shared by `actor_341700` and `actor_342400`.
-void ActorsShared80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
-
-#endif
+#endif // INCLUDE_ACTORS_ACTORS_SHARED_80163354_H

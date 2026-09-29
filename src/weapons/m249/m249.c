@@ -1,21 +1,30 @@
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "weapons/m249.h"
-
-#include "gameplay/actor.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// 0x68-byte scratch block `func_m249_8011D1DC` takes from `G_SCRATCH_HEAD`.
+/// Only the trailing coordinate is used: `Gp_PickNearestRec18` writes the
+/// chosen impact point into its `workm.t`, and that same coordinate is then
+/// handed to `Gp_PlayObjSfx` as the sound source.
+typedef struct _M249Scratch {
+    /* 0x00 */ byte    pad_0[0x18];
+    /* 0x18 */ GpCoord coord;
+} M249Scratch;
+STATIC_ASSERT_SIZEOF(M249Scratch, 0x68);
+
+static void func_m249_8011D1DC(Task* arg0);
 
 static void func_m249_8011D1DC(Task* arg0)
 {

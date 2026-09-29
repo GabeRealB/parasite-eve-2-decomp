@@ -1,17 +1,18 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_b1_storeroom.h"
+
+#include "types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/message.h"
 #include "gameplay/object_task.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 /// Message table the room task installs on itself: ids 0x13EE-0x13F2 mapped
 /// to the room's handlers, closed by id 0x7FFFFFFF.
@@ -26,11 +27,11 @@ static const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
     { func_shelter_b1_storeroom_8017D740, func_shelter_b1_storeroom_8017D78C, taskKill }
 };
 
-s32 func_shelter_b1_storeroom_8017D5FC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_storeroom_8017D604(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_storeroom_8017D6E0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_storeroom_8017D6E8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_storeroom_8017D6F0(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D5FC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_storeroom_8017D6E0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D6E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D6F0(Task*, s32, s32, GpMessageArg);
 
 GpMsgEntry D_shelter_b1_storeroom_80184968[6] = {
     { 5102, func_shelter_b1_storeroom_8017D604 },

@@ -1,24 +1,71 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include "pe/inferno.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// 0xC jitter block `func_inferno_8012F530` hangs off `Task::work` via
+/// `memCalloc(0xC)`. It is two parallel 6-byte columns, one per ring drawn
+/// by the pair of fan routines: `field_0[0][i]` seeds the inner ring's
+/// texture frame and `field_0[1][i]` the outer one. State 0 fills both with
+/// one walker, `p = &field_0[0][i]`, writing `p[0]` and `p[6]`.
+typedef struct InfernoIdMap {
+    /* 0x0 */ u8 field_0[2][6];
+} InfernoIdMap;
+STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
+
+/// One ring's geometry in `D_inferno_801304E4`, indexed by the `kind` the
+/// caster passes to the fan routines (0 = inner ring, 1 = outer ring).
+/// `field_0` is added to `GpEffWork::angle` to give the ring's radius in
+/// the ground plane, `field_2` is how far the inner rim is lifted along local
+/// Y, and `field_4` plus `GpEffWork::step` widens the outer rim.
+typedef struct InfernoFanParam {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+} InfernoFanParam;
+STATIC_ASSERT_SIZEOF(InfernoFanParam, 0x6);
+
+/// 0x70-byte scratch `func_inferno_8012FF34` carves off `G_SCRATCH_HEAD` for
+/// one ring. `inner` and `outer` are the six rim points of each edge of the
+/// ring, built by `rsin` / `rcos`, rotated by the effect coordinate's `workm`
+/// and offset by its translation. `sxy0` is where `inner[i]` projects to
+/// through a single `RTPS`; `sxy1`..`sxy3` are the other three corners of the
+/// segment quad through one `RTPT`. The four hold packed `SXY2` words, so the
+/// screen X of each is the low half and the screen Y the arithmetic shift.
+typedef struct InfernoFanScratch {
+    /* 0x00 */ SVECTOR inner[6];
+    /* 0x30 */ SVECTOR outer[6];
+    /* 0x60 */ s32     sxy0;
+    /* 0x64 */ s32     sxy1;
+    /* 0x68 */ s32     sxy2;
+    /* 0x6C */ s32     sxy3;
+} InfernoFanScratch;
+STATIC_ASSERT_SIZEOF(InfernoFanScratch, 0x70);
 
 /// The two fan shapes the inferno wall sweeps through.
 static InfernoFanParam D_inferno_801304E4[] = {

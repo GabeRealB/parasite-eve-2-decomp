@@ -1,53 +1,61 @@
-#include "dryfield_water_tower_private.h"
+#include "rooms/dryfield_water_tower.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
 
-#include <psyq/libgte.h>
+#include "dryfield_water_tower_private.h"
 
-#include "rooms/dryfield_water_tower.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/collision.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
-#include "gameplay/scene.h"
-#include "gameplay/sprites.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_dryfield.h"
+
 #include "overlay.h"
-
-#include "gameplay/direction.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
 
 extern GpXformArg D_dryfield_water_tower_80181A70[3];
 
@@ -191,15 +199,6 @@ typedef struct DryfieldWaterTowerState {
 } DryfieldWaterTowerState;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 
-/// The water tower's script task, published by its state-0 init
-/// `func_dryfield_water_tower_8017FD64`. `DwtwWork` hangs off its `work`.
-extern Task* D_dryfield_water_tower_801876AC;
-
-/// The water tower's cap-script task, published by
-/// `func_dryfield_water_tower_8017F128`, which allocates the cap script's
-/// 0x7C-byte scratch block into the task's `work` first.
-extern Task* D_dryfield_water_tower_801876A4;
-
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
 /// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses; the
@@ -218,9 +217,9 @@ extern GpXformArg D_dryfield_water_tower_80181AB8;
 /// content. The destinations are also reached with an offset from a lower base
 /// (`0x801828CC + 0x10` is `801828DC`), i.e. the live table is a region the
 /// room walks. The live normal, vertex, and face arrays retain those element ranges.
-extern SVECTOR D_dryfield_water_tower_80181B10[2];
+extern SVECTOR    D_dryfield_water_tower_80181B10[2];
 extern GpGridFace D_dryfield_water_tower_80181BA0[2];
-extern SVECTOR D_dryfield_water_tower_80181B20[8];
+extern SVECTOR    D_dryfield_water_tower_80181B20[8];
 
 /// The room's two cap placements with message 0x7D4, the pair the cap props
 /// publish to themselves through `func_dryfield_water_tower_8017F77C`: `[0]` is the raised position
@@ -295,9 +294,9 @@ extern GpScriptRec D_dryfield_water_tower_80187678;
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *);
-        void (*call1)(Task *, s32, GpCmdArg *);
-        void (*call2)(Task *, s32, GpXformArg *);
+        void (*call0)(Task*);
+        void (*call1)(Task*, s32, GpCmdArg*);
+        void (*call2)(Task*, s32, GpXformArg*);
     } handler;
 } DryfieldWaterTower2MessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTower2MessageEntry, 8);
@@ -313,10 +312,10 @@ extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2];
 /// The destinations are runs of two blocks each (0x10, 0x18 and 0x40 bytes),
 /// reached by their first symbol plus the block size or by the second symbol
 /// minus it.
-extern SVECTOR D_dryfield_water_tower_80181B60[8];
-extern SVECTOR D_dryfield_water_tower_80181BB8[2];
-extern SVECTOR D_dryfield_water_tower_80181BC8[8];
-extern SVECTOR D_dryfield_water_tower_80181C08[8];
+extern SVECTOR    D_dryfield_water_tower_80181B60[8];
+extern SVECTOR    D_dryfield_water_tower_80181BB8[2];
+extern SVECTOR    D_dryfield_water_tower_80181BC8[8];
+extern SVECTOR    D_dryfield_water_tower_80181C08[8];
 extern GpGridFace D_dryfield_water_tower_80181C48[2];
 
 /// The pair of blocks the cap script's state 8 hands to `func_800E8634`.
@@ -335,11 +334,6 @@ extern GpEvsCmd D_dryfield_water_tower_80181FF0[];
 /// its running sound is scaled by.
 extern DwtwStep       D_dryfield_water_tower_8018767C[];
 extern DwtwViewVolume D_dryfield_water_tower_80182350[];
-
-/// The rotation's frame counter and the limit it is compared against, the
-/// current step's duration in frames.
-extern u16 D_dryfield_water_tower_801876A8;
-extern u16 D_dryfield_water_tower_801876AA;
 
 /// The cap script's message table, published into its own `Task::msgTable`.
 extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2];
@@ -391,39 +385,39 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
 extern GpRoomCoordSet D_dryfield_water_tower_801874E4[1];
 
 extern GpGridParams D_dryfield_water_tower_801835C4[1];
-extern GpObj4C D_dryfield_water_tower_8018665C[14];
-void func_dryfield_water_tower_8017FD64(Task *);
-void func_dryfield_water_tower_8017FF5C(Task *);
-void func_dryfield_water_tower_80180038(Task *);
-void func_dryfield_water_tower_80180114(void);
-void func_dryfield_water_tower_80180134(void);
-void func_dryfield_water_tower_80180154(void);
-void func_dryfield_water_tower_80180174(s16);
-void func_dryfield_water_tower_80180194(void);
-void func_dryfield_water_tower_80180220(void);
+extern GpObj4C      D_dryfield_water_tower_8018665C[14];
+void                func_dryfield_water_tower_8017FD64(Task*);
+void                func_dryfield_water_tower_8017FF5C(Task*);
+void                func_dryfield_water_tower_80180038(Task*);
+void                func_dryfield_water_tower_80180114(void);
+void                func_dryfield_water_tower_80180134(void);
+void                func_dryfield_water_tower_80180154(void);
+void                func_dryfield_water_tower_80180174(s16);
+void                func_dryfield_water_tower_80180194(void);
+void                func_dryfield_water_tower_80180220(void);
 
 extern TmdSource D_dryfield_water_tower_80180DC8;
 extern TmdSource D_dryfield_water_tower_80181A1C;
-void func_dryfield_water_tower_8017E1DC(Task *);
-void func_dryfield_water_tower_8017E764(Task *);
-void func_dryfield_water_tower_8017F128(Task *);
-void func_dryfield_water_tower_8017F700(s32);
-void func_dryfield_water_tower_8017F82C(void);
-void func_dryfield_water_tower_8017F8B0(void);
-void func_dryfield_water_tower_8017F8E8(s16);
-void func_dryfield_water_tower_8017F908(void);
-void func_dryfield_water_tower_8017F9AC(void);
-void func_dryfield_water_tower_8017FA5C(void);
-void func_dryfield_water_tower_8017FBC8(Task *);
-void func_dryfield_water_tower_8017FBD8(Task *);
+void             func_dryfield_water_tower_8017E1DC(Task*);
+void             func_dryfield_water_tower_8017E764(Task*);
+void             func_dryfield_water_tower_8017F128(Task*);
+void             func_dryfield_water_tower_8017F700(s32);
+void             func_dryfield_water_tower_8017F82C(void);
+void             func_dryfield_water_tower_8017F8B0(void);
+void             func_dryfield_water_tower_8017F8E8(s16);
+void             func_dryfield_water_tower_8017F908(void);
+void             func_dryfield_water_tower_8017F9AC(void);
+void             func_dryfield_water_tower_8017FA5C(void);
+void             func_dryfield_water_tower_8017FBC8(Task*);
+void             func_dryfield_water_tower_8017FBD8(Task*);
 
 extern GpGridFace D_dryfield_water_tower_80182F2C[73];
-extern SVECTOR D_dryfield_water_tower_801828CC[29];
-extern SVECTOR D_dryfield_water_tower_801829B4[175];
-extern TaskDesc D_8014D8A4;
-extern s16 * D_dryfield_water_tower_80183584[16];
-void func_dryfield_water_tower_8017F77C(Task *, s32, GpXformArg *);
-void func_dryfield_water_tower_8017F808(Task *, s32, GpCmdArg *);
+extern SVECTOR    D_dryfield_water_tower_801828CC[29];
+extern SVECTOR    D_dryfield_water_tower_801829B4[175];
+extern TaskDesc   D_8014D8A4;
+extern s16*       D_dryfield_water_tower_80183584[16];
+void              func_dryfield_water_tower_8017F77C(Task*, s32, GpXformArg*);
+void              func_dryfield_water_tower_8017F808(Task*, s32, GpCmdArg*);
 
 TaskDesc D_dryfield_water_tower_80180394 = { 0, 32, func_dryfield_water_tower_8017D7D8, { .model = NULL } };
 
@@ -2487,6 +2481,16 @@ DwtwStep D_dryfield_water_tower_8018767C[4] = {
 };
 
 DryfieldWaterTowerStorage768C D_dryfield_water_tower_8018768C = { 0 };
+
+static void       func_dryfield_water_tower_8017DE30(Task* arg0);
+static s32        func_dryfield_water_tower_8017E428(Task* arg0);
+static s32        func_dryfield_water_tower_8017E5B0(Task* arg0);
+static void       func_dryfield_water_tower_8017E93C(Task* arg0);
+static inline u16 _dryfieldWaterTowerStepFrames(Task* task);
+static inline u16 _dryfieldWaterTowerState7Step(Task* arg0);
+static inline u16 _dryfieldWaterTowerState8Step(Task* arg0);
+static s32        func_dryfield_water_tower_8017FB4C(Task* task);
+static void       func_dryfield_water_tower_8017FBE8(Task* task);
 
 /// Cap-prop task body, in two variants picked by `spawnArg1`. With it zero the
 /// task lowers the cap, driven by `DryfieldWaterTowerState::field_58`: state 0

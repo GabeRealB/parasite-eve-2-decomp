@@ -1,37 +1,47 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
@@ -84,8 +94,8 @@ extern GpAnimSet* D_actor_120500_80138088[2];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpXformArg *);
-        void (*call1)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, s32);
     } handler;
 } Actor120500MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor120500MessageEntry, 8);
@@ -121,12 +131,12 @@ void func_actor_120500_80132900(s16);
 void func_actor_120500_80132920(void);
 
 extern TmdSource D_actor_120500_8013762C;
-void func_actor_120500_80131E58(Task *);
-void func_actor_120500_8013241C(Task *);
-void func_actor_120500_80132708(Task *);
-void func_actor_120500_801327E4(Task *);
-void func_actor_120500_80132A04(Task *, s32, s32);
-void func_actor_120500_80132A74(Task *, s32, GpXformArg *);
+void             func_actor_120500_80131E58(Task*);
+void             func_actor_120500_8013241C(Task*);
+void             func_actor_120500_80132708(Task*);
+void             func_actor_120500_801327E4(Task*);
+void             func_actor_120500_80132A04(Task*, s32, s32);
+void             func_actor_120500_80132A74(Task*, s32, GpXformArg*);
 
 TmdBone D_actor_120500_80132B0C[20] = {
 #include "assets/actor_120500_model_0580C_skeleton.inc"
@@ -334,6 +344,9 @@ TaskDesc D_actor_120500_8013843C = { 0, 192, taskKill, { .model = NULL } };
 TaskDesc D_actor_120500_80138448 = { 257, 192, func_actor_120500_8013241C, { .model = &D_actor_120500_8013762C } };
 
 Task * D_actor_120500_80138454 = NULL;
+
+static void func_actor_120500_80132028(Task* arg0);
+static void func_actor_120500_801322A0(Task* arg0);
 
 /// Entry 0 of the task table: plays a streamed sequence, then restores the
 /// scene. It looks up the stream slot for the current location with view 0x64

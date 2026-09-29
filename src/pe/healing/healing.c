@@ -1,29 +1,48 @@
 #include "pe/healing.h"
 
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// One 8-byte row of `D_healing_8012FC1C`, indexed by `GpEffWork.index`
+/// (`Gp_StateC08.field_0 % 10 - 1`). `field_2` is the brightness cap state 1
+/// grows `GpEffWork.scale` toward (and the starting radius in
+/// `func_healing_8012F5E4`). `field_4` is the per-frame radius step and the
+/// yaw passed to `Gfx_RotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
+/// `Gp_SpawnEff` spawn arg and the radius at which state 1 advances to 2.
+typedef struct HealingScale {
+    /* 0x0 */ s16 unk0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} HealingScale;
+STATIC_ASSERT_SIZEOF(HealingScale, 8);
 
 /// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
 /// `index`. `field_2` is the brightness ceiling, `field_4` the per-tick

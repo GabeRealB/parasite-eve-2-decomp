@@ -1,27 +1,31 @@
-#include "gameplay/scene_runtime.h"
-#include "rooms/dryfield_night_water_hole.h"
 #include "common.h"
 
+#include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-
+#include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
+#include "rooms/dryfield_night_water_hole.h"
 
 // Retained task-shaped record; preserve the callback's actual ABI.
 typedef struct {
-    u16 flags;
-    u16 priority;
-    void (*callback)(GpEnemy*, Task*);
+    u16   flags;
+    u16   priority;
+    void  (*callback)(GpEnemy*, Task*);
     void* arg;
 } Actor146000RetainedTaskSeed;
 STATIC_ASSERT_SIZEOF(Actor146000RetainedTaskSeed, 12);
@@ -32,7 +36,7 @@ extern Actor146000RetainedTaskSeed D_actor_146000_801351FC;
 typedef union {
     struct {
         GpAnimSet* sets[8];
-        GpAnimArg arguments[5];
+        GpAnimArg  arguments[5];
     } data;
     s32 words[33];
 } Actor146000AnimStorage52BC;
@@ -45,7 +49,7 @@ extern Actor146000AnimStorage52BC D_actor_146000_801352BC;
 typedef union {
     struct {
         GpAnimSet* sets[7];
-        GpAnimArg arguments[5];
+        GpAnimArg  arguments[5];
     } data;
     s32 words[32];
 } Actor146000AnimStorage5214;
@@ -79,7 +83,7 @@ extern GpAnimSet D_actor_146000_8013476C;
 extern GpAnimSet D_actor_146000_80134A40;
 extern GpAnimSet D_actor_146000_80134C60;
 extern GpAnimSet D_actor_146000_801351D4;
-void func_actor_146000_80131E24(Task *);
+void             func_actor_146000_80131E24(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {

@@ -1,40 +1,44 @@
-#ifndef ROOMS_SHELTER_B1_STERILIZATION_ROOM_H
-#define ROOMS_SHELTER_B1_STERILIZATION_ROOM_H
+#ifndef INCLUDE_ROOMS_SHELTER_B1_STERILIZATION_ROOM_H
+#define INCLUDE_ROOMS_SHELTER_B1_STERILIZATION_ROOM_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include "rooms/room.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
-#include "main/ui_types.h"
+#include "main/tmd_types.h"
 
-/// The "%" suffix appended to a formatted percentage.
-extern u8 D_shelter_b1_sterilization_room_80184594[];
+extern TmdSource D_shelter_b1_sterilization_room_80184DF8;
 
-/// UI descriptor of the help-line box the "Play Data" panels open beside their
-/// lists.
-extern UiObjectDesc D_shelter_b1_sterilization_room_801847AC;
+extern GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 
-/// Task descriptor table used by the cutscene runner
-/// `func_shelter_b1_sterilization_room_8017F550`, which spawns entry 1 and
-/// waits on it while the cutscene plays. The room's event handler spawns
-/// entry 0 with a `RoomCutsceneRec` as its argument.
-extern TaskDesc D_shelter_b1_sterilization_room_80184E1C[];
+// shelter_b1_sterilization_room
+extern GpRoomCoordRec D_shelter_b1_sterilization_room_80189354[];
 
-/// The room's task descriptor table; its spawners pick an entry by index.
-extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
+extern GpRoomObjRec D_shelter_b1_sterilization_room_8018936C[];
 
-/// One bit per entry of `D_shelter_b1_sterilization_room_80188504` already
-/// spawned, so each is spawned only once until the mask is cleared.
-extern s32 D_shelter_b1_sterilization_room_8018C340;
+extern u8* D_shelter_b1_sterilization_room_801893CC[];
+
+extern GpViewCountRec D_shelter_b1_sterilization_room_801893D8[];
+
+extern GpWarpRec D_shelter_b1_sterilization_room_801893E0[];
+
+extern GpViewRec D_shelter_b1_sterilization_room_80189E68[];
+
+extern GpSprtRec D_shelter_b1_sterilization_room_8018B00C[];
+
+extern GpRoomParamRec* D_shelter_b1_sterilization_room_8018C314[];
+
+void func_shelter_b1_sterilization_room_80180518(Task* task);
 
 void func_shelter_b1_sterilization_room_8018188C(Task* task);
+
 void func_shelter_b1_sterilization_room_801823D8(Task* task);
-extern GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 
 void func_shelter_b1_sterilization_room_8017EB2C(Task* task);
 
-#endif // ROOMS_SHELTER_B1_STERILIZATION_ROOM_H
+#endif // INCLUDE_ROOMS_SHELTER_B1_STERILIZATION_ROOM_H

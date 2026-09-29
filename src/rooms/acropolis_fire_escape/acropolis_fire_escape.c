@@ -1,55 +1,68 @@
-#include "common.h"
 #include "rooms/acropolis_fire_escape.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
+#include "main/stage_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
+
 #include "rooms/acropolis_square.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern GpObj4C D_acropolis_fire_escape_8018252C[12];
 
@@ -157,42 +170,42 @@ static void func_acropolis_fire_escape_8017F450(Task* task);
 static void func_acropolis_fire_escape_8017FE50(Task* task);
 static void func_acropolis_fire_escape_8017FECC(Task* task);
 
-s32 func_acropolis_fire_escape_8017F9F8(Task *, s32, s32, s32);
-s32 func_acropolis_fire_escape_8017FD98(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_acropolis_fire_escape_8017FE40(Task *, s32, s32, s32);
-s32 func_acropolis_fire_escape_8017FE48(Task *, s32, s32, s32);
-void func_acropolis_fire_escape_8017D6D0(UiList *, UiObject *);
-void func_acropolis_fire_escape_8017DE9C(UiList *, UiObject *);
-void func_acropolis_fire_escape_8017E8B4(Task *);
-void func_acropolis_fire_escape_8017ED60(Task *);
-void func_acropolis_fire_escape_8017EF20(Task *);
-void func_acropolis_fire_escape_8017F114(UiList *, UiObject *);
-void func_acropolis_fire_escape_8017F1F8(UiList *, UiObject *);
-void func_acropolis_fire_escape_8017F2C0(UiList *, UiObject *);
-void func_acropolis_fire_escape_8017F388(UiList *, UiObject *);
-void func_acropolis_fire_escape_8017F48C(Task *);
-void func_acropolis_fire_escape_8017FB40(Task *);
-void func_acropolis_fire_escape_8017FD08(Task *);
+s32  func_acropolis_fire_escape_8017F9F8(Task*, s32, s32, s32);
+s32  func_acropolis_fire_escape_8017FD98(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_acropolis_fire_escape_8017FE40(Task*, s32, s32, s32);
+s32  func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
+void func_acropolis_fire_escape_8017D6D0(UiList*, UiObject*);
+void func_acropolis_fire_escape_8017DE9C(UiList*, UiObject*);
+void func_acropolis_fire_escape_8017E8B4(Task*);
+void func_acropolis_fire_escape_8017ED60(Task*);
+void func_acropolis_fire_escape_8017EF20(Task*);
+void func_acropolis_fire_escape_8017F114(UiList*, UiObject*);
+void func_acropolis_fire_escape_8017F1F8(UiList*, UiObject*);
+void func_acropolis_fire_escape_8017F2C0(UiList*, UiObject*);
+void func_acropolis_fire_escape_8017F388(UiList*, UiObject*);
+void func_acropolis_fire_escape_8017F48C(Task*);
+void func_acropolis_fire_escape_8017FB40(Task*);
+void func_acropolis_fire_escape_8017FD08(Task*);
 
-extern GpGridParams D_acropolis_fire_escape_801822A8[1];
-extern GpObj3A D_acropolis_fire_escape_801828BC[2];
-extern GpObj4C D_acropolis_fire_escape_801822CC[8];
+extern GpGridParams   D_acropolis_fire_escape_801822A8[1];
+extern GpObj3A        D_acropolis_fire_escape_801828BC[2];
+extern GpObj4C        D_acropolis_fire_escape_801822CC[8];
 extern GpRoomCoordSet D_acropolis_fire_escape_80182B54[1];
 
 extern GpDrawAreaRec D_acropolis_fire_escape_80182D44[2];
 extern GpDrawAreaRec D_acropolis_fire_escape_80182DF4[2];
-extern GpSprtCmd D_acropolis_fire_escape_80182B6C[2];
-extern GpSprtCmd D_acropolis_fire_escape_80182B7C[2];
-extern GpSprtCmd D_acropolis_fire_escape_80182C90[3];
-extern GpSprtCmd D_acropolis_fire_escape_80182CA8[2];
-extern GpSprtCmd D_acropolis_fire_escape_80182D1C[3];
-extern GpSprtCmd D_acropolis_fire_escape_80182D34[2];
-extern GpSprtCmd D_acropolis_fire_escape_80182DBC[3];
-extern GpSprtCmd D_acropolis_fire_escape_80182DD4[2];
-extern GpSprtCmd D_acropolis_fire_escape_80182DE4[2];
-extern GpSprtElem D_acropolis_fire_escape_80182B8C[13];
-extern GpSprtElem D_acropolis_fire_escape_80182CB8[5];
-extern GpSprtElem D_acropolis_fire_escape_80182D58[5];
+extern GpSprtCmd     D_acropolis_fire_escape_80182B6C[2];
+extern GpSprtCmd     D_acropolis_fire_escape_80182B7C[2];
+extern GpSprtCmd     D_acropolis_fire_escape_80182C90[3];
+extern GpSprtCmd     D_acropolis_fire_escape_80182CA8[2];
+extern GpSprtCmd     D_acropolis_fire_escape_80182D1C[3];
+extern GpSprtCmd     D_acropolis_fire_escape_80182D34[2];
+extern GpSprtCmd     D_acropolis_fire_escape_80182DBC[3];
+extern GpSprtCmd     D_acropolis_fire_escape_80182DD4[2];
+extern GpSprtCmd     D_acropolis_fire_escape_80182DE4[2];
+extern GpSprtElem    D_acropolis_fire_escape_80182B8C[13];
+extern GpSprtElem    D_acropolis_fire_escape_80182CB8[5];
+extern GpSprtElem    D_acropolis_fire_escape_80182D58[5];
 
 u8 D_acropolis_fire_escape_801819F8[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -893,6 +906,12 @@ s32 D_acropolis_fire_escape_80183040 = 0;
 Task * D_acropolis_fire_escape_80183044 = NULL;
 
 RoomCutsceneRec D_acropolis_fire_escape_80183048 = { 0 };
+
+static void func_acropolis_fire_escape_8017E298(UiList* list, UiObject* obj);
+static void func_acropolis_fire_escape_8017E594(UiList* list, UiObject* obj);
+static void func_acropolis_fire_escape_8017EDBC(u8* str, s32 decimals);
+static u8*  func_acropolis_fire_escape_8017EE2C(u8* buf, s32 value, s32 decimals);
+static void func_acropolis_fire_escape_8017F010(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of

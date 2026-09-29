@@ -1,48 +1,53 @@
-#include "dryfield_warehouse_private.h"
+#include "rooms/dryfield_warehouse.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "rooms/dryfield_warehouse.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "dryfield_warehouse_private.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gameflow.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
-#include "overlay.h"
-
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflow.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "overlay.h"
+
+#include "rooms/room_common.h"
 
 /// Work block of the warehouse's cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_warehouse_8017E090` and parked in `Task::work`. `owner` is
@@ -62,22 +67,10 @@ typedef struct DwhWork {
 } DwhWork;
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
 
-/// The screen-fade task the warehouse's script spawns and keeps the handle of.
-/// `func_dryfield_warehouse_8017DBB0` stores the task `Task_SpawnFromTable`
-/// returns, `func_dryfield_warehouse_8017E308` - that task itself - clears it
-/// once the fade has run its course, and `func_dryfield_warehouse_8017DA58`
-/// kills whatever handle is still there before fading back in.
-extern Task* D_dryfield_warehouse_801821C0;
-
-/// The warehouse's cutscene task, published by its own state 0
-/// (`func_dryfield_warehouse_8017E090`) so the script helpers can reach its
-/// `DwhWork` block.
-extern Task* D_dryfield_warehouse_801821BC;
-
 extern GpAnimSet* D_dryfield_warehouse_8017F848[2];
 extern GpXformArg D_dryfield_warehouse_8017F850;
 extern GpXformArg D_dryfield_warehouse_8017F868;
-extern s16 D_dryfield_warehouse_801821C4;
+
 extern GpEvsCmd D_dryfield_warehouse_8017F880[];
 extern GpEvsCmd D_dryfield_warehouse_8017FA00[];
 
@@ -91,13 +84,10 @@ extern s16 D_dryfield_warehouse_8017FBAC[];
 extern GpGridParams D_dryfield_warehouse_801802A8[1];
 extern GpGridParams D_dryfield_warehouse_801809AC[1];
 extern GpGridParams D_dryfield_warehouse_80181038[1];
-extern GpObj4C D_dryfield_warehouse_801816A4[4];
-extern GpObj4C D_dryfield_warehouse_801817D4[13];
-extern GpObj4C D_dryfield_warehouse_80181BB0[10];
-extern GpRoomCoordSet D_dryfield_warehouse_801820E8[1];
-void func_dryfield_warehouse_8017E090(Task *);
-void func_dryfield_warehouse_8017E22C(Task *);
-void func_dryfield_warehouse_8017E308(Task *);
+
+void func_dryfield_warehouse_8017E090(Task*);
+void func_dryfield_warehouse_8017E22C(Task*);
+void func_dryfield_warehouse_8017E308(Task*);
 
 void func_dryfield_warehouse_8017DA58(s32);
 void func_dryfield_warehouse_8017E3F4(s16);
@@ -1219,6 +1209,10 @@ GpSprtCmd D_dryfield_warehouse_801815E8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0xFFFF, 0, 0, 0, { 0, 0 } },
 };
+
+static void func_dryfield_warehouse_8017DBB0(Task* arg0);
+static void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1);
+static void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2);
 
 /// Message handler of the warehouse's cutscene task. Message 0 re-opens the
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,

@@ -1,57 +1,72 @@
-#include "gameplay/evs.h"
-#include "mapui/map_shelter.h"
 #include "rooms/shelter_b2_main_corridor.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room.h"
 
-#include "gameplay/animation.h"
+#include "rooms/room_common.h"
 
 // Unreferenced leading zero word immediately before the independently addressed task descriptor. It does not align the descriptor, whose address is only word aligned. Preserve the word with the neighboring descriptor; original ownership remains unresolved.
-typedef struct { u32 retained; TaskDesc task; } ShelterB2MainCorridorTaskStorage;
+typedef struct {
+    u32      retained;
+    TaskDesc task;
+} ShelterB2MainCorridorTaskStorage;
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorTaskStorage, 16);
 extern ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0;
 
@@ -78,7 +93,7 @@ extern RoomEventMsg D_shelter_b2_main_corridor_80189654;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomDeparture value;
-    u8 retained[4];
+    u8            retained[4];
 } ShelterB2MainCorridorStorage9664;
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9664, 16);
 
@@ -90,7 +105,7 @@ extern ShelterB2MainCorridorStorage9664 D_shelter_b2_main_corridor_80189664;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomLatchedEvent value;
-    u8 retained[4];
+    u8               retained[4];
 } ShelterB2MainCorridorStorage9674;
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9674, 16);
 
@@ -120,9 +135,6 @@ extern TaskDesc D_shelter_b2_main_corridor_80182DE0[];
 
 /// The room's water surfaces.
 extern RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[];
-
-/// Height of the water surfaces.
-extern s16 D_shelter_b2_main_corridor_80182E28;
 
 /// Light positions the per-view drawer places beams and glows at.
 extern SVECTOR D_shelter_b2_main_corridor_80182F7C[];
@@ -160,16 +172,16 @@ static void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* 
 
 extern TaskDesc D_80147E48;
 
-s32 func_shelter_b2_main_corridor_8017D9C4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_main_corridor_8017DC88(Task *, s32, GpMsg13EF *, s32);
-s32 func_shelter_b2_main_corridor_8017E1CC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_main_corridor_8017E1D4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_main_corridor_8017E1DC(Task *, s32, s32, s32);
-void func_shelter_b2_main_corridor_8017D6BC(Task *);
-void func_shelter_b2_main_corridor_8017D82C(Task *);
-void func_shelter_b2_main_corridor_8017DEB0(Task *);
-void func_shelter_b2_main_corridor_8017E210(Task *);
-void func_shelter_b2_main_corridor_8017EB8C(Task *);
+s32  func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_main_corridor_8017DC88(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
+void func_shelter_b2_main_corridor_8017D6BC(Task*);
+void func_shelter_b2_main_corridor_8017D82C(Task*);
+void func_shelter_b2_main_corridor_8017DEB0(Task*);
+void func_shelter_b2_main_corridor_8017E210(Task*);
+void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
 ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, func_shelter_b2_main_corridor_8017D6BC, { .model = NULL } } };
 

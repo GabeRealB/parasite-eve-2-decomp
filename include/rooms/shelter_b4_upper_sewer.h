@@ -1,46 +1,78 @@
-#ifndef ROOMS_SHELTER_B4_UPPER_SEWER_H
-#define ROOMS_SHELTER_B4_UPPER_SEWER_H
+#ifndef INCLUDE_ROOMS_SHELTER_B4_UPPER_SEWER_H
+#define INCLUDE_ROOMS_SHELTER_B4_UPPER_SEWER_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-#include "actors/waypoints.h"
-#include <psyq/libgte.h>
-
-#include "common.h"
-
-/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
-/// `depth` along Z, cut into `count` flat quads. The quads are laid along X
-/// when `alongZ` is zero and along Z otherwise. A list of them ends at an entry
-/// whose `count` is -1.
-typedef struct ShelterB4UpperSewerSurface {
-    s16 x;
-    s16 z;
-    s16 width;
-    s16 depth;
-    s16 count;
-    s16 alongZ;
-} ShelterB4UpperSewerSurface;
-
 // Room data exported to the shared waypoint actor.
 extern SVECTOR* D_shelter_b4_upper_sewer_801866F8[4];
+
 extern SVECTOR D_shelter_b4_upper_sewer_80186708[9];
+
 extern s16 D_shelter_b4_upper_sewer_80186438;
 
-void func_shelter_b4_upper_sewer_80182734(Task* arg0);
-void func_shelter_b4_upper_sewer_80183198(Task* task);
-void func_shelter_b4_upper_sewer_80183A80(Task* task);
-void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0);
-void func_shelter_b4_upper_sewer_8017E8B8(Task* task);
-void func_shelter_b4_upper_sewer_8017ED40(Task* task);
-void func_shelter_b4_upper_sewer_801846C8(Task* arg0);
-void func_shelter_b4_upper_sewer_80184C20(Task* task);
-void func_shelter_b4_upper_sewer_80185880(Task* task);
-void func_shelter_b4_upper_sewer_80180110(Task* task);
-void func_shelter_b4_upper_sewer_80180E58(Task* arg0);
-void func_shelter_b4_upper_sewer_801811F0(Task* arg0);
-void func_shelter_b4_upper_sewer_80182600(Task* arg0);
 extern GpAreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
 
-#endif // ROOMS_SHELTER_B4_UPPER_SEWER_H
+// shelter_b4_upper_sewer
+extern u8* D_shelter_b4_upper_sewer_80186590[];
+
+extern GpViewCountRec D_shelter_b4_upper_sewer_80186594[];
+
+extern GpWarpRec D_shelter_b4_upper_sewer_80186598[];
+
+extern GpGridParams D_shelter_b4_upper_sewer_80186EF8;
+
+extern GpViewRec D_shelter_b4_upper_sewer_80186F1C[];
+
+extern GpSprtRec D_shelter_b4_upper_sewer_801879BC[];
+
+extern GpRoomCoordSet D_shelter_b4_upper_sewer_80188184;
+
+extern GpObj4A D_shelter_b4_upper_sewer_8018819C[];
+
+extern GpObj4A D_shelter_b4_upper_sewer_801886F4[];
+
+extern GpObj3A D_shelter_b4_upper_sewer_80188BFC[];
+
+extern GpRoomParamRec* D_shelter_b4_upper_sewer_80188CFC[];
+
+void func_shelter_b4_upper_sewer_8017DC30(Task* task);
+
+void func_shelter_b4_upper_sewer_80182734(Task* arg0);
+
+void func_shelter_b4_upper_sewer_80183198(Task* task);
+
+void func_shelter_b4_upper_sewer_80183A80(Task* task);
+
+void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0);
+
+void func_shelter_b4_upper_sewer_8017E8B8(Task* task);
+
+void func_shelter_b4_upper_sewer_8017ED40(Task* task);
+
+void func_shelter_b4_upper_sewer_801846C8(Task* arg0);
+
+void func_shelter_b4_upper_sewer_80184C20(Task* task);
+
+void func_shelter_b4_upper_sewer_80185880(Task* task);
+
+void func_shelter_b4_upper_sewer_80180110(Task* task);
+
+void func_shelter_b4_upper_sewer_80180E58(Task* arg0);
+
+void func_shelter_b4_upper_sewer_801811F0(Task* arg0);
+
+void func_shelter_b4_upper_sewer_80182600(Task* arg0);
+
+#endif // INCLUDE_ROOMS_SHELTER_B4_UPPER_SEWER_H

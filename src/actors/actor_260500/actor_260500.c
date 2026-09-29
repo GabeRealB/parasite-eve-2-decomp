@@ -1,43 +1,37 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
-#include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/text.h"
-
-#include "gameplay/animation.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[10];
-        GpCopyArg copy;
-        GpAnimArg arguments[1];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[1];
         GpXformArg placements[3];
     } data;
     s32 words[35];
@@ -45,7 +39,6 @@ typedef union {
 STATIC_ASSERT_SIZEOF(Actor260500AnimStorageCAF4, 140);
 
 extern Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4;
-
 
 /// The work block, published by the spawn routine and by the task handler
 /// `func_actor_260500_8014A460` on every frame, so the message handlers and
@@ -78,17 +71,17 @@ extern GpEvsCmd D_actor_260500_8014DCC0[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, VECTOR *, s32);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, VECTOR*, s32);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor260500MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor260500MsgEntry, 8);
 
 extern Actor260500MsgEntry D_actor_260500_80159D80[];
-extern u8         D_actor_260500_80159DBC[];
+extern u8                  D_actor_260500_80159DBC[];
 
 static void func_actor_260500_8014A110(Task* task);
 static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
@@ -99,13 +92,13 @@ static void func_actor_260500_8014A644(void);
 static void func_actor_260500_8014A99C(Task* task);
 
 extern TmdSource D_actor_260500_80159D58;
-void func_actor_260500_8014A460(Task *);
+void             func_actor_260500_8014A460(Task*);
 
-s32 func_actor_260500_8014A6C4(Task *, s32, GpAnimArg *);
-s32 func_actor_260500_8014A754(Task *, s32, s32);
-s32 func_actor_260500_8014A79C(Task *, s32, GpXformArg *);
-s32 func_actor_260500_8014A818(Task *, s32, GpCmdArg *);
-s32 func_actor_260500_8014A83C(Task *, s32, VECTOR *, s32);
+s32 func_actor_260500_8014A6C4(Task*, s32, GpAnimArg*);
+s32 func_actor_260500_8014A754(Task*, s32, s32);
+s32 func_actor_260500_8014A79C(Task*, s32, GpXformArg*);
+s32 func_actor_260500_8014A818(Task*, s32, GpCmdArg*);
+s32 func_actor_260500_8014A83C(Task*, s32, VECTOR*, s32);
 
 extern GpAnimArg D_actor_260500_8014C874;
 extern GpAnimArg D_actor_260500_8014C888;
@@ -138,19 +131,17 @@ extern GpAnimArg D_actor_260500_8014CAA4;
 extern GpAnimArg D_actor_260500_8014CAB8;
 extern GpAnimArg D_actor_260500_8014CACC;
 extern GpAnimArg D_actor_260500_8014CAE0;
-void func_actor_260500_80149E38(s32);
-
-
+void             func_actor_260500_80149E38(s32);
 
 extern Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4;
-extern GpAnimSet D_actor_260500_8014AE44;
-extern GpAnimSet D_actor_260500_8014B134;
-extern GpAnimSet D_actor_260500_8014B830;
-extern GpAnimSet D_actor_260500_8014BACC;
-extern GpAnimSet D_actor_260500_8014BE84;
-extern GpAnimSet D_actor_260500_8014C208;
-extern GpAnimSet D_actor_260500_8014C50C;
-extern GpAnimSet D_actor_260500_8014C838;
+extern GpAnimSet                  D_actor_260500_8014AE44;
+extern GpAnimSet                  D_actor_260500_8014B134;
+extern GpAnimSet                  D_actor_260500_8014B830;
+extern GpAnimSet                  D_actor_260500_8014BACC;
+extern GpAnimSet                  D_actor_260500_8014BE84;
+extern GpAnimSet                  D_actor_260500_8014C208;
+extern GpAnimSet                  D_actor_260500_8014C50C;
+extern GpAnimSet                  D_actor_260500_8014C838;
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1572,6 +1563,10 @@ Actor260500Work * D_actor_260500_80159E4C = NULL;
 Task * D_actor_260500_80159E50 = NULL;
 
 s16 D_actor_260500_80159E54 = 0;
+
+static void func_actor_260500_80149E80(void);
+static void func_actor_260500_80149EBC(void);
+static void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task);
 
 /// Loads cap file 2 and starts it (`func_800E6D4C(0x340, 0)`) when `arg0` is
 /// non-zero, otherwise resets the cap state.

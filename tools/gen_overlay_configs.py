@@ -104,7 +104,7 @@ PACKAGE_ID_SRC = """\
  * read-only region: without that the compiler places it in `.data`, the rodata
  * run comes out empty, and everything after it shifts.
  */
-#include "common.h"
+#include "types.h"
 
 static const s32 packageId = PKG_ID;
 """

@@ -1,46 +1,42 @@
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/dryfield_night_dilapidated_house.h"
 
+#include "types.h"
+
+#include "dryfield_night_dilapidated_house_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield_full.h"
 
-#include "dryfield_night_dilapidated_house_private.h"
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_dryfield_night_dilapidated_house_8018A10C[4];
-
-/// Cutscene script blob arguments of `func_800E8634`.
-extern GpEvsCmd D_dryfield_night_dilapidated_house_801868F4[];
-extern GpEvsCmd D_dryfield_night_dilapidated_house_80187134[];
-
-/// The room task's message table: `{id, handler}` pairs terminated by
-/// `0x7FFFFFFF`.
-extern GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[];
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg D_dryfield_night_dilapidated_house_8018A104;
@@ -48,11 +44,6 @@ extern RoomEventReq D_dryfield_night_dilapidated_house_8018A110;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
-
-/// Descriptor of the event task the gate spawns.
-extern TaskDesc D_dryfield_night_dilapidated_house_8017E6F4;
-
-extern GpPointLight D_dryfield_night_dilapidated_house_80189500[8];
 
 GpRoomCoordSet D_dryfield_night_dilapidated_house_80189B60[1] = {
     { 0, NULL, 8, D_dryfield_night_dilapidated_house_80189500, 1, D_dryfield_night_dilapidated_house_80189800.active },
@@ -179,6 +170,10 @@ u8 D_dryfield_night_dilapidated_house_8018A10C[4] = {
 };
 
 RoomEventReq D_dryfield_night_dilapidated_house_8018A110 = { 0 };
+
+static s32  func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0);
+static void func_dryfield_night_dilapidated_house_8017DA08(Task* task);
 
 /// The room's event gate. A request whose flag nibble already records the
 /// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One

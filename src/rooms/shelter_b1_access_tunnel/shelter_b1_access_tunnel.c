@@ -1,42 +1,56 @@
-#include "common.h"
 #include "rooms/shelter_b1_access_tunnel.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -57,8 +71,8 @@ extern SVECTOR D_shelter_b1_access_tunnel_8017E744[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7B4[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7D4[];
 
-extern GpAreaApplyRec D_shelter_b1_access_tunnel_8017FF44[];
-extern RoomFadeStorage     D_shelter_b1_access_tunnel_8017FF4C;
+extern GpAreaApplyRec  D_shelter_b1_access_tunnel_8017FF44[];
+extern RoomFadeStorage D_shelter_b1_access_tunnel_8017FF4C;
 
 /// Copy of the message that fired a gated event, kept for the task
 /// `func_shelter_b1_access_tunnel_8017D760` to warp from.
@@ -86,7 +100,7 @@ extern RoomEventMsg D_shelter_b1_access_tunnel_8017FF64;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomEventReq value;
-    u8 retained[12];
+    u8           retained[12];
 } ShelterB1AccessTunnelStorageFF70;
 STATIC_ASSERT_SIZEOF(ShelterB1AccessTunnelStorageFF70, 32);
 
@@ -98,12 +112,12 @@ static void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
 static void func_shelter_b1_access_tunnel_8017DD00(Task* task);
 static void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_shelter_b1_access_tunnel_8017D760(Task *);
-void func_shelter_b1_access_tunnel_8017D8D0(Task *);
-s32 func_shelter_b1_access_tunnel_8017DA68(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_access_tunnel_8017DCA4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_access_tunnel_8017DCAC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_access_tunnel_8017DCB4(Task *, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b1_access_tunnel_8017D760(Task*);
+void func_shelter_b1_access_tunnel_8017D8D0(Task*);
+s32  func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, GpMessageArg, GpMessageArg);
 
 TaskDesc D_shelter_b1_access_tunnel_8017E704 = { 0, 32, func_shelter_b1_access_tunnel_8017D760, { .model = NULL } };
 
@@ -658,6 +672,9 @@ u8 D_shelter_b1_access_tunnel_8017FF6C[4] = {
 ShelterB1AccessTunnelStorageFF70 D_shelter_b1_access_tunnel_8017FF70 = { { 0 }, { 0 } };
 
 RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90 = { 0, 0, 0, 0 };
+
+static s32            func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMsg* msg);
+static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
 /// Gates an event on a game-flag nibble and a collected item: returns 1 when
 /// the nibble already shows the event done, 0 (running the request's refusal

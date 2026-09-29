@@ -1,29 +1,30 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
-#include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// Optional start animation the placement handler takes: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2
@@ -31,7 +32,7 @@
 typedef GpSpawnAnimArg Actor350500SpawnAnim;
 
 /// Animation bank table the preset's bank index selects from.
-extern GpAnimSet* D_actor_350500_80168E8C[5];
+extern GpAnimSet*  D_actor_350500_80168E8C[5];
 extern GpAnimSet** D_actor_350500_80168EA0[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
@@ -41,11 +42,11 @@ extern GpAnimSet** D_actor_350500_80168EA0[1];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *, Actor350500SpawnAnim *);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*, Actor350500SpawnAnim*);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor350500MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor350500MsgEntry, 8);
@@ -86,14 +87,12 @@ static const TaskFuncTable4 D_actor_350500_80161E30 = { {
 static const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 
 extern TmdSource D_actor_350500_8016785C;
-s32 func_actor_350500_8016217C(Task *, s32, GpXformArg *, Actor350500SpawnAnim *);
-s32 func_actor_350500_80162828(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_350500_80162960(Task *, s32, GpXformArg *);
-s32 func_actor_350500_801629DC(Task *, s32, s32);
-s32 func_actor_350500_80162ABC(Task *, s32, GpCmdArg *);
-void func_actor_350500_80162360(Task *);
-
-
+s32              func_actor_350500_8016217C(Task*, s32, GpXformArg*, Actor350500SpawnAnim*);
+s32              func_actor_350500_80162828(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_350500_80162960(Task*, s32, GpXformArg*);
+s32              func_actor_350500_801629DC(Task*, s32, s32);
+s32              func_actor_350500_80162ABC(Task*, s32, GpCmdArg*);
+void             func_actor_350500_80162360(Task*);
 
 TmdBone D_actor_350500_80162AF8[19] = {
 #include "assets/actor_350500_model_05A3C_skeleton.inc"
@@ -249,7 +248,7 @@ Actor350500MsgEntry D_actor_350500_80168EB0[6] = {
     { 2013, { .call3 = func_actor_350500_8016217C } },
     { 2011, { .call1 = func_actor_350500_80162ABC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
+}; /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
 /// then integrates the world-space `step` into the 16.16 accumulators at
 /// `walk.acc`, adds their high halves to the root coordinate's translation
 /// and truncates them back to 16 bits. Ticks the animation slots while

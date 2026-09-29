@@ -1,20 +1,16 @@
-#include "common.h"
 #include "rooms/dryfield_night_motel_room_3.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "rooms/room_common.h"
+#include "actors/task_tables.h"
 
-#include "gameplay/display.h"
-
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -22,18 +18,26 @@
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "rooms/room_common.h"
 
 // One live spotlight is followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[1];
-    u8 retained[648];
+    u8          retained[648];
 } DryfieldNightMotelRoom3SpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom3SpotLightStorage, 756);
 
@@ -44,14 +48,14 @@ extern SVECTOR D_dryfield_night_motel_room_3_8017DA84;
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA8C;
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
 
-extern GpGridParams D_dryfield_night_motel_room_3_8017E180[1];
-extern GpObj3A D_dryfield_night_motel_room_3_801806F4[1];
-extern GpObj4C D_dryfield_night_motel_room_3_8018019C[11];
-extern GpObj4C D_dryfield_night_motel_room_3_801804E0[7];
+extern GpGridParams   D_dryfield_night_motel_room_3_8017E180[1];
+extern GpObj3A        D_dryfield_night_motel_room_3_801806F4[1];
+extern GpObj4C        D_dryfield_night_motel_room_3_8018019C[11];
+extern GpObj4C        D_dryfield_night_motel_room_3_801804E0[7];
 extern GpRoomCoordSet D_dryfield_night_motel_room_3_80180CC4[1];
 
 extern DryfieldNightMotelRoom3SpotLightStorage D_dryfield_night_motel_room_3_801809D0;
-extern GpPointLight D_dryfield_night_motel_room_3_80180730[7];
+extern GpPointLight                            D_dryfield_night_motel_room_3_80180730[7];
 
 SVECTOR D_dryfield_night_motel_room_3_8017DA84 = { 510, -990, 3200, 0 };
 
@@ -1040,6 +1044,8 @@ GpRoomParamRec * D_dryfield_night_motel_room_3_80180DC4[8] = {
     D_dryfield_night_motel_room_3_80180DA4,
     D_dryfield_night_motel_room_3_80180DA4,
 };
+
+static void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Queues a flickering disc at the world point `arg0`: a semi-transparent
 /// `POLY_FT4` square centred on the point's projection, with half-width

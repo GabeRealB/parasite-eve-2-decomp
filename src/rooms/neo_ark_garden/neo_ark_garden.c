@@ -1,41 +1,45 @@
-#include "neo_ark_garden_private.h"
 #include "rooms/neo_ark_garden.h"
-#include "mapui/map_neo_ark.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gte.h"
+#include "types.h"
+
+#include "neo_ark_garden_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/captions.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
-
-#include "gameplay/area.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -43,9 +47,8 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 
-extern GpMsgEntry D_neo_ark_garden_801813B0[];
-extern s32        D_801334EC;
-extern s32        D_80133954;
+extern s32 D_801334EC;
+extern s32 D_80133954;
 
 extern GpAreaTmdRec D_neo_ark_garden_80182AE8[2];
 extern GpAreaTmdRec D_neo_ark_garden_80182B00[2];
@@ -119,6 +122,9 @@ GpAreaApplyRec D_neo_ark_garden_80182BF8[3] = {
     { 5, 27, 2, 1 },
     { 255, 0, 0, 0 },
 };
+
+static void func_neo_ark_garden_8017E9B4(Task* arg0);
+static void func_neo_ark_garden_8017EA34(Task* task);
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row

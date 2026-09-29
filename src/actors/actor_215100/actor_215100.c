@@ -1,36 +1,27 @@
-#include "gameplay/evs.h"
-#include "rooms/mist_shooting_gallery.h"
 #include "actor_215100_private.h"
 
-#include "common.h"
+#include "types.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 
-#include "gameplay/attachment_state.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/animation.h"
+#include "rooms/mist_shooting_gallery.h"
 
-/// Imports from the 0x80180000 overlay; no header names them yet.
-extern GpEvsCmd D_actor_215100_8014EBE0[];
-extern s32      D_actor_215100_8014D038;
-extern s32      D_actor_215100_8014D03C;
 extern GpAnimArg D_actor_215100_8014CF84;
 extern GpAnimArg D_actor_215100_8014CFAC;
 extern GpAnimArg D_actor_215100_8014D010;
 extern GpAnimArg D_actor_215100_8014D024;
-extern s32      D_actor_215100_8014D040;
-extern GpEvsCmd D_actor_215100_8014EB98[];
-extern GpEvsCmd D_actor_215100_8014ED90[];
-extern GpEvsCmd D_actor_215100_8014EE68[];
-extern GpEvsCmd D_actor_215100_8014EFA0[];
-extern GpEvsCmd D_actor_215100_8014F060[];
-extern GpEvsCmd D_actor_215100_8014F138[];
+extern s32       D_actor_215100_8014D040;
 
 TaskDesc D_actor_215100_8014CF6C[2] = {
     { 0, 32, func_actor_215100_8014A5C0, { .model = NULL } },

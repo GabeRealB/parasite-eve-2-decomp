@@ -1,57 +1,65 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/inline_c.h"
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
 #include "actors/actors_shared_80131fc8.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/model_lighting.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
 #include "gameplay/sprites.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
-#include <psyq/memory.h>
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// State handlers copied onto the stack by func_actor_400500_80135770.
 typedef struct Actor400500TaskFuncTable13 {
@@ -239,16 +247,16 @@ extern GpPairSrcE D_actor_400500_80153C90;
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, u16 *);
+        void (*call0)(Task*, s32, u16*);
     } handler;
 } Actor400500MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor400500MessageEntry, 8);
 
 extern Actor400500MessageEntry D_actor_400500_80153CA0[2];
-extern u8         D_actor_400500_80153CC0[];
-extern TaskDesc   D_actor_400500_80153D48[];
-extern u16        D_actor_400500_80153DB4[];
-extern u8         D_actor_400500_80153DD4[];
+extern u8                      D_actor_400500_80153CC0[];
+extern TaskDesc                D_actor_400500_80153D48[];
+extern u16                     D_actor_400500_80153DB4[];
+extern u8                      D_actor_400500_80153DD4[];
 
 static void func_actor_400500_80132438(Task* arg0);
 static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
@@ -373,13 +381,13 @@ static void func_actor_400500_8013DF74(Task* arg0);
 static void func_actor_400500_8013DFE4(Task* arg0);
 
 extern TmdSource D_actor_400500_80142C20;
-void func_actor_400500_8013DE98(Task *);
+void             func_actor_400500_8013DE98(Task*);
 
 extern TmdSource D_actor_400500_80142E70;
 extern TmdSource D_actor_400500_801430E8;
-void func_actor_400500_8013DAE4(Task *, s32, u16 *);
-void func_actor_400500_8013DF64(Task *);
-void func_actor_400500_8013DF6C(Task *);
+void             func_actor_400500_8013DAE4(Task*, s32, u16*);
+void             func_actor_400500_8013DF64(Task*);
+void             func_actor_400500_8013DF6C(Task*);
 
 TmdBone D_actor_400500_8013E038[18] = {
 #include "assets/actor_400500_model_10E00_skeleton.inc"
@@ -1670,6 +1678,33 @@ u16 D_actor_400500_80153DB4[16] = {
 };
 
 u8 D_actor_400500_80153DD4[33] = { 26, 26, 26, 27, 27, 15, 15, 26, 15, 26, 26, 27, 27, 15, 15, 26, 26, 27, 27, 30, 27, 26, 26, 26, 26, 26, 15, 15, 15, 15, 15, 15, 15 };
+
+static void               func_actor_400500_80132000(Task* arg0);
+static void               func_actor_400500_8013226C(Task* arg0);
+static void               func_actor_400500_80132C54(Task* arg0);
+static inline void        _actor400500SetAnim(Task* task, s16 id, s16 rate);
+static inline void        _actor400500SetState(Task* task, s32 state, s32 subState);
+static inline void        _actor400500TickAnim(Task* task);
+static inline s32         _actor400500HitFlagged(Task* task);
+static inline void        _actor400500SampleView(Task* task, s16 part, Actor400500ViewPos* pos);
+static inline void        _actor400500AnchorPart(Task* task, s16 part, Actor400500ViewPos* pos);
+static inline void        _actor400500EnqueueSound(Task* task, s32 sound);
+static inline void        _actor400500PlaySound(Task* task, s32 id);
+static void               func_actor_400500_801348D8(Task* arg0, s32 arg1);
+static void               func_actor_400500_80134B88(Task* arg0);
+static void               func_actor_400500_80135414(Task* arg0);
+static __inline__ s32     lookup_zone(Task* task);
+static __inline__ VECTOR* push_color(GpCoord* coord);
+static __inline__ void    pop_scratch(s32 n);
+static __inline__ u8*     push_proj(void);
+static void               func_actor_400500_801375B8(Task* arg0);
+static inline void        _actor400500RequestMode(Task* task, s32 mode);
+static inline s32         _actor400500CoordToView(GpCoord* coord, MATRIX* matrix);
+static inline void        _actor400500TurnPart(GpCoord* part, u16 heading);
+static inline s16         _actor400500PlayerDistance(GpCoord* part);
+static inline void        _actor400500PlayAnim(Task* task, s32 id);
+static void               func_actor_400500_8013771C(Task* arg0);
+static inline void        _actor400500UpdateColor(Task* arg0, GpCoord* coord, TmdObject* obj);
 
 static void func_actor_400500_80132000(Task* arg0)
 {

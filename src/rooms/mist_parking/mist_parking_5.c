@@ -1,37 +1,45 @@
-#include "mist_parking_private.h"
+#include "rooms/mist_parking.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
-#include "rooms/mist_parking.h"
+#include "types.h"
 
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "mist_parking_private.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "overlay.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
 #include "gameplay/evs.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/message.h"
-#include "mapui/stage_tables.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "mapui/map_akropolis.h"
+
+#include "overlay.h"
 
 #include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 /// World-space points the room's glow markers are drawn at. Every view draws
 /// its markers from this one table, by index.
@@ -41,22 +49,12 @@ static void func_mist_parking_80185814(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 static void func_mist_parking_80184A18(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-// Indexed views below share one contiguous table.
-extern GpGridParams D_mist_parking_80192204;
-extern GpObj4C D_mist_parking_80193A8C[12];
-extern GpObj4C D_mist_parking_80193E1C[13];
-extern GpObj4C D_mist_parking_801941F8[14];
+extern GpObj4C        D_mist_parking_80193A8C[12];
+extern GpObj4C        D_mist_parking_80193E1C[13];
+extern GpObj4C        D_mist_parking_801941F8[14];
 extern GpRoomBoundVec D_mist_parking_8019521C[21];
 extern GpRoomCoordSet D_mist_parking_801950A0[1];
 extern GpRoomCoordSet D_mist_parking_80195178[1];
-
-extern GpAnimArg D_mist_parking_8019088C;
-extern GpAnimArg D_mist_parking_80190BC0;
-extern GpAnimArg D_mist_parking_80190C10;
-extern GpAnimArg D_mist_parking_80190C38;
-extern GpAnimArg D_mist_parking_80190C4C;
-extern GpAnimArg D_mist_parking_80190C60;
-extern GpCopyArg D_mist_parking_80190870;
 
 GpEvsCmd D_mist_parking_80191154[8] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },

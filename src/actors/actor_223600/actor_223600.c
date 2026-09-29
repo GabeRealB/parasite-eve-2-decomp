@@ -1,44 +1,43 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135990.h"
-#include "actors/actors_shared_80135a60.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/collision.h"
 #include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
-
-#include "gameplay/animation.h"
-
-#include "gameplay/pad_script.h"
 
 /// The actor's per-instance work block, allocated by the spawn state and
 /// reached through `Task::work`. Only the fields the actor's code touches are
@@ -137,9 +136,9 @@ STATIC_ASSERT_SIZEOF(Actor223600Event, 0x4);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, Actor223600Event *);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, Actor223600Event*);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor223600MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor223600MessageEntry, 8);
@@ -157,11 +156,11 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 static void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1);
 
 extern TmdSource D_actor_223600_8014E660;
-void func_actor_223600_8014CF6C(Task *);
+void             func_actor_223600_8014CF6C(Task*);
 
-s32 func_actor_223600_8014CC04(Task *, s32, s32);
-s32 func_actor_223600_8014CCD4(Task *, s32, Actor223600Event *);
-s32 func_actor_223600_8014CD54(Task *, s32, GpXformArg *);
+s32 func_actor_223600_8014CC04(Task*, s32, s32);
+s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*);
+s32 func_actor_223600_8014CD54(Task*, s32, GpXformArg*);
 
 GpU16Pair D_actor_223600_8014CFC8[1] = {
     { 24, 7 },
@@ -911,6 +910,23 @@ TaskDesc D_actor_223600_80150B48 = { 1, 96, func_actor_223600_8014CF6C, { .model
 SVECTOR D_actor_223600_80150B54 = { 0 };
 
 GpEffArg D_actor_223600_80150B5C = { 0 };
+
+static void            func_actor_223600_80149E64(GpCoord* coord, s16 yaw);
+static s32             func_actor_223600_8014A170(GpCoord* coord, GpRec18* recs, s16 count);
+static s32             func_actor_223600_8014A4B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32             func_actor_223600_8014AA04(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32             func_actor_223600_8014ABA8(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static __inline__ void Actor223600_ResetSlots(Actor223600Work* arg0);
+static __inline__ void Actor223600_TickSlots(Task* task);
+static void            func_actor_223600_8014B2F4();
+static s32             func_actor_223600_8014B464(Actor223600Work* arg0);
+static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount);
+static __inline__ void Actor223600_MoveForward(GpCoord* coord, s16 amount);
+static void            func_actor_223600_8014B540(GpEnemy* enemy, Task* task);
+static void            func_actor_223600_8014B840(GpEnemy* enemy, Task* task);
+static void            func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task);
+static void            func_actor_223600_8014CA00(GpEnemy* enemy, Task* task);
+static void            func_actor_223600_8014CE24(GpCoord* coord, s16 scale);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

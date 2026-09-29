@@ -1,9 +1,9 @@
-#ifndef ACTORS_ACTOR_310600_H
-#define ACTORS_ACTOR_310600_H
+#ifndef INCLUDE_ACTORS_ACTOR_310600_H
+#define INCLUDE_ACTORS_ACTOR_310600_H
 
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
 extern GpAnimSet D_actor_310600_801668FC;
 
-#endif
+#endif // INCLUDE_ACTORS_ACTOR_310600_H

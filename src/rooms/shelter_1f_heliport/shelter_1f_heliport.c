@@ -1,52 +1,61 @@
 #include "rooms/shelter_1f_heliport.h"
-#include "mapui/map_neo_ark.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "gte.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/inventory.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -195,7 +204,7 @@ extern GpItemMap* D_shelter_1f_heliport_80182C9C;
 /// The event the message handler latched for the room's event task: the spawn
 /// argument of its helper task 0x31, the message, the flag saying one was
 /// latched, and the event's parameters.
-extern RoomFadeStorage       D_shelter_1f_heliport_80182CA0;
+extern RoomFadeStorage  D_shelter_1f_heliport_80182CA0;
 extern RoomEventMsg     D_shelter_1f_heliport_80182CA8;
 extern RoomLatchedEvent D_shelter_1f_heliport_80182CB4;
 
@@ -204,33 +213,33 @@ static void func_shelter_1f_heliport_80180748(Task* task);
 static void func_shelter_1f_heliport_801807C0(void);
 static void func_shelter_1f_heliport_8018085C(GpCoord* coord, SVECTOR* offset);
 
-void func_shelter_1f_heliport_8017DDA0(UiList *, UiObject *);
+void func_shelter_1f_heliport_8017DDA0(UiList*, UiObject*);
 
-void func_shelter_1f_heliport_8017E744(Task *);
-void func_shelter_1f_heliport_8017E994(UiList *, UiObject *);
-void func_shelter_1f_heliport_8017EBB4(Task *);
-void func_shelter_1f_heliport_8017ED5C(Task *);
-void func_shelter_1f_heliport_8017EF40(UiList *, UiObject *);
-void func_shelter_1f_heliport_8017F154(Task *);
-void func_shelter_1f_heliport_8017FBF0(UiList *, UiObject *);
-void func_shelter_1f_heliport_8017FCAC(Task *);
+void func_shelter_1f_heliport_8017E744(Task*);
+void func_shelter_1f_heliport_8017E994(UiList*, UiObject*);
+void func_shelter_1f_heliport_8017EBB4(Task*);
+void func_shelter_1f_heliport_8017ED5C(Task*);
+void func_shelter_1f_heliport_8017EF40(UiList*, UiObject*);
+void func_shelter_1f_heliport_8017F154(Task*);
+void func_shelter_1f_heliport_8017FBF0(UiList*, UiObject*);
+void func_shelter_1f_heliport_8017FCAC(Task*);
 
-extern GpGridParams D_shelter_1f_heliport_80181974;
-extern GpObj4C D_shelter_1f_heliport_80182178[12];
-extern GpObj4C D_shelter_1f_heliport_80182508[21];
+extern GpGridParams   D_shelter_1f_heliport_80181974;
+extern GpObj4C        D_shelter_1f_heliport_80182178[12];
+extern GpObj4C        D_shelter_1f_heliport_80182508[21];
 extern GpRoomBoundVec D_shelter_1f_heliport_80182B44[13];
 extern GpRoomCoordSet D_shelter_1f_heliport_80182160[1];
-s32 func_shelter_1f_heliport_801800A0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_1f_heliport_80180334(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_1f_heliport_8018041C(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_1f_heliport_801804BC(Task *, s32, RoomEventMsg *, GpMessageArg);
-void func_shelter_1f_heliport_8017E744(Task *);
-void func_shelter_1f_heliport_8017F2D4(Task *);
-void func_shelter_1f_heliport_8017F59C(Task *);
-void func_shelter_1f_heliport_8017F770(Task *);
-void func_shelter_1f_heliport_8017FDD4(Task *);
-void func_shelter_1f_heliport_8017FF08(Task *);
-void func_shelter_1f_heliport_80180594(Task *);
+s32                   func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_shelter_1f_heliport_80180334(Task*, s32, s32, GpMessageArg);
+s32                   func_shelter_1f_heliport_8018041C(Task*, s32, s32, GpMessageArg);
+s32                   func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, GpMessageArg);
+void                  func_shelter_1f_heliport_8017E744(Task*);
+void                  func_shelter_1f_heliport_8017F2D4(Task*);
+void                  func_shelter_1f_heliport_8017F59C(Task*);
+void                  func_shelter_1f_heliport_8017F770(Task*);
+void                  func_shelter_1f_heliport_8017FDD4(Task*);
+void                  func_shelter_1f_heliport_8017FF08(Task*);
+void                  func_shelter_1f_heliport_80180594(Task*);
 
 u16 D_shelter_1f_heliport_80180B54[4] = {
     140, 143, 0xFFFF, 0,
@@ -1327,6 +1336,12 @@ s8 D_shelter_1f_heliport_80182CB0[4] = {
 };
 
 RoomLatchedEvent D_shelter_1f_heliport_80182CB4 = { 0 };
+
+static u16*           func_shelter_1f_heliport_8017D730(s32 mode);
+static void           func_shelter_1f_heliport_8017E22C(RoomShopList* shop, UiObject* obj, s32 item);
+static void           func_shelter_1f_heliport_8017E378(RoomShopList* shop, UiObject* obj);
+static inline s32     _shelter_1f_heliportAddItemCount(s32 item, s32 count);
+static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40

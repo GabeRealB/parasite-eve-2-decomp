@@ -1,32 +1,35 @@
-#include "common.h"
 #include "rooms/mine_gorge.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "types.h"
+
 #include "gameplay/animation.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 void func_mine_gorge_8017D828(Task* arg0);
 
@@ -44,11 +47,11 @@ extern GpEvsCmd D_mine_gorge_8017E610[];
 static void func_mine_gorge_8017D8D4(Task* arg0);
 static void func_mine_gorge_8017D998(Task* task);
 
-s32 func_mine_gorge_8017D5F8(Task *, s32, s32, GpMessageArg);
-s32 func_mine_gorge_8017D6E8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_mine_gorge_8017D77C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_gorge_8017D784(Task *, s32, GpMsg13EF *, GpMessageArg);
-s32 func_mine_gorge_8017D7F4(Task *, s32, s32, GpMessageArg);
+s32 func_mine_gorge_8017D5F8(Task*, s32, s32, GpMessageArg);
+s32 func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_mine_gorge_8017D77C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_gorge_8017D784(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_mine_gorge_8017D7F4(Task*, s32, s32, GpMessageArg);
 
 void func_mine_gorge_8017D8BC(u8);
 
@@ -57,7 +60,7 @@ extern GpAnimSet D_mine_gorge_8017E258;
 extern GpAnimArg D_mine_gorge_8017E2DC;
 extern GpAnimArg D_mine_gorge_8017E5E8;
 extern GpCopyArg D_mine_gorge_8017E5E0;
-void func_mine_gorge_8017D8C8(s32);
+void             func_mine_gorge_8017D8C8(s32);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {

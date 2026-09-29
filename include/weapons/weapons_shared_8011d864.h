@@ -1,10 +1,10 @@
-#ifndef WEAPONS_SHARED_8011D864_H
-#define WEAPONS_SHARED_8011D864_H
+#ifndef INCLUDE_WEAPONS_WEAPONS_SHARED_8011D864_H
+#define INCLUDE_WEAPONS_WEAPONS_SHARED_8011D864_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgs.h>
 
 /// 0x24-byte scratch block the muzzle-flash quad takes from `G_SCRATCH_HEAD`
 /// for one muzzle-flash quad. `v` is built in muzzle-local space, rotated by
@@ -18,4 +18,4 @@ typedef struct WeaponQuadScratch {
 } WeaponQuadScratch;
 STATIC_ASSERT_SIZEOF(WeaponQuadScratch, 0x24);
 
-#endif // WEAPONS_SHARED_8011D864_H
+#endif // INCLUDE_WEAPONS_WEAPONS_SHARED_8011D864_H

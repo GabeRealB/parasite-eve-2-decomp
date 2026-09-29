@@ -1,83 +1,96 @@
-#include "actors/actor_403200.h"
-#include "actors/actors_shared_801673f8.h"
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
 
-#define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/strings.h>
 
-/// Spawns one debris task and gives it a work block seeded with `seed`.
-#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                               \
-    {                                                                                                 \
-        Task*                  t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
-        DumpingHoleDebrisSeed* w = Mem_Malloc(0x24, 0);                                               \
-        t->work                  = w;                                                                 \
-        if (w == NULL) {                                                                              \
-            taskKill(t);                                                                              \
-        } else {                                                                                      \
-            Mem_Set(w, 0, 0x24);                                                                      \
-            *w = seed;                                                                                \
-        }                                                                                             \
-    }
+#include "common.h"
+#include "gte.h"
+
+#include "shelter_b3_dumping_hole_private.h"
+
+#include "actors/actors_shared_801673f8.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/cap.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/loading.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/cap.h"
-#include "gameplay/damage.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/strings.h>
 
-#include "gameplay/animation.h"
-#include "gameplay/pad_script.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
 
-#include "actors/task_tables.h"
+/// Spawns one debris task and gives it a work block seeded with `seed`.
+#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                              \
+    {                                                                                                \
+        Task*                  t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
+        DumpingHoleDebrisSeed* w = Mem_Malloc(0x24, 0);                                              \
+        t->work                  = w;                                                                \
+        if (w == NULL) {                                                                             \
+            taskKill(t);                                                                             \
+        } else {                                                                                     \
+            Mem_Set(w, 0, 0x24);                                                                     \
+            *w = seed;                                                                               \
+        }                                                                                            \
+    }
 
 extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
 
@@ -106,7 +119,7 @@ extern u16 D_shelter_b3_dumping_hole_8018F4B0_value __asm__("D_shelter_b3_dumpin
 typedef union {
     struct {
         GpAnimSet* sets[4];
-        GpCopyArg copy;
+        GpCopyArg  copy;
     } data;
     s32 words[6];
 } ShelterB3DumpingHoleAnimStorageAFC8;
@@ -314,53 +327,53 @@ typedef struct {
 /// The encounter's enemy slots, in the order the controller starts them.
 extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 
-extern TaskDesc               D_shelter_b3_dumping_hole_80188C04[];
-extern TaskDesc               D_shelter_b3_dumping_hole_80188BC8[];
-extern s16                    D_shelter_b3_dumping_hole_8018809C;
+extern TaskDesc D_shelter_b3_dumping_hole_80188C04[];
+extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[];
+
 extern Task*                  D_shelter_b3_dumping_hole_8018F4A8;
 extern s16                    D_shelter_b3_dumping_hole_80188154[];
 extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
 extern s16                    D_shelter_b3_dumping_hole_8018816C[];
 extern s16                    D_shelter_b3_dumping_hole_80188184[];
 extern s32                    D_shelter_b3_dumping_hole_8018819C[];
-extern GpXformArg D_shelter_b3_dumping_hole_801881CC;
-extern GpXformArg D_shelter_b3_dumping_hole_801881E4;
+extern GpXformArg             D_shelter_b3_dumping_hole_801881CC;
+extern GpXformArg             D_shelter_b3_dumping_hole_801881E4;
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
 extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
-extern GpAnimSet* D_shelter_b3_dumping_hole_801880A0[6];
-extern GpEvsCmd D_shelter_b3_dumping_hole_80188640[];
-extern GpEvsCmd D_shelter_b3_dumping_hole_80188A78[];
-extern GpObj4C D_shelter_b3_dumping_hole_8018ECA4[10];
-extern Task*                  D_shelter_b3_dumping_hole_8018F4AC;
-extern GpXformArg             D_shelter_b3_dumping_hole_8018966C;
-extern TaskDesc               D_shelter_b3_dumping_hole_80189ADC[];
-extern s32                    D_shelter_b3_dumping_hole_8018F4D8;
+
+extern GpEvsCmd   D_shelter_b3_dumping_hole_80188640[];
+extern GpEvsCmd   D_shelter_b3_dumping_hole_80188A78[];
+extern GpObj4C    D_shelter_b3_dumping_hole_8018ECA4[10];
+extern Task*      D_shelter_b3_dumping_hole_8018F4AC;
+extern GpXformArg D_shelter_b3_dumping_hole_8018966C;
+
+extern s32 D_shelter_b3_dumping_hole_8018F4D8;
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpCmdArg *);
-        void (*call1)(Task *, s32, GpXformArg *);
-        void (*call2)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, s32);
     } handler;
 } ShelterB3DumpingHole2MessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB3DumpingHole2MessageEntry, 8);
 
 extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
-extern GpEvsCmd D_shelter_b3_dumping_hole_8018968C[];
-extern GpEvsCmd D_shelter_b3_dumping_hole_801899A4[];
-extern TaskDesc               D_shelter_b3_dumping_hole_8018AFBC;
-extern GpEvt12*               D_shelter_b3_dumping_hole_8018F4BC;
-extern s16                    D_shelter_b3_dumping_hole_8018F4C6;
-extern OverlayCapWindow       D_shelter_b3_dumping_hole_8018B5A0[];
-extern GlyphUvwh*             D_shelter_b3_dumping_hole_8018F4B8;
-extern GpCapEntry*            D_shelter_b3_dumping_hole_8018F4B4;
-extern s16                    D_shelter_b3_dumping_hole_8018F4C0;
-extern s16                    D_shelter_b3_dumping_hole_8018F4C2;
-extern s16                    D_shelter_b3_dumping_hole_8018F4C4;
-extern s16                    D_shelter_b3_dumping_hole_8018F4C8;
-extern s16                    D_shelter_b3_dumping_hole_8018F4CA;
+extern GpEvsCmd                          D_shelter_b3_dumping_hole_8018968C[];
+extern GpEvsCmd                          D_shelter_b3_dumping_hole_801899A4[];
+extern TaskDesc                          D_shelter_b3_dumping_hole_8018AFBC;
+extern GpEvt12*                          D_shelter_b3_dumping_hole_8018F4BC;
+extern s16                               D_shelter_b3_dumping_hole_8018F4C6;
+extern OverlayCapWindow                  D_shelter_b3_dumping_hole_8018B5A0[];
+extern GlyphUvwh*                        D_shelter_b3_dumping_hole_8018F4B8;
+extern GpCapEntry*                       D_shelter_b3_dumping_hole_8018F4B4;
+extern s16                               D_shelter_b3_dumping_hole_8018F4C0;
+extern s16                               D_shelter_b3_dumping_hole_8018F4C2;
+extern s16                               D_shelter_b3_dumping_hole_8018F4C4;
+extern s16                               D_shelter_b3_dumping_hole_8018F4C8;
+extern s16                               D_shelter_b3_dumping_hole_8018F4CA;
 
 extern s16      D_shelter_b3_dumping_hole_8018B578;
 extern s16      D_shelter_b3_dumping_hole_8018B57A;
@@ -372,7 +385,7 @@ extern TaskDesc D_shelter_b3_dumping_hole_8018B588;
 extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
 extern TaskDesc D_shelter_b3_dumping_hole_8018B594;
-extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[];
+
 extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
@@ -415,15 +428,12 @@ static void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
 static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
-extern TmdSource D_shelter_b3_dumping_hole_801877F4;
-extern TmdSource D_shelter_b3_dumping_hole_80187A70;
-extern TmdSource D_shelter_b3_dumping_hole_80187D74;
-void func_shelter_b3_dumping_hole_8017DCFC(Task *);
-void func_shelter_b3_dumping_hole_8017DF90(Task *);
-void func_shelter_b3_dumping_hole_8017E440(Task *);
-void func_shelter_b3_dumping_hole_8017E94C(Task *);
-void func_shelter_b3_dumping_hole_8017F820(Task *);
-void func_shelter_b3_dumping_hole_8017FBA0(Task *);
+void func_shelter_b3_dumping_hole_8017DCFC(Task*);
+void func_shelter_b3_dumping_hole_8017DF90(Task*);
+void func_shelter_b3_dumping_hole_8017E440(Task*);
+void func_shelter_b3_dumping_hole_8017E94C(Task*);
+void func_shelter_b3_dumping_hole_8017F820(Task*);
+void func_shelter_b3_dumping_hole_8017FBA0(Task*);
 void func_shelter_b3_dumping_hole_8017FCA0(s16);
 void func_shelter_b3_dumping_hole_8017FE34(void);
 void func_shelter_b3_dumping_hole_8017FE64(s32);
@@ -435,11 +445,11 @@ void func_shelter_b3_dumping_hole_8017FFF4(void);
 void func_shelter_b3_dumping_hole_80180014(void);
 void func_shelter_b3_dumping_hole_80180034(void);
 
-void func_shelter_b3_dumping_hole_8018005C(Task *);
+void func_shelter_b3_dumping_hole_8018005C(Task*);
 void func_shelter_b3_dumping_hole_80181430(void);
-void func_shelter_b3_dumping_hole_80181560(Task *);
-void func_shelter_b3_dumping_hole_801817D8(Task *, s32, s32);
-void func_shelter_b3_dumping_hole_80181854(Task *, s32, GpXformArg *);
+void func_shelter_b3_dumping_hole_80181560(Task*);
+void func_shelter_b3_dumping_hole_801817D8(Task*, s32, s32);
+void func_shelter_b3_dumping_hole_80181854(Task*, s32, GpXformArg*);
 void func_shelter_b3_dumping_hole_801818E0(void);
 void func_shelter_b3_dumping_hole_80181958(s32);
 void func_shelter_b3_dumping_hole_80181990(s16);
@@ -447,89 +457,89 @@ void func_shelter_b3_dumping_hole_801819B0(void);
 void func_shelter_b3_dumping_hole_801819D0(void);
 void func_shelter_b3_dumping_hole_801819F0(void);
 
-void func_shelter_b3_dumping_hole_80181A48(Task *);
+void func_shelter_b3_dumping_hole_80181A48(Task*);
 
-extern GpAnimSet D_shelter_b3_dumping_hole_80189DD0;
-extern GpAnimSet D_shelter_b3_dumping_hole_8018A274;
-extern GpAnimSet D_shelter_b3_dumping_hole_8018AF84;
+extern GpAnimSet                           D_shelter_b3_dumping_hole_80189DD0;
+extern GpAnimSet                           D_shelter_b3_dumping_hole_8018A274;
+extern GpAnimSet                           D_shelter_b3_dumping_hole_8018AF84;
 extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 
-extern GpAnimArg D_shelter_b3_dumping_hole_8018AFF4;
-extern GpAnimArg D_shelter_b3_dumping_hole_8018B008;
-extern GpAnimArg D_shelter_b3_dumping_hole_8018B01C;
-extern GpCmdArg D_shelter_b3_dumping_hole_8018B078;
-extern GpScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2];
-extern GpScriptRec D_shelter_b3_dumping_hole_8018AFB4[2];
-extern GpXformArg D_shelter_b3_dumping_hole_8018B030;
-extern GpXformArg D_shelter_b3_dumping_hole_8018B048;
-extern GpXformArg D_shelter_b3_dumping_hole_8018B060;
+extern GpAnimArg                           D_shelter_b3_dumping_hole_8018AFF4;
+extern GpAnimArg                           D_shelter_b3_dumping_hole_8018B008;
+extern GpAnimArg                           D_shelter_b3_dumping_hole_8018B01C;
+extern GpCmdArg                            D_shelter_b3_dumping_hole_8018B078;
+extern GpScriptCmd                         D_shelter_b3_dumping_hole_8018AFAC[2];
+extern GpScriptRec                         D_shelter_b3_dumping_hole_8018AFB4[2];
+extern GpXformArg                          D_shelter_b3_dumping_hole_8018B030;
+extern GpXformArg                          D_shelter_b3_dumping_hole_8018B048;
+extern GpXformArg                          D_shelter_b3_dumping_hole_8018B060;
 extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
-void func_shelter_b3_dumping_hole_80181A18(void);
-void func_shelter_b3_dumping_hole_80181B04(s16);
-void func_shelter_b3_dumping_hole_80181B44(s32);
+void                                       func_shelter_b3_dumping_hole_80181A18(void);
+void                                       func_shelter_b3_dumping_hole_80181B04(s16);
+void                                       func_shelter_b3_dumping_hole_80181B44(s32);
 
 extern GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1];
-extern GpObj4C D_shelter_b3_dumping_hole_8018E88C[8];
-extern GpObj4C D_shelter_b3_dumping_hole_8018EF9C[8];
-void func_shelter_b3_dumping_hole_80183024(Task *);
-void func_shelter_b3_dumping_hole_80183060(Task *);
+extern GpObj4C      D_shelter_b3_dumping_hole_8018E88C[8];
+extern GpObj4C      D_shelter_b3_dumping_hole_8018EF9C[8];
+void                func_shelter_b3_dumping_hole_80183024(Task*);
+void                func_shelter_b3_dumping_hole_80183060(Task*);
 
-void func_shelter_b3_dumping_hole_80183530(Task *, s32, GpCmdArg *);
-void func_shelter_b3_dumping_hole_80183550(Task *);
-void func_shelter_b3_dumping_hole_801835C8(Task *);
-void func_shelter_b3_dumping_hole_80183620(Task *);
-void func_shelter_b3_dumping_hole_80183678(Task *);
+void func_shelter_b3_dumping_hole_80183530(Task*, s32, GpCmdArg*);
+void func_shelter_b3_dumping_hole_80183550(Task*);
+void func_shelter_b3_dumping_hole_801835C8(Task*);
+void func_shelter_b3_dumping_hole_80183620(Task*);
+void func_shelter_b3_dumping_hole_80183678(Task*);
 
 extern GpDrawAreaRec D_shelter_b3_dumping_hole_8018D3E0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018C944[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018C954[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018C964[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAA0[3];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAB8[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAC8[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAD8[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC28[3];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC40[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC50[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC60[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC70[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018D3B0[6];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018D7B4[4];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018D964[4];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018D984[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DB24[4];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DBE4[3];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DBFC[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DC0C[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD34[3];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD4C[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD5C[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD80[3];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD98[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DF88[3];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFA0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFB0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFC0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFD0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFE0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFF0[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018E000[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018E010[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018E020[2];
-extern GpSprtCmd D_shelter_b3_dumping_hole_8018E030[2];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018C974[15];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018CAE8[16];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018CC80[92];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018D3F4[48];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018D7D4[20];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018D994[20];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018DB44[8];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018DC1C[14];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018DD6C[1];
-extern GpSprtElem D_shelter_b3_dumping_hole_8018DDA8[24];
-extern TaskDesc D_80164B78;
-extern TaskDesc D_80174D58;
-extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[5];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018C944[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018C954[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018C964[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CAA0[3];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CAB8[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CAC8[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CAD8[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CC28[3];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CC40[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CC50[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CC60[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018CC70[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018D3B0[6];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018D7B4[4];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018D964[4];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018D984[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DB24[4];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DBE4[3];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DBFC[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DC0C[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DD34[3];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DD4C[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DD5C[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DD80[3];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DD98[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DF88[3];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DFA0[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DFB0[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DFC0[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DFD0[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DFE0[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018DFF0[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018E000[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018E010[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018E020[2];
+extern GpSprtCmd     D_shelter_b3_dumping_hole_8018E030[2];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018C974[15];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018CAE8[16];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018CC80[92];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018D3F4[48];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018D7D4[20];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018D994[20];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018DB44[8];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018DC1C[14];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018DD6C[1];
+extern GpSprtElem    D_shelter_b3_dumping_hole_8018DDA8[24];
+extern TaskDesc      D_80164B78;
+extern TaskDesc      D_80174D58;
+extern TaskDesc      D_shelter_b3_dumping_hole_80188BC8[5];
 
 DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[13] = {
     { 704, 0, 112, 112, 48, 48 },
@@ -2703,6 +2713,16 @@ u16 D_shelter_b3_dumping_hole_8018F4D4[2] = {
 };
 
 s32 D_shelter_b3_dumping_hole_8018F4D8 = 0;
+
+static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y);
+static u16        func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,
+                                                        s16 v, s16 tpageX, s16 tpageY, s16 scale,
+                                                        s16 clut, s32 otzOverride);
+static void       func_shelter_b3_dumping_hole_8017E7DC(Task* arg0);
+static void       func_shelter_b3_dumping_hole_8017FE10(s32 arg0);
+static void       func_shelter_b3_dumping_hole_8018098C(Task* task);
+static void       func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
+static void       func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2);
 
 /// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
 /// screen centred on the origin, 0 when it is on screen.

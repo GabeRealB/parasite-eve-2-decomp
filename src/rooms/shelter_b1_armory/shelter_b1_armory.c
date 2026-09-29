@@ -1,43 +1,47 @@
-#include "shelter_b1_armory_private.h"
 #include "rooms/shelter_b1_armory.h"
-#include "mapui/map_shelter.h"
 
-#include "common.h"
+#include "types.h"
 
-#include <psyq/libgte.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "shelter_b1_armory_private.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/inventory.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b1_armory_8018558C[4];
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`
 /// chooses from, and the one it returns when no case matches.
@@ -150,46 +154,35 @@ extern TaskDesc D_shelter_b1_armory_801824E8[];
 /// Message handlers the room's controller task installs in pointer slot 7.
 extern GpMsgEntry D_shelter_b1_armory_80182500[];
 
-/// Work pair of the charge panel `func_shelter_b1_armory_8017F30C`: the
-/// animated quantity in 24.8 fixed point, and the item map of the slot being
-/// charged.
-extern s32        D_shelter_b1_armory_80185574;
-extern GpItemMap* D_shelter_b1_armory_80185578;
-
 /// The view index `func_shelter_b1_armory_8018034C` saves while it runs and
 /// restores when it finishes.
-
-/// The event message and request the door gate latched, and the flag saying
-/// one was latched.
-extern RoomEventMsg D_shelter_b1_armory_80185584;
-extern RoomEventReq D_shelter_b1_armory_80185590;
 
 static void func_shelter_b1_armory_80180740(Task* task);
 static void func_shelter_b1_armory_80180784(Task* task);
 
-void func_shelter_b1_armory_8017DDD8(UiList *, UiObject *);
+void func_shelter_b1_armory_8017DDD8(UiList*, UiObject*);
 
-void func_shelter_b1_armory_8017E77C(Task *);
-void func_shelter_b1_armory_8017E9CC(UiList *, UiObject *);
-void func_shelter_b1_armory_8017EBEC(Task *);
-void func_shelter_b1_armory_8017ED94(Task *);
-void func_shelter_b1_armory_8017EF78(UiList *, UiObject *);
-void func_shelter_b1_armory_8017F18C(Task *);
-void func_shelter_b1_armory_8017FC28(UiList *, UiObject *);
-void func_shelter_b1_armory_8017FCE4(Task *);
+void func_shelter_b1_armory_8017E77C(Task*);
+void func_shelter_b1_armory_8017E9CC(UiList*, UiObject*);
+void func_shelter_b1_armory_8017EBEC(Task*);
+void func_shelter_b1_armory_8017ED94(Task*);
+void func_shelter_b1_armory_8017EF78(UiList*, UiObject*);
+void func_shelter_b1_armory_8017F18C(Task*);
+void func_shelter_b1_armory_8017FC28(UiList*, UiObject*);
+void func_shelter_b1_armory_8017FCE4(Task*);
 
-s32 func_shelter_b1_armory_80180468(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b1_armory_801805A8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_armory_80180698(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b1_armory_801806F8(Task *, s32, GpMsg13EF *, s32);
-void func_shelter_b1_armory_8017E77C(Task *);
-void func_shelter_b1_armory_8017F30C(Task *);
-void func_shelter_b1_armory_8017F5D4(Task *);
-void func_shelter_b1_armory_8017F7A8(Task *);
-void func_shelter_b1_armory_8017FE0C(Task *);
-void func_shelter_b1_armory_801800A4(Task *);
-void func_shelter_b1_armory_80180214(Task *);
-void func_shelter_b1_armory_8018034C(Task *);
+s32  func_shelter_b1_armory_80180468(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b1_armory_801805A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b1_armory_80180698(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b1_armory_801806F8(Task*, s32, GpMsg13EF*, s32);
+void func_shelter_b1_armory_8017E77C(Task*);
+void func_shelter_b1_armory_8017F30C(Task*);
+void func_shelter_b1_armory_8017F5D4(Task*);
+void func_shelter_b1_armory_8017F7A8(Task*);
+void func_shelter_b1_armory_8017FE0C(Task*);
+void func_shelter_b1_armory_801800A4(Task*);
+void func_shelter_b1_armory_80180214(Task*);
+void func_shelter_b1_armory_8018034C(Task*);
 
 u16 D_shelter_b1_armory_80181E9C[4] = {
     140, 143, 0xFFFF, 0,
@@ -593,6 +586,12 @@ GpMsgEntry D_shelter_b1_armory_80182500[5] = {
     { 5104, func_shelter_b1_armory_80180698 },
     { 0x7FFFFFFF, NULL },
 };
+
+static u16*       func_shelter_b1_armory_8017D768(s32 mode);
+static void       func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s32 item);
+static void       func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj);
+static inline s32 _shelter_b1_armoryAddItemCount(s32 item, s32 count);
+static s32        func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40

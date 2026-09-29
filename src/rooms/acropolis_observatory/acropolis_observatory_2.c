@@ -1,48 +1,45 @@
-#include "common.h"
+#include "acropolis_observatory_private.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/loading.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
-
-/// The room's task table: the two streamed-scene rides, then the fade-out and
-/// fade-in tasks they spawn.
-extern TaskDesc D_acropolis_observatory_8017E7DC[];
+#include "rooms/room.h"
 
 /// Per-frame paths the two streamed scenes walk the player's matrix along,
 /// indexed by `CdCmd_Queue.field_1EA + 0xA8`, each with the script pair its
 /// scene runs.
 extern SVECTOR D_acropolis_observatory_8017E80C[];
-extern GpScriptCmd D_acropolis_observatory_80183480[6];
-extern GpScriptRec D_acropolis_observatory_80183498[2];
 
 extern SVECTOR D_acropolis_observatory_8017F16C[];
-extern GpScriptCmd D_acropolis_observatory_801834A0[6];
-extern GpScriptRec D_acropolis_observatory_801834B8[2];
 
-void func_acropolis_observatory_8017D9A8(Task *);
-void func_acropolis_observatory_8017DD3C(Task *);
-void func_acropolis_observatory_8017E0D4(Task *);
-void func_acropolis_observatory_8017E134(Task *);
+void func_acropolis_observatory_8017D9A8(Task*);
+void func_acropolis_observatory_8017DD3C(Task*);
+void func_acropolis_observatory_8017E0D4(Task*);
+void func_acropolis_observatory_8017E134(Task*);
 
 TaskDesc D_acropolis_observatory_8017E7DC[4] = {
     { 0, 192, func_acropolis_observatory_8017D9A8, { .model = NULL } },

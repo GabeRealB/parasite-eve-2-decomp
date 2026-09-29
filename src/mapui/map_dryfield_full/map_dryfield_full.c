@@ -1,35 +1,100 @@
+#include "mapui/map_dryfield_full.h"
+
+#include <psyq/sys/types.h>
+
+#include "types.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/item_placement.h"
+#include "gameplay/items.h"
+#include "gameplay/map.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_tasks.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/gameflag.h"
+#include "main/gfx_types.h"
+#include "main/session.h"
+#include "main/task_types.h"
+
+#include "mappic/mappic.h"
+
+#include "rooms/dryfield_night_back_street.h"
+
+#include "rooms/dryfield_night_breezeway.h"
+
+#include "rooms/dryfield_night_cellar.h"
+
+#include "rooms/dryfield_night_dilapidated_house.h"
+
+#include "rooms/dryfield_night_driveway.h"
+
+#include "rooms/dryfield_night_factory.h"
+
+#include "rooms/dryfield_night_g_r_kitchen.h"
+
+#include "rooms/dryfield_night_garage.h"
+
+#include "rooms/dryfield_night_gas_station.h"
+
+#include "rooms/dryfield_night_general_store.h"
+
+#include "rooms/dryfield_night_junk_yard.h"
+
+#include "rooms/dryfield_night_main_street.h"
+
+#include "rooms/dryfield_night_motel_balcony.h"
+
+#include "rooms/dryfield_night_motel_lobby.h"
+
+#include "rooms/dryfield_night_motel_loft.h"
+
+#include "rooms/dryfield_night_motel_room_1.h"
+
+#include "rooms/dryfield_night_motel_room_2.h"
+
+#include "rooms/dryfield_night_motel_room_3.h"
+
+#include "rooms/dryfield_night_motel_room_4.h"
+
+#include "rooms/dryfield_night_motel_room_5.h"
+
+#include "rooms/dryfield_night_motel_room_6.h"
+
+#include "rooms/dryfield_night_parking_lot.h"
+
+#include "rooms/dryfield_night_r08.h"
+
+#include "rooms/dryfield_night_saloon_g_r.h"
+
+#include "rooms/dryfield_night_souvenir_shop.h"
+
+#include "rooms/dryfield_night_toilet.h"
+
+#include "rooms/dryfield_night_trailer_coach.h"
+
+#include "rooms/dryfield_night_underpass.h"
+
+#include "rooms/dryfield_night_warehouse.h"
+
+#include "rooms/dryfield_night_water_hole.h"
+
+#include "rooms/dryfield_night_water_tank.h"
+
+#include "rooms/dryfield_night_water_tower.h"
+
 /* The Dryfield-at-night stage's map UI overlay: a hook the stage's rooms call
  * at this map's slot address, and the per-stage tables gameplay and main index
  * by stage, most of which point into the stage's room packages or at the map
  * pictures' marker models.
  */
-#include "common.h"
-#include "mappic/mappic.h"
-#include "mapui/map_dryfield_full.h"
-#include "mapui/mapui.h"
-#include "mapui/stage_tables.h"
-#include "rooms/room.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
-#include "gameplay/item_placement.h"
-#include "gameplay/map.h"
-#include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
-#include "gameplay/sprites.h"
-
-#include "gameplay/area_flags.h"
-#include "gameplay/view.h"
-#include "main/gameflag.h"
-#include "main/gfx_types.h"
-#include "main/session.h"
-#include "main/task_types.h"
 
 s32 func_map_dryfield_full_80179954(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {

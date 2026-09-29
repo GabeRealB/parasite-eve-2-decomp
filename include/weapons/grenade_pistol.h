@@ -1,19 +1,8 @@
-#ifndef WEAPONS_GRENADE_PISTOL_H
-#define WEAPONS_GRENADE_PISTOL_H
+#ifndef INCLUDE_WEAPONS_GRENADE_PISTOL_H
+#define INCLUDE_WEAPONS_GRENADE_PISTOL_H
 
-#include "common.h"
+#include "main/task_types.h"
 
-#include <psyq/libgte.h>
-#include "weapons/weapon.h"
+void func_mm1_8011DBD0(Task* arg0);
 
-/// Impact clip id per attachment, indexed by `sfx - 0xA`.
-extern u16 D_grenade_pistol_8012B430[4];
-
-/// Per-ammo muzzle offset the spawn state places the projectile at, indexed by
-/// the ammo nibble of `Task::spawnArg1`.
-extern SVECTOR D_grenade_pistol_8012B420[2];
-
-/// Per-ammo launch speed, same index.
-extern u8 D_grenade_pistol_8012B438[4];
-
-#endif
+#endif // INCLUDE_WEAPONS_GRENADE_PISTOL_H

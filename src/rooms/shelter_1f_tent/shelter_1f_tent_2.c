@@ -1,32 +1,43 @@
-#include "common.h"
 #include "rooms/shelter_1f_tent.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "shelter_1f_tent_private.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "overlay.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area_flags.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "overlay.h"
+
 #include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 /// Glow positions `func_shelter_1f_tent_8017FE10` draws per view.
 extern SVECTOR D_shelter_1f_tent_80181D04[];

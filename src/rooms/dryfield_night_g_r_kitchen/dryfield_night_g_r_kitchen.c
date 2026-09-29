@@ -1,43 +1,49 @@
-#include "common.h"
 #include "rooms/dryfield_night_g_r_kitchen.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "overlay.h"
-
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "overlay.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -61,15 +67,15 @@ extern GpMsgEntry D_dryfield_night_g_r_kitchen_8017E254[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
-void func_dryfield_night_g_r_kitchen_8017D74C(Task *);
-s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_g_r_kitchen_8017D948(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_g_r_kitchen_8017D950(Task *, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_night_g_r_kitchen_8017D74C(Task*);
+s32  func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_night_g_r_kitchen_8017E554[1];
-extern GpObj4C D_dryfield_night_g_r_kitchen_8017E864[2];
-extern GpObj4C D_dryfield_night_g_r_kitchen_8017E8FC[7];
+extern GpGridParams   D_dryfield_night_g_r_kitchen_8017E554[1];
+extern GpObj4C        D_dryfield_night_g_r_kitchen_8017E864[2];
+extern GpObj4C        D_dryfield_night_g_r_kitchen_8017E8FC[7];
 extern GpRoomCoordSet D_dryfield_night_g_r_kitchen_8017E84C[1];
 
 TaskDesc D_dryfield_night_g_r_kitchen_8017E248 = { 0, 32, func_dryfield_night_g_r_kitchen_8017D74C, { .model = NULL } };
@@ -353,6 +359,11 @@ u8 D_dryfield_night_g_r_kitchen_8017EC2C[4] = {
 };
 
 RoomEventReq D_dryfield_night_g_r_kitchen_8017EC30 = { 0 };
+
+static s32  func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_g_r_kitchen_8017D958(Task* task);
+static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task);
+static void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1);
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing

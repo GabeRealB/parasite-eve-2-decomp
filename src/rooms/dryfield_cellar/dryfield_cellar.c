@@ -1,38 +1,44 @@
-#include "common.h"
 #include "rooms/dryfield_cellar.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/object_task.h"
-
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_cellar_8017DB8C[];
@@ -42,17 +48,17 @@ extern GpMsgEntry D_dryfield_cellar_8017DB8C[];
 extern SVECTOR D_dryfield_cellar_8017DBBC[2];
 extern SVECTOR D_dryfield_cellar_8017DBCC[2];
 
-s32 func_dryfield_cellar_8017D5D0(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_cellar_8017D62C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_cellar_8017D634(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_cellar_8017D6F4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_cellar_8017D6FC(Task *, s32, s32, GpMessageArg);
+s32 func_dryfield_cellar_8017D5D0(Task*, s32, s32, GpMessageArg);
+s32 func_dryfield_cellar_8017D62C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_cellar_8017D6F4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, GpMessageArg);
 
-extern GpGridParams D_dryfield_cellar_8017DF54[1];
-extern GpObj3A D_dryfield_cellar_8018067C[1];
-extern GpObj4C D_dryfield_cellar_8017FEC4[6];
-extern GpObj4C D_dryfield_cellar_8018008C[10];
-extern GpObj4C D_dryfield_cellar_80180384[10];
+extern GpGridParams   D_dryfield_cellar_8017DF54[1];
+extern GpObj3A        D_dryfield_cellar_8018067C[1];
+extern GpObj4C        D_dryfield_cellar_8017FEC4[6];
+extern GpObj4C        D_dryfield_cellar_8018008C[10];
+extern GpObj4C        D_dryfield_cellar_80180384[10];
 extern GpRoomCoordSet D_dryfield_cellar_80180898[1];
 extern GpRoomCoordSet D_dryfield_cellar_80180A90[1];
 
@@ -868,6 +874,10 @@ GpRoomParamRec * D_dryfield_cellar_80180B40[8] = {
     D_dryfield_cellar_80180B38,
     D_dryfield_cellar_80180B38,
 };
+
+static void func_dryfield_cellar_8017D730(Task* task);
+static void func_dryfield_cellar_8017D77C(Task* task);
+static void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 /// Message-table handler for message 0x13F0. On event 0xD it runs a CAP
 /// command: 0xD while event nibble 0x11B is below 2, otherwise 4 or 0xE

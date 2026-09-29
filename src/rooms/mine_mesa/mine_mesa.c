@@ -1,73 +1,110 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
 #include "rooms/mine_mesa.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 #include <psyq/stdio.h>
 
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
-#include "gameplay/damage.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+
+extern GpGridParams D_mine_mesa_801864A4;
+
+extern GpGridParams D_mine_mesa_8018700C;
+
+extern GpSaveLoc D_mine_mesa_80189B40;
+
+extern s8 D_mine_mesa_80189B48;
+
+extern RoomLatchedEvent D_mine_mesa_80189B60;
+
+/// The room's task descriptor table; its spawners pick an entry by index.
+extern TaskDesc D_mine_mesa_801842F4[];
+
+/// Handle of the task spawned from entry 1 or 3 of `D_mine_mesa_801842F4`, or
+/// NULL while none runs.
+extern Task* D_mine_mesa_80189B54;
+
+/// Handle of the task spawned from entry 4 of `D_mine_mesa_801842F4`, or NULL
+/// while none runs.
+extern Task* D_mine_mesa_80189B5C;
 
 void func_mine_mesa_8017E15C(Task* arg0);
 
 extern SVECTOR D_mine_mesa_80186528[2];
 
 // Related spawn counters with an unreferenced trailing zero word. Original struct/adjacent globals and tail fields/TU padding remain unresolved.
-typedef struct { s16 remaining; s16 cooldown; u32 retained; } MineMesaSpawnCounters;
+typedef struct {
+    s16 remaining;
+    s16 cooldown;
+    u32 retained;
+} MineMesaSpawnCounters;
 STATIC_ASSERT_SIZEOF(MineMesaSpawnCounters, 8);
 extern MineMesaSpawnCounters D_mine_mesa_80189B6C;
 // Keep independently addressed counter views of the bounded allocation.
@@ -79,7 +116,7 @@ extern s16 MineMesaCooldown __asm__("D_mine_mesa_80189B6C+2");
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[1];
-    u8 retained[756];
+    u8          retained[756];
 } MineMesaSpotLightStorage;
 STATIC_ASSERT_SIZEOF(MineMesaSpotLightStorage, 864);
 
@@ -136,15 +173,13 @@ extern SVECTOR D_mine_mesa_80186508[];
 
 extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
-extern GpMsgEntry D_mine_mesa_80189B1C[2];
+extern GpMsgEntry          D_mine_mesa_80189B1C[2];
 extern TaskDesc            D_mine_mesa_80189B2C;
-extern RoomFadeStorage          D_mine_mesa_80189B38;
+extern RoomFadeStorage     D_mine_mesa_80189B38;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
 extern Task*               D_mine_mesa_80189B58;
 extern GpEnemy*            D_mine_mesa_80189B74[2];
-
-#define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 static void func_mine_mesa_8017DD44(void);
 static void func_mine_mesa_8017EB38(void);
@@ -156,7 +191,7 @@ static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_mine_mesa_8017E074(Task *);
+void func_mine_mesa_8017E074(Task*);
 
 extern GpAnimSet D_mine_mesa_80181C90;
 
@@ -170,49 +205,49 @@ extern GpAnimSet D_mine_mesa_80183BBC;
 extern GpAnimSet D_mine_mesa_80183EA4;
 extern GpAnimSet D_mine_mesa_8018415C;
 
-void func_mine_mesa_8017DE38(Task *);
-void func_mine_mesa_8017DFC4(Task *);
-void func_mine_mesa_8017E024(Task *);
+void func_mine_mesa_8017DE38(Task*);
+void func_mine_mesa_8017DFC4(Task*);
+void func_mine_mesa_8017E024(Task*);
 
-extern GpAnimArg D_mine_mesa_80184360;
-extern GpAnimArg D_mine_mesa_80184374;
-extern GpAnimArg D_mine_mesa_8018439C;
-extern GpAnimArg D_mine_mesa_801844B4;
-extern GpAnimArg D_mine_mesa_801844C8;
-extern GpAnimArg D_mine_mesa_801844DC;
-extern GpAnimArg D_mine_mesa_801844F0;
-extern GpAnimArg D_mine_mesa_80184504;
-extern GpAnimArg D_mine_mesa_8018452C;
-extern GpAnimArg D_mine_mesa_80184540;
-extern GpAnimArg D_mine_mesa_80184554;
-extern GpCmdArg D_mine_mesa_80184650;
-extern GpCmdArg D_mine_mesa_80184654;
-extern GpCopyArg D_mine_mesa_80184344;
-extern GpCopyArg D_mine_mesa_80184484;
+extern GpAnimArg   D_mine_mesa_80184360;
+extern GpAnimArg   D_mine_mesa_80184374;
+extern GpAnimArg   D_mine_mesa_8018439C;
+extern GpAnimArg   D_mine_mesa_801844B4;
+extern GpAnimArg   D_mine_mesa_801844C8;
+extern GpAnimArg   D_mine_mesa_801844DC;
+extern GpAnimArg   D_mine_mesa_801844F0;
+extern GpAnimArg   D_mine_mesa_80184504;
+extern GpAnimArg   D_mine_mesa_8018452C;
+extern GpAnimArg   D_mine_mesa_80184540;
+extern GpAnimArg   D_mine_mesa_80184554;
+extern GpCmdArg    D_mine_mesa_80184650;
+extern GpCmdArg    D_mine_mesa_80184654;
+extern GpCopyArg   D_mine_mesa_80184344;
+extern GpCopyArg   D_mine_mesa_80184484;
 extern GpScriptCmd D_mine_mesa_80189A80[4];
 extern GpScriptRec D_mine_mesa_80189A90[3];
-extern GpXformArg D_mine_mesa_801843C4;
-extern GpXformArg D_mine_mesa_801843DC;
-extern GpXformArg D_mine_mesa_80184590;
-extern GpXformArg D_mine_mesa_801845A8;
-extern GpXformArg D_mine_mesa_801845C0;
-void func_mine_mesa_8017DDF0(void);
-void func_mine_mesa_8017E5A0(void);
-void func_mine_mesa_8017E5C0(void);
-void func_mine_mesa_8017E5E0(void);
-void func_mine_mesa_8017E620(void);
-void func_mine_mesa_8017E650(void);
-void func_mine_mesa_8017E684(s32);
-void func_mine_mesa_8017E6D8(void);
-void func_mine_mesa_8017E70C(s32);
-void func_mine_mesa_8017E760(void);
-void func_mine_mesa_8017E91C(void);
-void func_mine_mesa_8017E93C(u8);
-void func_mine_mesa_8017E948(void);
-void func_mine_mesa_8017EA24(void);
-void func_mine_mesa_8017EA78(void);
-void func_mine_mesa_8017EAAC(void);
-void func_mine_mesa_8017EB54(s32);
+extern GpXformArg  D_mine_mesa_801843C4;
+extern GpXformArg  D_mine_mesa_801843DC;
+extern GpXformArg  D_mine_mesa_80184590;
+extern GpXformArg  D_mine_mesa_801845A8;
+extern GpXformArg  D_mine_mesa_801845C0;
+void               func_mine_mesa_8017DDF0(void);
+void               func_mine_mesa_8017E5A0(void);
+void               func_mine_mesa_8017E5C0(void);
+void               func_mine_mesa_8017E5E0(void);
+void               func_mine_mesa_8017E620(void);
+void               func_mine_mesa_8017E650(void);
+void               func_mine_mesa_8017E684(s32);
+void               func_mine_mesa_8017E6D8(void);
+void               func_mine_mesa_8017E70C(s32);
+void               func_mine_mesa_8017E760(void);
+void               func_mine_mesa_8017E91C(void);
+void               func_mine_mesa_8017E93C(u8);
+void               func_mine_mesa_8017E948(void);
+void               func_mine_mesa_8017EA24(void);
+void               func_mine_mesa_8017EA78(void);
+void               func_mine_mesa_8017EAAC(void);
+void               func_mine_mesa_8017EB54(s32);
 
 extern GpAnimArg D_mine_mesa_80184360;
 extern GpAnimArg D_mine_mesa_801843B0;
@@ -222,45 +257,45 @@ extern GpAnimArg D_mine_mesa_8018452C;
 extern GpAnimArg D_mine_mesa_80184540;
 extern GpAnimArg D_mine_mesa_80184568;
 extern GpAnimArg D_mine_mesa_8018457C;
-extern GpCmdArg D_mine_mesa_80184650;
+extern GpCmdArg  D_mine_mesa_80184650;
 extern GpCopyArg D_mine_mesa_80184344;
 extern GpCopyArg D_mine_mesa_80184484;
-extern GpEvsCmd D_mine_mesa_8018515C[17];
-extern GpGridParams D_mine_mesa_8018700C;
-extern GpObj3A D_mine_mesa_801899B4[2];
-extern GpObj4C D_mine_mesa_80188E40[8];
+extern GpEvsCmd  D_mine_mesa_8018515C[17];
+
+extern GpObj3A        D_mine_mesa_801899B4[2];
+extern GpObj4C        D_mine_mesa_80188E40[8];
 extern GpRoomBoundVec D_mine_mesa_80189954[12];
 extern GpRoomCoordSet D_mine_mesa_80188E28[1];
-extern GpXformArg D_mine_mesa_801843F4;
-extern GpXformArg D_mine_mesa_80184424;
-extern GpXformArg D_mine_mesa_8018443C;
-extern GpXformArg D_mine_mesa_801845F0;
-extern GpXformArg D_mine_mesa_80184608;
-extern GpXformArg D_mine_mesa_80184620;
-extern GpXformArg D_mine_mesa_80184638;
-void func_mine_mesa_8017E600(void);
-void func_mine_mesa_8017E650(void);
-void func_mine_mesa_8017E684(s32);
-void func_mine_mesa_8017E6D8(void);
-void func_mine_mesa_8017E70C(s32);
-void func_mine_mesa_8017E8B0(s32);
-void func_mine_mesa_8017E8FC(s32);
-void func_mine_mesa_8017E93C(u8);
-void func_mine_mesa_8017EAC0(void);
-void func_mine_mesa_8017EB18(void);
-void func_mine_mesa_8017EB54(s32);
+extern GpXformArg     D_mine_mesa_801843F4;
+extern GpXformArg     D_mine_mesa_80184424;
+extern GpXformArg     D_mine_mesa_8018443C;
+extern GpXformArg     D_mine_mesa_801845F0;
+extern GpXformArg     D_mine_mesa_80184608;
+extern GpXformArg     D_mine_mesa_80184620;
+extern GpXformArg     D_mine_mesa_80184638;
+void                  func_mine_mesa_8017E600(void);
+void                  func_mine_mesa_8017E650(void);
+void                  func_mine_mesa_8017E684(s32);
+void                  func_mine_mesa_8017E6D8(void);
+void                  func_mine_mesa_8017E70C(s32);
+void                  func_mine_mesa_8017E8B0(s32);
+void                  func_mine_mesa_8017E8FC(s32);
+void                  func_mine_mesa_8017E93C(u8);
+void                  func_mine_mesa_8017EAC0(void);
+void                  func_mine_mesa_8017EB18(void);
+void                  func_mine_mesa_8017EB54(s32);
 
-extern GpPointLight D_mine_mesa_801887C8[8];
+extern GpPointLight             D_mine_mesa_801887C8[8];
 extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
-s32 func_mine_mesa_80181800(Task *, s32, s32, s32);
-void func_mine_mesa_80181894(Task *);
+s32                             func_mine_mesa_80181800(Task*, s32, s32, s32);
+void                            func_mine_mesa_80181894(Task*);
 
-s32 func_mine_mesa_8017D8F0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_mesa_8017D8F8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_mine_mesa_8017DA7C(Task *, s32, s32, GpMessageArg);
-s32 func_mine_mesa_8017DABC(Task *, s32, GpMsg13EF *, s32);
-s32 func_mine_mesa_8017DBC4(Task *, s32, s32, s32);
-void func_mine_mesa_8017D670(Task *);
+s32  func_mine_mesa_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_mine_mesa_8017D8F8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_mine_mesa_8017DA7C(Task*, s32, s32, GpMessageArg);
+s32  func_mine_mesa_8017DABC(Task*, s32, GpMsg13EF*, s32);
+s32  func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
+void func_mine_mesa_8017D670(Task*);
 
 TaskDesc D_mine_mesa_801818F8 = { 0, 32, func_mine_mesa_8017D670, { .model = NULL } };
 
@@ -619,11 +654,11 @@ SVECTOR D_mine_mesa_80184184[46] = {
     { 7770, 0, 2000, 0 },
 };
 
-void func_mine_mesa_8017E074(Task *);
-void func_mine_mesa_8017E2A4(Task *);
-void func_mine_mesa_8017E3E0(Task *);
-void func_mine_mesa_8017E7B0(Task *);
-void func_mine_mesa_8017E978(Task *);
+void func_mine_mesa_8017E074(Task*);
+void func_mine_mesa_8017E2A4(Task*);
+void func_mine_mesa_8017E3E0(Task*);
+void func_mine_mesa_8017E7B0(Task*);
+void func_mine_mesa_8017E978(Task*);
 
 TaskDesc D_mine_mesa_801842F4[6] = {
     { 0, 192, func_mine_mesa_8017E074, { .model = NULL } },
@@ -2497,6 +2532,13 @@ GpEnemy * D_mine_mesa_80189B74[2] = {
     NULL,
     NULL,
 };
+
+static void           func_mine_mesa_8017D808(Task* task);
+static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static void           func_mine_mesa_8017DC80(Task* arg0);
+static void           func_mine_mesa_80181358(Task* arg0);
+static void           func_mine_mesa_80181848(Task* arg0);
+static void           func_mine_mesa_80181880(Task* arg0);
 
 /// Runs this room's pending event once the request for it has been accepted.
 /// State 0 plays the caption command recorded in `D_mine_mesa_80189B60` and

@@ -1,31 +1,53 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include "pe/pyrokinesis.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Collision pair allocated by `func_pyrokinesis_8012EF48` (`memCalloc(0x58)`)
+/// and stored in `Task::work`. `obj` is linked on list 1 and carries the
+/// packed combo id, `obj2` on list 7 with the 0x4400 flags the cone uses to
+/// probe for a wall; both point `field_C` at the one-element `rec` table
+/// (terminator `field_0 = 2`).
+typedef struct PyroWork {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpObj   obj2;
+    /* 0x40 */ GpRec18 rec;
+} PyroWork;
+STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
 
 static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1);
@@ -52,6 +74,8 @@ static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg
 /// Per-flame jitter of the cone, one 8-bit LCG roll each, re-rolled as a block
 /// when the cast starts.
 static s16 D_pyrokinesis_80131DFC[16] = { 0 };
+
+static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Runs one frame of the pyrokinesis cast: a five-state machine driven by
 /// `Task::state`. State 0 copies the player rotation onto the effect

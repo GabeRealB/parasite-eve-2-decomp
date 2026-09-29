@@ -1,50 +1,62 @@
-#include "common.h"
 #include "rooms/mine_refuge.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "common.h"
+#include "gte.h"
+
+#include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/effects.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/object_task.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -68,7 +80,7 @@ STATIC_ASSERT_SIZEOF(MineRefugeGlowScratch, 0x1C);
 
 extern UiObjectDesc D_800611E4;
 
-extern TaskDesc       D_801358D8;
+extern TaskDesc D_801358D8;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
@@ -160,32 +172,32 @@ static void func_mine_refuge_8017FE78(s32 arg0);
 static void func_mine_refuge_8017FF4C(Task* task);
 static void func_mine_refuge_8017FFAC(Task* task);
 
-void func_mine_refuge_8017D6E0(UiList *, UiObject *);
-void func_mine_refuge_8017DEAC(UiList *, UiObject *);
-void func_mine_refuge_8017E8C4(Task *);
-void func_mine_refuge_8017ED70(Task *);
-void func_mine_refuge_8017EF30(Task *);
-void func_mine_refuge_8017F124(UiList *, UiObject *);
-void func_mine_refuge_8017F208(UiList *, UiObject *);
-void func_mine_refuge_8017F2D0(UiList *, UiObject *);
-void func_mine_refuge_8017F398(UiList *, UiObject *);
-void func_mine_refuge_8017F49C(Task *);
+void func_mine_refuge_8017D6E0(UiList*, UiObject*);
+void func_mine_refuge_8017DEAC(UiList*, UiObject*);
+void func_mine_refuge_8017E8C4(Task*);
+void func_mine_refuge_8017ED70(Task*);
+void func_mine_refuge_8017EF30(Task*);
+void func_mine_refuge_8017F124(UiList*, UiObject*);
+void func_mine_refuge_8017F208(UiList*, UiObject*);
+void func_mine_refuge_8017F2D0(UiList*, UiObject*);
+void func_mine_refuge_8017F398(UiList*, UiObject*);
+void func_mine_refuge_8017F49C(Task*);
 
-void func_mine_refuge_8017F49C(Task *);
-void func_mine_refuge_8017FB24(Task *);
+void func_mine_refuge_8017F49C(Task*);
+void func_mine_refuge_8017FB24(Task*);
 
-extern GpGridParams D_mine_refuge_80181BA4[1];
-extern GpObj4C D_mine_refuge_80182778[2];
-extern GpObj4C D_mine_refuge_80182810[6];
+extern GpGridParams   D_mine_refuge_80181BA4[1];
+extern GpObj4C        D_mine_refuge_80182778[2];
+extern GpObj4C        D_mine_refuge_80182810[6];
 extern GpRoomBoundVec D_mine_refuge_80182A58[8];
 extern GpRoomCoordSet D_mine_refuge_80182760[1];
-s32 func_mine_refuge_8017FBB4(Task *, s32, s32, s32);
-s32 func_mine_refuge_8017FBE8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_mine_refuge_8017FC2C(Task *, s32, s32, GpMessageArg);
-s32 func_mine_refuge_8017FCD0(Task *, s32, GpMsg13EF *, GpMessageArg);
-s32 func_mine_refuge_8017FD48(Task *, s32, s32, s32);
-void func_mine_refuge_8017FA08(Task *);
-void func_mine_refuge_8017FDBC(Task *);
+s32                   func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
+s32                   func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_mine_refuge_8017FC2C(Task*, s32, s32, GpMessageArg);
+s32                   func_mine_refuge_8017FCD0(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32                   func_mine_refuge_8017FD48(Task*, s32, s32, s32);
+void                  func_mine_refuge_8017FA08(Task*);
+void                  func_mine_refuge_8017FDBC(Task*);
 
 u8 D_mine_refuge_80181540[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -334,8 +346,8 @@ UiListItemFunc D_mine_refuge_8018182C[4] = {
 
 UiList D_mine_refuge_8018183C = { D_mine_refuge_8018182C, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_mine_refuge_8017F49C(Task *);
-void func_mine_refuge_8017FB24(Task *);
+void func_mine_refuge_8017F49C(Task*);
+void func_mine_refuge_8017FB24(Task*);
 
 TaskDesc D_mine_refuge_80181860[3] = {
     { 0, 32, func_mine_refuge_8017F49C, { .model = NULL } },
@@ -770,6 +782,16 @@ u8 D_mine_refuge_80182ADC[4] = {
 };
 
 RoomCutsceneRec D_mine_refuge_80182AE0 = { 0 };
+
+static void func_mine_refuge_8017E2A8(UiList* list, UiObject* obj);
+static void func_mine_refuge_8017E5A4(UiList* list, UiObject* obj);
+static void func_mine_refuge_8017EDCC(u8* str, s32 decimals);
+static u8*  func_mine_refuge_8017EE3C(u8* buf, s32 value, s32 decimals);
+static void func_mine_refuge_8017F020(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of

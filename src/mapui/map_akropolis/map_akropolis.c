@@ -1,41 +1,88 @@
-/* The Akropolis stage's map UI overlay (stage 1, Akropolis and MIST): its
- * stream setup, the key-item panel, and the per-stage tables gameplay and main
- * index by stage, most of which point into the stage's room packages or at the
- * map pictures' marker models.
- */
-#include "common.h"
-#include "mappic/mappic.h"
-#include "mapui/mapui.h"
-#include "mapui/stage_tables.h"
-#include "rooms/room.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
+
+#include <psyq/sys/types.h>
+
+#include "types.h"
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/item_pickup.h"
+#include "gameplay/items.h"
 #include "gameplay/map.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
-
 #include "gameplay/view.h"
+
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "mappic/mappic.h"
+
+#include "rooms/acropolis_bridge.h"
+
+#include "rooms/acropolis_cafeteria.h"
+
+#include "rooms/acropolis_east_elevator_hall.h"
+
+#include "rooms/acropolis_fire_escape.h"
+
+#include "rooms/acropolis_forked_road.h"
+
+#include "rooms/acropolis_fountain.h"
+
+#include "rooms/acropolis_hallway.h"
+
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
+#include "rooms/acropolis_observatory.h"
+
+#include "rooms/acropolis_patio.h"
+
+#include "rooms/acropolis_plaza.h"
+
+#include "rooms/acropolis_promenade.h"
+
+#include "rooms/acropolis_roof_garden.h"
+
+#include "rooms/acropolis_sanctuary.h"
+
+#include "rooms/acropolis_security_room.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/acropolis_west_elevator_hall.h"
+
+#include "rooms/mist_parking.h"
+
+#include "rooms/mist_r18.h"
+
+#include "rooms/mist_r21.h"
+
+#include "rooms/mist_shooting_gallery.h"
+
+/* The Akropolis stage's map UI overlay (stage 1, Akropolis and MIST): its
+ * stream setup, the key-item panel, and the per-stage tables gameplay and main
+ * index by stage, most of which point into the stage's room packages or at the
+ * map pictures' marker models.
+ */
 
 static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1);
 static void func_map_akropolis_80179D78(Task* task);
@@ -61,6 +108,10 @@ static GpBit2Rec    D_map_akropolis_8017BFEC[2];
 static GpBit2Rec    D_map_akropolis_8017C00C[2];
 static GpBit2Rec    D_map_akropolis_8017C02C[1];
 static GpBit2Rec    D_map_akropolis_8017C03C[10];
+
+static void func_map_akropolis_80179988(u8* arg0);
+static s32  func_map_akropolis_80179FC8(s32 arg0, s32 arg1);
+static s32  func_map_akropolis_8017A038(void);
 
 /// MDEC buffer layout hook for the Akropolis map, reached from
 /// `Mdec_SetupBuffers` (main) for the stream kinds this overlay plays. Every

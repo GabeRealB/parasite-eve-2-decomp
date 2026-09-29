@@ -1,36 +1,39 @@
-#include "common.h"
-
-#include <psyq/abs.h>
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/geometry.h"
 #include "gameplay/item_pickup.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 extern GpImgRec D_actor_141000_8013D72C[2];
 
@@ -126,7 +129,7 @@ extern TaskDesc D_actor_141000_801348D8[];
 
 /// Animation bank table `func_800B3F84` re-seeds the slots from, indexed by
 /// the preset's bank index.
-extern GpAnimSet* D_actor_141000_8013D74C[11];
+extern GpAnimSet*  D_actor_141000_8013D74C[11];
 extern GpAnimSet** D_actor_141000_8013D778[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
@@ -136,11 +139,11 @@ extern GpAnimSet** D_actor_141000_8013D778[1];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *, Actor141000SpawnAnim *);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*, Actor141000SpawnAnim*);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor141000MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor141000MsgEntry, 8);
@@ -220,15 +223,15 @@ static const TaskFuncTable4 D_actor_141000_80131E58 = { {
 /// axis, halved first while `field_4C8` is clear.
 static const VECTOR D_actor_141000_80131E68 = { 0, 0, 0x300000 };
 
-extern u32 D_actor_141000_801340E0[1];
+extern u32     D_actor_141000_801340E0[1];
 extern SVECTOR D_actor_141000_801340E4[9];
 extern TmdBone D_actor_141000_801340BC[1];
-extern u32 D_actor_141000_8013412C[54];
+extern u32     D_actor_141000_8013412C[54];
 
 extern TmdSource D_actor_141000_80134204;
-void func_actor_141000_80132C24(Task *);
-void func_actor_141000_801330C0(Task *);
-void func_actor_141000_801331AC(Task *);
+void             func_actor_141000_80132C24(Task*);
+void             func_actor_141000_801330C0(Task*);
+void             func_actor_141000_801331AC(Task*);
 
 extern GpAnimSet D_actor_141000_8013A2C0;
 extern GpAnimSet D_actor_141000_8013A6B8;
@@ -241,13 +244,13 @@ extern GpAnimSet D_actor_141000_8013C268;
 extern GpAnimSet D_actor_141000_8013C41C;
 extern GpAnimSet D_actor_141000_8013C66C;
 extern TmdSource D_actor_141000_8013A0B0;
-s32 func_actor_141000_801336DC(Task *, s32, GpXformArg *, Actor141000SpawnAnim *);
-s32 func_actor_141000_80133CD8(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_141000_80133E10(Task *, s32, GpXformArg *);
-s32 func_actor_141000_80133E8C(Task *, s32, s32);
-s32 func_actor_141000_80133F6C(Task *, s32, GpCmdArg *);
-s32 func_actor_141000_80133FA8(Task *, s32, s32);
-void func_actor_141000_801338C0(Task *);
+s32              func_actor_141000_801336DC(Task*, s32, GpXformArg*, Actor141000SpawnAnim*);
+s32              func_actor_141000_80133CD8(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_141000_80133E10(Task*, s32, GpXformArg*);
+s32              func_actor_141000_80133E8C(Task*, s32, s32);
+s32              func_actor_141000_80133F6C(Task*, s32, GpCmdArg*);
+s32              func_actor_141000_80133FA8(Task*, s32, s32);
+void             func_actor_141000_801338C0(Task*);
 
 TmdBone D_actor_141000_801340BC[1] = {
 #include "assets/actor_141000_model_023E4_skeleton.inc"
@@ -1926,6 +1929,9 @@ Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2016, { .call4 = func_actor_141000_80133FA8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
+
+static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2);
+static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3);
 
 /// Draws the sixteen gouraud quads, each followed by a semi-transparency
 /// tpage change, at `arg2` depth minus 20.

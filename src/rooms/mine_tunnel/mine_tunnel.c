@@ -1,23 +1,23 @@
-#include "gameplay/evs.h"
-#include "mapui/map_shelter.h"
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/mine_tunnel.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/world_state.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
+#include "types.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 /// Cutscene script blob handed to `func_800E8614`; unnamed in the gameplay
 /// map, which keeps the raw address.
@@ -28,16 +28,16 @@ extern GpEvsCmd D_mine_tunnel_8017E024[];
 /// and 0x13F0 by `func_mine_tunnel_8017D630`.
 extern GpMsgEntry D_mine_tunnel_8017DFC4[];
 
-s32 func_mine_tunnel_8017D5E4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_tunnel_8017D5EC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_mine_tunnel_8017D630(Task *, s32, s32, GpMessageArg);
-s32 func_mine_tunnel_8017D670(Task *, s32, RoomEventMsg *, s32);
+s32 func_mine_tunnel_8017D5E4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_mine_tunnel_8017D630(Task*, s32, s32, GpMessageArg);
+s32 func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
 
 extern GpAnimSet D_mine_tunnel_8017DF9C;
 
 extern GpAnimArg D_mine_tunnel_8017DFFC;
 extern GpCopyArg D_mine_tunnel_8017DFF4;
-void func_mine_tunnel_8017D6E0(s32);
+void             func_mine_tunnel_8017D6E0(s32);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -99,6 +99,9 @@ GpEvsCmd D_mine_tunnel_8017E024[11] = {
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
+
+static void func_mine_tunnel_8017D6EC(Task* arg0);
+static void func_mine_tunnel_8017D774(Task* task);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
 s32 func_mine_tunnel_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

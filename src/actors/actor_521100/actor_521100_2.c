@@ -1,39 +1,36 @@
 #include "actor_521100_private.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-
 #include "actors/actor.h"
-#include "actors/actor_521100.h"
-#include "actors/actors_shared_80132074.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/message.h"
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
-#include "main/mc.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "overlay.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// The attach coordinate's rotation as the scale-in step snapshots it, and the
 /// cache the "walk to" placement opcode writes beside it: the heading it
@@ -91,17 +88,17 @@ STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor5211002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor5211002MessageEntry, 8);
 
 extern Actor5211002MessageEntry D_actor_521100_8016A358[6];
-extern TaskDesc D_actor_521100_8016A388[];
-extern GpAnimSet* D_actor_521100_8016A3A0[11];
+extern TaskDesc                 D_actor_521100_8016A388[];
+extern GpAnimSet*               D_actor_521100_8016A3A0[11];
 
 extern GpEffArg D_actor_521100_8016A3CC;
 extern u16      D_actor_521100_8016A3D4;
@@ -124,58 +121,13 @@ static void func_actor_521100_8013677C(void);
 static void func_actor_521100_80136820(void);
 static void func_actor_521100_801368B0(Task* task);
 
-extern GpAnimSet D_actor_521100_80142CCC;
-extern GpAnimSet D_actor_521100_80143434;
-extern GpAnimSet D_actor_521100_80144024;
-extern GpAnimSet D_actor_521100_8014453C;
-extern GpAnimSet D_actor_521100_80145274;
-extern GpAnimSet D_actor_521100_801459AC;
-extern GpAnimSet D_actor_521100_80146210;
-extern GpAnimSet D_actor_521100_80146738;
-extern GpAnimSet D_actor_521100_80146A58;
-extern GpAnimSet D_actor_521100_80146F88;
-extern GpAnimSet D_actor_521100_80147118;
-extern GpAnimSet D_actor_521100_80147724;
-extern GpAnimSet D_actor_521100_80147C48;
-extern GpAnimSet D_actor_521100_80148448;
-extern GpAnimSet D_actor_521100_80148DB0;
-extern GpAnimSet D_actor_521100_8014A940;
-extern GpAnimSet D_actor_521100_8014C704;
-extern GpAnimSet D_actor_521100_8014D718;
-extern GpAnimSet D_actor_521100_8014DF24;
-extern GpAnimSet D_actor_521100_8014E3AC;
-extern GpAnimSet D_actor_521100_801526A0;
-extern GpAnimSet D_actor_521100_80152DB4;
-extern GpAnimSet D_actor_521100_8015359C;
-extern GpAnimSet D_actor_521100_80153ED8;
-extern GpAnimSet D_actor_521100_801547C0;
-extern GpAnimSet D_actor_521100_80154FAC;
-extern GpAnimSet D_actor_521100_801557E0;
-extern GpAnimSet D_actor_521100_80156D7C;
-extern GpAnimSet D_actor_521100_801578EC;
-extern GpAnimSet D_actor_521100_80157E44;
-extern GpAnimSet D_actor_521100_80158C5C;
-extern GpAnimSet D_actor_521100_80158DEC;
-extern GpAnimSet D_actor_521100_80158FC8;
-extern GpAnimSet D_actor_521100_80159898;
-extern GpAnimSet D_actor_521100_80159BD0;
-extern GpAnimSet D_actor_521100_8015A1A0;
-extern GpAnimSet D_actor_521100_8015ABF8;
-extern GpAnimSet D_actor_521100_8015B018;
-extern GpAnimSet D_actor_521100_8015B354;
-extern GpAnimSet D_actor_521100_8015B8A8;
-extern GpAnimSet D_actor_521100_8015C7B8;
-extern GpAnimSet D_actor_521100_8015D6BC;
-extern GpAnimSet D_actor_521100_8015E198;
-extern GpAnimSet D_actor_521100_8015EAC8;
-extern GpAnimSet D_actor_521100_8015F528;
-s32 func_actor_521100_801369B8(Task *, s32, GpAnimArg *);
-s32 func_actor_521100_80136A1C(Task *, s32, s32);
-s32 func_actor_521100_80136A64(Task *, s32, GpXformArg *);
-s32 func_actor_521100_80136AE0(Task *, s32, GpCmdArg *);
-s32 func_actor_521100_80136BE8(Task *, s32, GpXformArg *);
-void func_actor_521100_80136404(Task *);
-void func_actor_521100_80136604(Task *);
+s32  func_actor_521100_801369B8(Task*, s32, GpAnimArg*);
+s32  func_actor_521100_80136A1C(Task*, s32, s32);
+s32  func_actor_521100_80136A64(Task*, s32, GpXformArg*);
+s32  func_actor_521100_80136AE0(Task*, s32, GpCmdArg*);
+s32  func_actor_521100_80136BE8(Task*, s32, GpXformArg*);
+void func_actor_521100_80136404(Task*);
+void func_actor_521100_80136604(Task*);
 
 GpAnimSet * D_actor_521100_8015F73C[36] = {
     NULL,

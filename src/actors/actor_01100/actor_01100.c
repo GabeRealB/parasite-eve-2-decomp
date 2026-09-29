@@ -1,56 +1,266 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 #include <psyq/rand.h>
 
-#include "actors/actor.h"
-#include "actors/actors_shared_80137fb8.h"
-#include "actors/actors_shared_801384ac.h"
-#include "actors/actors_shared_801385e0.h"
-#include "actors/actors_shared_8013852c.h"
-#include "actors/actors_shared_8013898c.h"
-#include "actors/actors_shared_80138efc.h"
+#include "common.h"
+#include "gte.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/attachments.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+/// 0x58-byte work block the body at 0x80137C88 allocates with
+/// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C), which is not a
+/// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four
+/// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
+/// `actor_301100`), whose 0x28 run is the `GpActorD4Rec` filled in here: the
+/// object's `ctx.d4rec` points at it and its `recs` at the one-entry `GpRec18`
+/// collision table at 0x40, which is where the 0x58 bytes end.
+typedef struct ActorsShared80137fb8Work {
+    /// Effect velocity: the random direction vector rotated by the actor's
+    /// coordinate and scaled by a 0x1000-fraction draw. Its X and Z are added to
+    /// the coordinate's translation afterwards, its Y is not.
+    /* 0x00 */ SVECTOR vel;
+    /// Display node linked as kind 3 with a `Gp_PackPair` payload.
+    /* 0x08 */ GpObj        obj;
+    /* 0x28 */ GpActorD4Rec rec;
+    /* 0x40 */ GpRec18      rec18[1];
+} ActorsShared80137fb8Work;
+STATIC_ASSERT_SIZEOF(ActorsShared80137fb8Work, 0x58);
+
+/// One 12-bit fixed-point factor per column of the matrix `ActorsShared801385e0`
+/// scales (`0x1000` is 1.0). The body reads the first three words; its only call
+/// site copies the four words at `D_actor_104900_80131E30` - `0x1400`, `0x1400`,
+/// `0x1400`, 0 - onto its own frame and passes that address, so the trailing word
+/// is part of what the caller copies but nothing here reads it.
+typedef struct ActorsShared801385e0Scale {
+    /* 0x00 */ s32 vx;
+    /* 0x04 */ s32 vy;
+    /* 0x08 */ s32 vz;
+    /* 0x0C */ s32 pad_C;
+} ActorsShared801385e0Scale;
+STATIC_ASSERT_SIZEOF(ActorsShared801385e0Scale, 0x10);
+
+/// The caller's vector slot: the column copy fills the `SVECTOR` at 0x10, GPF
+/// scales it in place and the translation update reads `vx` / `vz` back out of
+/// it. Nothing ahead of 0x10 is read, and no carrier references this body at
+/// all, so what the caller keeps there is not visible from here.
+typedef struct ActorsShared8013898cVec {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR vec;
+} ActorsShared8013898cVec;
+
+/// The enemy's work block: allocated zeroed by the spawn handler and parked in
+/// `Task::work`, then handed to every state handler and message handler of the
+/// entry. It holds the model's root coordinate, two animation contexts each with
+/// a slot per model part and a pose buffer, the four display nodes with a
+/// three-entry contact table apiece, the model's light and colour matrices, and
+/// the per-state counters and latches the handlers share.
+typedef struct ActorsShared80138efcWork {
+    /// Root coordinate the model's second part is parented to.
+    /* 0x000 */ GpCoord coord;
+    /// Body animation. Slot 1's `flags` report the clip's end and its control
+    /// entries to the state handlers, and its `curSet` is the motion playing.
+    /* 0x050 */ GpAnimCtx  anim;
+    /* 0x064 */ GpAnimSlot slots[21];
+    /* 0x3AC */ byte       poses[0x150];
+    /// Second animation, blended into the first by `field_BA2`.
+    /* 0x4FC */ GpAnimCtx  anim2;
+    /* 0x510 */ GpAnimSlot slots2[21];
+    /* 0x858 */ byte       poses2[0x150];
+    /// Display nodes: the first on the model's root, the last on part 3, and
+    /// between them the pair on parts 12 and 8 that the handlers switch on and
+    /// off through the top two bits of `flags`.
+    /* 0x9A8 */ GpObj objs[4];
+    /// One three-entry contact table per display node. The first is resolved
+    /// against the world; the last is scanned for the hits the enemy takes.
+    /* 0xA28 */ GpRec18 contacts[4][3];
+    /* 0xB48 */ MATRIX  lightMtx;
+    /* 0xB68 */ MATRIX  colorMtx;
+    /// Actor id, `placeKey >> 12`. Stored as a word; the sound calls read its
+    /// low byte into bits 8-15 of their ids.
+    /* 0xB88 */ u32 actorId;
+    /// Countdown a state arms and decrements per frame: `func_actor_104900_80138D58`
+    /// posts 0x64 into it and acts when it reaches zero, and this unit's
+    /// 0x80138E34 arms 0xA.
+    /* 0xB8C */ s16 field_B8C;
+    /// Walking offset `func_actor_104900_80138B5C` steps 0x30 back toward zero
+    /// from either end of the +-0x30 band, one frame at a time.
+    /* 0xB8E */ s16 field_B8E;
+    /// Yaw toward actor slot 0 in this model's frame, written by ActorsShared801357f0.
+    /* 0xB90 */ s16 field_B90;
+    /* 0xB92 */ s16 field_B92;
+    /// Decay counters the 0x80138B5C body subtracts from - 0x400 for the axis
+    /// pair and 0x100 for the next two - clamping each at zero.
+    /* 0xB94 */ s16 field_B94;
+    /* 0xB96 */ s16 field_B96;
+    /* 0xB98 */ s16 field_B98;
+    /* 0xB9A */ s16 field_B9A;
+    /* 0xB9C */ s16 field_B9C;
+    /// Distance-mapped pitch the 0x80136230 body writes on the first frame:
+    /// 0 inside 0x384, 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
+    /// `field_B94` ramps toward it while the countdown sits in `[0x1E, 0x2B]`.
+    /* 0xB9E */ u16 field_B9E;
+    /// Visibility the 0x7D5 message last asked for; the handler acts only
+    /// when the request changes it.
+    /* 0xBA0 */ s8 field_BA0;
+    /// The enemy link node's `state.b.flags`, saved while the model is hidden
+    /// and put back when it is shown again.
+    /* 0xBA1 */ u8 field_BA1;
+    /* 0xBA2 */ s8 field_BA2;
+    /* 0xBA3 */ s8 field_BA3;
+    /// Motion id armed for the frame; every sibling writes a different pair
+    /// here (0xB/0xE here, 0x15/0x16 next door, 5 in the setup handler).
+    /* 0xBA4 */ s8 field_BA4;
+    /// Set alongside `field_BA4` to ask for the motion to be restarted.
+    /* 0xBA5 */ s8 field_BA5;
+    /// Set when the trigger at `field_BA9` fires. The 0x801339B0 handler tests
+    /// it with `lbu` before staging the 0xA state, so it is unsigned even
+    /// though its neighbours at 0xBA4..0xBA9 are signed.
+    /* 0xBA6 */ u8 field_BA6;
+    /// Index into the dispatcher's 26-entry handler table, read there with
+    /// `lb` and multiplied by 4.
+    /* 0xBA7 */ s8 state;
+    /// Run-once latch: 0 means the state has not started yet. Read signed for
+    /// the test but re-read unsigned for the increment, hence the `(u8)` cast
+    /// at the one place it is stepped.
+    /* 0xBA8 */ s8 field_BA8;
+    /// Trigger this handler consumes: nonzero sets `field_BA6`, resets the
+    /// countdown at `field_B9C` and selects state 0xF.
+    /* 0xBA9 */ s8 field_BA9;
+    /// Byte counter the 0x801366E8 body steps by one when it leaves the 0xBA8
+    /// latch at 3; the 0x801339B0 handler zeroes it on the frame it arms, and
+    /// again alongside the state it stages.
+    /* 0xBAA */ u8 field_BAA;
+    /// Compared against 1 (`lbu`) by the 0x80138B5C body, which skips its whole
+    /// decay block while it is set.
+    /* 0xBAB */ u8 field_BAB;
+    /// Lunge-exit gate read with `lbu` and compared against 0xB. Unsigned,
+    /// unlike the signed byte that follows it.
+    /* 0xBAC */ u8 field_BAC;
+    /// Frame within the lunge. Armed to -1, then stepped with an unsigned
+    /// read (`lbu`/`sb`) and tested signed (`lb`) against 1 and 0x2E.
+    /* 0xBAD */ s8 field_BAD;
+    /* 0xBAE */ u8 field_BAE;
+    /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
+    /// trigger then compares against. The 0x80138B5C body gates the `field_B8E`
+    /// step on it (`lbu`).
+    /* 0xBAF */ u8 field_BAF;
+    /// Placement of the hit sparks, on the model's part 4.
+    /* 0xBB0 */ GpEffArg effArg;
+    /// Sound variant bit the slot's setup body at 0x8013279C picks from the
+    /// spawn record, 0 or 1. `func_actor_104900_80138D58` and the bodies at
+    /// 0x80132D78 / 0x80136230 shift it into bit 22 of the id they hand
+    /// `SndEvt_EnqueueType6`.
+    /* 0xBB8 */ u8 field_BB8;
+    /* 0xBB9 */ u8 field_BB9;
+    /* 0xBBA */ u8 field_BBA;
+    /// Entry id of the placement the enemy was spawned from; 0x31 selects the
+    /// second parameter set and a scaled model.
+    /* 0xBBB */ s8  field_BBB;
+    /* 0xBBC */ s16 field_BBC;
+    /// Frames the hit sparks keep being re-spawned for.
+    /* 0xBBE */ s16 field_BBE;
+    /// Spark effect id of the last hit, from the hit id's first parameter.
+    /* 0xBC0 */ s32 field_BC0;
+    /// Frames before another hit is taken, from the hit id's second parameter.
+    /* 0xBC4 */ s32 field_BC4;
+    /// One-shot latch for the 0x13F4 dispatch. Stays clear until the area id
+    /// is 0x0518, the player is alive, and that message has been sent.
+    /* 0xBC8 */ u8 field_BC8;
+    /// Read as a byte and compared against 1, then against `field_BA9`: the
+    /// 0x80138A2C body only runs its restart path when both are 1.
+    /* 0xBC9 */ u8   field_BC9;
+    /* 0xBCA */ byte pad_BCA[0x2];
+} ActorsShared80138efcWork;
+STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
+
+/// Block `func_actor_104900_80134780` hands every state handler in `$a3`, one
+/// frame of the actor's own stack. The dispatcher fills `pan` and `depth` from
+/// the model's second per-part `GpCoord` (0x50 into
+/// `Task::field_2C->field_8`) right before the indirect call, storing each as a
+/// halfword; the handlers read the low byte,
+/// so the pair is laid out as bytes here. Which of them writes what is per
+/// handler - the 0x80138D58 body writes only 0x64.
+typedef struct ActorsShared80138efcArg {
+    /// Scratch position. The dispatcher writes the root part's world
+    /// translation here, lowered by 0x320, and hands it to
+    /// `Gp_UpdateActorColor`.
+    /* 0x00 */ VECTOR pos;
+    /// Scratch vector. The dispatcher builds its effect offsets here for
+    /// `Gp_SpawnEff`, rotating the splash offset through a part's world
+    /// matrix and then into view space with `mtx`.
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ byte    pad_18[0x8];
+    /// Transpose of `gGfxViewCoord.workm`, refreshed on the frames the splash
+    /// check runs.
+    /* 0x20 */ MATRIX mtx;
+    /// Pose buffers of the two animation contexts. While `field_BA2` is
+    /// nonzero the first context steps into `poses[0]`, the second into
+    /// `poses[1]`, and `Gp_AnimWritePoseBlend` weights the pair by it.
+    /* 0x40 */ GpAnimPose poses[2];
+    /* 0x60 */ s8         pan;
+    /* 0x61 */ byte       pad_61[0x1];
+    /* 0x62 */ s8         depth;
+    /* 0x63 */ byte       pad_63[0x1];
+    /* 0x64 */ s8         field_64;
+} ActorsShared80138efcArg;
+STATIC_ASSERT_SIZEOF(ActorsShared80138efcArg, 0x68);
+
+typedef void (*ActorsShared80138efcState)(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work,
+                                          ActorsShared80138efcArg* arg);
+
+typedef struct ActorsShared80138efcStateTable {
+    ActorsShared80138efcState funcs[26];
+} ActorsShared80138efcStateTable;
 
 /* The loops that step the display nodes, the contact tables or the animation
    slots of the work block walk a scalar byte offset from the block rather than
@@ -90,16 +300,16 @@ typedef struct {
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, s32);
     } handler;
 } Actor01100RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor01100RecoveredMsgEntry, 8);
 
 extern Actor01100RecoveredMsgEntry Actor01100_D15660[2];
-extern GpU16Pair Actor01100_D074D0[];
-extern TaskDesc  Actor01100_D155E0[];
-extern TmdSource Actor01100_D0D8F4;
-extern TmdSource Actor01100_D0E4DC;
+extern GpU16Pair                   Actor01100_D074D0[];
+extern TaskDesc                    Actor01100_D155E0[];
+extern TmdSource                   Actor01100_D0D8F4;
+extern TmdSource                   Actor01100_D0E4DC;
 
 typedef struct {
     void* tmd;
@@ -163,10 +373,10 @@ static const Actor101100StateFuncTable3 Actor01100_D00004 = { {
 static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
 extern GpU16Pair Actor01100_D074F8[6];
-s32 Actor01100_Fn0670C(Task *, s32, s32);
-void Actor01100_Fn06554(Task *);
-void Actor01100_Fn065E4(Task *);
-void Actor01100_Fn0663C(Task *);
+s32              Actor01100_Fn0670C(Task*, s32, s32);
+void             Actor01100_Fn06554(Task*);
+void             Actor01100_Fn065E4(Task*);
+void             Actor01100_Fn0663C(Task*);
 
 GpU16Pair Actor01100_D074D0[6] = {
     { 0, 0 },
@@ -915,6 +1125,24 @@ Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
 };
 
 u8 Actor01100_D15670 = 0;
+
+static s32             Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count);
+static s32             Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u8 rate);
+static __inline__ s32  _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contacts);
+static __inline__ s32  _actor01100PushOut(GpCoord* coord, GpRec18* contacts);
+static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work);
+static void            Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void            Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static __inline__ s32  _actor01100BearingToPlayer(GpCoord* self);
+static __inline__ s32  _actor01100DistSqToPlayer(GpCoord* self);
+static __inline__ u8*  Actor104900_ScratchRead(void);
+static __inline__ void Actor104900_ScratchWrite(u8* p);
+static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 scale);
+static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model);
+static void            Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2);
+static void            Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void            Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 
 /// Walks the first `count` records of `recs`, up to an empty key, and for
 /// every kind 0x10000 or 0x30000 record computes the XZ push-out of the

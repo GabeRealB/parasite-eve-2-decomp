@@ -1,43 +1,53 @@
-#include "common.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "dryfield_night_motel_balcony_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-
 #include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
-
-extern SVECTOR D_dryfield_night_motel_balcony_80182C60[];
-extern SVECTOR D_dryfield_night_motel_balcony_80182C70;
-extern SVECTOR D_dryfield_night_motel_balcony_80182C80;
-extern SVECTOR D_dryfield_night_motel_balcony_80182C90;
 extern SVECTOR D_dryfield_night_motel_balcony_80182CA0;
 extern SVECTOR D_dryfield_night_motel_balcony_80182CF0;
 extern SVECTOR D_dryfield_night_motel_balcony_80182D00;
@@ -79,15 +89,15 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
 static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
 static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
 
-extern GpGridParams D_dryfield_night_motel_balcony_80183750[1];
-extern GpGridParams D_dryfield_night_motel_balcony_80183FE0[1];
-extern GpObj3A D_dryfield_night_motel_balcony_8018EF70[2];
-extern GpObj4C D_dryfield_night_motel_balcony_8018E2FC[8];
-extern GpObj4C D_dryfield_night_motel_balcony_8018E55C[10];
-extern GpObj4C D_dryfield_night_motel_balcony_8018E854[6];
-extern GpObj4C D_dryfield_night_motel_balcony_8018EAFC[4];
-extern GpObj4C D_dryfield_night_motel_balcony_8018EC2C[4];
-extern GpObj4C D_dryfield_night_motel_balcony_8018ED5C[7];
+extern GpGridParams   D_dryfield_night_motel_balcony_80183750[1];
+extern GpGridParams   D_dryfield_night_motel_balcony_80183FE0[1];
+extern GpObj3A        D_dryfield_night_motel_balcony_8018EF70[2];
+extern GpObj4C        D_dryfield_night_motel_balcony_8018E2FC[8];
+extern GpObj4C        D_dryfield_night_motel_balcony_8018E55C[10];
+extern GpObj4C        D_dryfield_night_motel_balcony_8018E854[6];
+extern GpObj4C        D_dryfield_night_motel_balcony_8018EAFC[4];
+extern GpObj4C        D_dryfield_night_motel_balcony_8018EC2C[4];
+extern GpObj4C        D_dryfield_night_motel_balcony_8018ED5C[7];
 extern GpRoomBoundVec D_dryfield_night_motel_balcony_8018EFE8[40];
 extern GpRoomBoundVec D_dryfield_night_motel_balcony_8018F128[40];
 extern GpRoomCoordSet D_dryfield_night_motel_balcony_8018DA8C[1];

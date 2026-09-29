@@ -1,12 +1,37 @@
-#ifndef ROOMS_DRYFIELD_NIGHT_WATER_TANK_H
-#define ROOMS_DRYFIELD_NIGHT_WATER_TANK_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_NIGHT_WATER_TANK_H
+#define INCLUDE_ROOMS_DRYFIELD_NIGHT_WATER_TANK_H
+
+#include "types.h"
+
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-#include "gameplay/area.h"
-
 extern GpAreaVariant D_dryfield_night_water_tank_80180764[13];
+
+// dryfield_night_water_tank
+extern GpRoomCoordRec D_dryfield_night_water_tank_8017EE50[];
+
+extern GpRoomObjRec D_dryfield_night_water_tank_8017EE58[];
+
+extern u8* D_dryfield_night_water_tank_8017EE74[];
+
+extern GpViewCountRec D_dryfield_night_water_tank_8017EE78[];
+
+extern GpWarpRec D_dryfield_night_water_tank_8017EE7C[];
+
+extern GpViewRec D_dryfield_night_water_tank_8017F4D4[];
+
+extern GpSprtRec D_dryfield_night_water_tank_801801CC[];
+
+extern GpRoomParamRec* D_dryfield_night_water_tank_80180890[];
 
 void func_dryfield_night_water_tank_8017DD8C(Task* unused);
 
-#endif // ROOMS_DRYFIELD_NIGHT_WATER_TANK_H
+void func_dryfield_night_water_tank_8017D984(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_WATER_TANK_H

@@ -1,51 +1,42 @@
+#include "rooms/neo_ark_power_plant_1.h"
+
+#include "types.h"
+
 #include "neo_ark_power_plant_1_private.h"
-#include "mapui/map_neo_ark.h"
 
-#include "common.h"
-#include "rooms/room.h"
-
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
 /// Main-executable globals with no module header yet, which
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
 
-/// Script blobs in the overlay's `.data`, handed to `func_800E8634` /
-/// `func_800E8614` (which forward them to `Task_Spawn`) as raw addresses.
-extern GpEvsCmd D_neo_ark_power_plant_1_8017EB7C[];
-extern GpEvsCmd D_neo_ark_power_plant_1_8017EDBC[];
-extern GpEvsCmd D_neo_ark_power_plant_1_8017EEE4[];
-
-/// Countdown `func_neo_ark_power_plant_1_8017D5EC` arms to 4 and ticks down;
-/// reaching 0 enqueues a sound event.
-extern s32 D_neo_ark_power_plant_1_8017F01C;
-
 /// Area-record list applied when the power-on script starts.
 extern GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[];
-
-/// The room's own `GpMsgEntry[]` - the message table this task publishes.
-extern GpMsgEntry D_neo_ark_power_plant_1_8017EB18[];
 
 static void func_neo_ark_power_plant_1_8017D5EC(Task* task);
 static void func_neo_ark_power_plant_1_8017D928(Task* task);
@@ -56,9 +47,6 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task);
 static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
     { func_neo_ark_power_plant_1_8017D928, func_neo_ark_power_plant_1_8017D5EC, taskKill },
 };
-
-extern s32 D_neo_ark_power_plant_1_80181B9C[3];
-extern s32 D_neo_ark_power_plant_1_80181BA8[3];
 
 s32 D_neo_ark_power_plant_1_80181BB4[3] = {
     0x10000015,

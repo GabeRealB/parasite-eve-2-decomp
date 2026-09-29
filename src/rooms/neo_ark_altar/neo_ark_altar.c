@@ -1,32 +1,34 @@
-#include "common.h"
-#include "mapui/map_neo_ark.h"
+#include "rooms/neo_ark_altar.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/neo_ark_altar.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "types.h"
+
+#include "neo_ark_altar_private.h"
+
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-/// 0xFF-terminated area-record list applied the first time the altar fires.
-extern GpAreaApplyRec D_neo_ark_altar_801800A0[];
+#include "mapui/map_neo_ark.h"
 
 /// The room's own `GpMsgEntry[]` - the message table this task publishes.
 extern GpMsgEntry D_neo_ark_altar_8017EF98[];
-/// Spawn table for the follow-up task the altar's message task starts.
-extern TaskDesc D_neo_ark_altar_8017F088[];
+
 /// Single-entry spawn table for the altar's cutscene-driver task
 /// (`func_neo_ark_altar_8017D668`).
 extern TaskDesc D_neo_ark_altar_8017EF8C;
@@ -43,11 +45,11 @@ static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
     taskKill,
 };
 
-void func_neo_ark_altar_8017D668(Task *);
-s32 func_neo_ark_altar_8017D8BC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_altar_8017D8C4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_altar_8017D908(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_altar_8017D910(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+void func_neo_ark_altar_8017D668(Task*);
+s32  func_neo_ark_altar_8017D8BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_altar_8017D8C4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_altar_8017D908(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_altar_8017D910(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskDesc D_neo_ark_altar_8017EF8C = { 0, 32, func_neo_ark_altar_8017D668, { .model = NULL } };
 

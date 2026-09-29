@@ -1,33 +1,35 @@
-#include "neo_ark_eve_access_tunnel_private.h"
+#include "rooms/neo_ark_eve_access_tunnel.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/neo_ark_eve_access_tunnel.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-
-#include "gameplay/sprites.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "overlay.h"
+#include "neo_ark_eve_access_tunnel_private.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
+#include "overlay.h"
 
 static void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2);
 
@@ -40,10 +42,6 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB28[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
 extern GpGridParams D_neo_ark_eve_access_tunnel_8017F05C[1];
-extern GpObj3A D_neo_ark_eve_access_tunnel_80180720[1];
-extern GpObj4C D_neo_ark_eve_access_tunnel_801802EC[6];
-extern GpObj4C D_neo_ark_eve_access_tunnel_801804B4[6];
-extern GpRoomCoordSet D_neo_ark_eve_access_tunnel_801802D4[1];
 
 TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { 0, 32, func_neo_ark_eve_access_tunnel_8017D810, { .model = NULL } };
 

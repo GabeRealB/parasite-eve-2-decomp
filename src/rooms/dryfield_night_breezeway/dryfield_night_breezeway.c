@@ -1,37 +1,46 @@
-#include "common.h"
 #include "rooms/dryfield_night_breezeway.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#define D_dryfield_night_breezeway_8017E6AC (D_dryfield_night_breezeway_8017E6A4 + 1)
+#define D_dryfield_night_breezeway_8017E6C4 (D_dryfield_night_breezeway_8017E6A4[4])
 
 static void func_dryfield_night_breezeway_8017D634(Task* task);
 static void func_dryfield_night_breezeway_8017D678(Task* task);
@@ -51,14 +60,14 @@ static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
 };
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_night_breezeway_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_breezeway_8017D5D8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_dryfield_night_breezeway_8017D600(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_breezeway_8017D62C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_breezeway_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, GpMessageArg);
+s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_night_breezeway_8017EBC4[1];
-extern GpObj4C D_dryfield_night_breezeway_80180170[4];
-extern GpObj4C D_dryfield_night_breezeway_801802A0[3];
+extern GpGridParams   D_dryfield_night_breezeway_8017EBC4[1];
+extern GpObj4C        D_dryfield_night_breezeway_80180170[4];
+extern GpObj4C        D_dryfield_night_breezeway_801802A0[3];
 extern GpRoomCoordSet D_dryfield_night_breezeway_80180158[1];
 
 extern TaskDesc D_8014D8A4;
@@ -735,8 +744,9 @@ GpRoomParamRec * D_dryfield_night_breezeway_801804B8[8] = {
     D_dryfield_night_breezeway_801804A0,
 };
 
-#define D_dryfield_night_breezeway_8017E6AC (D_dryfield_night_breezeway_8017E6A4 + 1)
-#define D_dryfield_night_breezeway_8017E6C4 (D_dryfield_night_breezeway_8017E6A4[4])
+static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2);
+static void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1);
+static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's 0x13F1 message handler: answers 0 without looking at the
 /// message.

@@ -1,31 +1,36 @@
-#include "common.h"
+#include "rooms/dryfield_night_motel_room_5.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
+#include "types.h"
 
-#include "rooms/dryfield_night_motel_room_5.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "dryfield_night_motel_room_5_private.h"
 
-#include "gameplay/display.h"
 #include "gameplay/message.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_room_5_8017DA30[];
 
-s32 func_dryfield_night_motel_room_5_8017D5F0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_5_8017D5F8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_motel_room_5_8017D674(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_5_8017D67C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_5_8017D5F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_5_8017D5F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_motel_room_5_8017D674(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_5_8017D67C(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
     { 5102, func_dryfield_night_motel_room_5_8017D5F8 },
@@ -34,6 +39,9 @@ GpMsgEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
     { 5104, func_dryfield_night_motel_room_5_8017D674 },
     { 0x7FFFFFFF, NULL },
 };
+
+static void func_dryfield_night_motel_room_5_8017D684(Task* task);
+static void func_dryfield_night_motel_room_5_8017D6C8(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_night_motel_room_5_8017D5F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

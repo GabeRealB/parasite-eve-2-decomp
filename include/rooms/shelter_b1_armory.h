@@ -1,13 +1,44 @@
-#ifndef ROOMS_SHELTER_B1_ARMORY_H
-#define ROOMS_SHELTER_B1_ARMORY_H
+#ifndef INCLUDE_ROOMS_SHELTER_B1_ARMORY_H
+#define INCLUDE_ROOMS_SHELTER_B1_ARMORY_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
 extern TaskDesc D_shelter_b1_armory_801824D0;
+
 extern GpAreaVariant D_shelter_b1_armory_801854E0[11];
+
+// shelter_b1_armory
+extern u8* D_shelter_b1_armory_80182580[];
+
+extern GpViewCountRec D_shelter_b1_armory_80182584[];
+
+extern GpWarpRec D_shelter_b1_armory_80182588[];
+
+extern GpGridParams D_shelter_b1_armory_80182ED0;
+
+extern GpViewRec D_shelter_b1_armory_80182EF4[];
+
+extern GpSprtRec D_shelter_b1_armory_80184220[];
+
+extern GpRoomCoordSet D_shelter_b1_armory_80184AFC;
+
+extern GpObj4A D_shelter_b1_armory_80184B14[];
+
+extern GpObj4A D_shelter_b1_armory_80184E0C[];
+
+extern GpRoomParamRec* D_shelter_b1_armory_80185554[];
+
+void func_shelter_b1_armory_8018078C(Task* task);
 
 void func_shelter_b1_armory_801807E4(Task* unused);
 
-#endif // ROOMS_SHELTER_B1_ARMORY_H
+#endif // INCLUDE_ROOMS_SHELTER_B1_ARMORY_H

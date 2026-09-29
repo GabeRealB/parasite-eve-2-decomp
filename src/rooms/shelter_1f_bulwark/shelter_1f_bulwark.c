@@ -1,50 +1,62 @@
-#include "common.h"
 #include "rooms/shelter_1f_bulwark.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -70,20 +82,20 @@ static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_shelter_1f_bulwark_80180648[1];
-extern GpObj3A D_shelter_1f_bulwark_80180E08[2];
-extern GpObj4C D_shelter_1f_bulwark_80180A8C[2];
-extern GpObj4C D_shelter_1f_bulwark_80180B24[8];
+extern GpGridParams   D_shelter_1f_bulwark_80180648[1];
+extern GpObj3A        D_shelter_1f_bulwark_80180E08[2];
+extern GpObj4C        D_shelter_1f_bulwark_80180A8C[2];
+extern GpObj4C        D_shelter_1f_bulwark_80180B24[8];
 extern GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1];
 
-s32 func_shelter_1f_bulwark_8017D7B4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_1f_bulwark_8017DBBC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_bulwark_8017DBC4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_bulwark_8017DBCC(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_1f_bulwark_8017D61C(Task *);
-void func_shelter_1f_bulwark_8017DA60(Task *);
-void func_shelter_1f_bulwark_8017DC78(Task *);
-void func_shelter_1f_bulwark_8017DE04(Task *);
+s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, GpMessageArg, GpMessageArg);
+void func_shelter_1f_bulwark_8017D61C(Task*);
+void func_shelter_1f_bulwark_8017DA60(Task*);
+void func_shelter_1f_bulwark_8017DC78(Task*);
+void func_shelter_1f_bulwark_8017DE04(Task*);
 
 TaskDesc D_shelter_1f_bulwark_80180320 = { 0, 32, func_shelter_1f_bulwark_8017D61C, { .model = NULL } };
 
@@ -412,6 +424,9 @@ s8 D_shelter_1f_bulwark_80180ECC[4] = {
 };
 
 RoomLatchedEvent D_shelter_1f_bulwark_80180ED0 = { 0 };
+
+static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static void           func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it to finish and,

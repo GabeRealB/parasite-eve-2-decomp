@@ -1,36 +1,105 @@
-/* The Neo Ark stage's map UI overlay (stage 5, Neo Ark and the Shelter): its
- * stream setup, map-room hook and music hook, and the per-stage tables gameplay
- * and main index by stage, most of which point into the stage's room packages
- * or at the map pictures' marker models.
- */
-#include "common.h"
+#include "mapui/map_neo_ark.h"
+
+#include <psyq/sys/types.h>
+
+#include "types.h"
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
 #include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
-
-#include "mappic/mappic.h"
-#include "mapui/map_neo_ark.h"
-#include "mapui/mapui.h"
-#include "mapui/stage_tables.h"
-#include "rooms/room.h"
-#include "rooms/stage_tables.h"
-
 #include "gameplay/view.h"
+
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_types.h"
 #include "main/stream.h"
 #include "main/task_types.h"
+
+#include "mappic/mappic.h"
+
+#include "rooms/neo_ark_altar.h"
+
+#include "rooms/neo_ark_bridge.h"
+
+#include "rooms/neo_ark_eve_access_tunnel.h"
+
+#include "rooms/neo_ark_eve_elevator.h"
+
+#include "rooms/neo_ark_forest_zone.h"
+
+#include "rooms/neo_ark_garden.h"
+
+#include "rooms/neo_ark_island.h"
+
+#include "rooms/neo_ark_north_promenade.h"
+
+#include "rooms/neo_ark_observatory.h"
+
+#include "rooms/neo_ark_pavilion.h"
+
+#include "rooms/neo_ark_power_plant_1.h"
+
+#include "rooms/neo_ark_power_plant_2.h"
+
+#include "rooms/neo_ark_pyramid.h"
+
+#include "rooms/neo_ark_r26.h"
+
+#include "rooms/neo_ark_r31.h"
+
+#include "rooms/neo_ark_savanna_zone.h"
+
+#include "rooms/neo_ark_shrine.h"
+
+#include "rooms/neo_ark_south_promenade.h"
+
+#include "rooms/neo_ark_submarine_gallery.h"
+
+#include "rooms/neo_ark_submarine_tunnel.h"
+
+#include "rooms/neo_ark_substation.h"
+
+#include "rooms/neo_ark_woodland_path.h"
+
+#include "rooms/shelter_1f_airlock.h"
+
+#include "rooms/shelter_1f_bulwark.h"
+
+#include "rooms/shelter_1f_guardroom.h"
+
+#include "rooms/shelter_1f_heliport.h"
+
+#include "rooms/shelter_1f_parking_garage.h"
+
+#include "rooms/shelter_1f_tent.h"
+
+#include "rooms/shelter_1f_vehicular_airlock.h"
+
+#include "rooms/shelter_b6_corridor.h"
+
+#include "rooms/shelter_b6_growth_room.h"
+
+#include "rooms/shelter_b6_nursery.h"
+
+#include "rooms/shelter_b6_training_room.h"
+
+/* The Neo Ark stage's map UI overlay (stage 5, Neo Ark and the Shelter): its
+ * stream setup, map-room hook and music hook, and the per-stage tables gameplay
+ * and main index by stage, most of which point into the stage's room packages
+ * or at the map pictures' marker models.
+ */
 
 static GpBit2Rec D_map_neo_ark_8017C790[2];
 static GpBit2Rec D_map_neo_ark_8017C7B0[14];
@@ -41,6 +110,9 @@ static GpBit2Rec D_map_neo_ark_8017C910[2];
 static GpBit2Rec D_map_neo_ark_8017C930[4];
 static GpBit2Rec D_map_neo_ark_8017C970[2];
 static GpBit2Rec D_map_neo_ark_8017C990[2];
+
+static void func_map_neo_ark_801799BC(u8* arg0);
+static s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2);
 
 /// MDEC buffer layout hook for the Neo Ark map, reached from
 /// `Mdec_SetupBuffers` (main) for stream kinds 6 and 9. Both kinds park the

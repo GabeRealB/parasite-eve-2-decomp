@@ -1,32 +1,43 @@
-#include "shelter_b1_armory_private.h"
 #include "rooms/shelter_b1_armory.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "shelter_b1_armory_private.h"
 
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/inventory.h"
 #include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
+
+#define D_shelter_b1_armory_80182538 (D_shelter_b1_armory_80182528 + 2)
+#define D_shelter_b1_armory_80182558 (D_shelter_b1_armory_80182528 + 6)
+#define D_shelter_b1_armory_80182568 (D_shelter_b1_armory_80182528 + 8)
+#define D_shelter_b1_armory_80182570 (D_shelter_b1_armory_80182528 + 9)
+#define D_shelter_b1_armory_80182578 (D_shelter_b1_armory_80182528 + 10)
 
 /// The points the room's glows are drawn at, per view.
 
@@ -974,12 +985,6 @@ u8 D_shelter_b1_armory_8018558C[4] = {
 };
 
 RoomEventReq D_shelter_b1_armory_80185590 = { 0, 0, 0, 0, 0, 0 };
-
-#define D_shelter_b1_armory_80182538 (D_shelter_b1_armory_80182528 + 2)
-#define D_shelter_b1_armory_80182558 (D_shelter_b1_armory_80182528 + 6)
-#define D_shelter_b1_armory_80182568 (D_shelter_b1_armory_80182528 + 8)
-#define D_shelter_b1_armory_80182570 (D_shelter_b1_armory_80182528 + 9)
-#define D_shelter_b1_armory_80182578 (D_shelter_b1_armory_80182528 + 10)
 
 void func_shelter_b1_armory_801807E4(Task* unused)
 {

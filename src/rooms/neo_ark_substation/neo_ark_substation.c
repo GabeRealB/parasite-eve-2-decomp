@@ -1,36 +1,44 @@
-#include "common.h"
 #include "rooms/neo_ark_substation.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// The room's own `GpMsgEntry[]` - the message table the message task publishes.
 extern GpMsgEntry D_neo_ark_substation_8017E294[];
@@ -59,15 +67,15 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
     taskKill,
 };
 
-void func_neo_ark_substation_8017D608(Task *);
-s32 func_neo_ark_substation_8017D71C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_substation_8017D724(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_substation_8017D768(Task *, s32, s32, GpMessageArg);
-s32 func_neo_ark_substation_8017D7A4(Task *, s32, GpMessageArg, GpMessageArg);
+void func_neo_ark_substation_8017D608(Task*);
+s32  func_neo_ark_substation_8017D71C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_substation_8017D724(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_substation_8017D768(Task*, s32, s32, GpMessageArg);
+s32  func_neo_ark_substation_8017D7A4(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_neo_ark_substation_8017E8A4[1];
-extern GpObj4C D_neo_ark_substation_8017FC5C[12];
-extern GpObj4C D_neo_ark_substation_8017FFEC[10];
+extern GpGridParams   D_neo_ark_substation_8017E8A4[1];
+extern GpObj4C        D_neo_ark_substation_8017FC5C[12];
+extern GpObj4C        D_neo_ark_substation_8017FFEC[10];
 extern GpRoomCoordSet D_neo_ark_substation_8017FC44[1];
 
 GpMsgEntry D_neo_ark_substation_8017E294[5] = {

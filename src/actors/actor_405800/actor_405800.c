@@ -1,54 +1,64 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include "psyq/libgpu.h"
-#include "psyq/inline_c.h"
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
+
 #include "actors/actors_shared_80131fc8.h"
+
 #include "actors/actors_shared_8013a0b0.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/model_lighting.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/model_lighting.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
@@ -221,14 +231,14 @@ extern GpAnimSet* D_actor_405800_80151410[35];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *);
-        void (*call1)(Task *, s32, u16 *);
+        void (*call0)(Task*);
+        void (*call1)(Task*, s32, u16*);
     } handler;
 } Actor405800MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor405800MessageEntry, 8);
 
 extern Actor405800MessageEntry D_actor_405800_8015149C[3];
-extern u8         D_actor_405800_801514D8[];
+extern u8                      D_actor_405800_801514D8[];
 
 /* The records closing four of the overlay's model streams, selected through
    `D_800678F0`. */
@@ -360,14 +370,14 @@ static void func_actor_405800_8013A1E0(Task* task, s16 arg1, s16 arg2);
 static void func_actor_405800_8013A1F8(Task* task, s16 arg1, s16 arg2, s16 arg3);
 
 extern TmdSource D_actor_405800_8013EDFC;
-void func_actor_405800_80138634(Task *);
+void             func_actor_405800_80138634(Task*);
 
 extern TmdSource D_actor_405800_8013F04C;
 extern TmdSource D_actor_405800_8013F2C4;
-void func_actor_405800_80138854(Task *, s32, u16 *);
-void func_actor_405800_801388C4(Task *);
-void func_actor_405800_801388D4(Task *);
-void func_actor_405800_801388DC(Task *);
+void             func_actor_405800_80138854(Task*, s32, u16*);
+void             func_actor_405800_801388C4(Task*);
+void             func_actor_405800_801388D4(Task*);
+void             func_actor_405800_801388DC(Task*);
 
 TmdBone D_actor_405800_8013A214[18] = {
 #include "assets/actor_405800_model_0CFDC_skeleton.inc"
@@ -1583,6 +1593,11 @@ TaskDesc D_actor_405800_801514B4[2] = {
 TaskDesc D_actor_405800_801514CC = { 1, 96, func_actor_405800_80138634, { .model = &D_actor_405800_8013EDFC } };
 
 u8 D_actor_405800_801514D8[35] = { 26, 26, 26, 27, 27, 15, 15, 26, 26, 26, 26, 27, 27, 15, 15, 26, 26, 27, 27, 30, 27, 26, 26, 26, 26, 26, 15, 15, 15, 15, 15, 15, 15, 15, 15 };
+
+static __inline__ void Actor405800_RebuildRotation(Task* arg0);
+static __inline__ void Actor405800_TickAnim(Task* arg0);
+static __inline__ void Actor405800_ProjectPart(GpCoord* part);
+static __inline__ void _actor405800SetBehaviour(Task* task, s16 id);
 
 /// `func_actor_405800_80139FC4`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each

@@ -1,25 +1,62 @@
-#ifndef ROOMS_SHELTER_B2_MAIN_CORRIDOR_H
-#define ROOMS_SHELTER_B2_MAIN_CORRIDOR_H
+#ifndef INCLUDE_ROOMS_SHELTER_B2_MAIN_CORRIDOR_H
+#define INCLUDE_ROOMS_SHELTER_B2_MAIN_CORRIDOR_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-#include "actors/waypoints.h"
-#include <psyq/libgte.h>
-
 // Room data exported to the shared waypoint actor.
 extern SVECTOR* D_shelter_b2_main_corridor_80182EEC[4];
+
 extern SVECTOR D_shelter_b2_main_corridor_80182EFC[12];
+
 extern s16 D_shelter_b2_main_corridor_80182E28;
 
-void func_shelter_b2_main_corridor_8017EF24(Task* task);
-void func_shelter_b2_main_corridor_8017F3AC(Task* task);
-void func_shelter_b2_main_corridor_8018094C(Task* task);
-void func_shelter_b2_main_corridor_801813B0(Task* task);
-void func_shelter_b2_main_corridor_80181C98(Task* task);
 extern GpAreaVariant D_shelter_b2_main_corridor_8018933C[22];
+
+// shelter_b2_main_corridor
+extern u8* D_shelter_b2_main_corridor_801830CC[];
+
+extern GpViewCountRec D_shelter_b2_main_corridor_801830D0[];
+
+extern GpWarpRec D_shelter_b2_main_corridor_801830D4[];
+
+extern GpGridParams D_shelter_b2_main_corridor_80184440;
+
+extern GpViewRec D_shelter_b2_main_corridor_80184464[];
+
+extern GpSprtRec D_shelter_b2_main_corridor_80188848[];
+
+extern GpRoomCoordSet D_shelter_b2_main_corridor_80188BE4;
+
+extern GpObj4A D_shelter_b2_main_corridor_80188BFC[];
+
+extern GpObj4A D_shelter_b2_main_corridor_801893EC[];
+
+extern GpRoomParamRec* D_shelter_b2_main_corridor_80189624[];
+
+void func_shelter_b2_main_corridor_8017E338(Task* task);
+
+void func_shelter_b2_main_corridor_8017EF24(Task* task);
+
+void func_shelter_b2_main_corridor_8017F3AC(Task* task);
+
+void func_shelter_b2_main_corridor_8018094C(Task* task);
+
+void func_shelter_b2_main_corridor_801813B0(Task* task);
+
+void func_shelter_b2_main_corridor_80181C98(Task* task);
 
 void func_shelter_b2_main_corridor_8017EC34(Task* arg0);
 
-#endif
+#endif // INCLUDE_ROOMS_SHELTER_B2_MAIN_CORRIDOR_H

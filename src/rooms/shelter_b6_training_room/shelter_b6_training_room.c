@@ -1,49 +1,50 @@
-#include "shelter_b6_training_room_private.h"
 #include "rooms/shelter_b6_training_room.h"
-#include "mapui/map_neo_ark.h"
 
-#include "common.h"
-#include "rooms/room.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
+#include "types.h"
+
+#include "shelter_b6_training_room_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/direction_input.h"
-
-extern GpMsgEntry D_shelter_b6_training_room_80182AF4[];
-extern s32        D_shelter_b6_training_room_80182B24;
-extern TaskDesc   D_shelter_b6_training_room_801839A8;
-extern GpEvsCmd D_shelter_b6_training_room_80183BB4[];
-extern GpEvsCmd D_shelter_b6_training_room_80184124[];
-extern GpEvsCmd D_shelter_b6_training_room_80184274[];
-/// The stream playback descriptors: the one-shot launcher, then the player.
-extern TaskDesc D_shelter_b6_training_room_8018431C[];
-extern s32      D_shelter_b6_training_room_80185C58;
+extern s32 D_shelter_b6_training_room_80185C58;
 
 /// The room's tracked task, driven by `func_shelter_b6_training_room_8017D974`,
 /// or NULL when none is running.
@@ -498,6 +499,9 @@ GpCoord * D_shelter_b6_training_room_80185C90 = NULL;
 GpCoord * D_shelter_b6_training_room_80185C94 = NULL;
 
 u16 D_shelter_b6_training_room_80185C98 = 0;
+
+static void func_shelter_b6_training_room_8017D7D4(Task* arg0);
+static void func_shelter_b6_training_room_8017D874(Task* task);
 
 /// The room's handler for message 0x13F1, which does nothing and returns 0.
 s32 func_shelter_b6_training_room_8017D638(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

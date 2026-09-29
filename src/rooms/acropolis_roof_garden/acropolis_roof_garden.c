@@ -1,58 +1,65 @@
-#include "common.h"
 #include "rooms/acropolis_roof_garden.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d830.h"
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/inventory.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_akropolis.h"
+
 #include "overlay.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/animation.h"
+#include "rooms/room_common.h"
 
 /// Grey level of each of the three variants the ambient sprite task can be
 /// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
@@ -64,10 +71,10 @@ typedef struct RgSpriteLevels {
 extern GpMsgEntry D_acropolis_roof_garden_80183BDC[];
 extern Task*      D_acropolis_roof_garden_80183C0C;
 extern TaskDesc   D_acropolis_roof_garden_80183C10[];
-extern GpEvsCmd D_acropolis_roof_garden_80183D74[];
-extern GpEvsCmd D_acropolis_roof_garden_80184194[];
+extern GpEvsCmd   D_acropolis_roof_garden_80183D74[];
+extern GpEvsCmd   D_acropolis_roof_garden_80184194[];
 extern s32        D_acropolis_roof_garden_8018432C;
-extern GpEvsCmd D_acropolis_roof_garden_80184B08[];
+extern GpEvsCmd   D_acropolis_roof_garden_80184B08[];
 
 /// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by
 /// the effect task's first-frame burst.
@@ -96,44 +103,44 @@ static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
 
 static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
 
-extern GpGridParams D_acropolis_roof_garden_801854A4[1];
-extern GpObj3A D_acropolis_roof_garden_80186D14[2];
-extern GpObj4C D_acropolis_roof_garden_801854C8[6];
-extern GpObj4C D_acropolis_roof_garden_80185690[7];
+extern GpGridParams   D_acropolis_roof_garden_801854A4[1];
+extern GpObj3A        D_acropolis_roof_garden_80186D14[2];
+extern GpObj4C        D_acropolis_roof_garden_801854C8[6];
+extern GpObj4C        D_acropolis_roof_garden_80185690[7];
 extern GpRoomCoordSet D_acropolis_roof_garden_80186BDC[1];
 
 extern GpAnimArg D_acropolis_roof_garden_80184ACC;
 extern GpAnimArg D_acropolis_roof_garden_80184AE0;
 extern GpCopyArg D_acropolis_roof_garden_80184AB0;
-void func_acropolis_roof_garden_8017DCCC(void);
+void             func_acropolis_roof_garden_8017DCCC(void);
 
-extern GpAnimArg D_acropolis_roof_garden_80183C44;
-extern GpAnimArg D_acropolis_roof_garden_80183CCC;
-extern GpAnimArg D_acropolis_roof_garden_80183CE0;
-extern GpAnimArg D_acropolis_roof_garden_80183CF4;
-extern GpAnimArg D_acropolis_roof_garden_80183D08;
-extern GpAnimArg D_acropolis_roof_garden_80183D1C;
-extern GpAnimArg D_acropolis_roof_garden_80183D30;
-extern GpAnimArg D_acropolis_roof_garden_80183D44;
-extern GpAnimArg D_acropolis_roof_garden_80183D58;
-extern GpCopyArg D_acropolis_roof_garden_80183CC4;
+extern GpAnimArg  D_acropolis_roof_garden_80183C44;
+extern GpAnimArg  D_acropolis_roof_garden_80183CCC;
+extern GpAnimArg  D_acropolis_roof_garden_80183CE0;
+extern GpAnimArg  D_acropolis_roof_garden_80183CF4;
+extern GpAnimArg  D_acropolis_roof_garden_80183D08;
+extern GpAnimArg  D_acropolis_roof_garden_80183D1C;
+extern GpAnimArg  D_acropolis_roof_garden_80183D30;
+extern GpAnimArg  D_acropolis_roof_garden_80183D44;
+extern GpAnimArg  D_acropolis_roof_garden_80183D58;
+extern GpCopyArg  D_acropolis_roof_garden_80183CC4;
 extern GpXformArg D_acropolis_roof_garden_80183C58;
 extern GpXformArg D_acropolis_roof_garden_80183C70;
 extern GpXformArg D_acropolis_roof_garden_80183CA0;
-void func_acropolis_roof_garden_8017DAD4(s32);
+void              func_acropolis_roof_garden_8017DAD4(s32);
 
 extern GpAnimSet D_acropolis_roof_garden_80181724;
 extern GpAnimSet D_acropolis_roof_garden_801836BC;
 extern GpAnimSet D_acropolis_roof_garden_80183BB4;
 
-s32 func_acropolis_roof_garden_8017D71C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_roof_garden_8017D798(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_roof_garden_8017D7A0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_roof_garden_8017D868(Task *, s32, s32, s32);
-s32 func_acropolis_roof_garden_8017D8AC(Task *, s32, s32, GpMessageArg);
-void func_acropolis_roof_garden_8017D5D4(Task *);
-void func_acropolis_roof_garden_8017D970(Task *);
-void func_acropolis_roof_garden_8017DA48(Task *);
+s32  func_acropolis_roof_garden_8017D71C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_acropolis_roof_garden_8017D798(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_acropolis_roof_garden_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_acropolis_roof_garden_8017D868(Task*, s32, s32, s32);
+s32  func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, GpMessageArg);
+void func_acropolis_roof_garden_8017D5D4(Task*);
+void func_acropolis_roof_garden_8017D970(Task*);
+void func_acropolis_roof_garden_8017DA48(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1225,6 +1232,9 @@ TmdSource D_acropolis_roof_garden_80186E70 = {
 s32 D_acropolis_roof_garden_80186E94 = 0;
 
 SVECTOR D_acropolis_roof_garden_80186E98 = { 0 };
+
+static s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2);
+static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
 
 /// Keeps the roof garden's ambience (sound id 0x510D0005) in step with the
 /// session's weather/time state: state 5 plays it at 0x1E, state 7 at full

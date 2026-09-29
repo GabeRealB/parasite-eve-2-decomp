@@ -1,57 +1,59 @@
-#include "gameplay/evs.h"
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/libgpu.h>
+#include <psyq/rand.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "psyq/rand.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/ending.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
-
-#include "gameplay/animation.h"
-
-#include "gameplay/ending.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[15];
-        GpCopyArg copy;
-        GpAnimArg arguments[3];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[3];
     } data;
     s32 words[32];
 } Actor460200AnimStorage5E30;
 STATIC_ASSERT_SIZEOF(Actor460200AnimStorage5E30, 128);
 
 extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
-
 
 static void func_actor_460200_801325FC(Task* task);
 
@@ -66,39 +68,39 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpCmdArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor460200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor460200MessageEntry, 8);
 
 extern Actor460200MessageEntry D_actor_460200_8013FC50[6];
-extern GpAnimSet* D_actor_460200_8013FC8C[16];
+extern GpAnimSet*              D_actor_460200_8013FC8C[16];
 
 extern u8 D_actor_460200_8013FCCC[];
 
-extern GpAnimArg D_actor_460200_80135F14;
-extern GpAnimArg D_actor_460200_8013607C;
+extern GpAnimArg  D_actor_460200_80135F14;
+extern GpAnimArg  D_actor_460200_8013607C;
 extern GpXformArg D_actor_460200_80136234;
-extern GpEvsCmd D_actor_460200_80137AA0[];
-extern GpEvsCmd D_actor_460200_80137BA8[];
-extern GpEvsCmd D_actor_460200_80137CB0[];
-extern GpEvsCmd D_actor_460200_80137DA0[];
-extern GpEvsCmd D_actor_460200_80137F98[];
-extern GpEvsCmd D_actor_460200_80137FE0[];
-extern GpEvsCmd D_actor_460200_80138028[];
-extern GpEvsCmd D_actor_460200_80138070[];
+extern GpEvsCmd   D_actor_460200_80137AA0[];
+extern GpEvsCmd   D_actor_460200_80137BA8[];
+extern GpEvsCmd   D_actor_460200_80137CB0[];
+extern GpEvsCmd   D_actor_460200_80137DA0[];
+extern GpEvsCmd   D_actor_460200_80137F98[];
+extern GpEvsCmd   D_actor_460200_80137FE0[];
+extern GpEvsCmd   D_actor_460200_80138028[];
+extern GpEvsCmd   D_actor_460200_80138070[];
 
 extern RECT D_actor_460200_80135E0C;
 extern RECT D_actor_460200_80135E14;
 
-extern TaskDesc D_actor_460200_80148118[];
-extern u8       D_actor_460200_80148130[];
+extern TaskDesc                D_actor_460200_80148118[];
+extern u8                      D_actor_460200_80148130[];
 extern Actor460200MessageEntry D_actor_460200_801480E8[6];
 extern Actor460200MessageEntry D_actor_460200_801514FC[6];
-extern s32      D_actor_460200_80151538;
+extern s32                     D_actor_460200_80151538;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
@@ -126,22 +128,22 @@ static void func_actor_460200_80133C00(Task* task);
 
 extern TmdSource D_actor_460200_801406F8;
 extern TmdSource D_actor_460200_80145E28;
-void func_actor_460200_801330C8(Task *);
-void func_actor_460200_8013364C(Task *);
+void             func_actor_460200_801330C8(Task*);
+void             func_actor_460200_8013364C(Task*);
 
-s32 func_actor_460200_80133408(Task *, s32, GpAnimArg *);
-s32 func_actor_460200_80133474(Task *, s32, s32);
-s32 func_actor_460200_801334F0(Task *, s32, GpXformArg *);
-s32 func_actor_460200_80133568(Task *, s32, GpCmdArg *);
-s32 func_actor_460200_80133580(Task *, s32, GpXformArg *);
+s32 func_actor_460200_80133408(Task*, s32, GpAnimArg*);
+s32 func_actor_460200_80133474(Task*, s32, s32);
+s32 func_actor_460200_801334F0(Task*, s32, GpXformArg*);
+s32 func_actor_460200_80133568(Task*, s32, GpCmdArg*);
+s32 func_actor_460200_80133580(Task*, s32, GpXformArg*);
 
 extern TmdSource D_actor_460200_8014DB94;
-s32 func_actor_460200_80133C64(Task *, s32, GpAnimArg *);
-s32 func_actor_460200_80133CD0(Task *, s32, s32);
-s32 func_actor_460200_80133D4C(Task *, s32, GpXformArg *);
-s32 func_actor_460200_80133DC4(void);
-s32 func_actor_460200_80133DCC(Task *, s32, GpXformArg *);
-void func_actor_460200_8013386C(Task *);
+s32              func_actor_460200_80133C64(Task*, s32, GpAnimArg*);
+s32              func_actor_460200_80133CD0(Task*, s32, s32);
+s32              func_actor_460200_80133D4C(Task*, s32, GpXformArg*);
+s32              func_actor_460200_80133DC4(void);
+s32              func_actor_460200_80133DCC(Task*, s32, GpXformArg*);
+void             func_actor_460200_8013386C(Task*);
 
 extern GpAnimArg D_actor_460200_80135E1C;
 extern GpAnimArg D_actor_460200_80135F28;
@@ -151,52 +153,52 @@ extern GpAnimArg D_actor_460200_80136090;
 extern GpAnimArg D_actor_460200_801360A4;
 extern GpAnimArg D_actor_460200_801360B8;
 extern GpAnimArg D_actor_460200_801360CC;
-s32 func_actor_460200_80132B2C(Task *, s32, GpAnimArg *);
-s32 func_actor_460200_80132B98(Task *, s32, s32);
-s32 func_actor_460200_80132C14(Task *, s32, GpXformArg *);
-s32 func_actor_460200_80132C8C(Task *, s32, GpCmdArg *);
-s32 func_actor_460200_80132CAC(Task *, s32, GpXformArg *);
-void func_actor_460200_801327B4(Task *);
+s32              func_actor_460200_80132B2C(Task*, s32, GpAnimArg*);
+s32              func_actor_460200_80132B98(Task*, s32, s32);
+s32              func_actor_460200_80132C14(Task*, s32, GpXformArg*);
+s32              func_actor_460200_80132C8C(Task*, s32, GpCmdArg*);
+s32              func_actor_460200_80132CAC(Task*, s32, GpXformArg*);
+void             func_actor_460200_801327B4(Task*);
 
-extern GpAnimArg D_actor_460200_80135EB0;
-extern GpAnimArg D_actor_460200_80135EC4;
-extern GpAnimArg D_actor_460200_80135ED8;
-extern GpAnimArg D_actor_460200_80135EEC;
-extern GpAnimArg D_actor_460200_80135F00;
-extern GpAnimArg D_actor_460200_80135F78;
-extern GpAnimArg D_actor_460200_80135F8C;
-extern GpAnimArg D_actor_460200_80135FA0;
-extern GpAnimArg D_actor_460200_80135FB4;
-extern GpAnimArg D_actor_460200_80135FC8;
-extern GpAnimArg D_actor_460200_80135FDC;
-extern GpAnimArg D_actor_460200_80135FF0;
-extern GpAnimArg D_actor_460200_80136004;
-extern GpAnimArg D_actor_460200_80136018;
-extern GpAnimArg D_actor_460200_8013602C;
-extern GpAnimArg D_actor_460200_80136040;
-extern GpAnimArg D_actor_460200_801360E0;
-extern GpAnimArg D_actor_460200_801360F4;
-extern GpAnimArg D_actor_460200_80136108;
-extern GpAnimArg D_actor_460200_8013611C;
-extern GpAnimArg D_actor_460200_80136130;
-extern GpAnimArg D_actor_460200_80136144;
-extern GpAnimArg D_actor_460200_80136158;
-extern GpAnimArg D_actor_460200_8013616C;
-extern GpAnimArg D_actor_460200_80136180;
-extern GpAnimArg D_actor_460200_80136194;
-extern GpAnimArg D_actor_460200_801361A8;
+extern GpAnimArg  D_actor_460200_80135EB0;
+extern GpAnimArg  D_actor_460200_80135EC4;
+extern GpAnimArg  D_actor_460200_80135ED8;
+extern GpAnimArg  D_actor_460200_80135EEC;
+extern GpAnimArg  D_actor_460200_80135F00;
+extern GpAnimArg  D_actor_460200_80135F78;
+extern GpAnimArg  D_actor_460200_80135F8C;
+extern GpAnimArg  D_actor_460200_80135FA0;
+extern GpAnimArg  D_actor_460200_80135FB4;
+extern GpAnimArg  D_actor_460200_80135FC8;
+extern GpAnimArg  D_actor_460200_80135FDC;
+extern GpAnimArg  D_actor_460200_80135FF0;
+extern GpAnimArg  D_actor_460200_80136004;
+extern GpAnimArg  D_actor_460200_80136018;
+extern GpAnimArg  D_actor_460200_8013602C;
+extern GpAnimArg  D_actor_460200_80136040;
+extern GpAnimArg  D_actor_460200_801360E0;
+extern GpAnimArg  D_actor_460200_801360F4;
+extern GpAnimArg  D_actor_460200_80136108;
+extern GpAnimArg  D_actor_460200_8013611C;
+extern GpAnimArg  D_actor_460200_80136130;
+extern GpAnimArg  D_actor_460200_80136144;
+extern GpAnimArg  D_actor_460200_80136158;
+extern GpAnimArg  D_actor_460200_8013616C;
+extern GpAnimArg  D_actor_460200_80136180;
+extern GpAnimArg  D_actor_460200_80136194;
+extern GpAnimArg  D_actor_460200_801361A8;
 extern GpXformArg D_actor_460200_801361BC;
 extern GpXformArg D_actor_460200_801361D4;
 extern GpXformArg D_actor_460200_801361EC;
 extern GpXformArg D_actor_460200_80136204;
 extern GpXformArg D_actor_460200_8013621C;
-void func_actor_460200_80132090(Task *);
-void func_actor_460200_801320E0(s32);
-void func_actor_460200_80132124(void);
-void func_actor_460200_80132204(s8);
+void              func_actor_460200_80132090(Task*);
+void              func_actor_460200_801320E0(s32);
+void              func_actor_460200_80132124(void);
+void              func_actor_460200_80132204(s8);
 
 extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
-void func_actor_460200_80131E24(Task *);
+void                              func_actor_460200_80131E24(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -2365,6 +2367,13 @@ GpAnimSet * D_actor_460200_8015153C[17] = {
     &D_actor_460200_80151298,
     &D_actor_460200_801514D4,
 };
+
+static void func_actor_460200_80132210(void);
+static void func_actor_460200_801322B8(void);
+static void func_actor_460200_80132390(void);
+static void func_actor_460200_80132468(GpEnemy* enemy, Task* task);
+static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task);
+static void func_actor_460200_801336B4(Task* task);
 
 void func_actor_460200_80131E24(Task* task)
 {

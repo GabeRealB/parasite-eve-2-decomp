@@ -1,74 +1,177 @@
-#include "common.h"
+#include "rooms/acropolis_bridge.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/acropolis_bridge.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
+#include <psyq/stdio.h>
 
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/damage.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/loading.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
-
-extern GpPairSrcE D_acropolis_bridge_80190C5C;
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_akropolis.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
-#include <psyq/stdio.h>
 
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/animation.h"
+/// Work block this room's script tasks keep at `Task::work`
+/// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
+/// the script step handed to `func_acropolis_bridge_8017E60C` and
+/// `promptKind` the display mode forwarded to `func_800D4E78`.
+typedef struct AcropolisBridgePromptWork {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s16 field_4;
+    /* 0x06 */ u8  field_6;
+    /* 0x07 */ u8  retryCount;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ s8  promptKind;
+    /* 0x0F */ s8  promptBusy;
+} AcropolisBridgePromptWork;
+
+/// One corner of the unit quad the bridge's dust-cloud task builds its
+/// billboard from (`D_acropolis_bridge_8018990C`): the signed XZ pair
+/// `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`, scaled by 0x300 before being
+/// rotated into world space. Same shape as the gameplay overlay's
+/// `GpQuadCorner`, but signed - the overlay loads the components with `lh`.
+typedef struct AcropolisBridgeQuadCorner {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+} AcropolisBridgeQuadCorner;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadCorner, 0x4);
+
+/// 0x2C-byte scratch block the bridge's dust-cloud task takes from
+/// `G_SCRATCH_HEAD`. `vec` holds the four billboard corners, projected with
+/// one `RTPS` plus one `RTPT` straight into the `POLY_FT4`; `otz` is the
+/// `gte_stszotz` depth the primitive is linked into the OT at. `flag` and
+/// `sxy` are the `gte_stflg` / `gte_stsxy` slots of the same layout the
+/// gameplay overlay's `GpQuadScratch` uses, and this task leaves them unused.
+typedef struct AcropolisBridgeQuadScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     flag;
+    /* 0x08 */ DVECTOR sxy;
+    /* 0x0C */ SVECTOR vec[4];
+} AcropolisBridgeQuadScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
+
+/// 0x1C-byte scratch block the bridge's debris billboard
+/// (`func_acropolis_bridge_80182F8C`) takes from `G_SCRATCH_HEAD`. `vec` is the
+/// piece's world position copied out of its `GpCoord` (`workm.t`) and
+/// projected with a single `RTPS` through `GsWSMATRIX`: `sx` / `sy` are the
+/// projected centre, `flag` the `gte_stflg` result the draw is gated on and
+/// `otz` the `gte_stszotz` depth, biased by 1 so it can be divided by. `dx` /
+/// `dy` are that depth's half-diagonal, `size * 31 / otz` turned by the
+/// billboard's angle, and are rewritten for each of the quad's two diagonals.
+typedef struct AcropolisBridgeSpriteScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     dx;
+    /* 0x08 */ s32     dy;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
+} AcropolisBridgeSpriteScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeSpriteScratch, 0x1C);
+
+/// 0x18-byte scratch block the bridge's axis-aligned debris billboard
+/// (`func_acropolis_bridge_801833A0`) takes from `G_SCRATCH_HEAD`. Same
+/// projection as `AcropolisBridgeSpriteScratch` - `vec` is the piece's world
+/// position out of `workm.t`, `sx` / `sy` the projected centre, `flag` the
+/// `gte_stflg` gate and `otz` the `gte_stszotz` depth biased by 1 - but the
+/// quad is never turned, so one `d` (`size * 55 / otz`) sizes it instead of a
+/// pair of rotated half-diagonals.
+typedef struct AcropolisBridgeDebrisScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     d;
+    /* 0x08 */ s32     flag;
+    /* 0x0C */ SVECTOR vec;
+    /* 0x14 */ u16     sx;
+    /* 0x16 */ u16     sy;
+} AcropolisBridgeDebrisScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeDebrisScratch, 0x18);
+
+extern OverlayHotspot D_acropolis_bridge_8018983C[];
+
+extern s32 D_acropolis_bridge_801917A8;
+
+/// Cursor into the packet buffer the bridge's screen-smear effects draw from.
+/// Every `DR_MOVE` task of the room takes the packet it points at
+/// and bumps it by one, the same way `gGpuPrimCursor` works for the main
+/// primitive heap.
+extern DR_MOVE* D_acropolis_bridge_801917AC;
+
+extern AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4];
+
+extern GpPairSrcE D_acropolis_bridge_80190C5C;
 
 static void func_acropolis_bridge_8017DC68(Task* arg0);
 
@@ -76,8 +179,8 @@ static void func_acropolis_bridge_8017DC68(Task* arg0);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, s32);
     } handler;
 } AcropolisBridgeMessageEntry;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeMessageEntry, 8);
@@ -88,8 +191,8 @@ extern u16 D_acropolis_bridge_801917A4[2];
 
 extern GpMsgEntry D_acropolis_bridge_80188E4C[];
 extern TaskDesc   D_acropolis_bridge_80188E7C[];
-extern GpEvsCmd D_acropolis_bridge_80188EBC[];
-extern GpEvsCmd D_acropolis_bridge_8018912C[];
+extern GpEvsCmd   D_acropolis_bridge_80188EBC[];
+extern GpEvsCmd   D_acropolis_bridge_8018912C[];
 extern TaskDesc   D_acropolis_bridge_80189234;
 extern SVECTOR    D_acropolis_bridge_80189240[];
 extern TaskDesc   D_acropolis_bridge_80189830;
@@ -238,41 +341,41 @@ static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos);
 
 static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
-void func_acropolis_bridge_8017DEE4(Task *);
-void func_acropolis_bridge_8017F280(Task *);
-s32 func_acropolis_bridge_801820A0(Task *, s32, GpMessageArg, GpMessageArg);
+void func_acropolis_bridge_8017DEE4(Task*);
+void func_acropolis_bridge_8017F280(Task*);
+s32  func_acropolis_bridge_801820A0(Task*, s32, GpMessageArg, GpMessageArg);
 
 extern GpGridParams D_acropolis_bridge_8018A89C[1];
 extern GpGridParams D_acropolis_bridge_8018B694[1];
-extern GpObj4C D_acropolis_bridge_8018B6B8[4];
-extern GpObj4C D_acropolis_bridge_8018B7E8[7];
-extern GpObj4C D_acropolis_bridge_8018B9FC[7];
+extern GpObj4C      D_acropolis_bridge_8018B6B8[4];
+extern GpObj4C      D_acropolis_bridge_8018B7E8[7];
+extern GpObj4C      D_acropolis_bridge_8018B9FC[7];
 
 extern GpRoomCoordSet D_acropolis_bridge_80190A0C[1];
-extern GpScriptCmd D_acropolis_bridge_80190BBC[6];
-extern GpScriptRec D_acropolis_bridge_80190BD4[5];
-void func_acropolis_bridge_8017D954(void);
-void func_acropolis_bridge_8017F2D0(s32);
-void func_acropolis_bridge_8017F358(s32);
+extern GpScriptCmd    D_acropolis_bridge_80190BBC[6];
+extern GpScriptRec    D_acropolis_bridge_80190BD4[5];
+void                  func_acropolis_bridge_8017D954(void);
+void                  func_acropolis_bridge_8017F2D0(s32);
+void                  func_acropolis_bridge_8017F358(s32);
 
 extern SVECTOR D_acropolis_bridge_80187E04[171];
 extern TmdBone D_acropolis_bridge_80187DDC[1];
-extern u32 D_acropolis_bridge_80187E00[1];
-extern u32 D_acropolis_bridge_8018835C[691];
-s32 func_acropolis_bridge_8017D6F4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_bridge_8017D7F0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_bridge_8017D7F8(Task *, s32, s32, s32);
-s32 func_acropolis_bridge_8017D868(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_bridge_8017D870(Task *, s32, GpMessageArg, GpMessageArg);
-void func_acropolis_bridge_8017D878(Task *);
-void func_acropolis_bridge_8017D8D0(Task *);
+extern u32     D_acropolis_bridge_80187E00[1];
+extern u32     D_acropolis_bridge_8018835C[691];
+s32            func_acropolis_bridge_8017D6F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32            func_acropolis_bridge_8017D7F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
+s32            func_acropolis_bridge_8017D868(Task*, s32, GpMessageArg, GpMessageArg);
+s32            func_acropolis_bridge_8017D870(Task*, s32, GpMessageArg, GpMessageArg);
+void           func_acropolis_bridge_8017D878(Task*);
+void           func_acropolis_bridge_8017D8D0(Task*);
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     TaskDesc value;
-    u8 retained[8];
+    u8       retained[8];
 } AcropolisBridgeStorage1780;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeStorage1780, 20);
 
@@ -280,18 +383,18 @@ extern AcropolisBridgeStorage1780 D_acropolis_bridge_80191780;
 
 extern s32 D_acropolis_bridge_80190BE8[3];
 extern s32 D_acropolis_bridge_80190BF4[3];
-s32 func_acropolis_bridge_801856E0(Task *, s32, GpCmdArg *);
-s32 func_acropolis_bridge_80187BD0(Task *, s32, s32);
-void func_acropolis_bridge_80185F28(Task *);
-void func_acropolis_bridge_801861A0(Task *);
-void func_acropolis_bridge_801863A8(Task *);
-void func_acropolis_bridge_80186618(Task *);
-void func_acropolis_bridge_80186BBC(Task *);
-void func_acropolis_bridge_80187078(Task *);
-void func_acropolis_bridge_80187310(Task *);
-void func_acropolis_bridge_801874DC(Task *);
-void func_acropolis_bridge_80187D04(Task *);
-void func_acropolis_bridge_80187D80(Task *);
+s32        func_acropolis_bridge_801856E0(Task*, s32, GpCmdArg*);
+s32        func_acropolis_bridge_80187BD0(Task*, s32, s32);
+void       func_acropolis_bridge_80185F28(Task*);
+void       func_acropolis_bridge_801861A0(Task*);
+void       func_acropolis_bridge_801863A8(Task*);
+void       func_acropolis_bridge_80186618(Task*);
+void       func_acropolis_bridge_80186BBC(Task*);
+void       func_acropolis_bridge_80187078(Task*);
+void       func_acropolis_bridge_80187310(Task*);
+void       func_acropolis_bridge_801874DC(Task*);
+void       func_acropolis_bridge_80187D04(Task*);
+void       func_acropolis_bridge_80187D80(Task*);
 
 TmdBone D_acropolis_bridge_80187DDC[1] = {
 #include "assets/acropolis_bridge_model_0B868_skeleton.inc"
@@ -3672,6 +3775,35 @@ u16 D_acropolis_bridge_801917A4[2] = {
 s32 D_acropolis_bridge_801917A8 = 0;
 
 DR_MOVE * D_acropolis_bridge_801917AC = NULL;
+
+extern GpAnimSet* D_acropolis_bridge_801915C8[7];
+
+extern OverlayWalkerNode D_acropolis_bridge_8019162C[];
+
+extern u8 D_acropolis_bridge_801916CC[];
+
+extern u8* D_acropolis_bridge_80191720[];
+
+extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
+
+static void            func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b);
+static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
+static void            func_acropolis_bridge_8017ED38(Task* task);
+static s16             func_acropolis_bridge_80184024(OverlayWalker* work);
+static void            func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos);
+static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
+                                  OverlayWalkerTickScratch* block);
+static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos);
+static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker);
+static __inline__ void _acropolisBridgeLightModel(Task* task, GpCoord* coord);
+static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work);
+static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work);
+static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work);
+static __inline__ s16  _acropolisBridgeWasHit(Task* task);
+static __inline__ s32  bridge_rec_kind1(GpRec18* recs);
+static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base);
+static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
+static void            func_acropolis_bridge_80187C10(Task* task, s16 arg1);
 
 /// Room message handler: answers msg 0xF (first use of the bridge) by running
 /// the cutscene once and marking the area object, and msg 0xB by asking for
@@ -7061,13 +7193,6 @@ static void func_acropolis_bridge_8018581C(Task* task)
         }
     }
 }
-
-extern GpAnimSet* D_acropolis_bridge_801915C8[7];
-extern OverlayWalkerNode D_acropolis_bridge_8019162C[];
-extern u8                D_acropolis_bridge_801916CC[];
-extern u8*               D_acropolis_bridge_80191720[];
-
-extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
 
 /// Copies a scratch `SVECTOR3` onto a `GpObj`'s three position halfwords.
 static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)

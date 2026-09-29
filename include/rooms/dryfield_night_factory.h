@@ -1,15 +1,18 @@
-#ifndef ROOMS_DRYFIELD_NIGHT_FACTORY_H
-#define ROOMS_DRYFIELD_NIGHT_FACTORY_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_NIGHT_FACTORY_H
+#define INCLUDE_ROOMS_DRYFIELD_NIGHT_FACTORY_H
 
-#include "gameplay/area.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include "rooms/room_common.h"
-
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
-#include "gameplay/message.h"
+#include "gameplay/direction.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
@@ -124,13 +127,36 @@ typedef struct NightFactoryScriptWork {
 } NightFactoryScriptWork;
 STATIC_ASSERT_SIZEOF(NightFactoryScriptWork, 0x10);
 
-/// The single-entry `TaskDesc` table the room's script task spawns its child
-/// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
-extern TaskDesc D_dryfield_night_factory_80186E94[];
 /// Alternate child task descriptor used by the shared factory controller.
 extern TaskDesc D_dryfield_night_factory_80186EA0[];
-/// The room's 0xFFFF-terminated hotspot table.
-extern OverlayHotspot D_dryfield_night_factory_80186EBC[];
+
+// Variant-specific factory task and collision tables.
+extern TaskDesc D_dryfield_night_factory_80186DE0[];
+
+extern GpGridParams D_dryfield_night_factory_80187BF0;
+
+extern GpScriptCmd D_dryfield_night_factory_8018A7BC[3];
+
+extern GpScriptRec D_dryfield_night_factory_8018A7C8[3];
+
+extern GpAreaVariant D_dryfield_night_factory_8018A70C[11];
+
+// dryfield_night_factory
+extern u8* D_dryfield_night_factory_80186F1C[];
+
+extern GpRoomCoordRec D_dryfield_night_factory_80186F24[];
+
+extern GpRoomObjRec D_dryfield_night_factory_80186F34[];
+
+extern GpViewCountRec D_dryfield_night_factory_80186F54[];
+
+extern GpWarpRec D_dryfield_night_factory_80186F58[];
+
+extern GpViewRec D_dryfield_night_factory_80187C14[];
+
+extern GpSprtRec D_dryfield_night_factory_80189A24[];
+
+extern GpRoomParamRec* D_dryfield_night_factory_8018A79C[];
 
 /// Shows (non-zero) or hides (zero) the second sprite command of view 9 of the
 /// current room, in stage 2 only.
@@ -139,18 +165,8 @@ void func_dryfield_night_factory_80181620(s32 show);
 /// As `func_dryfield_night_factory_80181620`, for view 11.
 void func_dryfield_night_factory_80181B38(s32 show);
 
-// Variant-specific factory task and collision tables.
-extern TaskDesc D_dryfield_night_factory_80186DE0[];
-extern GpGridParams D_dryfield_night_factory_80187BF0;
-
-#include "gameplay/pad_script.h"
-
-extern GpScriptCmd D_dryfield_night_factory_8018A7BC[3];
-
-extern GpScriptRec D_dryfield_night_factory_8018A7C8[3];
-
-extern GpAreaVariant D_dryfield_night_factory_8018A70C[11];
-
 void func_dryfield_night_factory_801825F0(Task* task);
 
-#endif // ROOMS_DRYFIELD_NIGHT_FACTORY_H
+void func_dryfield_night_factory_801809F4(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_FACTORY_H

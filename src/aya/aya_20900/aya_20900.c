@@ -1,16 +1,36 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "common.h"
 
-#include "aya/aya_20900.h"
-
-#include "gameplay/display.h"
-
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+/// 8-byte work block `func_aya_20900_80115CFC` allocates with `Mem_Malloc(8)`
+/// and parks in `Task::work`. That slot is not a `TaskIdMap` here, so reach
+/// it with `(Aya20900Work*)task->work`. `index` is the fade state machine,
+/// `timer` counts the hold at full white, and `fade` is the TILE colour.
+typedef struct Aya20900Work {
+    /* 0x0 */ u16 index;
+    /* 0x2 */ u16 timer;
+    /* 0x4 */ u16 unk4;
+    /* 0x6 */ u16 fade;
+} Aya20900Work;
+STATIC_ASSERT_SIZEOF(Aya20900Work, 0x8);
+
+void        func_aya_20900_8011578C(Task* arg0);
+static void func_aya_20900_80115948(void);
+static s32  func_aya_20900_80115A14(Task* arg0);
+void        func_aya_20900_80115CFC(Task* arg0);
 
 void func_aya_20900_8011578C(Task* arg0)
 {

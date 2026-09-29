@@ -1,20 +1,39 @@
-#ifndef ROOMS_DRYFIELD_BREEZEWAY_H
-#define ROOMS_DRYFIELD_BREEZEWAY_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_BREEZEWAY_H
+#define INCLUDE_ROOMS_DRYFIELD_BREEZEWAY_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-#include "common.h"
+extern GpAreaVariant D_dryfield_breezeway_801842F8[13];
 
-#include <psyq/libgte.h>
+// dryfield_breezeway
+extern GpRoomObjRec D_dryfield_breezeway_8018316C[];
 
-#include "rooms/room_common.h"
+extern u8* D_dryfield_breezeway_8018317C[];
+
+extern GpRoomCoordRec D_dryfield_breezeway_80183180[];
+
+extern GpViewCountRec D_dryfield_breezeway_80183188[];
+
+extern GpWarpRec D_dryfield_breezeway_8018318C[];
+
+extern GpViewRec D_dryfield_breezeway_8018364C[];
+
+extern GpSprtRec D_dryfield_breezeway_80183D9C[];
+
+extern GpRoomParamRec* D_dryfield_breezeway_8018437C[];
 
 void func_dryfield_breezeway_80181264(Task* task);
-void func_dryfield_breezeway_8017DC3C(Task* arg0);
-extern GpAreaVariant D_dryfield_breezeway_801842F8[13];
 
 void func_dryfield_breezeway_8017FF7C(Task* task);
 
-#endif // ROOMS_DRYFIELD_BREEZEWAY_H
+void func_dryfield_breezeway_8017DE68(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_BREEZEWAY_H

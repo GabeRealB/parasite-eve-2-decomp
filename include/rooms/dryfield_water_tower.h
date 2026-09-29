@@ -1,23 +1,15 @@
-#ifndef ROOMS_DRYFIELD_WATER_TOWER_H
-#define ROOMS_DRYFIELD_WATER_TOWER_H
-
-#include "gameplay/area.h"
+#ifndef INCLUDE_ROOMS_DRYFIELD_WATER_TOWER_H
+#define INCLUDE_ROOMS_DRYFIELD_WATER_TOWER_H
 
 #include "types.h"
 
-#include "common.h"
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
-
-/// The room's task table at 0x80182384: entry 0 is the cap script
-/// `func_dryfield_water_tower_8017F128`, which the room's entry task spawns,
-/// entry 1 the prop `func_dryfield_water_tower_8017E764` and entry 2 the prop
-/// `func_dryfield_water_tower_8017E1DC`, the two the cap script spawns.
-extern TaskDesc D_dryfield_water_tower_80182384[];
-
-/// Sets the current view's skip-OT-link byte: a zero low byte skips the view's
-/// sprites, non-zero draws them.
-void func_dryfield_water_tower_801802D8(u8 arg0);
 
 extern u16 D_dryfield_water_tower_801876A8;
 
@@ -25,6 +17,25 @@ extern u16 D_dryfield_water_tower_801876AA;
 
 extern GpAreaVariant D_dryfield_water_tower_8018757C[13];
 
+// dryfield_water_tower
+extern GpRoomObjRec D_dryfield_water_tower_801827CC[];
+
+extern u8* D_dryfield_water_tower_801827DC[];
+
+extern GpViewCountRec D_dryfield_water_tower_801827E0[];
+
+extern GpRoomCoordRec D_dryfield_water_tower_801827E4[];
+
+extern GpWarpRec D_dryfield_water_tower_801827EC[];
+
+extern GpViewRec D_dryfield_water_tower_801835E8[];
+
+extern GpSprtRec D_dryfield_water_tower_80186560[];
+
+extern GpRoomParamRec* D_dryfield_water_tower_80187608[];
+
 void func_dryfield_water_tower_80180348(Task* unused);
 
-#endif // ROOMS_DRYFIELD_WATER_TOWER_H
+void func_dryfield_water_tower_8017DDD8(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_WATER_TOWER_H

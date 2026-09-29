@@ -1,50 +1,57 @@
-#include "shelter_b2_north_maintenance_walkway_private.h"
 #include "rooms/shelter_b2_north_maintenance_walkway.h"
-#include "mapui/map_shelter.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "shelter_b2_north_maintenance_walkway_private.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
 extern s32 D_80165354;
 extern s32 D_80165834;
 
 extern void func_8016268C(void);
-
-/// Descriptors of the two event tasks: the one the walkway's handler spawns
-/// for its own event, and the one the event gate spawns.
-extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
-extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B54;
-
-/// The walkway's message table, installed as the room task's `msgTable`.
-extern GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[];
 
 /// Area records applied once the walkway's scene has started.
 extern GpAreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
@@ -54,7 +61,7 @@ extern RoomFadeStorage D_shelter_b2_north_maintenance_walkway_801863A0;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
-extern RoomEventMsg     D_shelter_b2_north_maintenance_walkway_801863A8;
+extern RoomEventMsg D_shelter_b2_north_maintenance_walkway_801863A8;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -70,7 +77,7 @@ extern ShelterB2NorthMaintenanceWalkwayStorage63B0 D_shelter_b2_north_maintenanc
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomLatchedEvent value;
-    u8 retained[4];
+    u8               retained[4];
 } ShelterB2NorthMaintenanceWalkwayStorage63C4;
 STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63C4, 16);
 
@@ -884,6 +891,11 @@ u8 D_shelter_b2_north_maintenance_walkway_801863C0 = 0;
 ShelterB2NorthMaintenanceWalkwayStorage63C4 D_shelter_b2_north_maintenance_walkway_801863C4 = { { 0 }, { 0 } };
 
 RoomEventReq D_shelter_b2_north_maintenance_walkway_801863D4 = { 0, 0, 0, 0, 0, 0 };
+
+static s32            func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req, RoomEventMsg* msg);
+static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void           func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task);
+static void           func_shelter_b2_north_maintenance_walkway_8017DD80(Task* task);
 
 /// The event task the walkway's message handler spawns for its own event. It
 /// runs the latched event's CAP command and waits for it to finish, starting

@@ -1,45 +1,62 @@
-#include "common.h"
 #include "rooms/shelter_r48.h"
-#include "mapui/map_shelter.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/effects.h"
-#include "gameplay/evs.h"
-#include "gameplay/scene.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "overlay.h"
-
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/gfxgte.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "overlay.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -77,17 +94,17 @@ extern GpAreaTmdRec D_shelter_r48_8018BB78[2];
 
 extern GpPointLight D_shelter_r48_8018A08C[57];
 
-extern GpObj4C D_shelter_r48_8018B670[16];
-extern GpObj4C D_shelter_r48_8018BC78[5];
+extern GpObj4C        D_shelter_r48_8018B670[16];
+extern GpObj4C        D_shelter_r48_8018BC78[5];
 extern GpRoomCoordSet D_shelter_r48_8018B658[1];
-s32 func_shelter_r48_8017DF50(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_r48_8017E044(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_r48_8017E088(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r48_8017E090(Task *, s32, RoomEventMsg *, GpMessageArg);
-s32 func_shelter_r48_8017E0EC(Task *, s32, GpMessageArg, GpMessageArg);
+s32                   func_shelter_r48_8017DF50(Task*, s32, s32, GpMessageArg);
+s32                   func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_shelter_r48_8017E088(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32                   func_shelter_r48_8017E0EC(Task*, s32, GpMessageArg, GpMessageArg);
 
 extern TmdBone D_shelter_r48_8018BE30[1];
-void func_shelter_r48_8017D660(Task *);
+void           func_shelter_r48_8017D660(Task*);
 
 u32 D_shelter_r48_80182F7C[3] = {
     0xFFFFFFFE,

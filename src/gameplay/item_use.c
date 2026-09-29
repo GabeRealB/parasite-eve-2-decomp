@@ -1,5 +1,6 @@
 #include "item_use.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
@@ -18,8 +19,6 @@
 #include "gameplay/player_state.h"
 #include "gameplay/room.h"
 
-#include "mapui/stage_tables.h"
-
 #include "main/display.h"
 #include "main/mc.h"
 #include "main/pad.h"
@@ -28,6 +27,16 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
 
 MATRIX Gp_DefaultMtx;
 

@@ -1,54 +1,55 @@
-#include "common.h"
-#include "rooms/shelter_b1_control_room.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/loading.h"
-#include "gameplay/collision.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
-
-#include "gameplay/evs.h"
+#include "rooms/shelter_b1_control_room.h"
 
 extern TaskDesc D_actor_150400_80132CF0;
 extern Task*    D_actor_150400_8013C924;
 extern Task*    D_actor_150400_8013C928;
 
-extern TaskDesc   D_actor_150400_8013C8F4[];
-extern u8         D_actor_150400_8013C90C[];
+extern TaskDesc D_actor_150400_8013C8F4[];
+extern u8       D_actor_150400_8013C90C[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor150400MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor150400MsgEntry, 8);
@@ -67,14 +68,14 @@ static void func_actor_150400_80132640(Task* task);
 
 extern TmdSource D_actor_150400_80139A64;
 extern TmdSource D_actor_150400_8013C8A0;
-void func_actor_150400_801323E0(Task *);
-void func_actor_150400_801328BC(Task *);
+void             func_actor_150400_801323E0(Task*);
+void             func_actor_150400_801328BC(Task*);
 
-s32 func_actor_150400_801326A4(Task *, s32, GpAnimArg *);
-s32 func_actor_150400_80132710(Task *, s32, s32);
-s32 func_actor_150400_80132774(Task *, s32, GpXformArg *);
+s32 func_actor_150400_801326A4(Task*, s32, GpAnimArg*);
+s32 func_actor_150400_80132710(Task*, s32, s32);
+s32 func_actor_150400_80132774(Task*, s32, GpXformArg*);
 s32 func_actor_150400_801327EC(void);
-s32 func_actor_150400_801327F4(Task *, s32, GpXformArg *);
+s32 func_actor_150400_801327F4(Task*, s32, GpXformArg*);
 
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
@@ -82,7 +83,7 @@ void func_actor_150400_80131F6C(void);
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
 
-void func_actor_150400_80131E24(Task *);
+void func_actor_150400_80131E24(Task*);
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
 void func_actor_150400_80131F9C(s32);
@@ -355,6 +356,9 @@ u8 D_actor_150400_8013C90C[24] = {
 Task * D_actor_150400_8013C924 = NULL;
 
 Task * D_actor_150400_8013C928 = NULL;
+
+static void func_actor_150400_80131FB8(void);
+static void func_actor_150400_80132014(GpEnemy* enemy, Task* task);
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
 /// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.

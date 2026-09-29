@@ -1,53 +1,78 @@
-#include "actor_521100_private.h"
+#include "actors/actor_521100.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
 #include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/inline_c.h>
 #include "gte.h"
-#include <psyq/abs.h>
+
+#include "actor_521100_private.h"
 
 #include "actors/actor.h"
-#include "actors/actor_521100.h"
-#include "actors/actors_shared_80132074.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
+typedef struct {
+    s32 id;
+    union {
+        s16 (*call0)(Task*);
+        s32 (*call1)(Task*);
+        s32 (*call2)(Task*, s32, GpAnimArg*);
+        s32 (*call3)(Task*, s32, GpCmdArg*);
+        s32 (*call4)(Task*, s32, GpXformArg*);
+        s32 (*call5)(Task*, s32, s32);
+    } handler;
+} Actor521100MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor521100MessageEntry, 8);
+
+extern Actor521100MessageEntry D_actor_521100_8015F6FC[8];
+
+s32 func_actor_521100_80135BEC(Task*);
+
+s32 func_actor_521100_80135C14(Task*, s32, GpAnimArg*);
+
+s32 func_actor_521100_80135CAC(Task*, s32, GpXformArg*);
 
 typedef struct Actor521100FireScratch {
     /* 0x00 */ VECTOR     pos;
@@ -58,14 +83,8 @@ typedef struct Actor521100FireScratch {
 } Actor521100FireScratch;
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
-extern s16      D_actor_521100_8015F570[];
-extern GpAnimSet* D_actor_521100_8015F7CC[14];
-extern GpEffArg D_actor_521100_8015F804;
+extern s16 D_actor_521100_8015F570[];
 
-/// Blend length in frames `func_actor_521100_80135964` seeds the slot walk
-/// with when the clip changes, indexed by the incoming clip id; ids from 0x15
-/// up keep the zero `val` starts at.
-extern s16 D_actor_521100_8015F894[];
 extern s16 D_actor_521100_8015F684[];
 
 /// The three waypoints the state-6 body `func_actor_521100_80134774` walks the
@@ -112,22 +131,12 @@ extern Actor521100StateChoice D_actor_521100_8015F59C[6];
 extern s16                    D_actor_521100_8015F5A8[16];
 extern Actor521100StateChoice D_actor_521100_8015F5C8[6];
 
-/// Frames between the burn-out effects `func_actor_521100_80135230` drops on
-/// the attach coordinate, indexed by the sequence state `field_68C`: every
-/// frame in state 0, then 7 / 0xE / 0x1C as the body burns out.
-extern s16 D_actor_521100_8015F8CC[];
-
-/// Coordinate slots the burn-out effects splash across when the sequence is in
-/// state 1, chosen by the top 3 bits of an LCG draw.
-extern s16 D_actor_521100_8015F8BC[];
-
 extern u16 D_actor_521100_8015F614[];
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 extern GpPairSrcE D_actor_521100_8015F560;
 extern TaskDesc   D_actor_521100_8015F6E4[];
-extern GpAnimSet* D_actor_521100_8015F73C[36];
 
 static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2);
 static void func_actor_521100_80132958(Task* arg0);
@@ -160,12 +169,8 @@ static void func_actor_521100_80135B80(GpEnemy* arg0, Task* task);
 
 extern TmdSource D_actor_521100_80141894;
 extern TmdSource D_actor_521100_80142098;
-void func_actor_521100_80135378(Task *);
-void func_actor_521100_80135AE4(Task *);
-
-s32 func_actor_521100_80135BEC(Task *);
-s32 func_actor_521100_80135C14(Task *, s32, GpAnimArg *);
-s32 func_actor_521100_80135CAC(Task *, s32, GpXformArg *);
+void             func_actor_521100_80135378(Task*);
+void             func_actor_521100_80135AE4(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1760,6 +1765,9 @@ Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {
     { 2006, { .call0 = func_actor_521100_80135DC8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
+
+static void           func_actor_521100_80131E8C(GpEnemy* enemy, Task* task);
+static __inline__ s32 Actor521100_GetHitType(s32 key);
 
 /// Spawn state of the actor: allocates its 0x6C0 work block, registers the
 /// enemy on the lock-on list with its parameter record, contact table and body

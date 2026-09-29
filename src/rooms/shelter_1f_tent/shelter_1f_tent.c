@@ -1,36 +1,49 @@
-#include "common.h"
 #include "rooms/shelter_1f_tent.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
 
+#include "types.h"
+
+#include "shelter_1f_tent_private.h"
+
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern void func_80132210(void);
 extern void func_801322B8(void);
@@ -38,8 +51,8 @@ extern void func_80132390(void);
 
 extern UiObjectDesc D_800611E4;
 
-extern s32            D_801362B8;
-extern s32            D_80137890;
+extern s32 D_801362B8;
+extern s32 D_80137890;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
@@ -102,38 +115,26 @@ extern TaskDesc D_shelter_1f_tent_80181CB8[];
 /// Message table of the room's message task.
 extern GpMsgEntry D_shelter_1f_tent_80181CDC[];
 
-/// Area records the room's first visit applies.
-extern GpAreaApplyRec D_shelter_1f_tent_801842D4[];
-extern GpAreaApplyRec D_shelter_1f_tent_801843A8[];
-extern GpAreaApplyRec D_shelter_1f_tent_801843B0[];
-extern GpAreaApplyRec D_shelter_1f_tent_801843B8[];
-
-/// The cutscene's sound task, killed when the scene is skipped.
-extern Task* D_shelter_1f_tent_801843C0;
-
-/// Parameters of the cutscene `func_shelter_1f_tent_8017FCA0` starts.
-extern RoomCutsceneRec D_shelter_1f_tent_801843C4;
-
 static void func_shelter_1f_tent_8017F448(Task* task);
 
-void func_shelter_1f_tent_8017D6C8(UiList *, UiObject *);
-void func_shelter_1f_tent_8017DE94(UiList *, UiObject *);
-void func_shelter_1f_tent_8017E8AC(Task *);
-void func_shelter_1f_tent_8017ED58(Task *);
-void func_shelter_1f_tent_8017EF18(Task *);
-void func_shelter_1f_tent_8017F10C(UiList *, UiObject *);
-void func_shelter_1f_tent_8017F1F0(UiList *, UiObject *);
-void func_shelter_1f_tent_8017F2B8(UiList *, UiObject *);
-void func_shelter_1f_tent_8017F380(UiList *, UiObject *);
-void func_shelter_1f_tent_8017F484(Task *);
+void func_shelter_1f_tent_8017D6C8(UiList*, UiObject*);
+void func_shelter_1f_tent_8017DE94(UiList*, UiObject*);
+void func_shelter_1f_tent_8017E8AC(Task*);
+void func_shelter_1f_tent_8017ED58(Task*);
+void func_shelter_1f_tent_8017EF18(Task*);
+void func_shelter_1f_tent_8017F10C(UiList*, UiObject*);
+void func_shelter_1f_tent_8017F1F0(UiList*, UiObject*);
+void func_shelter_1f_tent_8017F2B8(UiList*, UiObject*);
+void func_shelter_1f_tent_8017F380(UiList*, UiObject*);
+void func_shelter_1f_tent_8017F484(Task*);
 
-void func_shelter_1f_tent_8017F484(Task *);
-void func_shelter_1f_tent_8017FBC4(Task *);
+void func_shelter_1f_tent_8017F484(Task*);
+void func_shelter_1f_tent_8017FBC4(Task*);
 
-s32 func_shelter_1f_tent_8017FC54(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_tent_8017FC5C(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_1f_tent_8017FCA0(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_1f_tent_8017FD54(Task *, s32, RoomEventMsg *, GpMessageArg);
+s32 func_shelter_1f_tent_8017FC54(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_tent_8017FC5C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, GpMessageArg);
+s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 u8 D_shelter_1f_tent_80181998[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -282,8 +283,8 @@ UiListItemFunc D_shelter_1f_tent_80181C84[4] = {
 
 UiList D_shelter_1f_tent_80181C94 = { D_shelter_1f_tent_80181C84, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_shelter_1f_tent_8017F484(Task *);
-void func_shelter_1f_tent_8017FBC4(Task *);
+void func_shelter_1f_tent_8017F484(Task*);
+void func_shelter_1f_tent_8017FBC4(Task*);
 
 TaskDesc D_shelter_1f_tent_80181CB8[3] = {
     { 0, 32, func_shelter_1f_tent_8017F484, { .model = NULL } },
@@ -298,6 +299,14 @@ GpMsgEntry D_shelter_1f_tent_80181CDC[5] = {
     { 5104, func_shelter_1f_tent_8017FCA0 },
     { 0x7FFFFFFF, NULL },
 };
+
+static void func_shelter_1f_tent_8017E290(UiList* list, UiObject* obj);
+static void func_shelter_1f_tent_8017E58C(UiList* list, UiObject* obj);
+static void func_shelter_1f_tent_8017EDB4(u8* str, s32 decimals);
+static u8*  func_shelter_1f_tent_8017EE24(u8* buf, s32 value, s32 decimals);
+static void func_shelter_1f_tent_8017F008(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_shelter_1f_tent_8017F9F0(Task* task);
+static void func_shelter_1f_tent_8017FDA8(Task* task);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of

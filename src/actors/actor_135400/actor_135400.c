@@ -1,35 +1,40 @@
-#include "common.h"
-#include "rooms/dryfield_night_garage.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-#include "overlay.h"
-#include <psyq/memory.h>
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
+
+#include "rooms/dryfield_night_garage.h"
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
 /// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
@@ -112,9 +117,9 @@ extern s16 D_actor_135400_8013F8C4[];
 /// Animation banks the two 0x7D3 handlers re-seed their slots from, indexed by
 /// the request's `field_0`: `D_actor_135400_8013A4A8` for the main task,
 /// `D_actor_135400_8013F8D4` for the second task.
-extern GpAnimSet* D_actor_135400_8013A494[5];
+extern GpAnimSet*  D_actor_135400_8013A494[5];
 extern GpAnimSet** D_actor_135400_8013A4A8[1];
-extern GpAnimSet* D_actor_135400_8013F8A8[7];
+extern GpAnimSet*  D_actor_135400_8013F8A8[7];
 extern GpAnimSet** D_actor_135400_8013F8D4[1];
 
 /// Psy-Q `RotMatrixY`: the angle is a `long`, so a negated angle is passed
@@ -175,18 +180,18 @@ static const Actor135400Places D_actor_135400_80131E48 = {
 };
 
 extern TmdSource D_actor_135400_8013E250;
-s32 func_actor_135400_80132D24(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_135400_80132E40(Task *, s32, GpXformArg *, s32);
-s32 func_actor_135400_80132EBC(Task *, s32, s32, s32);
-void func_actor_135400_80132AF4(Task *);
+s32              func_actor_135400_80132D24(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_135400_80132E40(Task*, s32, GpXformArg*, s32);
+s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
+void             func_actor_135400_80132AF4(Task*);
 
-s32 func_actor_135400_80132650(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_135400_8013276C(Task *, s32, GpXformArg *, s32);
-s32 func_actor_135400_801327E8(Task *, s32, s32, s32);
-s32 func_actor_135400_801328DC(Task *, s32, GpCmdArg *, s32);
-void func_actor_135400_801323F8(Task *);
-void func_actor_135400_801324D4(Task *);
-void func_actor_135400_801325A8(Task *);
+s32  func_actor_135400_80132650(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_135400_8013276C(Task*, s32, GpXformArg*, s32);
+s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
+s32  func_actor_135400_801328DC(Task*, s32, GpCmdArg*, s32);
+void func_actor_135400_801323F8(Task*);
+void func_actor_135400_801324D4(Task*);
+void func_actor_135400_801325A8(Task*);
 
 TmdBone D_actor_135400_80132F9C[20] = {
 #include "assets/actor_135400_model_06BE8_skeleton.inc"
@@ -592,6 +597,8 @@ GsF_LIGHT D_actor_135400_8013F904[3] = {
     { 4096, 0, 0, 96, 96, 96 },
     { 0, 0, 4096, 96, 96, 96 },
 };
+
+static void func_actor_135400_801329B0(Task* task);
 
 /// Second state handler of the actor's part-2 table (`D_actor_135400_80131E30`,
 /// dispatched by `func_actor_135400_801324D4`): a three-phase machine run off

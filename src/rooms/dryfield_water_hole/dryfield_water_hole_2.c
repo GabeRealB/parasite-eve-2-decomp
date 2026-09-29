@@ -1,21 +1,26 @@
-#include "common.h"
 #include "rooms/dryfield_water_hole.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room_common.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-
 #include "gameplay/effects.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);

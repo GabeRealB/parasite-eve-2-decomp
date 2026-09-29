@@ -1,47 +1,53 @@
-#include "gameplay/evs.h"
-#include "rooms/dryfield_night_motel_balcony.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/abs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "rooms/dryfield_night_motel_balcony.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig, the walk state, and
@@ -96,29 +102,29 @@ extern GpAnimArg D_actor_335800_80164E7C;
 /// The warp-payload table the two dispatchers reach by entry:
 /// `func_actor_335800_801621B4` selects an entry of it by index.
 extern GpXformArg D_actor_335800_80164EA4[5];
-extern GpEvsCmd D_actor_335800_80165FC0[];
-extern GpEvsCmd D_actor_335800_80166098[];
+extern GpEvsCmd   D_actor_335800_80165FC0[];
+extern GpEvsCmd   D_actor_335800_80166098[];
 
 /// Animation bank tables of the parent and the child block.
-extern GpAnimSet* D_actor_335800_8016EAC4[5];
+extern GpAnimSet*  D_actor_335800_8016EAC4[5];
 extern GpAnimSet** D_actor_335800_8016EAD8[1];
-extern GpAnimSet* D_actor_335800_80172E90[2];
+extern GpAnimSet*  D_actor_335800_80172E90[2];
 extern GpAnimSet** D_actor_335800_80172E98[1];
 
 /// The two part tasks the parent block spawns, and its message table; both
 /// live in this overlay's trailing data.
-extern TaskDesc   D_actor_335800_8016EADC[];
+extern TaskDesc D_actor_335800_8016EADC[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpCmdArg *, s32);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, GpXformArg *, Actor335800SpawnAnim *);
-        s32 (*call5)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call2)(Task*, s32, GpCmdArg*, s32);
+        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+        s32 (*call5)(Task*, s32, s32);
     } handler;
 } Actor335800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);
@@ -205,10 +211,10 @@ static const TaskFuncTable4 D_actor_335800_80161E68 = { {
 /// `func_actor_335800_80163CA0`.
 static const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
 
-void func_actor_335800_80161E88(Task *);
-void func_actor_335800_80162364(Task *);
-void func_actor_335800_801624DC(Task *);
-void func_actor_335800_80162588(Task *);
+void func_actor_335800_80161E88(Task*);
+void func_actor_335800_80162364(Task*);
+void func_actor_335800_801624DC(Task*);
+void func_actor_335800_80162588(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -217,66 +223,66 @@ typedef union {
 } Actor335800PoseBank2280;
 
 extern Actor335800Pose D_actor_335800_80164F80;
-extern GpAnimArg D_actor_335800_80164E54;
-extern GpAnimArg D_actor_335800_80164E90;
-extern GpAnimArg D_actor_335800_80164F44;
-extern GpAnimArg D_actor_335800_80164F58;
-extern GpAnimArg D_actor_335800_80164F6C;
-extern GpCmdArg D_actor_335800_80164FC8;
-extern GpCopyArg D_actor_335800_80164E24;
-extern GpXformArg D_actor_335800_80164EA4[5];
-extern GpXformArg D_actor_335800_80164F98;
-extern GpXformArg D_actor_335800_80164FB0;
-void func_actor_335800_80162040(void);
-void func_actor_335800_80162060(void);
-void func_actor_335800_80162080(void);
-void func_actor_335800_801620C0(void);
-void func_actor_335800_801623D8(void);
-void func_actor_335800_80162408(void);
-void func_actor_335800_801624B8(s32);
-void func_actor_335800_80162558(void);
+extern GpAnimArg       D_actor_335800_80164E54;
+extern GpAnimArg       D_actor_335800_80164E90;
+extern GpAnimArg       D_actor_335800_80164F44;
+extern GpAnimArg       D_actor_335800_80164F58;
+extern GpAnimArg       D_actor_335800_80164F6C;
+extern GpCmdArg        D_actor_335800_80164FC8;
+extern GpCopyArg       D_actor_335800_80164E24;
+extern GpXformArg      D_actor_335800_80164EA4[5];
+extern GpXformArg      D_actor_335800_80164F98;
+extern GpXformArg      D_actor_335800_80164FB0;
+void                   func_actor_335800_80162040(void);
+void                   func_actor_335800_80162060(void);
+void                   func_actor_335800_80162080(void);
+void                   func_actor_335800_801620C0(void);
+void                   func_actor_335800_801623D8(void);
+void                   func_actor_335800_80162408(void);
+void                   func_actor_335800_801624B8(s32);
+void                   func_actor_335800_80162558(void);
 
-extern GpAnimArg D_actor_335800_80164E40;
-extern GpAnimArg D_actor_335800_80164E7C;
-extern GpAnimArg D_actor_335800_80164E90;
-extern GpCmdArg D_actor_335800_8016502C;
-extern GpCmdArg D_actor_335800_80165038;
-extern GpCmdArg D_actor_335800_8016503C;
-extern GpCmdArg D_actor_335800_80165040;
-extern GpCmdArg D_actor_335800_80165044;
-extern GpCopyArg D_actor_335800_80164E24;
+extern GpAnimArg    D_actor_335800_80164E40;
+extern GpAnimArg    D_actor_335800_80164E7C;
+extern GpAnimArg    D_actor_335800_80164E90;
+extern GpCmdArg     D_actor_335800_8016502C;
+extern GpCmdArg     D_actor_335800_80165038;
+extern GpCmdArg     D_actor_335800_8016503C;
+extern GpCmdArg     D_actor_335800_80165040;
+extern GpCmdArg     D_actor_335800_80165044;
+extern GpCopyArg    D_actor_335800_80164E24;
 extern GpOverlayIds D_actor_335800_80165050;
 extern GpOverlayIds D_actor_335800_80165058;
-extern GpXformArg D_actor_335800_80164EA4[5];
-s32 func_actor_335800_80162C80(Task *, s32, GpXformArg *, Actor335800SpawnAnim *);
-s32 func_actor_335800_801632A4(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_335800_801633C0(Task *, s32, GpXformArg *);
-s32 func_actor_335800_8016343C(Task *, s32, s32);
-s32 func_actor_335800_8016354C(Task *, s32, GpCmdArg *, s32);
-s32 func_actor_335800_80163880(Task *, s32, GpXformArg *, Actor335800SpawnAnim *);
-s32 func_actor_335800_80163E20(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_335800_80163F3C(Task *, s32, GpXformArg *);
-s32 func_actor_335800_80163FB8(Task *, s32, s32);
-s32 func_actor_335800_80164098(void);
-void func_actor_335800_80162040(void);
-void func_actor_335800_80162060(void);
-void func_actor_335800_80162080(void);
-void func_actor_335800_801620A0(void);
-void func_actor_335800_801620F0(u8);
-void func_actor_335800_80162114(void);
-void func_actor_335800_801621B4(s32);
-void func_actor_335800_8016224C(void);
-void func_actor_335800_801622C0(s32);
-void func_actor_335800_80162408(void);
-void func_actor_335800_80162428(s8);
-void func_actor_335800_80162434(s32);
-void func_actor_335800_80162460(void);
-void func_actor_335800_80162484(void);
-void func_actor_335800_801624B8(s32);
-void func_actor_335800_80162558(void);
-void func_actor_335800_80162E34(Task *);
-void func_actor_335800_80162F10(Task *);
-void func_actor_335800_80163A34(Task *);
+extern GpXformArg   D_actor_335800_80164EA4[5];
+s32                 func_actor_335800_80162C80(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+s32                 func_actor_335800_801632A4(Task*, s32, GpAnimArg*, s32);
+s32                 func_actor_335800_801633C0(Task*, s32, GpXformArg*);
+s32                 func_actor_335800_8016343C(Task*, s32, s32);
+s32                 func_actor_335800_8016354C(Task*, s32, GpCmdArg*, s32);
+s32                 func_actor_335800_80163880(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+s32                 func_actor_335800_80163E20(Task*, s32, GpAnimArg*, s32);
+s32                 func_actor_335800_80163F3C(Task*, s32, GpXformArg*);
+s32                 func_actor_335800_80163FB8(Task*, s32, s32);
+s32                 func_actor_335800_80164098(void);
+void                func_actor_335800_80162040(void);
+void                func_actor_335800_80162060(void);
+void                func_actor_335800_80162080(void);
+void                func_actor_335800_801620A0(void);
+void                func_actor_335800_801620F0(u8);
+void                func_actor_335800_80162114(void);
+void                func_actor_335800_801621B4(s32);
+void                func_actor_335800_8016224C(void);
+void                func_actor_335800_801622C0(s32);
+void                func_actor_335800_80162408(void);
+void                func_actor_335800_80162428(s8);
+void                func_actor_335800_80162434(s32);
+void                func_actor_335800_80162460(void);
+void                func_actor_335800_80162484(void);
+void                func_actor_335800_801624B8(s32);
+void                func_actor_335800_80162558(void);
+void                func_actor_335800_80162E34(Task*);
+void                func_actor_335800_80162F10(Task*);
+void                func_actor_335800_80163A34(Task*);
 
 Actor335800PoseBank2280 D_actor_335800_801640A0 = { .poses = {
 #include "assets/actor_335800_animation_0255C_bank1.inc"
@@ -961,6 +967,8 @@ Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2011, { .call0 = func_actor_335800_80164098 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
+
+static inline void _actor335800SetView(s32 view);
 
 /// Places the root part 1000 units short of its pose `D_actor_335800_80164F80`
 /// and moves it along Z at `killCountdown` (100) per frame; once past the pose

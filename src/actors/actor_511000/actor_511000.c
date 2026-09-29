@@ -1,44 +1,42 @@
 #include "actors/actor_511000.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/inline_c.h"
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80132074.h"
-#include "actors/actors_shared_8013231c.h"
-#include "actors/actors_shared_801334c4.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/item_pickup.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 extern GpImgRec D_actor_511000_80146F94[2];
 
@@ -74,10 +72,10 @@ STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 /// `field_2C` and holds on `field_2E`. `field_2F` latches once the message-1
 /// children have been spawned.
 typedef struct Actor511000Work {
-    /* 0x00 */ byte   pad_0[8];
-    /* 0x08 */ s32    field_8;
+    /* 0x00 */ byte pad_0[8];
+    /* 0x08 */ s32  field_8;
     /* 0x0C */ union {
-        u8 bytes[0x20];
+        u8     bytes[0x20];
         u_long words[8];
     } field_C;
     /* 0x2C */ s16    field_2C;
@@ -213,7 +211,7 @@ extern GpViewRec D_actor_511000_80147EE4[];
 /// `data` points at its pixel blob.
 
 /// Animation sources the animation message handler selects by index.
-extern GpAnimSet* D_actor_511000_801472D4[4];
+extern GpAnimSet*  D_actor_511000_801472D4[4];
 extern GpAnimSet** D_actor_511000_801472E4[1];
 
 /// Spawn table `func_actor_511000_80132480` starts its two child tasks from,
@@ -223,11 +221,11 @@ extern TaskDesc D_actor_511000_801472E8[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpCmdArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor511000MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor511000MessageEntry, 8);
@@ -237,26 +235,26 @@ extern Actor511000MessageEntry D_actor_511000_8014730C[6];
 /// Offset `Gp_SpawnEff` places the tick state's effect at.
 extern SVECTOR D_actor_511000_8014733C;
 
-extern SVECTOR    D_actor_511000_80147344[];
-extern SVECTOR    D_actor_511000_80147704[];
-extern SVECTOR    D_actor_511000_80147AC4[];
+extern SVECTOR D_actor_511000_80147344[];
+extern SVECTOR D_actor_511000_80147704[];
+extern SVECTOR D_actor_511000_80147AC4[];
 // Color/byte updates and the GPU upload share the same backing storage.
 typedef union {
-    u8 bytes[32];
+    u8     bytes[32];
     u_long words[8];
 } Actor511000Palette;
 STATIC_ASSERT_SIZEOF(Actor511000Palette, 32);
 
 extern Actor511000Palette D_actor_511000_80147E84;
-extern u8         D_actor_511000_80147EC4[];
+extern u8                 D_actor_511000_80147EC4[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpXformArg *, s32);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*);
+        s32 (*call1)(Task*, s32, GpXformArg*, s32);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor511000MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor511000MsgEntry, 8);
@@ -278,19 +276,19 @@ extern s32      D_actor_511000_80149054[];
 extern TaskDesc D_actor_511000_80155070[];
 /// Message table and animation data `func_actor_511000_80133958` installs.
 extern Actor511000MessageEntry D_actor_511000_801550A0[4];
-extern GpAnimSet* D_actor_511000_801550C0[4];
+extern GpAnimSet*              D_actor_511000_801550C0[4];
 
 extern TmdSource D_actor_511000_80142554;
 extern TmdSource D_actor_511000_80142AAC;
 extern TmdSource D_actor_511000_80142C90;
-s32 func_actor_511000_80132604(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_511000_80132724(Task *, s32, GpXformArg *);
-s32 func_actor_511000_801327A0(Task *, s32, s32);
-s32 func_actor_511000_8013287C(Task *, s32, GpCmdArg *);
-s32 func_actor_511000_80132904(Task *, s32, s32);
-void func_actor_511000_80132150(Task *);
-void func_actor_511000_8013222C(Task *);
-void func_actor_511000_80132428(Task *);
+s32              func_actor_511000_80132604(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_511000_80132724(Task*, s32, GpXformArg*);
+s32              func_actor_511000_801327A0(Task*, s32, s32);
+s32              func_actor_511000_8013287C(Task*, s32, GpCmdArg*);
+s32              func_actor_511000_80132904(Task*, s32, s32);
+void             func_actor_511000_80132150(Task*);
+void             func_actor_511000_8013222C(Task*);
+void             func_actor_511000_80132428(Task*);
 
 extern GpAnimSet D_actor_511000_8014303C;
 extern GpAnimSet D_actor_511000_80144EF4;
@@ -298,24 +296,24 @@ extern GpAnimSet D_actor_511000_8014694C;
 
 extern Actor511000Palette D_actor_511000_80147E84;
 
-s32 func_actor_511000_801334B8(Task *);
-s32 func_actor_511000_801334C4(Task *, s32, GpXformArg *, s32);
-s32 func_actor_511000_80133554(Task *, s32, s32);
-s32 func_actor_511000_80133DEC(Task *, s32, GpAnimArg *);
-s32 func_actor_511000_80133E48(Task *, s32, GpXformArg *);
-s32 func_actor_511000_80133EAC(Task *, s32, s32);
-void func_actor_511000_80133D90(Task *);
-void func_actor_511000_80133EF4(Task *);
-void func_actor_511000_80133FC8(Task *);
-void func_actor_511000_8013409C(Task *);
+s32  func_actor_511000_801334B8(Task*);
+s32  func_actor_511000_801334C4(Task*, s32, GpXformArg*, s32);
+s32  func_actor_511000_80133554(Task*, s32, s32);
+s32  func_actor_511000_80133DEC(Task*, s32, GpAnimArg*);
+s32  func_actor_511000_80133E48(Task*, s32, GpXformArg*);
+s32  func_actor_511000_80133EAC(Task*, s32, s32);
+void func_actor_511000_80133D90(Task*);
+void func_actor_511000_80133EF4(Task*);
+void func_actor_511000_80133FC8(Task*);
+void func_actor_511000_8013409C(Task*);
 
 extern TmdSource D_actor_511000_8013BB10;
 extern TmdSource D_actor_511000_8013BEF8;
 extern TmdSource D_actor_511000_8013C058;
 extern TmdSource D_actor_511000_8013C65C;
-void func_actor_511000_80133850(Task *);
-void func_actor_511000_801338A8(Task *);
-void func_actor_511000_80133900(Task *);
+void             func_actor_511000_80133850(Task*);
+void             func_actor_511000_801338A8(Task*);
+void             func_actor_511000_80133900(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -2042,6 +2040,8 @@ GpAnimSet * D_actor_511000_801550C0[4] = {
     &D_actor_511000_80153CDC,
     &D_actor_511000_80155048,
 };
+
+static void func_actor_511000_80132E6C(Actor511000Work* work);
 
 /// Tick state: while `field_474` is set, steps animation slots 1..19; in
 /// mode 1 counts `field_4D2` up and, on frame 0x10, plays the sound and spawns

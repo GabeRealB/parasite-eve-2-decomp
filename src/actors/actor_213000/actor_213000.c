@@ -1,28 +1,27 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// Work block the spawn handler allocates (`memCalloc(0x4C4)`) and parks in
 /// `Task::work`. It opens with the animation context the preset handler hands
@@ -62,10 +61,10 @@ extern TaskDesc D_actor_213000_80157DE0[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor213000MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor213000MsgEntry, 8);
@@ -73,7 +72,7 @@ STATIC_ASSERT_SIZEOF(Actor213000MsgEntry, 8);
 extern Actor213000MsgEntry D_actor_213000_80157E1C[];
 
 /// Animation bank table the 0x7D3 handler indexes with the preset's `field_0`.
-extern GpAnimSet* D_actor_213000_80157DB0[11];
+extern GpAnimSet*  D_actor_213000_80157DB0[11];
 extern GpAnimSet** D_actor_213000_80157DDC[1];
 
 static void func_actor_213000_8014A0DC(Task* task);
@@ -88,16 +87,14 @@ extern TmdSource D_actor_213000_80150C04;
 extern TmdSource D_actor_213000_80150F88;
 extern TmdSource D_actor_213000_80151254;
 extern TmdSource D_actor_213000_8015144C;
-s32 func_actor_213000_8014A70C(Task *, s32, GpAnimArg *);
-s32 func_actor_213000_8014A828(Task *, s32, GpXformArg *);
-s32 func_actor_213000_8014A8A4(Task *, s32, s32);
-s32 func_actor_213000_8014A980(Task *, s32, GpCmdArg *);
-void func_actor_213000_8014A084(Task *);
-void func_actor_213000_8014A160(Task *);
-void func_actor_213000_8014A520(Task *);
-void func_actor_213000_8014A578(Task *);
-
-
+s32              func_actor_213000_8014A70C(Task*, s32, GpAnimArg*);
+s32              func_actor_213000_8014A828(Task*, s32, GpXformArg*);
+s32              func_actor_213000_8014A8A4(Task*, s32, s32);
+s32              func_actor_213000_8014A980(Task*, s32, GpCmdArg*);
+void             func_actor_213000_8014A084(Task*);
+void             func_actor_213000_8014A160(Task*);
+void             func_actor_213000_8014A520(Task*);
+void             func_actor_213000_8014A578(Task*);
 
 TmdBone D_actor_213000_8014AA4C[20] = {
 #include "assets/actor_213000_model_067B0_skeleton.inc"
@@ -522,7 +519,12 @@ Actor213000MsgEntry D_actor_213000_80157E1C[5] = {
     { 2005, { .call3 = func_actor_213000_8014A8A4 } },
     { 2011, { .call1 = func_actor_213000_8014A980 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// Spawn handler: allocates the work block, seeds its animation bytes and
+}; /// Spawn handler: allocates the work block, seeds its animation bytes and
+
+static void func_actor_213000_80149E54(Task* task);
+static void func_actor_213000_8014A35C(Task* task);
+static void func_actor_213000_8014A488(Task* task);
+
 /// countdown, hides the model, then spawns the four children of the spawn
 /// table -- entries 1 and 2 attached to part 8 and parked at `field_4BC` /
 /// `field_4C0`, entry 3 attached to part 9 and entry 4 to part 12. Each of the

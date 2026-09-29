@@ -1,21 +1,51 @@
-#ifndef NEO_ARK_FOREST_ZONE_PRIVATE_H
-#define NEO_ARK_FOREST_ZONE_PRIVATE_H
+#ifndef SRC_ROOMS_NEO_ARK_FOREST_ZONE_NEO_ARK_FOREST_ZONE_PRIVATE_H
+#define SRC_ROOMS_NEO_ARK_FOREST_ZONE_NEO_ARK_FOREST_ZONE_PRIVATE_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
 
 #include "main/task_types.h"
 
-#include "gameplay/message.h"
+extern GpCmdArg D_neo_ark_forest_zone_80182E44;
 
-#include "gameplay/direction.h"
+extern u16 D_neo_ark_forest_zone_80182E54[5];
 
-#include "common.h"
+extern TaskDesc D_neo_ark_forest_zone_80181DBC;
+
+extern GpMsgEntry D_neo_ark_forest_zone_80181DC8[6];
+
+extern s32 D_neo_ark_forest_zone_80181E30;
+
+extern s32 D_neo_ark_forest_zone_80181E38;
+
+extern Task* D_neo_ark_forest_zone_80181E68;
+
+extern GpEvsCmd D_neo_ark_forest_zone_80181E6C[23];
+
+// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
+extern SVECTOR D_neo_ark_forest_zone_80182094[2];
+
+extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_forest_zone_8017D644(Task *);
-s32 func_neo_ark_forest_zone_8017D7DC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_forest_zone_8017D7E4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_forest_zone_8017D950(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_forest_zone_8017D958(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_neo_ark_forest_zone_8017DA14(Task *, s32, s32, s32);
+void func_neo_ark_forest_zone_8017D644(Task*);
+
+s32 func_neo_ark_forest_zone_8017D7DC(Task*, s32, GpMessageArg, GpMessageArg);
+
+s32 func_neo_ark_forest_zone_8017D7E4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+
+s32 func_neo_ark_forest_zone_8017D950(Task*, s32, GpMessageArg, GpMessageArg);
+
+s32 func_neo_ark_forest_zone_8017D958(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+
+s32 func_neo_ark_forest_zone_8017DA14(Task*, s32, s32, s32);
+
 void func_neo_ark_forest_zone_8017DA48(void);
 
-#endif // NEO_ARK_FOREST_ZONE_PRIVATE_H
+#endif // SRC_ROOMS_NEO_ARK_FOREST_ZONE_NEO_ARK_FOREST_ZONE_PRIVATE_H

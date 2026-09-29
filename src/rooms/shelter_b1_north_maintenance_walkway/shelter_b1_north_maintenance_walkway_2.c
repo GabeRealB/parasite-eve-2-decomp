@@ -1,52 +1,60 @@
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/shelter_b1_north_maintenance_walkway.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "shelter_b1_north_maintenance_walkway_private.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/message.h"
+#include "rooms/rooms_shared_8017dcb8.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } ShelterB1NorthMaintenanceWalkwayHaloStorage;
 STATIC_ASSERT_SIZEOF(ShelterB1NorthMaintenanceWalkwayHaloStorage, 20);
 extern ShelterB1NorthMaintenanceWalkwayHaloStorage D_shelter_b1_north_maintenance_walkway_80184B50;
@@ -540,6 +548,9 @@ s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
 };
 
 RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80 = { 0 };
+
+static void func_shelter_b1_north_maintenance_walkway_8017EE48(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_north_maintenance_walkway_8017F26C(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// Queues a grey gouraud glow spanning the projected points `arg0[0]` and
 /// `arg0[1]`: a half-disc at each end, of radius `arg1` scaled by that end's

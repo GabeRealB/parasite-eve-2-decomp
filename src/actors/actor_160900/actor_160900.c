@@ -1,41 +1,49 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 #include <psyq/rand.h>
+
+#include "common.h"
+#include "gte.h"
+
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -155,29 +163,29 @@ extern TmdSource D_actor_160900_801393B8;
 extern TmdSource D_actor_160900_801397FC;
 extern TmdSource D_actor_160900_80139C50;
 extern TmdSource D_actor_160900_8013A0A4;
-void func_actor_160900_80132A14(Task *);
-void func_actor_160900_80132C08(Task *);
-void func_actor_160900_80132E80(Task *);
-void func_actor_160900_80133880(void);
-void func_actor_160900_80133A84(void);
-void func_actor_160900_80133F90(void);
-void func_actor_160900_8013418C(Task *);
-void func_actor_160900_801343E4(Task *);
-void func_actor_160900_801344D8(Task *);
-void func_actor_160900_801346B0(s32);
-void func_actor_160900_801346E0(s32);
-void func_actor_160900_80134710(void);
-void func_actor_160900_80134790(s16);
-void func_actor_160900_801347B0(s16);
-void func_actor_160900_801347D0(s16);
-void func_actor_160900_801347F0(void);
-void func_actor_160900_80134830(void);
-void func_actor_160900_80134850(void);
-void func_actor_160900_80134870(void);
+void             func_actor_160900_80132A14(Task*);
+void             func_actor_160900_80132C08(Task*);
+void             func_actor_160900_80132E80(Task*);
+void             func_actor_160900_80133880(void);
+void             func_actor_160900_80133A84(void);
+void             func_actor_160900_80133F90(void);
+void             func_actor_160900_8013418C(Task*);
+void             func_actor_160900_801343E4(Task*);
+void             func_actor_160900_801344D8(Task*);
+void             func_actor_160900_801346B0(s32);
+void             func_actor_160900_801346E0(s32);
+void             func_actor_160900_80134710(void);
+void             func_actor_160900_80134790(s16);
+void             func_actor_160900_801347B0(s16);
+void             func_actor_160900_801347D0(s16);
+void             func_actor_160900_801347F0(void);
+void             func_actor_160900_80134830(void);
+void             func_actor_160900_80134850(void);
+void             func_actor_160900_80134870(void);
 
-void func_actor_160900_80131EB0(Task *);
-void func_actor_160900_801345D0(Task *, s32, s32);
-void func_actor_160900_80134624(Task *, s32, GpXformArg *);
+void func_actor_160900_80131EB0(Task*);
+void func_actor_160900_801345D0(Task*, s32, s32);
+void func_actor_160900_80134624(Task*, s32, GpXformArg*);
 
 TmdBone D_actor_160900_80134898[20] = {
 #include "assets/actor_160900_model_07598_skeleton.inc"
@@ -724,8 +732,8 @@ u8 D_actor_160900_8013F1F8[8] = {
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpXformArg *);
-        void (*call1)(Task *, s32, s32);
+        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, s32);
     } handler;
 } Actor160900MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor160900MessageEntry, 8);
@@ -948,6 +956,27 @@ OverlayWaveRec6 D_actor_160900_8013FBB8[13] = { 0 };
 
 OverlayWaveRec6 D_actor_160900_8013FC08[30] = { 0 };
 
+extern u8 D_actor_160900_8013F240[];
+
+/// Animation source `func_800B3F84` seeds the child's slots from, the table
+/// published as `Actor160900Child3Work::field_4B4`, and the message table
+/// published as `Task::msgTable`.
+extern u8 D_actor_160900_8013F1C4[];
+
+extern u8 D_actor_160900_8013F1F8[];
+
+extern Actor160900MessageEntry D_actor_160900_8013F200[2];
+
+static s32         func_actor_160900_801326EC(Task* arg0);
+static inline void func_actor_160900_Reseed(Task* arg0, u16 anim);
+static s32         func_actor_160900_80132844(Task* arg0);
+static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj);
+static inline void func_actor_160900_SetAnim(Task* task, u16 anim);
+static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim);
+static void        func_actor_160900_80133238(Task* arg0);
+static void        func_actor_160900_8013358C(Task* arg0);
+static void        func_actor_160900_80133758(SVECTOR* pts);
+
 /// Screen-wave task spawned from `D_actor_160900_8013F17C` with the overlay's
 /// work block as its argument. State 0 seeds the column and row phases, parks
 /// the argument and clears its ramp; state 1 ramps the frame up to the span
@@ -1100,8 +1129,6 @@ void func_actor_160900_80131EB0(Task* arg0)
     addPrim(&gGpuCurrentOt[0], stp);
 }
 
-extern u8 D_actor_160900_8013F240[];
-
 static s32 func_actor_160900_801326EC(Task* arg0)
 {
     Actor160900Work* work;
@@ -1217,14 +1244,6 @@ static s32 func_actor_160900_80132844(Task* arg0)
     }
     return 0;
 }
-
-/// Animation source `func_800B3F84` seeds the child's slots from, the table
-/// published as `Actor160900Child3Work::field_4B4`, and the message table
-/// published as `Task::msgTable`.
-extern u8 D_actor_160900_8013F1C4[];
-extern u8 D_actor_160900_8013F1F8[];
-
-extern Actor160900MessageEntry D_actor_160900_8013F200[2];
 
 void func_actor_160900_80132A14(Task* arg0)
 {

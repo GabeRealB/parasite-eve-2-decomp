@@ -1,35 +1,41 @@
-#include "common.h"
 #include "rooms/dryfield_night_warehouse.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-
-#include "main/display.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/actor_render.h"
 #include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "rooms/room_common.h"
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
 static void func_dryfield_night_warehouse_8017D654(Task* task);
@@ -45,14 +51,14 @@ extern SVECTOR D_dryfield_night_warehouse_8017E858[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_night_warehouse_8017E8D8[];
 
-s32 func_dryfield_night_warehouse_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_warehouse_8017D5D8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_dryfield_night_warehouse_8017D600(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_warehouse_8017D608(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_warehouse_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_warehouse_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_dryfield_night_warehouse_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_warehouse_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_night_warehouse_8017EF08[1];
-extern GpObj4C D_dryfield_night_warehouse_8017F6F4[4];
-extern GpObj4C D_dryfield_night_warehouse_8017F84C[10];
+extern GpGridParams   D_dryfield_night_warehouse_8017EF08[1];
+extern GpObj4C        D_dryfield_night_warehouse_8017F6F4[4];
+extern GpObj4C        D_dryfield_night_warehouse_8017F84C[10];
 extern GpRoomBoundVec D_dryfield_night_warehouse_8017F824[5];
 extern GpRoomCoordSet D_dryfield_night_warehouse_8017F6DC[1];
 

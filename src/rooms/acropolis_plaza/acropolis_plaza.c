@@ -1,61 +1,70 @@
 #include "rooms/acropolis_plaza.h"
-#include "actors/actor_310100.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libcd.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "actors/actor_310100.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/loading.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_input.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_akropolis.h"
+
 #include "overlay.h"
-#include <psyq/libcd.h>
-
-#include "gameplay/animation.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
 
 /// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
 /// origin, `sx` / `sy` its projected screen position, and `half` the radius
@@ -249,8 +258,6 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
 extern s16 D_acropolis_plaza_801987E0[];
 
-extern TaskDesc D_acropolis_plaza_80183824[];
-
 /// Gate `func_acropolis_plaza_8017FB50` applies to a pending `GpObj4C` event
 /// whose id has the sign bit clear; a main-executable global with no module
 /// header yet.
@@ -315,20 +322,20 @@ extern VECTOR3 D_acropolis_plaza_801907C4[];
 /// 0x12, so this declaration is left unsized.
 extern SVECTOR D_acropolis_plaza_80198820[];
 
-void func_acropolis_plaza_8017D8AC(Task *);
-void func_acropolis_plaza_8017DA58(Task *);
-void func_acropolis_plaza_8017DBFC(Task *);
-void func_acropolis_plaza_8017DFE0(Task *);
-void func_acropolis_plaza_8017E7E4(Task *);
-void func_acropolis_plaza_8017E9A8(Task *);
-void func_acropolis_plaza_8017ECF8(Task *);
-void func_acropolis_plaza_8017F48C(Task *);
-void func_acropolis_plaza_8017F620(Task *);
-void func_acropolis_plaza_8017FF18(Task *);
-void func_acropolis_plaza_80180054(Task *);
-void func_acropolis_plaza_80180270(Task *);
+void func_acropolis_plaza_8017D8AC(Task*);
+void func_acropolis_plaza_8017DA58(Task*);
+void func_acropolis_plaza_8017DBFC(Task*);
+void func_acropolis_plaza_8017DFE0(Task*);
+void func_acropolis_plaza_8017E7E4(Task*);
+void func_acropolis_plaza_8017E9A8(Task*);
+void func_acropolis_plaza_8017ECF8(Task*);
+void func_acropolis_plaza_8017F48C(Task*);
+void func_acropolis_plaza_8017F620(Task*);
+void func_acropolis_plaza_8017FF18(Task*);
+void func_acropolis_plaza_80180054(Task*);
+void func_acropolis_plaza_80180270(Task*);
 
-extern GpGridParams D_acropolis_plaza_80199180[1];
+extern GpGridParams   D_acropolis_plaza_80199180[1];
 extern GpRoomCoordSet D_acropolis_plaza_80199EE8[1];
 
 extern SVECTOR D_acropolis_plaza_80198AA0[30];
@@ -3380,6 +3387,13 @@ GpRoomParamRec * D_acropolis_plaza_80199F28[8] = {
     D_acropolis_plaza_80199F18,
     D_acropolis_plaza_80199F18,
 };
+
+static void            func_acropolis_plaza_8017DD90(Task* arg0);
+static void            func_acropolis_plaza_8017DE24(s32 arg0);
+static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w);
+static void            func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode);
+static void            func_acropolis_plaza_8017F9EC(Task* task);
+static u16             func_acropolis_plaza_8017FB50(Task* task);
 
 /// Per-frame service step for the plaza's streamed cutscene commands.
 ///

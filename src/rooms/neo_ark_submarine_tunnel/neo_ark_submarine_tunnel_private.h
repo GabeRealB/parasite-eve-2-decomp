@@ -1,0 +1,18 @@
+#ifndef SRC_ROOMS_NEO_ARK_SUBMARINE_TUNNEL_NEO_ARK_SUBMARINE_TUNNEL_PRIVATE_H
+#define SRC_ROOMS_NEO_ARK_SUBMARINE_TUNNEL_NEO_ARK_SUBMARINE_TUNNEL_PRIVATE_H
+
+#include "types.h"
+
+#include "overlay.h"
+
+extern u8 D_neo_ark_submarine_tunnel_80181DF0;
+
+extern OverlayWaveCtx* D_neo_ark_submarine_tunnel_8018790C;
+
+extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13];
+
+extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[32];
+
+extern OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20;
+
+#endif // SRC_ROOMS_NEO_ARK_SUBMARINE_TUNNEL_NEO_ARK_SUBMARINE_TUNNEL_PRIVATE_H

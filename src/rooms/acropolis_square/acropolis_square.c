@@ -1,60 +1,72 @@
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include <psyq/gtemac.h>
-
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
 #include "rooms/acropolis_square.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/model_objects.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -144,8 +156,8 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(AcropolisSquareMessageEntry, 8);
 
 extern AcropolisSquareMessageEntry D_acropolis_square_80183B58[2];
-extern s16      D_acropolis_square_80183B68[];
-extern s32      D_acropolis_square_80183B98;
+extern s16                         D_acropolis_square_80183B68[];
+extern s32                         D_acropolis_square_80183B98;
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
@@ -164,7 +176,7 @@ extern Task* D_acropolis_square_801888A8;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomCutsceneRec value;
-    u8 retained[8];
+    u8              retained[8];
 } AcropolisSquareStorage88AC;
 STATIC_ASSERT_SIZEOF(AcropolisSquareStorage88AC, 32);
 
@@ -177,35 +189,35 @@ static void func_acropolis_square_801811EC(Task* task);
 static void func_acropolis_square_80182260(Task* task);
 static void func_acropolis_square_801822A4(Task* task);
 
-void func_acropolis_square_8017F46C(UiList *, UiObject *);
-void func_acropolis_square_8017FC38(UiList *, UiObject *);
-void func_acropolis_square_80180650(Task *);
-void func_acropolis_square_80180AFC(Task *);
-void func_acropolis_square_80180CBC(Task *);
-void func_acropolis_square_80180EB0(UiList *, UiObject *);
-void func_acropolis_square_80180F94(UiList *, UiObject *);
-void func_acropolis_square_8018105C(UiList *, UiObject *);
-void func_acropolis_square_80181124(UiList *, UiObject *);
-void func_acropolis_square_80181228(Task *);
+void func_acropolis_square_8017F46C(UiList*, UiObject*);
+void func_acropolis_square_8017FC38(UiList*, UiObject*);
+void func_acropolis_square_80180650(Task*);
+void func_acropolis_square_80180AFC(Task*);
+void func_acropolis_square_80180CBC(Task*);
+void func_acropolis_square_80180EB0(UiList*, UiObject*);
+void func_acropolis_square_80180F94(UiList*, UiObject*);
+void func_acropolis_square_8018105C(UiList*, UiObject*);
+void func_acropolis_square_80181124(UiList*, UiObject*);
+void func_acropolis_square_80181228(Task*);
 
-void func_acropolis_square_8017F24C(Task *);
+void func_acropolis_square_8017F24C(Task*);
 
-void func_acropolis_square_80181228(Task *);
-void func_acropolis_square_80182048(Task *);
+void func_acropolis_square_80181228(Task*);
+void func_acropolis_square_80182048(Task*);
 
-s32 func_acropolis_square_80181794(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_square_801819BC(Task *, s32, s32, s32);
-s32 func_acropolis_square_801820D8(Task *, s32, GpMsg13EF *, GpMessageArg);
-s32 func_acropolis_square_80182108(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_square_80182110(Task *, s32, s32, GpMessageArg);
-void func_acropolis_square_80181AEC(Task *);
-void func_acropolis_square_80181DD0(Task *);
-void func_acropolis_square_80182148(Task *);
+s32  func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_acropolis_square_801819BC(Task*, s32, s32, s32);
+s32  func_acropolis_square_801820D8(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_acropolis_square_80182108(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_acropolis_square_80182110(Task*, s32, s32, GpMessageArg);
+void func_acropolis_square_80181AEC(Task*);
+void func_acropolis_square_80181DD0(Task*);
+void func_acropolis_square_80182148(Task*);
 void func_acropolis_square_80182200(s32);
 
-extern GpGridParams D_acropolis_square_8018519C[1];
-extern GpObj4C D_acropolis_square_801851C0[16];
-extern GpObj4C D_acropolis_square_80185680[26];
+extern GpGridParams   D_acropolis_square_8018519C[1];
+extern GpObj4C        D_acropolis_square_801851C0[16];
+extern GpObj4C        D_acropolis_square_80185680[26];
 extern GpRoomBoundVec D_acropolis_square_80186480[16];
 extern GpRoomCoordSet D_acropolis_square_80186468[1];
 
@@ -368,8 +380,8 @@ UiListItemFunc D_acropolis_square_8018376C[4] = {
 
 UiList D_acropolis_square_8018377C = { D_acropolis_square_8018376C, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_acropolis_square_80181228(Task *);
-void func_acropolis_square_80182048(Task *);
+void func_acropolis_square_80181228(Task*);
+void func_acropolis_square_80182048(Task*);
 
 TaskDesc D_acropolis_square_801837A0[3] = {
     { 0, 32, func_acropolis_square_80181228, { .model = NULL } },
@@ -2263,6 +2275,18 @@ AcropolisSquareStorage88AC D_acropolis_square_801888AC = { 0 };
 
 GpCoord D_acropolis_square_801888CC = { 0 };
 
+/// "Telephone", the title of the menu panel `func_acropolis_square_80180804`
+/// runs. Two non-zero bytes follow its terminator, so it stays assembly.
+static const char D_acropolis_square_8017D648[];
+
+static void func_acropolis_square_8017D714(Task* task);
+static void func_acropolis_square_80180034(UiList* list, UiObject* obj);
+static void func_acropolis_square_80180330(UiList* list, UiObject* obj);
+static void func_acropolis_square_80180B58(u8* str, s32 decimals);
+static u8*  func_acropolis_square_80180BC8(u8* buf, s32 value, s32 decimals);
+static void func_acropolis_square_80180DAC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_acropolis_square_8018345C(void);
+
 /// Sets up the room's mirror: re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
 /// `RoomMirrorWork` block the reflection's coordinate frame and matrices live
@@ -3585,9 +3609,6 @@ void func_acropolis_square_80180650(Task* task)
     }
 }
 
-/// "Telephone", the title of the menu panel `func_acropolis_square_80180804`
-/// runs. Two non-zero bytes follow its terminator, so it stays assembly.
-static const char D_acropolis_square_8017D648[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_acropolis_square_8017D648[12] = "Telephone\0\xDC\xDD";
 

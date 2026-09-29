@@ -1,73 +1,83 @@
-#include "actors/actor_420700.h"
 #include "rooms/dryfield_trailer_coach.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-#include "rooms/acropolis_square.h"
+#include "actors/actor_420700.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/inventory.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
+#include "mapui/map_dryfield.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[17];
-        GpCopyArg copy;
-        u8 text0[16];
-        u8 text1[20];
-        u8 text2[12];
-        u8* options[4];
+        GpCopyArg  copy;
+        u8         text0[16];
+        u8         text1[20];
+        u8         text2[12];
+        u8*        options[4];
     } data;
     s32 words[35];
 } DryfieldTrailerCoachAnimStorage5368;
@@ -158,89 +168,89 @@ extern u16 D_dryfield_trailer_coach_80183C9C[];
 /// The list returned when no case matches.
 extern u16 D_dryfield_trailer_coach_80183E2C[];
 
-void func_dryfield_trailer_coach_8017DE64(UiList *, UiObject *);
+void func_dryfield_trailer_coach_8017DE64(UiList*, UiObject*);
 
-void func_dryfield_trailer_coach_8017E808(Task *);
-void func_dryfield_trailer_coach_8017EA58(UiList *, UiObject *);
-void func_dryfield_trailer_coach_8017EC78(Task *);
-void func_dryfield_trailer_coach_8017EE20(Task *);
-void func_dryfield_trailer_coach_8017F004(UiList *, UiObject *);
-void func_dryfield_trailer_coach_8017F218(Task *);
-void func_dryfield_trailer_coach_8017FCB4(UiList *, UiObject *);
-void func_dryfield_trailer_coach_8017FD70(Task *);
+void func_dryfield_trailer_coach_8017E808(Task*);
+void func_dryfield_trailer_coach_8017EA58(UiList*, UiObject*);
+void func_dryfield_trailer_coach_8017EC78(Task*);
+void func_dryfield_trailer_coach_8017EE20(Task*);
+void func_dryfield_trailer_coach_8017F004(UiList*, UiObject*);
+void func_dryfield_trailer_coach_8017F218(Task*);
+void func_dryfield_trailer_coach_8017FCB4(UiList*, UiObject*);
+void func_dryfield_trailer_coach_8017FD70(Task*);
 
-void func_dryfield_trailer_coach_8017E808(Task *);
-void func_dryfield_trailer_coach_8017F398(Task *);
-void func_dryfield_trailer_coach_8017F660(Task *);
-void func_dryfield_trailer_coach_8017F834(Task *);
-void func_dryfield_trailer_coach_8017FE98(Task *);
+void func_dryfield_trailer_coach_8017E808(Task*);
+void func_dryfield_trailer_coach_8017F398(Task*);
+void func_dryfield_trailer_coach_8017F660(Task*);
+void func_dryfield_trailer_coach_8017F834(Task*);
+void func_dryfield_trailer_coach_8017FE98(Task*);
 
-void func_dryfield_trailer_coach_8017FFCC(UiList *, UiObject *);
-void func_dryfield_trailer_coach_80180798(UiList *, UiObject *);
-void func_dryfield_trailer_coach_801811B0(Task *);
-void func_dryfield_trailer_coach_8018165C(Task *);
-void func_dryfield_trailer_coach_8018181C(Task *);
-void func_dryfield_trailer_coach_80181A10(UiList *, UiObject *);
-void func_dryfield_trailer_coach_80181AF4(UiList *, UiObject *);
-void func_dryfield_trailer_coach_80181BBC(UiList *, UiObject *);
-void func_dryfield_trailer_coach_80181C84(UiList *, UiObject *);
+void func_dryfield_trailer_coach_8017FFCC(UiList*, UiObject*);
+void func_dryfield_trailer_coach_80180798(UiList*, UiObject*);
+void func_dryfield_trailer_coach_801811B0(Task*);
+void func_dryfield_trailer_coach_8018165C(Task*);
+void func_dryfield_trailer_coach_8018181C(Task*);
+void func_dryfield_trailer_coach_80181A10(UiList*, UiObject*);
+void func_dryfield_trailer_coach_80181AF4(UiList*, UiObject*);
+void func_dryfield_trailer_coach_80181BBC(UiList*, UiObject*);
+void func_dryfield_trailer_coach_80181C84(UiList*, UiObject*);
 
-s32 func_dryfield_trailer_coach_80182578(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_trailer_coach_80182580(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_dryfield_trailer_coach_801825A8(Task *, s32, s32, GpMessageArg);
-void func_dryfield_trailer_coach_80181D88(Task *);
-void func_dryfield_trailer_coach_801822F4(Task *);
-void func_dryfield_trailer_coach_801824E8(Task *);
-void func_dryfield_trailer_coach_801827F8(Task *);
+s32  func_dryfield_trailer_coach_80182578(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_trailer_coach_80182580(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, GpMessageArg);
+void func_dryfield_trailer_coach_80181D88(Task*);
+void func_dryfield_trailer_coach_801822F4(Task*);
+void func_dryfield_trailer_coach_801824E8(Task*);
+void func_dryfield_trailer_coach_801827F8(Task*);
 
 extern DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368;
-extern GpAnimArg D_dryfield_trailer_coach_80185038;
-extern GpAnimArg D_dryfield_trailer_coach_8018504C;
-extern GpAnimArg D_dryfield_trailer_coach_80185060;
-extern GpAnimArg D_dryfield_trailer_coach_80185088;
-extern GpAnimArg D_dryfield_trailer_coach_8018509C;
-extern GpAnimArg D_dryfield_trailer_coach_801850B0;
-extern GpAnimArg D_dryfield_trailer_coach_801850C4;
-extern GpAnimArg D_dryfield_trailer_coach_801850EC;
-extern GpAnimArg D_dryfield_trailer_coach_80185100;
-extern GpAnimArg D_dryfield_trailer_coach_80185114;
-extern GpAnimArg D_dryfield_trailer_coach_80185128;
-extern GpAnimArg D_dryfield_trailer_coach_8018513C;
-extern GpAnimArg D_dryfield_trailer_coach_80185150;
-extern GpAnimArg D_dryfield_trailer_coach_80185178;
-extern GpAnimArg D_dryfield_trailer_coach_801851B0;
-extern GpAnimArg D_dryfield_trailer_coach_801851EC;
-extern GpAnimArg D_dryfield_trailer_coach_80185200;
-extern GpAnimArg D_dryfield_trailer_coach_80185214;
-extern GpAnimArg D_dryfield_trailer_coach_80185228;
-extern GpAnimArg D_dryfield_trailer_coach_8018523C;
-extern GpAnimArg D_dryfield_trailer_coach_80185250;
-extern GpAnimArg D_dryfield_trailer_coach_80185264;
-extern GpAnimArg D_dryfield_trailer_coach_801852A0;
-extern GpAnimArg D_dryfield_trailer_coach_801852B4;
-extern GpAnimArg D_dryfield_trailer_coach_801852C8;
-extern GpAnimArg D_dryfield_trailer_coach_801852DC;
-extern GpAnimArg D_dryfield_trailer_coach_801852F0;
-extern GpAnimArg D_dryfield_trailer_coach_80185304;
-extern GpAnimArg D_dryfield_trailer_coach_80185318;
-extern GpAnimArg D_dryfield_trailer_coach_8018532C;
-extern GpAnimArg D_dryfield_trailer_coach_80185340;
-extern GpAnimArg D_dryfield_trailer_coach_80185354;
-extern GpAnimSet D_dryfield_trailer_coach_80184C28;
-extern GpAnimSet D_dryfield_trailer_coach_80184F54;
-extern GpCmdArg D_dryfield_trailer_coach_8018518C;
-extern GpCmdArg D_dryfield_trailer_coach_80185190;
-extern GpCmdArg D_dryfield_trailer_coach_80185194;
-extern GpCmdArg D_dryfield_trailer_coach_80185198;
-extern GpGridParams D_dryfield_trailer_coach_801876B4[1];
-extern GpObj4C D_dryfield_trailer_coach_80189254[4];
-extern GpObj4C D_dryfield_trailer_coach_80189384[12];
-extern GpRoomBoundVec D_dryfield_trailer_coach_80189BAC[12];
-extern GpRoomCoordSet D_dryfield_trailer_coach_80189B94[1];
-extern GpXformArg D_dryfield_trailer_coach_80184FD8;
-extern GpXformArg D_dryfield_trailer_coach_80184FF0;
-extern GpXformArg D_dryfield_trailer_coach_80185008;
-void func_dryfield_trailer_coach_80182850(void);
+extern GpAnimArg                           D_dryfield_trailer_coach_80185038;
+extern GpAnimArg                           D_dryfield_trailer_coach_8018504C;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185060;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185088;
+extern GpAnimArg                           D_dryfield_trailer_coach_8018509C;
+extern GpAnimArg                           D_dryfield_trailer_coach_801850B0;
+extern GpAnimArg                           D_dryfield_trailer_coach_801850C4;
+extern GpAnimArg                           D_dryfield_trailer_coach_801850EC;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185100;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185114;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185128;
+extern GpAnimArg                           D_dryfield_trailer_coach_8018513C;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185150;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185178;
+extern GpAnimArg                           D_dryfield_trailer_coach_801851B0;
+extern GpAnimArg                           D_dryfield_trailer_coach_801851EC;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185200;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185214;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185228;
+extern GpAnimArg                           D_dryfield_trailer_coach_8018523C;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185250;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185264;
+extern GpAnimArg                           D_dryfield_trailer_coach_801852A0;
+extern GpAnimArg                           D_dryfield_trailer_coach_801852B4;
+extern GpAnimArg                           D_dryfield_trailer_coach_801852C8;
+extern GpAnimArg                           D_dryfield_trailer_coach_801852DC;
+extern GpAnimArg                           D_dryfield_trailer_coach_801852F0;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185304;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185318;
+extern GpAnimArg                           D_dryfield_trailer_coach_8018532C;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185340;
+extern GpAnimArg                           D_dryfield_trailer_coach_80185354;
+extern GpAnimSet                           D_dryfield_trailer_coach_80184C28;
+extern GpAnimSet                           D_dryfield_trailer_coach_80184F54;
+extern GpCmdArg                            D_dryfield_trailer_coach_8018518C;
+extern GpCmdArg                            D_dryfield_trailer_coach_80185190;
+extern GpCmdArg                            D_dryfield_trailer_coach_80185194;
+extern GpCmdArg                            D_dryfield_trailer_coach_80185198;
+extern GpGridParams                        D_dryfield_trailer_coach_801876B4[1];
+extern GpObj4C                             D_dryfield_trailer_coach_80189254[4];
+extern GpObj4C                             D_dryfield_trailer_coach_80189384[12];
+extern GpRoomBoundVec                      D_dryfield_trailer_coach_80189BAC[12];
+extern GpRoomCoordSet                      D_dryfield_trailer_coach_80189B94[1];
+extern GpXformArg                          D_dryfield_trailer_coach_80184FD8;
+extern GpXformArg                          D_dryfield_trailer_coach_80184FF0;
+extern GpXformArg                          D_dryfield_trailer_coach_80185008;
+void                                       func_dryfield_trailer_coach_80182850(void);
 
 u16 D_dryfield_trailer_coach_80183950[4] = {
     140, 143, 0xFFFF, 0,
@@ -2625,14 +2635,201 @@ GpItemMap * D_dryfield_trailer_coach_80189C90 = NULL;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    Task * value;
-    u8 retained[4];
+    Task* value;
+    u8    retained[4];
 } DryfieldTrailerCoachStorage9C94;
 STATIC_ASSERT_SIZEOF(DryfieldTrailerCoachStorage9C94, 8);
 
 DryfieldTrailerCoachStorage9C94 D_dryfield_trailer_coach_80189C94 = { 0 };
 
 RoomCutsceneRec D_dryfield_trailer_coach_80189C9C = { 0 };
+
+/// Texts and panel descriptors of the shop list's two special rows (ids
+/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
+extern u8 D_dryfield_trailer_coach_80183D78[];
+
+extern u8 D_dryfield_trailer_coach_80183D64[];
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183F30;
+
+extern u8 D_dryfield_trailer_coach_80183D74[];
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183EDC;
+
+extern RoomShopTier D_dryfield_trailer_coach_80183CA8[13];
+
+/// Messages and labels of the shop's panels.
+extern u8 D_dryfield_trailer_coach_80183D48[];
+
+extern u8 D_dryfield_trailer_coach_80183D5C[];
+
+extern u8 D_dryfield_trailer_coach_80183DB4[];
+
+extern u8 D_dryfield_trailer_coach_80183DBC[];
+
+extern u8 D_dryfield_trailer_coach_80183DC8[];
+
+extern u8 D_dryfield_trailer_coach_80183DD0[];
+
+extern u8 D_dryfield_trailer_coach_80183DD8[];
+
+extern u8 D_dryfield_trailer_coach_80183DEC[];
+
+extern u8 D_dryfield_trailer_coach_80183DFC[];
+
+extern u8 D_dryfield_trailer_coach_80183E1C[];
+
+extern u8 D_dryfield_trailer_coach_80183E28[];
+
+/// Row handlers, lists and panel descriptors of the shop's panels.
+extern UiListItemFunc D_dryfield_trailer_coach_80183E30[];
+
+extern UiList D_dryfield_trailer_coach_80183E38;
+
+extern UiList D_dryfield_trailer_coach_80183E64;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183EA4;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183EC0;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183EF8;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183F4C;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80183F68;
+
+/// Work pair of the charge panel `func_dryfield_trailer_coach_8017F398`: the
+/// animated quantity in 24.8 fixed point, and the item map of the slot being
+/// charged.
+extern s32 D_dryfield_trailer_coach_80189C8C;
+
+extern GpItemMap* D_dryfield_trailer_coach_80189C90;
+
+/// Descriptor of the panel `func_dryfield_trailer_coach_8017FE98` opens.
+extern UiObjectDesc D_dryfield_trailer_coach_80183E88;
+
+extern u8 D_dryfield_trailer_coach_801845A0[];
+
+extern u8 D_dryfield_trailer_coach_801845A8[];
+
+extern u8 D_dryfield_trailer_coach_801845AC[];
+
+extern u8 D_dryfield_trailer_coach_801845B4[];
+
+extern u8 D_dryfield_trailer_coach_801845C0[];
+
+extern u8 D_dryfield_trailer_coach_801845D0[];
+
+extern u8 D_dryfield_trailer_coach_801845D8[];
+
+extern u8 D_dryfield_trailer_coach_801845E0[];
+
+extern u8 D_dryfield_trailer_coach_801845E8[];
+
+extern u8 D_dryfield_trailer_coach_801845F0[];
+
+extern u8 D_dryfield_trailer_coach_801845FC[];
+
+extern u8 D_dryfield_trailer_coach_80184628[];
+
+extern u8 D_dryfield_trailer_coach_8018464C[];
+
+extern u8 D_dryfield_trailer_coach_8018467C[];
+
+extern u8 D_dryfield_trailer_coach_801846B0[];
+
+extern u8 D_dryfield_trailer_coach_801846E4[];
+
+extern u8 D_dryfield_trailer_coach_8018471C[];
+
+extern u8 D_dryfield_trailer_coach_80184750[];
+
+extern u8 D_dryfield_trailer_coach_80184788[];
+
+static const char D_dryfield_trailer_coach_8017D770[];
+
+extern UiObjectDesc D_800611E4;
+
+/// Lists of the usage panel and of the play-data menu, and the descriptor of
+/// the frame the usage panel spawns.
+extern UiList D_dryfield_trailer_coach_801847EC;
+
+extern UiList D_dryfield_trailer_coach_80184874;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80184810;
+
+/// List of the menu panel `func_dryfield_trailer_coach_8018181C` draws.
+extern UiList D_dryfield_trailer_coach_801847C4;
+
+/// Texts of the four menu rows below, and the panels two of them open.
+extern u8 D_dryfield_trailer_coach_80184578[];
+
+extern u8 D_dryfield_trailer_coach_80184580[];
+
+extern u8 D_dryfield_trailer_coach_8018458C[];
+
+extern u8 D_dryfield_trailer_coach_80184598[];
+
+extern UiObjectDesc D_dryfield_trailer_coach_8018482C;
+
+extern UiObjectDesc D_dryfield_trailer_coach_80184848;
+
+/// The scene sub-task while it runs, NULL otherwise.
+extern DryfieldTrailerCoachStorage9C94 D_dryfield_trailer_coach_80189C94;
+
+extern GpEvsCmd D_dryfield_trailer_coach_80185AFC[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80185C4C[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80185D54[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80186684[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_8018681C[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80186A74[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80186BDC[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80186D2C[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80187074[];
+
+extern GpAreaApplyRec D_dryfield_trailer_coach_80189C50[];
+
+/// Second descriptor of the trailer's spawn table (spawned by request 3).
+extern TaskDesc D_dryfield_trailer_coach_80184FC0[];
+
+/// The cutscene record this room hands `D_dryfield_trailer_coach_80184F7C`.
+extern RoomCutsceneRec D_dryfield_trailer_coach_80189C9C;
+
+static void func_dryfield_trailer_coach_801827D0(Task* arg0);
+
+extern GpMsgEntry D_dryfield_trailer_coach_80184FA0[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_801853F4[];
+
+extern GpEvsCmd D_dryfield_trailer_coach_80185964[];
+
+static void func_dryfield_trailer_coach_80182888(Task* arg0);
+
+static void func_dryfield_trailer_coach_8018291C(Task* task);
+
+extern SVECTOR D_dryfield_trailer_coach_801871C4;
+
+static u16*       func_dryfield_trailer_coach_8017D7F4(s32 mode);
+static void       func_dryfield_trailer_coach_8017E2F0(RoomShopList* shop, UiObject* obj, s32 item);
+static void       func_dryfield_trailer_coach_8017E43C(RoomShopList* shop, UiObject* obj);
+static inline s32 _dryfield_trailer_coachAddItemCount(s32 item, s32 count);
+static void       func_dryfield_trailer_coach_80180B94(UiList* list, UiObject* obj);
+static void       func_dryfield_trailer_coach_80180E90(UiList* list, UiObject* obj);
+static void       func_dryfield_trailer_coach_801816B8(u8* str, s32 decimals);
+static u8*        func_dryfield_trailer_coach_80181728(u8* buf, s32 value, s32 decimals);
+static void       func_dryfield_trailer_coach_8018190C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void       func_dryfield_trailer_coach_801826A0(Task* task);
+static void       func_dryfield_trailer_coach_80182794(Task* task);
+static void       func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void       func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -2836,14 +3033,6 @@ static u16* func_dryfield_trailer_coach_8017D7F4(s32 mode)
     return D_dryfield_trailer_coach_80183E2C;
 }
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-extern u8           D_dryfield_trailer_coach_80183D78[];
-extern u8           D_dryfield_trailer_coach_80183D64[];
-extern UiObjectDesc D_dryfield_trailer_coach_80183F30;
-extern u8           D_dryfield_trailer_coach_80183D74[];
-extern UiObjectDesc D_dryfield_trailer_coach_80183EDC;
-
 /// Draws one row of the shop list and handles its input, recording the row's
 /// id as the cursor item while the row is selected. Row 0xFFFE is greyed out
 /// and unselectable unless `Gp_HasMappedItem` answers non-zero, and opens its
@@ -3002,8 +3191,6 @@ static void func_dryfield_trailer_coach_8017E2F0(RoomShopList* shop, UiObject* o
     shop->list.field_4++;
 }
 
-extern RoomShopTier D_dryfield_trailer_coach_80183CA8[13];
-
 /// Fills `shop` with the ids the shop currently offers, then sorts them by
 /// `Gp_ItemSortKey`, caps the visible row count at 9 and clears the cursor
 /// item.
@@ -3133,35 +3320,6 @@ static const u8 D_dryfield_trailer_coach_8017D6EC[] = "Notice";
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_trailer_coach_8017D6F4[8] = "Charge\0\xEF";
-
-/// Messages and labels of the shop's panels.
-extern u8 D_dryfield_trailer_coach_80183D48[];
-extern u8 D_dryfield_trailer_coach_80183D5C[];
-extern u8 D_dryfield_trailer_coach_80183DB4[];
-extern u8 D_dryfield_trailer_coach_80183DBC[];
-extern u8 D_dryfield_trailer_coach_80183DC8[];
-extern u8 D_dryfield_trailer_coach_80183DD0[];
-extern u8 D_dryfield_trailer_coach_80183DD8[];
-extern u8 D_dryfield_trailer_coach_80183DEC[];
-extern u8 D_dryfield_trailer_coach_80183DFC[];
-extern u8 D_dryfield_trailer_coach_80183E1C[];
-extern u8 D_dryfield_trailer_coach_80183E28[];
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-extern UiListItemFunc D_dryfield_trailer_coach_80183E30[];
-extern UiList         D_dryfield_trailer_coach_80183E38;
-extern UiList         D_dryfield_trailer_coach_80183E64;
-extern UiObjectDesc   D_dryfield_trailer_coach_80183EA4;
-extern UiObjectDesc   D_dryfield_trailer_coach_80183EC0;
-extern UiObjectDesc   D_dryfield_trailer_coach_80183EF8;
-extern UiObjectDesc   D_dryfield_trailer_coach_80183F4C;
-extern UiObjectDesc   D_dryfield_trailer_coach_80183F68;
-
-/// Work pair of the charge panel `func_dryfield_trailer_coach_8017F398`: the
-/// animated quantity in 24.8 fixed point, and the item map of the slot being
-/// charged.
-extern s32        D_dryfield_trailer_coach_80189C8C;
-extern GpItemMap* D_dryfield_trailer_coach_80189C90;
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through
@@ -3855,9 +4013,6 @@ void func_dryfield_trailer_coach_8017FD70(Task* task)
     }
 }
 
-/// Descriptor of the panel `func_dryfield_trailer_coach_8017FE98` opens.
-extern UiObjectDesc D_dryfield_trailer_coach_80183E88;
-
 /// Opens the panel `D_dryfield_trailer_coach_80183E88` with the task's
 /// `spawnArg1` as its parameter, setting frame timing 0 and the session's UI
 /// flag while it is open; once the panel reports -1 or 6 it is torn down, and
@@ -3899,26 +4054,6 @@ void func_dryfield_trailer_coach_8017FE98(Task* task)
         }
     }
 }
-
-extern u8 D_dryfield_trailer_coach_801845A0[];
-extern u8 D_dryfield_trailer_coach_801845A8[];
-extern u8 D_dryfield_trailer_coach_801845AC[];
-extern u8 D_dryfield_trailer_coach_801845B4[];
-extern u8 D_dryfield_trailer_coach_801845C0[];
-extern u8 D_dryfield_trailer_coach_801845D0[];
-extern u8 D_dryfield_trailer_coach_801845D8[];
-extern u8 D_dryfield_trailer_coach_801845E0[];
-extern u8 D_dryfield_trailer_coach_801845E8[];
-extern u8 D_dryfield_trailer_coach_801845F0[];
-extern u8 D_dryfield_trailer_coach_801845FC[];
-extern u8 D_dryfield_trailer_coach_80184628[];
-extern u8 D_dryfield_trailer_coach_8018464C[];
-extern u8 D_dryfield_trailer_coach_8018467C[];
-extern u8 D_dryfield_trailer_coach_801846B0[];
-extern u8 D_dryfield_trailer_coach_801846E4[];
-extern u8 D_dryfield_trailer_coach_8018471C[];
-extern u8 D_dryfield_trailer_coach_80184750[];
-extern u8 D_dryfield_trailer_coach_80184788[];
 
 void func_dryfield_trailer_coach_8017FFCC(UiList* arg0, UiObject* arg1)
 {
@@ -4185,7 +4320,7 @@ static const u8 D_dryfield_trailer_coach_8017D754[] = "100.0%";
 /// assembly.
 static const char D_dryfield_trailer_coach_8017D75C[] = "Weapon Data";
 static const char D_dryfield_trailer_coach_8017D768[] = "PE Data";
-static const char D_dryfield_trailer_coach_8017D770[];
+
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_trailer_coach_8017D770[12] = "Telephone\0\xD0\xFF";
 
@@ -4317,14 +4452,6 @@ void func_dryfield_trailer_coach_80180798(UiList* arg0, UiObject* arg1)
         }
     }
 }
-
-extern UiObjectDesc D_800611E4;
-
-/// Lists of the usage panel and of the play-data menu, and the descriptor of
-/// the frame the usage panel spawns.
-extern UiList       D_dryfield_trailer_coach_801847EC;
-extern UiList       D_dryfield_trailer_coach_80184874;
-extern UiObjectDesc D_dryfield_trailer_coach_80184810;
 
 /// Builds the item-usage panel's three parallel arrays from the save's
 /// per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
@@ -4756,17 +4883,6 @@ static u8* func_dryfield_trailer_coach_80181728(u8* buf, s32 value, s32 decimals
     return buf;
 }
 
-/// List of the menu panel `func_dryfield_trailer_coach_8018181C` draws.
-extern UiList D_dryfield_trailer_coach_801847C4;
-
-/// Texts of the four menu rows below, and the panels two of them open.
-extern u8           D_dryfield_trailer_coach_80184578[];
-extern u8           D_dryfield_trailer_coach_80184580[];
-extern u8           D_dryfield_trailer_coach_8018458C[];
-extern u8           D_dryfield_trailer_coach_80184598[];
-extern UiObjectDesc D_dryfield_trailer_coach_8018482C;
-extern UiObjectDesc D_dryfield_trailer_coach_80184848;
-
 void func_dryfield_trailer_coach_8018181C(Task* task)
 {
     UiObject* obj;
@@ -4886,9 +5002,6 @@ static void func_dryfield_trailer_coach_80181D4C(Task* task)
     }
     Ui_FreeAndKill(task);
 }
-
-/// The scene sub-task while it runs, NULL otherwise.
-extern DryfieldTrailerCoachStorage9C94 D_dryfield_trailer_coach_80189C94;
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
@@ -5085,17 +5198,6 @@ void func_dryfield_trailer_coach_80181D88(Task* task)
 
 /// Byte at 0x8007272D, written when the trailer-coach scene ends.
 
-extern GpEvsCmd D_dryfield_trailer_coach_80185AFC[];
-extern GpEvsCmd D_dryfield_trailer_coach_80185C4C[];
-extern GpEvsCmd D_dryfield_trailer_coach_80185D54[];
-extern GpEvsCmd D_dryfield_trailer_coach_80186684[];
-extern GpEvsCmd D_dryfield_trailer_coach_8018681C[];
-extern GpEvsCmd D_dryfield_trailer_coach_80186A74[];
-extern GpEvsCmd D_dryfield_trailer_coach_80186BDC[];
-extern GpEvsCmd D_dryfield_trailer_coach_80186D2C[];
-extern GpEvsCmd D_dryfield_trailer_coach_80187074[];
-extern GpAreaApplyRec D_dryfield_trailer_coach_80189C50[];
-
 void func_dryfield_trailer_coach_801822F4(Task* task)
 {
     switch (task->state) {
@@ -5176,12 +5278,6 @@ s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, GpSaveLoc * src,
     return 1;
 }
 
-/// Second descriptor of the trailer's spawn table (spawned by request 3).
-extern TaskDesc D_dryfield_trailer_coach_80184FC0[];
-
-/// The cutscene record this room hands `D_dryfield_trailer_coach_80184F7C`.
-extern RoomCutsceneRec D_dryfield_trailer_coach_80189C9C;
-
 /// Runs the trailer coach's day-2 hand-off. Request 3 spawns entry 1 of the
 /// room's task table; request 0xE drops the save view back to 1 when it is on
 /// 2, then either raises the `0x16C` flag and asks the cap system to run
@@ -5217,8 +5313,6 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, GpMessa
 
 /// The message pointers the two-line text block reads: entries 0-1 by default,
 /// entries 2-3 when the task's `spawnArg1` is 1.
-
-static void func_dryfield_trailer_coach_801827D0(Task* arg0);
 
 /// Opens a two-line text block: allocates the `RoomTextBlock` (killing the task
 /// if that fails), links its two line nodes to the lines of
@@ -5291,13 +5385,6 @@ static void func_dryfield_trailer_coach_801827D0(Task* arg0)
     taskKill(arg0);
     Stage_SetEndingFlag();
 }
-
-extern GpMsgEntry D_dryfield_trailer_coach_80184FA0[];
-extern GpEvsCmd D_dryfield_trailer_coach_801853F4[];
-extern GpEvsCmd D_dryfield_trailer_coach_80185964[];
-
-static void func_dryfield_trailer_coach_80182888(Task* arg0);
-static void func_dryfield_trailer_coach_8018291C(Task* task);
 
 /// State table of the room's cutscene task, run by
 /// `func_dryfield_trailer_coach_80182950`.
@@ -5466,8 +5553,6 @@ static void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s
     }
     SCRATCH_POP_BYTES(0x14);
 }
-
-extern SVECTOR D_dryfield_trailer_coach_801871C4;
 
 /// Draws a pulsing glow at `data` in `coord`'s space: the point is projected
 /// through `GsWSMATRIX`, and nothing is drawn when its `otz` is 16 or less.

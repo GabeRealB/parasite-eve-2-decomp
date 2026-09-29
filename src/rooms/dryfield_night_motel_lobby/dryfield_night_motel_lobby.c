@@ -1,39 +1,50 @@
-#include "gameplay/message.h"
-#include "common.h"
+#include "rooms/dryfield_night_motel_lobby.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/dryfield_night_motel_lobby.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+
+#include "dryfield_night_motel_lobby_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
 #include "overlay.h"
 
-void func_dryfield_night_motel_lobby_8017FD10(Task* task);
+#include "rooms/acropolis_square.h"
 
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+void func_dryfield_night_motel_lobby_8017FD10(Task* task);
 
 extern UiObjectDesc D_800611E4;
 
@@ -103,8 +114,8 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpMsg13EF *);
-        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
 } DryfieldNightMotelLobbyMessageEntry;
@@ -113,11 +124,6 @@ STATIC_ASSERT_SIZEOF(DryfieldNightMotelLobbyMessageEntry, 8);
 extern DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
 
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC[];
-extern TaskDesc D_dryfield_night_motel_lobby_801828D4;
-
-extern Task* D_dryfield_night_motel_lobby_801844CC;
-extern Task* D_dryfield_night_motel_lobby_801844D0;
-extern s32   D_dryfield_night_motel_lobby_801844D4;
 
 /// The "%" suffix appended to the percentages the play-data panels print.
 extern u8 D_dryfield_night_motel_lobby_80182508[];
@@ -126,27 +132,23 @@ extern u8 D_dryfield_night_motel_lobby_80182508[];
 /// first open.
 extern UiObjectDesc D_dryfield_night_motel_lobby_80182720;
 
-/// The cap script `func_dryfield_night_motel_lobby_8017FB7C` fills in and
-/// hands to the cap task it spawns.
-extern RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
-
 static void func_dryfield_night_motel_lobby_8017E310(UiList* list, UiObject* obj);
 static void func_dryfield_night_motel_lobby_8017E60C(UiList* list, UiObject* obj);
 static void func_dryfield_night_motel_lobby_8017F4C8(Task* task);
 
-void func_dryfield_night_motel_lobby_8017D748(UiList *, UiObject *);
-void func_dryfield_night_motel_lobby_8017DF14(UiList *, UiObject *);
-void func_dryfield_night_motel_lobby_8017E92C(Task *);
-void func_dryfield_night_motel_lobby_8017EDD8(Task *);
-void func_dryfield_night_motel_lobby_8017EF98(Task *);
-void func_dryfield_night_motel_lobby_8017F18C(UiList *, UiObject *);
-void func_dryfield_night_motel_lobby_8017F270(UiList *, UiObject *);
-void func_dryfield_night_motel_lobby_8017F338(UiList *, UiObject *);
-void func_dryfield_night_motel_lobby_8017F400(UiList *, UiObject *);
-void func_dryfield_night_motel_lobby_8017F504(Task *);
+void func_dryfield_night_motel_lobby_8017D748(UiList*, UiObject*);
+void func_dryfield_night_motel_lobby_8017DF14(UiList*, UiObject*);
+void func_dryfield_night_motel_lobby_8017E92C(Task*);
+void func_dryfield_night_motel_lobby_8017EDD8(Task*);
+void func_dryfield_night_motel_lobby_8017EF98(Task*);
+void func_dryfield_night_motel_lobby_8017F18C(UiList*, UiObject*);
+void func_dryfield_night_motel_lobby_8017F270(UiList*, UiObject*);
+void func_dryfield_night_motel_lobby_8017F338(UiList*, UiObject*);
+void func_dryfield_night_motel_lobby_8017F400(UiList*, UiObject*);
+void func_dryfield_night_motel_lobby_8017F504(Task*);
 
-void func_dryfield_night_motel_lobby_8017F504(Task *);
-void func_dryfield_night_motel_lobby_8017FA70(Task *);
+void func_dryfield_night_motel_lobby_8017F504(Task*);
+void func_dryfield_night_motel_lobby_8017FA70(Task*);
 
 u8 D_dryfield_night_motel_lobby_80182488[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -295,8 +297,8 @@ UiListItemFunc D_dryfield_night_motel_lobby_80182774[4] = {
 
 UiList D_dryfield_night_motel_lobby_80182784 = { D_dryfield_night_motel_lobby_80182774, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_dryfield_night_motel_lobby_8017F504(Task *);
-void func_dryfield_night_motel_lobby_8017FA70(Task *);
+void func_dryfield_night_motel_lobby_8017F504(Task*);
+void func_dryfield_night_motel_lobby_8017FA70(Task*);
 
 TaskDesc D_dryfield_night_motel_lobby_801827A8[3] = {
     { 0, 32, func_dryfield_night_motel_lobby_8017F504, { .model = NULL } },
@@ -305,9 +307,9 @@ TaskDesc D_dryfield_night_motel_lobby_801827A8[3] = {
 };
 
 s32 func_dryfield_night_motel_lobby_8017FB00(void);
-s32 func_dryfield_night_motel_lobby_8017FB08(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_night_motel_lobby_8017FB08(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_motel_lobby_8017FB7C(s32, s32, s32);
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task *, s32, GpMsg13EF *);
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, GpMsg13EF*);
 s32 func_dryfield_night_motel_lobby_8017FCDC(s32, s32, s32);
 
 DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
@@ -323,6 +325,13 @@ TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
     { 0, 32, func_dryfield_night_motel_lobby_8017FD10, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
+
+static void func_dryfield_night_motel_lobby_8017EE34(u8* str, s32 decimals);
+static u8*  func_dryfield_night_motel_lobby_8017EEA4(u8* buf, s32 value, s32 decimals);
+static void func_dryfield_night_motel_lobby_8017F088(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_dryfield_night_motel_lobby_8017FD9C(Task* task);
+static void func_dryfield_night_motel_lobby_8017FDE8(Task* task);
+static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g, u8 b);
 
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and

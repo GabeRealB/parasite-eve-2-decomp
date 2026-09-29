@@ -1,58 +1,71 @@
-#include "common.h"
 #include "rooms/acropolis_forked_road.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "acropolis_forked_road_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "mapui/map_akropolis.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/evs.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern SVECTOR D_acropolis_forked_road_80182204[2];
-
-extern TaskDesc D_acropolis_forked_road_80180F44[];
 
 /// Set to 1 by the fade-out task once the scene has finished.
 
@@ -86,29 +99,29 @@ static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb
 static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_acropolis_forked_road_8017DA24(Task *);
-void func_acropolis_forked_road_8017DD60(Task *);
-void func_acropolis_forked_road_8017E1C0(Task *);
-void func_acropolis_forked_road_8017E220(Task *);
+void func_acropolis_forked_road_8017DA24(Task*);
+void func_acropolis_forked_road_8017DD60(Task*);
+void func_acropolis_forked_road_8017E1C0(Task*);
+void func_acropolis_forked_road_8017E220(Task*);
 
-extern GpAnimArg D_acropolis_forked_road_8018207C;
-extern GpCopyArg D_acropolis_forked_road_80182060;
-extern GpGridParams D_acropolis_forked_road_80182BF0[1];
-extern GpObj4C D_acropolis_forked_road_80182C14[6];
-extern GpObj4C D_acropolis_forked_road_80182DDC[7];
+extern GpAnimArg      D_acropolis_forked_road_8018207C;
+extern GpCopyArg      D_acropolis_forked_road_80182060;
+extern GpGridParams   D_acropolis_forked_road_80182BF0[1];
+extern GpObj4C        D_acropolis_forked_road_80182C14[6];
+extern GpObj4C        D_acropolis_forked_road_80182DDC[7];
 extern GpRoomCoordSet D_acropolis_forked_road_80184E70[1];
-void func_acropolis_forked_road_8017E288(void);
+void                  func_acropolis_forked_road_8017E288(void);
 
-extern GpSprtCmd D_acropolis_forked_road_80183284[2];
-extern GpSprtCmd D_acropolis_forked_road_80183938[12];
-extern GpSprtCmd D_acropolis_forked_road_80183A10[3];
-extern GpSprtCmd D_acropolis_forked_road_80183A28[2];
-extern GpSprtCmd D_acropolis_forked_road_80183AB0[3];
-extern GpSprtCmd D_acropolis_forked_road_80183AC8[2];
-extern GpSprtCmd D_acropolis_forked_road_80183F70[6];
-extern GpSprtCmd D_acropolis_forked_road_80183FA0[2];
-extern GpSprtCmd D_acropolis_forked_road_80183FB0[2];
-extern GpSprtCmd D_acropolis_forked_road_80184498[7];
+extern GpSprtCmd  D_acropolis_forked_road_80183284[2];
+extern GpSprtCmd  D_acropolis_forked_road_80183938[12];
+extern GpSprtCmd  D_acropolis_forked_road_80183A10[3];
+extern GpSprtCmd  D_acropolis_forked_road_80183A28[2];
+extern GpSprtCmd  D_acropolis_forked_road_80183AB0[3];
+extern GpSprtCmd  D_acropolis_forked_road_80183AC8[2];
+extern GpSprtCmd  D_acropolis_forked_road_80183F70[6];
+extern GpSprtCmd  D_acropolis_forked_road_80183FA0[2];
+extern GpSprtCmd  D_acropolis_forked_road_80183FB0[2];
+extern GpSprtCmd  D_acropolis_forked_road_80184498[7];
 extern GpSprtElem D_acropolis_forked_road_80183294[85];
 extern GpSprtElem D_acropolis_forked_road_80183998[6];
 extern GpSprtElem D_acropolis_forked_road_80183A38[6];

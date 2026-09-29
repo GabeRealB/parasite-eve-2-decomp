@@ -1,36 +1,33 @@
-#include "common.h"
-#include "rooms/shelter_r49.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
-
-#include "gameplay/evs.h"
+#include "rooms/shelter_r49.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -88,11 +85,11 @@ extern s16 D_actor_143900_801413B8;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, VECTOR *, s32);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, VECTOR*, s32);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor143900MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor143900MsgEntry, 8);
@@ -150,20 +147,20 @@ static void func_actor_143900_80133144(void);
 extern TmdSource D_actor_143900_80146F40;
 extern TmdSource D_actor_143900_801493AC;
 extern TmdSource D_actor_143900_8014960C;
-s32 func_actor_143900_801331C4(Task *, s32, GpAnimArg *);
-s32 func_actor_143900_80133254(Task *, s32, s32);
-s32 func_actor_143900_801332E4(Task *, s32, GpXformArg *);
-s32 func_actor_143900_80133360(Task *, s32, GpCmdArg *);
-s32 func_actor_143900_801333C4(Task *, s32, VECTOR *, s32);
-void func_actor_143900_80132DEC(Task *);
-void func_actor_143900_80132FB0(Task *);
+s32              func_actor_143900_801331C4(Task*, s32, GpAnimArg*);
+s32              func_actor_143900_80133254(Task*, s32, s32);
+s32              func_actor_143900_801332E4(Task*, s32, GpXformArg*);
+s32              func_actor_143900_80133360(Task*, s32, GpCmdArg*);
+s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
+void             func_actor_143900_80132DEC(Task*);
+void             func_actor_143900_80132FB0(Task*);
 
-s32 func_actor_143900_80132624(Task *, s32, GpAnimArg *);
-s32 func_actor_143900_801326B4(Task *, s32, s32);
-s32 func_actor_143900_801326FC(Task *, s32, GpXformArg *);
-s32 func_actor_143900_80132778(Task *, s32, GpCmdArg *);
-s32 func_actor_143900_8013279C(Task *, s32, VECTOR *, s32);
-void func_actor_143900_80132324(Task *);
+s32  func_actor_143900_80132624(Task*, s32, GpAnimArg*);
+s32  func_actor_143900_801326B4(Task*, s32, s32);
+s32  func_actor_143900_801326FC(Task*, s32, GpXformArg*);
+s32  func_actor_143900_80132778(Task*, s32, GpCmdArg*);
+s32  func_actor_143900_8013279C(Task*, s32, VECTOR*, s32);
+void func_actor_143900_80132324(Task*);
 
 void func_actor_143900_80131E24(void);
 
@@ -1272,6 +1269,9 @@ Actor461800Work * D_actor_143900_801496C4 = NULL;
 Task * D_actor_143900_801496C8 = NULL;
 
 s16 D_actor_143900_801496CC = 0;
+
+static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task);
+static void func_actor_143900_801328D4(GpEnemy* enemy, Task* task);
 
 /// Arms `sceneEvent` and starts the room's spawn-table task, unless
 /// `demoScene` is 9, so this story trigger is skipped while the attract demo

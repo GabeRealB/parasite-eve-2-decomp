@@ -1,46 +1,53 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80169f74.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -228,7 +235,7 @@ typedef union Actor356100Event {
 
 typedef struct {
     GpXformArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor356100Storage32B0;
 STATIC_ASSERT_SIZEOF(Actor356100Storage32B0, 32);
 
@@ -236,22 +243,22 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *);
-        s32 (*call2)(Task *, s32, Actor356100Event *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call1)(Task*);
+        s32 (*call2)(Task*, s32, Actor356100Event*);
+        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor356100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor356100MessageEntry, 8);
 
 extern TmdSource D_actor_356100_8016FC74;
-s32 func_actor_356100_80169E5C(void);
-s32 func_actor_356100_80169E64(Task *, s32, s32);
-s32 func_actor_356100_80169F24(Task *);
-s32 func_actor_356100_80169F74(Task *, s32, GpXformArg *);
-s32 func_actor_356100_8016A074(Task *);
-s32 func_actor_356100_8016A0B8(Task *, s32, Actor356100Event *);
-void func_actor_356100_8016A910(Task *);
+s32              func_actor_356100_80169E5C(void);
+s32              func_actor_356100_80169E64(Task*, s32, s32);
+s32              func_actor_356100_80169F24(Task*);
+s32              func_actor_356100_80169F74(Task*, s32, GpXformArg*);
+s32              func_actor_356100_8016A074(Task*);
+s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*);
+void             func_actor_356100_8016A910(Task*);
 
 GpU16Pair D_actor_356100_8016A96C[6] = {
     { 30, 7 },
@@ -653,7 +660,7 @@ u8 D_actor_356100_801730B8[248] = {
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s32 value;
-    u8 retained[116];
+    u8  retained[116];
 } Actor356100Storage31B0;
 STATIC_ASSERT_SIZEOF(Actor356100Storage31B0, 120);
 
@@ -692,19 +699,6 @@ GpEffArg D_actor_356100_801732A8 = { NULL, 0, 0 };
 Actor356100Storage32B0 D_actor_356100_801732B0 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GpDelayArg D_actor_356100_801732D0 = { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 };
-
-/// Binds the model's light and colour matrices to the pair kept in the work
-/// block. Same body as `Actor01900_BindMatrices`.
-static __inline__ void Actor356100_BindMatrices(Task* actor)
-{
-    Actor356100Work* work;
-    TmdObject*       obj;
-
-    work          = actor->work;
-    obj           = actor->extra.tmd;
-    obj->lightMtx = &work->field_AD8;
-    obj->colorMtx = &work->field_AF8;
-}
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
 /// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two
@@ -765,14 +759,6 @@ static void func_actor_356100_80163508(Task* arg0);
 /// Per-clip transition values indexed by the current and requested clip.
 extern s8 D_actor_356100_801728CC[][45];
 
-/// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
-static __inline__ void Actor356100_PositionDelta(GpCoord* coord, SVECTOR* pos)
-{
-    pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    pos->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-}
-
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_356100_80168E44` takes: the
 /// offset from the actor to the player, then the facing yaw it settles on.
 typedef struct Actor356100AimScratch {
@@ -803,12 +789,6 @@ typedef struct Actor356100GroundCoord {
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
 
-/// The overlay's only message-0x3E9 instance; all eight words are zero in the
-/// image, so it is a work area rather than a table.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-
 extern Actor356100Storage32B0 D_actor_356100_801732B0;
 
 /// Reply buffer for the message-0x3F8 query above; the six words after it are
@@ -819,9 +799,6 @@ extern GpDelayArg D_actor_356100_801732D0;
 /// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
 /// the second block when it is 1, the first otherwise.
 extern GpAnimSet* D_actor_356100_80173228[7];
-
-/// `s8` selector for those two blocks; same slot and role as
-/// `Actor403100AnimTable`'s base index.
 
 /// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
 /// The 0x74 bytes after it are zero in the image too, so the whole run is a
@@ -853,10 +830,6 @@ extern GpPairSrcE D_actor_356100_8016A984;
 /// The three rows `func_actor_356100_8016382C` picks its re-entry pair from on
 /// the spawn sub-type. Same role as `Actor01900_D0AC64`.
 extern Actor356100TintRow D_actor_356100_8016A994[];
-
-/// Event-handler table `func_actor_356100_8016382C` hands the task as
-/// `Task::msgTable`. Same shape and role as `Actor01900_D1728C`.
-// Message-table callbacks use the argument views required by this TU.
 
 extern Actor356100MessageEntry D_actor_356100_80173258[7];
 
@@ -1019,6 +992,54 @@ STATIC_ASSERT_SIZEOF(Actor356100StateTable, 0x7C);
 /// the table copy, then walks part 2's chain and rings the result into
 /// `Actor356100Work::field_B6C` as the enemy's next local position.
 static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1);
+
+static __inline__ void Actor356100_BindMatrices(Task* actor);
+static __inline__ void Actor356100_PositionDelta(GpCoord* coord, SVECTOR* pos);
+static void            func_actor_356100_80161F4C(GpCoord* coord, s16 yaw);
+static s32             func_actor_356100_80162258(GpCoord* coord, GpRec18* recs, s16 count);
+static s32             func_actor_356100_801625A0(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32             func_actor_356100_80162AEC(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32             func_actor_356100_80162C90(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static __inline__ void Actor356100_StepForward(GpCoord* coord, s16 amount);
+static __inline__ void Actor356100_PushRecords(GpCoord* coord, GpRec18* rec, s32 count, s16 height);
+static __inline__ s32  Actor356100_PushRecordsAlways(GpCoord* coord, GpRec18* rec, s32 count, s16 height);
+static __inline__ void Actor356100_MoveForward(GpCoord* coord, s16 amount);
+static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GpCoord* coord, s16 amount);
+static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GpCoord* coord, GpRec18* rec, s32 count, s16 height);
+
+/// Binds the model's light and colour matrices to the pair kept in the work
+/// block. Same body as `Actor01900_BindMatrices`.
+static __inline__ void Actor356100_BindMatrices(Task* actor)
+{
+    Actor356100Work* work;
+    TmdObject*       obj;
+
+    work          = actor->work;
+    obj           = actor->extra.tmd;
+    obj->lightMtx = &work->field_AD8;
+    obj->colorMtx = &work->field_AF8;
+}
+
+/// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
+static __inline__ void Actor356100_PositionDelta(GpCoord* coord, SVECTOR* pos)
+{
+    pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+}
+
+/// The overlay's only message-0x3E9 instance; all eight words are zero in the
+/// image, so it is a work area rather than a table.
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+
+/// `s8` selector for those two blocks; same slot and role as
+/// `Actor403100AnimTable`'s base index.
+
+/// Event-handler table `func_actor_356100_8016382C` hands the task as
+/// `Task::msgTable`. Same shape and role as `Actor01900_D1728C`.
+// Message-table callbacks use the argument views required by this TU.
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

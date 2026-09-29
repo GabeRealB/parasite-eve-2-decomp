@@ -1,45 +1,50 @@
-#include "common.h"
-#include "rooms/shelter_b6_corridor.h"
-#include "rooms/shelter_b6_training_room.h"
+#include "actor_205200_private.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actor_205200.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/attachment_state.h"
-#include "gameplay/damage.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-
-#include "gameplay/animation.h"
+#include "main/wipsys_types.h"
 
 #include "overlay.h"
+
+#include "rooms/shelter_b6_corridor.h"
+
+#include "rooms/shelter_b6_training_room.h"
 
 /// Work block of the actor's own task, allocated by its spawn handler
 /// `func_actor_205200_8014BAE8`. It opens with the model's animation context
@@ -78,15 +83,15 @@ STATIC_ASSERT_SIZEOF(Actor205200Work, 0x598);
 /// Animation block the attack body hands the player with message 0x3F4.
 extern GpAnimSet* D_actor_205200_80156800[5];
 extern GpAnimSet* D_actor_205200_801567E8[6];
-extern s16     D_actor_205200_801567B0[];
+extern s16        D_actor_205200_801567B0[];
 // One collision centre for each of the two placement modes.
 extern SVECTOR D_actor_205200_801567B4[2];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor2052002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor2052002MessageEntry, 8);
@@ -127,10 +132,10 @@ extern GpAnimSet D_actor_205200_80154FCC;
 extern GpAnimSet D_actor_205200_80155768;
 extern GpAnimSet D_actor_205200_80155F74;
 extern GpAnimSet D_actor_205200_80156788;
-extern TmdSource D_actor_205200_801517EC;
-s32 func_actor_205200_8014C980(Task *, s32, s32);
-s32 func_actor_205200_8014C9A0(Task *, s32, GpCmdArg *);
-static void func_actor_205200_8014C540(Task *);
+
+s32         func_actor_205200_8014C980(Task*, s32, s32);
+s32         func_actor_205200_8014C9A0(Task*, s32, GpCmdArg*);
+static void func_actor_205200_8014C540(Task*);
 
 Actor205200PoseBank79F0 D_actor_205200_80151810 = { .poses = {
 #include "assets/actor_205200_animation_08B50_bank1.inc"

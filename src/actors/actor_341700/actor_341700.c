@@ -1,68 +1,80 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include "common.h"
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
-#include "psyq/abs.h"
-#include "psyq/inline_c.h"
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
+
 #include "actors/actors_shared_80163354.h"
+
 #include "actors/actors_shared_801673f8.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
 #include "gameplay/object_fields.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/collision.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
-#include "main/task.h"
+#include "rooms/shelter_b3_dumping_hole.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-extern GpPairSrcE D_actor_341700_8017188C;   // the main enemy's `GpEnemy::param` record
+extern GpPairSrcE D_actor_341700_8017188C;     // the main enemy's `GpEnemy::param` record
 extern GpAnimSet* D_actor_341700_80174CEC[21]; // animation bank handed to `func_800B3F84`
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s16, VECTOR3 *);
-        void (*call1)(Task *, s32, GpCmdArg *);
+        void (*call0)(Task*, s16, VECTOR3*);
+        void (*call1)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor341700MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor341700MessageEntry, 8);
 
 extern Actor341700MessageEntry D_actor_341700_80174D40[3]; // stored into `Task::msgTable` by func_actor_341700_80162974
-extern u8         D_actor_341700_80174D88[]; // per animation id (1-based): value for `field_44F`
-extern u8         D_actor_341700_80174D9C[]; // per animation id (1-based): the animation to follow it
+extern u8                      D_actor_341700_80174D88[];  // per animation id (1-based): value for `field_44F`
+extern u8                      D_actor_341700_80174D9C[];  // per animation id (1-based): the animation to follow it
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -272,12 +284,12 @@ static const TaskFuncTable4 D_actor_341700_80161ED0 = { {
 } };
 
 extern TmdSource D_actor_341700_80171864;
-void func_actor_341700_801684A8(Task *);
+void             func_actor_341700_801684A8(Task*);
 
-void func_actor_341700_801682DC(Task *, s32, GpCmdArg *);
-void func_actor_341700_8016833C(Task *, s16, VECTOR3 *);
-void func_actor_341700_801684A8(Task *);
-void func_actor_341700_8016852C(Task *);
+void func_actor_341700_801682DC(Task*, s32, GpCmdArg*);
+void func_actor_341700_8016833C(Task*, s16, VECTOR3*);
+void func_actor_341700_801684A8(Task*);
+void func_actor_341700_8016852C(Task*);
 
 TmdBone D_actor_341700_8016D388[1] = {
 #include "assets/actor_341700_model_0C050_skeleton.inc"
@@ -947,6 +959,29 @@ u8 D_actor_341700_80174D9C[40] = {
     0, 0, 80, 0, 62, 200, 210, 1,
 };
 
+extern void* D_800678F0[1];
+
+extern TmdSource D_actor_341700_8016DE70;
+
+extern TmdSource D_actor_341700_8016E514;
+
+extern TmdSource D_actor_341700_8016EA84;
+
+static void            func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
+static void            func_actor_341700_801624F8(Task* arg0);
+static void            func_actor_341700_801626C4(Task* arg0);
+static __inline__ void enter_state(Task* arg0, s32 state);
+static __inline__ void update_color(void* enemy, GpCoord* coord);
+static __inline__ s16  take_hit(Task* arg0);
+static __inline__ void update_rotation(Task* arg0);
+static __inline__ void calc_push(Task* arg0, GpCoord* coord, GpRec18* rec, SVECTOR* out);
+static __inline__ void set_state(Task* arg0, s32 state);
+static __inline__ s32  take_request(Task* arg0);
+static __inline__ s32  is_hit(Task* arg0);
+static void            func_actor_341700_801651E0(Task* arg0);
+static __inline__ s16  take_hit_nibble3(Task* arg0);
+static __inline__ void set_state_s16(Task* arg0, s16 state);
+
 /// Draws a flat textured quad at height `height` spanning the model parts
 /// `firstJoint` and `secondJoint`, `width` wide on each side of the line
 /// between them, tinted grey by `shade`. The working set lives in a frame
@@ -1028,13 +1063,9 @@ static void func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoi
  * its effect's `TmdObject`. It is declared as a one-element array for the
  * same reason as in `actor_400500`: as a bare scalar, GCC 2.8.1 decides the
  * store cannot alias the `TmdObject` loads and sinks it past them. */
-extern void* D_800678F0[1];
 
 /* The records closing three of the overlay's model streams, selected through
    `D_800678F0`. */
-extern TmdSource D_actor_341700_8016DE70;
-extern TmdSource D_actor_341700_8016E514;
-extern TmdSource D_actor_341700_8016EA84;
 
 static void func_actor_341700_801624F8(Task* arg0)
 {

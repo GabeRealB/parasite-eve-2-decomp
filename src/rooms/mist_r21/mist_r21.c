@@ -1,20 +1,24 @@
-#include "common.h"
-#include "rooms/room.h"
+#include "rooms/mist_r21.h"
+
+#include "types.h"
 
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/message.h"
 
 #include "main/fs.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
-s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
-s32 func_mist_r21_8017D60C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
-s32 func_mist_r21_8017D614(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32  func_mist_r21_8017D5DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32  func_mist_r21_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32  func_mist_r21_8017D60C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32  func_mist_r21_8017D614(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
 void func_mist_r21_8017D760(Task* task);
 
 GpMsgEntry D_mist_r21_8017D770[] = {
@@ -30,6 +34,9 @@ GpMsgEntry D_mist_r21_8017D770[] = {
 TaskDesc D_mist_r21_8017D798[] = {
     { 0, 0xC0, func_mist_r21_8017D760, { .value = 0 } },
 };
+
+static void func_mist_r21_8017D61C(Task* task);
+static void func_mist_r21_8017D678(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

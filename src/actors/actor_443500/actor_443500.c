@@ -1,44 +1,44 @@
-#include "common.h"
-#include "rooms/shelter_r47.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
-
-#include "gameplay/evs.h"
+#include "rooms/shelter_r47.h"
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
@@ -98,9 +98,9 @@ extern TaskDesc D_actor_443500_8015873C[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32, s32);
     } handler;
 } Actor443500MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor443500MessageEntry, 8);
@@ -110,64 +110,64 @@ extern Actor443500MessageEntry D_actor_443500_80158754[4];
 /// The bank table `func_actor_443500_801327E0` re-seeds the work block's slot
 /// array off: one entry, the animation bank the default preset's `field_0` of
 /// zero selects.
-extern GpAnimSet* D_actor_443500_80158694[36];
+extern GpAnimSet*  D_actor_443500_80158694[36];
 extern GpAnimSet** D_actor_443500_80158724[1];
 
 extern GpGridParams D_actor_443500_801587D8;
 
 extern TmdSource D_actor_443500_8014977C;
-void func_actor_443500_80132738(Task *);
+void             func_actor_443500_80132738(Task*);
 
 extern GpGridFace D_actor_443500_801587B4[2];
-extern SVECTOR D_actor_443500_80158774[2];
-extern SVECTOR D_actor_443500_80158784[6];
+extern SVECTOR    D_actor_443500_80158774[2];
+extern SVECTOR    D_actor_443500_80158784[6];
 
-extern GpAnimArg D_actor_443500_80140E8C;
-extern GpAnimArg D_actor_443500_80140EA0;
-extern GpAnimArg D_actor_443500_80140EB4;
-extern GpAnimArg D_actor_443500_80140EC8;
-extern GpAnimArg D_actor_443500_80140EDC;
-extern GpAnimArg D_actor_443500_80140EF0;
-extern GpAnimArg D_actor_443500_80140F04;
-extern GpAnimArg D_actor_443500_80140F18;
-extern GpAnimArg D_actor_443500_80140F2C;
-extern GpAnimArg D_actor_443500_80140F40;
-extern GpAnimArg D_actor_443500_80141004;
-extern GpAnimArg D_actor_443500_80141018;
-extern GpAnimArg D_actor_443500_8014102C;
-extern GpAnimArg D_actor_443500_80141040;
-extern GpAnimArg D_actor_443500_80141054;
-extern GpAnimArg D_actor_443500_80141068;
-extern GpAnimArg D_actor_443500_80141090;
-extern GpAnimArg D_actor_443500_801410A4;
-extern GpAnimArg D_actor_443500_801410B8;
-extern GpAnimArg D_actor_443500_801410CC;
-extern GpAnimArg D_actor_443500_801410E0;
-extern GpAnimArg D_actor_443500_801410F4;
-extern GpAnimArg D_actor_443500_80141108;
-extern GpAnimArg D_actor_443500_8014111C;
-extern GpAnimArg D_actor_443500_80141130;
-extern GpAnimArg D_actor_443500_80141144;
-extern GpAnimArg D_actor_443500_80141158;
-extern GpAnimArg D_actor_443500_8014116C;
-extern GpAnimArg D_actor_443500_80141180;
-extern GpAnimArg D_actor_443500_801411A8;
-extern GpAnimArg D_actor_443500_801411BC;
-extern GpAnimArg D_actor_443500_801411D0;
-extern GpCopyArg D_actor_443500_80140E70;
-extern GpCopyArg D_actor_443500_80140FE8;
+extern GpAnimArg  D_actor_443500_80140E8C;
+extern GpAnimArg  D_actor_443500_80140EA0;
+extern GpAnimArg  D_actor_443500_80140EB4;
+extern GpAnimArg  D_actor_443500_80140EC8;
+extern GpAnimArg  D_actor_443500_80140EDC;
+extern GpAnimArg  D_actor_443500_80140EF0;
+extern GpAnimArg  D_actor_443500_80140F04;
+extern GpAnimArg  D_actor_443500_80140F18;
+extern GpAnimArg  D_actor_443500_80140F2C;
+extern GpAnimArg  D_actor_443500_80140F40;
+extern GpAnimArg  D_actor_443500_80141004;
+extern GpAnimArg  D_actor_443500_80141018;
+extern GpAnimArg  D_actor_443500_8014102C;
+extern GpAnimArg  D_actor_443500_80141040;
+extern GpAnimArg  D_actor_443500_80141054;
+extern GpAnimArg  D_actor_443500_80141068;
+extern GpAnimArg  D_actor_443500_80141090;
+extern GpAnimArg  D_actor_443500_801410A4;
+extern GpAnimArg  D_actor_443500_801410B8;
+extern GpAnimArg  D_actor_443500_801410CC;
+extern GpAnimArg  D_actor_443500_801410E0;
+extern GpAnimArg  D_actor_443500_801410F4;
+extern GpAnimArg  D_actor_443500_80141108;
+extern GpAnimArg  D_actor_443500_8014111C;
+extern GpAnimArg  D_actor_443500_80141130;
+extern GpAnimArg  D_actor_443500_80141144;
+extern GpAnimArg  D_actor_443500_80141158;
+extern GpAnimArg  D_actor_443500_8014116C;
+extern GpAnimArg  D_actor_443500_80141180;
+extern GpAnimArg  D_actor_443500_801411A8;
+extern GpAnimArg  D_actor_443500_801411BC;
+extern GpAnimArg  D_actor_443500_801411D0;
+extern GpCopyArg  D_actor_443500_80140E70;
+extern GpCopyArg  D_actor_443500_80140FE8;
 extern GpXformArg D_actor_443500_80140F54;
 extern GpXformArg D_actor_443500_80140F6C;
 extern GpXformArg D_actor_443500_801411E4;
 extern GpXformArg D_actor_443500_801411FC;
-void func_actor_443500_80131E3C(s32);
-void func_actor_443500_80131E84(s32);
-void func_actor_443500_80131EE4(void);
-void func_actor_443500_80131F18(void);
-void func_actor_443500_80131F58(void);
-void func_actor_443500_8013201C(s16);
-void func_actor_443500_80132048(void);
-void func_actor_443500_8013206C(s8);
+void              func_actor_443500_80131E3C(s32);
+void              func_actor_443500_80131E84(s32);
+void              func_actor_443500_80131EE4(void);
+void              func_actor_443500_80131F18(void);
+void              func_actor_443500_80131F58(void);
+void              func_actor_443500_8013201C(s16);
+void              func_actor_443500_80132048(void);
+void              func_actor_443500_8013206C(s8);
 
 extern GpAnimSet D_actor_443500_80132EF0;
 extern GpAnimSet D_actor_443500_8013451C;
@@ -194,7 +194,7 @@ extern GpAnimSet D_actor_443500_801404B0;
 extern GpAnimSet D_actor_443500_80140A30;
 extern GpAnimSet D_actor_443500_80140E10;
 
-void func_actor_443500_80131F88(Task *);
+void func_actor_443500_80131F88(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -2699,8 +2699,8 @@ GpAnimSet ** D_actor_443500_80158724[1] = {
 
 GpAnimArg D_actor_443500_80158728 = { { .ptr = NULL }, 28, 1, 4, 0 };
 
-void func_actor_443500_8013253C(Task *);
-void func_actor_443500_80132738(Task *);
+void             func_actor_443500_8013253C(Task*);
+void             func_actor_443500_80132738(Task*);
 extern TmdSource D_actor_443500_80149978;
 
 TaskDesc D_actor_443500_8015873C[2] = {
@@ -2708,9 +2708,9 @@ TaskDesc D_actor_443500_8015873C[2] = {
     { 1, 192, func_actor_443500_8013253C, { .model = &D_actor_443500_80149978 } },
 };
 
-s32 func_actor_443500_801327E0(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_443500_80132900(Task *, s32, GpXformArg *);
-s32 func_actor_443500_8013297C(Task *, s32, s32, s32);
+s32 func_actor_443500_801327E0(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_443500_80132900(Task*, s32, GpXformArg*);
+s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
 
 Actor443500MessageEntry D_actor_443500_80158754[4] = {
     { 2003, { .call0 = func_actor_443500_801327E0 } },

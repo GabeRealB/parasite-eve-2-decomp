@@ -1,17 +1,37 @@
-#ifndef ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
-#define ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
+#define INCLUDE_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
-
-#include "common.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-/// The room's two-entry task descriptor table: entry 0 starts the streamed
-/// sequence, entry 1 is the task that plays it.
-extern TaskDesc D_dryfield_night_dilapidated_house_801872B4[];
-
-void func_dryfield_night_dilapidated_house_8017E670(Task* arg0);
 extern GpAreaVariant D_dryfield_night_dilapidated_house_80189FA4[22];
 
-#endif // ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
+// dryfield_night_dilapidated_house
+extern GpRoomCoordRec D_dryfield_night_dilapidated_house_8018738C[];
+
+extern GpRoomObjRec D_dryfield_night_dilapidated_house_80187394[];
+
+extern u8* D_dryfield_night_dilapidated_house_801873A4[];
+
+extern GpViewCountRec D_dryfield_night_dilapidated_house_801873A8[];
+
+extern GpWarpRec D_dryfield_night_dilapidated_house_801873AC[];
+
+extern GpViewRec D_dryfield_night_dilapidated_house_80187D68[];
+
+extern GpSprtRec D_dryfield_night_dilapidated_house_8018921C[];
+
+extern GpRoomParamRec* D_dryfield_night_dilapidated_house_8018A0E4[];
+
+void func_dryfield_night_dilapidated_house_8017E670(Task* arg0);
+
+void func_dryfield_night_dilapidated_house_8017DA18(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H

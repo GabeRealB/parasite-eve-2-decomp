@@ -1,35 +1,153 @@
-#include "common.h"
-
 #include "rooms/dryfield_motel_room_1.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/message.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
+#include "common.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "dryfield_motel_room_1_private.h"
 
 #include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_dryfield.h"
+
+/// Work block hung off `Task::work` (0x1C) of the room task parked in
+/// `D_dryfield_motel_room_1_8018159C`, which every entry point in this overlay
+/// reaches the room state through.
+///
+/// `func_dryfield_motel_room_1_8017DC2C` allocates it (`Mem_Malloc(0x38)`) and
+/// fills `field_0` from `gameGetPtrSlot(3)` and `field_4` .. `field_10` from
+/// `Gp_FindWorkById(session id | index)`, which makes `field_C` / `field_10`
+/// the two placed objects `func_dryfield_motel_room_1_8017DF08` addresses its
+/// 0x7D4 placements to. `field_2C` is an action index the room's script driver
+/// consumes and `field_2E` the sub-state counter reset alongside it.
+///
+/// `func_dryfield_motel_room_1_8017DFD0` copies the player matrix translation
+/// (`Player_Status.coordMtx->t[0..2]`) into `field_14` .. `field_1C` and hands
+/// `&field_14` to the slot-4 task as the three-word payload of message 0x3E9;
+/// `field_24` / `field_26` / `field_28` are the halfwords it stages next to that
+/// payload, still as `0` / `0x500` / `0`. `field_20` stays unidentified.
+///
+/// Action 6 of `func_dryfield_motel_room_1_8017D7AC` turns an angle in
+/// `field_34`: it starts from the slot-3 actor's facing plus 0xC00, wrapped to
+/// 12 bits, and steps by 0x96 a frame, with `field_26` kept 0x400 ahead of it.
+/// `field_30` counts the frames of that action's closing step.
+typedef struct Dmr1Work {
+    /* 0x00 */ Task* field_0;
+    /* 0x04 */ Task* field_4;
+    /* 0x08 */ Task* field_8;
+    /* 0x0C */ Task* field_C;
+    /* 0x10 */ Task* field_10;
+    /* 0x14 */ s32   field_14;
+    /* 0x18 */ s32   field_18;
+    /* 0x1C */ s32   field_1C;
+    /* 0x20 */ byte  pad_20[0x4];
+    /* 0x24 */ s16   field_24;
+    /* 0x26 */ s16   field_26;
+    /* 0x28 */ s16   field_28;
+    /* 0x2A */ byte  pad_2A[0x2];
+    /* 0x2C */ u16   field_2C;
+    /* 0x2E */ u16   field_2E;
+    /* 0x30 */ u16   field_30;
+    /* 0x32 */ byte  pad_32[0x2];
+    /* 0x34 */ s16   field_34;
+    /* 0x36 */ byte  pad_36[0x2];
+} Dmr1Work;
+STATIC_ASSERT_SIZEOF(Dmr1Work, 0x38);
+
+/// The one scratch buffer `func_dryfield_motel_room_1_8017DD3C` builds both of
+/// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
+/// slot-3 record message 0x3E8 takes (`GpAnimArg`, `animBlock.index` the equipped weapon's
+/// animation id, `field_4` / `field_8` 1, `field_C` 5, `field_10` 0) and `msg` the
+/// `GpCmdArg` the 0x7DA poke takes in states 1 and 2. Same shape as the
+/// breezeway's `DbwMsgBuf`.
+typedef union Dmr1MsgBuf {
+    /* 0x0 */ GpAnimArg rec;
+    /* 0x0 */ GpCmdArg  msg;
+} Dmr1MsgBuf;
+STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
+
+/// The script driver's scratch buffer. `rec` and `msg` share its start, as in
+/// `Dmr1MsgBuf`; the first step of action 6 builds its 0x3E8 record in
+/// `shifted.rec`, eight bytes further in, for no reason the code shows.
+typedef union Dmr1DriverBuf {
+    /* 0x0 */ GpAnimArg rec;
+    /* 0x0 */ GpCmdArg  msg;
+    struct {
+        /* 0x0 */ s32       pad[2];
+        /* 0x8 */ GpAnimArg rec;
+    } shifted;
+} Dmr1DriverBuf;
+STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
+
+/// The room's script-driver task, whose `work` holds a `Dmr1Work`.
+extern Task* D_dryfield_motel_room_1_8018159C;
+
+/// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
+extern GpXformArg D_dryfield_motel_room_1_8017E130[2];
+
+/// The placements the script driver's actions 1 and 2 send as message 0x7D4:
+/// `[0]` to `Dmr1Work::field_4`, `[1]` to `field_8`.
+extern GpXformArg D_dryfield_motel_room_1_8017E0D0[2];
+
+extern GpXformArg D_dryfield_motel_room_1_8017E100[2];
+
+/// Main loop of the room's cutscene task. State 0 arms it once -- a `Gp_StateC08.field_A`
+/// of 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the task
+/// only steps the script. Otherwise it builds the work block, sends the slot-3
+/// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
+/// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
+/// state 1 does that only while the session is still up, and state 2 only once
+/// the session's `at4.loc.view` has reached 2, which is where the task kills itself.
+void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
+
+/// Install the player's weapon animation set on slot 3 (message 0x3E8: the
+/// equip-slot id `Player_Status.weapon` plus 1 in the alternate weapon block, plus 0x22
+/// in the base one, `field_4` 9, the rest of the frame zero), then copy the
+/// player matrix translation into `Dmr1Work::field_14` .. `field_1C` and send
+/// them back to slot 4 as message 0x3E9. Same slot-3 record the actors'
+/// `func_actor_341900_801635A4` builds.
+void func_dryfield_motel_room_1_8017DFD0(void);
+
+/// Set the room's action index, resetting the sub-state counter that goes with
+/// it - the same body as `func_actor_444000_801327E8`.
+void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
+
+/// Arm the player's weapon, then re-issue the room task's messages: the 0x7DA
+/// poke at the slot-4 task and both 0x7D4 placements.
+void func_dryfield_motel_room_1_8017DF08(void);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -42,26 +160,20 @@
 extern GpEvsCmd D_dryfield_motel_room_1_8017E160[];
 extern GpEvsCmd D_dryfield_motel_room_1_8017E340[];
 
-void func_dryfield_motel_room_1_8017DF08(void);
-void func_dryfield_motel_room_1_8017DFB0(s16);
-
-extern GpGridParams D_dryfield_motel_room_1_8017EABC[1];
-extern GpObj3A D_dryfield_motel_room_1_801811BC[1];
-extern GpObj4C D_dryfield_motel_room_1_80180CFC[8];
-extern GpObj4C D_dryfield_motel_room_1_80180F5C[8];
+extern GpGridParams   D_dryfield_motel_room_1_8017EABC[1];
+extern GpObj3A        D_dryfield_motel_room_1_801811BC[1];
+extern GpObj4C        D_dryfield_motel_room_1_80180CFC[8];
+extern GpObj4C        D_dryfield_motel_room_1_80180F5C[8];
 extern GpRoomCoordSet D_dryfield_motel_room_1_801813D8[1];
-void func_dryfield_motel_room_1_8017DD3C(Task *);
-void func_dryfield_motel_room_1_8017DF08(void);
-void func_dryfield_motel_room_1_8017DFD0(void);
 
-extern GpSprtCmd D_dryfield_motel_room_1_8017EC24[2];
-extern GpSprtCmd D_dryfield_motel_room_1_8017EC34[2];
-extern GpSprtCmd D_dryfield_motel_room_1_8017EC44[2];
-extern GpSprtCmd D_dryfield_motel_room_1_8017EF9C[6];
-extern GpSprtCmd D_dryfield_motel_room_1_8017F670[7];
-extern GpSprtCmd D_dryfield_motel_room_1_8017FB6C[5];
-extern GpSprtCmd D_dryfield_motel_room_1_8017FDD8[6];
-extern GpSprtCmd D_dryfield_motel_room_1_801806B4[10];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017EC24[2];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017EC34[2];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017EC44[2];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017EF9C[6];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017F670[7];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017FB6C[5];
+extern GpSprtCmd  D_dryfield_motel_room_1_8017FDD8[6];
+extern GpSprtCmd  D_dryfield_motel_room_1_801806B4[10];
 extern GpSprtElem D_dryfield_motel_room_1_8017EC54[42];
 extern GpSprtElem D_dryfield_motel_room_1_8017EFCC[85];
 extern GpSprtElem D_dryfield_motel_room_1_8017F6A8[61];
@@ -1088,6 +1200,9 @@ GpRoomParamRec * D_dryfield_motel_room_1_8018157C[8] = {
 };
 
 Task * D_dryfield_motel_room_1_8018159C = NULL;
+
+static void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
+static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 
 /// The room's script driver: runs the action `func_dryfield_motel_room_1_8017DFB0`
 /// left in `Dmr1Work::field_2C`. Actions 1 and 2 send the 0x7DA message to the

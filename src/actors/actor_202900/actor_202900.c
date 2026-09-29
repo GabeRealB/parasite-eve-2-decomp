@@ -1,23 +1,26 @@
 #include "actors/actor_202900.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
+
 #include "actors/actor.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
-#include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its setup handler
 /// and reached through `D_actor_202900_80156E54`, which the actor's update
@@ -38,15 +41,15 @@ STATIC_ASSERT_SIZEOF(Actor202900Work, 0x564);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor202900MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor202900MessageEntry, 8);
 
 extern Actor202900MessageEntry D_actor_202900_80156E0C[3];
-extern TaskDesc D_actor_202900_80156E24[];
-extern u8       D_actor_202900_80156E3C[];
+extern TaskDesc                D_actor_202900_80156E24[];
+extern u8                      D_actor_202900_80156E3C[];
 
 /// The actor's work block, published so the overlay's functions can reach it
 /// without the task in hand.
@@ -71,11 +74,11 @@ static s32  func_actor_202900_8014A394(void);
 
 extern TmdSource D_actor_202900_801559A8;
 extern TmdSource D_actor_202900_80155B48;
-void func_actor_202900_8014A02C(Task *);
-void func_actor_202900_8014A088(Task *);
+void             func_actor_202900_8014A02C(Task*);
+void             func_actor_202900_8014A088(Task*);
 
-s32 func_actor_202900_8014A3E0(Task *, s32, GpAnimArg *);
-s32 func_actor_202900_8014A440(Task *, s32, s32);
+s32 func_actor_202900_8014A3E0(Task*, s32, GpAnimArg*);
+s32 func_actor_202900_8014A440(Task*, s32, s32);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -251,6 +254,8 @@ Actor202900Work * D_actor_202900_80156E54 = NULL;
 Task * D_actor_202900_80156E58 = NULL;
 
 Task * D_actor_202900_80156E5C = NULL;
+
+static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task);
 
 /// Setup handler, state 0 of the actor's update: allocates and publishes the
 /// work block, starts the second task and textures its model from the area

@@ -1,47 +1,54 @@
-#include "common.h"
 #include "rooms/neo_ark_pyramid.h"
-#include "mapui/map_neo_ark.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// Angle of the room's rotating quad, set by `func_neo_ark_pyramid_8017DAC0`.
 extern s32      D_neo_ark_pyramid_801818A4;
@@ -69,16 +76,16 @@ static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
     { func_neo_ark_pyramid_8017DB18, func_neo_ark_pyramid_8017DB5C, taskKill }
 };
 
-void func_neo_ark_pyramid_8017D600(Task *);
-s32 func_neo_ark_pyramid_8017D9F0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_pyramid_8017D9F8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_pyramid_8017DA3C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_pyramid_8017DA44(Task *, s32, GpMsg13EF *, GpMessageArg);
+void func_neo_ark_pyramid_8017D600(Task*);
+s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_pyramid_8017DA44(Task*, s32, GpMsg13EF*, GpMessageArg);
 
-extern GpGridParams D_neo_ark_pyramid_801802C4[1];
-extern GpObj3A D_neo_ark_pyramid_80181790[3];
-extern GpObj4C D_neo_ark_pyramid_801812B0[6];
-extern GpObj4C D_neo_ark_pyramid_80181478[7];
+extern GpGridParams   D_neo_ark_pyramid_801802C4[1];
+extern GpObj3A        D_neo_ark_pyramid_80181790[3];
+extern GpObj4C        D_neo_ark_pyramid_801812B0[6];
+extern GpObj4C        D_neo_ark_pyramid_80181478[7];
 extern GpRoomCoordSet D_neo_ark_pyramid_80181298[1];
 
 GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
@@ -841,6 +848,8 @@ GpRoomParamRec * D_neo_ark_pyramid_80181884[8] = {
 };
 
 s32 D_neo_ark_pyramid_801818A4 = 0;
+
+static void func_neo_ark_pyramid_8017D7F4(s32 arg0);
 
 /// Event task that turns the room's rotating quad one step. It hides the HUD
 /// and runs capture command 1; unless that ends on event key 0xC it plays a

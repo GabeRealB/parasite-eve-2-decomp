@@ -1,12 +1,13 @@
-#ifndef SHELTER_R36_PRIVATE_H
-#define SHELTER_R36_PRIVATE_H
+#ifndef SRC_ROOMS_SHELTER_R36_SHELTER_R36_PRIVATE_H
+#define SRC_ROOMS_SHELTER_R36_SHELTER_R36_PRIVATE_H
 
 #include "main/task_types.h"
 
-#include "common.h"
+extern TaskDesc D_shelter_r36_8017E9A4[2];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_shelter_r36_8017DA34(Task *);
-void func_shelter_r36_8017DBC0(Task *);
+void func_shelter_r36_8017DA34(Task*);
 
-#endif // SHELTER_R36_PRIVATE_H
+void func_shelter_r36_8017DBC0(Task*);
+
+#endif // SRC_ROOMS_SHELTER_R36_SHELTER_R36_PRIVATE_H

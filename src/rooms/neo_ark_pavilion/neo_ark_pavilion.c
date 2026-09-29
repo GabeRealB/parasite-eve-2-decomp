@@ -1,52 +1,66 @@
 #include "rooms/neo_ark_pavilion.h"
-#include "mapui/map_neo_ark.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/libgs.h>
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
+#include "actors/waypoints.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -96,21 +110,21 @@ static void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size);
 static void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1);
 
-void func_neo_ark_pavilion_8017E854(Task *);
-s32 func_neo_ark_pavilion_8017E9EC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_pavilion_8017E9F4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_pavilion_8017EB3C(Task *, s32, s32, GpMessageArg);
-s32 func_neo_ark_pavilion_8017EB78(Task *, s32, GpMessageArg, GpMessageArg);
+void func_neo_ark_pavilion_8017E854(Task*);
+s32  func_neo_ark_pavilion_8017E9EC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_pavilion_8017E9F4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, GpMessageArg);
+s32  func_neo_ark_pavilion_8017EB78(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_neo_ark_pavilion_801841E4[1];
-extern GpObj3A D_neo_ark_pavilion_8018798C[1];
-extern GpObj4C D_neo_ark_pavilion_80187584[2];
-extern GpObj4C D_neo_ark_pavilion_8018772C[4];
-extern GpObj4C D_neo_ark_pavilion_8018785C[4];
+extern GpGridParams   D_neo_ark_pavilion_801841E4[1];
+extern GpObj3A        D_neo_ark_pavilion_8018798C[1];
+extern GpObj4C        D_neo_ark_pavilion_80187584[2];
+extern GpObj4C        D_neo_ark_pavilion_8018772C[4];
+extern GpObj4C        D_neo_ark_pavilion_8018785C[4];
 extern GpRoomCoordSet D_neo_ark_pavilion_8018756C[1];
 
-void func_neo_ark_pavilion_8017D660(Task *);
-void func_neo_ark_pavilion_8017E2B4(Task *);
+void func_neo_ark_pavilion_8017D660(Task*);
+void func_neo_ark_pavilion_8017E2B4(Task*);
 
 extern TaskDesc D_80147E48;
 
@@ -1416,6 +1430,10 @@ s8 D_neo_ark_pavilion_80187A1C[4] = {
 };
 
 RoomLatchedEvent D_neo_ark_pavilion_80187A20 = { 0 };
+
+static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static void           func_neo_ark_pavilion_8017EB80(Task* arg0);
+static void           func_neo_ark_pavilion_8017EBEC(Task* task);
 
 /// Draws the water-refraction ripple for the views that have one (views of
 /// areas 27, 14, 15, 13, 30 and 29; every other view returns at once). The

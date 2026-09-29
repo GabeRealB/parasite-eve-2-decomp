@@ -1,47 +1,39 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/items.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
-#include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[10];
-        GpCopyArg copy;
-        GpAnimArg arguments[2];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[2];
         GpXformArg placements[2];
     } data;
     s32 words[34];
@@ -49,7 +41,6 @@ typedef union {
 STATIC_ASSERT_SIZEOF(Actor260400AnimStorageC668, 136);
 
 extern Actor260400AnimStorageC668 D_actor_260400_8014C668;
-
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
 /// and kept both at `Task::work` and in `D_actor_260400_80154C70`: the light
@@ -83,18 +74,18 @@ extern GpEvsCmd D_actor_260400_8014D610[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, VECTOR *, s32);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, VECTOR*, s32);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor260400MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor260400MessageEntry, 8);
 
 extern Actor260400MessageEntry D_actor_260400_80154BE8[6];
-extern TaskDesc D_actor_260400_80154C18[];
-extern u8       D_actor_260400_80154C30[];
+extern TaskDesc                D_actor_260400_80154C18[];
+extern u8                      D_actor_260400_80154C30[];
 
 /// Reset argument the blended reseed forwards: the play-animation handler
 /// latches the preset's `field_C` here, and the update sets it to 10 when a
@@ -126,14 +117,14 @@ static void func_actor_260400_8014A888(void);
 
 extern TmdSource D_actor_260400_8014F7F0;
 extern TmdSource D_actor_260400_80154BC0;
-void func_actor_260400_8014A550(Task *);
-void func_actor_260400_8014A6F8(Task *);
+void             func_actor_260400_8014A550(Task*);
+void             func_actor_260400_8014A6F8(Task*);
 
-s32 func_actor_260400_8014A908(Task *, s32, GpAnimArg *);
-s32 func_actor_260400_8014A998(Task *, s32, s32);
-s32 func_actor_260400_8014AA28(Task *, s32, GpXformArg *);
-s32 func_actor_260400_8014AAA4(Task *, s32, GpCmdArg *);
-s32 func_actor_260400_8014AB50(Task *, s32, VECTOR *, s32);
+s32 func_actor_260400_8014A908(Task*, s32, GpAnimArg*);
+s32 func_actor_260400_8014A998(Task*, s32, s32);
+s32 func_actor_260400_8014AA28(Task*, s32, GpXformArg*);
+s32 func_actor_260400_8014AAA4(Task*, s32, GpCmdArg*);
+s32 func_actor_260400_8014AB50(Task*, s32, VECTOR*, s32);
 
 extern GpAnimArg D_actor_260400_8014C4D8;
 extern GpAnimArg D_actor_260400_8014C4EC;
@@ -154,17 +145,16 @@ extern GpAnimArg D_actor_260400_8014C618;
 extern GpAnimArg D_actor_260400_8014C62C;
 extern GpAnimArg D_actor_260400_8014C640;
 extern GpAnimArg D_actor_260400_8014C654;
-void func_actor_260400_80149F5C(s32);
-
+void             func_actor_260400_80149F5C(s32);
 
 extern Actor260400AnimStorageC668 D_actor_260400_8014C668;
-extern GpAnimSet D_actor_260400_8014AE7C;
-extern GpAnimSet D_actor_260400_8014B120;
-extern GpAnimSet D_actor_260400_8014B5CC;
-extern GpAnimSet D_actor_260400_8014B984;
-extern GpAnimSet D_actor_260400_8014BE6C;
-extern GpAnimSet D_actor_260400_8014C170;
-extern GpAnimSet D_actor_260400_8014C49C;
+extern GpAnimSet                  D_actor_260400_8014AE7C;
+extern GpAnimSet                  D_actor_260400_8014B120;
+extern GpAnimSet                  D_actor_260400_8014B5CC;
+extern GpAnimSet                  D_actor_260400_8014B984;
+extern GpAnimSet                  D_actor_260400_8014BE6C;
+extern GpAnimSet                  D_actor_260400_8014C170;
+extern GpAnimSet                  D_actor_260400_8014C49C;
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1003,6 +993,10 @@ Actor260400Work * D_actor_260400_80154C70 = NULL;
 Task * D_actor_260400_80154C74 = NULL;
 
 s16 D_actor_260400_80154C78 = 0;
+
+static void func_actor_260400_80149E38(void);
+static void func_actor_260400_80149FA4(void);
+static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task);
 
 static void func_actor_260400_80149E38(void)
 {

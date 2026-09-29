@@ -1,34 +1,37 @@
-#include "common.h"
-#include "rooms/acropolis_square.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/memory.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include <psyq/memory.h>
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "rooms/acropolis_square.h"
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
@@ -64,7 +67,7 @@ extern GpAnimSet* D_actor_111800_8013A448[8];
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
 
 extern TmdSource D_actor_111800_80138004;
-void func_actor_111800_8013251C(Task *);
+void             func_actor_111800_8013251C(Task*);
 
 TmdBone D_actor_111800_801329C4[19] = {
 #include "assets/actor_111800_model_061E4_skeleton.inc"
@@ -237,7 +240,15 @@ GpAnimSet * D_actor_111800_8013A448[8] = {
     NULL,
 };
 
-TaskDesc D_actor_111800_8013A468 = { 257, 192, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } };/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+TaskDesc D_actor_111800_8013A468 = { 257, 192, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+
+static void           func_actor_111800_80131E40(GpCoord* coord, s16 yaw);
+static inline void    _actor111800TickAnim(Task* task);
+static inline void    _actor111800Reseed(Task* task, u16 id, u16 frames);
+static void           func_actor_111800_8013214C(Task* task);
+static void           func_actor_111800_80132390(Task* task);
+static __inline__ s32 Actor111800_Accumulate(GpCoord* arg0, MATRIX* arg1, MATRIX* src);
+
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.

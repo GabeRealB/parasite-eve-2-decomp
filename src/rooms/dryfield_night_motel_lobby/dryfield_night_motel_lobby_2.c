@@ -1,41 +1,54 @@
-#include "common.h"
+#include "rooms/dryfield_night_motel_lobby.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/dryfield_night_motel_lobby.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/room_effects.h"
+#include "common.h"
+#include "gte.h"
+
+#include "dryfield_night_motel_lobby_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
 #include "rooms/room.h"
-#include "rooms/stage_tables.h"
+
+#include "rooms/room_common.h"
+
+#define D_dryfield_night_motel_lobby_801828E8 (D_dryfield_night_motel_lobby_801828E0 + 1)
 
 /// Task descriptor of the examine child task `func_dryfield_night_motel_lobby_80180E98`
 /// spawns.
@@ -92,14 +105,14 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
 };
 
 // Indexed views below share one contiguous table.
-extern GpGridParams D_dryfield_night_motel_lobby_80182DB4[1];
-extern GpObj4C D_dryfield_night_motel_lobby_80184034[4];
-extern GpObj4C D_dryfield_night_motel_lobby_80184164[8];
+extern GpGridParams   D_dryfield_night_motel_lobby_80182DB4[1];
+extern GpObj4C        D_dryfield_night_motel_lobby_80184034[4];
+extern GpObj4C        D_dryfield_night_motel_lobby_80184164[8];
 extern GpRoomBoundVec D_dryfield_night_motel_lobby_8018441C[8];
 extern GpRoomCoordSet D_dryfield_night_motel_lobby_8018401C[1];
 
-void func_dryfield_night_motel_lobby_80180D08(Task *);
-void func_dryfield_night_motel_lobby_80180D58(Task *);
+void func_dryfield_night_motel_lobby_80180D08(Task*);
+void func_dryfield_night_motel_lobby_80180D58(Task*);
 
 TaskDesc D_dryfield_night_motel_lobby_80182814[1] = {
     { 0, 192, func_dryfield_night_motel_lobby_80180D08, { .model = NULL } },
@@ -729,7 +742,7 @@ u8 D_dryfield_night_motel_lobby_801844D8[7] = { 0 };
 
 RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0 = { 0 };
 
-#define D_dryfield_night_motel_lobby_801828E8 (D_dryfield_night_motel_lobby_801828E0 + 1)
+static void func_dryfield_night_motel_lobby_801807C0(Task* task);
 
 void func_dryfield_night_motel_lobby_801802A8(Task* task)
 {

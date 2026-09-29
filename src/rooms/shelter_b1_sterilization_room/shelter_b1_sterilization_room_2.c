@@ -1,47 +1,59 @@
-#include "shelter_b1_sterilization_room_private.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/shelter_b1_sterilization_room.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
+#include "gte.h"
+#include "types.h"
+
+#include "shelter_b1_sterilization_room_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
+#include "rooms/room_common.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area_flags.h"
-
-extern GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28];
+#define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
 
 extern GpEvsCmd D_shelter_b1_sterilization_room_80188C94[];
 extern GpEvsCmd D_shelter_b1_sterilization_room_80188E14[];
@@ -57,23 +69,12 @@ static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1,
 extern GpRoomBoundVec D_shelter_b1_sterilization_room_8018C21C[25];
 extern GpRoomCoordSet D_shelter_b1_sterilization_room_8018B630[1];
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885FC;
-extern GpAnimArg D_shelter_b1_sterilization_room_80188610;
-extern GpXformArg D_shelter_b1_sterilization_room_80188650;
-extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
 void func_shelter_b1_sterilization_room_801814B0(void);
 void func_shelter_b1_sterilization_room_80181698(s32);
 
-extern GpGridParams D_shelter_b1_sterilization_room_80189E44;
 extern GpObj3A D_shelter_b1_sterilization_room_8018C1A4[2];
 extern GpObj4C D_shelter_b1_sterilization_room_8018B648[8];
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885AC;
-extern GpAnimArg D_shelter_b1_sterilization_room_801885C0;
-extern GpAnimArg D_shelter_b1_sterilization_room_801885D4;
-extern GpAnimArg D_shelter_b1_sterilization_room_801885E8;
-extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
-extern GpXformArg D_shelter_b1_sterilization_room_80188638;
 void func_shelter_b1_sterilization_room_801815EC(void);
 void func_shelter_b1_sterilization_room_80181658(void);
 
@@ -1415,8 +1416,6 @@ Task * D_shelter_b1_sterilization_room_8018C33C = NULL;
 s32 D_shelter_b1_sterilization_room_8018C340 = 0;
 
 RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344 = { 0 };
-
-#define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
 
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {

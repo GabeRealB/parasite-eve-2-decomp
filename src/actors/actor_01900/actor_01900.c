@@ -1,47 +1,56 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
-#include "psyq/abs.h"
 
 #include "actors/actor.h"
+
 #include "actors/actors_shared_80169f74.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 /// Private work block of the actor 01900 task, hanging off `Task::work`.
 ///
@@ -167,30 +176,30 @@ STATIC_ASSERT_SIZEOF(Actor01900StateTable, 0x80);
 
 extern GpPairSrcE         Actor01900_D0AC54;
 extern ActorSpawnParamRow Actor01900_D0AC64[];
-extern GpAnimSet* Actor01900_D17174[46];
+extern GpAnimSet*         Actor01900_D17174[46];
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task *);
-        s32 (*call2)(Task *, s32, GpAnimArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
-        s32 (*call5)(Task *, s32, u16 *);
+        s32  (*call0)(void);
+        s32  (*call1)(Task*);
+        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call4)(Task*, s32, s32);
+        s32  (*call5)(Task*, s32, u16*);
         void (*call6)(void);
     } handler;
 } Actor01900RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor01900RecoveredMsgEntry, 8);
 
 extern Actor01900RecoveredMsgEntry Actor01900_D1728C[8];
-extern GpAnimSet Actor01900_D16960;
-extern ActorHeightClamp   Actor01900_D172CC[];
+extern GpAnimSet                   Actor01900_D16960;
+extern ActorHeightClamp            Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.
-extern SVECTOR Actor01900_D1722C[];
+extern SVECTOR   Actor01900_D1722C[];
 extern TmdSource Actor01900_D10B68;
-extern s16     Actor01900_D172FC;
+extern s16       Actor01900_D172FC;
 
 static s32  Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s16 arg2);
 static void Actor01900_Fn02A50(Task* arg0);
@@ -212,14 +221,14 @@ s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
  * each `G_SCRATCH_HEAD` access out of a register CSE would share. */
 
 extern TmdSource Actor01900_D102C8;
-s32 Actor01900_Fn0A31C(Task *, s32, GpAnimArg *);
-s32 Actor01900_Fn0A38C(Task *, s32, s32);
-s32 Actor01900_Fn0A44C(Task *);
-s32 Actor01900_Fn0A49C(Task *, s32, GpXformArg *);
-s32 Actor01900_Fn0A59C(void);
-s32 Actor01900_Fn0A5A4(Task *, s32, u16 *);
-void Actor01900_Fn0A314(void);
-void Actor01900_Fn0ABE4(Task *);
+s32              Actor01900_Fn0A31C(Task*, s32, GpAnimArg*);
+s32              Actor01900_Fn0A38C(Task*, s32, s32);
+s32              Actor01900_Fn0A44C(Task*);
+s32              Actor01900_Fn0A49C(Task*, s32, GpXformArg*);
+s32              Actor01900_Fn0A59C(void);
+s32              Actor01900_Fn0A5A4(Task*, s32, u16*);
+void             Actor01900_Fn0A314(void);
+void             Actor01900_Fn0ABE4(Task*);
 
 GpU16Pair Actor01900_D0AC4C[2] = {
     { 16, 7 },
@@ -770,6 +779,83 @@ TaskDesc Actor01900_D17300 = { 1, 96, Actor01900_Fn0ABE4, { .model = &Actor01900
 
 SVECTOR Actor01900_D1730C = { 0 };
 
+/// Cross-fade lengths in frames, indexed by the clip being left and the clip
+/// being entered. `Actor01900_Fn01C94` reads one entry per animation change.
+extern s8 Actor01900_D16988[][0x2D];
+
+extern SVECTOR Actor01900_D1730C;
+
+static const Actor01900StateTable Actor01900_D001BC;
+
+static void Actor01900_Fn03710(Task* arg0);
+
+static void Actor01900_Fn03854(Task* arg0);
+
+static void Actor01900_Fn042BC(Task* arg0);
+
+static void Actor01900_Fn04D14(Task* arg0);
+
+static void Actor01900_Fn0551C(Task* arg0);
+
+static void Actor01900_Fn05B4C(Task* arg0);
+
+static void Actor01900_Fn05F38(Task* arg0);
+
+static void Actor01900_Fn06100(Task* arg0);
+
+static void Actor01900_Fn06634(Task* arg0);
+
+static void Actor01900_Fn06904(Task* arg0);
+
+static void Actor01900_Fn06B4C(Task* arg0);
+
+static void Actor01900_Fn06F40(Task* arg0);
+
+static void Actor01900_Fn07810(Task* arg0);
+
+static void Actor01900_Fn07BA8(Task* arg0);
+
+static void Actor01900_Fn080A8(Task* arg0);
+
+static void Actor01900_Fn083E8(Task* arg0);
+
+static void Actor01900_Fn0892C(Task* arg0);
+
+static void Actor01900_Fn09694(Task* arg0);
+
+static void Actor01900_Fn09BE8(Task* arg0);
+
+static void Actor01900_Fn0A764(Task* arg0);
+
+static void Actor01900_Fn0A868(Task* arg0);
+
+static void Actor01900_Fn0A914(Task* arg0);
+
+static void Actor01900_Fn0A9C0(Task* arg0);
+
+static void Actor01900_Fn0AA78(Task* arg0);
+
+static void Actor01900_Fn0ABA0(GpEnemy* enemy, Task* task);
+
+static __inline__ void Actor01900_MoveForward(GpCoord* coord, s16 amount);
+static __inline__ void Actor01900_StepForward(GpCoord* coord, s16 amount);
+static __inline__ void Actor01900_StepForwardHead(GpCoord* coord, s16 amount);
+static __inline__ void Actor01900_ResetYaw(GpCoord* coord);
+static void            Actor01900_Fn00260(GpCoord* coord, s16 yaw);
+static s32             Actor01900_Fn0056C(GpCoord* coord, GpRec18* recs, s16 count);
+static s32             Actor01900_Fn008B4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32             Actor01900_Fn00FA4(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void            Actor01900_Fn01950(Task* arg0);
+static s32             Actor01900_Fn01A7C(Actor01900Work* work);
+static __inline__ void Actor01900_BindMatrices(Task* actor);
+static void            Actor01900_Fn02018(GpEnemy* enemy, Task* actor);
+static __inline__ s32  Actor01900_FindHit(GpRec18* records, SVECTOR* pos);
+static __inline__ s32  Actor01900_ArmIfPlayerLevel(Task* arg0);
+static __inline__ s32  Actor01900_HasHeightClamp(GpAreaKey* session);
+static s32             Actor01900_Fn03C98(GpCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
+static __inline__ s32  Actor01900_HasHit(GpRec18* records);
+static void            Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor);
+
 /// Step `coord` `amount` units along its local Z axis unless movement is
 /// frozen. Same body as `actorMoveForwardNonzero`.
 static __inline__ void Actor01900_MoveForward(GpCoord* coord, s16 amount)
@@ -885,39 +971,6 @@ static __inline__ void Actor01900_ResetYaw(GpCoord* coord)
 }
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-
-/// Cross-fade lengths in frames, indexed by the clip being left and the clip
-/// being entered. `Actor01900_Fn01C94` reads one entry per animation change.
-extern s8      Actor01900_D16988[][0x2D];
-extern SVECTOR Actor01900_D1730C;
-
-static const Actor01900StateTable Actor01900_D001BC;
-
-static void Actor01900_Fn03710(Task* arg0);
-static void Actor01900_Fn03854(Task* arg0);
-static void Actor01900_Fn042BC(Task* arg0);
-static void Actor01900_Fn04D14(Task* arg0);
-static void Actor01900_Fn0551C(Task* arg0);
-static void Actor01900_Fn05B4C(Task* arg0);
-static void Actor01900_Fn05F38(Task* arg0);
-static void Actor01900_Fn06100(Task* arg0);
-static void Actor01900_Fn06634(Task* arg0);
-static void Actor01900_Fn06904(Task* arg0);
-static void Actor01900_Fn06B4C(Task* arg0);
-static void Actor01900_Fn06F40(Task* arg0);
-static void Actor01900_Fn07810(Task* arg0);
-static void Actor01900_Fn07BA8(Task* arg0);
-static void Actor01900_Fn080A8(Task* arg0);
-static void Actor01900_Fn083E8(Task* arg0);
-static void Actor01900_Fn0892C(Task* arg0);
-static void Actor01900_Fn09694(Task* arg0);
-static void Actor01900_Fn09BE8(Task* arg0);
-static void Actor01900_Fn0A764(Task* arg0);
-static void Actor01900_Fn0A868(Task* arg0);
-static void Actor01900_Fn0A914(Task* arg0);
-static void Actor01900_Fn0A9C0(Task* arg0);
-static void Actor01900_Fn0AA78(Task* arg0);
-static void Actor01900_Fn0ABA0(GpEnemy* enemy, Task* task);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

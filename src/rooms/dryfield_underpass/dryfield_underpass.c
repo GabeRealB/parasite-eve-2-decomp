@@ -1,72 +1,77 @@
-#include "gameplay/evs.h"
 #include "rooms/dryfield_underpass.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-
-#include "gameplay/message.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/world_targets.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
 
 extern TaskDesc   D_dryfield_underpass_8017E818[];
 extern GpMsgEntry D_dryfield_underpass_8017E830[];
 extern s32        D_dryfield_underpass_8017E89C;
-extern GpEvsCmd D_dryfield_underpass_8017E8D8[];
+extern GpEvsCmd   D_dryfield_underpass_8017E8D8[];
 extern SVECTOR    D_dryfield_underpass_8017EAD0[8];
 extern s16        D_dryfield_underpass_8017EB10[8];
 
-extern GpGridParams D_dryfield_underpass_8017F484[1];
-extern GpObj3A D_dryfield_underpass_80180AA8[3];
-extern GpObj4C D_dryfield_underpass_80180388[16];
-extern GpObj4C D_dryfield_underpass_80180848[2];
-extern GpObj4C D_dryfield_underpass_801808E0[6];
+extern GpGridParams   D_dryfield_underpass_8017F484[1];
+extern GpObj3A        D_dryfield_underpass_80180AA8[3];
+extern GpObj4C        D_dryfield_underpass_80180388[16];
+extern GpObj4C        D_dryfield_underpass_80180848[2];
+extern GpObj4C        D_dryfield_underpass_801808E0[6];
 extern GpRoomCoordSet D_dryfield_underpass_80180EBC[1];
 extern GpRoomCoordSet D_dryfield_underpass_80181114[1];
 
 extern GpAnimArg D_dryfield_underpass_8017E870;
 extern GpAnimArg D_dryfield_underpass_8017E884;
-extern GpCmdArg D_dryfield_underpass_8017E8A0;
-extern GpCmdArg D_dryfield_underpass_8017E8A4;
-extern GpCmdArg D_dryfield_underpass_8017E8A8;
+extern GpCmdArg  D_dryfield_underpass_8017E8A0;
+extern GpCmdArg  D_dryfield_underpass_8017E8A4;
+extern GpCmdArg  D_dryfield_underpass_8017E8A8;
 extern GpCopyArg D_dryfield_underpass_8017E868;
-void func_dryfield_underpass_8017DA08(void);
+void             func_dryfield_underpass_8017DA08(void);
 
-s32 func_dryfield_underpass_8017D788(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_underpass_8017D868(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_underpass_8017D8CC(Task *, s32, s32, s32);
-s32 func_dryfield_underpass_8017D900(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_underpass_8017D908(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-void func_dryfield_underpass_8017D5D0(Task *);
+s32  func_dryfield_underpass_8017D788(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_underpass_8017D868(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_underpass_8017D8CC(Task*, s32, s32, s32);
+s32  func_dryfield_underpass_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+void func_dryfield_underpass_8017D5D0(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1343,6 +1348,10 @@ GpRoomParamRec * D_dryfield_underpass_80181164[8] = {
     D_dryfield_underpass_80181144,
     D_dryfield_underpass_80181144,
 };
+
+static void func_dryfield_underpass_8017D970(Task* arg0);
+static void func_dryfield_underpass_8017DA00(Task* task);
+static void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 /// Switch task the room's 0x13F0 handler spawns: plays cap command `spawnArg2`,
 /// waits for it to finish, and once its event key reaches 0xA toggles game

@@ -1,52 +1,64 @@
-#include "neo_ark_shrine_private.h"
+#include "rooms/neo_ark_shrine.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/neo_ark_shrine.h"
-#include "rooms/room_common.h"
+#include <psyq/libgs.h>
 
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
+
+#include "neo_ark_shrine_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
@@ -71,16 +83,13 @@ static void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern TaskDesc         D_neo_ark_shrine_80182404[];
-extern u16              D_neo_ark_shrine_80182410[16];
-extern NeoArkShrineSlot D_neo_ark_shrine_8018256C[16];
-extern SVECTOR          D_neo_ark_shrine_8018268C[];
-extern SVECTOR          D_neo_ark_shrine_80182694[];
-extern SVECTOR          D_neo_ark_shrine_8018269C[];
-extern SVECTOR          D_neo_ark_shrine_801826AC[];
-extern SVECTOR          D_neo_ark_shrine_801826C4[];
-extern SVECTOR          D_neo_ark_shrine_801826D4[];
-extern SVECTOR          D_neo_ark_shrine_80182704[];
+extern SVECTOR D_neo_ark_shrine_8018268C[];
+extern SVECTOR D_neo_ark_shrine_80182694[];
+extern SVECTOR D_neo_ark_shrine_8018269C[];
+extern SVECTOR D_neo_ark_shrine_801826AC[];
+extern SVECTOR D_neo_ark_shrine_801826C4[];
+extern SVECTOR D_neo_ark_shrine_801826D4[];
+extern SVECTOR D_neo_ark_shrine_80182704[];
 
 /// Offset of the beam's near end from the effect's parent coordinate. The far
 /// end's offset follows it directly; the beam's set-up state reaches that one
@@ -138,14 +147,14 @@ static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
     { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
 };
 
-extern GpGridParams D_neo_ark_shrine_80182D2C[1];
-extern GpGridParams D_neo_ark_shrine_801831D8[1];
-extern GpGridParams D_neo_ark_shrine_80183698[1];
-extern GpObj3A D_neo_ark_shrine_80186730[4];
-extern GpObj4C D_neo_ark_shrine_80185A80[14];
-extern GpObj4C D_neo_ark_shrine_80185EA8[9];
-extern GpObj4C D_neo_ark_shrine_80186154[8];
-extern GpObj4C D_neo_ark_shrine_801863B4[8];
+extern GpGridParams   D_neo_ark_shrine_80182D2C[1];
+extern GpGridParams   D_neo_ark_shrine_801831D8[1];
+extern GpGridParams   D_neo_ark_shrine_80183698[1];
+extern GpObj3A        D_neo_ark_shrine_80186730[4];
+extern GpObj4C        D_neo_ark_shrine_80185A80[14];
+extern GpObj4C        D_neo_ark_shrine_80185EA8[9];
+extern GpObj4C        D_neo_ark_shrine_80186154[8];
+extern GpObj4C        D_neo_ark_shrine_801863B4[8];
 extern GpRoomCoordSet D_neo_ark_shrine_80185A68[1];
 
 SVECTOR D_neo_ark_shrine_8018268C[1] = {
@@ -1833,6 +1842,8 @@ s16 D_neo_ark_shrine_8018686C[16] = { 0 };
 NeoArkShrineSlot D_neo_ark_shrine_8018688C[16] = { 0 };
 
 NeoArkShrineSlot D_neo_ark_shrine_801868CC[16] = { 0 };
+
+static void func_neo_ark_shrine_8017E528(Task* task);
 
 /// Moves the action-prompt cursor from the pad: for each port the task's
 /// `spawnArg1` selects, integrates the analog stick and the d-pad direction

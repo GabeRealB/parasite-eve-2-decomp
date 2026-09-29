@@ -1,23 +1,4 @@
 #include "gameplay/items.h"
-#include "rooms/shelter_1f_tent.h"
-#include "rooms/shelter_b6_nursery.h"
-#include "rooms/shelter_r47.h"
-#include "rooms/shelter_b3_incinerator_control_room.h"
-#include "rooms/shelter_b2_laboratory.h"
-#include "rooms/shelter_b1_underground_parking.h"
-#include "rooms/shelter_b1_sterilization_room.h"
-#include "rooms/mine_refuge.h"
-#include "rooms/dryfield_night_motel_room_6.h"
-#include "rooms/dryfield_night_trailer_coach.h"
-#include "rooms/dryfield_night_motel_lobby.h"
-#include "rooms/dryfield_night_gas_station.h"
-#include "rooms/dryfield_motel_room_6.h"
-#include "rooms/dryfield_trailer_coach.h"
-#include "rooms/dryfield_motel_lobby.h"
-#include "rooms/dryfield_gas_station.h"
-#include "rooms/mist_parking.h"
-#include "rooms/acropolis_fire_escape.h"
-#include "rooms/acropolis_square.h"
 
 #include "types.h"
 
@@ -26,12 +7,50 @@
 #include "inventory.h"
 #include "items.h"
 
-#include "debug/debug.h"
+#include "debug/nmc_names.h"
 
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task_types.h"
 #include "main/wipsys.h"
+
+#include "rooms/acropolis_fire_escape.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/dryfield_gas_station.h"
+
+#include "rooms/dryfield_motel_lobby.h"
+
+#include "rooms/dryfield_motel_room_6.h"
+
+#include "rooms/dryfield_night_gas_station.h"
+
+#include "rooms/dryfield_night_motel_lobby.h"
+
+#include "rooms/dryfield_night_motel_room_6.h"
+
+#include "rooms/dryfield_night_trailer_coach.h"
+
+#include "rooms/dryfield_trailer_coach.h"
+
+#include "rooms/mine_refuge.h"
+
+#include "rooms/mist_parking.h"
+
+#include "rooms/shelter_1f_tent.h"
+
+#include "rooms/shelter_b1_sterilization_room.h"
+
+#include "rooms/shelter_b1_underground_parking.h"
+
+#include "rooms/shelter_b2_laboratory.h"
+
+#include "rooms/shelter_b3_incinerator_control_room.h"
+
+#include "rooms/shelter_b6_nursery.h"
+
+#include "rooms/shelter_r47.h"
 
 /// Resolve a row in the PS1 stack-limit table address space. Address words preserve
 /// the runtime table base; row fields are always accessed through GpItemA0.

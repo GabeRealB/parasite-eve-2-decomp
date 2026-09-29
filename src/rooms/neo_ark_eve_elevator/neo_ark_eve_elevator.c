@@ -1,24 +1,27 @@
-#include "common.h"
 #include "rooms/neo_ark_eve_elevator.h"
-#include "mapui/map_neo_ark.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-
-#include "main/fs.h"
-#include "main/session.h"
-#include "main/task.h"
-
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/fs.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
 
 /// The room's message table, which state 0 of its event task installs.
 extern GpMsgEntry D_neo_ark_eve_elevator_8017D724[];
@@ -35,13 +38,13 @@ static const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
     },
 };
 
-s32 func_neo_ark_eve_elevator_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_eve_elevator_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_neo_ark_eve_elevator_8017D668(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_eve_elevator_8017D670(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_eve_elevator_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_eve_elevator_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_neo_ark_eve_elevator_8017D668(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_eve_elevator_8017D670(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_neo_ark_eve_elevator_8017DA2C[1];
-extern GpObj4C D_neo_ark_eve_elevator_8017DBC8[1];
+extern GpGridParams   D_neo_ark_eve_elevator_8017DA2C[1];
+extern GpObj4C        D_neo_ark_eve_elevator_8017DBC8[1];
 extern GpRoomCoordSet D_neo_ark_eve_elevator_8017DBB0[1];
 
 GpMsgEntry D_neo_ark_eve_elevator_8017D724[5] = {

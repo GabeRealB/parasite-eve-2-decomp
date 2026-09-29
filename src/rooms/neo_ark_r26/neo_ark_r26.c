@@ -1,32 +1,37 @@
-#include "common.h"
 #include "rooms/neo_ark_r26.h"
-#include "mapui/map_neo_ark.h"
-#include "rooms/room.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "gameplay/evs.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/message.h"
+#include "mapui/map_neo_ark.h"
 
 /// Cutscene script blob argument of `func_800E8634`.
 extern GpEvsCmd D_neo_ark_r26_8017DA74[];
@@ -37,12 +42,12 @@ extern GpEvsCmd D_neo_ark_r26_8017DFCC[];
 /// Room message handler table installed into `Task::msgTable`.
 extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
 
-s32 func_neo_ark_r26_8017D648(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_r26_8017D650(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_r26_8017D694(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_r26_8017D69C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r26_8017D648(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r26_8017D650(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_r26_8017D694(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r26_8017D69C(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_neo_ark_r26_8017E19C[1];
+extern GpGridParams   D_neo_ark_r26_8017E19C[1];
 extern GpRoomBoundVec D_neo_ark_r26_8017E9EC[5];
 extern GpRoomCoordSet D_neo_ark_r26_8017E928[1];
 
@@ -53,8 +58,8 @@ extern GpAnimArg D_neo_ark_r26_8017D864;
 extern GpAnimArg D_neo_ark_r26_8017D904;
 extern GpAnimArg D_neo_ark_r26_8017D918;
 extern GpAnimArg D_neo_ark_r26_8017D9CC;
-extern GpCmdArg D_neo_ark_r26_8017D798;
-void func_neo_ark_r26_8017D5D0(void);
+extern GpCmdArg  D_neo_ark_r26_8017D798;
+void             func_neo_ark_r26_8017D5D0(void);
 
 GpAnimArg D_neo_ark_r26_8017D780 = { { .index = 1 }, 1, 0, 0, 0 };
 
@@ -480,6 +485,9 @@ GpRoomParamRec * D_neo_ark_r26_8017EA30[8] = {
     D_neo_ark_r26_8017EA20,
     D_neo_ark_r26_8017EA20,
 };
+
+static void func_neo_ark_r26_8017D6A4(Task* arg0);
+static void func_neo_ark_r26_8017D710(Task* task);
 
 /// Script callback: unless attract demo 9 is playing, points the save's
 /// location at stage 5, area 0x1C, warp 1, room 1, sets `gDisplayState.roomVariant`, spawns

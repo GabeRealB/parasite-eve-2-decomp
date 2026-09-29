@@ -1,35 +1,38 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
-/// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
-#define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#include "common.h"
+#include "gte.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/enemy.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
+#define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
-#include "gameplay/animation.h"
+/// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 
 /// 0x30 block `func_actor_341300_80162878` and `func_actor_341300_801631D4`
 /// allocate into `Task::work`: a tumbling Gouraud triangle shard with its own
@@ -58,8 +61,8 @@ extern GpXformArg D_actor_341300_80165330;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    Task * value;
-    u8 retained[8];
+    Task* value;
+    u8    retained[8];
 } Actor341300Storage5A2C;
 STATIC_ASSERT_SIZEOF(Actor341300Storage5A2C, 12);
 
@@ -74,35 +77,35 @@ extern Task* D_actor_341300_80165AA4;
 static void func_actor_341300_8016398C(s32 arg0);
 static void func_actor_341300_801639CC(s32 arg0);
 
-void func_actor_341300_80162698(Task *);
+void func_actor_341300_80162698(Task*);
 
-void func_actor_341300_80163A10(Task *);
+void func_actor_341300_80163A10(Task*);
 
-extern GpAnimArg D_actor_341300_80165260;
-extern GpAnimArg D_actor_341300_80165274;
-extern GpAnimArg D_actor_341300_80165288;
-extern GpAnimArg D_actor_341300_8016529C;
-extern GpAnimArg D_actor_341300_801652B0;
-extern GpAnimArg D_actor_341300_801652F4;
-extern GpAnimArg D_actor_341300_80165308;
-extern GpAnimArg D_actor_341300_8016531C;
-extern GpCopyArg D_actor_341300_80165244;
+extern GpAnimArg  D_actor_341300_80165260;
+extern GpAnimArg  D_actor_341300_80165274;
+extern GpAnimArg  D_actor_341300_80165288;
+extern GpAnimArg  D_actor_341300_8016529C;
+extern GpAnimArg  D_actor_341300_801652B0;
+extern GpAnimArg  D_actor_341300_801652F4;
+extern GpAnimArg  D_actor_341300_80165308;
+extern GpAnimArg  D_actor_341300_8016531C;
+extern GpCopyArg  D_actor_341300_80165244;
 extern GpXformArg D_actor_341300_801652C4;
 extern GpXformArg D_actor_341300_801652DC;
-void func_actor_341300_8016239C(void);
-void func_actor_341300_801623BC(void);
-void func_actor_341300_801623DC(void);
-void func_actor_341300_801623FC(void);
-void func_actor_341300_8016241C(void);
-void func_actor_341300_80162450(void);
-void func_actor_341300_80162530(void);
-void func_actor_341300_80162564(s16);
-void func_actor_341300_80162588(s16);
-void func_actor_341300_801625AC(void);
-void func_actor_341300_80162680(s8);
+void              func_actor_341300_8016239C(void);
+void              func_actor_341300_801623BC(void);
+void              func_actor_341300_801623DC(void);
+void              func_actor_341300_801623FC(void);
+void              func_actor_341300_8016241C(void);
+void              func_actor_341300_80162450(void);
+void              func_actor_341300_80162530(void);
+void              func_actor_341300_80162564(s16);
+void              func_actor_341300_80162588(s16);
+void              func_actor_341300_801625AC(void);
+void              func_actor_341300_80162680(s8);
 
-void func_actor_341300_80162278(Task *);
-void func_actor_341300_80162478(Task *);
+void func_actor_341300_80162278(Task*);
+void func_actor_341300_80162478(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -378,10 +381,10 @@ SVECTOR D_actor_341300_80165A58[2] = {
     { 2450, -2300, 900, 0 },
 };
 
-void func_actor_341300_80162698(Task *);
-void func_actor_341300_80162878(Task *);
-void func_actor_341300_80163028(Task *);
-void func_actor_341300_801631D4(Task *);
+void func_actor_341300_80162698(Task*);
+void func_actor_341300_80162878(Task*);
+void func_actor_341300_80163028(Task*);
+void func_actor_341300_801631D4(Task*);
 
 TaskDesc D_actor_341300_80165A68[4] = {
     { 0, 192, func_actor_341300_80162698, { .model = NULL } },
@@ -393,6 +396,9 @@ TaskDesc D_actor_341300_80165A68[4] = {
 TaskDesc D_actor_341300_80165A98 = { 0, 192, func_actor_341300_80163A10, { .model = NULL } };
 
 Task * D_actor_341300_80165AA4 = NULL;
+
+static void func_actor_341300_80161E84(void);
+static void func_actor_341300_8016268C(void);
 
 /// Draws the two textured quads at fixed positions: each is four fixed
 /// model-space corners projected through `gGfxViewCoord.workm`, emitted as a

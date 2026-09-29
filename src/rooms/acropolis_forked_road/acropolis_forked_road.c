@@ -1,20 +1,27 @@
-#include "gameplay/evs.h"
+#include "rooms/acropolis_forked_road.h"
+
 #include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "acropolis_forked_road_private.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
 
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
+#include "main/stream_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
 /// The room's message table, installed on its entry task.
 extern GpMsgEntry D_acropolis_forked_road_80180F14[];
@@ -24,13 +31,11 @@ extern GpMsgEntry D_acropolis_forked_road_80180F14[];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s32 value;
-    u8 retained[4];
+    u8  retained[4];
 } AcropolisForkedRoadStorage0F3C;
 STATIC_ASSERT_SIZEOF(AcropolisForkedRoadStorage0F3C, 8);
 
 extern AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C;
-extern TaskDesc D_acropolis_forked_road_80180F44[];
-extern GpEvsCmd D_acropolis_forked_road_801820B8[];
 
 static void func_acropolis_forked_road_8017D92C(Task* task);
 static void func_acropolis_forked_road_8017D970(Task* task);
@@ -40,10 +45,10 @@ static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
     { func_acropolis_forked_road_8017D92C, func_acropolis_forked_road_8017D970, taskKill }
 };
 
-s32 func_acropolis_forked_road_8017D5EC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_forked_road_8017D850(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_forked_road_8017D858(Task *, s32, s32, GpMessageArg);
-s32 func_acropolis_forked_road_8017D8A8(Task *, s32, GpMsg13EF *, GpMessageArg);
+s32 func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_acropolis_forked_road_8017D850(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_forked_road_8017D858(Task*, s32, s32, GpMessageArg);
+s32 func_acropolis_forked_road_8017D8A8(Task*, s32, GpMsg13EF*, GpMessageArg);
 
 GpMsgEntry D_acropolis_forked_road_80180F14[5] = {
     { 5102, func_acropolis_forked_road_8017D5EC },

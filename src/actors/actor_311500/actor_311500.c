@@ -1,47 +1,53 @@
-#include "gameplay/message.h"
-#include "rooms/acropolis_fire_escape.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/object_fields.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
-#include <psyq/memory.h>
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
+
+#include "rooms/acropolis_fire_escape.h"
 
 /// Psy-Q `RotMatrixY`.
 
@@ -91,7 +97,7 @@ extern GpAnimSet* D_actor_311500_801692F4[2];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, s32, u32 *);
+        void (*call0)(Task*, s32, s32, u32*);
     } handler;
 } Actor311500MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor311500MessageEntry, 8);
@@ -105,8 +111,8 @@ extern s32 D_actor_311500_80169324[3];
 extern GpAnimSet D_actor_311500_80168FA8;
 extern GpAnimSet D_actor_311500_80169290;
 extern TmdSource D_actor_311500_80168BF8;
-void func_actor_311500_80163334(Task *);
-void func_actor_311500_801636A0(Task *, s32, s32, u32 *);
+void             func_actor_311500_80163334(Task*);
+void             func_actor_311500_801636A0(Task*, s32, s32, u32*);
 
 TmdBone D_actor_311500_801636B4[19] = {
 #include "assets/actor_311500_model_06DD8_skeleton.inc"
@@ -246,7 +252,21 @@ Actor311500MessageEntry D_actor_311500_80169330[1] = {
     { 2006, { .call0 = func_actor_311500_801636A0 } },
 };
 
-TaskDesc D_actor_311500_80169338 = { 257, 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } };/// Walks the first `count` contact records (stopping at a zero key) and keeps,
+TaskDesc D_actor_311500_80169338 = { 257, 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
+
+static s32         func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count);
+static s32         func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static void        func_actor_311500_801626CC(GpCoord* coord, s16 yaw);
+static void        func_actor_311500_801629D8(Task* arg0);
+static inline void _actor311500ResetAnim(Task* task, u8 rate);
+static inline u16  _actor311500TickAnim(Task* task);
+static void        func_actor_311500_80162C34(Task* arg0, TmdObject* arg1);
+static s16         func_actor_311500_80162DDC(Task* arg0);
+static inline void _actor311500BlendAnim(Task* task);
+static inline void _actor311500SpawnEffect(Task* task);
+static s32         func_actor_311500_80162F28(Task* arg0);
+static s32         func_actor_311500_801630A4(Task* arg0);
+
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns

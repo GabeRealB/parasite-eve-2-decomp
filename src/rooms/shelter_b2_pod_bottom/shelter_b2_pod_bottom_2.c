@@ -1,28 +1,34 @@
-#include "common.h"
 #include "rooms/shelter_b2_pod_bottom.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
+#include "shelter_b2_pod_bottom_private.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/effects.h"
+#include "gameplay/loading.h"
 #include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "rooms/room.h"
 
 /// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
 /// `G_SCRATCH_HEAD`: the 32 rotated ring points and the disc centre, the
@@ -44,12 +50,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 ar
 static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord, s32 arg2);
 static void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 color, u16 scale);
 
-extern u16           D_shelter_b2_pod_bottom_80188790[3][16];
-extern RoomRingShape D_shelter_b2_pod_bottom_80181C94[];
-
-/// Tint rows for `func_shelter_b2_pod_bottom_8017F448`: per-channel right
-/// shifts (0-2) applied to its colour ramp, one row chosen at random.
-extern u16 D_shelter_b2_pod_bottom_80181CA8[][3];
+extern u16 D_shelter_b2_pod_bottom_80188790[3][16];
 
 static void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rgb);
 static void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
@@ -216,6 +217,8 @@ GpRoomParamRec * D_shelter_b2_pod_bottom_80188770[8] = {
 };
 
 u16 D_shelter_b2_pod_bottom_80188790[3][16] = { 0 };
+
+static void func_shelter_b2_pod_bottom_80180A4C(GpCoord* coord, s16 radius, SVECTOR* center);
 
 /// On its first frame (state 0) fills three rows of 16 random bytes in
 /// `D_shelter_b2_pod_bottom_80188790` from the gameplay LCG and turns off

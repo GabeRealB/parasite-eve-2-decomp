@@ -1,33 +1,43 @@
-#include "neo_ark_eve_access_tunnel_private.h"
-#include "mapui/map_neo_ark.h"
+#include "rooms/neo_ark_eve_access_tunnel.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "common.h"
-#include "rooms/neo_ark_eve_access_tunnel.h"
-#include "rooms/room.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "neo_ark_eve_access_tunnel_private.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/fs_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/room.h"
 
 /// Parameter block of `func_neo_ark_eve_access_tunnel_8017D6D4`, the room-local
 /// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
@@ -46,10 +56,6 @@ typedef struct NaetUtilParam {
 } NaetUtilParam;
 STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 
-/// Descriptor the tunnel's outgoing task is spawned from, index 0 of the table
-/// `func_neo_ark_eve_access_tunnel_8017D980` hands `Task_SpawnFromTable`.
-extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
-
 /// The staged event descriptor, read by the task spawned above.
 extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
@@ -62,21 +68,12 @@ extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 /// later copies into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
 extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
 
-/// The room's message table, installed in `Task::msgTable` by the room task's
-/// first state. Terminated by the `0x7FFFFFFF` id.
-extern GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[];
-
-/// The room's three task descriptors: the departure sequence, the save
-/// sequence and the CAP-wait flag setter, spawned by the message handlers.
-extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[];
-
 static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
 static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
 
 extern GpAreaTmdRec D_neo_ark_eve_access_tunnel_8018067C[2];
 extern GpAreaTmdRec D_neo_ark_eve_access_tunnel_80180694[3];
 
-extern GpSprtCmd D_neo_ark_eve_access_tunnel_8017F17C[2];
 extern GpSprtElem D_neo_ark_eve_access_tunnel_8017F18C[69];
 
 GpSprtElem D_neo_ark_eve_access_tunnel_8017F18C[69] = {
@@ -420,6 +417,8 @@ GpRoomParamRec * D_neo_ark_eve_access_tunnel_80180780[8] = {
 GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0 = { 0 };
 
 RoomDeparture D_neo_ark_eve_access_tunnel_801807A8 = { 0 };
+
+static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1);
 
 /// Resolves the code in `arg0->field_0` into a state byte in `arg1->field_3`,
 /// unless `arg0->field_5` is set. Only six codes produce one, each from a

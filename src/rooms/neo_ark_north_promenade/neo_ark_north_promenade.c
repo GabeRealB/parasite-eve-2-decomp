@@ -1,54 +1,61 @@
-#include "common.h"
 #include "rooms/neo_ark_north_promenade.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } NeoArkNorthPromenadeHaloStorage;
 STATIC_ASSERT_SIZEOF(NeoArkNorthPromenadeHaloStorage, 20);
 extern NeoArkNorthPromenadeHaloStorage D_neo_ark_north_promenade_80181D90;
@@ -78,16 +85,16 @@ static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
     { func_neo_ark_north_promenade_8017D67C, func_neo_ark_north_promenade_8017D6C0, taskKill },
 };
 
-extern GpGridParams D_neo_ark_north_promenade_801823EC[1];
-extern GpObj3A D_neo_ark_north_promenade_8018328C[1];
-extern GpObj4C D_neo_ark_north_promenade_80182DB4[8];
-extern GpObj4C D_neo_ark_north_promenade_801830C4[6];
+extern GpGridParams   D_neo_ark_north_promenade_801823EC[1];
+extern GpObj3A        D_neo_ark_north_promenade_8018328C[1];
+extern GpObj4C        D_neo_ark_north_promenade_80182DB4[8];
+extern GpObj4C        D_neo_ark_north_promenade_801830C4[6];
 extern GpRoomCoordSet D_neo_ark_north_promenade_80182D9C[1];
 
-s32 func_neo_ark_north_promenade_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_north_promenade_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_neo_ark_north_promenade_8017D66C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_north_promenade_8017D674(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_north_promenade_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_neo_ark_north_promenade_8017D66C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_north_promenade_8017D674(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_neo_ark_north_promenade_80181D68[5] = {
     { 5102, func_neo_ark_north_promenade_8017D5D8 },

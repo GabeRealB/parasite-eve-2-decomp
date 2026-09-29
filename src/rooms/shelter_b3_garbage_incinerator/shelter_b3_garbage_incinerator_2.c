@@ -1,63 +1,64 @@
-#include "gameplay/evs.h"
-#include "shelter_b3_garbage_incinerator_private.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 #include <psyq/strings.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/shelter_b3_garbage_incinerator.h"
 
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "common.h"
+
+#include "shelter_b3_garbage_incinerator_private.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/cap.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-
-#include "gameplay/direction.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/animation.h"
-
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b3_garbage_incinerator_8018FC5C[4];
 
 extern TaskDesc D_80164FF8;
 
@@ -83,30 +84,24 @@ typedef struct {
     s16    room;
 } _DescentWork;
 
-extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B58[2];
+extern GpXformArg D_shelter_b3_garbage_incinerator_80185B58[2];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *);
-        void (*call1)(Task *, s32, GpXformArg *);
-        void (*call2)(Task *, s32, s32);
+        void (*call0)(Task*);
+        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, s32);
     } handler;
 } ShelterB3GarbageIncinerator2ExtendedMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2ExtendedMessageEntry, 8);
 
 extern ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
-extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B88;
-extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
+extern GpXformArg                                       D_shelter_b3_garbage_incinerator_80185B88;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-extern s32             D_shelter_b3_garbage_incinerator_80185BC4;
-extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
-extern OverlayWaveRec  D_shelter_b3_garbage_incinerator_8018FC60[10];
-extern OverlayWaveRec  D_shelter_b3_garbage_incinerator_8018FCB0[30];
-// The task starts at row 1 and draws rows -1 through 28.
-extern POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
+extern s32 D_shelter_b3_garbage_incinerator_80185BC4;
 
 /* Shared in source with actors 342100 (the encounter's fade and spawn) and
    215100 (the caption drawing): their data here. */
@@ -114,30 +109,20 @@ extern POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, s32);
+        void (*call0)(Task*, s32, s32);
     } handler;
 } ShelterB3GarbageIncinerator2MessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2MessageEntry, 8);
 
 extern ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F70[1];
-extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[];
+extern TaskDesc                                 D_shelter_b3_garbage_incinerator_80185BAC[];
 
-extern GlyphUvwh* D_shelter_b3_garbage_incinerator_8018FC44;
-extern s16        D_shelter_b3_garbage_incinerator_8018FC4C;
-extern s16        D_shelter_b3_garbage_incinerator_8018FC4E;
-extern s16        D_shelter_b3_garbage_incinerator_8018FC50;
-extern s16        D_shelter_b3_garbage_incinerator_8018FC54;
-extern u16        D_shelter_b3_garbage_incinerator_8018FC58;
-extern u16        D_shelter_b3_garbage_incinerator_8018FC5A;
-extern s16        D_shelter_b3_garbage_incinerator_80187180;
-extern s16        D_shelter_b3_garbage_incinerator_80187182;
+extern u16 D_shelter_b3_garbage_incinerator_8018FC5A;
+extern s16 D_shelter_b3_garbage_incinerator_80187180;
+extern s16 D_shelter_b3_garbage_incinerator_80187182;
 
-extern GpCapEntry* D_shelter_b3_garbage_incinerator_8018FC40;
-extern GpEvt12*    D_shelter_b3_garbage_incinerator_8018FC48;
-extern s16         D_shelter_b3_garbage_incinerator_8018FC52;
-extern s16         D_shelter_b3_garbage_incinerator_8018FC56;
-extern s32         D_shelter_b3_garbage_incinerator_80187278;
-extern s32         D_shelter_b3_garbage_incinerator_8018727C;
+extern s32 D_shelter_b3_garbage_incinerator_80187278;
+extern s32 D_shelter_b3_garbage_incinerator_8018727C;
 
 void        func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
 void        func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
@@ -173,8 +158,6 @@ typedef struct {
 } GarbageIncineratorWork;
 STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
 
-extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
-
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
 extern GpAnimSet* D_shelter_b3_garbage_incinerator_80186F78[4];
 
@@ -193,8 +176,7 @@ extern GpEffArg D_shelter_b3_garbage_incinerator_80186F90;
 /// display object's coordinate array.
 extern u16 D_shelter_b3_garbage_incinerator_80186F98[];
 
-static s32   func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
-extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
+static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 
 /// Main-executable global with no module header yet: the base animation-set
 /// id, whose alternate range `Mc_SaveData[0].state.characterId` selects when it is 1.
@@ -211,7 +193,7 @@ typedef union {
         u16 priority;
         union {
             TaskFunc task;
-            void (*withArg)(Task*, s32);
+            void     (*withArg)(Task*, s32);
         } callback;
         TaskSpawnArg arg;
     } native[1];
@@ -219,36 +201,27 @@ typedef union {
 STATIC_ASSERT_SIZEOF(GarbageIncineratorTaskTable, 0xc);
 
 extern GarbageIncineratorTaskTable D_shelter_b3_garbage_incinerator_80187184;
-static void     func_shelter_b3_garbage_incinerator_8017FB80(void);
+static void                        func_shelter_b3_garbage_incinerator_8017FB80(void);
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187190;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_8018719C;
 
-void func_shelter_b3_garbage_incinerator_80180F18(Task *);
-void func_shelter_b3_garbage_incinerator_80180F54(Task *);
+void func_shelter_b3_garbage_incinerator_80180F18(Task*);
+void func_shelter_b3_garbage_incinerator_80180F54(Task*);
 
-extern GpGridParams D_shelter_b3_garbage_incinerator_80188388[1];
-extern GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1];
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018E5B0[22];
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018EC38[20];
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018F228[17];
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018F734[6];
-extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018DCF0[1];
-extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018E598[1];
+void func_shelter_b3_garbage_incinerator_8017FA58(Task*, s32);
 
-void func_shelter_b3_garbage_incinerator_8017FA58(Task *, s32);
-
-void func_shelter_b3_garbage_incinerator_8017DCD4(Task *);
-void func_shelter_b3_garbage_incinerator_8017E158(Task *);
-void func_shelter_b3_garbage_incinerator_8017E690(Task *, s32, s32);
-void func_shelter_b3_garbage_incinerator_8017E70C(Task *, s32, GpXformArg *);
-void func_shelter_b3_garbage_incinerator_8017E7A4(Task *);
-void func_shelter_b3_garbage_incinerator_8017E7D0(Task *);
-void func_shelter_b3_garbage_incinerator_8017F0A8(Task *);
-void func_shelter_b3_garbage_incinerator_8017F410(Task *);
-void func_shelter_b3_garbage_incinerator_8017F6D8(Task *);
-void func_shelter_b3_garbage_incinerator_8017F8A4(Task *, s32, s32);
+void func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
+void func_shelter_b3_garbage_incinerator_8017E158(Task*);
+void func_shelter_b3_garbage_incinerator_8017E690(Task*, s32, s32);
+void func_shelter_b3_garbage_incinerator_8017E70C(Task*, s32, GpXformArg*);
+void func_shelter_b3_garbage_incinerator_8017E7A4(Task*);
+void func_shelter_b3_garbage_incinerator_8017E7D0(Task*);
+void func_shelter_b3_garbage_incinerator_8017F0A8(Task*);
+void func_shelter_b3_garbage_incinerator_8017F410(Task*);
+void func_shelter_b3_garbage_incinerator_8017F6D8(Task*);
+void func_shelter_b3_garbage_incinerator_8017F8A4(Task*, s32, s32);
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32);
 void func_shelter_b3_garbage_incinerator_8017F930(s32);
 void func_shelter_b3_garbage_incinerator_8017F968(void);
@@ -741,6 +714,11 @@ GpWarpRec D_shelter_b3_garbage_incinerator_8018741C[3] = {
     { { .words = { 0, 0x36D5, 0, -0x6466 } }, { 0, 0, 0, 0 }, { .words = { 0, 0x36D5, 0, -0x6466 } }, { 0, 0, 0, 0 }, 0, 0x54280006, 0, 9, 0, 0 },
     { { .words = { 1024, 522, 0, -714 } }, { 0, 0, 0, 0 }, { .words = { 1024, 522, 0, -714 } }, { 0, 0, 0, 0 }, 0x54280002, 0x54280001, 0, 2, 0, 0 },
 };
+
+static s16  func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0);
+static s32  func_shelter_b3_garbage_incinerator_8017F588(Task* arg0);
+static s32  func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFileAddress base);
+static void func_shelter_b3_garbage_incinerator_80181038(s16 arg0, s16 arg1, s16 arg2);
 
 void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 {

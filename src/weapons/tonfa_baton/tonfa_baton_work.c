@@ -1,10 +1,4 @@
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
-#include "weapons/tonfa_baton.h"
+#include "tonfa_baton_private.h"
 
 #include "main/coord.h"
 

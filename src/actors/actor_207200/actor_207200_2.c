@@ -1,46 +1,53 @@
-#include "common.h"
-#include <psyq/abs.h>
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "actors/actor.h"
-#include "actors/actor_207200.h"
+#include "actor_207200_private.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
-#include "main/gfxgte.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-extern GpU16Pair D_actor_207200_8014E7CC[2];
 extern GpPairSrcE D_actor_207200_8014E7D4;
 extern GpAnimSet* D_actor_207200_80153ED4[13];
 /// `field_492` value for frames 20..39 of helper stage 1, indexed by frame - 20.
@@ -162,7 +169,7 @@ static const GpEnemyTaskFuncTable3 D_actor_207200_80149E30 = {
     { func_actor_207200_8014B278, func_actor_207200_8014D2DC, func_actor_207200_8014CA84 }
 };
 
-void func_actor_207200_8014D280(Task *);
+void func_actor_207200_8014D280(Task*);
 
 GpPairSrcE D_actor_207200_8014E7D4 = { D_actor_207200_8014E7CC, 250, 15, 48, 1, 50, 10, 0, 0, 0 };
 
@@ -619,6 +626,12 @@ s16 D_actor_207200_80153F20[20] = {
     24, 27, 24, 21, 18, 15, 12, 9,
     6, 3, 0, 0,
 };
+
+static void            func_actor_207200_8014B628(Task* arg0);
+static void            func_actor_207200_8014B87C(Task* arg0);
+static void            func_actor_207200_8014BEF4(Task* arg0);
+static __inline__ void Actor207200_TickAnim(Task* arg0);
+static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Task* actor);
 
 static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {

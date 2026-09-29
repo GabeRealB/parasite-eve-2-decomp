@@ -1,27 +1,42 @@
 #include "pe/plasma.h"
 
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/scratch.h"
 #include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
+/// (0..2). `rInner` widens the inner radius (`GpEffWork::angle`), `rExtra`
+/// the outer radius on top of that (`+ GpEffWork::step`), and `yOff` raises
+/// the inner edge above `GpEffWork::period`.
+typedef struct PlasmaRingScale {
+    /* 0x0 */ s16 rInner;
+    /* 0x2 */ s16 yOff;
+    /* 0x4 */ s16 rExtra;
+} PlasmaRingScale;
+STATIC_ASSERT_SIZEOF(PlasmaRingScale, 0x6);
 
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.

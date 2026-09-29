@@ -1,36 +1,45 @@
-#include "common.h"
 #include "rooms/shelter_b2_elevator.h"
-#include "mapui/map_shelter.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/area_flags.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/direction_input.h"
+#include "mapui/map_shelter.h"
 
 /// Per-task state of an elevator car: its travel, kept within 0..500.
 typedef struct {
@@ -51,14 +60,14 @@ extern Task* D_shelter_b2_elevator_8017EA00[];
 
 static void func_shelter_b2_elevator_8017DB08(Task* task);
 
-s32 func_shelter_b2_elevator_8017DA5C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_8017DA64(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_elevator_8017DAA8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_8017DAB0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_8017DAB8(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_elevator_8017DAE0(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_b2_elevator_8017D70C(Task *);
-void func_shelter_b2_elevator_8017D888(Task *);
+s32  func_shelter_b2_elevator_8017DA5C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_8017DA64(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_elevator_8017DAA8(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_8017DAB0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_8017DAB8(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_elevator_8017DAE0(Task*, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b2_elevator_8017D70C(Task*);
+void func_shelter_b2_elevator_8017D888(Task*);
 
 TmdBone D_shelter_b2_elevator_8017DB78[1] = {
 #include "assets/shelter_b2_elevator_model_00790_skeleton.inc"
@@ -344,6 +353,9 @@ GpAreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
 };
 
 Task * D_shelter_b2_elevator_8017EA00[2] = { 0 };
+
+static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction);
+static void             func_shelter_b2_elevator_8017D5E8(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two elevator cars. Unless the byte

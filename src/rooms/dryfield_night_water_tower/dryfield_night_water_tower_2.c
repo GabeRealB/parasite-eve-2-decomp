@@ -1,38 +1,43 @@
-#include "dryfield_night_water_tower_private.h"
 #include "rooms/dryfield_night_water_tower.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
+#include "dryfield_night_water_tower_private.h"
 
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "overlay.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
-#include "gameplay/message.h"
+#include "mapui/map_dryfield_full.h"
+
+#include "overlay.h"
+
+#include "rooms/room_common.h"
 
 /// The world points the room's effect draw places its glow sprites and light
 /// shaft at, `SVECTOR`s laid out back to back; the first two are the ends of
@@ -44,9 +49,9 @@ extern SVECTOR D_dryfield_night_water_tower_8017E744;
 static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1);
 static void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpGridParams D_dryfield_night_water_tower_8017F3F4[1];
-extern GpObj4C D_dryfield_night_water_tower_80182410[14];
-extern GpObj4C D_dryfield_night_water_tower_80182838[9];
+extern GpGridParams   D_dryfield_night_water_tower_8017F3F4[1];
+extern GpObj4C        D_dryfield_night_water_tower_80182410[14];
+extern GpObj4C        D_dryfield_night_water_tower_80182838[9];
 extern GpRoomCoordSet D_dryfield_night_water_tower_801823F8[1];
 
 extern TaskDesc D_80142604;

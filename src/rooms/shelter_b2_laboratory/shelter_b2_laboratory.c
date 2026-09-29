@@ -1,52 +1,69 @@
 #include "rooms/shelter_b2_laboratory.h"
-#include "mapui/map_shelter.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
+#include "main/stage_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
 /// `G_SCRATCH_HEAD`: the projected centre `sx` / `sy`, its `otz` and GTE
@@ -63,7 +80,7 @@ typedef struct {
 
 extern UiObjectDesc D_800611E4;
 
-extern TaskDesc       D_80134564;
+extern TaskDesc D_80134564;
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -145,8 +162,8 @@ extern SVECTOR D_shelter_b2_laboratory_80182AA0[45];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    Task * value;
-    u8 retained[4];
+    Task* value;
+    u8    retained[4];
 } ShelterB2LaboratoryStorage64A4;
 STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64A4, 8);
 
@@ -171,7 +188,7 @@ extern s32 D_shelter_b2_laboratory_801864B8;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomCutsceneRec value;
-    u8 retained[8];
+    u8              retained[8];
 } ShelterB2LaboratoryStorage64BC;
 STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64BC, 32);
 
@@ -193,27 +210,27 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
 static void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_laboratory_801820F4(s16 arg0);
 
-void func_shelter_b2_laboratory_8017D71C(UiList *, UiObject *);
-void func_shelter_b2_laboratory_8017DEE8(UiList *, UiObject *);
-void func_shelter_b2_laboratory_8017E900(Task *);
-void func_shelter_b2_laboratory_8017EDAC(Task *);
-void func_shelter_b2_laboratory_8017EF6C(Task *);
-void func_shelter_b2_laboratory_8017F160(UiList *, UiObject *);
-void func_shelter_b2_laboratory_8017F244(UiList *, UiObject *);
-void func_shelter_b2_laboratory_8017F30C(UiList *, UiObject *);
-void func_shelter_b2_laboratory_8017F3D4(UiList *, UiObject *);
+void func_shelter_b2_laboratory_8017D71C(UiList*, UiObject*);
+void func_shelter_b2_laboratory_8017DEE8(UiList*, UiObject*);
+void func_shelter_b2_laboratory_8017E900(Task*);
+void func_shelter_b2_laboratory_8017EDAC(Task*);
+void func_shelter_b2_laboratory_8017EF6C(Task*);
+void func_shelter_b2_laboratory_8017F160(UiList*, UiObject*);
+void func_shelter_b2_laboratory_8017F244(UiList*, UiObject*);
+void func_shelter_b2_laboratory_8017F30C(UiList*, UiObject*);
+void func_shelter_b2_laboratory_8017F3D4(UiList*, UiObject*);
 
-s32 func_shelter_b2_laboratory_8017FD18(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b2_laboratory_801800F4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_laboratory_801800FC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_laboratory_801801D0(Task *, s32, GpMsg13EF *, s32);
-s32 func_shelter_b2_laboratory_8018025C(Task *, s32, s32, GpMessageArg);
-void func_shelter_b2_laboratory_8017F4D8(Task *);
-void func_shelter_b2_laboratory_8017FBA8(Task *);
-void func_shelter_b2_laboratory_8017FEB8(Task *);
-void func_shelter_b2_laboratory_80180064(Task *);
-void func_shelter_b2_laboratory_80180290(Task *);
-void func_shelter_b2_laboratory_80180350(Task *);
+s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b2_laboratory_801800F4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_laboratory_801801D0(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, GpMessageArg);
+void func_shelter_b2_laboratory_8017F4D8(Task*);
+void func_shelter_b2_laboratory_8017FBA8(Task*);
+void func_shelter_b2_laboratory_8017FEB8(Task*);
+void func_shelter_b2_laboratory_80180064(Task*);
+void func_shelter_b2_laboratory_80180290(Task*);
+void func_shelter_b2_laboratory_80180350(Task*);
 
 extern GpRoomParamRec D_shelter_b2_laboratory_80186450[1];
 extern GpRoomParamRec D_shelter_b2_laboratory_80186458[1];
@@ -1639,6 +1656,13 @@ GpCoord D_shelter_b2_laboratory_801864DC = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 
 RoomEventReq D_shelter_b2_laboratory_8018652C = { 0, 0, 0, 0, 0, 0 };
 
 u16 D_shelter_b2_laboratory_80186540 = 0;
+
+static void func_shelter_b2_laboratory_8017E2E4(UiList* list, UiObject* obj);
+static void func_shelter_b2_laboratory_8017E5E0(UiList* list, UiObject* obj);
+static void func_shelter_b2_laboratory_8017EE08(u8* str, s32 decimals);
+static u8*  func_shelter_b2_laboratory_8017EE78(u8* buf, s32 value, s32 decimals);
+static void func_shelter_b2_laboratory_8017F05C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static s32  func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* msg);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of

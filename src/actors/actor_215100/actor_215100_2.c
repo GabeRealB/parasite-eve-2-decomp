@@ -1,61 +1,64 @@
 #include "actor_215100_private.h"
-#include "rooms/mist_shooting_gallery.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/strings.h>
 
 #include "common.h"
-#include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80132614.h"
-#include "actors/actors_shared_801326ac.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/cap.h"
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/cap.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
-#include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
-#include <psyq/strings.h>
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
+
+#include "rooms/mist_shooting_gallery.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[11];
-        GpAnimArg arguments[5];
+        GpAnimArg  arguments[5];
     } data;
     s32 words[36];
 } Actor215100AnimStorageE160;
@@ -68,7 +71,7 @@ extern Actor215100AnimStorageE160 D_actor_215100_8014E160;
 typedef union {
     struct {
         GpAnimSet* sets[20];
-        GpAnimArg arguments[3];
+        GpAnimArg  arguments[3];
     } data;
     s32 words[35];
 } Actor215100AnimCopy2EAC;
@@ -82,9 +85,9 @@ extern u8 D_actor_215100_8015E66C[4];
 
 // Retained task-shaped record; preserve the callback's actual ABI.
 typedef struct {
-    u16 flags;
-    u16 priority;
-    void (*callback)(Task*, s32);
+    u16   flags;
+    u16   priority;
+    void  (*callback)(Task*, s32);
     void* arg;
 } Actor215100RetainedTaskSeed;
 STATIC_ASSERT_SIZEOF(Actor215100RetainedTaskSeed, 12);
@@ -124,23 +127,19 @@ static s32 func_actor_215100_8014B3C8(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
 static s32 func_actor_215100_8014C360(u16* arg0);
 
-/// Imports from the 0x80180000 overlay; no header names them yet.
-extern TaskDesc   D_actor_215100_8014CF6C[];
-extern TaskDesc   D_actor_215100_8014E13C[];
+extern TaskDesc D_actor_215100_8014E13C[];
 extern GpEvsCmd D_actor_215100_8014E370[];
 extern GpEvsCmd D_actor_215100_8014E8F8[];
 extern GpEvsCmd D_actor_215100_8014EA90[];
 extern GpEvsCmd D_actor_215100_8014EB08[];
-extern GpEvsCmd D_actor_215100_8014EBE0[];
-extern TaskDesc   D_actor_215100_801544FC;
-extern TaskDesc   D_actor_215100_80154508;
-extern Task*      D_actor_215100_8015E64C;
-extern s32        D_actor_215100_8014D038;
-extern s32        D_actor_215100_8014D03C;
-extern s32        D_actor_215100_8014D044;
-extern GpEvsCmd D_actor_215100_80153ED4[];
-extern GpEvsCmd D_actor_215100_80153FDC[];
-extern GpEvsCmd D_actor_215100_801543E4[];
+
+extern TaskDesc D_actor_215100_801544FC;
+extern TaskDesc D_actor_215100_80154508;
+extern Task*    D_actor_215100_8015E64C;
+
+extern GpEvsCmd   D_actor_215100_80153ED4[];
+extern GpEvsCmd   D_actor_215100_80153FDC[];
+extern GpEvsCmd   D_actor_215100_801543E4[];
 extern TaskDesc   D_actor_215100_8015E5D0[];
 extern GpAnimSet* D_actor_215100_8015E5E8[25];
 // Handler views preserve the signatures used by this TU. The dispatcher
@@ -149,9 +148,9 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor2151002MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor2151002MsgEntry, 8);
@@ -196,18 +195,18 @@ static s16  func_actor_215100_8014C298(u16* arg0);
 static s32  func_actor_215100_8014C418(s32 arg0);
 static void func_actor_215100_8014BEE8(void);
 
-void func_actor_215100_8014C46C(Task *);
-void func_actor_215100_8014C4A8(Task *);
+void func_actor_215100_8014C46C(Task*);
+void func_actor_215100_8014C4A8(Task*);
 
 extern TmdSource D_actor_215100_8015A7E4;
 extern TmdSource D_actor_215100_8015A9E0;
-s32 func_actor_215100_8014CCE0(Task *, s32, GpAnimArg *);
-s32 func_actor_215100_8014CD4C(Task *, s32, s32);
-s32 func_actor_215100_8014CDB0(Task *, s32, GpXformArg *);
-s32 func_actor_215100_8014CE28(void);
-s32 func_actor_215100_8014CE30(Task *, s32, GpXformArg *);
-void func_actor_215100_8014CA2C(Task *);
-void func_actor_215100_8014CEF8(Task *);
+s32              func_actor_215100_8014CCE0(Task*, s32, GpAnimArg*);
+s32              func_actor_215100_8014CD4C(Task*, s32, s32);
+s32              func_actor_215100_8014CDB0(Task*, s32, GpXformArg*);
+s32              func_actor_215100_8014CE28(void);
+s32              func_actor_215100_8014CE30(Task*, s32, GpXformArg*);
+void             func_actor_215100_8014CA2C(Task*);
+void             func_actor_215100_8014CEF8(Task*);
 
 extern GpAnimSet D_actor_215100_8015AC08;
 extern GpAnimSet D_actor_215100_8015AFC0;
@@ -232,19 +231,12 @@ extern GpAnimSet D_actor_215100_8015E188;
 extern GpAnimSet D_actor_215100_8015E3B0;
 extern GpAnimSet D_actor_215100_8015E578;
 
-static void func_actor_215100_8014AFAC(Task *, s32);
+static void func_actor_215100_8014AFAC(Task*, s32);
 
 void func_actor_215100_8014AEC4(s32);
 
-extern GpAnimSet D_actor_215100_8014D304;
-extern GpAnimSet D_actor_215100_8014D574;
-extern GpAnimSet D_actor_215100_8014D7CC;
-extern GpAnimSet D_actor_215100_8014D968;
-extern GpAnimSet D_actor_215100_8014DBB8;
-extern GpAnimSet D_actor_215100_8014DE10;
-extern GpAnimSet D_actor_215100_8014E114;
-void func_actor_215100_8014ABAC(Task *);
-void func_actor_215100_8014AD50(Task *);
+void func_actor_215100_8014ABAC(Task*);
+void func_actor_215100_8014AD50(Task*);
 void func_actor_215100_8014ADD8(void);
 void func_actor_215100_8014AE08(s32);
 void func_actor_215100_8014AE2C(s32);
@@ -2015,6 +2007,17 @@ u8 D_actor_215100_8015E66C[4] = {
 Actor215100StorageE670 D_actor_215100_8015E670 = { 0 };
 
 Actor215100CharRec D_actor_215100_8015E678 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+static void func_actor_215100_8014A398(void);
+static void func_actor_215100_8014A908(void);
+static void func_actor_215100_8014A9A0(void);
+static s32  func_actor_215100_8014AA54(Actor215100CharRec* arg0);
+static void func_actor_215100_8014AB6C(void);
+static void func_actor_215100_8014AF0C(void);
+static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session

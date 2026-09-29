@@ -1,46 +1,66 @@
-#include "shelter_b3_garbage_incinerator_private.h"
-#include "actors/actors_shared_801673f8.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
+#include "gte.h"
+#include "types.h"
+
+#include "shelter_b3_garbage_incinerator_private.h"
+
+#include "actors/actors_shared_801673f8.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/cap.h"
 #include "gameplay/collision.h"
 #include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/wipsys.h"
-
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/area_flags.h"
-
-#include "gameplay/cap.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "rooms/room_common.h"
+
+#define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
+#define D_shelter_b3_garbage_incinerator_80187554 (D_shelter_b3_garbage_incinerator_80187544 + 2)
+#define D_shelter_b3_garbage_incinerator_80187564 (D_shelter_b3_garbage_incinerator_80187544 + 4)
+#define D_shelter_b3_garbage_incinerator_80187574 (D_shelter_b3_garbage_incinerator_80187544 + 6)
+#define D_shelter_b3_garbage_incinerator_8018759C (D_shelter_b3_garbage_incinerator_80187544 + 11)
+#define D_shelter_b3_garbage_incinerator_801875AC (D_shelter_b3_garbage_incinerator_80187544 + 13)
+#define D_shelter_b3_garbage_incinerator_801875B4 (D_shelter_b3_garbage_incinerator_80187544 + 14)
+#define D_shelter_b3_garbage_incinerator_80187614 (D_shelter_b3_garbage_incinerator_80187544 + 26)
 
 typedef struct {
     /* 0x00 */ byte pad_0[0x24];
@@ -68,8 +88,8 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBCC[][4];
 // Indexed views below share one contiguous table.
 extern TaskDesc D_801575F0;
 extern TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2];
-void func_shelter_b3_garbage_incinerator_80184D84(Task *);
-void func_shelter_b3_garbage_incinerator_80184ECC(Task *);
+void            func_shelter_b3_garbage_incinerator_80184D84(Task*);
+void            func_shelter_b3_garbage_incinerator_80184ECC(Task*);
 
 ActorsShared801673f8Spot D_shelter_b3_garbage_incinerator_801874C4[16] = {
     { 2000, -2500, 300, 2048 },
@@ -2733,14 +2753,9 @@ OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FCB0[30] = { 0 };
 
 POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8] = { 0 };
 
-#define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
-#define D_shelter_b3_garbage_incinerator_80187554 (D_shelter_b3_garbage_incinerator_80187544 + 2)
-#define D_shelter_b3_garbage_incinerator_80187564 (D_shelter_b3_garbage_incinerator_80187544 + 4)
-#define D_shelter_b3_garbage_incinerator_80187574 (D_shelter_b3_garbage_incinerator_80187544 + 6)
-#define D_shelter_b3_garbage_incinerator_8018759C (D_shelter_b3_garbage_incinerator_80187544 + 11)
-#define D_shelter_b3_garbage_incinerator_801875AC (D_shelter_b3_garbage_incinerator_80187544 + 13)
-#define D_shelter_b3_garbage_incinerator_801875B4 (D_shelter_b3_garbage_incinerator_80187544 + 14)
-#define D_shelter_b3_garbage_incinerator_80187614 (D_shelter_b3_garbage_incinerator_80187544 + 26)
+static void func_shelter_b3_garbage_incinerator_80184D7C(void);
+static void func_shelter_b3_garbage_incinerator_80184EEC(void);
+static void func_shelter_b3_garbage_incinerator_80185574(void);
 
 void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 {

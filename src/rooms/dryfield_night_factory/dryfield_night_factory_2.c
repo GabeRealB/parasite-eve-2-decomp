@@ -1,69 +1,73 @@
-#include "dryfield_night_factory_private.h"
-
-#include "common.h"
-#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/loading.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
+
+#include "dryfield_night_factory_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "rooms/dryfield_factory.h"
+
+#include "rooms/room_common.h"
+
+/// The single-entry `TaskDesc` table the room's script task spawns its child
+/// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
+extern TaskDesc D_dryfield_night_factory_80186E94[];
+
+/// The room's 0xFFFF-terminated hotspot table.
+extern OverlayHotspot D_dryfield_night_factory_80186EBC[];
 
 typedef struct {
-    s32 id;
+    s32  id;
     void (*handler)(Task*);
 } FactoryControlMessageEntry;
 STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
 
 extern FactoryControlMessageEntry D_dryfield_night_factory_80186EAC[2];
 
-/// The pending event message and request the gate latched, the flag saying
-/// one was latched, and the descriptor of the task the gate spawns to play it.
-extern RoomEventMsg D_dryfield_night_factory_8018A7D4;
-extern RoomEventReq D_dryfield_night_factory_8018A7EC;
-extern u8           D_dryfield_night_factory_8018A7DC;
-extern TaskDesc     D_dryfield_night_factory_80186E40;
+extern TaskDesc D_dryfield_night_factory_80186E40;
 
-/// The spawn tables the room entry task selected for the stage variant -- the
-/// one its poller spawns the script from, and the one the command handler and
-/// the entry task spawn the room's actors from -- and the `memCalloc(4, 0)`
-/// slot the poller parks the script task in.
-extern TaskDesc* D_dryfield_night_factory_8018A7E0;
-extern TaskDesc* D_dryfield_night_factory_8018A7E4;
-extern Task**    D_dryfield_night_factory_8018A7E8;
-
-extern TaskDesc   D_dryfield_night_factory_80186DE0[];
 extern TaskDesc   D_dryfield_night_factory_80186E4C[];
 extern GpMsgEntry D_dryfield_night_factory_80186E64[];
 
@@ -87,27 +91,21 @@ static s32  func_dryfield_night_factory_80181778(OverlayHotspot* table, s16 x, s
 static void func_dryfield_night_factory_8018182C(Task* task);
 static void func_dryfield_night_factory_80181BB4(Task* task);
 
-extern GpRoomBoundVec D_dryfield_night_factory_8018A0C8[20];
-extern GpRoomCoordSet D_dryfield_night_factory_80189C88[1];
-
-s32 func_dryfield_night_factory_80180574(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_factory_8018080C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_factory_80180814(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_factory_80180914(Task *, s32, s32, s32);
-s32 func_dryfield_night_factory_80180980(Task *, s32, GpMsg13EF *, GpMessageArg);
-void func_dryfield_night_factory_801802C8(Task *);
-void func_dryfield_night_factory_8018076C(Task *);
-void func_dryfield_night_factory_8018169C(Task *);
-void func_dryfield_night_factory_80181718(Task *);
-void func_dryfield_night_factory_80181768(Task *);
-
-extern GpObj4C D_dryfield_night_factory_80189CA0[14];
-extern GpObj4C D_dryfield_night_factory_8018A168[19];
+s32  func_dryfield_night_factory_80180574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_factory_8018080C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_factory_80180814(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_factory_80180914(Task*, s32, s32, s32);
+s32  func_dryfield_night_factory_80180980(Task*, s32, GpMsg13EF*, GpMessageArg);
+void func_dryfield_night_factory_801802C8(Task*);
+void func_dryfield_night_factory_8018076C(Task*);
+void func_dryfield_night_factory_8018169C(Task*);
+void func_dryfield_night_factory_80181718(Task*);
+void func_dryfield_night_factory_80181768(Task*);
 
 extern GpGridFace D_dryfield_night_factory_80187630[72];
-extern SVECTOR D_dryfield_night_factory_80187000[28];
-extern SVECTOR D_dryfield_night_factory_801870E0[170];
-extern s16 * D_dryfield_night_factory_80187BD0[8];
+extern SVECTOR    D_dryfield_night_factory_80187000[28];
+extern SVECTOR    D_dryfield_night_factory_801870E0[170];
+extern s16*       D_dryfield_night_factory_80187BD0[8];
 
 TmdBone D_dryfield_night_factory_801826BC[1] = {
 #include "assets/dryfield_night_factory_model_091A8_skeleton.inc"
@@ -1466,6 +1464,12 @@ GpSprtCmd D_dryfield_night_factory_801899E4[6] = {
     { 16, 1, 0, 0, { 1, 0 } },
     { 0xFFFF, 0, 0, 0, { 0, 0 } },
 };
+
+static s32  func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_dryfield_night_factory_80180DE8(Task* task, s16 step);
+static void func_dryfield_night_factory_801810D8(Task* task);
+static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's event gate: answers 1 when the request's flag says the event
 /// already happened, 0 (after running the request's cap command) when its

@@ -1,44 +1,53 @@
-#include "shelter_b2_pod_access_tunnel_private.h"
 #include "rooms/shelter_b2_pod_access_tunnel.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/scratch.h"
+#include "shelter_b2_pod_access_tunnel_private.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
+#include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 extern SVECTOR D_shelter_b2_pod_access_tunnel_80183DDC[2];
 
@@ -46,7 +55,7 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183DDC[2];
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } ShelterB2PodAccessTunnelHaloStorage;
 STATIC_ASSERT_SIZEOF(ShelterB2PodAccessTunnelHaloStorage, 20);
 extern ShelterB2PodAccessTunnelHaloStorage D_shelter_b2_pod_access_tunnel_80183DC8;
@@ -77,11 +86,11 @@ static void func_shelter_b2_pod_access_tunnel_801822FC(GpCoord* arg0, s16 arg1, 
 static void func_shelter_b2_pod_access_tunnel_80182B80(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_pod_access_tunnel_80183200(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_shelter_b2_pod_access_tunnel_801841B4[1];
-extern GpObj3A D_shelter_b2_pod_access_tunnel_80185664[1];
-extern GpObj4C D_shelter_b2_pod_access_tunnel_80184FD8[4];
-extern GpObj4C D_shelter_b2_pod_access_tunnel_80185108[3];
-extern GpObj4C D_shelter_b2_pod_access_tunnel_801851EC[3];
+extern GpGridParams   D_shelter_b2_pod_access_tunnel_801841B4[1];
+extern GpObj3A        D_shelter_b2_pod_access_tunnel_80185664[1];
+extern GpObj4C        D_shelter_b2_pod_access_tunnel_80184FD8[4];
+extern GpObj4C        D_shelter_b2_pod_access_tunnel_80185108[3];
+extern GpObj4C        D_shelter_b2_pod_access_tunnel_801851EC[3];
 extern GpRoomCoordSet D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { 0, 32, func_shelter_b2_pod_access_tunnel_8017D62C, { .model = NULL } };
@@ -721,6 +730,9 @@ GpAreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23] = {
 GpObj3A D_shelter_b2_pod_access_tunnel_80185664[1] = {
     { NULL, NULL, { 4815, -1856, -6112, 0 }, { { -1689, 2880, 2964, 0 }, { 1690, 2880, -2964, 0 }, { -1689, -2880, 2964, 0 }, { 1690, -2880, -2964, 0 } }, { 3574, 0, 2037, 0 }, { 111, 17 }, 129, 0 },
 };
+
+static void func_shelter_b2_pod_access_tunnel_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// On the task's first tick stores seven room-specific values into resident
 /// gameplay globals, then draws the beams

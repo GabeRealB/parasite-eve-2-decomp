@@ -1,50 +1,55 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
-#include "actors/actors_shared_80133cd0.h"
-#include "actors/actors_shared_80134810.h"
 #include "actors/actors_shared_801673f8.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "rooms/shelter_b3_dumping_hole.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 /// The 0x2E4-byte work block of the package's first enemy, which both of its
 /// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
@@ -160,7 +165,7 @@ extern u32 Actor04600_D0417C[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor04600RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04600RecoveredMsgEntry, 8);
@@ -221,10 +226,10 @@ extern GpAnimSet Actor04600_D05554;
 extern GpAnimSet Actor04600_D0569C;
 extern GpAnimSet Actor04600_D05840;
 extern TmdSource Actor04600_D05200;
-s32 Actor04600_Fn01F54(Task *, s32, GpCmdArg *);
-void Actor04600_Fn024A4(Task *);
-void Actor04600_Fn02C6C(Task *);
-void Actor04600_Fn03B80(Task *);
+s32              Actor04600_Fn01F54(Task*, s32, GpCmdArg*);
+void             Actor04600_Fn024A4(Task*);
+void             Actor04600_Fn02C6C(Task*);
+void             Actor04600_Fn03B80(Task*);
 
 GpU16Pair Actor04600_D0415C = { 30, 7 };
 
@@ -458,6 +463,16 @@ GpAnimSet * Actor04600_D064A8[3] = {
 SVECTOR Actor04600_D064B4 = { 0, -100, 0, 0 };
 
 SVECTOR Actor04600_D064BC = { 0, 0, 100, 0 };
+
+static __inline__ void Actor04600_TickAnim(Task* task);
+static void            Actor04600_Fn00048(GpEnemy* arg0, Task* arg1);
+static void            Actor04600_Fn003D4(Task* arg0);
+static void            Actor04600_Fn00978(Task* arg0);
+static void            Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1);
+static void            Actor04600_Fn030A8(Task* arg0);
+static void            Actor04600_Fn0346C(Task* arg0);
+static __inline__ void _actor04600Enemy2TickAnim(Task* task);
+static void            Actor04600_Fn03958(GpEnemy* arg0, Task* arg1);
 
 /// Rebinds the first enemy's animation id to its two helper slots unless
 /// `field_2D2` suppresses it: a changed id is remembered, its frame count

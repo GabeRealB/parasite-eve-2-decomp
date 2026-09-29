@@ -1,39 +1,46 @@
-#include "common.h"
 #include "rooms/dryfield_night_trailer_coach.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
+#include "dryfield_night_trailer_coach_private.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "overlay.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/inventory.h"
 #include "gameplay/light.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/area_flags.h"
-#include "gameplay/inventory.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "overlay.h"
+
 #include "rooms/room.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
 
 extern SVECTOR D_dryfield_night_trailer_coach_801893F8[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
@@ -44,32 +51,11 @@ static void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, 
 static void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1);
 
-extern GpGridParams D_dryfield_night_trailer_coach_80189A20[1];
-extern GpObj4C D_dryfield_night_trailer_coach_8018BBA4[4];
-extern GpObj4C D_dryfield_night_trailer_coach_8018BD1C[14];
+extern GpGridParams   D_dryfield_night_trailer_coach_80189A20[1];
+extern GpObj4C        D_dryfield_night_trailer_coach_8018BBA4[4];
+extern GpObj4C        D_dryfield_night_trailer_coach_8018BD1C[14];
 extern GpRoomBoundVec D_dryfield_night_trailer_coach_8018BCD4[9];
 extern GpRoomCoordSet D_dryfield_night_trailer_coach_8018BB8C[1];
-
-extern GpAnimArg D_dryfield_night_trailer_coach_801879D0;
-extern GpAnimArg D_dryfield_night_trailer_coach_801879F8;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187A0C;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187A34;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187A98;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187AAC;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187AD4;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187B24;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187BC4;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187BD8;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187BEC;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187C3C;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187CA0;
-extern GpCopyArg D_dryfield_night_trailer_coach_80187CE4;
-extern GpXformArg D_dryfield_night_trailer_coach_80187988;
-
-extern GpAnimArg D_dryfield_night_trailer_coach_80187B10;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187B60;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187B74;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187B88;
 
 GpEvsCmd D_dryfield_night_trailer_coach_80188708[14] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },

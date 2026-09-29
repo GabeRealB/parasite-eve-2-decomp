@@ -1,37 +1,41 @@
 #include "mist_parking_private.h"
 
-#include "common.h"
-#include "rooms/room_common.h"
-#include "rooms/mist_parking.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
+#include "types.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/message.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
-#include "main/text.h"
-
-#include "gameplay/collision.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 extern GpXformArg D_mist_parking_8018FC3C;
 
 static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
 
-void func_mist_parking_801837B8(Task *);
-void func_mist_parking_8018397C(Task *);
+void func_mist_parking_801837B8(Task*);
+void func_mist_parking_8018397C(Task*);
 
 TaskDesc D_mist_parking_8018FC24[2] = {
     { 0, 192, func_mist_parking_8018397C, { .model = NULL } },
@@ -151,6 +155,9 @@ GpAnimSet D_mist_parking_801907FC = {
     D_mist_parking_8019057C, D_mist_parking_801907D4,
     { NULL, D_mist_parking_801903B4.words, NULL, NULL, D_mist_parking_801903F0, NULL, NULL, NULL },
 };
+
+static void func_mist_parking_801839CC(Task* task);
+static void func_mist_parking_80183A28(Task* task);
 
 void func_mist_parking_80183634(s32 arg0)
 {

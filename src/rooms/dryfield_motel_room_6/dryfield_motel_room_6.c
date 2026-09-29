@@ -1,61 +1,74 @@
-#include "common.h"
 #include "rooms/dryfield_motel_room_6.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/gtemac.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-#include "rooms/acropolis_square.h"
+#include <psyq/inline_c.h>
 
-#include "gameplay/actor.h"
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/animation.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/model_objects.h"
 #include "gameplay/object_task.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield.h"
 
-#include "mapui/stage_tables.h"
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Two live spotlights are followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
     GpSpotLight active[2];
-    u8 retained[864];
+    u8          retained[864];
 } DryfieldMotelRoom6SpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldMotelRoom6SpotLightStorage, 1080);
 
@@ -126,9 +139,6 @@ extern UiList D_dryfield_motel_room_6_80182CE4;
 /// is parented to, by `Task::spawnArg1`.
 extern u8 D_dryfield_motel_room_6_80182D08[];
 
-/// Task descriptor of the held-object reflections the mirror spawns.
-extern TaskDesc D_dryfield_motel_room_6_80182D0C[];
-
 /// Task table of the room's cutscene: entry 0 is the cutscene task
 /// `func_dryfield_motel_room_6_801811D4`, entry 1 the sound task
 /// `func_dryfield_motel_room_6_80181880` it runs alongside the scene.
@@ -161,36 +171,36 @@ static void func_dryfield_motel_room_6_80181910(Task* arg0, s32 arg1, s32 arg2, 
 static void func_dryfield_motel_room_6_80181AC4(Task* task);
 static void func_dryfield_motel_room_6_80181B10(Task* task);
 
-void func_dryfield_motel_room_6_8017D6C0(UiList *, UiObject *);
-void func_dryfield_motel_room_6_8017DE8C(UiList *, UiObject *);
-void func_dryfield_motel_room_6_8017E8A4(Task *);
-void func_dryfield_motel_room_6_8017ED50(Task *);
-void func_dryfield_motel_room_6_8017EF10(Task *);
-void func_dryfield_motel_room_6_8017F104(UiList *, UiObject *);
-void func_dryfield_motel_room_6_8017F1E8(UiList *, UiObject *);
-void func_dryfield_motel_room_6_8017F2B0(UiList *, UiObject *);
-void func_dryfield_motel_room_6_8017F378(UiList *, UiObject *);
+void func_dryfield_motel_room_6_8017D6C0(UiList*, UiObject*);
+void func_dryfield_motel_room_6_8017DE8C(UiList*, UiObject*);
+void func_dryfield_motel_room_6_8017E8A4(Task*);
+void func_dryfield_motel_room_6_8017ED50(Task*);
+void func_dryfield_motel_room_6_8017EF10(Task*);
+void func_dryfield_motel_room_6_8017F104(UiList*, UiObject*);
+void func_dryfield_motel_room_6_8017F1E8(UiList*, UiObject*);
+void func_dryfield_motel_room_6_8017F2B0(UiList*, UiObject*);
+void func_dryfield_motel_room_6_8017F378(UiList*, UiObject*);
 
-void func_dryfield_motel_room_6_801811D4(Task *);
-void func_dryfield_motel_room_6_80181880(Task *);
+void func_dryfield_motel_room_6_801811D4(Task*);
+void func_dryfield_motel_room_6_80181880(Task*);
 
-void func_dryfield_motel_room_6_801811D4(Task *);
-void func_dryfield_motel_room_6_80181880(Task *);
+void func_dryfield_motel_room_6_801811D4(Task*);
+void func_dryfield_motel_room_6_80181880(Task*);
 
-extern GpGridParams D_dryfield_motel_room_6_8018381C[1];
-extern GpObj4C D_dryfield_motel_room_6_8018575C[10];
-extern GpObj4C D_dryfield_motel_room_6_80185A54[15];
+extern GpGridParams   D_dryfield_motel_room_6_8018381C[1];
+extern GpObj4C        D_dryfield_motel_room_6_8018575C[10];
+extern GpObj4C        D_dryfield_motel_room_6_80185A54[15];
 extern GpRoomBoundVec D_dryfield_motel_room_6_801866D8[13];
 extern GpRoomCoordSet D_dryfield_motel_room_6_801866C0[1];
-s32 func_dryfield_motel_room_6_80181740(Task *, s32, s32, s32);
-s32 func_dryfield_motel_room_6_80181918(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_room_6_80181920(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_motel_room_6_801819A8(Task *, s32, GpMsg13EF *, GpMessageArg);
-s32 func_dryfield_motel_room_6_80181A00(Task *, s32, GpMessageArg, GpMessageArg);
-void func_dryfield_motel_room_6_80181A08(Task *);
+s32                   func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
+s32                   func_dryfield_motel_room_6_80181918(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_dryfield_motel_room_6_801819A8(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32                   func_dryfield_motel_room_6_80181A00(Task*, s32, GpMessageArg, GpMessageArg);
+void                  func_dryfield_motel_room_6_80181A08(Task*);
 
 extern DryfieldMotelRoom6SpotLightStorage D_dryfield_motel_room_6_80186288;
-extern GpPointLight D_dryfield_motel_room_6_80185EC8[10];
+extern GpPointLight                       D_dryfield_motel_room_6_80185EC8[10];
 
 u8 D_dryfield_motel_room_6_801829E8[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -346,7 +356,7 @@ u8 D_dryfield_motel_room_6_80182D08[4] = {
     8,
 };
 
-void func_dryfield_motel_room_6_80180FB4(Task *);
+void func_dryfield_motel_room_6_80180FB4(Task*);
 
 TaskDesc D_dryfield_motel_room_6_80182D0C[2] = {
     { 0, 112, func_dryfield_motel_room_6_80181184, { .model = NULL } },
@@ -1556,6 +1566,20 @@ Task * D_dryfield_motel_room_6_8018682C = NULL;
 
 RoomCutsceneRec D_dryfield_motel_room_6_80186830 = { 0 };
 
+/// "Telephone", the title of the menu panel
+/// `func_dryfield_motel_room_6_8017EA58` runs. Two non-zero bytes follow its
+/// terminator, so it stays assembly.
+static const char D_dryfield_motel_room_6_8017D638[];
+
+static void func_dryfield_motel_room_6_8017E288(UiList* list, UiObject* obj);
+static void func_dryfield_motel_room_6_8017E584(UiList* list, UiObject* obj);
+static void func_dryfield_motel_room_6_8017EDAC(u8* str, s32 decimals);
+static u8*  func_dryfield_motel_room_6_8017EE1C(u8* buf, s32 value, s32 decimals);
+static void func_dryfield_motel_room_6_8017F000(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_dryfield_motel_room_6_8017F47C(Task* task);
+static void func_dryfield_motel_room_6_80181B70(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_motel_room_6_80181FF0(SVECTOR* arg0, s32 arg1, s32 arg2);
+
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and
 /// two percentages printed with two decimals and a "%" suffix. While the row is
@@ -2196,10 +2220,6 @@ void func_dryfield_motel_room_6_8017E8A4(Task* task)
     }
 }
 
-/// "Telephone", the title of the menu panel
-/// `func_dryfield_motel_room_6_8017EA58` runs. Two non-zero bytes follow its
-/// terminator, so it stays assembly.
-static const char D_dryfield_motel_room_6_8017D638[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_motel_room_6_8017D638[12] = "Telephone\0\xFF\x1F";
 

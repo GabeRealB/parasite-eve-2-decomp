@@ -1,11 +1,37 @@
-#ifndef ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
-#define ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
+#define INCLUDE_ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0);
 extern GpAreaVariant D_dryfield_night_saloon_g_r_80188EE4[13];
 
-#endif // ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
+// dryfield_night_saloon_g_r
+extern GpRoomCoordRec D_dryfield_night_saloon_g_r_80185180[];
+
+extern GpRoomObjRec D_dryfield_night_saloon_g_r_80185190[];
+
+extern u8* D_dryfield_night_saloon_g_r_801851B0[];
+
+extern GpViewCountRec D_dryfield_night_saloon_g_r_801851B8[];
+
+extern GpWarpRec D_dryfield_night_saloon_g_r_801851BC[];
+
+extern GpViewRec D_dryfield_night_saloon_g_r_80185B74[];
+
+extern GpSprtRec D_dryfield_night_saloon_g_r_80187FC8[];
+
+extern GpRoomParamRec* D_dryfield_night_saloon_g_r_80188F84[];
+
+void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0);
+
+void func_dryfield_night_saloon_g_r_8017E050(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H

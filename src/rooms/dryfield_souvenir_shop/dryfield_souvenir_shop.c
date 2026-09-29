@@ -1,36 +1,39 @@
-#include "common.h"
 #include "rooms/dryfield_souvenir_shop.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
+#include "types.h"
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "actors/task_tables.h"
 
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-
-#include "main/display.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];
@@ -40,14 +43,14 @@ extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];
 /// `[8..15]`.
 extern SVECTOR D_dryfield_souvenir_shop_8017E03C[];
 
-s32 func_dryfield_souvenir_shop_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_souvenir_shop_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_souvenir_shop_8017D600(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_souvenir_shop_8017D608(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_souvenir_shop_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_souvenir_shop_8017E5DC[1];
-extern GpObj4C D_dryfield_souvenir_shop_8017EEF4[2];
-extern GpObj4C D_dryfield_souvenir_shop_8017EF8C[12];
+extern GpGridParams   D_dryfield_souvenir_shop_8017E5DC[1];
+extern GpObj4C        D_dryfield_souvenir_shop_8017EEF4[2];
+extern GpObj4C        D_dryfield_souvenir_shop_8017EF8C[12];
 extern GpRoomCoordSet D_dryfield_souvenir_shop_8017F55C[1];
 
 GpMsgEntry D_dryfield_souvenir_shop_8017E014[5] = {
@@ -584,6 +587,10 @@ GpRoomParamRec * D_dryfield_souvenir_shop_8017F640[8] = {
     D_dryfield_souvenir_shop_8017F618,
     D_dryfield_souvenir_shop_8017F618,
 };
+
+static void func_dryfield_souvenir_shop_8017D610(Task* task);
+static void func_dryfield_souvenir_shop_8017D654(Task* task);
+static void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_souvenir_shop_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

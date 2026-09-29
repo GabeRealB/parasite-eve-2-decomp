@@ -1,65 +1,105 @@
-#include "common.h"
 #include "rooms/dryfield_night_gas_station.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 #include <psyq/rand.h>
 
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/object_task.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
 #include "overlay.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/animation.h"
+/// The block the room's effect task carries as its `spawnArg2`.
+/// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands
+/// `Gp_SpawnEff` in `pos`, sets `active` once game flag nibble 0x63 has been
+/// seen clear, and stores the per-anchor effect roll in `kind`. The bytes
+/// around those fields are not reached here.
+typedef struct DryfieldNightGasStationEffWork {
+    byte    pad_0[0x10];
+    SVECTOR pos;
+    byte    pad_18[0xC];
+    s16     active;
+    s16     kind;
+} DryfieldNightGasStationEffWork;
+
+/// The room's task descriptor table; its spawners pick an entry by index.
+extern TaskDesc D_dryfield_night_gas_station_801888A0[];
+
+/// Handle of the task spawned from entry 0 of `D_dryfield_night_gas_station_801888A0`,
+/// or NULL while none runs. `func_dryfield_night_gas_station_801807D4` either
+/// passes it an argument or kills it.
+extern Task* D_dryfield_night_gas_station_801907A4;
+
+/// Handle of the task spawned from entry 1 or 3 of
+/// `D_dryfield_night_gas_station_801888A0`, or NULL while none runs.
+extern Task* D_dryfield_night_gas_station_801907A8;
+
+/// UI descriptor of the help-line box (`func_dryfield_night_gas_station_8017ECF0`)
+/// that the "Play Data" and usage panels open beside their lists.
+extern UiObjectDesc D_dryfield_night_gas_station_80183FAC;
 
 extern SVECTOR D_dryfield_night_gas_station_80189DA0[2];
 
@@ -117,32 +157,32 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpMsg13EF *);
-        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
 } DryfieldNightGasStationMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldNightGasStationMessageEntry, 8);
 
 extern DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7];
-extern TaskDesc D_dryfield_night_gas_station_8018406C[];
-extern GpAnimArg D_dryfield_night_gas_station_80184098;
-extern GpEvsCmd D_dryfield_night_gas_station_801840AC[];
-extern GpEvsCmd D_dryfield_night_gas_station_801841FC[];
+extern TaskDesc                            D_dryfield_night_gas_station_8018406C[];
+extern GpAnimArg                           D_dryfield_night_gas_station_80184098;
+extern GpEvsCmd                            D_dryfield_night_gas_station_801840AC[];
+extern GpEvsCmd                            D_dryfield_night_gas_station_801841FC[];
 
 /// The layout template and the live copy that
 /// `func_dryfield_night_gas_station_8017FBD4` restores from it.
 extern GpGridParams D_dryfield_night_gas_station_80184374;
 extern GpGridParams D_dryfield_night_gas_station_8018ABBC;
 
-extern SVECTOR D_dryfield_night_gas_station_80188580[];
+extern SVECTOR    D_dryfield_night_gas_station_80188580[];
 extern GpXformArg D_dryfield_night_gas_station_80188B0C;
-extern GpEvsCmd D_dryfield_night_gas_station_80188B64[];
-extern GpEvsCmd D_dryfield_night_gas_station_80188BF4[];
-extern GpEvsCmd D_dryfield_night_gas_station_80189014[];
-extern GpEvsCmd D_dryfield_night_gas_station_8018920C[];
-extern GpEvsCmd D_dryfield_night_gas_station_801892E4[];
-extern GpEvsCmd D_dryfield_night_gas_station_80189A7C[];
+extern GpEvsCmd   D_dryfield_night_gas_station_80188B64[];
+extern GpEvsCmd   D_dryfield_night_gas_station_80188BF4[];
+extern GpEvsCmd   D_dryfield_night_gas_station_80189014[];
+extern GpEvsCmd   D_dryfield_night_gas_station_8018920C[];
+extern GpEvsCmd   D_dryfield_night_gas_station_801892E4[];
+extern GpEvsCmd   D_dryfield_night_gas_station_80189A7C[];
 
 /// The room's effect anchors, 8 bytes apart. Entries 0-9 are drawn in pairs by
 /// `func_dryfield_night_gas_station_801812B4`, 10-18 one at a time by
@@ -184,7 +224,7 @@ static void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s3
 static void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_dryfield_night_gas_station_80183354(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_dryfield_night_gas_station_80180828(Task *);
+void func_dryfield_night_gas_station_80180828(Task*);
 
 extern GpAnimSet D_dryfield_night_gas_station_80184674;
 extern GpAnimSet D_dryfield_night_gas_station_80184964;
@@ -203,74 +243,74 @@ extern GpAnimSet D_dryfield_night_gas_station_80187C58;
 extern GpAnimSet D_dryfield_night_gas_station_80187FFC;
 extern GpAnimSet D_dryfield_night_gas_station_80188558;
 
-extern GpAnimArg D_dryfield_night_gas_station_80188904;
-extern GpAnimArg D_dryfield_night_gas_station_80188918;
-extern GpAnimArg D_dryfield_night_gas_station_8018892C;
-extern GpAnimArg D_dryfield_night_gas_station_80188954;
-extern GpAnimArg D_dryfield_night_gas_station_80188968;
-extern GpAnimArg D_dryfield_night_gas_station_80188A18;
-extern GpAnimArg D_dryfield_night_gas_station_80188A2C;
-extern GpAnimArg D_dryfield_night_gas_station_80188A40;
-extern GpAnimArg D_dryfield_night_gas_station_80188A54;
-extern GpAnimArg D_dryfield_night_gas_station_80188A68;
-extern GpAnimArg D_dryfield_night_gas_station_80188A7C;
-extern GpAnimArg D_dryfield_night_gas_station_80188AA4;
-extern GpAnimArg D_dryfield_night_gas_station_80188AB8;
-extern GpAnimArg D_dryfield_night_gas_station_80188AE0;
-extern GpCopyArg D_dryfield_night_gas_station_801888E8;
-extern GpCopyArg D_dryfield_night_gas_station_80188A10;
-extern GpGridParams D_dryfield_night_gas_station_8018ABBC;
-extern GpGridParams D_dryfield_night_gas_station_8018B75C[1];
-extern GpObj4C D_dryfield_night_gas_station_8018FD90[11];
-extern GpObj4C D_dryfield_night_gas_station_801900D4[16];
-extern GpOverrideArg D_dryfield_night_gas_station_801889DC;
+extern GpAnimArg      D_dryfield_night_gas_station_80188904;
+extern GpAnimArg      D_dryfield_night_gas_station_80188918;
+extern GpAnimArg      D_dryfield_night_gas_station_8018892C;
+extern GpAnimArg      D_dryfield_night_gas_station_80188954;
+extern GpAnimArg      D_dryfield_night_gas_station_80188968;
+extern GpAnimArg      D_dryfield_night_gas_station_80188A18;
+extern GpAnimArg      D_dryfield_night_gas_station_80188A2C;
+extern GpAnimArg      D_dryfield_night_gas_station_80188A40;
+extern GpAnimArg      D_dryfield_night_gas_station_80188A54;
+extern GpAnimArg      D_dryfield_night_gas_station_80188A68;
+extern GpAnimArg      D_dryfield_night_gas_station_80188A7C;
+extern GpAnimArg      D_dryfield_night_gas_station_80188AA4;
+extern GpAnimArg      D_dryfield_night_gas_station_80188AB8;
+extern GpAnimArg      D_dryfield_night_gas_station_80188AE0;
+extern GpCopyArg      D_dryfield_night_gas_station_801888E8;
+extern GpCopyArg      D_dryfield_night_gas_station_80188A10;
+extern GpGridParams   D_dryfield_night_gas_station_8018ABBC;
+extern GpGridParams   D_dryfield_night_gas_station_8018B75C[1];
+extern GpObj4C        D_dryfield_night_gas_station_8018FD90[11];
+extern GpObj4C        D_dryfield_night_gas_station_801900D4[16];
+extern GpOverrideArg  D_dryfield_night_gas_station_801889DC;
 extern GpRoomBoundVec D_dryfield_night_gas_station_80190684[22];
 extern GpRoomCoordSet D_dryfield_night_gas_station_8018FAC0[1];
 extern GpRoomCoordSet D_dryfield_night_gas_station_8018FD78[1];
-extern GpXformArg D_dryfield_night_gas_station_8018897C;
-extern GpXformArg D_dryfield_night_gas_station_80188994;
-extern GpXformArg D_dryfield_night_gas_station_801889AC;
-extern GpXformArg D_dryfield_night_gas_station_801889C4;
-extern GpXformArg D_dryfield_night_gas_station_80188AF4;
-extern GpXformArg D_dryfield_night_gas_station_80188B0C;
-extern TaskDesc D_8014D8A4;
-void func_dryfield_night_gas_station_8017FBD4(s32);
-void func_dryfield_night_gas_station_80180604(s32);
-void func_dryfield_night_gas_station_80180720(void);
-void func_dryfield_night_gas_station_80180740(void);
-void func_dryfield_night_gas_station_80180760(void);
-void func_dryfield_night_gas_station_80180780(void);
-void func_dryfield_night_gas_station_801807A0(void);
-void func_dryfield_night_gas_station_801807D4(s32);
-void func_dryfield_night_gas_station_80180920(s32);
-void func_dryfield_night_gas_station_80180940(void);
-void func_dryfield_night_gas_station_80180974(void);
-void func_dryfield_night_gas_station_80180A00(void);
-void func_dryfield_night_gas_station_80180A34(void);
-void func_dryfield_night_gas_station_80180B04(void);
-void func_dryfield_night_gas_station_80180B38(void);
-void func_dryfield_night_gas_station_80180BEC(void);
-void func_dryfield_night_gas_station_80180C3C(s32);
+extern GpXformArg     D_dryfield_night_gas_station_8018897C;
+extern GpXformArg     D_dryfield_night_gas_station_80188994;
+extern GpXformArg     D_dryfield_night_gas_station_801889AC;
+extern GpXformArg     D_dryfield_night_gas_station_801889C4;
+extern GpXformArg     D_dryfield_night_gas_station_80188AF4;
+extern GpXformArg     D_dryfield_night_gas_station_80188B0C;
+extern TaskDesc       D_8014D8A4;
+void                  func_dryfield_night_gas_station_8017FBD4(s32);
+void                  func_dryfield_night_gas_station_80180604(s32);
+void                  func_dryfield_night_gas_station_80180720(void);
+void                  func_dryfield_night_gas_station_80180740(void);
+void                  func_dryfield_night_gas_station_80180760(void);
+void                  func_dryfield_night_gas_station_80180780(void);
+void                  func_dryfield_night_gas_station_801807A0(void);
+void                  func_dryfield_night_gas_station_801807D4(s32);
+void                  func_dryfield_night_gas_station_80180920(s32);
+void                  func_dryfield_night_gas_station_80180940(void);
+void                  func_dryfield_night_gas_station_80180974(void);
+void                  func_dryfield_night_gas_station_80180A00(void);
+void                  func_dryfield_night_gas_station_80180A34(void);
+void                  func_dryfield_night_gas_station_80180B04(void);
+void                  func_dryfield_night_gas_station_80180B38(void);
+void                  func_dryfield_night_gas_station_80180BEC(void);
+void                  func_dryfield_night_gas_station_80180C3C(s32);
 
 extern GpAnimArg D_dryfield_night_gas_station_80184084;
-void func_dryfield_night_gas_station_8017FB64(u8);
+void             func_dryfield_night_gas_station_8017FB64(u8);
 
-s32 func_dryfield_night_gas_station_8017F544(s32, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_gas_station_8017F6B8(s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F7E0(s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F89C(s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F990(Task *, s32, GpMsg13EF *);
-s32 func_dryfield_night_gas_station_8017F9E8(void);
-void func_dryfield_night_gas_station_8017D660(UiList *, UiObject *);
-void func_dryfield_night_gas_station_8017DE2C(UiList *, UiObject *);
-void func_dryfield_night_gas_station_8017E844(Task *);
-void func_dryfield_night_gas_station_8017ECF0(Task *);
-void func_dryfield_night_gas_station_8017EEB0(Task *);
-void func_dryfield_night_gas_station_8017F0A4(UiList *, UiObject *);
-void func_dryfield_night_gas_station_8017F188(UiList *, UiObject *);
-void func_dryfield_night_gas_station_8017F250(UiList *, UiObject *);
-void func_dryfield_night_gas_station_8017F318(UiList *, UiObject *);
-void func_dryfield_night_gas_station_8017FA6C(Task *);
+s32  func_dryfield_night_gas_station_8017F544(s32, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_gas_station_8017F6B8(s32, s32, s32);
+s32  func_dryfield_night_gas_station_8017F7E0(s32, s32, s32);
+s32  func_dryfield_night_gas_station_8017F89C(s32, s32, s32);
+s32  func_dryfield_night_gas_station_8017F990(Task*, s32, GpMsg13EF*);
+s32  func_dryfield_night_gas_station_8017F9E8(void);
+void func_dryfield_night_gas_station_8017D660(UiList*, UiObject*);
+void func_dryfield_night_gas_station_8017DE2C(UiList*, UiObject*);
+void func_dryfield_night_gas_station_8017E844(Task*);
+void func_dryfield_night_gas_station_8017ECF0(Task*);
+void func_dryfield_night_gas_station_8017EEB0(Task*);
+void func_dryfield_night_gas_station_8017F0A4(UiList*, UiObject*);
+void func_dryfield_night_gas_station_8017F188(UiList*, UiObject*);
+void func_dryfield_night_gas_station_8017F250(UiList*, UiObject*);
+void func_dryfield_night_gas_station_8017F318(UiList*, UiObject*);
+void func_dryfield_night_gas_station_8017FA6C(Task*);
 
 u8 D_dryfield_night_gas_station_80183D14[8] = {
     83,
@@ -1550,10 +1590,10 @@ SVECTOR D_dryfield_night_gas_station_80188580[100] = {
     { -83, -538, 0, 0 },
 };
 
-void func_dryfield_night_gas_station_80180828(Task *);
-void func_dryfield_night_gas_station_80180998(Task *);
-void func_dryfield_night_gas_station_80180A60(Task *);
-void func_dryfield_night_gas_station_80180B5C(Task *);
+void func_dryfield_night_gas_station_80180828(Task*);
+void func_dryfield_night_gas_station_80180998(Task*);
+void func_dryfield_night_gas_station_80180A60(Task*);
+void func_dryfield_night_gas_station_80180B5C(Task*);
 
 TaskDesc D_dryfield_night_gas_station_801888A0[4] = {
     { 0, 192, func_dryfield_night_gas_station_80180828, { .model = NULL } },
@@ -4713,6 +4753,14 @@ Task * D_dryfield_night_gas_station_801907A4 = NULL;
 Task * D_dryfield_night_gas_station_801907A8 = NULL;
 
 Task * D_dryfield_night_gas_station_801907AC = NULL;
+
+static void func_dryfield_night_gas_station_8017ED4C(u8* str, s32 decimals);
+static u8*  func_dryfield_night_gas_station_8017EDBC(u8* buf, s32 value, s32 decimals);
+static void func_dryfield_night_gas_station_8017EFA0(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_dryfield_night_gas_station_8017F41C(Task* arg0);
+static void func_dryfield_night_gas_station_8017FAEC(Task* task);
+static void func_dryfield_night_gas_station_8017FD80(s32 arg0);
+static void func_dryfield_night_gas_station_801802EC(s32 arg0);
 
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and

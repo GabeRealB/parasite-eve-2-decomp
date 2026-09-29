@@ -1,52 +1,59 @@
 #include <psyq/sys/types.h>
-#include "rooms/dryfield_night_junk_yard.h"
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
+
 #include "common.h"
 
-#include "psyq/abs.h"
-#include "psyq/inline_c.h"
-
 #include "actors/actor.h"
-#include "actors/actors_shared_8013a0b0.h"
-#include "actors/actors_shared_801692e8.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/attachments.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actors_shared_8013a0b0.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/dryfield_night_junk_yard.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
@@ -226,16 +233,16 @@ extern ActorZone D_actor_400600_80151B40[];
  * above the preceding flag updates. */
 extern void* D_800678F0[1];
 
-extern GpU16Pair D_actor_400600_80144EA8[2];
-extern GpPairSrcE D_actor_400600_80144EB0; // the enemy's parameter record
+extern GpU16Pair  D_actor_400600_80144EA8[2];
+extern GpPairSrcE D_actor_400600_80144EB0;     // the enemy's parameter record
 
-extern GpAnimSet* D_actor_400600_80151A54[35];       // animation bank handed to func_800B3F84
+extern GpAnimSet* D_actor_400600_80151A54[35]; // animation bank handed to func_800B3F84
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *);
-        void (*call1)(Task *, s32, u16 *);
+        void (*call0)(Task*);
+        void (*call1)(Task*, s32, u16*);
     } handler;
 } Actor400600MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor400600MessageEntry, 8);
@@ -427,14 +434,14 @@ static void func_actor_400600_8013CB70(Task* arg0, s32 arg1);
 static void func_actor_400600_8013CC04(Task* arg0, s16 arg1);
 
 extern TmdSource D_actor_400600_80141994;
-void func_actor_400600_8013A0F0(Task *);
+void             func_actor_400600_8013A0F0(Task*);
 
 extern TmdSource D_actor_400600_80144C0C;
 extern TmdSource D_actor_400600_80144E84;
-void func_actor_400600_8013A338(Task *, s32, u16 *);
-void func_actor_400600_8013A3A8(Task *);
-void func_actor_400600_8013A3B8(Task *);
-void func_actor_400600_8013A3C0(Task *);
+void             func_actor_400600_8013A338(Task*, s32, u16*);
+void             func_actor_400600_8013A3A8(Task*);
+void             func_actor_400600_8013A3B8(Task*);
+void             func_actor_400600_8013A3C0(Task*);
 
 TmdBone D_actor_400600_8013CC18[18] = {
 #include "assets/actor_400600_model_0FB74_skeleton.inc"
@@ -1688,6 +1695,10 @@ s16 D_actor_400600_80151B88[12] = {
     1, 3, 5, 6, 8, 9, 11, 12,
     14, 15, 17, -1,
 };
+
+static __inline__ void Actor400600_RebuildRotation(Task* arg0);
+static __inline__ void Actor400600_TickAnim(Task* arg0);
+static inline void     _actor400600SetCoordRotation(GpCoord* coord, s16 angle);
 
 /// `func_actor_400600_80139948`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each

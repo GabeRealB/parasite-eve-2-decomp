@@ -1,49 +1,43 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80132614.h"
-#include "actors/actors_shared_801326ac.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
-#include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[23];
-        GpCopyArg copy;
-        GpAnimArg arguments[2];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[2];
     } data;
     s32 words[35];
 } Actor160700AnimStorage51E8;
 STATIC_ASSERT_SIZEOF(Actor160700AnimStorage51E8, 140);
 
 extern Actor160700AnimStorage51E8 D_actor_160700_801351E8;
-
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -54,9 +48,9 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor160700MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor160700MessageEntry, 8);
@@ -64,11 +58,11 @@ STATIC_ASSERT_SIZEOF(Actor160700MessageEntry, 8);
 extern Actor160700MessageEntry D_actor_160700_80141678[6];
 
 extern GpAnimArg D_actor_160700_801354CC;
-extern GpEvsCmd D_actor_160700_80135664[];
-extern GpEvsCmd D_actor_160700_80135ACC[];
-extern GpEvsCmd D_actor_160700_80135BD4[];
-extern GpEvsCmd D_actor_160700_801362F4[];
-extern GpEvsCmd D_actor_160700_80136414[];
+extern GpEvsCmd  D_actor_160700_80135664[];
+extern GpEvsCmd  D_actor_160700_80135ACC[];
+extern GpEvsCmd  D_actor_160700_80135BD4[];
+extern GpEvsCmd  D_actor_160700_801362F4[];
+extern GpEvsCmd  D_actor_160700_80136414[];
 
 static void func_actor_160700_80132184(Task* task);
 static void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
@@ -102,17 +96,15 @@ extern GpAnimArg D_actor_160700_80135490;
 extern GpAnimArg D_actor_160700_801354A4;
 extern GpAnimArg D_actor_160700_801354B8;
 
-
-
 extern TmdSource D_actor_160700_8013C6FC;
 extern TmdSource D_actor_160700_8013C8F8;
-s32 func_actor_160700_801325F0(Task *, s32, GpAnimArg *);
-s32 func_actor_160700_8013265C(Task *, s32, s32);
-s32 func_actor_160700_801326C0(Task *, s32, GpXformArg *);
-s32 func_actor_160700_80132738(void);
-s32 func_actor_160700_80132740(Task *, s32, GpXformArg *);
-void func_actor_160700_8013233C(Task *);
-void func_actor_160700_80132808(Task *);
+s32              func_actor_160700_801325F0(Task*, s32, GpAnimArg*);
+s32              func_actor_160700_8013265C(Task*, s32, s32);
+s32              func_actor_160700_801326C0(Task*, s32, GpXformArg*);
+s32              func_actor_160700_80132738(void);
+s32              func_actor_160700_80132740(Task*, s32, GpXformArg*);
+void             func_actor_160700_8013233C(Task*);
+void             func_actor_160700_80132808(Task*);
 
 extern Actor160700AnimStorage51E8 D_actor_160700_801351E8;
 
@@ -1685,7 +1677,13 @@ u8 D_actor_160700_801416C0[100] = {
     0,
     0,
     0,
-};static void func_actor_160700_80131E24(void)
+};
+
+static void func_actor_160700_80131E24(void);
+static void func_actor_160700_80131E70(void);
+static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task);
+
+static void func_actor_160700_80131E24(void)
 {
     Task* slot;
 

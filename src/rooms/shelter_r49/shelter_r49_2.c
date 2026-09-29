@@ -1,36 +1,43 @@
-#include "common.h"
 #include "rooms/shelter_r49.h"
 
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
+
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-extern TaskDesc D_shelter_r49_8017DA00[];
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/fs_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/task_types.h"
 
-extern GpGridParams D_shelter_r49_8017DAAC[1];
+extern GpGridParams   D_shelter_r49_8017DAAC[1];
 extern GpRoomCoordSet D_shelter_r49_8017DD24[1];
-void func_shelter_r49_8017D71C(Task *);
-void func_shelter_r49_8017D8D8(Task *);
+void                  func_shelter_r49_8017D71C(Task*);
+void                  func_shelter_r49_8017D8D8(Task*);
 
 TaskDesc D_shelter_r49_8017DA00[2] = {
     { 0, 192, func_shelter_r49_8017D8D8, { .model = NULL } },

@@ -1,22 +1,27 @@
+#include "rooms/dryfield_night_water_tower.h"
+
+#include "types.h"
+
 #include "dryfield_night_water_tower_private.h"
 
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -28,11 +33,6 @@ extern u8 D_dryfield_night_water_tower_80182C58[4];
 /// sets once it has done so.
 extern RoomEventMsg D_dryfield_night_water_tower_80182C50;
 extern RoomEventReq D_dryfield_night_water_tower_80182C5C;
-extern TaskDesc     D_dryfield_night_water_tower_8017E6E0;
-
-/// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
-/// which the entry task installs as its own `Task::msgTable`.
-extern GpMsgEntry D_dryfield_night_water_tower_8017E6EC[];
 
 RoomEventMsg D_dryfield_night_water_tower_80182C50 = { 0 };
 
@@ -44,6 +44,10 @@ u8 D_dryfield_night_water_tower_80182C58[4] = {
 };
 
 RoomEventReq D_dryfield_night_water_tower_80182C5C = { 0 };
+
+static s32  func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_water_tower_8017DADC(Task* task);
+static void func_dryfield_night_water_tower_8017DB20(Task* task);
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing

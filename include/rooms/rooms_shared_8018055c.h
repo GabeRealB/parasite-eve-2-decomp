@@ -1,16 +1,15 @@
-#ifndef ROOMS_SHARED_8018055C_H
-#define ROOMS_SHARED_8018055C_H
+#ifndef INCLUDE_ROOMS_ROOMS_SHARED_8018055C_H
+#define INCLUDE_ROOMS_ROOMS_SHARED_8018055C_H
 
 #include "common.h"
 
 #include "main/text.h"
-#include "main/ui_types.h"
 
 /// One selectable course in a gallery's SELECT menu: the id the controller
 /// task remembers in `Task::flags` (so re-picking the same course does not
 /// restart the load) and the title drawn beside it ("1. Crazy King", ...).
 typedef struct RoomsShared8018055cCourse {
-    /* 0x0 */ s32 id;
+    /* 0x0 */ s32         id;
     /* 0x4 */ const char* name;
 } RoomsShared8018055cCourse;
 STATIC_ASSERT_SIZEOF(RoomsShared8018055cCourse, 0x8);
@@ -27,15 +26,4 @@ typedef union RoomsShared8018055cMenu {
 } RoomsShared8018055cMenu;
 STATIC_ASSERT_SIZEOF(RoomsShared8018055cMenu, 0x28);
 
-/// The room's own course table. Both carrying rooms hold one at their own
-/// address, named there by the family's symbol maps, so the shared object owns
-/// no data.
-extern RoomsShared8018055cMenu RoomsShared8018055cCourses;
-
-/// Draws one row of a shooting-gallery SELECT menu and handles a confirm press
-/// on it: the press remembers the row in `Task::spawnArg1` and, when the course
-/// differs from the one already loaded, drops the pending CD command and asks
-/// the controller task to load the new one. Two rooms carry this body.
-void RoomsShared8018055c(UiList* prompt, UiObject* obj);
-
-#endif // ROOMS_SHARED_8018055C_H
+#endif // INCLUDE_ROOMS_ROOMS_SHARED_8018055C_H

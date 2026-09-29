@@ -1,55 +1,67 @@
-#include "common.h"
-#include "rooms/neo_ark_submarine_gallery.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/inline_c.h"
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
 #include <psyq/rand.h>
 
-#include "actors/actor.h"
+#include "common.h"
+#include "gte.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/captions.h"
-#include "gameplay/damage.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/waypoints.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
+
+#include "rooms/neo_ark_submarine_gallery.h"
 
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
@@ -697,16 +709,16 @@ static const TaskFuncTable3 D_actor_206100_80149E24 = {
     },
 };
 
-extern u32 D_actor_206100_80154B4C[1];
+extern u32     D_actor_206100_80154B4C[1];
 extern SVECTOR D_actor_206100_80154B50[24];
 extern SVECTOR D_actor_206100_80154C10[25];
 extern TmdBone D_actor_206100_80154B28[1];
-extern u32 D_actor_206100_80154CD8[270];
+extern u32     D_actor_206100_80154CD8[270];
 
 extern TmdSource D_actor_206100_801530C8;
-void func_actor_206100_80149ED0(Task *);
-void func_actor_206100_8014F134(Task *);
-void func_actor_206100_8014F428(Task *);
+void             func_actor_206100_80149ED0(Task*);
+void             func_actor_206100_8014F134(Task*);
+void             func_actor_206100_8014F428(Task*);
 
 TmdBone D_actor_206100_8014FE80[15] = {
 #include "assets/actor_206100_model_092A8_skeleton.inc"
@@ -1219,6 +1231,48 @@ OverlayWaveRec6 D_actor_206100_80158BFC[32] = { 0 };
 Actor206100Slot D_actor_206100_80158CBC[2] = { 0 };
 
 OverlayWaveCtx D_actor_206100_80158CCC = { 0 };
+
+static void func_actor_206100_8014DA28(Task* task);
+
+static void func_actor_206100_8014C458(Task* task);
+
+static void func_actor_206100_8014E7D4(Task* task);
+
+static void func_actor_206100_8014F524(Task* task);
+
+static void func_actor_206100_8014CFF4(Task* task);
+
+static void func_actor_206100_8014D380(Task* task);
+
+static void func_actor_206100_8014D6F4(Task* task);
+
+static void func_actor_206100_8014F59C(Task* task);
+
+static void func_actor_206100_8014F5A4(Task* task);
+
+static void func_actor_206100_8014F5AC(Task* task);
+
+static void func_actor_206100_8014F5B4(Task* task);
+
+static void func_actor_206100_8014F608(Task* task);
+
+static void func_actor_206100_8014F65C(Task* task);
+
+static void func_actor_206100_8014F69C(Task* task);
+
+extern TaskDesc D_80147E48;
+
+static void                func_actor_206100_8014B698(Task* task);
+static void                func_actor_206100_8014BAA8(Task* task);
+static __inline__ s32      Actor206100_AccumulateRotation(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
+static __inline__ GpCoord* Actor206100_LocalizeRotation(GpCoord* arg0, MATRIX* arg1);
+static void                func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw);
+static inline void         _actor206100AnimUpdate(Task* task);
+static void                func_actor_206100_8014C274(Task* task);
+static __inline__ void     Actor206100_UpdateColor(Task* task);
+static void                func_actor_206100_8014CB68(Task* task);
+static __inline__ void     set_state(Task* task, s32 state);
+static __inline__ s16      take_request(Task* task);
 
 /// Screen-wave child `func_actor_206100_8014CB68` starts off
 /// `D_actor_206100_80158AF0`.  State 0 seeds the column and row phases, parks
@@ -2251,9 +2305,6 @@ static void func_actor_206100_8014C274(Task* task)
     tail->field_520  = 0;
     tail->field_522  = 0;
 }
-static void func_actor_206100_8014DA28(Task* task);
-static void func_actor_206100_8014C458(Task* task);
-static void func_actor_206100_8014E7D4(Task* task);
 
 /// The actor's five top-level states, dispatched on `Task::state` by its task
 /// callback `func_actor_206100_8014F428`: `func_actor_206100_8014C274` (which
@@ -2269,16 +2320,6 @@ static const TaskFuncTable5 D_actor_206100_80149E5C = {
         func_actor_206100_8014F490,
     },
 };
-
-static void func_actor_206100_8014F524(Task* task);
-static void func_actor_206100_8014CFF4(Task* task);
-static void func_actor_206100_8014D380(Task* task);
-static void func_actor_206100_8014D6F4(Task* task);
-static void func_actor_206100_8014F59C(Task* task);
-static void func_actor_206100_8014F5A4(Task* task);
-static void func_actor_206100_8014F5AC(Task* task);
-static void func_actor_206100_8014F5B4(Task* task);
-static void func_actor_206100_8014F608(Task* task);
 
 static const TaskFuncTable9 D_actor_206100_80149E70 = {
     {
@@ -2873,8 +2914,6 @@ static void func_actor_206100_8014D14C(Task* task)
     }
     func_actor_206100_8014ED3C(task, 0x10);
 }
-static void func_actor_206100_8014F65C(Task* task);
-static void func_actor_206100_8014F69C(Task* task);
 
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
 /// copies the table onto its stack and calls `funcs[(s16)field_522]`.
@@ -3809,8 +3848,6 @@ static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
     }
     SCRATCH_POP(Actor206100DistScratch);
 }
-
-extern TaskDesc D_80147E48;
 
 static GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
 {

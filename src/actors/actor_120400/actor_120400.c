@@ -1,36 +1,36 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/abs.h>
+
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// Work block of the parent task, allocated zeroed by its spawn routine and
 /// kept at `Task::work`: a twenty-part rig, the walk state, and
@@ -49,7 +49,7 @@ STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 /// Animation source indexed by the bank id the presets latch:
 /// `D_actor_120400_8013E744[work->model.bank]` is the bank handed to
 /// `func_800B3F84`.
-extern GpAnimSet* D_actor_120400_8013E6D0[29];
+extern GpAnimSet*  D_actor_120400_8013E6D0[29];
 extern GpAnimSet** D_actor_120400_8013E744[1];
 
 /// Optional start animation for `func_actor_120400_80132398`: the preset's
@@ -60,17 +60,17 @@ STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
 /// The task table the parent is spawned from and its two children are spawned
 /// from (entries 1 and 2), and the message table the parent points its
 /// `Task::msgTable` at; both live in this overlay's trailing data.
-extern TaskDesc   D_actor_120400_8013E748[];
+extern TaskDesc D_actor_120400_8013E748[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *, Actor120400SpawnAnim *);
-        s32 (*call4)(Task *, s32, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*, Actor120400SpawnAnim*);
+        s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor120400MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor120400MsgEntry, 8);
@@ -124,15 +124,13 @@ static const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
 extern TmdSource D_actor_120400_8013783C;
 extern TmdSource D_actor_120400_80137C90;
 extern TmdSource D_actor_120400_801380E4;
-s32 func_actor_120400_80132398(Task *, s32, GpXformArg *, Actor120400SpawnAnim *);
-s32 func_actor_120400_80132AA0(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_120400_80132BBC(Task *, s32, GpXformArg *);
-s32 func_actor_120400_80132C38(Task *, s32, s32, s32);
-s32 func_actor_120400_80132D14(void);
-void func_actor_120400_8013254C(Task *);
-void func_actor_120400_80132748(Task *);
-
-
+s32              func_actor_120400_80132398(Task*, s32, GpXformArg*, Actor120400SpawnAnim*);
+s32              func_actor_120400_80132AA0(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_120400_80132BBC(Task*, s32, GpXformArg*);
+s32              func_actor_120400_80132C38(Task*, s32, s32, s32);
+s32              func_actor_120400_80132D14(void);
+void             func_actor_120400_8013254C(Task*);
+void             func_actor_120400_80132748(Task*);
 
 TmdBone D_actor_120400_80132D1C[20] = {
 #include "assets/actor_120400_model_05A1C_skeleton.inc"
@@ -1014,7 +1012,7 @@ Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
     { 2013, { .call3 = func_actor_120400_80132398 } },
     { 2011, { .call0 = func_actor_120400_80132D14 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
+}; /// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::tpage` / `clut` loaded with the texture page and CLUT
 /// row of the `GpAreaPlace` that entry selects, reached through the area key

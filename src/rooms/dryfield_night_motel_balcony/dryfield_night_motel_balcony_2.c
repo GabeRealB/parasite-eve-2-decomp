@@ -1,28 +1,32 @@
-#include "dryfield_night_motel_balcony_private.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "gameplay/display.h"
+#include "types.h"
+
+#include "dryfield_night_motel_balcony_private.h"
+
+#include "gameplay/message.h"
 
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/message.h"
+void func_dryfield_night_motel_balcony_8017E068(Task*);
 
-void func_dryfield_night_motel_balcony_8017E068(Task *);
-
-void func_dryfield_night_motel_balcony_8017DDD0(Task *);
+void func_dryfield_night_motel_balcony_8017DDD0(Task*);
 
 TaskDesc D_dryfield_night_motel_balcony_801827F8 = { 0, 32, func_dryfield_night_motel_balcony_8017D7F8, { .model = NULL } };
 
@@ -40,7 +44,7 @@ TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
     { 0, 192, func_dryfield_night_motel_balcony_8017DDD0, { .model = NULL } },
 };
 
-TaskDesc D_dryfield_night_motel_balcony_8018284C = { 0, 192, func_dryfield_night_motel_balcony_8017E068, { .model = NULL } };/// The balcony movie task. It blanks the display, allocates the movie
+TaskDesc D_dryfield_night_motel_balcony_8018284C = { 0, 192, func_dryfield_night_motel_balcony_8017E068, { .model = NULL } }; /// The balcony movie task. It blanks the display, allocates the movie
 /// buffers and plays two streams keyed on the current location - view 0x65
 /// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.field_0` is 2 - either of
 /// which the pad can skip, then restores the stream state, resets the display

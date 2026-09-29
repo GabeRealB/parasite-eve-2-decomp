@@ -1,26 +1,27 @@
+#include "rooms/dryfield_water_tower.h"
+
+#include "types.h"
+
 #include "dryfield_water_tower_private.h"
 
-#include "common.h"
-
-#include <psyq/libgte.h>
-
-#include "rooms/dryfield_water_tower.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -39,15 +40,10 @@ extern Task* D_dryfield_water_tower_801876A0;
 extern RoomEventMsg D_dryfield_water_tower_80187694;
 extern RoomEventReq D_dryfield_water_tower_801876B0;
 extern u8           D_dryfield_water_tower_8018769C;
-extern TaskDesc     D_dryfield_water_tower_80180394;
 
 /// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
 /// which the entry task installs as its own `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
-
-/// The task descriptor of the room's scene task
-/// `func_dryfield_water_tower_8017D948`.
-extern TaskDesc D_dryfield_water_tower_801803D8[];
 
 static void func_dryfield_water_tower_8017DD6C(Task* arg0);
 static void func_dryfield_water_tower_8017DDD0(Task* task);
@@ -67,6 +63,8 @@ u16 D_dryfield_water_tower_801876A8 = 0;
 Task * D_dryfield_water_tower_801876AC = NULL;
 
 RoomEventReq D_dryfield_water_tower_801876B0 = { 0 };
+
+static s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg);
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing

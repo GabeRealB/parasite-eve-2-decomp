@@ -1,51 +1,43 @@
-#ifndef ROOMS_MIST_PARKING_H
-#define ROOMS_MIST_PARKING_H
-
-#include "gameplay/area.h"
+#ifndef INCLUDE_ROOMS_MIST_PARKING_H
+#define INCLUDE_ROOMS_MIST_PARKING_H
 
 #include "types.h"
 
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include "rooms/room_common.h"
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-/// Task descriptor tables the room spawns its tasks from.
-extern TaskDesc D_mist_parking_801869B8[];
-extern TaskDesc D_mist_parking_8018D75C[];
-extern TaskDesc D_mist_parking_8018FC24[];
-extern TaskDesc D_mist_parking_80190824[];
+extern TaskDesc D_mist_parking_8018668C;
 
-/// Tasks the room keeps a handle on while they run.
-extern Task* D_mist_parking_80195318;
-extern Task* D_mist_parking_80195320;
-extern Task* D_mist_parking_80195324;
+extern GpAreaVariant D_mist_parking_801951B4[13];
 
-/// The "%" suffix appended to the play-data percentages.
-extern u8 D_mist_parking_80186718[];
+// mist_parking
+extern GpRoomObjRec D_mist_parking_8019155C[];
 
-/// The item id the shop list's cursor last rested on.
-extern s32 D_mist_parking_8018644C;
+extern u8* D_mist_parking_801915B0[];
 
-/// Resets the caption state and, for 1 or 2, loads that caption file.
-void func_mist_parking_80183708(s32 arg0);
+extern GpViewCountRec D_mist_parking_801915C0[];
 
-/// Drop the handles of room tasks without killing them; the argument their
-/// caller passes is unused.
-void func_mist_parking_801837A4(s32 arg0);
-void func_mist_parking_8018471C(s32 arg0);
+extern GpRoomCoordRec D_mist_parking_801915C8[];
+
+extern GpWarpRec D_mist_parking_801915E8[];
+
+extern GpViewRec D_mist_parking_80192228[];
+
+extern GpSprtRec D_mist_parking_8019399C[];
+
+extern GpRoomParamRec* D_mist_parking_801952F0[];
 
 void func_mist_parking_80183BAC(s32 arg0);
-
-extern TaskDesc D_mist_parking_8018668C;
 
 void func_mist_parking_80181468(Task* task);
 
 void func_mist_parking_80184728(Task* unused);
 
-extern GpAreaVariant D_mist_parking_801951B4[13];
+void func_mist_parking_80182898(Task* task);
 
-#endif // ROOMS_MIST_PARKING_H
+#endif // INCLUDE_ROOMS_MIST_PARKING_H

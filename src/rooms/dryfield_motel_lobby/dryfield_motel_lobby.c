@@ -1,35 +1,41 @@
-#include "common.h"
 #include "rooms/dryfield_motel_lobby.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/ui_types.h"
+
+#include "rooms/room_common.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -100,23 +106,23 @@ static void func_dryfield_motel_lobby_8017F3D0(Task* task);
 static void func_dryfield_motel_lobby_8017F44C(Task* task);
 static void func_dryfield_motel_lobby_8017F490(Task* task);
 
-extern GpGridParams D_dryfield_motel_lobby_8017FBE4[1];
-extern GpObj4C D_dryfield_motel_lobby_80180AEC[4];
-extern GpObj4C D_dryfield_motel_lobby_80180C1C[7];
+extern GpGridParams   D_dryfield_motel_lobby_8017FBE4[1];
+extern GpObj4C        D_dryfield_motel_lobby_80180AEC[4];
+extern GpObj4C        D_dryfield_motel_lobby_80180C1C[7];
 extern GpRoomCoordSet D_dryfield_motel_lobby_80181010[1];
-s32 func_dryfield_motel_lobby_8017F40C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_lobby_8017F414(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_dryfield_motel_lobby_8017F43C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_lobby_8017F444(Task *, s32, GpMessageArg, GpMessageArg);
-void func_dryfield_motel_lobby_8017D650(UiList *, UiObject *);
-void func_dryfield_motel_lobby_8017DE1C(UiList *, UiObject *);
-void func_dryfield_motel_lobby_8017E834(Task *);
-void func_dryfield_motel_lobby_8017ECE0(Task *);
-void func_dryfield_motel_lobby_8017EEA0(Task *);
-void func_dryfield_motel_lobby_8017F094(UiList *, UiObject *);
-void func_dryfield_motel_lobby_8017F178(UiList *, UiObject *);
-void func_dryfield_motel_lobby_8017F240(UiList *, UiObject *);
-void func_dryfield_motel_lobby_8017F308(UiList *, UiObject *);
+s32                   func_dryfield_motel_lobby_8017F40C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_motel_lobby_8017F414(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                   func_dryfield_motel_lobby_8017F43C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_motel_lobby_8017F444(Task*, s32, GpMessageArg, GpMessageArg);
+void                  func_dryfield_motel_lobby_8017D650(UiList*, UiObject*);
+void                  func_dryfield_motel_lobby_8017DE1C(UiList*, UiObject*);
+void                  func_dryfield_motel_lobby_8017E834(Task*);
+void                  func_dryfield_motel_lobby_8017ECE0(Task*);
+void                  func_dryfield_motel_lobby_8017EEA0(Task*);
+void                  func_dryfield_motel_lobby_8017F094(UiList*, UiObject*);
+void                  func_dryfield_motel_lobby_8017F178(UiList*, UiObject*);
+void                  func_dryfield_motel_lobby_8017F240(UiList*, UiObject*);
+void                  func_dryfield_motel_lobby_8017F308(UiList*, UiObject*);
 
 u8 D_dryfield_motel_lobby_8017F4F0[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -743,6 +749,10 @@ GpRoomParamRec * D_dryfield_motel_lobby_80181044[8] = {
     D_dryfield_motel_lobby_80181034,
     D_dryfield_motel_lobby_80181034,
 };
+
+static void func_dryfield_motel_lobby_8017ED3C(u8* str, s32 decimals);
+static u8*  func_dryfield_motel_lobby_8017EDAC(u8* buf, s32 value, s32 decimals);
+static void func_dryfield_motel_lobby_8017EF90(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and

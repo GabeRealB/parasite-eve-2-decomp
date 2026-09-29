@@ -1,42 +1,51 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include "common.h"
-
-/* The controller task this actor is reparented to is the Mist shooting
- * gallery's, so the counter at +0xE of its work block is that room's. */
-#include "rooms/mist_shooting_gallery.h"
-
+#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
 
+#include "gte.h"
+#include "types.h"
+
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
 #include "gameplay/lighting_work.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/enemy.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "rooms/mist_shooting_gallery.h"
+
+/* The controller task this actor is reparented to is the Mist shooting
+ * gallery's, so the counter at +0xE of its work block is that room's. */
 
 /// Work block this overlay hangs off `Task::work`. The display node at
 /// +0x60 is the one the exit callback `func_actor_107600_80134920` hands back
@@ -238,8 +247,8 @@ static const TaskFuncTable3 D_actor_107600_80131E34 = { {
     func_actor_107600_80132D54,
 } };
 
-void func_actor_107600_801328CC(Task *);
-void func_actor_107600_801348A0(Task *);
+void func_actor_107600_801328CC(Task*);
+void func_actor_107600_801348A0(Task*);
 
 GpU16Pair D_actor_107600_80134F80[1] = { 0 };
 
@@ -761,6 +770,8 @@ Actor107600Pair D_actor_107600_80135730[8] = {
 };
 
 u16 D_actor_107600_80135750[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
+
+static void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode);
 
 /// Spawn state of the `D_actor_107600_80131E24` table. The target is dropped
 /// (and the gallery's live count given back) when the player is within 0x400 on

@@ -1,26 +1,28 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 
+#include "common.h"
+
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+#include "main/coord.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, whose
@@ -47,7 +49,7 @@ typedef GpSpawnAnimArg Actor317000SpawnAnim;
 /// Every preset the actor builds has `field_0` 0, so only the first word is
 /// ever read; the words after it (among them the address of
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
-extern GpAnimSet* D_actor_317000_8016CF1C[9];
+extern GpAnimSet*  D_actor_317000_8016CF1C[9];
 extern GpAnimSet** D_actor_317000_8016CF40[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
@@ -57,11 +59,11 @@ extern GpAnimSet** D_actor_317000_8016CF40[1];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *, Actor317000SpawnAnim *);
-        s32 (*call4)(Task *, s32, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, GpXformArg*, Actor317000SpawnAnim*);
+        s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor317000MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor317000MsgEntry, 8);
@@ -104,14 +106,12 @@ static const TaskFuncTable4 D_actor_317000_80161E30 = { {
 static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 extern TmdSource D_actor_317000_801683A4;
-s32 func_actor_317000_80162458(Task *, s32, GpXformArg *, Actor317000SpawnAnim *);
-s32 func_actor_317000_80162A10(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_317000_80162B48(Task *, s32, GpXformArg *);
-s32 func_actor_317000_80162BC4(Task *, s32, s32, s32);
-s32 func_actor_317000_80162CA0(Task *, s32, GpCmdArg *);
-void func_actor_317000_80162624(Task *);
-
-
+s32              func_actor_317000_80162458(Task*, s32, GpXformArg*, Actor317000SpawnAnim*);
+s32              func_actor_317000_80162A10(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_317000_80162B48(Task*, s32, GpXformArg*);
+s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
+s32              func_actor_317000_80162CA0(Task*, s32, GpCmdArg*);
+void             func_actor_317000_80162624(Task*);
 
 TmdBone D_actor_317000_80162D64[19] = {
 #include "assets/actor_317000_model_06584_skeleton.inc"
@@ -379,7 +379,7 @@ Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
     { 2013, { .call3 = func_actor_317000_80162458 } },
     { 2011, { .call1 = func_actor_317000_80162CA0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
-};/// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
+}; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `step` is
 /// added to `walk.acc`, `step.vy` gains 0x120000 while `field_4C4` is raised, the
 /// integer halves move the root coordinate and only the fractions are kept.

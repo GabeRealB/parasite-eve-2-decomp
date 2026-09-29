@@ -1,18 +1,13 @@
-/* The Dryfield stage's map UI overlay: the stage's stream setup and the
- * per-stage tables gameplay and main index by stage, most of which point into
- * the stage's room packages or at the map pictures' marker models.
- */
-#include "common.h"
-#include "mappic/mappic.h"
-#include "mapui/mapui.h"
-#include "mapui/stage_tables.h"
-#include "rooms/room.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield.h"
 
+#include <psyq/sys/types.h>
+
+#include "types.h"
+
+#include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/item_pickup.h"
 #include "gameplay/item_placement.h"
@@ -20,14 +15,88 @@
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
-
-#include "gameplay/area_flags.h"
 #include "gameplay/view.h"
+
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gfx_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
 #include "main/task_types.h"
+
+#include "mappic/mappic.h"
+
+#include "rooms/dryfield_back_street.h"
+
+#include "rooms/dryfield_breezeway.h"
+
+#include "rooms/dryfield_cellar.h"
+
+#include "rooms/dryfield_dilapidated_house.h"
+
+#include "rooms/dryfield_driveway.h"
+
+#include "rooms/dryfield_factory.h"
+
+#include "rooms/dryfield_g_r_kitchen.h"
+
+#include "rooms/dryfield_garage.h"
+
+#include "rooms/dryfield_gas_station.h"
+
+#include "rooms/dryfield_general_store.h"
+
+#include "rooms/dryfield_junk_yard.h"
+
+#include "rooms/dryfield_main_street.h"
+
+#include "rooms/dryfield_motel_balcony.h"
+
+#include "rooms/dryfield_motel_lobby.h"
+
+#include "rooms/dryfield_motel_loft.h"
+
+#include "rooms/dryfield_motel_room_1.h"
+
+#include "rooms/dryfield_motel_room_2.h"
+
+#include "rooms/dryfield_motel_room_3.h"
+
+#include "rooms/dryfield_motel_room_4.h"
+
+#include "rooms/dryfield_motel_room_5.h"
+
+#include "rooms/dryfield_motel_room_6.h"
+
+#include "rooms/dryfield_parking_lot.h"
+
+#include "rooms/dryfield_r04.h"
+
+#include "rooms/dryfield_r08.h"
+
+#include "rooms/dryfield_saloon_g_r.h"
+
+#include "rooms/dryfield_souvenir_shop.h"
+
+#include "rooms/dryfield_toilet.h"
+
+#include "rooms/dryfield_trailer_coach.h"
+
+#include "rooms/dryfield_underpass.h"
+
+#include "rooms/dryfield_warehouse.h"
+
+#include "rooms/dryfield_water_hole.h"
+
+#include "rooms/dryfield_water_tank.h"
+
+#include "rooms/dryfield_water_tower.h"
+
+/* The Dryfield stage's map UI overlay: the stage's stream setup and the
+ * per-stage tables gameplay and main index by stage, most of which point into
+ * the stage's room packages or at the map pictures' marker models.
+ */
 
 void func_map_dryfield_80179954(u8* entry)
 {

@@ -15,7 +15,15 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-#include "mapui/mapui.h"
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 static u8 Stage_MusicCountdownActive;

@@ -1,40 +1,45 @@
-#include "neo_ark_garden_private.h"
 #include "rooms/neo_ark_garden.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "neo_ark_garden_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
 
 /// The block the garden's ambience task reaches through `Task::spawnArg2`.
 /// Only `soundDelay` is read here; what precedes it belongs to whoever owns the
@@ -58,9 +63,9 @@ static void func_neo_ark_garden_801805B4(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size);
 static void func_neo_ark_garden_80181020(GpCoord* arg0, s32 arg1);
 
-extern GpGridParams D_neo_ark_garden_801816C4[1];
-extern GpObj4C D_neo_ark_garden_8018270C[6];
-extern GpObj4C D_neo_ark_garden_801828D4[7];
+extern GpGridParams   D_neo_ark_garden_801816C4[1];
+extern GpObj4C        D_neo_ark_garden_8018270C[6];
+extern GpObj4C        D_neo_ark_garden_801828D4[7];
 extern GpRoomCoordSet D_neo_ark_garden_801826F4[1];
 
 TaskDesc D_neo_ark_garden_80181398 = { 0, 192, func_neo_ark_garden_8017D64C, { .model = NULL } };

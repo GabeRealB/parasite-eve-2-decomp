@@ -1,26 +1,51 @@
 #include "pe/metabolism.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// One 8-byte row of `D_metabolism_8012FB54`, indexed by `GpEffWork.index`
+/// (`Gp_StateC08.field_0 % 10 - 1`, so the cast scales with the combo
+/// counter). `field_0` is how many fan wedges the cast lays out - the number
+/// of `D_metabolism_8012FB78` angles it seeds and then draws through
+/// `func_metabolism_8012F840`. `field_2` is the brightness cap state 1 grows
+/// `GpEffWork.scale` toward in steps of 0x10, `field_4` the per-frame
+/// radius step added to `GpEffWork.angle`, and `field_6` both the
+/// `Gp_SpawnEff` spawn arg for the three orbiting sparks and the radius at
+/// which state 1 hands over to state 2.
+typedef struct MetabolismStep {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ s16 field_6;
+} MetabolismStep;
+STATIC_ASSERT_SIZEOF(MetabolismStep, 8);
 
 /// Per-level tuning for the metabolism drain, one row per PE level 1-3,
 /// weakest first.

@@ -1,48 +1,53 @@
-#include "shelter_b2_north_maintenance_walkway_private.h"
 #include "rooms/shelter_b2_north_maintenance_walkway.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+
+#include "shelter_b2_north_maintenance_walkway_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/message.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } ShelterB2NorthMaintenanceWalkwayHaloStorage;
 STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayHaloStorage, 20);
 extern ShelterB2NorthMaintenanceWalkwayHaloStorage D_shelter_b2_north_maintenance_walkway_80183C38;
-
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C4C[2];
 
 /// Anchor points of the glows the room task draws.
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[];
@@ -119,6 +124,9 @@ SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[1] = {
 };
 
 ShelterB2NorthMaintenanceWalkwayHaloStorage D_shelter_b2_north_maintenance_walkway_80183C38 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x9620 };
+
+static void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's per-frame glow task. Its first tick sets the gameplay effect ids
 /// the room's effects use; every tick then draws the flares, discs and stars

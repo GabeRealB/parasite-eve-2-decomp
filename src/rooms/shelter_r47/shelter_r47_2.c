@@ -1,31 +1,37 @@
 #include "shelter_r47_private.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include "rooms/room_common.h"
-#include "rooms/shelter_r47.h"
-
+#include "gameplay/action_prompt.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/loading.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 
-#include "gameplay/action_prompt.h"
-#include "gameplay/area.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
+#include "main/gameflag_types.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
 #include "overlay.h"
 
 /// One entry of a map-marker table: the area it stands for and the screen
@@ -37,15 +43,6 @@ typedef struct {
     s16 y;
 } ShelterR47MapMark;
 
-/// Area views published for the first cap script's five selections, indexed by
-/// the selection; entry 1 is switched between views 0x12 and 0x24 by the low bit
-/// of game flag 0xD5.
-extern u8 D_shelter_r47_80186FAC[5];
-
-/// Byte sequences selected by `ShelterR47State::step` and walked by
-/// `field_48`; `0xFF` ends a sequence.
-extern u8* D_shelter_r47_80187374[];
-
 /// Marker tables indexed by `ShelterR47State2::field_1C`; the second is used
 /// while game-flag nibble 0xDF is 1.
 extern ShelterR47MapMark* D_shelter_r47_801875C4[];
@@ -53,11 +50,6 @@ extern ShelterR47MapMark* D_shelter_r47_801875D8[];
 
 extern s16 D_shelter_r47_801875EC[];
 extern s16 D_shelter_r47_801875F8[][2];
-
-/// Latches set the first time selection kinds 0 and 1 play their one-off cap
-/// events, so later selections skip them.
-extern u8 D_shelter_r47_8018A694;
-extern u8 D_shelter_r47_8018A695;
 
 static void func_shelter_r47_801816CC(Task* task);
 static void func_shelter_r47_80181F14(Task* task, s16 y);
@@ -205,6 +197,9 @@ s16 D_shelter_r47_801875F8[5][2] = {
     { 24, 0 },
     { 32, 8 },
 };
+
+static inline s32 _shelterR47GetAreaFlag4(GpAreaKey* key);
+static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
 
 /// Acts on `selection`, the hotspot id stored by `func_shelter_r47_80181568`,
 /// when `func_800D4EC0` returns nonzero: the id's high byte picks the kind.

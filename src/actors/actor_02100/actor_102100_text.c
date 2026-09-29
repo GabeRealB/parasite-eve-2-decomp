@@ -1,40 +1,44 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/loading.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 typedef struct Actor02100Fn00048Scratch {
     /* 0x00 */ SVECTOR rotation;
@@ -223,10 +227,10 @@ typedef struct Actor02100Work {
 STATIC_ASSERT_SIZEOF(Actor02100Work, 0x19C);
 
 extern TmdBone Actor02100_D036BC[3];
-extern u32 Actor02100_D03728[3];
+extern u32     Actor02100_D03728[3];
 extern SVECTOR Actor02100_D03734[40];
 extern SVECTOR Actor02100_D03874[32];
-extern u32 Actor02100_D03974[243];
+extern u32     Actor02100_D03974[243];
 
 extern GpU16Pair                Actor02100_D03D64[5];
 extern GpPairSrcE               Actor02100_D03D78;
@@ -323,6 +327,33 @@ s16 Actor02100_D03E2C[80] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
 };
+
+static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
+
+static void Actor02100_Fn011C4(Task* arg0);
+
+static void Actor02100_Fn02924(Task* arg0, s32 arg1);
+
+static void Actor02100_Fn034E0(Task* arg0);
+
+static void Actor02100_Fn004C4(Task* arg0);
+
+static void Actor02100_Fn03488(Task* arg0);
+
+static void Actor02100_Fn00ADC(Task* arg0);
+
+static void Actor02100_Fn016EC(Task* arg0);
+
+static void Actor02100_Fn01FF0(Task* arg0);
+
+static void            Actor02100_Fn00DCC(Task* arg0);
+static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0);
+static __inline__ void Actor02100_SetVector(Task* arg0);
+static __inline__ void _actor02100StoreNearVector(Actor02100Work* work);
+static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* currentWork);
+static __inline__ void Actor02100_OrientScratch(Task* arg0);
+static __inline__ void Actor02100_UpdateVectors(Task* arg0);
+static __inline__ void Actor02100_ReleaseScratch28(void);
 
 static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
 {
@@ -606,20 +637,20 @@ static void Actor02100_Fn004C4(Task* arg0)
 /// sound. Expanded at the end of both active steps, which the compiler emits
 /// as one shared tail; `sound` is deliberately a caller-scope variable, since
 /// both expansions must name the same object.
-#define STOP_SOUND                                                                         \
-    work->field_118 = 0;                                                                   \
-    work->field_11A = 0;                                                                   \
-    work->field_11C = 0;                                                                   \
-    SndEvt_EnqueueType7(work->field_168, 1);                                               \
-    work->field_188 = 0;                                                                   \
+#define STOP_SOUND                                                                                 \
+    work->field_118 = 0;                                                                           \
+    work->field_11A = 0;                                                                           \
+    work->field_11C = 0;                                                                           \
+    SndEvt_EnqueueType7(work->field_168, 1);                                                       \
+    work->field_188 = 0;                                                                           \
     sound           = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150008); \
-    {                                                                                      \
-        s32 pan;                                                                           \
-        s32 depth;                                                                         \
-                                                                                           \
-        pan   = (s8)Gp_GetObjPan(coord);                                                   \
-        depth = (s8)gpGetObjDepth(coord);                                                  \
-        SndEvt_EnqueueType6(sound, pan, depth);                                            \
+    {                                                                                              \
+        s32 pan;                                                                                   \
+        s32 depth;                                                                                 \
+                                                                                                   \
+        pan   = (s8)Gp_GetObjPan(coord);                                                           \
+        depth = (s8)gpGetObjDepth(coord);                                                          \
+        SndEvt_EnqueueType6(sound, pan, depth);                                                    \
     }
 
 /// Per-frame handler for the four-step sound cycle at `field_16C`: two active
@@ -733,9 +764,6 @@ static void Actor02100_Fn00ADC(Task* arg0)
 }
 
 #undef STOP_SOUND
-
-static s32  Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
-static void Actor02100_Fn011C4(Task* arg0);
 
 /// Line-of-sight scan. Takes a 0x20-byte block from `G_SCRATCH_HEAD`, builds
 /// the world-space delta from this actor's coordinate to the player's (entry 0
@@ -995,9 +1023,6 @@ cleanup:
     SCRATCH_POP_BYTES(0x18);
     return result;
 }
-
-static void Actor02100_Fn02924(Task* arg0, s32 arg1);
-static void Actor02100_Fn034E0(Task* arg0);
 
 /// Aims the actor at its stored target and rebuilds both direction vectors from
 /// the new facing. A fixed forward offset is rotated by the coordinate's matrix,
@@ -1695,9 +1720,6 @@ static void Actor02100_Fn03168(Task* arg0)
     sp.funcs[arg0->state]((GpEnemy*)arg0->spawnArg2.pointer, arg0);
 }
 
-static void Actor02100_Fn004C4(Task* arg0);
-static void Actor02100_Fn03488(Task* arg0);
-
 /// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.field_4` is the global
 /// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
 /// actor (`field_C` 0x80, node flag 1) and returns, and mode 0 re-shows it
@@ -1759,10 +1781,6 @@ body:
         arg1->state     = 2;
     }
 }
-
-static void Actor02100_Fn00ADC(Task* arg0);
-static void Actor02100_Fn016EC(Task* arg0);
-static void Actor02100_Fn01FF0(Task* arg0);
 
 static void Actor02100_Fn032E4(Task* arg0)
 {

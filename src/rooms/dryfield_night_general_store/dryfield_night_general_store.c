@@ -1,27 +1,29 @@
-#include "common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/dryfield_night_general_store.h"
+
+#include "types.h"
+
+#include "dryfield_night_general_store_private.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-/// The event message and request the gate latched for the event task, and the
-/// flag saying one was latched this call.
-extern RoomEventMsg D_dryfield_night_general_store_801858BC;
-extern RoomEventReq D_dryfield_night_general_store_801858C8;
-extern u8           D_dryfield_night_general_store_801858C4;
+#include "rooms/room_common.h"
 
 /// Descriptor of the event task `func_dryfield_night_general_store_8017D794`.
 extern TaskDesc D_dryfield_night_general_store_8017E78C;
@@ -34,29 +36,17 @@ extern TaskDesc D_dryfield_night_general_store_8017E798[];
 /// The room's message table, installed by the room task's entry state.
 extern GpMsgEntry D_dryfield_night_general_store_8017E7BC[];
 
-/// The save's stage byte as it was when the cutscene began, restored into
-/// `Mc_SaveData[0].state.at4.loc.view` when the cutscene is cut short.
-extern u8 D_dryfield_night_general_store_801858B4;
-
-/// The record handed to helper task 0x31 when the cutscene asks for it.
-extern GpFadeWork D_dryfield_night_general_store_801858B8;
-
-/// The warp point and room the cutscene task commits to, latched from the
-/// message that spawned it.
-extern u8 D_dryfield_night_general_store_801858C5;
-extern u8 D_dryfield_night_general_store_801858C6;
-
 static void func_dryfield_night_general_store_8017DE34(Task* arg0);
 static void func_dryfield_night_general_store_8017DE80(Task* task);
 
-void func_dryfield_night_general_store_8017D794(Task *);
-s32 func_dryfield_night_general_store_8017D904(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-void func_dryfield_night_general_store_8017DAF0(Task *);
-void func_dryfield_night_general_store_8017DCA8(Task *);
-s32 func_dryfield_night_general_store_8017DD88(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_general_store_8017DDF0(Task *, s32, s32, s32);
-s32 func_dryfield_night_general_store_8017DE24(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_general_store_8017DE2C(Task *, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_night_general_store_8017D794(Task*);
+s32  func_dryfield_night_general_store_8017D904(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+void func_dryfield_night_general_store_8017DAF0(Task*);
+void func_dryfield_night_general_store_8017DCA8(Task*);
+s32  func_dryfield_night_general_store_8017DD88(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_general_store_8017DDF0(Task*, s32, s32, s32);
+s32  func_dryfield_night_general_store_8017DE24(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_general_store_8017DE2C(Task*, s32, GpMessageArg, GpMessageArg);
 
 TaskDesc D_dryfield_night_general_store_8017E78C = { 0, 32, func_dryfield_night_general_store_8017D794, { .model = NULL } };
 
@@ -74,6 +64,8 @@ GpMsgEntry D_dryfield_night_general_store_8017E7BC[6] = {
     { 5106, func_dryfield_night_general_store_8017DDF0 },
     { 0x7FFFFFFF, NULL },
 };
+
+static s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEventMsg* msg);
 
 /// The room's event gate. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when

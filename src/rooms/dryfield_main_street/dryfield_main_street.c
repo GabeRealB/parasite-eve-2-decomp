@@ -1,58 +1,71 @@
-#include "common.h"
 #include "rooms/dryfield_main_street.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
-/// Advances the gameplay LCG and yields the high half of the new state.
-#define DRYFIELD_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#include "common.h"
+#include "gte.h"
 
-#include "gameplay/actor.h"
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/items.h"
-#include "gameplay/object_task.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
-#include "gameplay/animation.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#define DRYFIELD_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+
+/// Advances the gameplay LCG and yields the high half of the new state.
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -63,7 +76,7 @@ extern u8 D_dryfield_main_street_8018562C[4];
 typedef union {
     struct {
         GpAnimSet* sets[3];
-        GpCopyArg copy;
+        GpCopyArg  copy;
     } data;
     s32 words[5];
 } DryfieldMainStreetAnimStorage1584;
@@ -108,13 +121,13 @@ extern RoomFadeStorage D_dryfield_main_street_8018560C;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg     D_dryfield_main_street_80185614;
+extern RoomEventMsg D_dryfield_main_street_80185614;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomLatchedEvent value;
-    u8 retained[4];
+    u8               retained[4];
 } DryfieldMainStreetStorage5634;
 STATIC_ASSERT_SIZEOF(DryfieldMainStreetStorage5634, 16);
 
@@ -153,32 +166,32 @@ static void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s16 arg1, u8* rgb)
 static void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_dryfield_main_street_80182C9C[1];
-extern GpObj4C D_dryfield_main_street_801843A4[26];
-extern GpObj4C D_dryfield_main_street_80184B5C[10];
+extern GpGridParams   D_dryfield_main_street_80182C9C[1];
+extern GpObj4C        D_dryfield_main_street_801843A4[26];
+extern GpObj4C        D_dryfield_main_street_80184B5C[10];
 extern GpRoomCoordSet D_dryfield_main_street_80185588[1];
 
 extern TaskDesc D_8014D8A4;
 
-extern GpAnimArg D_dryfield_main_street_801815AC;
-extern GpAnimArg D_dryfield_main_street_801815C0;
-extern GpAnimArg D_dryfield_main_street_801815D4;
+extern GpAnimArg  D_dryfield_main_street_801815AC;
+extern GpAnimArg  D_dryfield_main_street_801815C0;
+extern GpAnimArg  D_dryfield_main_street_801815D4;
 extern GpXformArg D_dryfield_main_street_801815E8;
-void func_dryfield_main_street_8017E2F4(s32);
-void func_dryfield_main_street_8017E320(void);
-void func_dryfield_main_street_8017E354(s32);
+void              func_dryfield_main_street_8017E2F4(s32);
+void              func_dryfield_main_street_8017E320(void);
+void              func_dryfield_main_street_8017E354(s32);
 
 extern DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584;
-s32 func_dryfield_main_street_8017DA6C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_main_street_8017DEF0(Task *, s32, s32, s32);
-s32 func_dryfield_main_street_8017DFC8(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_main_street_8017E054(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_main_street_8017E05C(Task *, s32, GpMsg13EF *, s32);
-void func_dryfield_main_street_8017D600(Task *);
-void func_dryfield_main_street_8017D8FC(Task *);
-void func_dryfield_main_street_8017DE78(Task *);
-void func_dryfield_main_street_8017E1C0(Task *);
-void func_dryfield_main_street_8017E3A8(Task *);
+s32                                      func_dryfield_main_street_8017DA6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                                      func_dryfield_main_street_8017DEF0(Task*, s32, s32, s32);
+s32                                      func_dryfield_main_street_8017DFC8(Task*, s32, s32, GpMessageArg);
+s32                                      func_dryfield_main_street_8017E054(Task*, s32, GpMessageArg, GpMessageArg);
+s32                                      func_dryfield_main_street_8017E05C(Task*, s32, GpMsg13EF*, s32);
+void                                     func_dryfield_main_street_8017D600(Task*);
+void                                     func_dryfield_main_street_8017D8FC(Task*);
+void                                     func_dryfield_main_street_8017DE78(Task*);
+void                                     func_dryfield_main_street_8017E1C0(Task*);
+void                                     func_dryfield_main_street_8017E3A8(Task*);
 
 TaskDesc D_dryfield_main_street_80180E7C = { 0, 32, func_dryfield_main_street_8017D600, { .model = NULL } };
 
@@ -1946,6 +1959,8 @@ Task * D_dryfield_main_street_80185630 = NULL;
 DryfieldMainStreetStorage5634 D_dryfield_main_street_80185634 = { { 0 }, { 0 } };
 
 RoomEventReq D_dryfield_main_street_80185644 = { 0, 0, 0, 0, 0, 0 };
+
+static s32 func_dryfield_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg);
 
 /// The room's own event task, spawned by its message handler. State 0 runs
 /// the latched event's CAP command; state 1 waits for it to finish and, when

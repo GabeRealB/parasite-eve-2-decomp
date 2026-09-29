@@ -1,40 +1,45 @@
-#include "common.h"
 #include "rooms/mist_r18.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/starter_inventory.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
-#include "gameplay/direction_input.h"
-
-#include "gameplay/message.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/starter_inventory.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/text.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_akropolis.h"
 
 extern GpRoomCoordSet D_mist_r18_80186E44[1];
 
@@ -75,20 +80,20 @@ STATIC_ASSERT_SIZEOF(MistR18Sprite, 0x14);
 /// the pen origin, `u`/`v` the font page origin, `clutX`/`clutY` the palette
 /// position and `boxW`/`boxH` the backing rectangle drawn behind the text.
 typedef struct MistR18TextSpawn {
-    /* 0x00 */ s16           x;
-    /* 0x02 */ s16           y;
-    /* 0x04 */ s16           u;
-    /* 0x06 */ s16           v;
-    /* 0x08 */ s16           clutX;
-    /* 0x0A */ s16           clutY;
-    /* 0x0C */ s16           delay;
-    /* 0x0E */ s16           index;
-    /* 0x10 */ u8*           script;
+    /* 0x00 */ s16        x;
+    /* 0x02 */ s16        y;
+    /* 0x04 */ s16        u;
+    /* 0x06 */ s16        v;
+    /* 0x08 */ s16        clutX;
+    /* 0x0A */ s16        clutY;
+    /* 0x0C */ s16        delay;
+    /* 0x0E */ s16        index;
+    /* 0x10 */ u8*        script;
     /* 0x14 */ GlyphUvwh* glyphs;
-    /* 0x18 */ s16           lineHeight;
-    /* 0x1A */ s16           delayEnd;
-    /* 0x1C */ s16           boxW;
-    /* 0x1E */ s16           boxH;
+    /* 0x18 */ s16        lineHeight;
+    /* 0x1A */ s16        delayEnd;
+    /* 0x1C */ s16        boxW;
+    /* 0x1E */ s16        boxH;
 } MistR18TextSpawn;
 
 STATIC_ASSERT_SIZEOF(MistR18TextSpawn, 0x20);
@@ -125,16 +130,16 @@ static void func_mist_r18_8017ECF4(Task* arg0);
 extern TaskDesc D_mist_r18_80184F04[];
 /// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
 extern MistR18TextSpawn D_mist_r18_80184EE4;
-extern GpEvsCmd D_mist_r18_8018522C[];
-extern GpEvsCmd D_mist_r18_8018576C[];
-extern GpEvsCmd D_mist_r18_80185AE4[];
-extern GpEvsCmd D_mist_r18_80185EBC[];
-extern GpEvsCmd D_mist_r18_8018603C[];
-extern GpEvsCmd D_mist_r18_801861BC[];
-extern GpEvsCmd D_mist_r18_8018639C[];
-extern GpEvsCmd D_mist_r18_8018645C[];
-extern GpEvsCmd D_mist_r18_8018651C[];
-extern GpEvsCmd D_mist_r18_80186564[];
+extern GpEvsCmd         D_mist_r18_8018522C[];
+extern GpEvsCmd         D_mist_r18_8018576C[];
+extern GpEvsCmd         D_mist_r18_80185AE4[];
+extern GpEvsCmd         D_mist_r18_80185EBC[];
+extern GpEvsCmd         D_mist_r18_8018603C[];
+extern GpEvsCmd         D_mist_r18_801861BC[];
+extern GpEvsCmd         D_mist_r18_8018639C[];
+extern GpEvsCmd         D_mist_r18_8018645C[];
+extern GpEvsCmd         D_mist_r18_8018651C[];
+extern GpEvsCmd         D_mist_r18_80186564[];
 /// The two prop tasks `func_mist_r18_8017E6D8` spawns and
 /// `func_mist_r18_8017E784` tears down, by index.
 extern Task* D_mist_r18_80186E90;
@@ -171,20 +176,20 @@ extern GpAreaTmdRec D_mist_r18_80186BD8[3];
 extern GpGridParams D_mist_r18_801866F8[1];
 
 extern GpAnimSet* D_mist_r18_80184F64[11];
-void func_mist_r18_8017E6D8(s32);
-void func_mist_r18_8017E784(s32);
-void func_mist_r18_8017E7F0(void);
-void func_mist_r18_8017E824(void);
-void func_mist_r18_8017EA2C(void);
-void func_mist_r18_8017EA60(void);
-void func_mist_r18_8017EB48(void);
-void func_mist_r18_8017EBB8(void);
-void func_mist_r18_8017EBF8(void);
-void func_mist_r18_8017EC38(void);
-void func_mist_r18_8017EC58(void);
-void func_mist_r18_8017EC78(void);
-void func_mist_r18_8017ECC0(s8);
-void func_mist_r18_8017ECCC(void);
+void              func_mist_r18_8017E6D8(s32);
+void              func_mist_r18_8017E784(s32);
+void              func_mist_r18_8017E7F0(void);
+void              func_mist_r18_8017E824(void);
+void              func_mist_r18_8017EA2C(void);
+void              func_mist_r18_8017EA60(void);
+void              func_mist_r18_8017EB48(void);
+void              func_mist_r18_8017EBB8(void);
+void              func_mist_r18_8017EBF8(void);
+void              func_mist_r18_8017EC38(void);
+void              func_mist_r18_8017EC58(void);
+void              func_mist_r18_8017EC78(void);
+void              func_mist_r18_8017ECC0(s8);
+void              func_mist_r18_8017ECCC(void);
 
 extern GpAnimSet D_mist_r18_8017F834;
 extern GpAnimSet D_mist_r18_801806A8;
@@ -198,13 +203,13 @@ extern GpAnimSet D_mist_r18_80184B8C;
 extern GpAnimSet D_mist_r18_80184E80;
 extern TmdSource D_mist_r18_8017F064;
 extern TmdSource D_mist_r18_8017F25C;
-void func_mist_r18_8017D5EC(Task *);
-void func_mist_r18_8017DA8C(Task *);
-void func_mist_r18_8017E2C8(Task *);
-void func_mist_r18_8017E3A4(Task *);
-void func_mist_r18_8017E854(Task *);
-void func_mist_r18_8017EA98(Task *);
-void func_mist_r18_8017EC98(Task *);
+void             func_mist_r18_8017D5EC(Task*);
+void             func_mist_r18_8017DA8C(Task*);
+void             func_mist_r18_8017E2C8(Task*);
+void             func_mist_r18_8017E3A4(Task*);
+void             func_mist_r18_8017E854(Task*);
+void             func_mist_r18_8017EA98(Task*);
+void             func_mist_r18_8017EC98(Task*);
 
 TmdBone D_mist_r18_8017EDBC[1] = {
 #include "assets/mist_r18_model_01AA4_skeleton.inc"
@@ -1220,6 +1225,9 @@ Task * D_mist_r18_80186E98 = NULL;
 s32 D_mist_r18_80186E9C = 0;
 
 s32 D_mist_r18_80186EA0 = 0;
+
+static void func_mist_r18_8017DF80(s32 shade);
+static void func_mist_r18_8017E144(s16 shade);
 
 /// Typewriter text task for the room's message box: state 0 measures the
 /// script (or, for a negative per-glyph delay, reveals all of it at once) and

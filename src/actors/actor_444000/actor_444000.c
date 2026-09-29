@@ -1,61 +1,71 @@
 #include "actors/actor_444000.h"
-#include "rooms/shelter_b3_garbage_incinerator.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
 
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135990.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/player_state.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -171,8 +181,8 @@ extern Task* D_actor_444000_80161860;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    Task * value;
-    u8 retained[4];
+    Task* value;
+    u8    retained[4];
 } Actor444000Storage1878;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1878, 8);
 
@@ -215,10 +225,10 @@ extern GpPairSrcE D_actor_444000_80144A38;
 extern GpPairSrcE D_actor_444000_80144A48;
 extern GpPairSrcE D_actor_444000_80144A58;
 
-extern s16 D_actor_444000_80144A68;
-extern s32 D_actor_444000_80144A6C;
-extern s16 D_actor_444000_80144A70;
-extern s16 D_actor_444000_80144A72;
+extern s16         D_actor_444000_80144A68;
+extern s32         D_actor_444000_80144A6C;
+extern s16         D_actor_444000_80144A70;
+extern s16         D_actor_444000_80144A72;
 extern GpScriptCmd D_actor_444000_80144A74[2];
 extern GpScriptRec D_actor_444000_80144A7C[2];
 extern GpScriptCmd D_actor_444000_80144A84[2];
@@ -236,10 +246,10 @@ extern GpAnimSet* D_actor_444000_801615B8[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call0)(Task*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor444000MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor444000MessageEntry, 8);
@@ -255,7 +265,7 @@ extern GpEffArg D_actor_444000_80161880;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpCmdArg value;
-    u8 retained[4];
+    u8       retained[4];
 } Actor444000Storage1888;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1888, 8);
 
@@ -282,7 +292,7 @@ extern u8 D_actor_444000_801617C4[][8];
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpDelayArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor444000Storage1898;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1898, 32);
 
@@ -306,7 +316,7 @@ extern s16 D_actor_444000_80161850;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpCoord value[6];
-    u8 retained[40];
+    u8      retained[40];
 } Actor444000Storage1948;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1948, 520);
 
@@ -337,7 +347,7 @@ extern Actor444000Storage1868 D_actor_444000_80161868;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpXformArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor444000Storage1908;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1908, 32);
 
@@ -348,7 +358,7 @@ extern Actor444000Storage1908 D_actor_444000_80161908;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpDelayArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor444000Storage1928;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1928, 32);
 
@@ -362,7 +372,7 @@ extern Actor444000Storage1928 D_actor_444000_80161928;
 /// the id that was playing before the switch.
 extern s8 D_actor_444000_80160C5C[][0x2D];
 
-MATRIX*     ScaleMatrix(MATRIX* m, VECTOR* v);
+MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static void func_actor_444000_80132808(GpCoord* coord, s16 yaw);
 static s32  func_actor_444000_80132B14(GpCoord* coord, GpRec18* rec, s16 arg2);
@@ -393,12 +403,6 @@ s32         func_actor_444000_80143D68(Task* arg0);
 s32         func_actor_444000_80143F38(Task* arg0);
 static void func_actor_444000_80143F4C(Task* arg0);
 
-extern GpAnimSet D_actor_444000_801529F4;
-extern GpAnimSet D_actor_444000_80152AA0;
-extern GpAnimSet D_actor_444000_80152B4C;
-extern GpAnimSet D_actor_444000_80152E34;
-extern GpAnimSet D_actor_444000_801530F8;
-extern GpAnimSet D_actor_444000_801533D4;
 extern GpAnimSet D_actor_444000_80153724;
 extern GpAnimSet D_actor_444000_80153904;
 extern GpAnimSet D_actor_444000_80153AE4;
@@ -423,9 +427,7 @@ extern GpAnimSet D_actor_444000_80156C24;
 extern GpAnimSet D_actor_444000_8015705C;
 extern GpAnimSet D_actor_444000_801573A0;
 extern GpAnimSet D_actor_444000_801576B8;
-extern GpAnimSet D_actor_444000_80157A00;
-extern GpAnimSet D_actor_444000_80157D34;
-extern GpAnimSet D_actor_444000_80158060;
+
 extern GpAnimSet D_actor_444000_80158540;
 extern GpAnimSet D_actor_444000_801587D4;
 extern GpAnimSet D_actor_444000_80158AE0;
@@ -443,37 +445,32 @@ extern GpAnimSet D_actor_444000_8015AF28;
 extern GpAnimSet D_actor_444000_8015B660;
 extern GpAnimSet D_actor_444000_8015CAAC;
 extern GpAnimSet D_actor_444000_8015DF80;
-extern GpAnimSet D_actor_444000_8015E060;
-extern GpAnimSet D_actor_444000_8015E0EC;
-extern GpAnimSet D_actor_444000_8015E178;
+
 extern GpAnimSet D_actor_444000_8015E944;
 extern GpAnimSet D_actor_444000_8015F150;
 extern TmdSource D_actor_444000_8014BE0C;
-void func_actor_444000_8014382C(Task *);
+void             func_actor_444000_8014382C(Task*);
 
 extern TmdSource D_actor_444000_8014E220;
 extern TmdSource D_actor_444000_80150A40;
 extern TmdSource D_actor_444000_801528DC;
-void func_actor_444000_801438E4(Task *);
-void func_actor_444000_80143960(Task *);
-void func_actor_444000_80143A6C(Task *);
-void func_actor_444000_80143B74(Task *);
-void func_actor_444000_80143C64(Task *);
+void             func_actor_444000_801438E4(Task*);
+void             func_actor_444000_80143960(Task*);
+void             func_actor_444000_80143A6C(Task*);
+void             func_actor_444000_80143B74(Task*);
+void             func_actor_444000_80143C64(Task*);
 
 extern TmdSource D_actor_444000_80146F68;
-s32 func_actor_444000_8013A958(Task *, s32, s32);
-s32 func_actor_444000_8013ACD0(Task *, s32, GpCmdArg *);
-s32 func_actor_444000_80143D68(Task *);
-s32 func_actor_444000_80143D7C(Task *, s32, GpXformArg *);
-s32 func_actor_444000_80143E68(Task *, s32, s32);
-s32 func_actor_444000_80143F38(Task *);
-void func_actor_444000_80142F28(Task *);
+s32              func_actor_444000_8013A958(Task*, s32, s32);
+s32              func_actor_444000_8013ACD0(Task*, s32, GpCmdArg*);
+s32              func_actor_444000_80143D68(Task*);
+s32              func_actor_444000_80143D7C(Task*, s32, GpXformArg*);
+s32              func_actor_444000_80143E68(Task*, s32, s32);
+s32              func_actor_444000_80143F38(Task*);
+void             func_actor_444000_80142F28(Task*);
 
-extern GpAnimSet D_actor_444000_80160368;
-extern GpAnimSet D_actor_444000_801608A0;
-extern GpAnimSet D_actor_444000_80160C34;
 void func_actor_444000_801321FC(s32);
-void func_actor_444000_80132358(Task *);
+void func_actor_444000_80132358(Task*);
 void func_actor_444000_80132608(void);
 void func_actor_444000_8013265C(s32);
 void func_actor_444000_80132694(void);
@@ -2810,8 +2807,8 @@ GpAnimSet * D_actor_444000_80161694[7] = {
     NULL,
 };
 
-void func_actor_444000_8014382C(Task *);
-void func_actor_444000_80143888(Task *);
+void             func_actor_444000_8014382C(Task*);
+void             func_actor_444000_80143888(Task*);
 extern TmdSource D_actor_444000_8014A650;
 extern TmdSource D_actor_444000_80147D10;
 extern TmdSource D_actor_444000_80148E94;
@@ -2915,6 +2912,55 @@ Actor444000Storage1928 D_actor_444000_80161928 = { { { 0, 0, 0, 0 }, 0, { 0, 0, 
 Actor444000Storage1948 D_actor_444000_80161948 = { { { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 TmdSource D_actor_444000_80161B50 = { 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL };
+
+static void            func_actor_444000_80132054(Task* task);
+static void            func_actor_444000_80134040(Task* arg0);
+static __inline__ void Actor444000_StepForward(GpCoord* coord);
+static __inline__ void Actor444000_SquashRotation(GpCoord* coord, s16 y);
+static void            func_actor_444000_80137594(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_8013799C(GpEnemy* enemy, Task* task);
+static __inline__ void Actor444000_ShrinkRotation(GpCoord* coord);
+static void            func_actor_444000_80137D4C(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_801381B0(GpEnemy* enemy, Task* task);
+static __inline__ void Actor444000_ScaleRotation(GpCoord* coord, s16 xz, s32 y);
+static void            func_actor_444000_80138490(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_801389EC(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_80138B94(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_80138FC4(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_8013928C(GpEnemy* enemy, Task* task);
+static __inline__ void Actor444000_GapToCamera(GpCoord* coord, SVECTOR* out);
+static void            func_actor_444000_80139594(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_80139AF8(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_80139C80(GpEnemy* enemy, Task* task);
+static void            func_actor_444000_8013A77C(Task* task);
+static __inline__ void Actor444000_RebuildRotation(Task* task);
+static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* work);
+static void            func_actor_444000_8013C060(Task* task);
+static void            func_actor_444000_8013C4B0(Task* task);
+static void            func_actor_444000_8013CA60(Task* task);
+static void            func_actor_444000_8013D128(Task* task);
+static void            func_actor_444000_8013D810(Task* arg0);
+static __inline__ void Actor444000_ReleaseRotScratch(void);
+static __inline__ void Actor444000_FlattenRotation(GpCoord* coord, s32 vy);
+static void            func_actor_444000_8013D96C(Task* arg0);
+static void            func_actor_444000_8013E058(Task* task);
+static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor403200Work* work,
+                                                    Task* player, Actor444000WarpScratch* sc,
+                                                    PlayerStatus* cfg);
+static void            func_actor_444000_8013EC84(Task* arg0);
+static void            func_actor_444000_8013FB74(Task* arg0);
+static void            func_actor_444000_801404C0(Task* arg0);
+static void            func_actor_444000_80140BBC(Task* arg0);
+static void            func_actor_444000_80140E28(Task* arg0);
+static void            func_actor_444000_8014105C(Task* arg0);
+static void            func_actor_444000_801411C8(Task* arg0);
+static void            func_actor_444000_80141618(Task* task);
+static inline void     _actor444000TintEscort(TmdObject* model);
+static void            func_actor_444000_80142254(void);
+static void            func_actor_444000_80143374(s32 arg0, s16 arg1);
+static void            func_actor_444000_80143490(s8 arg0);
+static void            func_actor_444000_801434A8(s16 arg0);
+static s16             func_actor_444000_801434B4(void);
 
 /// Run one step of the event task: act on the pending action index in
 /// `field_2C`, then clear it so the action fires once.

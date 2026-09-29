@@ -1,24 +1,28 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013231c.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-
-#include "gameplay/animation.h"
+#include "main/tmd_types.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
@@ -50,7 +54,7 @@ STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
 /// Animation bank table the 0x7D3 handler indexes with the preset's
 /// `field_0`.
-extern GpAnimSet* D_actor_213100_8015217C[10];
+extern GpAnimSet*  D_actor_213100_8015217C[10];
 extern GpAnimSet** D_actor_213100_801521A4[1];
 
 /// Spawn table the spawn state takes its child from; entry 1 is the child,
@@ -65,9 +69,9 @@ extern TaskDesc D_actor_213100_801521A8[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor213100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor213100MessageEntry, 8);
@@ -87,11 +91,11 @@ s32         func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32
 
 extern TmdSource D_actor_213100_801501E4;
 extern TmdSource D_actor_213100_801503DC;
-s32 func_actor_213100_8014A258(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_213100_8014A390(Task *, s32, GpXformArg *);
-s32 func_actor_213100_8014A40C(Task *, s32, s32);
-void func_actor_213100_80149FE4(Task *);
-void func_actor_213100_8014A0C0(Task *);
+s32              func_actor_213100_8014A258(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_213100_8014A390(Task*, s32, GpXformArg*);
+s32              func_actor_213100_8014A40C(Task*, s32, s32);
+void             func_actor_213100_80149FE4(Task*);
+void             func_actor_213100_8014A0C0(Task*);
 
 TmdBone D_actor_213100_8014A500[19] = {
 #include "assets/actor_213100_model_063C4_skeleton.inc"
@@ -415,6 +419,8 @@ s8 D_actor_213100_801521E0[24] = {
     0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
 };
+
+static void func_actor_213100_80149E3C(Task* task);
 
 /// Per-frame tick: ticks the work block's animation slots once they have been
 /// started, and while the model is shown samples the child part's

@@ -1,38 +1,56 @@
-#include "common.h"
+#include "actor_300700_private.h"
 
-#include "actors/actor_300700.h"
-#include "actors/actor_300700_spawn2.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "actor_300700_spawn2_private.h"
+
 #include "actors/actor.h"
-#include "psyq/inline_c.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+extern s16 D_actor_300700_8016933C[8];
+
+extern u16 D_actor_300700_8016934C[16];
+
+extern s16 D_actor_300700_8016936C[8];
+
+extern u16 D_actor_300700_8016937C[16];
+
+extern s16 D_actor_300700_8016939C[8];
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
 extern s16 D_actor_300700_801693E4[];
@@ -60,30 +78,6 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-/// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
-extern u16 D_actor_300700_80165B78[];
-
-/// Spawn pair table packed by `Gp_PackPair`, and the enemy record whose
-/// `pairTable` points at it and whose `hpMax` seeds the enemy's `field_40`.
-extern GpU16Pair  D_actor_300700_80165B64;
-extern GpPairSrcE D_actor_300700_80165B68;
-/// Pose source handed to `func_800B3F84` as its animation data record.
-extern GpAnimSet* D_actor_300700_80165B94[2];
-
-/// The second variant's pair of the same kind, and its pose source.
-extern GpU16Pair  D_actor_300700_80169328;
-extern GpPairSrcE D_actor_300700_8016932C;
-extern u32        D_actor_300700_801693B8;
-
-/// Per-`field_F` roll thresholds and the timer tables picked by the second
-/// roll, for the two idle transitions of `func_actor_300700_80163D64`.
-extern s16 D_actor_300700_8016933C[];
-extern u16 D_actor_300700_8016934C[];
-extern s16 D_actor_300700_8016936C[];
-extern u16 D_actor_300700_8016937C[];
-extern s16 D_actor_300700_8016939C[];
-
-void        func_actor_300700_80163510(GpEnemy* arg0, Task* arg1);
 static void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1);
 
 static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1);
@@ -99,8 +93,7 @@ static const GpEnemyTaskFuncTable3 D_actor_300700_80161E30 = {
     },
 };
 
-extern TmdSource D_actor_300700_80167400;
-static void func_actor_300700_80164CE0(Task *);
+static void func_actor_300700_80164CE0(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {

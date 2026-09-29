@@ -1,63 +1,120 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
+#include "rooms/shelter_b1_underground_parking.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/shelter_b1_underground_parking.h"
-#include "rooms/acropolis_square.h"
-
-#include "gameplay/animation.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_targets.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
 #include "gameplay/inventory.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/acropolis_square.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+/// Work block of the parking-lot examine task, hung off the `Task::work` slot
+/// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
+/// `(SbupExamineWork*)task->work`.
+///
+/// `func_shelter_b1_underground_parking_80184468` copies a matched hotspot's
+/// two table fields into `field_C` and `promptKind`;
+/// `func_shelter_b1_underground_parking_80184594` forwards `promptKind` to
+/// `func_800D4E78` as the display mode of the prompt it spawns.
+/// `fadeLevel` is the intensity of the closing fade: the last state raises it
+/// each frame, clamps it at 0xFF and draws it on all three channels of
+/// `Fade_DrawOverlay`.
+typedef struct SbupExamineWork {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[0x4];
+    /* 0x08 */ s16  fadeLevel;
+    /* 0x0A */ byte pad_A[0x2];
+    /* 0x0C */ s16  field_C;
+    /* 0x0E */ s8   promptKind;
+    /* 0x0F */ byte pad_F[0x1];
+} SbupExamineWork;
+
+/// The departure the departure task carries out.
+extern RoomDeparture D_shelter_b1_underground_parking_8018D77C;
+
+/// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
+/// is the scene's sub-task.
+extern TaskDesc D_shelter_b1_underground_parking_8018720C[];
+
+/// The "%" suffix appended to the play-data percentages.
+extern u8 D_shelter_b1_underground_parking_8018691C[];
+
+/// Descriptor of the play-data panels' shared frame.
+extern UiObjectDesc D_shelter_b1_underground_parking_80186B34;
+
+/// The item id the shop list's cursor last rested on.
+extern s32 D_shelter_b1_underground_parking_80186FB0;
+
+/// Flag tested as zero / non-zero when drawing the room's view-dependent
+/// markers: it selects 0x180 or 0x60 as the second argument of their draw
+/// calls. Its meaning is unproven.
+extern u16 D_shelter_b1_underground_parking_8018D78C;
 
 extern SVECTOR D_shelter_b1_underground_parking_8018771C[13];
 
@@ -243,22 +300,22 @@ extern Task* D_shelter_b1_underground_parking_8018D754;
 
 /// The area records applied when the scene hands the Dryfield story on.
 
-extern s32             D_shelter_b1_underground_parking_8018D758;
+extern s32 D_shelter_b1_underground_parking_8018D758;
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomCutsceneRec value;
-    u8 retained[8];
+    u8              retained[8];
 } ShelterB1UndergroundParkingStorageD75C;
 STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorageD75C, 32);
 
 extern ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc        D_shelter_b1_underground_parking_80187200;
-extern TaskDesc        D_shelter_b1_underground_parking_80187260[];
-extern TaskDesc        D_shelter_b1_underground_parking_8018726C[];
-extern GpFadeWork      D_shelter_b1_underground_parking_8018D750;
+extern TaskDesc                               D_shelter_b1_underground_parking_80187200;
+extern TaskDesc                               D_shelter_b1_underground_parking_80187260[];
+extern TaskDesc                               D_shelter_b1_underground_parking_8018726C[];
+extern GpFadeWork                             D_shelter_b1_underground_parking_8018D750;
 
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
@@ -311,76 +368,76 @@ static void func_shelter_b1_underground_parking_8017F7D0(Task* task);
 static void func_shelter_b1_underground_parking_801848BC(Task* task);
 static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void func_shelter_b1_underground_parking_8017FE7C(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_8017FE7C(UiList*, UiObject*);
 
-void func_shelter_b1_underground_parking_8017DA50(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_8017E21C(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_8017EC34(Task *);
-void func_shelter_b1_underground_parking_8017F0E0(Task *);
-void func_shelter_b1_underground_parking_8017F2A0(Task *);
-void func_shelter_b1_underground_parking_8017F494(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_8017F578(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_8017F640(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_8017F708(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_80180820(Task *);
-void func_shelter_b1_underground_parking_80180A70(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_80180C90(Task *);
-void func_shelter_b1_underground_parking_80180E38(Task *);
-void func_shelter_b1_underground_parking_8018101C(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_80181230(Task *);
-void func_shelter_b1_underground_parking_80181CCC(UiList *, UiObject *);
-void func_shelter_b1_underground_parking_80181D88(Task *);
+void func_shelter_b1_underground_parking_8017DA50(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_8017E21C(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_8017EC34(Task*);
+void func_shelter_b1_underground_parking_8017F0E0(Task*);
+void func_shelter_b1_underground_parking_8017F2A0(Task*);
+void func_shelter_b1_underground_parking_8017F494(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_8017F578(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_8017F640(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_8017F708(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_80180820(Task*);
+void func_shelter_b1_underground_parking_80180A70(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_80180C90(Task*);
+void func_shelter_b1_underground_parking_80180E38(Task*);
+void func_shelter_b1_underground_parking_8018101C(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_80181230(Task*);
+void func_shelter_b1_underground_parking_80181CCC(UiList*, UiObject*);
+void func_shelter_b1_underground_parking_80181D88(Task*);
 
-void func_shelter_b1_underground_parking_80180820(Task *);
-void func_shelter_b1_underground_parking_801813B0(Task *);
-void func_shelter_b1_underground_parking_80181678(Task *);
-void func_shelter_b1_underground_parking_8018184C(Task *);
-void func_shelter_b1_underground_parking_80181EB0(Task *);
+void func_shelter_b1_underground_parking_80180820(Task*);
+void func_shelter_b1_underground_parking_801813B0(Task*);
+void func_shelter_b1_underground_parking_80181678(Task*);
+void func_shelter_b1_underground_parking_8018184C(Task*);
+void func_shelter_b1_underground_parking_80181EB0(Task*);
 
-extern GpGridParams D_shelter_b1_underground_parking_80187E50[1];
-extern GpGridParams D_shelter_b1_underground_parking_801884D4[1];
-extern GpGridParams D_shelter_b1_underground_parking_80188BC4[1];
-extern GpGridParams D_shelter_b1_underground_parking_8018912C[1];
-extern GpGridParams D_shelter_b1_underground_parking_80189754[1];
-extern GpObj4C D_shelter_b1_underground_parking_8018B094[8];
-extern GpObj4C D_shelter_b1_underground_parking_8018B2F4[8];
-extern GpObj4C D_shelter_b1_underground_parking_8018B674[12];
-extern GpObj4C D_shelter_b1_underground_parking_8018BA04[12];
-extern GpObj4C D_shelter_b1_underground_parking_8018BD94[12];
-extern GpObj4C D_shelter_b1_underground_parking_8018C124[12];
-extern GpObj4C D_shelter_b1_underground_parking_8018C4B4[12];
-extern GpObj4C D_shelter_b1_underground_parking_8018C844[20];
-extern GpObj4C D_shelter_b1_underground_parking_8018CE34[16];
-extern GpObj4C D_shelter_b1_underground_parking_8018D2F4[11];
+extern GpGridParams   D_shelter_b1_underground_parking_80187E50[1];
+extern GpGridParams   D_shelter_b1_underground_parking_801884D4[1];
+extern GpGridParams   D_shelter_b1_underground_parking_80188BC4[1];
+extern GpGridParams   D_shelter_b1_underground_parking_8018912C[1];
+extern GpGridParams   D_shelter_b1_underground_parking_80189754[1];
+extern GpObj4C        D_shelter_b1_underground_parking_8018B094[8];
+extern GpObj4C        D_shelter_b1_underground_parking_8018B2F4[8];
+extern GpObj4C        D_shelter_b1_underground_parking_8018B674[12];
+extern GpObj4C        D_shelter_b1_underground_parking_8018BA04[12];
+extern GpObj4C        D_shelter_b1_underground_parking_8018BD94[12];
+extern GpObj4C        D_shelter_b1_underground_parking_8018C124[12];
+extern GpObj4C        D_shelter_b1_underground_parking_8018C4B4[12];
+extern GpObj4C        D_shelter_b1_underground_parking_8018C844[20];
+extern GpObj4C        D_shelter_b1_underground_parking_8018CE34[16];
+extern GpObj4C        D_shelter_b1_underground_parking_8018D2F4[11];
 extern GpRoomBoundVec D_shelter_b1_underground_parking_8018D638[25];
 extern GpRoomCoordSet D_shelter_b1_underground_parking_8018B07C[1];
-s32 func_shelter_b1_underground_parking_80182830(Task *, s32, RoomEventMsg *, GpMessageArg);
-s32 func_shelter_b1_underground_parking_80182A60(Task *, s32, s32, s32);
-s32 func_shelter_b1_underground_parking_80183284(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b1_underground_parking_80183360(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_underground_parking_801833DC(Task *, s32, s32, GpMessageArg);
-void func_shelter_b1_underground_parking_80181FE4(Task *);
-void func_shelter_b1_underground_parking_80182154(Task *);
-void func_shelter_b1_underground_parking_80182DB4(Task *);
-void func_shelter_b1_underground_parking_80182FC8(Task *);
-void func_shelter_b1_underground_parking_801831F4(Task *);
-void func_shelter_b1_underground_parking_80183410(Task *);
-void func_shelter_b1_underground_parking_801834D4(Task *);
-void func_shelter_b1_underground_parking_80183560(Task *);
-void func_shelter_b1_underground_parking_8018363C(Task *);
-void func_shelter_b1_underground_parking_801836D8(Task *);
-void func_shelter_b1_underground_parking_80183714(Task *);
-void func_shelter_b1_underground_parking_801837D8(u8);
-void func_shelter_b1_underground_parking_80183804(u8);
-void func_shelter_b1_underground_parking_80184234(Task *);
-void func_shelter_b1_underground_parking_80184284(Task *);
+s32                   func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32                   func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
+s32                   func_shelter_b1_underground_parking_80183284(Task*, s32, s32, GpMessageArg);
+s32                   func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, GpMessageArg);
+void                  func_shelter_b1_underground_parking_80181FE4(Task*);
+void                  func_shelter_b1_underground_parking_80182154(Task*);
+void                  func_shelter_b1_underground_parking_80182DB4(Task*);
+void                  func_shelter_b1_underground_parking_80182FC8(Task*);
+void                  func_shelter_b1_underground_parking_801831F4(Task*);
+void                  func_shelter_b1_underground_parking_80183410(Task*);
+void                  func_shelter_b1_underground_parking_801834D4(Task*);
+void                  func_shelter_b1_underground_parking_80183560(Task*);
+void                  func_shelter_b1_underground_parking_8018363C(Task*);
+void                  func_shelter_b1_underground_parking_801836D8(Task*);
+void                  func_shelter_b1_underground_parking_80183714(Task*);
+void                  func_shelter_b1_underground_parking_801837D8(u8);
+void                  func_shelter_b1_underground_parking_80183804(u8);
+void                  func_shelter_b1_underground_parking_80184234(Task*);
+void                  func_shelter_b1_underground_parking_80184284(Task*);
 
-extern GpSprtCmd D_shelter_b1_underground_parking_80189AD8[2];
-extern GpSprtCmd D_shelter_b1_underground_parking_80189AE8[2];
-extern GpSprtCmd D_shelter_b1_underground_parking_80189BFC[3];
-extern GpSprtCmd D_shelter_b1_underground_parking_80189E94[4];
-extern GpSprtCmd D_shelter_b1_underground_parking_80189EB4[2];
-extern GpSprtCmd D_shelter_b1_underground_parking_80189EC4[2];
+extern GpSprtCmd  D_shelter_b1_underground_parking_80189AD8[2];
+extern GpSprtCmd  D_shelter_b1_underground_parking_80189AE8[2];
+extern GpSprtCmd  D_shelter_b1_underground_parking_80189BFC[3];
+extern GpSprtCmd  D_shelter_b1_underground_parking_80189E94[4];
+extern GpSprtCmd  D_shelter_b1_underground_parking_80189EB4[2];
+extern GpSprtCmd  D_shelter_b1_underground_parking_80189EC4[2];
 extern GpSprtElem D_shelter_b1_underground_parking_80189AF8[13];
 extern GpSprtElem D_shelter_b1_underground_parking_80189C14[32];
 
@@ -4516,6 +4573,20 @@ u8 D_shelter_b1_underground_parking_8018D789 = 0;
 u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
 
 u16 D_shelter_b1_underground_parking_8018D78C = 0;
+
+static void       func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject* obj);
+static void       func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject* obj);
+static void       func_shelter_b1_underground_parking_8017F13C(u8* str, s32 decimals);
+static u8*        func_shelter_b1_underground_parking_8017F1AC(u8* buf, s32 value, s32 decimals);
+static void       func_shelter_b1_underground_parking_8017F390(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static u16*       func_shelter_b1_underground_parking_8017F80C(s32 mode);
+static void       func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item);
+static void       func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj);
+static inline s32 _shelter_b1_underground_parkingAddItemCount(s32 item, s32 count);
+static void       func_shelter_b1_underground_parking_801826C0(Task* roomTask);
+static void       func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8 b);
+static void       func_shelter_b1_underground_parking_80183B9C(void);
+static void       func_shelter_b1_underground_parking_80183CEC(Task* task);
 
 void func_shelter_b1_underground_parking_8017DA50(UiList* arg0, UiObject* arg1)
 {

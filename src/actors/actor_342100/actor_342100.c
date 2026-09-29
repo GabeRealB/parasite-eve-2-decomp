@@ -1,50 +1,117 @@
-#include "gameplay/evs.h"
-#include "rooms/shelter_b3_dumping_hole.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "actors/actor_342100.h"
-#include "actors/actor.h"
+#include "common.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/shelter_b3_dumping_hole.h"
+
+/// Work block of the overlay's event/controller task -- the one
+/// `D_actor_342100_80164BB8` points at.
+///
+/// `func_actor_342100_801630A4` allocates it with `Mem_Malloc(0x44, 0)`,
+/// `Mem_Set`s the same 0x44 bytes over it and stores it in that task's
+/// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
+/// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
+/// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
+///
+/// `field_2C` is the `gameGetPtrSlot(3)` task the overlay aims its messages
+/// at. `field_30` and `field_34` are further message targets, both sent
+/// 0x7DB, and `field_38` is a task the overlay spawns itself: with a non-zero
+/// argument `func_actor_342100_80163454` writes 1 into its
+/// `Task::spawnArg1`. `field_3C` takes `arg0 + 0x2F` from
+/// `func_actor_342100_8016334C`'s integer argument, the same value that
+/// function forwards as the animation message's second word.
+///
+/// `wave` is the ramp of the screen-wave task `func_actor_342100_80161E70`:
+/// `func_actor_342100_80163408` seeds its span and scale and spawns the task
+/// on it, and the fade task `func_actor_342100_80162748`, which reaches this
+/// block through `Task::spawnArg2`, ends the wave by setting its ramp state to
+/// 2 once the screen has been blanked white.
+///
+/// shelter_b3_garbage_incinerator carries the same encounter with a smaller
+/// block that shares the leading bytes and `wave` but keeps one task pointer
+/// fewer, with the child task and the animation fields in other places, so
+/// the two are different types.
+typedef struct Actor342100Work {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ OverlayWaveCtx wave;
+    /* 0x2C */ Task*          field_2C; // gameGetPtrSlot(3)
+    /* 0x30 */ Task*          field_30;
+    /* 0x34 */ Task*          field_34;
+    /* 0x38 */ Task*          field_38;
+    /* 0x3C */ s16            field_3C;
+    /* 0x3E */ s16            field_3E;
+    /* 0x40 */ byte           pad_40[0x4];
+} Actor342100Work;
+STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
+
+/// The overlay's event/controller task, published by
+/// `func_actor_342100_801630A4`.
+extern Task* D_actor_342100_80164BB8;
+
+/// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
+extern TaskDesc D_actor_342100_80164B78[];
+
+void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2);
+
+void func_actor_342100_8016334C(s32 arg0);
+
+void func_actor_342100_801633D0(s32 arg0);
+
+void func_actor_342100_80163408(void);
+
+void func_actor_342100_80163454(s32 arg0);
+
+void func_actor_342100_80163518(void);
 
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, s32);
+        void (*call0)(Task*, s32, s32);
     } handler;
 } Actor342100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor342100MessageEntry, 8);
@@ -129,19 +196,13 @@ extern OverlayWaveRec D_actor_342100_80164C0C[30];
 // The task starts at row 1 and draws rows -1 through 28.
 extern POLY_FT4 D_actor_342100_80164CFC[2][30][8];
 
-void func_actor_342100_80162748(Task *);
-void func_actor_342100_80162AB0(Task *);
+void func_actor_342100_80162748(Task*);
+void func_actor_342100_80162AB0(Task*);
 void func_actor_342100_80162C88(void);
-void func_actor_342100_80162DDC(Task *);
-void func_actor_342100_801630A4(Task *);
-void func_actor_342100_8016334C(s32);
-void func_actor_342100_801633D0(s32);
-void func_actor_342100_80163408(void);
-void func_actor_342100_80163454(s32);
-void func_actor_342100_80163518(void);
+void func_actor_342100_80162DDC(Task*);
+void func_actor_342100_801630A4(Task*);
 
-void func_actor_342100_80161E70(Task *);
-void func_actor_342100_80163344(Task *, s32, s32);
+void func_actor_342100_80161E70(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -324,6 +385,9 @@ OverlayWaveRec D_actor_342100_80164BBC[10] = { 0 };
 OverlayWaveRec D_actor_342100_80164C0C[30] = { 0 };
 
 POLY_FT4 D_actor_342100_80164CFC[2][30][8] = { 0 };
+
+static s32 func_actor_342100_801629B8(Task* arg0);
+static s32 func_actor_342100_80162F54(Task* arg0);
 
 /// Screen-wave task spawned from `D_actor_342100_801648DC` with the ramp at
 /// the event task's `Actor342100Work::wave` as its argument. State 0 seeds the

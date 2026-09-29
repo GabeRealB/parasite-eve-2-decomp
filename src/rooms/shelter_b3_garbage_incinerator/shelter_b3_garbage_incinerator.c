@@ -1,33 +1,35 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/world_targets.h"
+#include "types.h"
 
+#include "shelter_b3_garbage_incinerator_private.h"
+
+#include "gameplay/captions.h"
 #include "gameplay/message.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-extern u16          D_shelter_b3_garbage_incinerator_801855DC;
-extern TaskDesc     D_shelter_b3_garbage_incinerator_801855E0;
-extern TaskDesc     D_8016BFE0;
-extern TaskDesc     D_801449F4;
-extern GpMsgEntry   D_shelter_b3_garbage_incinerator_80185594[];
-extern Task*        D_shelter_b3_garbage_incinerator_801855D8;
-extern TaskDesc     D_shelter_b3_garbage_incinerator_80185BA0;
-extern TaskDesc     D_shelter_b3_garbage_incinerator_80187150[];
-extern TaskDesc     D_shelter_b3_garbage_incinerator_801855CC;
-extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
+#include "mapui/map_shelter.h"
+
+extern u16 D_shelter_b3_garbage_incinerator_801855DC;
+
+extern TaskDesc   D_8016BFE0;
+extern TaskDesc   D_801449F4;
+extern GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[];
+extern Task*      D_shelter_b3_garbage_incinerator_801855D8;
+
+extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
 
 static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task);
 static void func_shelter_b3_garbage_incinerator_8017DC54(Task* task);
@@ -41,13 +43,13 @@ static const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
     taskKill,
 } };
 
-void func_shelter_b3_garbage_incinerator_8017D6EC(Task *);
-s32 func_shelter_b3_garbage_incinerator_8017D838(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_garbage_incinerator_8017D840(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b3_garbage_incinerator_8017D9B4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b3_garbage_incinerator_8017DA74(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task *, s32, s32, GpMessageArg);
+void func_shelter_b3_garbage_incinerator_8017D6EC(Task*);
+s32  func_shelter_b3_garbage_incinerator_8017D838(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017D840(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b3_garbage_incinerator_8017D9B4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017D9BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017DB2C(Task*, s32, s32, GpMessageArg);
 
 GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { 5102, func_shelter_b3_garbage_incinerator_8017D840 },

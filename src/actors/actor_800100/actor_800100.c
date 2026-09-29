@@ -1,49 +1,57 @@
-#include <psyq/rand.h>
 #include "actors/actor_800100.h"
-#include "gameplay/message.h"
-#include "common.h"
 
-#include <psyq/abs.h>
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/rand.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "actors/companion.h"
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
 #include "gameplay/attachments.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/player_state.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/item_pickup.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
 /// Ground position and collision offset borrowed from G_SCRATCH_HEAD by
 /// func_actor_800100_801635F4.
@@ -173,25 +181,25 @@ extern SVECTOR D_actor_800100_80167128;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpCopyArg *);
-        s32 (*call3)(Task *, s32, GpCountArg *);
-        s32 (*call4)(Task *, s32, GpDelayArg *);
-        s32 (*call5)(Task *, s32, GpXformArg *);
-        s32 (*call6)(Task *, s32, GpXformArg *, GpOverrideArg *);
-        s32 (*call7)(Task *, s32, s32);
-        s32 (*call8)(Task *, s32, s32, s32);
-        void (*call9)(Task *, s32, GpMoveArg *);
-        s32 (*call10)(Task *, s32, GpCoord *);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, GpCopyArg*);
+        s32  (*call3)(Task*, s32, GpCountArg*);
+        s32  (*call4)(Task*, s32, GpDelayArg*);
+        s32  (*call5)(Task*, s32, GpXformArg*);
+        s32  (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
+        s32  (*call7)(Task*, s32, s32);
+        s32  (*call8)(Task*, s32, s32, s32);
+        void (*call9)(Task*, s32, GpMoveArg*);
+        s32  (*call10)(Task*, s32, GpCoord*);
     } handler;
 } Actor800100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor800100MessageEntry, 8);
 
 extern Actor800100MessageEntry D_actor_800100_80167130[26];
-extern s16  D_actor_800100_80167218[];
-extern s16  D_actor_800100_80167224[];
-extern u8   D_actor_800100_80167230[];
+extern s16                     D_actor_800100_80167218[];
+extern s16                     D_actor_800100_80167224[];
+extern u8                      D_actor_800100_80167230[];
 
 static void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
 /// Draws one frame of the launched projectile's spinning sprite at `pos`:
@@ -246,12 +254,12 @@ extern u8* D_actor_800100_801672F8[];
 extern u8  D_actor_800100_80167308[];
 extern u8  D_actor_800100_80167310[];
 
-extern GpImgRec * D_actor_800100_80167A18[2];
-extern GpImgRec * D_actor_800100_80167A20[4];
-extern GpImgRec * D_actor_800100_80167A30[4];
-extern GpImgRec * D_actor_800100_80167A40[6];
-extern GpImgRec * D_actor_800100_80167A58[2];
-extern GpImgRec * D_actor_800100_80167A60[2];
+extern GpImgRec* D_actor_800100_80167A18[2];
+extern GpImgRec* D_actor_800100_80167A20[4];
+extern GpImgRec* D_actor_800100_80167A30[4];
+extern GpImgRec* D_actor_800100_80167A40[6];
+extern GpImgRec* D_actor_800100_80167A58[2];
+extern GpImgRec* D_actor_800100_80167A60[2];
 
 SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
 
@@ -1026,6 +1034,10 @@ GpImgRec * D_actor_800100_80167A60[2] = {
     D_actor_800100_801679F8,
     NULL,
 };
+
+static void func_actor_800100_80163BF8(Task* arg0);
+static void func_actor_800100_80166514(Task* arg0);
+static void func_actor_800100_80166F50(Task* arg0);
 
 /// Per-frame flare task of the actor: while the player model is visible
 /// (`field_C & 0x80` clear) and the room is not fading out

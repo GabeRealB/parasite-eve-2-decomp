@@ -1,51 +1,59 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
 #include "actors/actors_shared_80131fc8.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/model_lighting.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/model_lighting.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/abs.h>
 
 /// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
@@ -117,18 +125,18 @@ extern s32 D_actor_402200_80138474;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
+        s32 (*call0)(Task*);
     } handler;
 } Actor402200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor402200MessageEntry, 8);
 
 extern Actor402200MessageEntry D_actor_402200_8013839C[2];
-extern GpU16Pair D_actor_402200_80153BEC[4];
-extern GpPairSrcE         D_actor_402200_80153BFC;
-extern Actor402200Spot    D_actor_402200_80153C78[];
-extern Actor402200Region* D_actor_402200_80153FA8[];
-extern s16*               D_actor_402200_80154144[];
-extern GpAnimSet* D_actor_402200_80154194[22];
+extern GpU16Pair               D_actor_402200_80153BEC[4];
+extern GpPairSrcE              D_actor_402200_80153BFC;
+extern Actor402200Spot         D_actor_402200_80153C78[];
+extern Actor402200Region*      D_actor_402200_80153FA8[];
+extern s16*                    D_actor_402200_80154144[];
+extern GpAnimSet*              D_actor_402200_80154194[22];
 
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 D_actor_402200_80153C0C[];
@@ -163,7 +171,7 @@ static void func_actor_402200_80137EEC(Task* arg0);
 static void func_actor_402200_80137FB0(Task* arg0);
 static void func_actor_402200_8013806C(Task* arg0);
 
-s32 func_actor_402200_801381E0(Task *);
+s32 func_actor_402200_801381E0(Task*);
 
 extern GpAnimSet D_actor_402200_8013E268;
 extern GpAnimSet D_actor_402200_8013E720;
@@ -192,7 +200,7 @@ extern GpAnimSet D_actor_402200_80152988;
 extern GpAnimSet D_actor_402200_80153BC4;
 extern GpU16Pair D_actor_402200_80153BEC[4];
 extern TmdSource D_actor_402200_8013DBD4;
-static void func_actor_402200_80138340(Task *);
+static void      func_actor_402200_80138340(Task*);
 
 Actor402200MessageEntry D_actor_402200_8013839C[2] = {
     { 2014, { .call0 = func_actor_402200_801381E0 } },
@@ -1359,6 +1367,24 @@ GpAnimSet * D_actor_402200_80154194[22] = {
     &D_actor_402200_8014CF9C,
     &D_actor_402200_801505C4,
 };
+
+static void        func_actor_402200_80131F54(Task* arg0);
+static void        func_actor_402200_80132688(Task* arg0);
+static void        func_actor_402200_801329A4(Task* arg0);
+static void        func_actor_402200_8013314C(Task* arg0);
+static void        func_actor_402200_80133AEC(Task* arg0);
+static void        func_actor_402200_80134194(Task* arg0);
+static void        func_actor_402200_801347F4(Task* arg0);
+static void        func_actor_402200_80134968(Task* arg0);
+static void        func_actor_402200_8013539C(Task* arg0);
+static void        func_actor_402200_801354B0(Task* arg0);
+static void        func_actor_402200_80135630(Task* arg0);
+static void        func_actor_402200_8013592C(Task* arg0);
+static void        func_actor_402200_80135A24(Task* arg0);
+static void        func_actor_402200_80135BE0(Task* arg0);
+static inline void Actor402200_ReseedAnim(Task* arg0);
+static inline void Actor402200_DrawShadow(Task* arg0);
+static void        func_actor_402200_80136D9C(s32 otz);
 
 /// Per-frame hit handler: applies the `func_800E0C10` push-back from the
 /// `field_504` and (while bit 0x4000 of `field_49A` is set) `field_49C`

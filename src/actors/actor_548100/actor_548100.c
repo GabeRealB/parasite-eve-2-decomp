@@ -1,26 +1,33 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include "psyq/abs.h"
-#include "rooms/room_common.h"
-
+#include "gameplay/action_prompt.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/message.h"
+#include "gameplay/items.h"
 
-#include "gameplay/action_prompt.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
 #include "overlay.h"
+
+#include "rooms/room_common.h"
 
 /// Per-instance work block of actor_548100, parked in `Task::work` -- that
 /// slot is not a `TaskIdMap` here, it is the `memCalloc(0x18, 0)` block
@@ -191,17 +198,16 @@ STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
 // move between inventory and sockets; pickup slot 6 supplies the second battery
 // once, while slots 4/5 return installed batteries. Thus normal puzzle actions
 // match a record before the end of this table, which has no sentinel.
-extern Actor548100Route D_actor_548100_80135750[11];
+extern Actor548100Route   D_actor_548100_80135750[11];
 extern Actor548100TexRect D_actor_548100_801357C0[5];
 
 // Retained coefficient editor rows identify the three values and caption.
 typedef struct {
-    u8* values[3];
+    u8*         values[3];
     const char* caption;
 } Actor548100CoefficientRow;
 STATIC_ASSERT_SIZEOF(Actor548100CoefficientRow, 16);
 extern Actor548100CoefficientRow D_actor_548100_801358A8[3];
-
 
 static void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
 static void func_actor_548100_80132420(Task* task);
@@ -231,48 +237,48 @@ static void func_actor_548100_80134AE0(s32 id, u8 stop);
 static void func_actor_548100_80134BA8(void);
 static void func_actor_548100_80134BF0(void);
 
-extern TaskDesc           D_actor_548100_801351B4;
+extern TaskDesc D_actor_548100_801351B4;
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s16, s32);
+        s32 (*call0)(Task*, s16, s32);
     } handler;
 } Actor548100MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor548100MsgEntry, 8);
 
-extern Actor548100MsgEntry         D_actor_548100_801351C0[];
-extern OverlayHotspot     D_actor_548100_801357E8[];
-extern Actor548100Route D_actor_548100_801356D8[12];
-extern s16                D_actor_548100_80135B50;
-extern u8                 D_actor_548100_80135B52;
-extern s8                 D_actor_548100_80135B53;
-extern s8                 D_actor_548100_80135B54;
-extern s8                 D_actor_548100_80135B55;
-extern s8                 D_actor_548100_80135B56;
-extern s8                 D_actor_548100_80135B57;
-extern s8                 D_actor_548100_80135B58;
-extern s8                 D_actor_548100_80135B59;
-extern s8                 D_actor_548100_80135B5A;
-extern s8                 D_actor_548100_80135B5B;
-extern u8                 D_actor_548100_80135884;
-extern u8                 D_actor_548100_80135885;
-extern u8                 D_actor_548100_80135886;
-extern u8                 D_actor_548100_80135887;
-extern u8                 D_actor_548100_80135888;
-extern u8                 D_actor_548100_80135889;
-extern u8                 D_actor_548100_8013588A;
-extern u8                 D_actor_548100_8013588B;
-extern u8 D_actor_548100_8013588C[28];
+extern Actor548100MsgEntry D_actor_548100_801351C0[];
+extern OverlayHotspot      D_actor_548100_801357E8[];
+extern Actor548100Route    D_actor_548100_801356D8[12];
+extern s16                 D_actor_548100_80135B50;
+extern u8                  D_actor_548100_80135B52;
+extern s8                  D_actor_548100_80135B53;
+extern s8                  D_actor_548100_80135B54;
+extern s8                  D_actor_548100_80135B55;
+extern s8                  D_actor_548100_80135B56;
+extern s8                  D_actor_548100_80135B57;
+extern s8                  D_actor_548100_80135B58;
+extern s8                  D_actor_548100_80135B59;
+extern s8                  D_actor_548100_80135B5A;
+extern s8                  D_actor_548100_80135B5B;
+extern u8                  D_actor_548100_80135884;
+extern u8                  D_actor_548100_80135885;
+extern u8                  D_actor_548100_80135886;
+extern u8                  D_actor_548100_80135887;
+extern u8                  D_actor_548100_80135888;
+extern u8                  D_actor_548100_80135889;
+extern u8                  D_actor_548100_8013588A;
+extern u8                  D_actor_548100_8013588B;
+extern u8                  D_actor_548100_8013588C[28];
 
-s32 func_actor_548100_80134778(Task *, s16, s32);
-void func_actor_548100_80134728(Task *);
+s32  func_actor_548100_80134778(Task*, s16, s32);
+void func_actor_548100_80134728(Task*);
 
 static const char D_actor_548100_80131E54[6];
 static const char D_actor_548100_80131E5C[5];
 static const char D_actor_548100_80131E64[5];
-static void func_actor_548100_801347F8(Task *);
+static void       func_actor_548100_801347F8(Task*);
 
 TaskDesc D_actor_548100_801351B4 = { 0, 192, func_actor_548100_80134728, { .model = NULL } };
 
@@ -876,6 +882,13 @@ s8 D_actor_548100_80135B57 = 0;
 s8 D_actor_548100_80135B58 = 0;
 
 u8 D_actor_548100_80135B5C[10000] = { 0 };
+
+static void func_actor_548100_80131ED8(Task* task);
+static void func_actor_548100_80132A14(Task* task);
+static void func_actor_548100_80132EA0(Task* task);
+static void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_actor_548100_80133684(Actor548100Edge* edge);
+static void func_actor_548100_80133F88(void);
 
 /// Per-frame cursor driver of the security-room action prompt, run as state 1
 /// of the prompt task. The Acropolis security room carries the same body, twice.

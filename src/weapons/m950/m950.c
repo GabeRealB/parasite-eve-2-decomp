@@ -1,20 +1,20 @@
-#include "common.h"
+#include "types.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
-#include "gameplay/actor.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+static void func_m950_8011D1DC(Task* arg0);
 
 static void func_m950_8011D1DC(Task* arg0)
 {

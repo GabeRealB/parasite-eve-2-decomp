@@ -1,10 +1,4 @@
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
-#include "weapons/m4a1_bayonet.h"
+#include "m4a1_bayonet_private.h"
 
 #include "main/coord.h"
 

@@ -1,54 +1,63 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
+
 #include "actors/actors_shared_80135c4c.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 extern void* D_80067704[1];
 
-extern TmdSource Actor05500_D05F18;
-extern GpU16Pair Actor05500_D08958[6];
+extern TmdSource     Actor05500_D05F18;
+extern GpU16Pair     Actor05500_D08958[6];
 extern GpPairSrcE    Actor05500_D08970;
 extern u16           Actor05500_D08980[];
 extern u16           Actor05500_D08990[];
@@ -68,7 +77,7 @@ extern s16           Actor05500_D08A5C[][2];
 extern ActorSpriteUv Actor05500_D08A80[];
 extern s16           Actor05500_D08AA0[];
 extern TaskDesc      Actor05500_D08ABC;
-extern GpAnimSet* Actor05500_D08AD4[15];
+extern GpAnimSet*    Actor05500_D08AD4[15];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -168,8 +177,8 @@ extern GpAnimSet Actor05500_D083F4;
 extern GpAnimSet Actor05500_D08780;
 extern GpAnimSet Actor05500_D08930;
 extern TmdSource Actor05500_D05774;
-void Actor05500_Fn03DD8(Task *);
-void Actor05500_Fn03F88(Task *);
+void             Actor05500_Fn03DD8(Task*);
+void             Actor05500_Fn03F88(Task*);
 
 TmdBone Actor05500_D03FE4[8] = {
 #include "assets/actor_105500_model_05774_skeleton.inc"
@@ -718,6 +727,9 @@ GpAnimSet * Actor05500_D08AD4[15] = {
     &Actor05500_D08780,
     &Actor05500_D08930,
 };
+
+static void        Actor05500_Fn0006C(Task* arg0);
+static inline void _actor05500TickAnim(Task* task);
 
 static void Actor05500_Fn0006C(Task* arg0)
 {

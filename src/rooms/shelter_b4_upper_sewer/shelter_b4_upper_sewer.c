@@ -1,63 +1,94 @@
-#include "gameplay/evs.h"
-#include "mapui/map_shelter.h"
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/shelter_b4_upper_sewer.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "gte.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
+
+#define D_shelter_b4_upper_sewer_80186520 (D_shelter_b4_upper_sewer_801864F0 + 6)
+
+/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
+/// `depth` along Z, cut into `count` flat quads. The quads are laid along X
+/// when `alongZ` is zero and along Z otherwise. A list of them ends at an entry
+/// whose `count` is -1.
+typedef struct ShelterB4UpperSewerSurface {
+    s16 x;
+    s16 z;
+    s16 width;
+    s16 depth;
+    s16 count;
+    s16 alongZ;
+} ShelterB4UpperSewerSurface;
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_b4_upper_sewer_80188D2C[4];
 
-extern GpEvsCmd D_shelter_b4_upper_sewer_80186318[];
+extern GpEvsCmd   D_shelter_b4_upper_sewer_80186318[];
 extern TaskDesc   D_shelter_b4_upper_sewer_80186300[];
 extern GpMsgEntry D_shelter_b4_upper_sewer_801862D0[];
-extern s16        D_shelter_b4_upper_sewer_80186438;
-extern TaskDesc   D_shelter_b4_upper_sewer_8018643C[];
+
+extern TaskDesc D_shelter_b4_upper_sewer_8018643C[];
 /// Save location filled from the outgoing location just before a table task is
 /// spawned: `field_2` / `field_4` / `field_1` take its `field_0` / `field_2` /
 /// `field_3`.
@@ -119,15 +150,15 @@ static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
     { func_shelter_b4_upper_sewer_8017DBA8, func_shelter_b4_upper_sewer_8017DC28, taskKill }
 };
 
-void func_shelter_b4_upper_sewer_8017E4F4(Task *);
+void func_shelter_b4_upper_sewer_8017E4F4(Task*);
 
-s32 func_shelter_b4_upper_sewer_8017D9BC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_upper_sewer_8017D9C4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_b4_upper_sewer_8017DAB0(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b4_upper_sewer_8017DB50(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_upper_sewer_8017DB58(Task *, s32, s32, GpMessageArg);
-void func_shelter_b4_upper_sewer_8017D660(Task *);
-void func_shelter_b4_upper_sewer_8017D80C(Task *);
+s32  func_shelter_b4_upper_sewer_8017D9BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b4_upper_sewer_8017DB50(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, GpMessageArg);
+void func_shelter_b4_upper_sewer_8017D660(Task*);
+void func_shelter_b4_upper_sewer_8017D80C(Task*);
 void func_shelter_b4_upper_sewer_8017DB94(void);
 
 extern TaskDesc D_80147E48;
@@ -1294,7 +1325,9 @@ u8 D_shelter_b4_upper_sewer_80188D2C[4] = {
 
 u8 * D_shelter_b4_upper_sewer_80188D30 = NULL;
 
-#define D_shelter_b4_upper_sewer_80186520 (D_shelter_b4_upper_sewer_801864F0 + 6)
+static void func_shelter_b4_upper_sewer_8017DC88(Task* task);
+static void func_shelter_b4_upper_sewer_801806A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b4_upper_sewer_80180AC4(GpCoord* arg0, s16 arg1, u8* arg2);
 
 void func_shelter_b4_upper_sewer_8017D660(Task* task)
 {

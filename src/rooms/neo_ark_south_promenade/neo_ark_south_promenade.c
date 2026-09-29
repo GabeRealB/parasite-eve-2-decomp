@@ -1,42 +1,46 @@
-#include "common.h"
 #include "rooms/neo_ark_south_promenade.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// The room's message table, which the message-driven task installs.
 extern GpMsgEntry D_neo_ark_south_promenade_8017F6B4[];
@@ -58,15 +62,15 @@ static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
     { func_neo_ark_south_promenade_8017D62C, func_neo_ark_south_promenade_8017D670, taskKill },
 };
 
-s32 func_neo_ark_south_promenade_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_south_promenade_8017D5D8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_south_promenade_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_south_promenade_8017D624(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_south_promenade_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_south_promenade_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_south_promenade_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_neo_ark_south_promenade_8017FD8C[1];
-extern GpObj3A D_neo_ark_south_promenade_8018094C[1];
-extern GpObj4C D_neo_ark_south_promenade_801804E8[6];
-extern GpObj4C D_neo_ark_south_promenade_801806B0[6];
+extern GpGridParams   D_neo_ark_south_promenade_8017FD8C[1];
+extern GpObj3A        D_neo_ark_south_promenade_8018094C[1];
+extern GpObj4C        D_neo_ark_south_promenade_801804E8[6];
+extern GpObj4C        D_neo_ark_south_promenade_801806B0[6];
 extern GpRoomCoordSet D_neo_ark_south_promenade_801804D0[1];
 
 GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {

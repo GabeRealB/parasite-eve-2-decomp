@@ -1,56 +1,64 @@
 #include "actors/actor_403200.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135990.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/player_state.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 extern s8 D_actor_403200_8015F8E0[8];
 
@@ -209,11 +217,11 @@ extern TaskDesc D_actor_403200_8015E858[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task *);
-        s32 (*call2)(Task *, s32, GpCmdArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32  (*call0)(void);
+        s32  (*call1)(Task*);
+        s32  (*call2)(Task*, s32, GpCmdArg*);
+        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
 } Actor403200MessageEntry;
@@ -245,12 +253,12 @@ extern SVECTOR D_actor_403200_8015F8F8;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpDelayArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor403200StorageF900;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF900, 32);
 
 extern Actor403200StorageF900 D_actor_403200_8015F900;
-extern GpDelayArg D_actor_403200_8015FA00;
+extern GpDelayArg             D_actor_403200_8015FA00;
 
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
 /// built on: `F920` is the whole `GpCoord` and `F924` its `coord` matrix,
@@ -266,7 +274,7 @@ extern Actor403200DropCoord D_actor_403200_8015F970;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpXformArg value;
-    u8 retained[40];
+    u8         retained[40];
 } Actor403200StorageF9C0;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF9C0, 64);
 
@@ -348,30 +356,30 @@ extern TmdSource D_actor_403200_8014ACB8;
 extern TmdSource D_actor_403200_8014B588;
 extern TmdSource D_actor_403200_8014C1AC;
 extern TmdSource D_actor_403200_8014E048;
-s32 func_actor_403200_801341E8(Task *, s16);
-s32 func_actor_403200_80134374(Task *, s16);
-s32 func_actor_403200_801344C4(Task *, s16);
-s32 func_actor_403200_80134748(Task *, s16);
-s32 func_actor_403200_80134900(Task *, s16);
-s32 func_actor_403200_80134A14(Task *, s16);
-s32 func_actor_403200_80141124(Task *, s16);
-s32 func_actor_403200_80141180(Task *, s16);
-s32 func_actor_403200_801411A8(Task *, s16);
-void func_actor_403200_80141430(Task *);
-void func_actor_403200_8014148C(Task *);
-void func_actor_403200_801414E8(Task *);
-void func_actor_403200_80141564(Task *);
-void func_actor_403200_80141670(Task *);
-void func_actor_403200_80141778(Task *);
-void func_actor_403200_80141868(Task *);
+s32              func_actor_403200_801341E8(Task*, s16);
+s32              func_actor_403200_80134374(Task*, s16);
+s32              func_actor_403200_801344C4(Task*, s16);
+s32              func_actor_403200_80134748(Task*, s16);
+s32              func_actor_403200_80134900(Task*, s16);
+s32              func_actor_403200_80134A14(Task*, s16);
+s32              func_actor_403200_80141124(Task*, s16);
+s32              func_actor_403200_80141180(Task*, s16);
+s32              func_actor_403200_801411A8(Task*, s16);
+void             func_actor_403200_80141430(Task*);
+void             func_actor_403200_8014148C(Task*);
+void             func_actor_403200_801414E8(Task*);
+void             func_actor_403200_80141564(Task*);
+void             func_actor_403200_80141670(Task*);
+void             func_actor_403200_80141778(Task*);
+void             func_actor_403200_80141868(Task*);
 
-s32 func_actor_403200_80138468(Task *, s32, s32);
-s32 func_actor_403200_80138748(Task *, s32, GpCmdArg *);
-s32 func_actor_403200_80141974(Task *);
-s32 func_actor_403200_801419C4(Task *, s32, GpXformArg *);
-s32 func_actor_403200_80141A94(Task *, s32, s32);
-s32 func_actor_403200_80141B30(void);
-void func_actor_403200_80140E6C(Task *);
+s32  func_actor_403200_80138468(Task*, s32, s32);
+s32  func_actor_403200_80138748(Task*, s32, GpCmdArg*);
+s32  func_actor_403200_80141974(Task*);
+s32  func_actor_403200_801419C4(Task*, s32, GpXformArg*);
+s32  func_actor_403200_80141A94(Task*, s32, s32);
+s32  func_actor_403200_80141B30(void);
+void func_actor_403200_80140E6C(Task*);
 void func_actor_403200_8014196C(void);
 
 extern GpU16Pair D_actor_403200_80141BE8[6];
@@ -3015,7 +3023,7 @@ Actor403200SpawnRec D_actor_403200_8015F888[9] = {
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     TaskDesc value;
-    u8 retained[4];
+    u8       retained[4];
 } Actor403200StorageF8D0;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF8D0, 16);
 
@@ -3042,6 +3050,102 @@ Actor403200DropCoord D_actor_403200_8015F970 = { .c = { 0, { { { 0, 0, 0 }, { 0,
 Actor403200StorageF9C0 D_actor_403200_8015F9C0 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GpDelayArg D_actor_403200_8015FA00 = { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 };
+
+/// Integer part of the last step `func_actor_403200_801324D0` applied.
+extern SVECTOR D_actor_403200_8015F8E8;
+
+static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task);
+
+static void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1);
+
+static void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1);
+
+extern Actor403200ViewFn D_actor_403200_8015E6E8[];
+
+/// Scratchpad frame the per-frame tick carves off the scratch-pad stack. Only `view`
+/// is written: the selector result compared with `Gp_GetViewIndex`.
+typedef struct Actor403200TickScratch {
+    byte pad_0[0x18];
+    s16  view;
+    byte pad_1A[0x2];
+} Actor403200TickScratch;
+STATIC_ASSERT_SIZEOF(Actor403200TickScratch, 0x1C);
+
+/// The 25 state handlers at `D_actor_403200_80132154`. The tick copies the
+/// whole table onto the stack and calls `fn[field_0]`.
+typedef struct Actor403200StateTable {
+    TaskFunc fn[0x19];
+} Actor403200StateTable;
+STATIC_ASSERT_SIZEOF(Actor403200StateTable, 0x64);
+
+static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1);
+
+static void func_actor_403200_80141B40(Task* arg0);
+
+static void func_actor_403200_8014122C(Task* arg0);
+
+static void func_actor_403200_80141234(Task* arg0);
+
+static void func_actor_403200_8014123C(Task* arg0);
+
+static __inline__ void Actor403200_StepForward(GpCoord* coord);
+static __inline__ void Actor403200_ScaleRotation(GpCoord* coord, s16 xz, s32 y);
+static __inline__ void Actor403200_ShrinkRotation(GpCoord* coord);
+static __inline__ void Actor403200_GapToCamera(GpCoord* coord, SVECTOR* out);
+static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work);
+static void            func_actor_403200_801321C4(GpCoord* coord, s16 yaw);
+static s32             func_actor_403200_801324D0(GpCoord* coord, GpRec18* rec, s16 arg2);
+static void            func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 index);
+static void            func_actor_403200_801329CC(Task* task);
+static void            func_actor_403200_80133614(Task* task, s16 arg1);
+static void            func_actor_403200_801337A0(Task* task, s16 arg1);
+static void            func_actor_403200_80133920(Task* task);
+static void            func_actor_403200_801339FC(Task* arg0);
+static void            func_actor_403200_80133B80(Task* arg0);
+static void            func_actor_403200_80133DD8(Task* arg0);
+static void            func_actor_403200_80134044(GpCoord* coord, s32 id);
+static void            func_actor_403200_80134D40(Task* arg0);
+static void            func_actor_403200_8013509C(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_801354A4(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80135854(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80135CB8(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80135F98(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_801364F4(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_8013669C(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80136ACC(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80136D94(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_8013709C(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80137600(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80137788(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_801379EC(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80137CCC(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80137EB4(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80138284(Task* arg0);
+static void            func_actor_403200_80138AFC(GpEnemy* enemy, Task* task);
+static void            func_actor_403200_80139A60(Task* arg0);
+static void            func_actor_403200_80139E94(Task* arg0);
+static void            func_actor_403200_8013A4A0(Task* arg0);
+static void            func_actor_403200_8013AB70(Task* arg0);
+static void            func_actor_403200_8013B23C(Task* arg0);
+static void            func_actor_403200_8013B3C8(Task* arg0);
+static void            func_actor_403200_8013B740(Task* arg0);
+static void            func_actor_403200_8013B8C4(Task* arg0);
+static void            func_actor_403200_8013C84C(Task* arg0);
+static void            func_actor_403200_8013D028(Task* arg0);
+static void            func_actor_403200_8013D78C(Task* arg0);
+static void            func_actor_403200_8013D9EC(Task* arg0);
+static void            func_actor_403200_8013DC3C(Task* arg0);
+static void            func_actor_403200_8013E2FC(Task* arg0);
+static void            func_actor_403200_8013E5A8(Task* arg0);
+static void            func_actor_403200_8013E9C0(Task* arg0);
+static void            func_actor_403200_8013EB64(Task* arg0);
+static void            func_actor_403200_8013EF6C(Task* arg0);
+static inline void     _actor403200TintEscort(TmdObject* model);
+static void            func_actor_403200_8013F700(Task* arg0);
+static void            func_actor_403200_80140FD4(s32 arg0, s16 arg1);
+static void            func_actor_403200_801410F0(s8 arg0);
+static void            func_actor_403200_80141108(s16 arg0);
+static s16             func_actor_403200_80141114(void);
 
 /// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
 /// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
@@ -3072,13 +3176,6 @@ static __inline__ void Actor403200_StepForward(GpCoord* coord)
 }
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-
-/// Integer part of the last step `func_actor_403200_801324D0` applied.
-extern SVECTOR D_actor_403200_8015F8E8;
-
-static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task);
-
-static void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1);
 
 /// Rebuild `coord`'s rotation around the yaw it already faces and rescale it:
 /// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
@@ -3155,8 +3252,6 @@ static __inline__ void Actor403200_GapToCamera(GpCoord* coord, SVECTOR* out)
     out->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 }
 
-static void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1);
-
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work)
 {
     GpCoord*              coord = task->extra.tmd->coords;
@@ -3187,34 +3282,6 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
     task->extra.tmd->flags = 0;
     SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
-
-extern Actor403200ViewFn D_actor_403200_8015E6E8[];
-
-/// Scratchpad frame the per-frame tick carves off the scratch-pad stack. Only `view`
-/// is written: the selector result compared with `Gp_GetViewIndex`.
-typedef struct Actor403200TickScratch {
-    byte pad_0[0x18];
-    s16  view;
-    byte pad_1A[0x2];
-} Actor403200TickScratch;
-STATIC_ASSERT_SIZEOF(Actor403200TickScratch, 0x1C);
-
-/// The 25 state handlers at `D_actor_403200_80132154`. The tick copies the
-/// whole table onto the stack and calls `fn[field_0]`.
-typedef struct Actor403200StateTable {
-    TaskFunc fn[0x19];
-} Actor403200StateTable;
-STATIC_ASSERT_SIZEOF(Actor403200StateTable, 0x64);
-
-static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1);
-
-static void func_actor_403200_80141B40(Task* arg0);
-
-static void func_actor_403200_8014122C(Task* arg0);
-
-static void func_actor_403200_80141234(Task* arg0);
-
-static void func_actor_403200_8014123C(Task* arg0);
 
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work

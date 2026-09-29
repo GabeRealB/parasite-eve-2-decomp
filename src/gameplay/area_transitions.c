@@ -1,5 +1,6 @@
 #include "gameplay/area_transitions.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
 #include "common.h"
@@ -23,13 +24,21 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "mapui/stage_tables.h"
-
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
 
 /// 2-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaFlag4List` and
 /// `Gp_ApplyNewGameAreaFlags`. `field_0` indexes a `GpAreaRec` table (same role as

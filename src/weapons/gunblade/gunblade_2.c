@@ -1,26 +1,51 @@
-#include "common.h"
-#include "weapons/gunblade.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
+#include "common.h"
+
+#include "gunblade_private.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
+#include "gameplay/items.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+/// 0x68-byte scratch `func_gunblade_8011E040` carves off `G_SCRATCH_HEAD`.
+/// `coord` is the sound source handed to `Gp_PickNearestRec18` and
+/// `Gp_PlayObjSfx` (the lock-on target's position is written into its
+/// `workm.t`), `dir` receives the blade's forward column from
+/// `Gfx_MatrixCol2`, and `step` is that column scaled down by 136 - the
+/// per-axis camera shake added to the muzzle coordinate while the slash's
+/// recoil timer runs.
+typedef struct _GunbladeScratch {
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ VECTOR  step;
+    /* 0x60 */ SVECTOR dir;
+} GunbladeScratch;
+STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
 
 /// `Player_Status.weaponSlotItem`, the attachment id of the held weapon, read under
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
 
 /// `Mc_SaveData[0].state.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
+
+static void func_gunblade_8011E040(Task* arg0);
 
 /// Per-frame firing state machine for the gunblade. State 0 arms the shot and
 /// raises the weapon (clip 6 instead of 1 when it was already up), state 1

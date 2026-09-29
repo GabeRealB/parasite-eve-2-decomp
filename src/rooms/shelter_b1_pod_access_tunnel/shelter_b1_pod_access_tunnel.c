@@ -1,57 +1,71 @@
-#include "common.h"
 #include "rooms/shelter_b1_pod_access_tunnel.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
 extern SVECTOR D_shelter_b1_pod_access_tunnel_80183A04[2];
 
@@ -82,7 +96,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call2)(s32, s32, s32);
     } handler;
 } ShelterB1PodAccessTunnelMessageEntry;
@@ -104,7 +118,7 @@ extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 /// The two points of the twin trail, as offsets from its anchor frame. The
 /// second is also reached under its own name.
 
-extern RoomFadeStorage       D_shelter_b1_pod_access_tunnel_80184CFC;
+extern RoomFadeStorage  D_shelter_b1_pod_access_tunnel_80184CFC;
 extern RoomEventMsg     D_shelter_b1_pod_access_tunnel_80184D04;
 extern RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10;
 
@@ -119,42 +133,42 @@ static void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* coord, s16 arg1,
 static void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_pod_access_tunnel_8018070C(GpCoord* coord, s16 arg1, u8* rgb);
 
-void func_shelter_b1_pod_access_tunnel_8017DF40(Task *);
+void func_shelter_b1_pod_access_tunnel_8017DF40(Task*);
 
-void func_shelter_b1_pod_access_tunnel_8017DA74(Task *);
-void func_shelter_b1_pod_access_tunnel_8017DC18(Task *);
+void func_shelter_b1_pod_access_tunnel_8017DA74(Task*);
+void func_shelter_b1_pod_access_tunnel_8017DC18(Task*);
 
-s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_pod_access_tunnel_8017DD68(void);
-s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32, s32, s32);
-s32 func_shelter_b1_pod_access_tunnel_8017DDD8(void);
-s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32, s32, s32);
-void func_shelter_b1_pod_access_tunnel_8017D61C(Task *);
+s32  func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b1_pod_access_tunnel_8017DD68(void);
+s32  func_shelter_b1_pod_access_tunnel_8017DD70(s32, s32, s32);
+s32  func_shelter_b1_pod_access_tunnel_8017DDD8(void);
+s32  func_shelter_b1_pod_access_tunnel_8017DDE0(s32, s32, s32);
+void func_shelter_b1_pod_access_tunnel_8017D61C(Task*);
 
-void func_shelter_b1_pod_access_tunnel_8017E44C(Task *);
-void func_shelter_b1_pod_access_tunnel_8017E55C(Task *);
-void func_shelter_b1_pod_access_tunnel_8017E778(Task *);
+void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
+void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
+void func_shelter_b1_pod_access_tunnel_8017E778(Task*);
 
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182D8C;
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182DA0;
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182DB4;
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182DC8;
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182DDC;
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182DF0;
-extern GpAnimArg D_shelter_b1_pod_access_tunnel_80182E04;
-extern GpCopyArg D_shelter_b1_pod_access_tunnel_80182D70;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182D8C;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DA0;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DB4;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DC8;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DDC;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DF0;
+extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182E04;
+extern GpCopyArg  D_shelter_b1_pod_access_tunnel_80182D70;
 extern GpXformArg D_shelter_b1_pod_access_tunnel_80182E18;
 extern GpXformArg D_shelter_b1_pod_access_tunnel_80182E30;
 extern GpXformArg D_shelter_b1_pod_access_tunnel_80182E48;
-void func_shelter_b1_pod_access_tunnel_8017E39C(void);
-void func_shelter_b1_pod_access_tunnel_8017E3BC(void);
-void func_shelter_b1_pod_access_tunnel_8017E3DC(void);
-void func_shelter_b1_pod_access_tunnel_8017E3FC(void);
-void func_shelter_b1_pod_access_tunnel_8017E41C(s32);
-void func_shelter_b1_pod_access_tunnel_8017E52C(s32);
-void func_shelter_b1_pod_access_tunnel_8017E704(void);
-void func_shelter_b1_pod_access_tunnel_8017E734(s32);
-void func_shelter_b1_pod_access_tunnel_8017E7B4(void);
+void              func_shelter_b1_pod_access_tunnel_8017E39C(void);
+void              func_shelter_b1_pod_access_tunnel_8017E3BC(void);
+void              func_shelter_b1_pod_access_tunnel_8017E3DC(void);
+void              func_shelter_b1_pod_access_tunnel_8017E3FC(void);
+void              func_shelter_b1_pod_access_tunnel_8017E41C(s32);
+void              func_shelter_b1_pod_access_tunnel_8017E52C(s32);
+void              func_shelter_b1_pod_access_tunnel_8017E704(void);
+void              func_shelter_b1_pod_access_tunnel_8017E734(s32);
+void              func_shelter_b1_pod_access_tunnel_8017E7B4(void);
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { 0, 32, func_shelter_b1_pod_access_tunnel_8017D61C, { .model = NULL } };
 
@@ -1076,6 +1090,8 @@ u8 D_shelter_b1_pod_access_tunnel_80184D0C[4] = {
 };
 
 RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10 = { 0 };
+
+static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
 /// The room's event task, spawned when the message handler latches an event.
 /// State 0 runs the latched event's CAP command; state 1 waits for it to

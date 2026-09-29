@@ -1,59 +1,71 @@
-#include "actor_403600.h"
-#include "rooms/shelter_b2_pod_bottom.h"
+#include "actor_403600_private.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/inline_c.h"
-#include "psyq/abs.h"
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "actors/actor.h"
 #include "actors/actor_403600.h"
+
+#include "actors/actor.h"
+
 #include "actors/actor_303600.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/area_entry.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_input.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include <psyq/memory.h>
+#include "main/wipsys_types.h"
+
+#include "rooms/shelter_b2_pod_bottom.h"
 
 typedef struct Actor403600DamageRow {
     /* 0x0 */ s16 threshold;
@@ -171,30 +183,29 @@ extern Actor403600TargetPair D_actor_403600_8016064C;
 extern u8                    D_actor_403600_80160694;
 extern u8                    D_actor_403600_80160695;
 
-extern SVECTOR            D_actor_403600_801605D4;
-extern SVECTOR            D_actor_403600_801605DC;
-extern SVECTOR            D_actor_403600_801605E4;
-extern SVECTOR            D_actor_403600_801605EC;
-extern TaskDesc           D_actor_403600_80160514[];
-extern Task*              D_actor_403600_801606B0;
+extern SVECTOR  D_actor_403600_801605D4;
+extern SVECTOR  D_actor_403600_801605DC;
+extern SVECTOR  D_actor_403600_801605E4;
+extern SVECTOR  D_actor_403600_801605EC;
+extern TaskDesc D_actor_403600_80160514[];
+extern Task*    D_actor_403600_801606B0;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     GpXformArg value;
-    u8 retained[8];
+    u8         retained[8];
 } Actor4036002Storage06E0;
 STATIC_ASSERT_SIZEOF(Actor4036002Storage06E0, 32);
 
 extern Actor4036002Storage06E0 D_actor_403600_801606E0;
-extern GpU16Pair          D_8016A408[];
-extern Actor403600ViewKey D_8016AEF8[];
-extern Actor403600ViewKey D_8016E450;
-extern SVECTOR            D_actor_403600_8016065C;
-extern SVECTOR            D_actor_403600_80160664;
-extern u16                D_actor_403600_80150EA4;
-extern u16                D_actor_403600_80150EAC;
-extern GpViewRec          D_actor_403600_80160700;
+extern GpU16Pair               D_8016A408[];
+extern Actor403600ViewKey      D_8016AEF8[];
+extern Actor403600ViewKey      D_8016E450;
+extern SVECTOR                 D_actor_403600_8016065C;
+extern SVECTOR                 D_actor_403600_80160664;
+
+extern GpViewRec D_actor_403600_80160700;
 
 static void func_actor_403600_80138EF8(struct GpEnemy* enemy, Task* task);
 static void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1);
@@ -220,37 +231,34 @@ static void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
 extern TaskDesc D_80162E98;
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
-extern Task*     D_actor_403600_801606B4;
+extern Task* D_actor_403600_801606B4;
 
 extern TaskDesc             D_8016E468;
 extern GpAnimArg            D_actor_403600_80160568;
-extern GpAnimSet* D_actor_403600_8016057C[22];
+extern GpAnimSet*           D_actor_403600_8016057C[22];
 extern Actor403600Point     D_actor_403600_801605F4[];
 extern GpU16Pair            D_actor_403600_801606A4;
 extern Task*                D_actor_403600_801606A8;
 extern Actor403600DamageRow D_actor_403600_8016066C[];
-extern GpU16Pair            D_actor_403600_80150EB0;
-extern GpPairSrcE           D_actor_403600_80150EC8;
-extern GpPairSrcE           D_actor_403600_80150ED8;
-extern GpU16Pair            D_actor_403600_80150E9C;
+
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor4036002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor4036002MessageEntry, 8);
 
 extern Actor4036002MessageEntry D_actor_403600_80160504[2];
-extern Actor403600Pair      D_actor_403600_801606B8;
-extern Task*                D_actor_403600_801606AC;
+extern Actor403600Pair          D_actor_403600_801606B8;
+extern Task*                    D_actor_403600_801606AC;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s32 value;
-    u8 retained[32];
+    u8  retained[32];
 } Actor4036002Storage06BC;
 STATIC_ASSERT_SIZEOF(Actor4036002Storage06BC, 36);
 
@@ -259,7 +267,6 @@ extern Actor4036002Storage06BC D_actor_403600_801606BC;
 static void func_actor_403600_80141598(Task* arg0);
 static void func_actor_403600_8014174C(Task* arg0);
 
-void        func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 static void func_actor_403600_8013A444(Task* arg0);
 static void func_actor_403600_801419E8(Task* arg0);
 static void func_actor_403600_8013955C(Task* arg0);
@@ -284,38 +291,10 @@ static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141E78(GpEnemy* arg0, Task* arg1);
 
-extern GpAnimSet D_actor_403600_80151CD0;
-extern GpAnimSet D_actor_403600_8015270C;
-extern GpAnimSet D_actor_403600_801531BC;
-extern GpAnimSet D_actor_403600_80154244;
-extern GpAnimSet D_actor_403600_80154724;
-extern GpAnimSet D_actor_403600_801555C8;
-extern GpAnimSet D_actor_403600_80155FFC;
-extern GpAnimSet D_actor_403600_80156A74;
-extern GpAnimSet D_actor_403600_80157490;
-extern GpAnimSet D_actor_403600_80158470;
-extern GpAnimSet D_actor_403600_80158FA4;
-extern GpAnimSet D_actor_403600_80159880;
-extern GpAnimSet D_actor_403600_8015A218;
-extern GpAnimSet D_actor_403600_8015B054;
-extern GpAnimSet D_actor_403600_8015B494;
-extern GpAnimSet D_actor_403600_8015BAD4;
-extern GpAnimSet D_actor_403600_8015C528;
-extern GpAnimSet D_actor_403600_8015C70C;
-extern GpAnimSet D_actor_403600_8015D184;
-extern GpAnimSet D_actor_403600_8015DDAC;
-extern GpAnimSet D_actor_403600_8015DEE4;
-extern GpAnimSet D_actor_403600_8015E72C;
-extern GpAnimSet D_actor_403600_8015EEC8;
-extern GpAnimSet D_actor_403600_8015F6D4;
-extern GpAnimSet D_actor_403600_8015FEE8;
-extern GpAnimSet D_actor_403600_801604DC;
-extern TmdSource D_actor_403600_80149818;
-extern TmdSource D_actor_403600_80150E78;
-s32 func_actor_403600_801406A4(Task *, s32, GpCmdArg *);
-void func_actor_403600_80141180(Task *);
-void func_actor_403600_80141BE0(Task *);
-void func_actor_403600_80141CD4(Task *);
+s32  func_actor_403600_801406A4(Task*, s32, GpCmdArg*);
+void func_actor_403600_80141180(Task*);
+void func_actor_403600_80141BE0(Task*);
+void func_actor_403600_80141CD4(Task*);
 
 Actor4036002MessageEntry D_actor_403600_80160504[2] = {
     { 2011, { .call0 = func_actor_403600_801406A4 } },
@@ -435,6 +414,18 @@ Actor4036002Storage06BC D_actor_403600_801606BC = { 0, { 0, 0, 0, 0, 0, 0, 0, 0,
 Actor4036002Storage06E0 D_actor_403600_801606E0 = { 0 };
 
 GpViewRec D_actor_403600_80160700 = { 0 };
+
+static s32             func_actor_403600_80138D9C(s16* arg0);
+static __inline__ u8*  _actor403600ProjectDepth(GpCoord* coord);
+static inline void     _actor403600ArcStart(Actor403600TargetScratch* s);
+static inline void     _actor403600ArcFinish(Actor403600Work* work, Actor403600TargetScratch* s);
+static inline u32      _actor403600Rand(void);
+static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count);
+static void            func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task);
+static __inline__ void _actor403600UpdateColor(GpEnemy* enemy, Task* task);
+static __inline__ void _actor403600RotateParts(Task* task);
+static void            func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1);
+static inline void     _actor403600ResetState(Task* task);
 
 void func_actor_403600_80138C34(Task* arg0)
 {

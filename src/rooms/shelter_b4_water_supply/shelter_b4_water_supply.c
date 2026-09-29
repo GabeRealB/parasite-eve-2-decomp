@@ -1,50 +1,66 @@
-#include "common.h"
 #include "rooms/shelter_b4_water_supply.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "gte.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#define D_shelter_b4_water_supply_801826A0 (D_shelter_b4_water_supply_80182690 + 2)
+#define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)
+#define D_shelter_b4_water_supply_801826D0 (D_shelter_b4_water_supply_80182690 + 8)
 
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
@@ -132,15 +148,15 @@ static void func_shelter_b4_water_supply_80181800(GpCoord* arg0, s16 arg1, u8* r
 static void func_shelter_b4_water_supply_80181D40(GpCoord* coord, s16 size);
 static void func_shelter_b4_water_supply_8018226C(GpCoord* arg0, s32 arg1);
 
-void func_shelter_b4_water_supply_8017D650(Task *);
-void func_shelter_b4_water_supply_8017D7C0(Task *);
-s32 func_shelter_b4_water_supply_8017D970(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_water_supply_8017D978(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_b4_water_supply_8017DA28(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_water_supply_8017DA30(Task *, s32, GpMsg13EF *, s32);
-s32 func_shelter_b4_water_supply_8017DAE4(Task *, s32, s32, s32);
-void func_shelter_b4_water_supply_8017DC28(Task *);
-void func_shelter_b4_water_supply_8017ED28(Task *);
+void func_shelter_b4_water_supply_8017D650(Task*);
+void func_shelter_b4_water_supply_8017D7C0(Task*);
+s32  func_shelter_b4_water_supply_8017D970(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_water_supply_8017D978(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_b4_water_supply_8017DA28(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b4_water_supply_8017DAE4(Task*, s32, s32, s32);
+void func_shelter_b4_water_supply_8017DC28(Task*);
+void func_shelter_b4_water_supply_8017ED28(Task*);
 
 extern TaskDesc D_80147E48;
 
@@ -199,10 +215,6 @@ SVECTOR D_shelter_b4_water_supply_80182690[10] = {
     { 9130, -3790, -7950, 0 },
     { 9130, -3790, -6970, 0 },
 };
-
-#define D_shelter_b4_water_supply_801826A0 (D_shelter_b4_water_supply_80182690 + 2)
-#define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)
-#define D_shelter_b4_water_supply_801826D0 (D_shelter_b4_water_supply_80182690 + 8)
 
 SVECTOR D_shelter_b4_water_supply_801826E0[2] = { 0 };
 

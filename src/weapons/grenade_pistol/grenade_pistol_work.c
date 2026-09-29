@@ -1,8 +1,9 @@
-#include "common.h"
+#include "grenade_pistol_private.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "weapons/grenade_pistol.h"
+#include "types.h"
 
 /// The spawn state's tables sit in the middle of this package's
 /// trailing data, so they are their own unit: splat lists an object in the

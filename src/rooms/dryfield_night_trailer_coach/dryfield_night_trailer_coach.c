@@ -1,51 +1,61 @@
-#include "common.h"
 #include "rooms/dryfield_night_trailer_coach.h"
-#include "mapui/map_dryfield_full.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-#include "rooms/acropolis_square.h"
+#include "common.h"
 
-#include "gameplay/captions.h"
+#include "dryfield_night_trailer_coach_private.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/inventory.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "mapui/map_dryfield_full.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call2)(s32, s32, s32);
     } handler;
 } DryfieldNightTrailerCoachMessageEntry;
@@ -134,41 +144,40 @@ extern u16 D_dryfield_night_trailer_coach_801843E8[];
 /// The list returned when no case matches.
 extern u16 D_dryfield_night_trailer_coach_80184578[];
 
-void func_dryfield_night_trailer_coach_8017DE8C(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_8017DE8C(UiList*, UiObject*);
 
-void func_dryfield_night_trailer_coach_8017E830(Task *);
-void func_dryfield_night_trailer_coach_8017EA80(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_8017ECA0(Task *);
-void func_dryfield_night_trailer_coach_8017EE48(Task *);
-void func_dryfield_night_trailer_coach_8017F02C(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_8017F240(Task *);
-void func_dryfield_night_trailer_coach_8017FCDC(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_8017FD98(Task *);
+void func_dryfield_night_trailer_coach_8017E830(Task*);
+void func_dryfield_night_trailer_coach_8017EA80(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_8017ECA0(Task*);
+void func_dryfield_night_trailer_coach_8017EE48(Task*);
+void func_dryfield_night_trailer_coach_8017F02C(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_8017F240(Task*);
+void func_dryfield_night_trailer_coach_8017FCDC(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_8017FD98(Task*);
 
-s32 func_dryfield_night_trailer_coach_801826A0(void);
-s32 func_dryfield_night_trailer_coach_801826A8(s32, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_trailer_coach_801826EC(s32, s32, s32);
-s32 func_dryfield_night_trailer_coach_80182800(void);
-s32 func_dryfield_night_trailer_coach_80182808(s32, s32, s32);
-void func_dryfield_night_trailer_coach_8017E830(Task *);
-void func_dryfield_night_trailer_coach_8017F3C0(Task *);
-void func_dryfield_night_trailer_coach_8017F688(Task *);
-void func_dryfield_night_trailer_coach_8017F85C(Task *);
-void func_dryfield_night_trailer_coach_8017FEC0(Task *);
-void func_dryfield_night_trailer_coach_8017FFF4(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_801807C0(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_801811D8(Task *);
-void func_dryfield_night_trailer_coach_80181684(Task *);
-void func_dryfield_night_trailer_coach_80181844(Task *);
-void func_dryfield_night_trailer_coach_80181A38(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_80181B1C(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_80181BE4(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_80181CAC(UiList *, UiObject *);
-void func_dryfield_night_trailer_coach_80181DB0(Task *);
-void func_dryfield_night_trailer_coach_8018243C(Task *);
-void func_dryfield_night_trailer_coach_80182610(Task *);
+s32  func_dryfield_night_trailer_coach_801826A0(void);
+s32  func_dryfield_night_trailer_coach_801826A8(s32, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_trailer_coach_801826EC(s32, s32, s32);
+s32  func_dryfield_night_trailer_coach_80182800(void);
+s32  func_dryfield_night_trailer_coach_80182808(s32, s32, s32);
+void func_dryfield_night_trailer_coach_8017E830(Task*);
+void func_dryfield_night_trailer_coach_8017F3C0(Task*);
+void func_dryfield_night_trailer_coach_8017F688(Task*);
+void func_dryfield_night_trailer_coach_8017F85C(Task*);
+void func_dryfield_night_trailer_coach_8017FEC0(Task*);
+void func_dryfield_night_trailer_coach_8017FFF4(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_801807C0(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_801811D8(Task*);
+void func_dryfield_night_trailer_coach_80181684(Task*);
+void func_dryfield_night_trailer_coach_80181844(Task*);
+void func_dryfield_night_trailer_coach_80181A38(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_80181B1C(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_80181BE4(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_80181CAC(UiList*, UiObject*);
+void func_dryfield_night_trailer_coach_80181DB0(Task*);
+void func_dryfield_night_trailer_coach_8018243C(Task*);
+void func_dryfield_night_trailer_coach_80182610(Task*);
 
-extern GpAnimArg D_dryfield_night_trailer_coach_801879D0;
 extern GpAnimArg D_dryfield_night_trailer_coach_80187A20;
 extern GpAnimSet D_dryfield_night_trailer_coach_80185398;
 extern GpAnimSet D_dryfield_night_trailer_coach_80185590;
@@ -181,7 +190,7 @@ extern GpAnimSet D_dryfield_night_trailer_coach_80186B5C;
 extern GpAnimSet D_dryfield_night_trailer_coach_80186E88;
 extern GpAnimSet D_dryfield_night_trailer_coach_801873D0;
 extern GpAnimSet D_dryfield_night_trailer_coach_80187924;
-extern GpXformArg D_dryfield_night_trailer_coach_80187988;
+
 void func_dryfield_night_trailer_coach_8018283C(void);
 void func_dryfield_night_trailer_coach_80182864(void);
 
@@ -1820,6 +1829,173 @@ GpEvsCmd D_dryfield_night_trailer_coach_80188510[21] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
+/// Texts and panel descriptors of the shop list's two special rows (ids
+/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
+extern u8 D_dryfield_night_trailer_coach_801844C4[];
+
+extern u8 D_dryfield_night_trailer_coach_801844B0[];
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_8018467C;
+
+extern u8 D_dryfield_night_trailer_coach_801844C0[];
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_80184628;
+
+extern RoomShopTier D_dryfield_night_trailer_coach_801843F4[13];
+
+/// Messages and labels of the shop's panels.
+extern u8 D_dryfield_night_trailer_coach_80184494[];
+
+extern u8 D_dryfield_night_trailer_coach_801844A8[];
+
+extern u8 D_dryfield_night_trailer_coach_80184500[];
+
+extern u8 D_dryfield_night_trailer_coach_80184508[];
+
+extern u8 D_dryfield_night_trailer_coach_80184514[];
+
+extern u8 D_dryfield_night_trailer_coach_8018451C[];
+
+extern u8 D_dryfield_night_trailer_coach_80184524[];
+
+extern u8 D_dryfield_night_trailer_coach_80184538[];
+
+extern u8 D_dryfield_night_trailer_coach_80184548[];
+
+extern u8 D_dryfield_night_trailer_coach_80184568[];
+
+extern u8 D_dryfield_night_trailer_coach_80184574[];
+
+/// Row handlers, lists and panel descriptors of the shop's panels.
+extern UiListItemFunc D_dryfield_night_trailer_coach_8018457C[];
+
+extern UiList D_dryfield_night_trailer_coach_80184584;
+
+extern UiList D_dryfield_night_trailer_coach_801845B0;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_801845F0;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_8018460C;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_80184644;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_80184698;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_801846B4;
+
+/// Descriptor of the panel `func_dryfield_night_trailer_coach_8017FEC0` opens.
+extern UiObjectDesc D_dryfield_night_trailer_coach_801845D4;
+
+extern u8 D_dryfield_night_trailer_coach_80184CEC[];
+
+extern u8 D_dryfield_night_trailer_coach_80184CF4[];
+
+extern u8 D_dryfield_night_trailer_coach_80184CF8[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D00[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D0C[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D1C[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D24[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D2C[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D34[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D3C[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D48[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D74[];
+
+extern u8 D_dryfield_night_trailer_coach_80184D98[];
+
+extern u8 D_dryfield_night_trailer_coach_80184DC8[];
+
+extern u8 D_dryfield_night_trailer_coach_80184DFC[];
+
+extern u8 D_dryfield_night_trailer_coach_80184E30[];
+
+extern u8 D_dryfield_night_trailer_coach_80184E68[];
+
+extern u8 D_dryfield_night_trailer_coach_80184E9C[];
+
+extern u8 D_dryfield_night_trailer_coach_80184ED4[];
+
+static const char D_dryfield_night_trailer_coach_8017D770[];
+
+extern UiObjectDesc D_800611E4;
+
+/// Lists of the usage panel and of the play-data menu, and the descriptor of
+/// the frame the usage panel spawns.
+extern UiList D_dryfield_night_trailer_coach_80184F38;
+
+extern UiList D_dryfield_night_trailer_coach_80184FC0;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_80184F5C;
+
+/// List of the menu panel `func_dryfield_night_trailer_coach_80181844` draws.
+extern UiList D_dryfield_night_trailer_coach_80184F10;
+
+/// Texts of the four menu rows below, and the panels two of them open.
+extern u8 D_dryfield_night_trailer_coach_80184CC4[];
+
+extern u8 D_dryfield_night_trailer_coach_80184CCC[];
+
+extern u8 D_dryfield_night_trailer_coach_80184CD8[];
+
+extern u8 D_dryfield_night_trailer_coach_80184CE4[];
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_80184F78;
+
+extern UiObjectDesc D_dryfield_night_trailer_coach_80184F94;
+
+extern DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
+
+extern GpXformArg D_dryfield_night_trailer_coach_801879B8;
+
+extern GpAnimArg D_dryfield_night_trailer_coach_80187CEC;
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80187D00[];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80187F58[];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_801880A8[];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_801881F8[];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188348[];
+
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188510[];
+
+static void func_dryfield_night_trailer_coach_8018231C(Task* task);
+
+static void func_dryfield_night_trailer_coach_80182898(Task* task);
+
+/// Cutscene trigger for the trailer coach at night. Where the day version has
+/// its own record and a save-view reset, this one only runs at the two ends of
+/// the visit.
+///
+/// Request 0xE forces area 8 for the scene, fills the room's cutscene record
+/// the same way the motel lobby fills its own -- save view 8, slot 1, and the
+/// cap file picked by `GameFlag_GetNibble(0x7A)` (file 1 below four, file 2 at
+/// four or more) -- then hands it to `D_dryfield_night_trailer_coach_80184FE4`. Request 3
+/// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
+/// asks the cap system to run command 0x17. Always returns 0.
+extern TaskDesc D_dryfield_night_trailer_coach_8018797C;
+
+static u16*       func_dryfield_night_trailer_coach_8017D81C(s32 mode);
+static void       func_dryfield_night_trailer_coach_8017E318(RoomShopList* shop, UiObject* obj, s32 item);
+static void       func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObject* obj);
+static inline s32 _dryfield_night_trailer_coachAddItemCount(s32 item, s32 count);
+static void       func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* obj);
+static void       func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* obj);
+static void       func_dryfield_night_trailer_coach_801816E0(u8* str, s32 decimals);
+static u8*        func_dryfield_night_trailer_coach_80181750(u8* buf, s32 value, s32 decimals);
+static void       func_dryfield_night_trailer_coach_80181934(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
@@ -2022,14 +2198,6 @@ static u16* func_dryfield_night_trailer_coach_8017D81C(s32 mode)
     return D_dryfield_night_trailer_coach_80184578;
 }
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-extern u8           D_dryfield_night_trailer_coach_801844C4[];
-extern u8           D_dryfield_night_trailer_coach_801844B0[];
-extern UiObjectDesc D_dryfield_night_trailer_coach_8018467C;
-extern u8           D_dryfield_night_trailer_coach_801844C0[];
-extern UiObjectDesc D_dryfield_night_trailer_coach_80184628;
-
 /// Draws one row of the shop list and handles its input, recording the row's
 /// id as the cursor item while the row is selected. Row 0xFFFE is greyed out
 /// and unselectable unless `Gp_HasMappedItem` answers non-zero, and opens its
@@ -2188,8 +2356,6 @@ static void func_dryfield_night_trailer_coach_8017E318(RoomShopList* shop, UiObj
     shop->list.field_4++;
 }
 
-extern RoomShopTier D_dryfield_night_trailer_coach_801843F4[13];
-
 /// Fills `shop` with the ids the shop currently offers, then sorts them by
 /// `Gp_ItemSortKey`, caps the visible row count at 9 and clears the cursor
 /// item.
@@ -2319,35 +2485,6 @@ static const u8 D_dryfield_night_trailer_coach_8017D6EC[] = "Notice";
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_night_trailer_coach_8017D6F4[8] = "Charge\0\xFD";
-
-/// Messages and labels of the shop's panels.
-extern u8 D_dryfield_night_trailer_coach_80184494[];
-extern u8 D_dryfield_night_trailer_coach_801844A8[];
-extern u8 D_dryfield_night_trailer_coach_80184500[];
-extern u8 D_dryfield_night_trailer_coach_80184508[];
-extern u8 D_dryfield_night_trailer_coach_80184514[];
-extern u8 D_dryfield_night_trailer_coach_8018451C[];
-extern u8 D_dryfield_night_trailer_coach_80184524[];
-extern u8 D_dryfield_night_trailer_coach_80184538[];
-extern u8 D_dryfield_night_trailer_coach_80184548[];
-extern u8 D_dryfield_night_trailer_coach_80184568[];
-extern u8 D_dryfield_night_trailer_coach_80184574[];
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-extern UiListItemFunc D_dryfield_night_trailer_coach_8018457C[];
-extern UiList         D_dryfield_night_trailer_coach_80184584;
-extern UiList         D_dryfield_night_trailer_coach_801845B0;
-extern UiObjectDesc   D_dryfield_night_trailer_coach_801845F0;
-extern UiObjectDesc   D_dryfield_night_trailer_coach_8018460C;
-extern UiObjectDesc   D_dryfield_night_trailer_coach_80184644;
-extern UiObjectDesc   D_dryfield_night_trailer_coach_80184698;
-extern UiObjectDesc   D_dryfield_night_trailer_coach_801846B4;
-
-/// Work pair of the charge panel `func_dryfield_night_trailer_coach_8017F3C0`: the
-/// animated quantity in 24.8 fixed point, and the item map of the slot being
-/// charged.
-extern s32        D_dryfield_night_trailer_coach_8018C210;
-extern GpItemMap* D_dryfield_night_trailer_coach_8018C214;
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through
@@ -3041,9 +3178,6 @@ void func_dryfield_night_trailer_coach_8017FD98(Task* task)
     }
 }
 
-/// Descriptor of the panel `func_dryfield_night_trailer_coach_8017FEC0` opens.
-extern UiObjectDesc D_dryfield_night_trailer_coach_801845D4;
-
 /// Opens the panel `D_dryfield_night_trailer_coach_801845D4` with the task's
 /// `spawnArg1` as its parameter, setting frame timing 0 and the session's UI
 /// flag while it is open; once the panel reports -1 or 6 it is torn down, and
@@ -3085,26 +3219,6 @@ void func_dryfield_night_trailer_coach_8017FEC0(Task* task)
         }
     }
 }
-
-extern u8 D_dryfield_night_trailer_coach_80184CEC[];
-extern u8 D_dryfield_night_trailer_coach_80184CF4[];
-extern u8 D_dryfield_night_trailer_coach_80184CF8[];
-extern u8 D_dryfield_night_trailer_coach_80184D00[];
-extern u8 D_dryfield_night_trailer_coach_80184D0C[];
-extern u8 D_dryfield_night_trailer_coach_80184D1C[];
-extern u8 D_dryfield_night_trailer_coach_80184D24[];
-extern u8 D_dryfield_night_trailer_coach_80184D2C[];
-extern u8 D_dryfield_night_trailer_coach_80184D34[];
-extern u8 D_dryfield_night_trailer_coach_80184D3C[];
-extern u8 D_dryfield_night_trailer_coach_80184D48[];
-extern u8 D_dryfield_night_trailer_coach_80184D74[];
-extern u8 D_dryfield_night_trailer_coach_80184D98[];
-extern u8 D_dryfield_night_trailer_coach_80184DC8[];
-extern u8 D_dryfield_night_trailer_coach_80184DFC[];
-extern u8 D_dryfield_night_trailer_coach_80184E30[];
-extern u8 D_dryfield_night_trailer_coach_80184E68[];
-extern u8 D_dryfield_night_trailer_coach_80184E9C[];
-extern u8 D_dryfield_night_trailer_coach_80184ED4[];
 
 void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
 {
@@ -3371,7 +3485,7 @@ static const u8 D_dryfield_night_trailer_coach_8017D754[] = "100.0%";
 /// assembly.
 static const char D_dryfield_night_trailer_coach_8017D75C[] = "Weapon Data";
 static const char D_dryfield_night_trailer_coach_8017D768[] = "PE Data";
-static const char D_dryfield_night_trailer_coach_8017D770[];
+
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_night_trailer_coach_8017D770[12] = "Telephone\0N\xF2";
 
@@ -3503,14 +3617,6 @@ void func_dryfield_night_trailer_coach_801807C0(UiList* arg0, UiObject* arg1)
         }
     }
 }
-
-extern UiObjectDesc D_800611E4;
-
-/// Lists of the usage panel and of the play-data menu, and the descriptor of
-/// the frame the usage panel spawns.
-extern UiList       D_dryfield_night_trailer_coach_80184F38;
-extern UiList       D_dryfield_night_trailer_coach_80184FC0;
-extern UiObjectDesc D_dryfield_night_trailer_coach_80184F5C;
 
 /// Builds the item-usage panel's three parallel arrays from the save's
 /// per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
@@ -3942,17 +4048,6 @@ static u8* func_dryfield_night_trailer_coach_80181750(u8* buf, s32 value, s32 de
     return buf;
 }
 
-/// List of the menu panel `func_dryfield_night_trailer_coach_80181844` draws.
-extern UiList D_dryfield_night_trailer_coach_80184F10;
-
-/// Texts of the four menu rows below, and the panels two of them open.
-extern u8           D_dryfield_night_trailer_coach_80184CC4[];
-extern u8           D_dryfield_night_trailer_coach_80184CCC[];
-extern u8           D_dryfield_night_trailer_coach_80184CD8[];
-extern u8           D_dryfield_night_trailer_coach_80184CE4[];
-extern UiObjectDesc D_dryfield_night_trailer_coach_80184F78;
-extern UiObjectDesc D_dryfield_night_trailer_coach_80184F94;
-
 void func_dryfield_night_trailer_coach_80181844(Task* task)
 {
     UiObject* obj;
@@ -4072,9 +4167,6 @@ static void func_dryfield_night_trailer_coach_80181D74(Task* task)
     }
     Ui_FreeAndKill(task);
 }
-
-/// The scene sub-task while it runs, NULL otherwise.
-extern Task* D_dryfield_night_trailer_coach_8018C218;
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
@@ -4271,26 +4363,6 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
-extern GpXformArg D_dryfield_night_trailer_coach_801879B8;
-extern GpAnimArg D_dryfield_night_trailer_coach_80187CEC;
-extern GpEvsCmd D_dryfield_night_trailer_coach_80187D00[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80187F58[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_801880A8[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_801881F8[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188348[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188510[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188708[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188858[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_801889A8[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188F00[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_80189080[];
-extern GpEvsCmd D_dryfield_night_trailer_coach_801892C0[];
-extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[];
-
-static void func_dryfield_night_trailer_coach_8018231C(Task* task);
-static void func_dryfield_night_trailer_coach_80182898(Task* task);
-
 /// State handlers of the room's task `func_dryfield_night_trailer_coach_801828CC`
 /// runs: its set-up, a per-frame state and the kill.
 static const TaskFuncTable3 D_dryfield_night_trailer_coach_8017D7DC = {
@@ -4411,19 +4483,6 @@ s32 func_dryfield_night_trailer_coach_801826A8(s32 arg0, s32 arg1, RoomEventMsg*
     func_map_dryfield_full_80179954(in, out);
     return 1;
 }
-
-/// Cutscene trigger for the trailer coach at night. Where the day version has
-/// its own record and a save-view reset, this one only runs at the two ends of
-/// the visit.
-///
-/// Request 0xE forces area 8 for the scene, fills the room's cutscene record
-/// the same way the motel lobby fills its own -- save view 8, slot 1, and the
-/// cap file picked by `GameFlag_GetNibble(0x7A)` (file 1 below four, file 2 at
-/// four or more) -- then hands it to `D_dryfield_night_trailer_coach_80184FE4`. Request 3
-/// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
-/// asks the cap system to run command 0x17. Always returns 0.
-extern TaskDesc        D_dryfield_night_trailer_coach_8018797C;
-extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
 
 s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
 {

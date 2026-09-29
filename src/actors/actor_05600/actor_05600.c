@@ -1,50 +1,56 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/room.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
 /// Placement descriptor for this actor.
 extern GpU16Pair Actor05600_D161BC[5];
@@ -115,22 +121,22 @@ extern GpAnimSet Actor05600_D16194;
 extern TmdSource Actor05600_D0A020;
 extern TmdSource Actor05600_D0A46C;
 extern TmdSource Actor05600_D0A798;
-void Actor05600_Fn00B18(Task *);
-void Actor05600_Fn00E38(Task *);
-void Actor05600_Fn01214(Task *);
-void Actor05600_Fn0130C(Task *);
-void Actor05600_Fn01E1C(Task *);
-void Actor05600_Fn023A0(Task *);
-void Actor05600_Fn041E4(Task *);
-void Actor05600_Fn046F0(Task *);
-void Actor05600_Fn047D0(Task *);
-void Actor05600_Fn0485C(Task *);
-void Actor05600_Fn04924(Task *);
-void Actor05600_Fn049B0(Task *);
-void Actor05600_Fn04A68(Task *);
-void Actor05600_Fn04A70(Task *);
-void Actor05600_Fn04BAC(Task *);
-void Actor05600_Fn04CA0(Task *);
+void             Actor05600_Fn00B18(Task*);
+void             Actor05600_Fn00E38(Task*);
+void             Actor05600_Fn01214(Task*);
+void             Actor05600_Fn0130C(Task*);
+void             Actor05600_Fn01E1C(Task*);
+void             Actor05600_Fn023A0(Task*);
+void             Actor05600_Fn041E4(Task*);
+void             Actor05600_Fn046F0(Task*);
+void             Actor05600_Fn047D0(Task*);
+void             Actor05600_Fn0485C(Task*);
+void             Actor05600_Fn04924(Task*);
+void             Actor05600_Fn049B0(Task*);
+void             Actor05600_Fn04A68(Task*);
+void             Actor05600_Fn04A70(Task*);
+void             Actor05600_Fn04BAC(Task*);
+void             Actor05600_Fn04CA0(Task*);
 
 s16 Actor05600_D04CFC[32] = {
     0,
@@ -907,7 +913,7 @@ s32 Actor05600_D162F0 = 0x40380007;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s32 value;
-    u8 retained[12];
+    u8  retained[12];
 } Actor05600Storage8114;
 STATIC_ASSERT_SIZEOF(Actor05600Storage8114, 16);
 
@@ -1186,6 +1192,28 @@ TaskFunc Actor05600_D16540[15] = {
     Actor05600_Fn0130C,
     Actor05600_Fn049B0,
 };
+
+/// Corner indices of the two ribbon polygons in the beam scratch's
+/// projected-point arrays.
+extern s16 Actor05600_D16490[][4];
+
+/// Sound id of the burst cue, with the spawn context's room/channel bits
+/// packed in.
+extern Actor05600Storage8114 Actor05600_D162F4;
+
+static void        Actor05600_Fn000A4(Task* arg0);
+static void        Actor05600_Fn01538(Task* arg0);
+static void        Actor05600_Fn016C4(Task* arg0);
+static void        Actor05600_Fn018D0(Task* arg0);
+static void        Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1);
+static void        Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1);
+static void        Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1);
+static void        Actor05600_Fn03924(GpEnemy* ctx, Task* actor);
+static inline void _actor05600ApplyReaction(Task* actor);
+static inline void _actor05600StepRoot(Task* actor);
+static inline void _actor05600TickAnim(Task* actor);
+static inline void _actor05600Draw(Task* actor, GpCoord* coord);
+static void        Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor);
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -2488,10 +2516,6 @@ static void Actor05600_Fn02548(Task* arg0)
     SCRATCH_POP_BYTES(0x40);
 }
 
-/// Corner indices of the two ribbon polygons in the beam scratch's
-/// projected-point arrays.
-extern s16 Actor05600_D16490[][4];
-
 /// Draws the aim beam from `arg2` to `arg1` in eight projected steps. Each
 /// step nearer than OTZ 30 is skipped; otherwise the segment's screen normal
 /// (`VectorNormalS`) offsets the ends by a depth-scaled width into two
@@ -2728,10 +2752,6 @@ static void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
 
     SCRATCH_POP_BYTES(0x38);
 }
-
-/// Sound id of the burst cue, with the spawn context's room/channel bits
-/// packed in.
-extern Actor05600Storage8114 Actor05600_D162F4;
 
 /// Per-frame state of the effect child set up by `Actor05600_Fn031B0`, entry
 /// 1 of `Actor05600_D0008C`. `Gp_StateF0.field_4` overrides it: 0 shows the child and

@@ -1,36 +1,48 @@
-#include "common.h"
+#include "rooms/neo_ark_altar.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "rooms/neo_ark_altar.h"
+
+#include "common.h"
+
+#include "neo_ark_altar_private.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/captions.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
-
+#include "gameplay/room.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// One 12-byte altar floor tile: `x` / `z` are the tile's low corner in world
 /// units, `w` / `d` its size along X and Z, and `id` the number the tile
@@ -81,13 +93,13 @@ static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
-extern GpGridParams D_neo_ark_altar_8017F57C[1];
-extern GpObj4C D_neo_ark_altar_8017FF08[4];
+extern GpGridParams   D_neo_ark_altar_8017F57C[1];
+extern GpObj4C        D_neo_ark_altar_8017FF08[4];
 extern GpRoomCoordSet D_neo_ark_altar_8017FEF0[1];
-void func_neo_ark_altar_8017ECE0(Task *);
+void                  func_neo_ark_altar_8017ECE0(Task*);
 
-void func_neo_ark_altar_8017DA40(Task *);
-void func_neo_ark_altar_8017DBF0(Task *);
+void func_neo_ark_altar_8017DA40(Task*);
+void func_neo_ark_altar_8017DBF0(Task*);
 
 TaskDesc D_neo_ark_altar_8017EFC0[2] = {
     { 0, 192, func_neo_ark_altar_8017DBF0, { .model = NULL } },
@@ -637,6 +649,23 @@ GpAreaApplyRec D_neo_ark_altar_801800A0[3] = {
 s16 D_neo_ark_altar_801800AC = 0;
 
 s16 D_neo_ark_altar_801800B0[16] = { 0 };
+
+static void func_neo_ark_altar_8017ED60(Task* task);
+
+static void func_neo_ark_altar_8017EDBC(Task* task);
+
+static void func_neo_ark_altar_8017EDF8(Task* task);
+
+static void func_neo_ark_altar_8017EE30(Task* task);
+
+static void func_neo_ark_altar_8017EE90(Task* task);
+
+static void func_neo_ark_altar_8017EF00(Task* task);
+
+static void func_neo_ark_altar_8017EF34(Task* task);
+
+static void func_neo_ark_altar_8017DF0C(Task* task);
+static void func_neo_ark_altar_8017E148(void);
 
 void func_neo_ark_altar_8017DA40(Task* task)
 {
@@ -1270,14 +1299,6 @@ static s16 func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z)
     }
     return 0;
 }
-
-static void func_neo_ark_altar_8017ED60(Task* task);
-static void func_neo_ark_altar_8017EDBC(Task* task);
-static void func_neo_ark_altar_8017EDF8(Task* task);
-static void func_neo_ark_altar_8017EE30(Task* task);
-static void func_neo_ark_altar_8017EE90(Task* task);
-static void func_neo_ark_altar_8017EF00(Task* task);
-static void func_neo_ark_altar_8017EF34(Task* task);
 
 /// State handlers of the altar task, dispatched by
 /// `func_neo_ark_altar_8017ECE0` off `Task::state`: allocation and set-up,

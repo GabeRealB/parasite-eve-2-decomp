@@ -1,57 +1,76 @@
-#include "shelter_b1_sterilization_room_private.h"
-#include "mapui/map_shelter.h"
+#include "rooms/shelter_b1_sterilization_room.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "decomp/common.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-#include "rooms/shelter_b1_sterilization_room.h"
-#include "rooms/acropolis_square.h"
+#include "shelter_b1_sterilization_room_private.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/collision.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "mapui/map_shelter.h"
 
-extern GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28];
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+/// The "%" suffix appended to a formatted percentage.
+extern u8 D_shelter_b1_sterilization_room_80184594[];
+
+/// UI descriptor of the help-line box the "Play Data" panels open beside their
+/// lists.
+extern UiObjectDesc D_shelter_b1_sterilization_room_801847AC;
+
+/// Task descriptor table used by the cutscene runner
+/// `func_shelter_b1_sterilization_room_8017F550`, which spawns entry 1 and
+/// waits on it while the cutscene plays. The room's event handler spawns
+/// entry 0 with a `RoomCutsceneRec` as its argument.
+extern TaskDesc D_shelter_b1_sterilization_room_80184E1C[];
 
 /// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
 /// stride is known.
@@ -115,39 +134,25 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpMsg13EF *, s32);
-        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call1)(Task*, s32, GpMsg13EF*, s32);
+        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
 } ShelterB1SterilizationRoomMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB1SterilizationRoomMessageEntry, 8);
 
 extern ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6];
-extern TaskDesc                        D_shelter_b1_sterilization_room_80184E70;
-extern s32                             D_shelter_b1_sterilization_room_80184E7C;
-extern s16 D_shelter_b1_sterilization_room_80184E80[3];
-extern GpGridParams                    D_shelter_b1_sterilization_room_80184F28;
-extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
-extern GpAnimArg D_shelter_b1_sterilization_room_80188624;
+extern TaskDesc                               D_shelter_b1_sterilization_room_80184E70;
+extern s32                                    D_shelter_b1_sterilization_room_80184E7C;
+extern s16                                    D_shelter_b1_sterilization_room_80184E80[3];
+extern GpGridParams                           D_shelter_b1_sterilization_room_80184F28;
+
+extern GpAnimArg                       D_shelter_b1_sterilization_room_80188624;
 extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[];
-extern GpU16Pair                       D_shelter_b1_sterilization_room_80188738;
-extern GpEvsCmd D_shelter_b1_sterilization_room_8018873C[];
 
 /// Area records `func_shelter_b1_sterilization_room_8017F550` applies when it
 /// advances game flag nibble 0 from 2 to 3 in one particular view.
-
-extern GpEvsCmd D_shelter_b1_sterilization_room_80188AB4[];
-extern GpEvsCmd D_shelter_b1_sterilization_room_80188ED4[];
-extern GpEvsCmd D_shelter_b1_sterilization_room_80188FDC[];
-extern GpGridParams   D_shelter_b1_sterilization_room_80189E44;
-extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[];
-
-/// The task `func_shelter_b1_sterilization_room_8017F550` spawns from entry 1
-/// of its table and waits on, or NULL while none runs.
-extern Task* D_shelter_b1_sterilization_room_8018C33C;
-
-extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 
 extern UiObjectDesc D_800611E4;
 
@@ -169,24 +174,24 @@ static void func_shelter_b1_sterilization_room_801812A0(Task* task);
 static void func_shelter_b1_sterilization_room_8017F514(Task* task);
 static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1);
 
-void func_shelter_b1_sterilization_room_8017D794(UiList *, UiObject *);
-void func_shelter_b1_sterilization_room_8017DF60(UiList *, UiObject *);
-void func_shelter_b1_sterilization_room_8017E978(Task *);
-void func_shelter_b1_sterilization_room_8017EE24(Task *);
-void func_shelter_b1_sterilization_room_8017EFE4(Task *);
-void func_shelter_b1_sterilization_room_8017F1D8(UiList *, UiObject *);
-void func_shelter_b1_sterilization_room_8017F2BC(UiList *, UiObject *);
-void func_shelter_b1_sterilization_room_8017F384(UiList *, UiObject *);
-void func_shelter_b1_sterilization_room_8017F44C(UiList *, UiObject *);
+void func_shelter_b1_sterilization_room_8017D794(UiList*, UiObject*);
+void func_shelter_b1_sterilization_room_8017DF60(UiList*, UiObject*);
+void func_shelter_b1_sterilization_room_8017E978(Task*);
+void func_shelter_b1_sterilization_room_8017EE24(Task*);
+void func_shelter_b1_sterilization_room_8017EFE4(Task*);
+void func_shelter_b1_sterilization_room_8017F1D8(UiList*, UiObject*);
+void func_shelter_b1_sterilization_room_8017F2BC(UiList*, UiObject*);
+void func_shelter_b1_sterilization_room_8017F384(UiList*, UiObject*);
+void func_shelter_b1_sterilization_room_8017F44C(UiList*, UiObject*);
 
-s32 func_shelter_b1_sterilization_room_8017FC78(Task *, s32, GpMsg13EF *, s32);
-s32 func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
-s32 func_shelter_b1_sterilization_room_801803E4(void);
-s32 func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
-void func_shelter_b1_sterilization_room_8017F550(Task *);
-void func_shelter_b1_sterilization_room_80180188(Task *);
-void func_shelter_b1_sterilization_room_801802B0(Task *);
+s32  func_shelter_b1_sterilization_room_8017FC78(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
+s32  func_shelter_b1_sterilization_room_801803E4(void);
+s32  func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
+void func_shelter_b1_sterilization_room_8017F550(Task*);
+void func_shelter_b1_sterilization_room_80180188(Task*);
+void func_shelter_b1_sterilization_room_801802B0(Task*);
 
 extern GpAnimSet D_shelter_b1_sterilization_room_80185228;
 extern GpAnimSet D_shelter_b1_sterilization_room_801853DC;
@@ -195,9 +200,9 @@ extern GpAnimSet D_shelter_b1_sterilization_room_80185C8C;
 extern GpAnimSet D_shelter_b1_sterilization_room_80186910;
 extern GpAnimSet D_shelter_b1_sterilization_room_80187E18;
 extern GpAnimSet D_shelter_b1_sterilization_room_801884DC;
-void func_shelter_b1_sterilization_room_80180D74(Task *);
-void func_shelter_b1_sterilization_room_80180F74(Task *);
-void func_shelter_b1_sterilization_room_801811E0(Task *);
+void             func_shelter_b1_sterilization_room_80180D74(Task*);
+void             func_shelter_b1_sterilization_room_80180F74(Task*);
+void             func_shelter_b1_sterilization_room_801811E0(Task*);
 
 u8 D_shelter_b1_sterilization_room_80184514[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -686,6 +691,12 @@ _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[8] = {
     { 6, 2 },
     { 3, 5 },
 };
+
+static void func_shelter_b1_sterilization_room_8017EE80(u8* str, s32 decimals);
+static u8*  func_shelter_b1_sterilization_room_8017EEF0(u8* buf, s32 value, s32 decimals);
+static void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+static void func_shelter_b1_sterilization_room_80180A2C(s32 shade);
+static void func_shelter_b1_sterilization_room_80180BF0(s32 shade);
 
 void func_shelter_b1_sterilization_room_8017D794(UiList* arg0, UiObject* arg1)
 {

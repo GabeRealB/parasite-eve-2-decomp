@@ -1,26 +1,32 @@
-/* Dryfield room 4 has no code. Its package holds only the room records the
- * stage tables point at: one location, whose collision grid is retained in this unit, two views with no sprites, an exit record and the
- * location's parameters.
- */
+#include "rooms/dryfield_r04.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
-#include "rooms/stage_tables.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/room.h"
-
 #include "gameplay/view.h"
-#include "main/coord.h"
+
+/// The location's collision grid header; the grid is an asset.
+extern GpGridParams D_dryfield_r04_8017E1F4;
+
+/* Dryfield room 4 has no code. Its package holds only the room records the
+ * stage tables point at: one location, whose collision grid is retained in this unit, two views with no sprites, an exit record and the
+ * location's parameters.
+ */
 
 // Native 9x9 collision grid. Every cell points into the bounded face-ID
 // pool and ends at -1; faces index the vertex and normal arrays below.
 typedef struct {
-    SVECTOR normals[1];
-    SVECTOR vertices[81];
+    SVECTOR    normals[1];
+    SVECTOR    vertices[81];
     GpGridFace faces[64];
-    s16 faceIds[642];
-    s16* cells[81];
+    s16        faceIds[642];
+    s16*       cells[81];
 } DryfieldR04CollisionGrid;
 STATIC_ASSERT_SIZEOF(DryfieldR04CollisionGrid, 3032);
 

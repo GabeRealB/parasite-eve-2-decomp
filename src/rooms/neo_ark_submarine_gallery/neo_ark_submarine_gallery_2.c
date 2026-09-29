@@ -1,37 +1,56 @@
-#include "neo_ark_submarine_gallery_private.h"
-
 #include "rooms/neo_ark_submarine_gallery.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "neo_ark_submarine_gallery_private.h"
+
+#include "actors/task_tables.h"
+
+#include "actors/waypoints.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
 #include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
 
-#include "gameplay/direction_input.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/message.h"
+#define D_neo_ark_submarine_gallery_801818D8 (D_neo_ark_submarine_gallery_801818C8 + 2)
+#define D_neo_ark_submarine_gallery_801818F8 (D_neo_ark_submarine_gallery_801818C8 + 6)
+#define D_neo_ark_submarine_gallery_80181928 (D_neo_ark_submarine_gallery_801818C8 + 12)
 
 static void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -1324,10 +1343,6 @@ GpRoomParamRec * D_neo_ark_submarine_gallery_801858EC[8] = {
     D_neo_ark_submarine_gallery_801858D4,
     D_neo_ark_submarine_gallery_801858D4,
 };
-
-#define D_neo_ark_submarine_gallery_801818D8 (D_neo_ark_submarine_gallery_801818C8 + 2)
-#define D_neo_ark_submarine_gallery_801818F8 (D_neo_ark_submarine_gallery_801818C8 + 6)
-#define D_neo_ark_submarine_gallery_80181928 (D_neo_ark_submarine_gallery_801818C8 + 12)
 
 /// Per-view draw callback for the gallery's display cases. The first state
 /// latches the two effect ids the display cases animate with; every later run

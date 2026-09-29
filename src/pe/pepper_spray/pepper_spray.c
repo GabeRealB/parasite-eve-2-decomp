@@ -1,26 +1,31 @@
 #include "pe/pepper_spray.h"
 
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
+#include "gte.h"
+#include "types.h"
 
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/scratch.h"
 #include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
 static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);

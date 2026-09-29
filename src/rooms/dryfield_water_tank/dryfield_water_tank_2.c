@@ -1,43 +1,49 @@
-#include "dryfield_water_tank_private.h"
+#include "rooms/dryfield_water_tank.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/rand.h>
 
-#include "rooms/dryfield_water_tank.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "common.h"
+
+#include "dryfield_water_tank_private.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
 #include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
-#include "overlay.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
@@ -68,8 +74,6 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 /// Spawn table for the task that takes over once the intro stream is done.
 extern TaskDesc D_dryfield_water_tank_80180764[];
 
-extern TaskDesc D_dryfield_water_tank_80184DF4[];
-
 /// Script record the cutscene owner is handed with msg 0x3F4.
 extern GpAnimSet* D_dryfield_water_tank_801804EC[2];
 
@@ -91,30 +95,13 @@ extern SVECTOR D_dryfield_water_tank_80184530[];
 /// its walk consumes, so unlike the first table it has no clamp tail.
 extern SVECTOR D_dryfield_water_tank_801847C0[];
 
-/// The tank's wobble spring, the four words at 0x801868BC: `801868BC` is the
-/// accumulated yaw `Gfx_RotMatrixY` is handed (`>> 8`), `801868C0` its velocity,
-/// `801868C4` the yaw it steps toward and `801868C8` the target that step
-/// chases.
-extern s32 D_dryfield_water_tank_801868BC;
-extern s32 D_dryfield_water_tank_801868C0;
-extern s32 D_dryfield_water_tank_801868C4;
-extern s32 D_dryfield_water_tank_801868C8;
-
-/// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
-/// the room publishes as its `Gp_State1C->roomEffectMode` variant index.
-extern u16 D_dryfield_water_tank_801868CC[];
-
-/// The room's cutscene task, parked by `func_dryfield_water_tank_8017E9F8` so
-/// the script commands can reach its `DwtWork` block.
-extern Task* D_dryfield_water_tank_80188D50;
-
-void func_dryfield_water_tank_8017E9F8(Task *);
+void func_dryfield_water_tank_8017E9F8(Task*);
 
 extern TmdSource D_dryfield_water_tank_8017FD3C;
-void func_dryfield_water_tank_8017E3C4(Task *);
-void func_dryfield_water_tank_8017E568(Task *);
-void func_dryfield_water_tank_8017EB80(s16);
-void func_dryfield_water_tank_8017EBA0(void);
+void             func_dryfield_water_tank_8017E3C4(Task*);
+void             func_dryfield_water_tank_8017E568(Task*);
+void             func_dryfield_water_tank_8017EB80(s16);
+void             func_dryfield_water_tank_8017EBA0(void);
 
 GpXformArg D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
 
@@ -966,6 +953,8 @@ SVECTOR D_dryfield_water_tank_801847C0[52] = {
     { 2170, -0x2EE0, 972, 0 },
     { 2170, -0x2EE0, 972, 0 },
 };
+
+static void func_dryfield_water_tank_8017E78C(Task* task);
 
 /// Fade the water tank to white and tear the task down.
 ///

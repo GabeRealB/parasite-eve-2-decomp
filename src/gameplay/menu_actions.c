@@ -1,16 +1,4 @@
 #include "gameplay/item_menu.h"
-#include "rooms/shelter_b1_underground_parking.h"
-#include "rooms/dryfield_night_motel_room_6.h"
-#include "rooms/dryfield_motel_room_6.h"
-#include "rooms/acropolis_west_elevator_hall.h"
-#include "rooms/acropolis_east_elevator_hall.h"
-#include "rooms/acropolis_square.h"
-#include "rooms/mist_parking.h"
-#include "rooms/dryfield_night_trailer_coach.h"
-#include "rooms/dryfield_trailer_coach.h"
-#include "rooms/shelter_b1_armory.h"
-#include "rooms/dryfield_night_garage.h"
-#include "rooms/shelter_1f_heliport.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -54,6 +42,30 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+
+#include "rooms/acropolis_east_elevator_hall.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/acropolis_west_elevator_hall.h"
+
+#include "rooms/dryfield_motel_room_6.h"
+
+#include "rooms/dryfield_night_garage.h"
+
+#include "rooms/dryfield_night_motel_room_6.h"
+
+#include "rooms/dryfield_night_trailer_coach.h"
+
+#include "rooms/dryfield_trailer_coach.h"
+
+#include "rooms/mist_parking.h"
+
+#include "rooms/shelter_1f_heliport.h"
+
+#include "rooms/shelter_b1_armory.h"
+
+#include "rooms/shelter_b1_underground_parking.h"
 
 /// 0x10-byte scratch block `func_800D4270` carves off `G_SCRATCH_HEAD` for the
 /// GTE round trip: `vx`/`vy`/`vz` receive the scaled vertex (`gte_stsv`) and

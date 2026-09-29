@@ -1,12 +1,14 @@
-/* The records after Dryfield room 4's collision grid: its two views, their
- * empty sprite lists and the location's parameters.
- */
-#include "common.h"
-#include "rooms/stage_tables.h"
+#include "rooms/dryfield_r04.h"
+
+#include "types.h"
 
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
+
+/* The records after Dryfield room 4's collision grid: its two views, their
+ * empty sprite lists and the location's parameters.
+ */
 
 GpViewRec D_dryfield_r04_8017E218[2] = {
     { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { 0, 0x7530, 0 } }, 0xCF },

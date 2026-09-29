@@ -1,9 +1,11 @@
-#ifndef ACTORS_SHARED_80131FC8_H
-#define ACTORS_SHARED_80131FC8_H
+#ifndef INCLUDE_ACTORS_ACTORS_SHARED_80131FC8_H
+#define INCLUDE_ACTORS_ACTORS_SHARED_80131FC8_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "common.h"
-#include "psyq/libgte.h"
-#include "psyq/libgpu.h"
 
 typedef struct ActorsDrawScratch {
     /* 0x00 */ s32     otz;
@@ -13,8 +15,4 @@ typedef struct ActorsDrawScratch {
 } ActorsDrawScratch;
 STATIC_ASSERT_SIZEOF(ActorsDrawScratch, 0x14);
 
-/// Byte view of gDisplayState.drawBuffer at 0x80070F87.
-
-void ActorsShared80131fc8(s32 otz);
-
-#endif
+#endif // INCLUDE_ACTORS_ACTORS_SHARED_80131FC8_H

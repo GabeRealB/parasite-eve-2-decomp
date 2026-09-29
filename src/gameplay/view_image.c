@@ -12,17 +12,17 @@
 #include "main/mem.h"
 #include "main/task_types.h"
 
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
+
 DR_STP D_80114C50;
-
-extern GpViewTbl D_map_akropolis_8017AC14;
-
-extern GpViewTbl D_map_dryfield_8017AB60;
-
-extern GpViewTbl D_map_dryfield_full_8017AA74;
-
-extern GpViewTbl D_map_shelter_8017B480;
-
-extern GpViewTbl D_map_neo_ark_8017AD28;
 
 GpViewTbl* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield_8017AB60, &D_map_dryfield_full_8017AA74, &D_map_shelter_8017B480, &D_map_neo_ark_8017AD28 };
 

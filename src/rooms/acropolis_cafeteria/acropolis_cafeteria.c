@@ -1,55 +1,62 @@
-#include "actors/actor_310600.h"
-#include "actors/actor_210600.h"
-#include "gameplay/animation.h"
-#include "actors/actor_202900.h"
-#include "common.h"
+#include "rooms/acropolis_cafeteria.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include "rooms/acropolis_cafeteria.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/attachments.h"
-#include "gameplay/captions.h"
-#include "gameplay/loading.h"
-#include "gameplay/collision.h"
-#include "gameplay/companion_load.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/light.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/direction_input.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "acropolis_cafeteria_private.h"
 
-extern SVECTOR D_acropolis_cafeteria_80184E80[2];
+#include "actors/actor_202900.h"
+
+#include "actors/actor_210600.h"
+
+#include "actors/actor_310600.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/companion_load.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/map_akropolis.h"
 
 extern GpAnimSet* D_acropolis_cafeteria_80182C60[4];
 
@@ -58,25 +65,21 @@ extern GpAnimSet* D_acropolis_cafeteria_80182C40[1];
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern GpMsgEntry     D_acropolis_cafeteria_80182AA8[];
-extern TaskDesc       D_acropolis_cafeteria_80182AD8[];
+extern GpMsgEntry D_acropolis_cafeteria_80182AA8[];
+
 extern GpXformArg D_acropolis_cafeteria_80182D28;
-extern s32            D_acropolis_cafeteria_80182DB8;
+extern s32        D_acropolis_cafeteria_80182DB8;
 extern GpXformArg D_acropolis_cafeteria_80182DDC;
-extern GpEvsCmd D_acropolis_cafeteria_80182E74[];
-extern GpEvsCmd D_acropolis_cafeteria_801831BC[];
-extern GpEvsCmd D_acropolis_cafeteria_8018330C[];
-extern GpEvsCmd D_acropolis_cafeteria_801834D4[];
-extern GpEvsCmd D_acropolis_cafeteria_8018363C[];
-extern GpEvsCmd D_acropolis_cafeteria_80183DBC[];
-extern GpEvsCmd D_acropolis_cafeteria_80183F3C[];
-extern s32            D_acropolis_cafeteria_80184164;
-extern RECT           D_acropolis_cafeteria_80184168;
-extern RECT           D_acropolis_cafeteria_80184170;
-extern GpAreaApplyRec D_acropolis_cafeteria_8018C9D4[];
-extern s32            D_acropolis_cafeteria_8018D6A0;
-extern s32            D_acropolis_cafeteria_8018D6A4;
-extern s32            D_acropolis_cafeteria_8018D6A8;
+extern GpEvsCmd   D_acropolis_cafeteria_80182E74[];
+extern GpEvsCmd   D_acropolis_cafeteria_801831BC[];
+extern GpEvsCmd   D_acropolis_cafeteria_8018330C[];
+extern GpEvsCmd   D_acropolis_cafeteria_801834D4[];
+extern GpEvsCmd   D_acropolis_cafeteria_8018363C[];
+extern GpEvsCmd   D_acropolis_cafeteria_80183DBC[];
+extern GpEvsCmd   D_acropolis_cafeteria_80183F3C[];
+extern s32        D_acropolis_cafeteria_80184164;
+extern RECT       D_acropolis_cafeteria_80184168;
+extern RECT       D_acropolis_cafeteria_80184170;
 
 static void func_acropolis_cafeteria_8017D6AC(Task* task);
 static void func_acropolis_cafeteria_8017E348(Task* task);
@@ -89,27 +92,25 @@ static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
 static const char CafeteriaPlayerLabel[12] = "Player";
 
 extern GpGridParams D_acropolis_cafeteria_801887A8[1];
-extern GpObj3A D_acropolis_cafeteria_80189C94[2];
-extern GpObj4C D_acropolis_cafeteria_801887CC[16];
-extern GpObj4C D_acropolis_cafeteria_80188C8C[18];
-extern GpObj4C D_acropolis_cafeteria_801891E4[16];
-extern GpObj4C D_acropolis_cafeteria_801896A4[20];
-extern GpRoomBoundVec D_acropolis_cafeteria_8018C90C[25];
-extern GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1];
+extern GpObj3A      D_acropolis_cafeteria_80189C94[2];
+extern GpObj4C      D_acropolis_cafeteria_801887CC[16];
+extern GpObj4C      D_acropolis_cafeteria_80188C8C[18];
+extern GpObj4C      D_acropolis_cafeteria_801891E4[16];
+extern GpObj4C      D_acropolis_cafeteria_801896A4[20];
 
 extern GpAnimSet D_acropolis_cafeteria_80184CC4;
-s32 func_acropolis_cafeteria_8017D700(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_cafeteria_8017E0D4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_cafeteria_8017E0DC(Task *, s32, s32, s32);
-s32 func_acropolis_cafeteria_8017E154(Task *, s32, GpMsg13EF *, s32);
-s32 func_acropolis_cafeteria_8017E22C(Task *, s32, s32, s32);
-void func_acropolis_cafeteria_8017D8F8(Task *);
-void func_acropolis_cafeteria_8017DD1C(Task *);
-void func_acropolis_cafeteria_8017DF68(Task *);
-void func_acropolis_cafeteria_8017E27C(s32);
-void func_acropolis_cafeteria_8017E2B0(void);
-void func_acropolis_cafeteria_8017E2D0(void);
-void func_acropolis_cafeteria_8017E310(void);
+s32              func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32              func_acropolis_cafeteria_8017E0D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32              func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
+s32              func_acropolis_cafeteria_8017E154(Task*, s32, GpMsg13EF*, s32);
+s32              func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
+void             func_acropolis_cafeteria_8017D8F8(Task*);
+void             func_acropolis_cafeteria_8017DD1C(Task*);
+void             func_acropolis_cafeteria_8017DF68(Task*);
+void             func_acropolis_cafeteria_8017E27C(s32);
+void             func_acropolis_cafeteria_8017E2B0(void);
+void             func_acropolis_cafeteria_8017E2D0(void);
+void             func_acropolis_cafeteria_8017E310(void);
 
 GpMsgEntry D_acropolis_cafeteria_80182AA8[6] = {
     { 5102, func_acropolis_cafeteria_8017D700 },
@@ -1870,6 +1871,8 @@ AcropolisCafeteriaSpotLightStorage D_acropolis_cafeteria_8018A3C4 = {
         0x28, 0x00, 0x10, 0x00, 0x70, 0x00, 0x50, 0x00,
     },
 };
+
+static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out);
 
 static void func_acropolis_cafeteria_8017D6AC(Task* task)
 {

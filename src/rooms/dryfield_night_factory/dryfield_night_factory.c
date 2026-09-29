@@ -1,46 +1,45 @@
 #include "dryfield_night_factory_private.h"
 
-#include "common.h"
-#include "rooms/dryfield_factory.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+
+#include "gte.h"
+#include "types.h"
+
 #include "rooms/dryfield_night_factory.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include <psyq/libgte.h>
-
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
 #include "gameplay/world_coords.h"
 
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/room.h"
+#include "rooms/dryfield_factory.h"
+
 #include "rooms/room_common.h"
-#include "rooms/stage_tables.h"
-
-#include "gameplay/area.h"
-
-/// The factory model task's spawn tables for the two stage variants.
-extern TaskDesc D_dryfield_night_factory_80186DE0[];
-
-/// The collision-grid templates the factory model's faces are rebuilt from,
-/// and the one two of the grid's faces are restored from.
-extern GpGridParams D_dryfield_night_factory_80186C20;
-extern GpGridParams D_dryfield_night_factory_80186CF0;
-extern GpGridParams D_dryfield_night_factory_80186DBC;
 
 /// The two argument blocks one of the turn handlers hands `Gp_SpawnScript18`,
 /// one pair per stage variant.
@@ -75,35 +74,6 @@ static const TaskFuncTable3 D_dryfield_night_factory_8017D5D0 = {
 static const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC = {
     { func_dryfield_night_factory_8017FDC8, func_dryfield_night_factory_8017F00C, func_dryfield_night_factory_8017F1DC },
 };
-
-extern GpSprtCmd D_dryfield_night_factory_80187EC0[2];
-extern GpSprtCmd D_dryfield_night_factory_80187FD4[6];
-extern GpSprtCmd D_dryfield_night_factory_801880F4[5];
-extern GpSprtCmd D_dryfield_night_factory_80188784[7];
-extern GpSprtCmd D_dryfield_night_factory_801887BC[2];
-extern GpSprtCmd D_dryfield_night_factory_80188A4C[7];
-extern GpSprtCmd D_dryfield_night_factory_80188D90[8];
-extern GpSprtCmd D_dryfield_night_factory_80188EC0[3];
-extern GpSprtCmd D_dryfield_night_factory_80188F28[3];
-extern GpSprtCmd D_dryfield_night_factory_80188F40[2];
-extern GpSprtCmd D_dryfield_night_factory_80188F50[2];
-extern GpSprtCmd D_dryfield_night_factory_80188F60[2];
-extern GpSprtCmd D_dryfield_night_factory_80188F70[2];
-extern GpSprtCmd D_dryfield_night_factory_80188F80[2];
-extern GpSprtCmd D_dryfield_night_factory_801895A8[6];
-extern GpSprtCmd D_dryfield_night_factory_80189858[5];
-extern GpSprtCmd D_dryfield_night_factory_80189880[2];
-extern GpSprtCmd D_dryfield_night_factory_801899E4[6];
-extern GpSprtElem D_dryfield_night_factory_80187ED0[13];
-extern GpSprtElem D_dryfield_night_factory_80188004[12];
-extern GpSprtElem D_dryfield_night_factory_8018811C[82];
-extern GpSprtElem D_dryfield_night_factory_801887CC[32];
-extern GpSprtElem D_dryfield_night_factory_80188A84[39];
-extern GpSprtElem D_dryfield_night_factory_80188DD0[12];
-extern GpSprtElem D_dryfield_night_factory_80188ED8[4];
-extern GpSprtElem D_dryfield_night_factory_80188F90[78];
-extern GpSprtElem D_dryfield_night_factory_801895D8[32];
-extern GpSprtElem D_dryfield_night_factory_80189890[17];
 
 GpSprtCmd D_dryfield_night_factory_80189A14[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
@@ -261,6 +231,13 @@ TaskDesc * D_dryfield_night_factory_8018A7E4 = NULL;
 Task ** D_dryfield_night_factory_8018A7E8 = NULL;
 
 RoomEventReq D_dryfield_night_factory_8018A7EC = { 0 };
+
+static s32 func_dryfield_night_factory_8017DA54(Task* task);
+static s32 func_dryfield_night_factory_8017DDD4(Task* task);
+static s32 func_dryfield_night_factory_8017E13C(Task* task);
+static s32 func_dryfield_night_factory_8017E480(Task* task);
+static s32 func_dryfield_night_factory_8017E7A4(Task* task);
+static s32 func_dryfield_night_factory_8017EBD4(Task* task);
 
 /// State 0 of the room's factory model: allocate the work block, seed it from
 /// the progress nibble, point the model's coordinate at the seeded position

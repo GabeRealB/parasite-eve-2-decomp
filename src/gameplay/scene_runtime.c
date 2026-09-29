@@ -1,26 +1,12 @@
 #include "gameplay/scene_runtime.h"
-#include "rooms/mist_shooting_gallery.h"
-#include "rooms/neo_ark_pavilion.h"
-#include "rooms/shelter_r48.h"
-#include "rooms/dryfield_night_motel_room_6.h"
-#include "rooms/dryfield_motel_room_6.h"
-#include "rooms/neo_ark_bridge.h"
-#include "rooms/shelter_b1_control_room.h"
-#include "rooms/neo_ark_island.h"
-#include "rooms/neo_ark_submarine_gallery.h"
-#include "rooms/neo_ark_woodland_path.h"
-#include "rooms/neo_ark_garden.h"
-#include "rooms/neo_ark_submarine_tunnel.h"
-#include "rooms/neo_ark_observatory.h"
-#include "rooms/neo_ark_r31.h"
 
 #include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
 #include <psyq/libcd.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
@@ -34,6 +20,7 @@
 #include "gameplay/area_flags.h"
 #include "area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
 #include "gameplay/display.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
@@ -46,7 +33,6 @@
 #include "gameplay/world_targets.h"
 #include "world_targets.h"
 
-#include "gameplay/damage.h"
 #include "main/cdaudio.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -63,6 +49,44 @@
 #include "main/stream_types.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/dryfield_motel_room_6.h"
+
+#include "rooms/dryfield_night_motel_room_6.h"
+
+#include "rooms/mist_shooting_gallery.h"
+
+#include "rooms/neo_ark_bridge.h"
+
+#include "rooms/neo_ark_garden.h"
+
+#include "rooms/neo_ark_island.h"
+
+#include "rooms/neo_ark_observatory.h"
+
+#include "rooms/neo_ark_pavilion.h"
+
+#include "rooms/neo_ark_r31.h"
+
+#include "rooms/neo_ark_submarine_gallery.h"
+
+#include "rooms/neo_ark_submarine_tunnel.h"
+
+#include "rooms/neo_ark_woodland_path.h"
+
+#include "rooms/shelter_b1_control_room.h"
+
+#include "rooms/shelter_r48.h"
 
 /// Source/dest pointers for `Gp_AnimBlendPacked` / `Gp_AnimBlendPose`. Lives at
 /// offset 4 of the 0x18-byte scratch `func_800B3448` allocates from
@@ -305,16 +329,6 @@ extern TaskDesc D_80119218[];
 extern TaskDesc D_8011922C[];
 
 extern TaskDesc D_801637C8[];
-
-extern GpBit2List D_map_akropolis_8017A7FC[];
-
-extern GpBit2List D_map_dryfield_8017A564[];
-
-extern GpBit2List D_map_dryfield_full_8017A46C[];
-
-extern GpBit2List D_map_shelter_8017A998[];
-
-extern GpBit2List D_map_neo_ark_8017A6EC[];
 
 GpSndMaskRec Gp_SndMaskTable[7] = {
     { 1, 0 },

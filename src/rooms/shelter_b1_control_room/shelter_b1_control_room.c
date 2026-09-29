@@ -1,31 +1,38 @@
-#include "common.h"
 #include "rooms/shelter_b1_control_room.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
 #include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
 #include "gameplay/model_objects.h"
 
-#include "gameplay/evs.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
 
 /// The mirror's configuration, filled in by `func_shelter_b1_control_room_8017D600`
 /// whenever the view moves. `active` other than 1 hides the reflection.
@@ -104,12 +111,12 @@ extern s32        D_80133088;
 
 static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
 
-s32 func_shelter_b1_control_room_8017ECCC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_control_room_8017ECD4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b1_control_room_8017ED68(Task *, s32, s32, s32);
-s32 func_shelter_b1_control_room_8017EE24(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_8017ECCC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_control_room_8017ED68(Task*, s32, s32, s32);
+s32 func_shelter_b1_control_room_8017EE24(Task*, s32, GpMessageArg, GpMessageArg);
 
-void func_shelter_b1_control_room_8017D7B8(Task *);
+void func_shelter_b1_control_room_8017D7B8(Task*);
 
 TaskDesc D_shelter_b1_control_room_80181B88 = { 0, 112, func_shelter_b1_control_room_8017D7B8, { .model = NULL } };
 
@@ -120,6 +127,10 @@ GpMsgEntry D_shelter_b1_control_room_80181B94[5] = {
     { 5104, func_shelter_b1_control_room_8017ED68 },
     { 0x7FFFFFFF, NULL },
 };
+
+static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out);
+static void        func_shelter_b1_control_room_8017EE2C(Task* arg0);
+static void        func_shelter_b1_control_room_8017EEBC(Task* task);
 
 /// Applies `m` to `v` through the GTE and stores the result in `out`.
 static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)

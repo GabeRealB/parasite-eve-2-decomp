@@ -1,51 +1,57 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
-
-#include "actors/actor.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
 
+#include "gte.h"
+#include "types.h"
+
+#include "actors/actor.h"
+
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/collision.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/room.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
 static void Actor05700_Fn00D08(Task* arg0);
 static void Actor05700_Fn02554(Task* arg0);
@@ -104,24 +110,24 @@ extern TmdSource Actor05700_D0A3D8;
 extern TmdSource Actor05700_D0A824;
 extern TmdSource Actor05700_D0AB4C;
 extern TmdSource Actor05700_D0AE78;
-void Actor05700_Fn00B24(Task *);
-void Actor05700_Fn00E44(Task *);
-void Actor05700_Fn01220(Task *);
-void Actor05700_Fn01318(Task *);
-void Actor05700_Fn01E28(Task *);
-void Actor05700_Fn023AC(Task *);
-void Actor05700_Fn03930(Task *);
-void Actor05700_Fn04714(Task *);
-void Actor05700_Fn04CC0(Task *);
-void Actor05700_Fn04DA0(Task *);
-void Actor05700_Fn04E2C(Task *);
-void Actor05700_Fn04EF4(Task *);
-void Actor05700_Fn04F80(Task *);
-void Actor05700_Fn05038(Task *);
-void Actor05700_Fn05040(Task *);
-void Actor05700_Fn0517C(Task *);
-void Actor05700_Fn05270(Task *);
-void Actor05700_Fn05470(Task *);
+void             Actor05700_Fn00B24(Task*);
+void             Actor05700_Fn00E44(Task*);
+void             Actor05700_Fn01220(Task*);
+void             Actor05700_Fn01318(Task*);
+void             Actor05700_Fn01E28(Task*);
+void             Actor05700_Fn023AC(Task*);
+void             Actor05700_Fn03930(Task*);
+void             Actor05700_Fn04714(Task*);
+void             Actor05700_Fn04CC0(Task*);
+void             Actor05700_Fn04DA0(Task*);
+void             Actor05700_Fn04E2C(Task*);
+void             Actor05700_Fn04EF4(Task*);
+void             Actor05700_Fn04F80(Task*);
+void             Actor05700_Fn05038(Task*);
+void             Actor05700_Fn05040(Task*);
+void             Actor05700_Fn0517C(Task*);
+void             Actor05700_Fn05270(Task*);
+void             Actor05700_Fn05470(Task*);
 
 s16 Actor05700_D054CC[32] = {
     0,
@@ -1253,6 +1259,61 @@ TaskFunc Actor05700_D17484[15] = {
     Actor05700_Fn01318,
     Actor05700_Fn04F80,
 };
+
+extern s16 Actor05700_D173C8[][4];
+
+/// Places a fresh body block for the actor: allocates the 0xF0-byte work
+/// block, builds the root coordinate by rotating the local spawn offset through
+/// the parent coordinate and re-aiming it, then links the three collision
+/// bodies and their `GpRec18` tables onto the model root and hands the light /
+/// colour matrices to its `TmdObject`. The sound cue that marks the placement
+/// packs the room/channel bits of the spawn context into `Actor05700_D17228`.
+extern s32 Actor05700_D17228;
+
+/// Sound id of the burst cue, with the spawn context's room/channel bits
+/// packed in like `Actor05700_D17228`.
+extern s32 Actor05700_D1722C;
+
+extern s32 Actor05700_D17230;
+
+extern s32 Actor05700_D17234;
+
+/// Animation bank the work block's animation context is started on.
+extern GpAnimSet* Actor05700_D17408[31];
+
+/// The actor's spawn table: entry 3 is the model child re-skinned with the
+/// placement's texture page, entry 1 the effect child, and the whole table
+/// is kept in `field_66C` for later spawns.
+extern TaskDesc Actor05700_D173D8[];
+
+/// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
+extern u16* Actor05700_D173B0[];
+
+/// Enemy parameter record the spawn hands to its `GpEnemy`.
+extern GpPairSrcE Actor05700_D17108[];
+
+/// Per-state handlers of the approach cycle, indexed by `field_6A6`.
+extern TaskFunc Actor05700_D17484[];
+
+/// Sound id the spawn cue is played against; the low byte comes from the
+/// context block's room/channel bits.
+extern s32 Actor05700_D17238;
+
+static void            Actor05700_Fn000B0(Task* arg0);
+static void            Actor05700_Fn01544(Task* arg0);
+static void            Actor05700_Fn016D0(Task* arg0);
+static void            Actor05700_Fn018DC(Task* arg0);
+static void            Actor05700_Fn01A58(GpEnemy* arg0, Task* arg1);
+static void            Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1);
+static void            Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1);
+static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx);
+static void            Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor);
+static __inline__ void Actor105700_SpawnDust(Task* actor);
+static inline void     _actor05700ApplyReaction(Task* actor);
+static inline void     _actor05700StepRoot(Task* actor);
+static inline void     _actor05700TickAnim(Task* actor);
+static inline void     _actor05700Draw(Task* actor, GpCoord* coord);
+static void            Actor05700_Fn04338(GpEnemy* ctx, Task* actor);
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -2573,8 +2634,6 @@ static void Actor05700_Fn02554(Task* arg0)
     SCRATCH_POP_BYTES(0x40);
 }
 
-extern s16 Actor05700_D173C8[][4];
-
 /// Draws the aim beam from `arg2` to `arg1` in eight projected steps. Each
 /// step nearer than OTZ 30 is skipped; otherwise the segment's screen normal
 /// (`VectorNormalS`) offsets the ends by a depth-scaled width into two
@@ -2684,14 +2743,6 @@ static void Actor05700_Fn0295C(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
     }
     SCRATCH_POP_BYTES(0x48);
 }
-
-/// Places a fresh body block for the actor: allocates the 0xF0-byte work
-/// block, builds the root coordinate by rotating the local spawn offset through
-/// the parent coordinate and re-aiming it, then links the three collision
-/// bodies and their `GpRec18` tables onto the model root and hands the light /
-/// colour matrices to its `TmdObject`. The sound cue that marks the placement
-/// packs the room/channel bits of the spawn context into `Actor05700_D17228`.
-extern s32 Actor05700_D17228;
 
 static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
 {
@@ -2813,10 +2864,6 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     SCRATCH_POP_BYTES(0x38);
 }
 
-/// Sound id of the burst cue, with the spawn context's room/channel bits
-/// packed in like `Actor05700_D17228`.
-extern s32 Actor05700_D1722C;
-
 /// Per-frame tick of the placed effect body from `Actor05700_Fn031BC`.
 /// Mode 0 of `Gp_StateF0.field_4` drifts the root coordinate along its Y axis, puffs
 /// an effect every fourth frame and ends the cycle - burst, sound cue and
@@ -2893,9 +2940,6 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
     }
     SCRATCH_POP_BYTES(0x28);
 }
-
-extern s32 Actor05700_D17230;
-extern s32 Actor05700_D17234;
 
 /// Four-step burst sequence driven by `field_6A8`: 0 spawns the effect and cue
 /// on entry, rumbles every tenth frame and either ends after `field_6B6` passes
@@ -2985,20 +3029,6 @@ void Actor05700_Fn03930(Task* arg0)
     }
     SCRATCH_POP_BYTES(8);
 }
-
-/// Animation bank the work block's animation context is started on.
-extern GpAnimSet* Actor05700_D17408[31];
-
-/// The actor's spawn table: entry 3 is the model child re-skinned with the
-/// placement's texture page, entry 1 the effect child, and the whole table
-/// is kept in `field_66C` for later spawns.
-extern TaskDesc Actor05700_D173D8[];
-
-/// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
-extern u16* Actor05700_D173B0[];
-
-/// Enemy parameter record the spawn hands to its `GpEnemy`.
-extern GpPairSrcE Actor05700_D17108[];
 
 /// `actorTintModel` for a spawned enemy's model.
 static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx)
@@ -3195,9 +3225,6 @@ static void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
             break;
     }
 }
-
-/// Per-state handlers of the approach cycle, indexed by `field_6A6`.
-extern TaskFunc Actor05700_D17484[];
 
 /// Every third frame while `field_6C4` is clear, kicks a dust effect off the
 /// fourth body coordinate with a random upward velocity.
@@ -3883,10 +3910,6 @@ static const GpEnemyTaskFuncTable3 Actor05700_D000A4 = {
     Actor05700_Fn04338,
     Actor05700_Fn01A58,
 };
-
-/// Sound id the spawn cue is played against; the low byte comes from the
-/// context block's room/channel bits.
-extern s32 Actor05700_D17238;
 
 /// Spawns the effect burst for the owner's coordinate, hands that coordinate
 /// to the pan/depth sound cue, then parks the work block in state 2.

@@ -1,32 +1,32 @@
-#ifndef ACTORS_ACTOR_H
-#define ACTORS_ACTOR_H
+#ifndef INCLUDE_ACTORS_ACTOR_H
+#define INCLUDE_ACTORS_ACTOR_H
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
 
 #include "common.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
 #include "gte.h"
-#include "overlay.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
-#include "gameplay/world_collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -35,18 +35,9 @@
 #include "main/tmd_types.h"
 #include "main/wipsys_types.h"
 
-/*
- * Types and helpers that the actor overlays each carry a copy of.
- *
- * Every actor overlay is linked on its own, so code the actors share was
- * compiled into each of them. The layouts below are the ones several actors
- * repeat field for field; one declaration serves all of them.
- */
+#include "overlay.h"
 
-/* Scratch-pad blocks.
- *
- * These are carved off the top of the scratch pad through `G_SCRATCH_HEAD`
- * for the duration of one call and released before it returns. */
+struct GpEffWork;
 
 /// Working state of the push-out walk over an actor's contact records: the
 /// coordinate's world translation, the push that moves it out of the latest
@@ -391,28 +382,6 @@ typedef struct ActorBearingScratch {
 } ActorBearingScratch;
 STATIC_ASSERT_SIZEOF(ActorBearingScratch, 0x40);
 
-/// Bearing of `other` from `self`, measured in `self`'s own frame and folded
-/// into -0x800..0x800. The offset between the two world positions is written
-/// to `blk->delta` and rotated there through `blk->frame`, the transpose of
-/// `self`'s world matrix; the caller owns `blk` and may reuse it afterwards.
-static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GpCoord* self, GpCoord* other)
-{
-    s32 angle;
-
-    blk->delta.vx = other->workm.t[0] - self->workm.t[0];
-    blk->delta.vy = other->workm.t[1] - self->workm.t[1];
-    blk->delta.vz = other->workm.t[2] - self->workm.t[2];
-    TransposeMatrix(&self->workm, &blk->frame);
-    gfxRotateSv(&blk->frame, &blk->delta);
-    angle = ratan2(blk->delta.vx, blk->delta.vz);
-    if (angle >= 0x801) {
-        angle -= 0x1000;
-    } else if (angle < -0x800) {
-        angle += 0x1000;
-    }
-    return angle;
-}
-
 /// The scratch-pad block of a head turned to aim at the player: `view` is the
 /// head coordinate in view space, `delta` the player's offset from it, and
 /// `local` that offset rotated into the body's frame and clamped.
@@ -476,8 +445,6 @@ typedef struct ActorSpawnParamRow {
 } ActorSpawnParamRow;
 STATIC_ASSERT_SIZEOF(ActorSpawnParamRow, 0xC);
 
-/* Tables. */
-
 /// One row of a per-room height clamp: when `field_0` / `field_2` match the
 /// session's stage and area, the actor's height is clamped to [`lo`, `hi`].
 typedef struct ActorHeightClamp {
@@ -488,8 +455,6 @@ typedef struct ActorHeightClamp {
     byte pad_8[8];
 } ActorHeightClamp;
 STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
-
-/* Animated enemy parts. */
 
 /// The animation rig of a twenty-part model: the context `func_800B3F84`
 /// builds, and the playback slots and pose buffer that context points at. The
@@ -541,8 +506,6 @@ typedef struct ActorAnimStep {
     s16 animId;
 } ActorAnimStep;
 STATIC_ASSERT_SIZEOF(ActorAnimStep, 0x4);
-
-/* Work blocks of actors that carry the same code. */
 
 /// Status flags of `Actor341700Work`, read through two widths: every guard
 /// tests bit 0 as a halfword and then bits 0x102 as a word.
@@ -923,10 +886,6 @@ typedef struct Actor161500Work {
     GpEnemy*        enemy;
 } Actor161500Work;
 STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
-
-/* actor_402200 and actor_403900 carry the same enemy code. Function and data
- * names in these comments are actor_402200's; actor_403900 has the same
- * bodies at other addresses. */
 
 /// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`: the
 /// entry's kind at `field_0` (0 a circle of radius `field_2` round
@@ -1311,9 +1270,6 @@ typedef struct Actor402200GrabScratch {
 } Actor402200GrabScratch;
 STATIC_ASSERT_SIZEOF(Actor402200GrabScratch, 0x5C);
 
-/* actor_323000 and actor_323400 carry the same enemy code. Function names in
- * these comments are actor_323000's. */
-
 /// The 0x934-byte work block the spawn handler allocates and hangs behind
 /// `Task::work`. Only the fields the handlers touch are known: `field_4` is
 /// the state-change flag every state handler tests, and `field_828` onwards
@@ -1413,18 +1369,6 @@ typedef struct Actor110300Work {
     byte            pad_4AC[0xB0];
 } Actor110300Work;
 STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
-
-/* actor_403200 and actor_444000 carry variants of the same boss code; the
- * main work block, the helper tasks' blocks and the tables are the same.
- * Function and data names in these comments are actor_403200's. */
-
-/// Ten-set view of one `Gp_PlayerAnimBlkTbl` entry: an array of animation-set
-/// pointers. The launch state reads `sets[7]` and the grab's hold state
-/// `sets[9]`.
-typedef struct Actor403200AnimTable {
-    GpAnimSet* sets[10];
-} Actor403200AnimTable;
-STATIC_ASSERT_SIZEOF(Actor403200AnimTable, 0x28);
 
 /// Scratch coordinate with word access to its identity rotation matrix.
 typedef union Actor403200DropCoord {
@@ -1846,10 +1790,6 @@ typedef struct Actor403200Work {
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
-/* actor_05600, actor_05700 and actor_02300 carry the same enemy code, and
- * actor_02000 shares its hit handling. Function names in these comments are
- * actor_05600's or actor_05700's. */
-
 /// Work block of that enemy, allocated at its full size and kept at
 /// `Task::work`: the animation context with its nineteen slots and pose
 /// records, the light and colour matrices, the body objects with their
@@ -2105,11 +2045,27 @@ typedef struct Actor150400Work {
 } Actor150400Work;
 STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
-/* Helpers.
- *
- * Inline bodies each actor compiled from its own copy of the same source.
- * They stay inline: the callers' code was generated with the body expanded in
- * place, which a call would not reproduce. */
+/// Bearing of `other` from `self`, measured in `self`'s own frame and folded
+/// into -0x800..0x800. The offset between the two world positions is written
+/// to `blk->delta` and rotated there through `blk->frame`, the transpose of
+/// `self`'s world matrix; the caller owns `blk` and may reuse it afterwards.
+static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GpCoord* self, GpCoord* other)
+{
+    s32 angle;
+
+    blk->delta.vx = other->workm.t[0] - self->workm.t[0];
+    blk->delta.vy = other->workm.t[1] - self->workm.t[1];
+    blk->delta.vz = other->workm.t[2] - self->workm.t[2];
+    TransposeMatrix(&self->workm, &blk->frame);
+    gfxRotateSv(&blk->frame, &blk->delta);
+    angle = ratan2(blk->delta.vx, blk->delta.vz);
+    if (angle >= 0x801) {
+        angle -= 0x1000;
+    } else if (angle < -0x800) {
+        angle += 0x1000;
+    }
+    return angle;
+}
 
 /// The push that moves `pos` out of the contact record `rec`: how deep `pos`
 /// sits inside the record's radius, along the direction from the record's
@@ -2861,21 +2817,4 @@ static __inline__ s16 actorWrapAngle(s16 angle)
     return overlayWrapAngle(angle);
 }
 
-/// Task entries the resident task descriptor tables name. A table in main or
-/// gameplay reaches each of these by name, so they are the family's interface
-/// to the resident code.
-void func_actor_800300_801625F4(Task* task);
-void func_actor_800200_801626EC(Task* task);
-void func_actor_800100_80163CF0(Task* task);
-
-/// Models those descriptors attach.
-extern TmdSource D_actor_800300_8016885C;
-extern TmdSource D_actor_800200_80169ECC;
-
-/// An enemy task and the models its descriptors attach, named by the enemy
-/// descriptor tables of the Shelter map UI overlay.
-void             func_actor_503500_8013270C(Task* task);
-extern TmdSource D_actor_503500_80147314;
-extern TmdSource D_actor_503500_80147D6C;
-
-#endif /* ACTORS_ACTOR_H */
+#endif // INCLUDE_ACTORS_ACTOR_H

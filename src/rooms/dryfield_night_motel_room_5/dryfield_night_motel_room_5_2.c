@@ -1,15 +1,15 @@
-#include "common.h"
+#include "rooms/dryfield_night_motel_room_5.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "rooms/dryfield_night_motel_room_5.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
+#include "dryfield_night_motel_room_5_private.h"
 
-#include "main/session.h"
-#include "main/task_types.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -17,21 +17,23 @@
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc.
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA58[1];
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA60[1];
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA68[1];
 
-extern GpGridParams D_dryfield_night_motel_room_5_8017E03C[1];
-extern GpObj3A D_dryfield_night_motel_room_5_80180ED8[2];
-extern GpObj4C D_dryfield_night_motel_room_5_80180A18[8];
-extern GpObj4C D_dryfield_night_motel_room_5_80180C78[8];
+extern GpGridParams   D_dryfield_night_motel_room_5_8017E03C[1];
+extern GpObj3A        D_dryfield_night_motel_room_5_80180ED8[2];
+extern GpObj4C        D_dryfield_night_motel_room_5_80180A18[8];
+extern GpObj4C        D_dryfield_night_motel_room_5_80180C78[8];
 extern GpRoomCoordSet D_dryfield_night_motel_room_5_8018113C[1];
 
 SVECTOR D_dryfield_night_motel_room_5_8017DA58[1] = {

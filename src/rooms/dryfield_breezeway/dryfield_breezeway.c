@@ -1,34 +1,45 @@
+#include "rooms/dryfield_breezeway.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
 #include "dryfield_breezeway_private.h"
 
-#include "common.h"
-
-#include "rooms/dryfield_breezeway.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -37,21 +48,6 @@
 /// event task it spawns to act on them.
 extern RoomEventMsg D_dryfield_breezeway_8018439C;
 extern RoomEventReq D_dryfield_breezeway_801843AC;
-extern TaskDesc     D_dryfield_breezeway_80181DD4;
-
-extern TaskDesc D_dryfield_breezeway_80181E10[];
-extern TaskDesc D_dryfield_breezeway_801820B0[];
-extern TaskDesc D_dryfield_breezeway_80182E18;
-
-/// This room's `GpMsgEntry` id/handler table, the one
-/// `func_dryfield_breezeway_8017DDB0` parks in `Task::msgTable` so
-/// `Gp_DispatchMsg` routes messages into the room at all: 0x13EE ->
-/// `func_dryfield_breezeway_8017D940`, 0x13EF ->
-/// `func_dryfield_breezeway_8017DBD8` (the hotspot gate, whose sub-id 1 arms
-/// the room's task), 0x13F0 -> `func_dryfield_breezeway_8017DA48` (the
-/// weapon/state sequencer), 0x13F1 -> `func_dryfield_breezeway_8017D90C` and
-/// 0x13F2 -> `func_dryfield_breezeway_8017DBA4`, terminated by 0x7FFFFFFF.
-extern struct _GpMsgEntry D_dryfield_breezeway_80181DE0[];
 
 /// Handle of the room's key-item event task, which
 /// `func_dryfield_breezeway_8017DC3C` spawns from
@@ -69,11 +65,11 @@ extern GpAreaTmdRec D_dryfield_breezeway_80184268[3];
 extern GpAreaTmdRec D_dryfield_breezeway_8018428C[2];
 extern GpAreaTmdRec D_dryfield_breezeway_801842A4[3];
 
-extern GpGridParams D_dryfield_breezeway_80183628[1];
-extern GpObj4C D_dryfield_breezeway_80183DE4[4];
-extern GpObj4C D_dryfield_breezeway_80183F14[5];
+extern GpGridParams   D_dryfield_breezeway_80183628[1];
+extern GpObj4C        D_dryfield_breezeway_80183DE4[4];
+extern GpObj4C        D_dryfield_breezeway_80183F14[5];
 extern GpRoomCoordSet D_dryfield_breezeway_80184250[1];
-extern TaskDesc D_8014D8A4;
+extern TaskDesc       D_8014D8A4;
 
 u_long D_dryfield_breezeway_80182F44[128] = {
     0x430000,
@@ -743,6 +739,10 @@ Task * D_dryfield_breezeway_801843A8 = NULL;
 RoomEventReq D_dryfield_breezeway_801843AC = { 0 };
 
 Task * D_dryfield_breezeway_801843C0 = NULL;
+
+static s32  func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_breezeway_8017DDB0(Task* task);
+static void func_dryfield_breezeway_8017DE60(Task* task);
 
 /// The room's event gate, called by `func_dryfield_breezeway_8017D940` with the
 /// request it builds on the stack. A set flag nibble (or a clear one, for a

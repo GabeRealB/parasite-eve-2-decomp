@@ -1,28 +1,36 @@
-#include "common.h"
 #include "rooms/mine_gorge.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "actors/task_tables.h"
 
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
 /// the room publishes as its `Gp_State1C->roomEffectMode` variant index.
@@ -38,11 +46,11 @@ extern SVECTOR D_mine_gorge_8017E798[];
 
 static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpGridParams D_mine_gorge_8017F184[1];
-extern GpGridParams D_mine_gorge_8017F9F0[1];
-extern GpObj4C D_mine_gorge_80182AD4[8];
-extern GpObj4C D_mine_gorge_80182D34[8];
-extern GpObj4C D_mine_gorge_80182F94[5];
+extern GpGridParams   D_mine_gorge_8017F184[1];
+extern GpGridParams   D_mine_gorge_8017F9F0[1];
+extern GpObj4C        D_mine_gorge_80182AD4[8];
+extern GpObj4C        D_mine_gorge_80182D34[8];
+extern GpObj4C        D_mine_gorge_80182F94[5];
 extern GpRoomBoundVec D_mine_gorge_801835A4[12];
 extern GpRoomCoordSet D_mine_gorge_80182ABC[1];
 

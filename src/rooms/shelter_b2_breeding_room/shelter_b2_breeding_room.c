@@ -1,19 +1,25 @@
-#include "common.h"
-#include "mapui/map_shelter.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_b2_breeding_room.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/object_task.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
+#include "rooms/room.h"
 
 /// Task table spawned by `func_shelter_b2_breeding_room_8017D6A4` once the
 /// breeding-room script has run.
@@ -22,17 +28,17 @@ extern TaskDesc D_shelter_b2_breeding_room_80180444[];
 /// Message table `func_shelter_b2_breeding_room_8017D7EC` installs on its task.
 extern GpMsgEntry D_shelter_b2_breeding_room_80180414[];
 
-s32 func_shelter_b2_breeding_room_8017D658(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_breeding_room_8017D660(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_breeding_room_8017D6A4(Task *, s32, s32, s32);
-s32 func_shelter_b2_breeding_room_8017D750(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_breeding_room_8017D758(Task *, s32, s32, GpMessageArg);
-void func_shelter_b2_breeding_room_8017D7A8(Task *);
+s32  func_shelter_b2_breeding_room_8017D658(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_breeding_room_8017D660(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_breeding_room_8017D6A4(Task*, s32, s32, s32);
+s32  func_shelter_b2_breeding_room_8017D750(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_breeding_room_8017D758(Task*, s32, s32, GpMessageArg);
+void func_shelter_b2_breeding_room_8017D7A8(Task*);
 
 extern SVECTOR D_shelter_b2_breeding_room_801803A4[4];
 extern TmdBone D_shelter_b2_breeding_room_8018037C[1];
-extern u32 D_shelter_b2_breeding_room_801803A0[1];
-extern u32 D_shelter_b2_breeding_room_801803C4[11];
+extern u32     D_shelter_b2_breeding_room_801803A0[1];
+extern u32     D_shelter_b2_breeding_room_801803C4[11];
 
 TmdBone D_shelter_b2_breeding_room_8018037C[1] = {
 #include "assets/shelter_b2_breeding_room_model_02E30_skeleton.inc"
@@ -64,6 +70,9 @@ GpMsgEntry D_shelter_b2_breeding_room_80180414[6] = {
 TaskDesc D_shelter_b2_breeding_room_80180444[1] = {
     { 0, 32, func_shelter_b2_breeding_room_8017D7A8, { .model = NULL } },
 };
+
+static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0);
+static void func_shelter_b2_breeding_room_8017D838(Task* task);
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.

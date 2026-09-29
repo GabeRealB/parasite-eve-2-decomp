@@ -1,22 +1,27 @@
 #include "dryfield_gas_station_private.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "common.h"
 
-#include "rooms/dryfield_gas_station.h"
-#include "rooms/room.h"
-
-#include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
 #include "overlay.h"
 
 /// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
@@ -28,9 +33,6 @@ typedef struct DgsCutsceneSlot {
     /* 0x0 */ Task* child;
 } DgsCutsceneSlot;
 STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
-
-extern TaskDesc D_dryfield_gas_station_80181E7C[];
-extern TaskDesc D_dryfield_gas_station_8018312C[];
 
 void func_dryfield_gas_station_8017FFE4(Task* arg0)
 {

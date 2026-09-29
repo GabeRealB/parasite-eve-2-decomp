@@ -1,58 +1,72 @@
 #include "rooms/shelter_b4_reservoir.h"
-#include "mapui/map_shelter.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
-#include <psyq/rand.h>
 
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
+
+#define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 extern SVECTOR D_shelter_b4_reservoir_80185024[14];
 
@@ -108,27 +122,27 @@ extern OverlayWaveCtx* D_shelter_b4_reservoir_80187504;
 extern OverlayWaveRec6 D_shelter_b4_reservoir_80187514[13];
 extern OverlayWaveRec6 D_shelter_b4_reservoir_80187564[32];
 
-extern GpMsgEntry               D_shelter_b4_reservoir_801848BC[];
-extern TaskDesc                 D_shelter_b4_reservoir_801848EC[];
-extern TaskDesc                 D_shelter_b4_reservoir_80184920[];
-extern Task*                    D_shelter_b4_reservoir_8018492C;
-extern Task*                    D_shelter_b4_reservoir_80184930;
-extern GpEvsCmd D_shelter_b4_reservoir_80184948[];
-extern GpEvsCmd D_shelter_b4_reservoir_80184DC8[];
-extern u8                       D_shelter_b4_reservoir_80184F78;
-extern u8                       D_shelter_b4_reservoir_80184F79;
-extern u8                       D_shelter_b4_reservoir_80184F7A;
+extern GpMsgEntry D_shelter_b4_reservoir_801848BC[];
+extern TaskDesc   D_shelter_b4_reservoir_801848EC[];
+extern TaskDesc   D_shelter_b4_reservoir_80184920[];
+extern Task*      D_shelter_b4_reservoir_8018492C;
+extern Task*      D_shelter_b4_reservoir_80184930;
+extern GpEvsCmd   D_shelter_b4_reservoir_80184948[];
+extern GpEvsCmd   D_shelter_b4_reservoir_80184DC8[];
+extern u8         D_shelter_b4_reservoir_80184F78;
+extern u8         D_shelter_b4_reservoir_80184F79;
+extern u8         D_shelter_b4_reservoir_80184F7A;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s16 value;
-    u8 retained[2];
+    u8  retained[2];
 } ShelterB4ReservoirStorage4F7C;
 STATIC_ASSERT_SIZEOF(ShelterB4ReservoirStorage4F7C, 4);
 
 extern ShelterB4ReservoirStorage4F7C D_shelter_b4_reservoir_80184F7C;
-extern s16                      D_shelter_b4_reservoir_80184F80;
+
 extern s16                      D_shelter_b4_reservoir_80184F82;
 extern TaskDesc                 D_shelter_b4_reservoir_80184F84[];
 extern RoomWaterSurface         D_shelter_b4_reservoir_80184F90[];
@@ -178,29 +192,29 @@ static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
     { func_shelter_b4_reservoir_8017E7C8, func_shelter_b4_reservoir_8017E864, taskKill }
 };
 
-void func_shelter_b4_reservoir_8017FADC(Task *);
+void func_shelter_b4_reservoir_8017FADC(Task*);
 
-extern GpGridParams D_shelter_b4_reservoir_80185AB8[1];
-extern GpObj3A D_shelter_b4_reservoir_801873B0[2];
-extern GpObj4C D_shelter_b4_reservoir_80186AC0[8];
-extern GpObj4C D_shelter_b4_reservoir_80186D20[7];
-extern GpObj4C D_shelter_b4_reservoir_80186F34[9];
+extern GpGridParams   D_shelter_b4_reservoir_80185AB8[1];
+extern GpObj3A        D_shelter_b4_reservoir_801873B0[2];
+extern GpObj4C        D_shelter_b4_reservoir_80186AC0[8];
+extern GpObj4C        D_shelter_b4_reservoir_80186D20[7];
+extern GpObj4C        D_shelter_b4_reservoir_80186F34[9];
 extern GpRoomCoordSet D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc D_80142604;
-extern TaskDesc D_80147E48;
-extern TaskDesc D_801575F0;
+extern TaskDesc       D_80142604;
+extern TaskDesc       D_80147E48;
+extern TaskDesc       D_801575F0;
 
-s32 func_shelter_b4_reservoir_8017E25C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_reservoir_8017E264(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_b4_reservoir_8017E354(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b4_reservoir_8017E3C4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_reservoir_8017E3CC(Task *, s32, s32, GpMessageArg);
-void func_shelter_b4_reservoir_8017D650(Task *);
-void func_shelter_b4_reservoir_8017DE8C(Task *);
-void func_shelter_b4_reservoir_8017E0AC(Task *);
-void func_shelter_b4_reservoir_8017E400(Task *);
-void func_shelter_b4_reservoir_8017E4B0(Task *);
-void func_shelter_b4_reservoir_8017E558(Task *);
+s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_reservoir_8017E264(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_b4_reservoir_8017E354(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b4_reservoir_8017E3C4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_reservoir_8017E3CC(Task*, s32, s32, GpMessageArg);
+void func_shelter_b4_reservoir_8017D650(Task*);
+void func_shelter_b4_reservoir_8017DE8C(Task*);
+void func_shelter_b4_reservoir_8017E0AC(Task*);
+void func_shelter_b4_reservoir_8017E400(Task*);
+void func_shelter_b4_reservoir_8017E4B0(Task*);
+void func_shelter_b4_reservoir_8017E558(Task*);
 void func_shelter_b4_reservoir_8017E610(s32);
 void func_shelter_b4_reservoir_8017E690(s32);
 void func_shelter_b4_reservoir_8017E770(s32);
@@ -1487,6 +1501,9 @@ u8 * D_shelter_b4_reservoir_80187630 = NULL;
 SVECTOR D_shelter_b4_reservoir_80187634[10] = { 0 };
 
 _ShelterB4ReservoirBurst D_shelter_b4_reservoir_80187684 = { 0, 0, 0 };
+
+static void func_shelter_b4_reservoir_8017E068(void);
+static void func_shelter_b4_reservoir_8017E8EC(Task* task);
 
 /// Task that ripples the whole screen: it redraws the frame just rendered as a
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine

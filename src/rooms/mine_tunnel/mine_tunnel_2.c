@@ -1,26 +1,36 @@
-#include "common.h"
 #include "rooms/mine_tunnel.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
-
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "types.h"
 
 #include "actors/task_tables.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "rooms/room_common.h"
 
 /// The tunnel's five light anchors, one `SVECTOR` each in one run; each view
 /// draws a subset of them.
@@ -28,15 +38,15 @@
 static void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-extern GpGridParams D_mine_tunnel_8017E86C[1];
-extern GpObj3A D_mine_tunnel_8018025C[3];
-extern GpObj4C D_mine_tunnel_8017FBD8[6];
-extern GpObj4C D_mine_tunnel_8017FDA0[4];
+extern GpGridParams   D_mine_tunnel_8017E86C[1];
+extern GpObj3A        D_mine_tunnel_8018025C[3];
+extern GpObj4C        D_mine_tunnel_8017FBD8[6];
+extern GpObj4C        D_mine_tunnel_8017FDA0[4];
 extern GpRoomBoundVec D_mine_tunnel_8018022C[6];
 extern GpRoomCoordSet D_mine_tunnel_8017FBC0[1];
 
-extern GpSprtCmd D_mine_tunnel_8017E944[2];
-extern GpSprtCmd D_mine_tunnel_8017EA1C[4];
+extern GpSprtCmd  D_mine_tunnel_8017E944[2];
+extern GpSprtCmd  D_mine_tunnel_8017EA1C[4];
 extern GpSprtElem D_mine_tunnel_8017E954[10];
 
 SVECTOR D_mine_tunnel_8017E12C[5] = {

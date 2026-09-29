@@ -1,31 +1,44 @@
-#include "common.h"
 #include "rooms/shelter_b3_incinerator_control_room.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "shelter_b3_incinerator_control_room_private.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "overlay.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area_flags.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+
+#include "overlay.h"
+
 #include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#define D_shelter_b3_incinerator_control_room_801818E8 (D_shelter_b3_incinerator_control_room_80181888 + 12)
 
 /// Glow positions `func_shelter_b3_incinerator_control_room_8017FD10` draws
 /// per view.
@@ -464,8 +477,6 @@ GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
 Task * D_shelter_b3_incinerator_control_room_80182A54 = NULL;
 
 RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58 = { 0 };
-
-#define D_shelter_b3_incinerator_control_room_801818E8 (D_shelter_b3_incinerator_control_room_80181888 + 12)
 
 /// Draws the glows of the current camera view at the room's fixed world
 /// points; views without an entry draw nothing.

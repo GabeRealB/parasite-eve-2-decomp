@@ -1,15 +1,15 @@
-#include "common.h"
-#include "rooms/shelter_r47.h"
-
-#include "gameplay/captions.h"
-#include "gameplay/area_transitions.h"
-
-#include "main/mc.h"
-#include "main/text.h"
+#include "types.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
+
+#include "main/mc.h"
+#include "main/mc_types.h"
+
+#include "rooms/shelter_r47.h"
 
 void func_actor_143400_80131E24(s32);
 void func_actor_143400_80131E6C(void);
@@ -700,7 +700,7 @@ GpEvsCmd D_actor_143400_801359D4[20] = {
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-};/// With a non-zero `arg0`, clears `Gp_CapFile`, loads capture file 2 and
+}; /// With a non-zero `arg0`, clears `Gp_CapFile`, loads capture file 2 and
 /// passes (0x140, 0x100) to `func_800E6D4C`; with zero, resets the capture
 /// state instead. Reached only through the function pointers in the actor's
 /// data.

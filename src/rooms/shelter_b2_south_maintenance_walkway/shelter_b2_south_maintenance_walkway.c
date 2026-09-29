@@ -1,50 +1,62 @@
-#include "common.h"
 #include "rooms/shelter_b2_south_maintenance_walkway.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017e4f8.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_shelter.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -80,7 +92,7 @@ extern RoomEventMsg D_shelter_b2_south_maintenance_walkway_801838DC;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomEventReq value;
-    u8 retained[12];
+    u8           retained[12];
 } ShelterB2SouthMaintenanceWalkwayStorage38F8;
 STATIC_ASSERT_SIZEOF(ShelterB2SouthMaintenanceWalkwayStorage38F8, 32);
 
@@ -116,12 +128,12 @@ static void func_shelter_b2_south_maintenance_walkway_80181754(GpCoord* arg0, s1
 static void func_shelter_b2_south_maintenance_walkway_80181C94(GpCoord* coord, s16 size);
 static void func_shelter_b2_south_maintenance_walkway_801821C0(GpCoord* arg0, s32 arg1);
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_b2_south_maintenance_walkway_8017D774(Task *);
-void func_shelter_b2_south_maintenance_walkway_8017D8E4(Task *);
+s32  func_shelter_b2_south_maintenance_walkway_8017DA7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_south_maintenance_walkway_8017DC08(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_south_maintenance_walkway_8017DC10(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_south_maintenance_walkway_8017DC18(Task*, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b2_south_maintenance_walkway_8017D774(Task*);
+void func_shelter_b2_south_maintenance_walkway_8017D8E4(Task*);
 
 extern TaskDesc D_80142604;
 
@@ -653,6 +665,11 @@ u8 D_shelter_b2_south_maintenance_walkway_801838F4[4] = {
 ShelterB2SouthMaintenanceWalkwayStorage38F8 D_shelter_b2_south_maintenance_walkway_801838F8 = { { 0 }, { 0 } };
 
 RoomLatchedEvent D_shelter_b2_south_maintenance_walkway_80183918 = { 0, 0, 0, 0 };
+
+static s32            func_shelter_b2_south_maintenance_walkway_8017D610(RoomEventReq* req, RoomEventMsg* msg);
+static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void           func_shelter_b2_south_maintenance_walkway_8017DC20(Task* task);
+static void           func_shelter_b2_south_maintenance_walkway_8017DC64(Task* task);
 
 /// The walkway's event gate. A request whose flag nibble already records the
 /// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One

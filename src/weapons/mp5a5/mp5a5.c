@@ -1,35 +1,46 @@
-#include "common.h"
+#include "weapons/mp5a5.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
-#include "weapons/mp5a5.h"
-#include "weapons/weapon.h"
-#include "weapons/weapons_shared_8011d468.h"
-#include "weapons/weapons_shared_8011d864.h"
 
-#include "gameplay/actor.h"
+#include "gte.h"
+#include "types.h"
+
+#include "mp5a5_private.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
 #include "gameplay/items.h"
+#include "gameplay/light.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
+
+#include "weapons/weapon.h"
+
+#include "weapons/weapons_shared_8011d864.h"
 
 static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
@@ -43,6 +54,8 @@ static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
 static SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
+
+static void func_mp5a5_8011DDA4(Task* arg0);
 
 /// Per-frame muzzle-flash task for the MP5A5 and its upgrades. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own

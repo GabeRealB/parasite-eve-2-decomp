@@ -1,49 +1,49 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80169f74.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
-#include "gameplay/damage.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
-#include "overlay.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 extern u8 D_actor_312200_80169F44[];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor312200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor312200MessageEntry, 8);
@@ -148,10 +148,10 @@ static void func_actor_312200_80163778(Task* task);
 static void func_actor_312200_801637CC(Task* task);
 
 extern TmdSource D_actor_312200_80168148;
-s32 func_actor_312200_80163510(Task *, s32, s32);
-s32 func_actor_312200_801635CC(Task *, s32, GpXformArg *);
-s32 func_actor_312200_801636CC(Task *, s32, GpCmdArg *);
-void func_actor_312200_80163854(Task *);
+s32              func_actor_312200_80163510(Task*, s32, s32);
+s32              func_actor_312200_801635CC(Task*, s32, GpXformArg*);
+s32              func_actor_312200_801636CC(Task*, s32, GpCmdArg*);
+void             func_actor_312200_80163854(Task*);
 
 TmdBone D_actor_312200_801638B0[19] = {
 #include "assets/actor_312200_model_06328_skeleton.inc"
@@ -325,6 +325,14 @@ Actor312200MessageEntry D_actor_312200_80169F5C[4] = {
 TaskDesc D_actor_312200_80169F7C = { 257, 96, func_actor_312200_80163854, { .model = &D_actor_312200_80168148 } };
 
 SVECTOR D_actor_312200_80169F88 = { 0 };
+
+static s32  func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count);
+static s32  func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32  func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32  func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void func_actor_312200_80162FB4(Task* task);
+static void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
+static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
 
 /// Walks the first `count` contact records (stopping at a zero key) and keeps,
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move

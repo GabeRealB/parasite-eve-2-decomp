@@ -1,35 +1,44 @@
-#include "shelter_r47_private.h"
+#include "rooms/shelter_r47.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/room_common.h"
-#include "rooms/shelter_r47.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "common.h"
+#include "gte.h"
+
+#include "shelter_r47_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/ui_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];
@@ -38,8 +47,6 @@ extern OverlayHotspot D_shelter_r47_801873D8[];
 /// Area views of the map pages the second cap script steps through, indexed by
 /// `ShelterR47State2::field_1C`.
 extern u8 D_shelter_r47_801873FC[];
-
-extern TaskDesc D_shelter_r47_8018760C;
 
 /// World-space points the room's glow drawers mark, picked by the current view.
 
@@ -1157,6 +1164,8 @@ OverlayHotspot D_shelter_r47_801873D8[3] = {
 u8 D_shelter_r47_801873FC[8] = {
     37, 38, 39, 40, 41, 0, 0, 0,
 };
+
+static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b);
 
 /// State-0 entry of the second cap script. It allocates the `ShelterR47State2`
 /// work, spawns the companion task from `D_shelter_r47_8018760C`, picks the

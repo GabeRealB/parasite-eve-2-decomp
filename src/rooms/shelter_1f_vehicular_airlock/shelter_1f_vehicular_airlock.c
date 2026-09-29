@@ -1,48 +1,59 @@
-#include "common.h"
 #include "rooms/shelter_1f_vehicular_airlock.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -80,20 +91,20 @@ static void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, 
 static void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_shelter_1f_vehicular_airlock_8017D644(Task *);
-s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_1f_vehicular_airlock_8017D988(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_vehicular_airlock_8017D990(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task *, s32, GpMessageArg, GpMessageArg);
+void func_shelter_1f_vehicular_airlock_8017D644(Task*);
+s32  func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern u32 D_shelter_1f_vehicular_airlock_80180C74[1];
+extern u32     D_shelter_1f_vehicular_airlock_80180C74[1];
 extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
 extern TmdBone D_shelter_1f_vehicular_airlock_80180C50[1];
-extern u32 D_shelter_1f_vehicular_airlock_80181018[1019];
+extern u32     D_shelter_1f_vehicular_airlock_80181018[1019];
 
-extern GpGridParams D_shelter_1f_vehicular_airlock_80182438[1];
-extern GpObj4C D_shelter_1f_vehicular_airlock_80182714[2];
-extern GpObj4C D_shelter_1f_vehicular_airlock_801827AC[7];
+extern GpGridParams   D_shelter_1f_vehicular_airlock_80182438[1];
+extern GpObj4C        D_shelter_1f_vehicular_airlock_80182714[2];
+extern GpObj4C        D_shelter_1f_vehicular_airlock_801827AC[7];
 extern GpRoomBoundVec D_shelter_1f_vehicular_airlock_801829C0[4];
 extern GpRoomCoordSet D_shelter_1f_vehicular_airlock_801826FC[1];
 
@@ -450,6 +461,10 @@ s8 D_shelter_1f_vehicular_airlock_80182AB0[4] = {
 };
 
 RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4 = { 0 };
+
+static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void           func_shelter_1f_vehicular_airlock_8017D9FC(Task* task);
+static void           func_shelter_1f_vehicular_airlock_8017DA40(Task* task);
 
 /// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
 /// argument names reads 2, and clears it otherwise.

@@ -1,22 +1,31 @@
+#include "actor_342400_private.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
-#include "rooms/shelter_b3_garbage_incinerator.h"
-#include "actors/actor.h"
 
 #include "gameplay/area_entry.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
 /// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
@@ -27,23 +36,23 @@ typedef struct Actor342400Limit {
 } Actor342400Limit;
 STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
 
-extern TaskDesc             D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
+extern TaskDesc D_801575F0; // absolute, spawned by func_actor_342400_80162DA0
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s32, GpCmdArg *);
+        void (*call0)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor342400MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor342400MessageEntry, 8);
 
 extern Actor342400MessageEntry D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
-extern OverlayEncounterSlot D_actor_342400_8016BF58[];
-extern TaskDesc             D_actor_342400_8016BFE0[];
-extern Actor342400Limit     D_actor_342400_8016C010[];
-extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
-extern TaskDesc             D_actor_342400_80173A54[];
-extern u16                  D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
+extern OverlayEncounterSlot    D_actor_342400_8016BF58[];
+extern TaskDesc                D_actor_342400_8016BFE0[];
+extern Actor342400Limit        D_actor_342400_8016C010[];
+extern s16                     D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
+
+                                                             // spawn counter, `<< 12` into `GpEnemy::placeKey`
 
 static s16  func_actor_342400_801624A4(void);
 static s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
@@ -66,9 +75,9 @@ static void func_actor_342400_80163178(Task* arg0);
 static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 static void func_actor_342400_801632D4(Task* arg0);
 
-void func_actor_342400_80162748(Task *);
+void func_actor_342400_80162748(Task*);
 
-void func_actor_342400_801626AC(Task *, s32, GpCmdArg *);
+void func_actor_342400_801626AC(Task*, s32, GpCmdArg*);
 
 Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
     { 2011, { .call0 = func_actor_342400_801626AC } },
@@ -95,10 +104,10 @@ OverlayEncounterSlot D_actor_342400_8016BF58[17] = {
     { 2, 1, { 0, 0 }, 0 },
 };
 
-void func_actor_342400_80162748(Task *);
-void func_actor_342400_801627C0(Task *);
-void func_actor_342400_80162824(Task *);
-void func_actor_342400_80162888(Task *);
+void func_actor_342400_80162748(Task*);
+void func_actor_342400_801627C0(Task*);
+void func_actor_342400_80162824(Task*);
+void func_actor_342400_80162888(Task*);
 
 TaskDesc D_actor_342400_8016BFE0[4] = {
     { 0, 32, func_actor_342400_80162748, { .model = NULL } },
@@ -241,6 +250,11 @@ GpU16Pair D_actor_342400_80170584[1] = {
 };
 
 GpPairSrcE D_actor_342400_80170588 = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0, 0 };
+
+static void func_actor_342400_80162084(Task* arg0);
+static void func_actor_342400_801621D8(Task* arg0);
+static void func_actor_342400_80162324(Task* arg0);
+static void func_actor_342400_801631DC(s16 arg0);
 
 static void func_actor_342400_80162084(Task* arg0)
 {

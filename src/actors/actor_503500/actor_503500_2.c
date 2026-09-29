@@ -1,37 +1,43 @@
 #include "actor_503500_private.h"
-#include "rooms/shelter_r48.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "common.h"
 
-#include <psyq/abs.h>
-
-#include "actors/actor_503500.h"
-
-#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+#include "rooms/shelter_r48.h"
 
 /// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
 /// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
@@ -53,21 +59,17 @@ typedef struct Actor503500EffWork {
 STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
 
 /// Spawn positions `func_actor_503500_80132778` indexes by `Task::spawnArg1`.
-extern SVECTOR  D_actor_503500_8014B97C[];
-extern Task*    D_actor_503500_80176558;
+extern SVECTOR D_actor_503500_8014B97C[];
+
 extern TaskDesc D_actor_503500_8014B964[];
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern GpEvsCmd D_actor_503500_8014CD98[];
 extern GpEvsCmd D_actor_503500_8014D098[];
-/// Lives in the room overlay slot: whatever room overlay is resident owns the
-/// body.
-/// The pose this overlay sends the player as message 0x3E9.
-extern GpXformArg D_actor_503500_8017655C;
 
-void func_actor_503500_80132778(Task *);
-void func_actor_503500_80132990(Task *);
-void func_actor_503500_80132D20(Task *);
+void func_actor_503500_80132778(Task*);
+void func_actor_503500_80132990(Task*);
+void func_actor_503500_80132D20(Task*);
 
 extern GpAnimSet D_actor_503500_80148BAC;
 extern GpAnimSet D_actor_503500_80148D38;
@@ -87,47 +89,47 @@ typedef union {
     GpPackedSvec words[18];
 } Actor503500PoseBank16AB0;
 
-extern GpAnimArg D_actor_503500_8014B9E8;
-extern GpAnimArg D_actor_503500_8014B9FC[10];
-extern GpAnimArg D_actor_503500_8014BAC4;
-extern GpCmdArg D_actor_503500_8014BC14;
-extern GpCmdArg D_actor_503500_8014BC18[2];
-extern GpCmdArg D_actor_503500_8014BC20;
-extern GpCmdArg D_actor_503500_8014BC24;
-extern GpCmdArg D_actor_503500_8014BC28;
-extern GpCopyArg D_actor_503500_8014B9CC;
+extern GpAnimArg   D_actor_503500_8014B9E8;
+extern GpAnimArg   D_actor_503500_8014B9FC[10];
+extern GpAnimArg   D_actor_503500_8014BAC4;
+extern GpCmdArg    D_actor_503500_8014BC14;
+extern GpCmdArg    D_actor_503500_8014BC18[2];
+extern GpCmdArg    D_actor_503500_8014BC20;
+extern GpCmdArg    D_actor_503500_8014BC24;
+extern GpCmdArg    D_actor_503500_8014BC28;
+extern GpCopyArg   D_actor_503500_8014B9CC;
 extern GpScriptCmd D_actor_503500_8014D2F0[2];
 extern GpScriptCmd D_actor_503500_8014D300[3];
 extern GpScriptRec D_actor_503500_8014D2F8[2];
 extern GpScriptRec D_actor_503500_8014D30C[3];
-extern GpXformArg D_actor_503500_8014BAD8;
-extern GpXformArg D_actor_503500_8014BAF0;
-extern GpXformArg D_actor_503500_8014BB08;
-extern GpXformArg D_actor_503500_8014BB20;
-extern GpXformArg D_actor_503500_8014BB38;
-extern GpXformArg D_actor_503500_8014BBB4[2];
-extern GpXformArg D_actor_503500_8014BBE4;
-extern GpXformArg D_actor_503500_8014BBFC;
-void func_actor_503500_80132B78(void);
-void func_actor_503500_80132B98(void);
-void func_actor_503500_80132BB8(void);
-void func_actor_503500_80132BD8(void);
-void func_actor_503500_80132BF8(void);
-void func_actor_503500_80132C40(s32);
-void func_actor_503500_80132C70(s32);
-void func_actor_503500_80132CA4(void);
-void func_actor_503500_80132CC4(s8);
-void func_actor_503500_80132D00(s32);
-void func_actor_503500_80132D60(void);
-void func_actor_503500_80132D7C(void);
-void func_actor_503500_80132D90(s32);
-void func_actor_503500_80132DB4(s32);
-void func_actor_503500_80132DD4(void);
-void func_actor_503500_80132DEC(void);
-void func_actor_503500_80132E7C(void);
-void func_actor_503500_80132EE8(u8);
-void func_actor_503500_80132EF4(void);
-void func_actor_503500_80132F28(void);
+extern GpXformArg  D_actor_503500_8014BAD8;
+extern GpXformArg  D_actor_503500_8014BAF0;
+extern GpXformArg  D_actor_503500_8014BB08;
+extern GpXformArg  D_actor_503500_8014BB20;
+extern GpXformArg  D_actor_503500_8014BB38;
+extern GpXformArg  D_actor_503500_8014BBB4[2];
+extern GpXformArg  D_actor_503500_8014BBE4;
+extern GpXformArg  D_actor_503500_8014BBFC;
+void               func_actor_503500_80132B78(void);
+void               func_actor_503500_80132B98(void);
+void               func_actor_503500_80132BB8(void);
+void               func_actor_503500_80132BD8(void);
+void               func_actor_503500_80132BF8(void);
+void               func_actor_503500_80132C40(s32);
+void               func_actor_503500_80132C70(s32);
+void               func_actor_503500_80132CA4(void);
+void               func_actor_503500_80132CC4(s8);
+void               func_actor_503500_80132D00(s32);
+void               func_actor_503500_80132D60(void);
+void               func_actor_503500_80132D7C(void);
+void               func_actor_503500_80132D90(s32);
+void               func_actor_503500_80132DB4(s32);
+void               func_actor_503500_80132DD4(void);
+void               func_actor_503500_80132DEC(void);
+void               func_actor_503500_80132E7C(void);
+void               func_actor_503500_80132EE8(u8);
+void               func_actor_503500_80132EF4(void);
+void               func_actor_503500_80132F28(void);
 
 extern TmdSource D_actor_503500_80154624;
 extern TmdSource D_actor_503500_80154C38;
@@ -1745,6 +1747,8 @@ TaskDesc D_actor_503500_8016E9F0[5] = {
 };
 
 /// Player-facing flag byte in the main executable; no module header owns it yet.
+
+static void func_actor_503500_80132F58(void);
 
 void func_actor_503500_80132778(Task* task)
 {

@@ -1,20 +1,41 @@
-#ifndef ROOMS_DRYFIELD_GAS_STATION_H
-#define ROOMS_DRYFIELD_GAS_STATION_H
+#ifndef INCLUDE_ROOMS_DRYFIELD_GAS_STATION_H
+#define INCLUDE_ROOMS_DRYFIELD_GAS_STATION_H
+
+#include "types.h"
 
 #include "gameplay/area.h"
-
-#include "common.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
-/// Descriptors of the tasks the gas station's sequencer spawns: entry 0 is the
-/// cutscene task the sequencer waits on, entry 1 the fade the cutscene's last
-/// script command starts.
-extern TaskDesc D_dryfield_gas_station_8018312C[];
+extern GpAreaVariant D_dryfield_gas_station_80184A38[12];
+
+// dryfield_gas_station
+extern GpRoomObjRec D_dryfield_gas_station_8018314C[];
+
+extern u8* D_dryfield_gas_station_8018315C[];
+
+extern GpRoomCoordRec D_dryfield_gas_station_80183160[];
+
+extern GpViewCountRec D_dryfield_gas_station_80183168[];
+
+extern GpWarpRec D_dryfield_gas_station_8018316C[];
+
+extern GpViewRec D_dryfield_gas_station_80183EC8[];
+
+extern GpSprtRec D_dryfield_gas_station_801842A8[];
+
+extern GpRoomParamRec* D_dryfield_gas_station_80184BAC[];
 
 void func_dryfield_gas_station_80181A78(Task* arg0);
-extern GpAreaVariant D_dryfield_gas_station_80184A38[12];
 
 void func_dryfield_gas_station_8017EA90(Task* task);
 
-#endif // ROOMS_DRYFIELD_GAS_STATION_H
+/// Task entries the Dryfield map UI overlay's stage tables name: each room's
+/// entry task, started for its location, and the enemy descriptors' tasks.
+void func_dryfield_gas_station_8017FF8C(Task* task);
+
+#endif // INCLUDE_ROOMS_DRYFIELD_GAS_STATION_H

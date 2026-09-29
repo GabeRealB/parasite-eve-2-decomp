@@ -1,47 +1,58 @@
-#include "common.h"
 #include "rooms/acropolis_east_elevator_hall.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/gtemac.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
-#include "gameplay/actor.h"
+#include "gte.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/model_objects.h"
-#include "gameplay/room_effects.h"
-
+#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
@@ -50,10 +61,10 @@ extern void func_80724608(void*, s32, s32, void*);
 /// indexed by `Task::spawnArg1`.
 extern u8 D_acropolis_east_elevator_hall_8017FC8C[];
 
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C8C;
-extern GpEvsCmd D_acropolis_east_elevator_hall_80185D54[];
-extern GpEvsCmd D_acropolis_east_elevator_hall_801860B4[];
-extern GpEvsCmd D_acropolis_east_elevator_hall_8018621C[];
+extern GpAnimArg  D_acropolis_east_elevator_hall_80185C8C;
+extern GpEvsCmd   D_acropolis_east_elevator_hall_80185D54[];
+extern GpEvsCmd   D_acropolis_east_elevator_hall_801860B4[];
+extern GpEvsCmd   D_acropolis_east_elevator_hall_8018621C[];
 extern GpMsgEntry D_acropolis_east_elevator_hall_801862F4[];
 extern s32        D_acropolis_east_elevator_hall_8018631C;
 
@@ -77,31 +88,31 @@ static const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
     { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
 };
 
-void func_acropolis_east_elevator_hall_8017F128(Task *);
+void func_acropolis_east_elevator_hall_8017F128(Task*);
 
 extern GpAnimSet D_acropolis_east_elevator_hall_80180478;
 extern GpAnimSet D_acropolis_east_elevator_hall_80184DE4;
 extern GpAnimSet D_acropolis_east_elevator_hall_80185BC0;
 
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C00;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C14;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C28;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C3C;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C50;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C64;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C78;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185C8C;
-extern GpAnimArg D_acropolis_east_elevator_hall_80185CA0;
-extern GpGridParams D_acropolis_east_elevator_hall_80186838[1];
-extern GpObj4C D_acropolis_east_elevator_hall_8018685C[6];
-extern GpObj4C D_acropolis_east_elevator_hall_80186A24[7];
-extern GpOverlayIds D_acropolis_east_elevator_hall_80185CB4;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C00;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C14;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C28;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C3C;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C50;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C64;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C78;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185C8C;
+extern GpAnimArg      D_acropolis_east_elevator_hall_80185CA0;
+extern GpGridParams   D_acropolis_east_elevator_hall_80186838[1];
+extern GpObj4C        D_acropolis_east_elevator_hall_8018685C[6];
+extern GpObj4C        D_acropolis_east_elevator_hall_80186A24[7];
+extern GpOverlayIds   D_acropolis_east_elevator_hall_80185CB4;
 extern GpRoomCoordSet D_acropolis_east_elevator_hall_80187A44[1];
-s32 func_acropolis_east_elevator_hall_8017F348(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_acropolis_east_elevator_hall_8017F370(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_east_elevator_hall_8017F378(Task *, s32, GpMsg13EF *, s32);
-s32 func_acropolis_east_elevator_hall_8017F420(Task *, s32, s32, GpMessageArg);
-void func_acropolis_east_elevator_hall_8017F450(void);
+s32                   func_acropolis_east_elevator_hall_8017F348(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                   func_acropolis_east_elevator_hall_8017F370(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_acropolis_east_elevator_hall_8017F378(Task*, s32, GpMsg13EF*, s32);
+s32                   func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, GpMessageArg);
+void                  func_acropolis_east_elevator_hall_8017F450(void);
 
 u8 D_acropolis_east_elevator_hall_8017FC8C[4] = {
     12, 8, 12, 8,
@@ -866,6 +877,9 @@ GpRoomParamRec * D_acropolis_east_elevator_hall_80187B74[8] = {
     D_acropolis_east_elevator_hall_80187B64,
     D_acropolis_east_elevator_hall_80187B64,
 };
+
+static void func_acropolis_east_elevator_hall_8017D5F0(Task* task);
+static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0);
 
 /// State 0 of the hall's mirror task. Re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the

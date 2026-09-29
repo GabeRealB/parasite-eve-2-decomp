@@ -1,48 +1,68 @@
-#include "common.h"
 #include "rooms/shelter_b2_operating_room.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
+#include "rooms/room_common.h"
+
+#define D_shelter_b2_operating_room_80180ABC (D_shelter_b2_operating_room_801809BC + 32)
+#define D_shelter_b2_operating_room_80180ADC (D_shelter_b2_operating_room_801809BC + 36)
+#define D_shelter_b2_operating_room_80180B44 (D_shelter_b2_operating_room_801809BC + 49)
+#define D_shelter_b2_operating_room_80180B5C (D_shelter_b2_operating_room_801809BC + 52)
+#define D_shelter_b2_operating_room_80180B6C (D_shelter_b2_operating_room_801809BC + 54)
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -84,7 +104,7 @@ extern ShelterB2OperatingRoomStorage4224 D_shelter_b2_operating_room_80184224;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomEventReq value;
-    u8 retained[12];
+    u8           retained[12];
 } ShelterB2OperatingRoomStorage4238;
 STATIC_ASSERT_SIZEOF(ShelterB2OperatingRoomStorage4238, 32);
 
@@ -106,12 +126,12 @@ static void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1);
 // Indexed views below share one contiguous table.
 extern TaskDesc D_801575F0;
 
-s32 func_shelter_b2_operating_room_8017DA94(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b2_operating_room_8017DC9C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b2_operating_room_8017DCA4(Task *, s32, s32, GpMessageArg);
-s32 func_shelter_b2_operating_room_8017DD0C(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_b2_operating_room_8017D78C(Task *);
-void func_shelter_b2_operating_room_8017D8FC(Task *);
+s32  func_shelter_b2_operating_room_8017DA94(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b2_operating_room_8017DC9C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_operating_room_8017DCA4(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b2_operating_room_8017DD0C(Task*, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b2_operating_room_8017D78C(Task*);
+void func_shelter_b2_operating_room_8017D8FC(Task*);
 
 TaskDesc D_shelter_b2_operating_room_80180904 = { 0, 32, func_shelter_b2_operating_room_8017D78C, { .model = NULL } };
 
@@ -1234,11 +1254,10 @@ ShelterB2OperatingRoomStorage4238 D_shelter_b2_operating_room_80184238 = { { 0 }
 
 RoomLatchedEvent D_shelter_b2_operating_room_80184258 = { 0, 0, 0, 0 };
 
-#define D_shelter_b2_operating_room_80180ABC (D_shelter_b2_operating_room_801809BC + 32)
-#define D_shelter_b2_operating_room_80180ADC (D_shelter_b2_operating_room_801809BC + 36)
-#define D_shelter_b2_operating_room_80180B44 (D_shelter_b2_operating_room_801809BC + 49)
-#define D_shelter_b2_operating_room_80180B5C (D_shelter_b2_operating_room_801809BC + 52)
-#define D_shelter_b2_operating_room_80180B6C (D_shelter_b2_operating_room_801809BC + 54)
+static s32            func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventMsg* msg);
+static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void           func_shelter_b2_operating_room_8017DD14(Task* task);
+static void           func_shelter_b2_operating_room_8017DD58(Task* task);
 
 /// Handles a request to leave through a flag-gated exit. When the flag named
 /// by `req->flagId` (negated: must be clear) is already in the wanted state,

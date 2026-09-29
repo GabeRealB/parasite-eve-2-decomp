@@ -1,53 +1,58 @@
-#include "actors/actor_210600.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
 #include <psyq/stdio.h>
 
-#include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
-#include "actors/actors_shared_80135a60.h"
+#include "common.h"
+#include "gte.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "actors/actor.h"
+
+#include "actors/actor_210600.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// `G_SCRATCH_HEAD` to lay one patrol node out: `m` receives a copy of the
@@ -416,7 +421,7 @@ static s32 func_actor_110600_80138900(void);
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     s16 value;
-    u8 retained[6];
+    u8  retained[6];
 } Actor110600Storage8688;
 STATIC_ASSERT_SIZEOF(Actor110600Storage8688, 8);
 
@@ -444,26 +449,26 @@ static const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, Actor110600Event *);
-        s32 (*call2)(Task *, s32, GpAnimArg *);
-        s32 (*call3)(Task *, s32, GpXformArg *);
-        s32 (*call4)(Task *, s32, s32);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, Actor110600Event*);
+        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
 } Actor110600MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor110600MessageEntry, 8);
 
-s32 func_actor_110600_80133E48(Task *, s32, GpXformArg *);
-s32 func_actor_110600_80134040(Task *, s32, Actor110600Event *);
-s32 func_actor_110600_8013839C(Task *, s32, GpAnimArg *);
-s32 func_actor_110600_80138448(Task *, s32, s32);
-s32 func_actor_110600_80138538(Task *);
-s32 func_actor_110600_801387C0(Task *);
+s32  func_actor_110600_80133E48(Task*, s32, GpXformArg*);
+s32  func_actor_110600_80134040(Task*, s32, Actor110600Event*);
+s32  func_actor_110600_8013839C(Task*, s32, GpAnimArg*);
+s32  func_actor_110600_80138448(Task*, s32, s32);
+s32  func_actor_110600_80138538(Task*);
+s32  func_actor_110600_801387C0(Task*);
 void func_actor_110600_80138394(void);
 
 extern TmdSource D_actor_110600_8013E49C;
-void func_actor_110600_80138EA8(Task *);
+void             func_actor_110600_80138EA8(Task*);
 
 GpU16Pair D_actor_110600_80138F04[2] = {
     { 18, 7 },
@@ -1217,6 +1222,54 @@ SVECTOR D_actor_110600_80148690 = { 0, 0, 0, 0 };
 
 GpEffArg D_actor_110600_80148698 = { NULL, 0, 0 };
 
+/// Whole-unit step `func_actor_110600_801322CC` last applied to its coordinate.
+extern SVECTOR D_actor_110600_80148690;
+
+/// Reset argument `func_800B4114` is handed for the clip `field_892` of the
+/// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
+/// data carries at `D_actor_110600_80147D20`, indexed by the clip id. The row
+/// stride is the row's own length, so the load is a signed byte.
+extern s8 D_actor_110600_80147D20[][0x2D];
+
+extern GpPairSrcE D_actor_110600_80138F14;
+
+extern GpAnimSet* D_actor_110600_8014850C[];
+
+extern Actor110600MessageEntry D_actor_110600_80148624[7];
+
+/// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
+/// zero.
+static void func_actor_110600_80136210(Task* arg0);
+
+static void            func_actor_110600_80131FC0(GpCoord* coord, s16 yaw);
+static s32             func_actor_110600_801322CC(GpCoord* coord, GpRec18* movement, s16 count);
+static void            func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle);
+static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
+                                              OverlayWalkerTickScratch* block);
+static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
+static s32             func_actor_110600_801341A4(GpCoord* coord, s16 range, s16 offset);
+static void            func_actor_110600_80134438(Task* arg0);
+static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GpCoord* coord, GpRec18* recs, SVECTOR* pos, s16 enabled);
+static __inline__ void Actor110600_InitScale(OverlayWalker* walker);
+static void            func_actor_110600_80134AB4(GpEnemy* enemy, Task* task);
+static void            func_actor_110600_80135194(Task* arg0);
+static __inline__ s16  Actor110600_WrapHitAngle(s16 angle);
+static __inline__ s32  Actor110600_TickShake(void);
+static __inline__ s32  Actor110600_HasRec10000(GpRec18* recs);
+static void            func_actor_110600_80135B84(Task* arg0);
+static __inline__ s32  Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 count);
+static void            func_actor_110600_80136888(Task* arg0);
+static void            func_actor_110600_801369D8(Task* arg0);
+static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work, s16 y);
+static void            func_actor_110600_80136ECC(Task* arg0);
+static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale);
+static void            func_actor_110600_80137684(Task* arg0);
+static void            func_actor_110600_80137980(Task* arg0);
+static void            func_actor_110600_80137AF4(Task* arg0);
+static void            func_actor_110600_80137DB0(Task* arg0);
+static void            func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1);
+static void            func_actor_110600_80138568(GpCoord* coord, s16 scale);
+
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
@@ -1237,9 +1290,6 @@ static void func_actor_110600_80131FC0(GpCoord* coord, s16 yaw)
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);
 }
-
-/// Whole-unit step `func_actor_110600_801322CC` last applied to its coordinate.
-extern SVECTOR D_actor_110600_80148690;
 
 /// Moves `coord` in X/Z by the push the first `count` records of `movement`
 /// resolve to through `func_800E0C10`, rounding a fractional part away from
@@ -2199,12 +2249,6 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
     return 0;
 }
 
-/// Reset argument `func_800B4114` is handed for the clip `field_892` of the
-/// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
-/// data carries at `D_actor_110600_80147D20`, indexed by the clip id. The row
-/// stride is the row's own length, so the load is a signed byte.
-extern s8 D_actor_110600_80147D20[][0x2D];
-
 /// Per-tick animation stage machine driven off the task's work block.
 ///
 /// Stages 1, 2 and 6 arm every slot 1..0x12 and then park the stage at 3 with
@@ -2368,11 +2412,6 @@ static void func_actor_110600_80134728(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
 }
-
-extern GpPairSrcE D_actor_110600_80138F14;
-extern GpAnimSet* D_actor_110600_8014850C[];
-
-extern Actor110600MessageEntry D_actor_110600_80148624[7];
 
 static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GpCoord* coord, GpRec18* recs, SVECTOR* pos, s16 enabled)
 {
@@ -3980,10 +4019,6 @@ static void func_actor_110600_80137DB0(Task* arg0)
             break;
     }
 }
-
-/// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
-/// zero.
-static void func_actor_110600_80136210(Task* arg0);
 
 /// The actor's state handlers, indexed by `Actor110600Work::field_0`. splat
 /// migrates the table into the `.s` of the function that reads it, so it is

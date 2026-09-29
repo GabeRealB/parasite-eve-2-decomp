@@ -1,42 +1,51 @@
 #include "actor_503500_private.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
+#include "common.h"
 #include "gte.h"
-#include <psyq/abs.h>
-
-#include "actors/actor_503500.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "actors/actor.h"
+
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
+extern GpAnimSet* D_actor_503500_8016EA54[20];
+
+extern GpAnimSet* D_actor_503500_8016EAA4[5];
 
 /// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
 /// the effect task it reparents itself under.
@@ -146,23 +155,16 @@ static void func_actor_503500_80146508(Task* arg0);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *);
-        s32 (*call1)(Task *, s32, GpCmdArg *);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor5035005MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor5035005MsgEntry, 8);
 
 extern Actor5035005MsgEntry D_actor_503500_80176530[];
-/// Main-executable counter the actor paces periodic effects by (its value
-/// modulo 6 or 12, its low bits).
-/// Row of `Gp_PackPair` arguments, one slot per effect task
-/// (`func_actor_503500_801448E8` takes the slot before this one). Declared as
-/// an array because the read has to alias the struct stores around it: GCC
-/// 2.8.1's `fixed_scalar_and_varying_struct_p` lets a scalar global at a fixed
-/// address float above them, and hoists the load out of the call sequence.
-extern GpU16Pair* D_actor_503500_8016E7D4[];
+
 /// Local offset of the display node `func_actor_503500_80144E8C` links, and the
 /// offsets it seeds its `GpActorD4Rec` with.
 extern Actor503500UVec D_actor_503500_801715C4;
@@ -177,29 +179,24 @@ static void            func_actor_503500_80145950(Task* arg0);
 static void            func_actor_503500_801459B0(Task* arg0);
 static void            func_actor_503500_80145C50(Task* arg0);
 static void            func_actor_503500_80145F18(Task* arg0);
-/// libgte routine right after `RotMatrixX` in the main executable (likely
-/// `RotMatrixY`); rotates `m` in place by `angle`.
-/// `func_actor_503500_80145A2C`'s `Gp_PackPair` slot (the one after
-/// `D_actor_503500_8016E7D4[1]`), which the original reads by its own name, and
-/// its display-node and `GpActorD4Rec` offsets.
-extern GpU16Pair*      D_actor_503500_8016E7DC[];
+
 extern Actor503500UVec D_actor_503500_801715DC;
 extern Actor503500UVec D_actor_503500_801715E4;
 static void            func_actor_503500_80145E98(Task* arg0);
 static void            func_actor_503500_8014618C(Task* arg0);
 static void            func_actor_503500_80146524(Task* arg0);
 
-extern GpAnimSet* D_actor_503500_80176514[3];
+extern GpAnimSet*  D_actor_503500_80176514[3];
 extern GpAnimSet** D_actor_503500_80176520[1];
-static void  func_actor_503500_80144E8C(Task* arg0);
-static void  func_actor_503500_80145428(Task* arg0);
-static void  func_actor_503500_801455A4(Task* arg0);
-static void  func_actor_503500_801458F8(Task* arg0);
-static void  func_actor_503500_80145A2C(Task* arg0);
-static void  func_actor_503500_80145E1C(Task* arg0);
-static void  func_actor_503500_8014642C(Task* arg0);
-static void  func_actor_503500_80145FDC(Task* task);
-static void  func_actor_503500_801464E8(Task* arg0);
+static void        func_actor_503500_80144E8C(Task* arg0);
+static void        func_actor_503500_80145428(Task* arg0);
+static void        func_actor_503500_801455A4(Task* arg0);
+static void        func_actor_503500_801458F8(Task* arg0);
+static void        func_actor_503500_80145A2C(Task* arg0);
+static void        func_actor_503500_80145E1C(Task* arg0);
+static void        func_actor_503500_8014642C(Task* arg0);
+static void        func_actor_503500_80145FDC(Task* task);
+static void        func_actor_503500_801464E8(Task* arg0);
 
 /// `Task::state` handlers `func_actor_503500_8014554C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801321F4 = {
@@ -213,36 +210,16 @@ static const TaskFuncTable3 D_actor_503500_801321F4 = {
 extern GpAnimSet D_actor_503500_80176314;
 extern GpAnimSet D_actor_503500_801764EC;
 extern TmdSource D_actor_503500_80175DC8;
-s32 func_actor_503500_8014652C(Task *, s32, GpAnimArg *);
-s32 func_actor_503500_80146664(Task *, s32, GpXformArg *);
-s32 func_actor_503500_801466E0(Task *, s32, s32);
-s32 func_actor_503500_801467C0(Task *, s32, GpCmdArg *);
-void func_actor_503500_801463C0(Task *);
+s32              func_actor_503500_8014652C(Task*, s32, GpAnimArg*);
+s32              func_actor_503500_80146664(Task*, s32, GpXformArg*);
+s32              func_actor_503500_801466E0(Task*, s32, s32);
+s32              func_actor_503500_801467C0(Task*, s32, GpCmdArg*);
+void             func_actor_503500_801463C0(Task*);
 
 extern GpAnimSet D_actor_503500_8016FC80;
 extern GpAnimSet D_actor_503500_8017041C;
 extern GpAnimSet D_actor_503500_80170C28;
 extern GpAnimSet D_actor_503500_8017143C;
-
-extern GpAnimSet D_actor_503500_8015F934;
-extern GpAnimSet D_actor_503500_801602FC;
-extern GpAnimSet D_actor_503500_80160DA8;
-extern GpAnimSet D_actor_503500_80161A90;
-extern GpAnimSet D_actor_503500_80162500;
-extern GpAnimSet D_actor_503500_80162D3C;
-extern GpAnimSet D_actor_503500_801635A8;
-extern GpAnimSet D_actor_503500_80163BAC;
-extern GpAnimSet D_actor_503500_80164C44;
-extern GpAnimSet D_actor_503500_801651FC;
-extern GpAnimSet D_actor_503500_80165A34;
-extern GpAnimSet D_actor_503500_80165CDC;
-extern GpAnimSet D_actor_503500_80165FF8;
-extern GpAnimSet D_actor_503500_80166EE8;
-extern GpAnimSet D_actor_503500_801671B0;
-extern GpAnimSet D_actor_503500_801674FC;
-extern GpAnimSet D_actor_503500_8016A900;
-extern GpAnimSet D_actor_503500_8016BFB0;
-extern GpAnimSet D_actor_503500_8016E788;
 
 Actor5035003MsgEntry D_actor_503500_8016EA2C[5] = {
     { 2003, { .call0 = func_actor_503500_80135950 } },

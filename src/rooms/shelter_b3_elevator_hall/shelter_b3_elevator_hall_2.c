@@ -1,42 +1,49 @@
-#include "common.h"
 #include "rooms/shelter_b3_elevator_hall.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ff88.h"
+#include "types.h"
+
+#include "shelter_b3_elevator_hall_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "gameplay/message.h"
+#include "rooms/room_common.h"
 
 /// Per-colour right shifts applied to the glowing disc's level for red, green
 /// and blue, selected by the spawn argument.
@@ -932,7 +939,7 @@ u8 D_shelter_b3_elevator_hall_80184A08[4] = {
     216,
 };
 
-RoomEventReq D_shelter_b3_elevator_hall_80184A0C = { 0 };/// A glowing disc anchored to its parent at the work block's position. In
+RoomEventReq D_shelter_b3_elevator_hall_80184A0C = { 0 }; /// A glowing disc anchored to its parent at the work block's position. In
 /// state 1 it grows, and every fourth tick spawns the effect `D_80115730`
 /// names at a random joint of the player's model, adopting it as a child
 /// task; state 2 adds a flickering half-bright wider disc; state 3 drifts the

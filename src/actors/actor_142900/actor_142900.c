@@ -1,26 +1,32 @@
-#include "common.h"
-#include "rooms/shelter_b2_elevator.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
+#include "common.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-
-#include "gameplay/animation.h"
+#include "rooms/shelter_b2_elevator.h"
 
 // The fixed 32-word animation copy reaches beyond the pointer bank.
 // Typed fields and the copy view cover the complete retained allocation.
 typedef union {
     struct {
         GpAnimSet* sets[13];
-        GpAnimArg arguments[14];
+        GpAnimArg  arguments[14];
     } data;
     s32 words[83];
 } Actor142900AnimStorage7618;
@@ -32,7 +38,7 @@ extern Actor142900AnimStorage7618 D_actor_142900_80137618;
 typedef union {
     struct {
         GpAnimSet* sets[10];
-        GpAnimArg arguments[13];
+        GpAnimArg  arguments[13];
     } data;
     s32 words[75];
 } Actor142900AnimStorage7764;
@@ -61,7 +67,7 @@ typedef union {
         u16 priority;
         union {
             TaskFunc task;
-            void (*enemyCleanup)(GpEnemy*, Task*);
+            void     (*enemyCleanup)(GpEnemy*, Task*);
         } callback;
         TaskSpawnArg arg;
     } native[2];
@@ -69,12 +75,12 @@ typedef union {
 STATIC_ASSERT_SIZEOF(Actor142900TaskTable, 0x18);
 
 extern Actor142900TaskTable D_actor_142900_80137600;
-extern s32            D_actor_142900_801382A8;
-extern s32            D_actor_142900_801382AC;
+extern s32                  D_actor_142900_801382A8;
+extern s32                  D_actor_142900_801382AC;
 
 extern GpXformArg D_actor_142900_801378A0;
-void func_actor_142900_80131F5C(void);
-void func_actor_142900_80131FDC(s32);
+void              func_actor_142900_80131F5C(void);
+void              func_actor_142900_80131FDC(s32);
 
 void func_actor_142900_80131F5C(void);
 void func_actor_142900_80131FDC(s32);
@@ -90,7 +96,7 @@ extern GpAnimSet D_actor_142900_801370C4;
 extern GpAnimSet D_actor_142900_80137384;
 extern GpAnimSet D_actor_142900_801375D8;
 
-void func_actor_142900_80131E24(Task *);
+void func_actor_142900_80131E24(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {

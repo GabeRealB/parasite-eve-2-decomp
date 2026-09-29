@@ -1,47 +1,43 @@
-#include "mine_cavern_private.h"
-#include "mapui/map_shelter.h"
-
-#include "gameplay/message.h"
-#include "common.h"
 #include "rooms/mine_cavern.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "mine_cavern_private.h"
+
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/pairsrc.h"
-
-extern TaskDesc D_mine_cavern_80183CA4[];
+#include "mapui/map_shelter.h"
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern GpEvsCmd D_mine_cavern_80187C74[];
-extern GpEvsCmd D_mine_cavern_8018804C[];
-extern GpEvsCmd D_mine_cavern_80188214[];
-extern GpEvsCmd D_mine_cavern_801887B4[];
-extern GpEvsCmd D_mine_cavern_80188A3C[];
-extern GpEvsCmd D_mine_cavern_80188D24[];
-extern TaskDesc       D_mine_cavern_8018E3F4;
-extern s32            D_mine_cavern_8018EB50;
-extern GpAreaApplyRec D_mine_cavern_8018E32C[];
+extern TaskDesc D_mine_cavern_8018E3F4;
+extern s32      D_mine_cavern_8018EB50;
 
 u16 D_mine_cavern_8018E360 = 6016;
 
@@ -204,6 +200,9 @@ s32 D_mine_cavern_8018EB58 = 0;
 u16 D_mine_cavern_8018EB5C = 0;
 
 /// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
+
+static void func_mine_cavern_8017DDFC(Task* arg0);
+static void func_mine_cavern_8017DEE4(Task* task);
 
 s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {

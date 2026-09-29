@@ -1,46 +1,53 @@
-#include "dryfield_factory_private.h"
-
-#include "common.h"
 #include "rooms/dryfield_factory.h"
-#include "rooms/dryfield_night_factory.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
+#include "gte.h"
+#include "types.h"
+
+#include "dryfield_factory_private.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
 #include "gameplay/items.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
+#include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "overlay.h"
-
+#include "gameplay/pad_script.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "overlay.h"
+
+#include "rooms/dryfield_night_factory.h"
+
+#include "rooms/room_common.h"
 
 /// The factory model's work block as the lighting helper sees it: `light` and
 /// `color` are the model's own matrices, republished onto
@@ -56,25 +63,12 @@ typedef struct RoomUtil20Work {
 extern RoomEventMsg D_dryfield_factory_8018A3B4;
 extern u8           D_dryfield_factory_8018A3BC;
 extern RoomEventReq D_dryfield_factory_8018A3CC;
-extern TaskDesc     D_dryfield_factory_801826B0;
 
 /// The spawn tables the room entry task selected for the session variant, and
 /// the slot it parked for the poller.
 extern TaskDesc* D_dryfield_factory_8018A3C0;
 extern TaskDesc* D_dryfield_factory_8018A3C4;
 extern Task**    D_dryfield_factory_8018A3C8;
-
-extern GpScriptCmd D_dryfield_factory_8018A39C[3];
-extern GpScriptRec D_dryfield_factory_8018A3A8[3];
-extern TaskDesc   D_dryfield_factory_801826BC[];
-extern GpMsgEntry D_dryfield_factory_801826D4[];
-extern TaskDesc   D_dryfield_factory_80186E28[];
-extern TaskDesc   D_dryfield_factory_80186E94[];
-
-extern GpGridParams D_dryfield_factory_80186C68;
-extern GpGridParams D_dryfield_factory_80186D38;
-extern GpGridParams D_dryfield_factory_80186E04;
-extern GpGridParams D_dryfield_factory_80187BF8;
 
 static void func_dryfield_factory_8017DF80(Task* task);
 static void func_dryfield_factory_8017DFE0(Task* task);
@@ -89,17 +83,7 @@ static void func_dryfield_factory_801804DC(Task* task);
 static void func_dryfield_factory_80180644(Task* task);
 static s32  func_dryfield_factory_801806B0(Task* task);
 
-extern GpGridFace D_dryfield_factory_80187638[72];
-extern SVECTOR D_dryfield_factory_80187008[28];
-extern SVECTOR D_dryfield_factory_801870E8[170];
-extern s16 * D_dryfield_factory_80187BD8[8];
-
-extern s16 D_dryfield_factory_80187998[44];
-extern s16 D_dryfield_factory_801879F0[58];
-extern s16 D_dryfield_factory_80187A64[35];
-extern s16 D_dryfield_factory_80187AAC[16];
-extern s16 D_dryfield_factory_80187ACC[32];
-extern s16 D_dryfield_factory_80187B0C[48];
+extern s16* D_dryfield_factory_80187BD8[8];
 
 s16 D_dryfield_factory_80187B6C[35] = {
     0,
@@ -788,6 +772,15 @@ TaskDesc * D_dryfield_factory_8018A3C4 = NULL;
 Task ** D_dryfield_factory_8018A3C8 = NULL;
 
 RoomEventReq D_dryfield_factory_8018A3CC = { 0 };
+
+static s32  func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_factory_8017D9CC(Task* arg0);
+static s32  func_dryfield_factory_8017E33C(Task* task);
+static s32  func_dryfield_factory_8017E6BC(Task* task);
+static s32  func_dryfield_factory_8017EA24(Task* task);
+static s32  func_dryfield_factory_8017ED68(Task* task);
+static s32  func_dryfield_factory_8017F08C(Task* task);
+static s32  func_dryfield_factory_8017F4BC(Task* task);
 
 static s32 func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg)
 {

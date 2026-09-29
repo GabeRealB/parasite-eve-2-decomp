@@ -1,38 +1,43 @@
-#include "neo_ark_shrine_private.h"
-#include "mapui/map_neo_ark.h"
+#include "rooms/neo_ark_shrine.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
-#include "rooms/neo_ark_shrine.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/pad_script.h"
+#include "types.h"
+
+#include "neo_ark_shrine_private.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
+
+#include "rooms/room_common.h"
 
 /// Message table installed at `Task::msgTable` by the room task's state 0.
 extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C[];
-
-/// Task spawned in state 0, polled by `Task_PollKill` and cleared in state 1.
-extern Task* D_neo_ark_shrine_80186864;
 
 /// Cap event key (`Gp_StartCap`'s third argument) handed to the slot-7 event
 /// this room starts, so the event's exit can tell which one it was.
@@ -44,16 +49,15 @@ extern s16 D_neo_ark_shrine_801825EC[][5];
 
 extern NeoArkShrineSlot D_neo_ark_shrine_8018252C[16];
 extern NeoArkShrineSlot D_neo_ark_shrine_801825AC[16];
-extern NeoArkShrineSlot D_neo_ark_shrine_801868CC[16];
 
 /// Steps the currently selected group and returns which kind of step it was.
 static s16 func_neo_ark_shrine_8017E254(void);
 
-s32 func_neo_ark_shrine_8017D6A4(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_shrine_8017D6AC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_neo_ark_shrine_8017D740(Task *, s32, s32, GpMessageArg);
-s32 func_neo_ark_shrine_8017D7F0(Task *, s32, GpMsg13EF *, GpMessageArg);
-void func_neo_ark_shrine_8017D84C(Task *);
+s32  func_neo_ark_shrine_8017D6A4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_shrine_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_neo_ark_shrine_8017D740(Task*, s32, s32, GpMessageArg);
+s32  func_neo_ark_shrine_8017D7F0(Task*, s32, GpMsg13EF*, GpMessageArg);
+void func_neo_ark_shrine_8017D84C(Task*);
 
 GpMsgEntry D_neo_ark_shrine_80181E34[5] = {
     { 5102, func_neo_ark_shrine_8017D6AC },
@@ -237,6 +241,10 @@ s16 D_neo_ark_shrine_801825EC[16][5] = {
     { 10, 13, 15, 255, 255 },
     { 11, 14, 255, 255, 255 },
 };
+
+static void func_neo_ark_shrine_8017D8F4(Task* task);
+static void func_neo_ark_shrine_8017D940(Task* task);
+static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b);
 
 /// Always returns 0.
 s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

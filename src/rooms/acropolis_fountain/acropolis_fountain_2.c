@@ -1,40 +1,53 @@
-#include "common.h"
+#include "rooms/acropolis_fountain.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/acropolis_fountain.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "acropolis_fountain_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
+#include "main/stream_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room_common.h"
 
 extern GpObj4C D_acropolis_fountain_8017F9C0[9];
 
@@ -70,27 +83,27 @@ extern Task*    D_acropolis_fountain_80183BB4;
 
 static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 
-void func_acropolis_fountain_8017E3D4(Task *);
-void func_acropolis_fountain_8017E72C(Task *);
+void func_acropolis_fountain_8017E3D4(Task*);
+void func_acropolis_fountain_8017E72C(Task*);
 
-extern GpGridParams D_acropolis_fountain_8017F60C[1];
-extern GpObj4C D_acropolis_fountain_8017F630[12];
+extern GpGridParams   D_acropolis_fountain_8017F60C[1];
+extern GpObj4C        D_acropolis_fountain_8017F630[12];
 extern GpRoomCoordSet D_acropolis_fountain_8017FF34[1];
 
-extern GpSprtCmd D_acropolis_fountain_8017FF4C[2];
-extern GpSprtCmd D_acropolis_fountain_8017FF5C[2];
-extern GpSprtCmd D_acropolis_fountain_801806D8[9];
-extern GpSprtCmd D_acropolis_fountain_80180DB0[15];
-extern GpSprtCmd D_acropolis_fountain_801813DC[8];
-extern GpSprtCmd D_acropolis_fountain_8018155C[3];
-extern GpSprtCmd D_acropolis_fountain_80181B00[9];
-extern GpSprtCmd D_acropolis_fountain_80182304[18];
-extern GpSprtCmd D_acropolis_fountain_80182394[2];
-extern GpSprtCmd D_acropolis_fountain_801823A4[2];
-extern GpSprtCmd D_acropolis_fountain_801827EC[9];
-extern GpSprtCmd D_acropolis_fountain_80182F64[15];
-extern GpSprtCmd D_acropolis_fountain_801832E8[8];
-extern GpSprtCmd D_acropolis_fountain_801833C8[3];
+extern GpSprtCmd  D_acropolis_fountain_8017FF4C[2];
+extern GpSprtCmd  D_acropolis_fountain_8017FF5C[2];
+extern GpSprtCmd  D_acropolis_fountain_801806D8[9];
+extern GpSprtCmd  D_acropolis_fountain_80180DB0[15];
+extern GpSprtCmd  D_acropolis_fountain_801813DC[8];
+extern GpSprtCmd  D_acropolis_fountain_8018155C[3];
+extern GpSprtCmd  D_acropolis_fountain_80181B00[9];
+extern GpSprtCmd  D_acropolis_fountain_80182304[18];
+extern GpSprtCmd  D_acropolis_fountain_80182394[2];
+extern GpSprtCmd  D_acropolis_fountain_801823A4[2];
+extern GpSprtCmd  D_acropolis_fountain_801827EC[9];
+extern GpSprtCmd  D_acropolis_fountain_80182F64[15];
+extern GpSprtCmd  D_acropolis_fountain_801832E8[8];
+extern GpSprtCmd  D_acropolis_fountain_801833C8[3];
 extern GpSprtElem D_acropolis_fountain_8017FF6C[95];
 extern GpSprtElem D_acropolis_fountain_80180720[84];
 extern GpSprtElem D_acropolis_fountain_80180E28[73];
@@ -1894,6 +1907,13 @@ u8 D_acropolis_fountain_80183BB1 = 0;
 u16 D_acropolis_fountain_80183BB2 = 8192;
 
 Task * D_acropolis_fountain_80183BB4 = NULL;
+
+static void func_acropolis_fountain_8017DAA4(Task* arg0);
+static void func_acropolis_fountain_8017DB00(Task* arg0);
+static void func_acropolis_fountain_8017DB54(Task* arg0);
+static void func_acropolis_fountain_8017DBAC(Task* arg0);
+static void func_acropolis_fountain_8017DC00(Task* arg0);
+static void func_acropolis_fountain_8017DC6C(Task* arg0);
 
 void func_acropolis_fountain_8017DA1C(void)
 {

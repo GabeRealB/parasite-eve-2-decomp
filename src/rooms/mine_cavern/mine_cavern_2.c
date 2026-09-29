@@ -1,67 +1,117 @@
-#include "mine_cavern_private.h"
+#include "rooms/mine_cavern.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "rooms/mine_cavern.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017ff88.h"
+#include <psyq/libgs.h>
+#include <psyq/stdio.h>
 
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
+
+#include "mine_cavern_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/stdio.h>
 
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area_flags.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
+#include "rooms/rooms_shared_8017dcb8.h"
+
+/// Work block a mine_cavern task parks at `Task::work`, allocated with
+/// `memCalloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`
+/// (and by `func_mine_cavern_801836D0`). It carries two `GpObj` display nodes:
+/// the `+0x40` one is what `func_mine_cavern_80183890` is given away by - it
+/// clears `obj40.flags` with `andi 0x7FFF` at +0x5E and then passes `&obj40` (a
+/// `+0x40` on the same base pointer) to `Gp_UnlinkObj`, the way
+/// `func_mine_cavern_80183860` does on its own exit path - and
+/// `func_mine_cavern_801838F4` reaches the second by `+0xC0`, clearing its
+/// flags at +0xDE the same way. `field_148` is the counter that function ticks
+/// and switch-dispatches on (against 0x3C) and that `func_mine_cavern_80183890`
+/// clears on its way out.
+///
+/// `coord` is the block's own display coordinate. `func_mine_cavern_80183AD4`
+/// resets it - identity rotation, parked at (0, -0x320, 0) - and hangs the
+/// model's own coordinate (`TmdObject::coords`) under it as `sub`, which is
+/// what leaves the model's positions relative to that spot.
+///
+/// `recs` and `recE0` are contact tables the collision tests fill:
+/// `func_mine_cavern_801830F0` looks through `recs` for a contact of class 2 and
+/// releases both tables at the end of its tick.
+///
+/// `light` and `color` are the two matrices the block itself supplies to the
+/// model: `func_mine_cavern_801836D0` publishes `&work->light` / `&work->color`
+/// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
+/// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
+typedef struct MineCavernWork {
+    /* 0x000 */ MATRIX  light;
+    /* 0x020 */ MATRIX  color;
+    /* 0x040 */ GpObj   obj40;
+    /* 0x060 */ GpRec18 recs[4];
+    /* 0x0C0 */ GpObj   objC0;
+    /* 0x0E0 */ GpRec18 recE0;
+    /* 0x0F8 */ GpCoord coord;
+    /* 0x148 */ u16     field_148;
+    /* 0x14A */ byte    pad_14A[2];
+} MineCavernWork;
+STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
 
 typedef struct {
-    u8 center[3];
-    u8 rim[3];
+    u8  center[3];
+    u8  rim[3];
     u16 retained;
 } MineCavernGlowPalette;
 extern MineCavernGlowPalette D_mine_cavern_8018E350;
@@ -85,7 +135,7 @@ extern u8 MineCavernGlowByte8018E35D[1] __asm__("D_mine_cavern_8018E358+5");
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } MineCavernHaloStorage;
 STATIC_ASSERT_SIZEOF(MineCavernHaloStorage, 20);
 extern MineCavernHaloStorage D_mine_cavern_80188FCC;
@@ -113,30 +163,6 @@ static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task);
 
 /// Current screen id at 0x8007218B.
 
-/// Sound emitter positions for the cavern's four ambient loops, indexed by the
-/// emitter id `func_mine_cavern_801825C8` and its siblings are called with.
-extern SVECTOR D_mine_cavern_8018E39C[4];
-
-/// Parameters `func_mine_cavern_80181CAC` writes into a cavern light record.
-/// `D_mine_cavern_8018E368` is the base the LCG draw is added to.
-extern u16 D_mine_cavern_8018E360;
-extern u16 D_mine_cavern_8018E362;
-extern u16 D_mine_cavern_8018E364;
-extern u16 D_mine_cavern_8018E366;
-extern u16 D_mine_cavern_8018E368;
-
-/// The four spots the cavern's enemy can be parked at, indexed by the low half
-/// of `Task::spawnArg1` (the spawn table `D_mine_cavern_8018EB38` packs the
-/// slot there, so a 32-bit read would index past the end).
-extern SVECTOR D_mine_cavern_8018EB18[4];
-
-/// Enemy spawn table the cavern's ambush draws from, on the `GameFlag_GetNibble(0xE2)`
-/// bits.
-extern TaskDesc D_mine_cavern_8018EB38[];
-
-/// Parameter record of the cavern enemy's kind.
-extern GpPairSrcE D_mine_cavern_8018EAE4;
-
 static void func_mine_cavern_80183860(Task* arg0);
 
 /// Colour of the glow fan's centre vertex, one channel per symbol.
@@ -154,30 +180,8 @@ static void func_mine_cavern_80183860(Task* arg0);
 
 /// Colour of the point glow fans' two rim vertices.
 
-/// The six points `func_mine_cavern_80181864` draws a glow at.
-extern SVECTOR D_mine_cavern_8018E36C[6];
-
-/// For each of the four emitter points, the views it spawns its effect in: up
-/// to eight view indices, ended early by a zero.
-extern u8 D_mine_cavern_8018E3BC[4][8];
-
-/// The view index `func_mine_cavern_80182184` saw on its previous run.
-extern s16 D_mine_cavern_8018E3DC;
-
-/// The `GameFlag_GetNibble(0xE2)` emitter set `func_mine_cavern_80182184` saw
-/// on its previous run.
-extern s32 D_mine_cavern_8018EB58;
-
-/// Tick counter `func_mine_cavern_80182184` advances while `Gp_StateF0.field_4` is
-/// clear; the emitters spawn on every ninth tick.
-extern u16 D_mine_cavern_8018EB5C;
-
 /// Mode byte the cavern enemy's hit check switches on: 1 skips the check and 2
 /// hides the model and skips it. Its wider role is unproven.
-
-/// Damage the cavern enemy takes from a contact, indexed by the low seven bits
-/// of the contact's key.
-extern u8 D_mine_cavern_8018EAF4[];
 
 /// Scratch block the enemy's hit check works in: the model's world position
 /// (then the offset to the player's model), the offset to the player or to a
@@ -198,37 +202,37 @@ static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1);
 static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_mine_cavern_8018981C[1];
-extern GpObj3A D_mine_cavern_8018E078[2];
-extern GpObj4C D_mine_cavern_8018D154[20];
-extern GpObj4C D_mine_cavern_8018D744[18];
-extern GpObj4C D_mine_cavern_8018DC9C[13];
+extern GpGridParams   D_mine_cavern_8018981C[1];
+extern GpObj3A        D_mine_cavern_8018E078[2];
+extern GpObj4C        D_mine_cavern_8018D154[20];
+extern GpObj4C        D_mine_cavern_8018D744[18];
+extern GpObj4C        D_mine_cavern_8018DC9C[13];
 extern GpRoomCoordSet D_mine_cavern_8018D13C[1];
 
-extern GpSprtCmd D_mine_cavern_80189BC4[2];
-extern GpSprtCmd D_mine_cavern_80189FA8[4];
-extern GpSprtCmd D_mine_cavern_8018A4C8[7];
-extern GpSprtCmd D_mine_cavern_8018A8D4[7];
-extern GpSprtCmd D_mine_cavern_8018AD94[8];
-extern GpSprtCmd D_mine_cavern_8018B108[3];
-extern GpSprtCmd D_mine_cavern_8018B42C[3];
-extern GpSprtCmd D_mine_cavern_8018B660[3];
-extern GpSprtCmd D_mine_cavern_8018B754[3];
-extern GpSprtCmd D_mine_cavern_8018B7A8[3];
-extern GpSprtCmd D_mine_cavern_8018B7C0[2];
-extern GpSprtCmd D_mine_cavern_8018B7D0[2];
-extern GpSprtCmd D_mine_cavern_8018B7E0[2];
-extern GpSprtCmd D_mine_cavern_8018B7F0[2];
-extern GpSprtCmd D_mine_cavern_8018B800[2];
-extern GpSprtCmd D_mine_cavern_8018B810[2];
-extern GpSprtCmd D_mine_cavern_8018B820[2];
-extern GpSprtCmd D_mine_cavern_8018B830[2];
-extern GpSprtCmd D_mine_cavern_8018B840[2];
-extern GpSprtCmd D_mine_cavern_8018BC10[5];
-extern GpSprtCmd D_mine_cavern_8018C048[4];
-extern GpSprtCmd D_mine_cavern_8018C504[7];
-extern GpSprtCmd D_mine_cavern_8018C8E8[5];
-extern GpSprtCmd D_mine_cavern_8018CCD0[6];
+extern GpSprtCmd  D_mine_cavern_80189BC4[2];
+extern GpSprtCmd  D_mine_cavern_80189FA8[4];
+extern GpSprtCmd  D_mine_cavern_8018A4C8[7];
+extern GpSprtCmd  D_mine_cavern_8018A8D4[7];
+extern GpSprtCmd  D_mine_cavern_8018AD94[8];
+extern GpSprtCmd  D_mine_cavern_8018B108[3];
+extern GpSprtCmd  D_mine_cavern_8018B42C[3];
+extern GpSprtCmd  D_mine_cavern_8018B660[3];
+extern GpSprtCmd  D_mine_cavern_8018B754[3];
+extern GpSprtCmd  D_mine_cavern_8018B7A8[3];
+extern GpSprtCmd  D_mine_cavern_8018B7C0[2];
+extern GpSprtCmd  D_mine_cavern_8018B7D0[2];
+extern GpSprtCmd  D_mine_cavern_8018B7E0[2];
+extern GpSprtCmd  D_mine_cavern_8018B7F0[2];
+extern GpSprtCmd  D_mine_cavern_8018B800[2];
+extern GpSprtCmd  D_mine_cavern_8018B810[2];
+extern GpSprtCmd  D_mine_cavern_8018B820[2];
+extern GpSprtCmd  D_mine_cavern_8018B830[2];
+extern GpSprtCmd  D_mine_cavern_8018B840[2];
+extern GpSprtCmd  D_mine_cavern_8018BC10[5];
+extern GpSprtCmd  D_mine_cavern_8018C048[4];
+extern GpSprtCmd  D_mine_cavern_8018C504[7];
+extern GpSprtCmd  D_mine_cavern_8018C8E8[5];
+extern GpSprtCmd  D_mine_cavern_8018CCD0[6];
 extern GpSprtElem D_mine_cavern_80189BD4[49];
 extern GpSprtElem D_mine_cavern_80189FC8[64];
 extern GpSprtElem D_mine_cavern_8018A500[49];
@@ -2635,6 +2639,15 @@ GpAreaApplyRec D_mine_cavern_8018E32C[9] = {
 MineCavernGlowPalette D_mine_cavern_8018E350 = { { 48, 32, 0 }, { 0, 0, 0 }, 1128 };
 
 MineCavernGlowPalette D_mine_cavern_8018E358 = { { 42, 25, 0 }, { 0, 0, 0 }, 1960 };
+
+static void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_mine_cavern_80181CAC(s16 point);
+static void func_mine_cavern_80181D80(s16 point);
+static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1);
+static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1);
+static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1);
+static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task);
 
 void func_mine_cavern_8017E330(void)
 {

@@ -1,44 +1,53 @@
-#include "gameplay/evs.h"
 #include "rooms/neo_ark_forest_zone.h"
-#include "mapui/map_neo_ark.h"
-#include "neo_ark_forest_zone_private.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "neo_ark_forest_zone_private.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/effects.h"
 #include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-extern SVECTOR D_neo_ark_forest_zone_80182094[2];
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -46,16 +55,6 @@ extern s8 D_neo_ark_forest_zone_80182E40[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern s8 D_neo_ark_forest_zone_80182E40_value __asm__("D_neo_ark_forest_zone_80182E40");
 
-/// The room's message table, which the room setup task installs.
-extern GpMsgEntry D_neo_ark_forest_zone_80181DC8[];
-
-extern s32      D_neo_ark_forest_zone_80181E30;
-extern s32      D_neo_ark_forest_zone_80181E38;
-extern Task*    D_neo_ark_forest_zone_80181E68;
-extern GpEvsCmd D_neo_ark_forest_zone_80181E6C[];
-extern TaskDesc D_neo_ark_forest_zone_80182E18;
-
-extern TaskDesc         D_neo_ark_forest_zone_80181DBC;
 extern GpSaveLoc        D_neo_ark_forest_zone_80182E38;
 extern RoomLatchedEvent D_neo_ark_forest_zone_80182E48;
 
@@ -96,6 +95,9 @@ u16 D_neo_ark_forest_zone_80182E54[5] = {
     0,
     0,
 };
+
+static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static void           func_neo_ark_forest_zone_8017DBAC(Task* task);
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
 /// the event's CAP command; state 1 waits for it to finish and, when the event

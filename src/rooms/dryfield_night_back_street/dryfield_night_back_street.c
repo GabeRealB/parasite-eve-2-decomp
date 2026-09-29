@@ -1,44 +1,57 @@
-#include "common.h"
 #include "rooms/dryfield_night_back_street.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
-
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
 #include "overlay.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#define D_dryfield_night_back_street_8018036C (D_dryfield_night_back_street_8018034C + 4)
+#define D_dryfield_night_back_street_8018037C (D_dryfield_night_back_street_8018034C + 6)
+#define D_dryfield_night_back_street_8018038C (D_dryfield_night_back_street_8018034C + 8)
+#define D_dryfield_night_back_street_8018039C (D_dryfield_night_back_street_8018034C + 10)
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_night_back_street_80180324[];
@@ -54,14 +67,14 @@ static void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg
 static void func_dryfield_night_back_street_8017F964(GpCoord* arg0, s16 arg1, u8* arg2);
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_night_back_street_8017D5D0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_back_street_8017D724(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_back_street_8017D72C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_back_street_8017D734(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_back_street_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_back_street_8017D724(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_back_street_8017D72C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_back_street_8017D734(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_night_back_street_80180B34[1];
-extern GpObj4C D_dryfield_night_back_street_80180D70[6];
-extern GpObj4C D_dryfield_night_back_street_80180F38[10];
+extern GpGridParams   D_dryfield_night_back_street_80180B34[1];
+extern GpObj4C        D_dryfield_night_back_street_80180D70[6];
+extern GpObj4C        D_dryfield_night_back_street_80180F38[10];
 extern GpRoomBoundVec D_dryfield_night_back_street_801815C8[6];
 extern GpRoomCoordSet D_dryfield_night_back_street_80181470[1];
 
@@ -765,10 +778,8 @@ GpRoomParamRec * D_dryfield_night_back_street_8018161C[8] = {
     D_dryfield_night_back_street_80181604,
 };
 
-#define D_dryfield_night_back_street_8018036C (D_dryfield_night_back_street_8018034C + 4)
-#define D_dryfield_night_back_street_8018037C (D_dryfield_night_back_street_8018034C + 6)
-#define D_dryfield_night_back_street_8018038C (D_dryfield_night_back_street_8018034C + 8)
-#define D_dryfield_night_back_street_8018039C (D_dryfield_night_back_street_8018034C + 10)
+static void func_dryfield_night_back_street_8017D73C(Task* task);
+static void func_dryfield_night_back_street_8017D780(Task* task);
 
 /// Message handler for the back street's two events. Copies the incoming
 /// record to the outgoing one and answers by editing `field_3` of the copy; a

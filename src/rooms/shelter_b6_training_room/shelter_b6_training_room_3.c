@@ -1,42 +1,52 @@
-#include "shelter_b6_training_room_private.h"
 #include "rooms/shelter_b6_training_room.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "shelter_b6_training_room_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-
 #include "gameplay/effects.h"
+#include "gameplay/evs.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomRingShape entries[3];
-    u16 retained;
+    u16           retained;
 } ShelterB6TrainingRoomRingStorage;
 STATIC_ASSERT_SIZEOF(ShelterB6TrainingRoomRingStorage, 20);
 extern ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404;
@@ -73,12 +83,8 @@ typedef struct {
     u32     sxy3;
 } _ShelterB6TrainingRoomBandScratch;
 
-extern GpCoord*      D_shelter_b6_training_room_80185C90;
-extern GpCoord*      D_shelter_b6_training_room_80185C94;
-extern u16           D_shelter_b6_training_room_80185C98;
-extern SVECTOR       D_shelter_b6_training_room_80184334[];
-extern u16           D_shelter_b6_training_room_801843FC[];
-extern u8            D_shelter_b6_training_room_80185C60[][16];
+extern SVECTOR D_shelter_b6_training_room_80184334[];
+extern u16     D_shelter_b6_training_room_801843FC[];
 
 static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -88,8 +94,6 @@ static void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s
 static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coord, s32 band);
 static void func_shelter_b6_training_room_80181BAC(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1, s32 arg2, s16 arg3);
-
-extern GpEvsCmd D_shelter_b6_training_room_80184124[];
 
 GpMsgEntry D_shelter_b6_training_room_80182AF4[6] = {
     { 5102, func_shelter_b6_training_room_8017D640 },

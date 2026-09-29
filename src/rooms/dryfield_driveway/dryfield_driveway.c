@@ -1,45 +1,53 @@
-#include "common.h"
 #include "rooms/dryfield_driveway.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "types.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/collision.h"
-#include "gameplay/evs.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -56,30 +64,30 @@ extern TaskDesc D_dryfield_driveway_8017E2FC[];
 
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
-extern RoomFadeStorage       D_dryfield_driveway_80180680;
+extern RoomFadeStorage  D_dryfield_driveway_80180680;
 extern RoomEventMsg     D_dryfield_driveway_80180688;
 extern RoomLatchedEvent D_dryfield_driveway_80180694;
 
-extern GpAnimArg D_dryfield_driveway_8017E330;
-extern GpAnimArg D_dryfield_driveway_8017E358;
-extern GpCopyArg D_dryfield_driveway_8017E328;
-extern GpGridParams D_dryfield_driveway_8017ED74[1];
-extern GpObj4C D_dryfield_driveway_8017FC98[6];
-extern GpObj4C D_dryfield_driveway_801802F8[11];
+extern GpAnimArg      D_dryfield_driveway_8017E330;
+extern GpAnimArg      D_dryfield_driveway_8017E358;
+extern GpCopyArg      D_dryfield_driveway_8017E328;
+extern GpGridParams   D_dryfield_driveway_8017ED74[1];
+extern GpObj4C        D_dryfield_driveway_8017FC98[6];
+extern GpObj4C        D_dryfield_driveway_801802F8[11];
 extern GpRoomCoordSet D_dryfield_driveway_801802E0[1];
-extern TaskDesc D_8014D8A4;
-s32 func_dryfield_driveway_8017D77C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_driveway_8017DC70(Task *, s32, s32, s32);
-s32 func_dryfield_driveway_8017DCC0(Task *, s32, s32, s32);
-s32 func_dryfield_driveway_8017DDB0(Task *, s32, s32, s32);
-s32 func_dryfield_driveway_8017DDB8(Task *, s32, s32, s32);
-void func_dryfield_driveway_8017DC48(s32);
-void func_dryfield_driveway_8017DC54(s16);
-void func_dryfield_driveway_8017DC64(u8);
+extern TaskDesc       D_8014D8A4;
+s32                   func_dryfield_driveway_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_dryfield_driveway_8017DC70(Task*, s32, s32, s32);
+s32                   func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
+s32                   func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
+s32                   func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
+void                  func_dryfield_driveway_8017DC48(s32);
+void                  func_dryfield_driveway_8017DC54(s16);
+void                  func_dryfield_driveway_8017DC64(u8);
 
-void func_dryfield_driveway_8017D5E4(Task *);
-void func_dryfield_driveway_8017DAD0(Task *);
-void func_dryfield_driveway_8017DB68(Task *);
+void func_dryfield_driveway_8017D5E4(Task*);
+void func_dryfield_driveway_8017DAD0(Task*);
+void func_dryfield_driveway_8017DB68(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -939,6 +947,9 @@ u8 D_dryfield_driveway_80180690[4] = {
 };
 
 RoomLatchedEvent D_dryfield_driveway_80180694 = { 0 };
+
+static void func_dryfield_driveway_8017DDC0(Task* task);
+static void func_dryfield_driveway_8017DE04(Task* task);
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it and, when the

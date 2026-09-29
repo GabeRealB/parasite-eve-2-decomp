@@ -1,31 +1,30 @@
 #include "actor_143000_private.h"
 
-#include "actor_143000_capture.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/rand.h>
 
 #include "common.h"
 
-#include <psyq/rand.h>
-
-#include "actors/actor_143000.h"
-#include "psyq/strings.h"
-
-#include "gameplay/captions.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/captions.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
 
 #include "rooms/shelter_b2_laboratory.h"
 
@@ -34,7 +33,7 @@
 typedef union {
     struct {
         GpAnimSet* sets[5];
-        GpAnimArg arguments[6];
+        GpAnimArg  arguments[6];
     } data;
     s32 words[35];
 } Actor143000AnimStorage50D4;
@@ -42,30 +41,25 @@ STATIC_ASSERT_SIZEOF(Actor143000AnimStorage50D4, 140);
 
 extern Actor143000AnimStorage50D4 D_actor_143000_801350D4;
 
-extern u8             D_actor_143000_801351AC;
+extern u8       D_actor_143000_801351AC;
 extern GpEvsCmd D_actor_143000_801351B0[];
-extern TaskDesc       D_actor_143000_801350C8;
+extern TaskDesc D_actor_143000_801350C8;
 extern GpEvsCmd D_actor_143000_80135870[];
 extern GpEvsCmd D_actor_143000_80135A20[];
 extern GpEvsCmd D_actor_143000_80135AE0[];
-extern s32            D_actor_143000_80135C10;
-extern s32            D_actor_143000_80135C14;
-extern s32            D_actor_143000_80135C18;
-extern s32            D_actor_143000_80135C1C;
-extern u8             D_actor_143000_80135C38[];
+extern s32      D_actor_143000_80135C10;
+extern s32      D_actor_143000_80135C14;
+extern s32      D_actor_143000_80135C18;
+extern s32      D_actor_143000_80135C1C;
+extern u8       D_actor_143000_80135C38[];
 
-extern GpAnimSet D_actor_143000_80134840;
-extern GpAnimSet D_actor_143000_80134AEC;
-extern GpAnimSet D_actor_143000_80134D08;
-extern GpAnimSet D_actor_143000_80134EB0;
-extern GpAnimSet D_actor_143000_80135068;
 void func_actor_143000_801344A8(s32);
 void func_actor_143000_801344D8(void);
 void func_actor_143000_8013450C(void);
 void func_actor_143000_8013452C(u8);
 void func_actor_143000_80134538(void);
 
-void func_actor_143000_80133EE4(Task *);
+void func_actor_143000_80133EE4(Task*);
 
 TaskDesc D_actor_143000_801350B0[2] = {
     { 0, 192, taskKill, { .model = NULL } },
@@ -232,6 +226,8 @@ s32 D_actor_143000_80135C1C = 0;
 char D_actor_143000_80135C20[24] = { 0 };
 
 u8 D_actor_143000_80135C38[8] = { 0 };
+
+void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active);
 
 void func_actor_143000_80133EE4(Task* arg0)
 {

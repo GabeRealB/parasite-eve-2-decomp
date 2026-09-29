@@ -1,17 +1,18 @@
 #include "pe/ofuda.h"
 
-#include "common.h"
-
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
+#include "types.h"
 
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/effects.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/sound.h"
 #include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// This overlay's id, the `u16` every package opens with.
 

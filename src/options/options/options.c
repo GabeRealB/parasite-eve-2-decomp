@@ -1,16 +1,19 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "gameplay/display.h"
+#include "common.h"
 
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/pad.h"
 #include "main/sound.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
 /// Menu labels and help text for the options screen.
 static u8 D_options_801D5B2C[32] = "Restore default configuration";
@@ -110,6 +113,22 @@ static UiObjectDesc D_options_801D5EFC = {
     func_options_801D4D0C,
     0,
 };
+
+/// Key-icon UV pairs for the key configuration screen, one (u, v) per row.
+typedef struct {
+    u8 pairs[8][2];
+} KeyIconUvs;
+
+/// The last text request's storage is reused as the per-row UV scratch buffer
+/// (both 16 bytes), which is what keeps the frame at 0x120.
+typedef union {
+    TextDrawReq req;
+    KeyIconUvs  uvs;
+} KeyIconReq;
+
+static const KeyIconUvs Options_KeyIconUvs;
+
+static void func_options_801D4B64(Task* task);
 
 static void func_options_801D404C(UiList* arg0, UiObject* arg1)
 {
@@ -476,20 +495,6 @@ static void func_options_801D4B64(Task* task)
         }
     }
 }
-
-/// Key-icon UV pairs for the key configuration screen, one (u, v) per row.
-typedef struct {
-    u8 pairs[8][2];
-} KeyIconUvs;
-
-/// The last text request's storage is reused as the per-row UV scratch buffer
-/// (both 16 bytes), which is what keeps the frame at 0x120.
-typedef union {
-    TextDrawReq req;
-    KeyIconUvs  uvs;
-} KeyIconReq;
-
-static const KeyIconUvs Options_KeyIconUvs;
 
 static void func_options_801D4D0C(Task* task)
 {

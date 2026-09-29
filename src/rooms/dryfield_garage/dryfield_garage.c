@@ -1,32 +1,43 @@
-#include "common.h"
 #include "rooms/dryfield_garage.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/world_targets.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
+
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
-
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -50,13 +61,13 @@ extern GpMsgEntry D_dryfield_garage_8017DC7C[];
 extern TaskDesc D_dryfield_garage_8017DCAC[];
 
 extern GpXformArg D_dryfield_garage_8017DCC4;
-extern GpObj4A D_dryfield_garage_8017FD1C[11];
+extern GpObj4A    D_dryfield_garage_8017FD1C[11];
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    Task * value;
-    u8 retained[4];
+    Task* value;
+    u8    retained[4];
 } DryfieldGarageStorage021C;
 STATIC_ASSERT_SIZEOF(DryfieldGarageStorage021C, 8);
 
@@ -68,18 +79,18 @@ static void func_dryfield_garage_8017DC08(Task* task);
 
 extern TaskDesc D_8014D8A4;
 
-extern GpGridParams D_dryfield_garage_8017E64C[1];
-extern GpObj4C D_dryfield_garage_8017F69C[14];
-extern GpObj4C D_dryfield_garage_8017FD1C[11];
+extern GpGridParams   D_dryfield_garage_8017E64C[1];
+extern GpObj4C        D_dryfield_garage_8017F69C[14];
+extern GpObj4C        D_dryfield_garage_8017FD1C[11];
 extern GpRoomBoundVec D_dryfield_garage_80180148[16];
 extern GpRoomCoordSet D_dryfield_garage_8017FD04[1];
-s32 func_dryfield_garage_8017D8BC(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_garage_8017D914(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_garage_8017D91C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_garage_8017DA18(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_garage_8017DA54(Task *, s32, RoomEventMsg *, GpMessageArg);
-void func_dryfield_garage_8017D74C(Task *);
-void func_dryfield_garage_8017DAA0(Task *);
+s32                   func_dryfield_garage_8017D8BC(Task*, s32, s32, GpMessageArg);
+s32                   func_dryfield_garage_8017D914(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_dryfield_garage_8017DA18(Task*, s32, s32, GpMessageArg);
+s32                   func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, GpMessageArg);
+void                  func_dryfield_garage_8017D74C(Task*);
+void                  func_dryfield_garage_8017DAA0(Task*);
 
 TaskDesc D_dryfield_garage_8017DC70 = { 0, 32, func_dryfield_garage_8017D74C, { .model = NULL } };
 
@@ -1030,6 +1041,8 @@ u8 D_dryfield_garage_8018022C[4] = {
 };
 
 RoomEventReq D_dryfield_garage_80180230 = { 0 };
+
+static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 
 /// Event gate for a room exit. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when

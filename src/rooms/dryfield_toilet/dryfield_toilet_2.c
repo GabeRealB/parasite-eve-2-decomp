@@ -1,57 +1,59 @@
-#include "dryfield_toilet_private.h"
 #include "rooms/dryfield_toilet.h"
 
-#include "gameplay/animation.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "dryfield_toilet_private.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
 #include "overlay.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-
-#include "mapui/stage_tables.h"
-
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[3];
-        GpCopyArg copy;
+        GpCopyArg  copy;
     } data;
     s32 words[5];
 } DryfieldToiletAnimStorage0B8C;
@@ -67,16 +69,15 @@ static void func_dryfield_toilet_8017F4C0(GpCoord* arg0, s32 arg1, u8* rgb);
 static void func_dryfield_toilet_8017FA00(GpCoord* coord, s16 size);
 static void func_dryfield_toilet_8017FF2C(GpCoord* arg0, s32 arg1);
 
-extern GpGridParams D_dryfield_toilet_80181404;
-extern GpObj3A D_dryfield_toilet_801826F0[1];
-extern GpObj4C D_dryfield_toilet_8018227C[6];
-extern GpObj4C D_dryfield_toilet_80182444[9];
+extern GpObj3A        D_dryfield_toilet_801826F0[1];
+extern GpObj4C        D_dryfield_toilet_8018227C[6];
+extern GpObj4C        D_dryfield_toilet_80182444[9];
 extern GpRoomCoordSet D_dryfield_toilet_801828AC[1];
 
 extern GpGridFace D_dryfield_toilet_801812EC[17];
-extern SVECTOR D_dryfield_toilet_80181184[7];
-extern SVECTOR D_dryfield_toilet_801811BC[38];
-extern s16 * D_dryfield_toilet_801813FC[2];
+extern SVECTOR    D_dryfield_toilet_80181184[7];
+extern SVECTOR    D_dryfield_toilet_801811BC[38];
+extern s16*       D_dryfield_toilet_801813FC[2];
 
 extern GpAreaTmdRec D_dryfield_toilet_801828C4[3];
 extern GpAreaTmdRec D_dryfield_toilet_801828E8[2];
@@ -86,8 +87,6 @@ extern SVECTOR D_dryfield_toilet_8018662C[326];
 extern SVECTOR D_dryfield_toilet_8018705C[1604];
 
 extern DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C;
-extern GpAnimSet D_dryfield_toilet_80180614;
-extern GpAnimSet D_dryfield_toilet_80180B64;
 
 DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C = { .data = { { NULL, &D_dryfield_toilet_80180614, &D_dryfield_toilet_80180B64 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
 

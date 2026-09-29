@@ -1,39 +1,40 @@
-#include "common.h"
-#include "rooms/shelter_b3_dumping_hole.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135990.h"
-#include "actors/actors_shared_80135a60.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
+
+#include "rooms/shelter_b3_dumping_hole.h"
 
 /// The overlay's *other* work block, for the task `func_actor_341700_8016D130`
 /// starts: that function calls `memCalloc(0x80, 0)` and stores the result in
@@ -75,9 +76,9 @@ extern u8      D_actor_341700_801760FC[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpCmdArg *);
-        s32 (*call1)(Task *, s32, GpXformArg *);
-        s32 (*call2)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor3417002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor3417002MessageEntry, 8);
@@ -93,11 +94,11 @@ static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1);
 static void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1);
 
 extern TmdSource D_actor_341700_80175F38;
-static void func_actor_341700_8016D32C(Task *);
+static void      func_actor_341700_8016D32C(Task*);
 
-s32 func_actor_341700_8016CE28(Task *, s32, s32);
-s32 func_actor_341700_8016CEB4(Task *, s32, GpCmdArg *);
-s32 func_actor_341700_8016CF48(Task *, s32, GpXformArg *);
+s32 func_actor_341700_8016CE28(Task*, s32, s32);
+s32 func_actor_341700_8016CEB4(Task*, s32, GpCmdArg*);
+s32 func_actor_341700_8016CF48(Task*, s32, GpXformArg*);
 
 TmdBone D_actor_341700_80174DC4[11] = {
 #include "assets/actor_341700_model_14118_skeleton.inc"
@@ -788,6 +789,15 @@ u8 D_actor_341700_801760FC[600] = {
 TaskDesc D_actor_341700_80176354 = { 257, 96, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
 
 SVECTOR D_actor_341700_80176360 = { 0 };
+
+static void func_actor_341700_8016AC64(GpCoord* coord, s16 yaw);
+static s32  func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count);
+static s32  func_actor_341700_8016B2B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32  func_actor_341700_8016B804(GpCoord* coord, GpRec18* movement, s16 arg2);
+static s32  func_actor_341700_8016B9A8(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016D018(GpCoord* coord, s16 scale);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,

@@ -1,32 +1,39 @@
-#include "gameplay/evs.h"
-#include "rooms/neo_ark_observatory.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/rand.h>
 
+#include "common.h"
+
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/animation.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/pad_script.h"
+#include "rooms/neo_ark_observatory.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[4];
-        GpAnimArg arguments[6];
+        GpAnimArg  arguments[6];
     } data;
     s32 words[34];
 } Actor450200AnimStorageFB4C;
@@ -39,7 +46,7 @@ extern Actor450200AnimStorageFB4C D_actor_450200_8013FB4C;
 typedef union {
     struct {
         GpAnimSet* sets[5];
-        GpAnimArg arguments[6];
+        GpAnimArg  arguments[6];
     } data;
     s32 words[35];
 } Actor450200AnimStorageC66C;
@@ -52,8 +59,8 @@ extern Actor450200AnimStorageC66C D_actor_450200_8013C66C;
 typedef union {
     struct {
         GpAnimSet* sets[8];
-        GpCopyArg copy;
-        GpAnimArg arguments[5];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[5];
     } data;
     s32 words[35];
 } Actor450200AnimStorage7A84;
@@ -66,8 +73,8 @@ extern Actor450200AnimStorage7A84 D_actor_450200_80137A84;
 typedef union {
     struct {
         GpAnimSet* sets[8];
-        GpCopyArg copy;
-        GpAnimArg arguments[5];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[5];
     } data;
     s32 words[35];
 } Actor450200AnimStorage7BD8;
@@ -100,27 +107,27 @@ void func_actor_450200_80132880(s32);
 void func_actor_450200_801328A0(u8);
 
 extern Actor450200AnimStorage7BD8 D_actor_450200_80137BD8;
-extern GpAnimArg D_actor_450200_80137B38;
-extern GpAnimArg D_actor_450200_80137B4C;
-extern GpAnimArg D_actor_450200_80137B60;
-extern GpAnimArg D_actor_450200_80137B74;
-extern GpAnimSet D_actor_450200_8013389C;
-extern GpAnimSet D_actor_450200_80134BEC;
-extern GpAnimSet D_actor_450200_80134FC8;
-extern GpAnimSet D_actor_450200_801351FC;
-extern GpAnimSet D_actor_450200_80135638;
-extern GpAnimSet D_actor_450200_801357D8;
-extern GpAnimSet D_actor_450200_80135A50;
-extern GpAnimSet D_actor_450200_80135C24;
-void func_actor_450200_801320D4(s32);
-void func_actor_450200_8013215C(void);
-void func_actor_450200_8013217C(s32);
-void func_actor_450200_8013219C(void);
-void func_actor_450200_80132538(Task *);
+extern GpAnimArg                  D_actor_450200_80137B38;
+extern GpAnimArg                  D_actor_450200_80137B4C;
+extern GpAnimArg                  D_actor_450200_80137B60;
+extern GpAnimArg                  D_actor_450200_80137B74;
+extern GpAnimSet                  D_actor_450200_8013389C;
+extern GpAnimSet                  D_actor_450200_80134BEC;
+extern GpAnimSet                  D_actor_450200_80134FC8;
+extern GpAnimSet                  D_actor_450200_801351FC;
+extern GpAnimSet                  D_actor_450200_80135638;
+extern GpAnimSet                  D_actor_450200_801357D8;
+extern GpAnimSet                  D_actor_450200_80135A50;
+extern GpAnimSet                  D_actor_450200_80135C24;
+void                              func_actor_450200_801320D4(s32);
+void                              func_actor_450200_8013215C(void);
+void                              func_actor_450200_8013217C(s32);
+void                              func_actor_450200_8013219C(void);
+void                              func_actor_450200_80132538(Task*);
 
 extern Actor450200AnimStorage7A84 D_actor_450200_80137A84;
-void func_actor_450200_80131E24(Task *);
-void func_actor_450200_80131FA8(Task *);
+void                              func_actor_450200_80131E24(Task*);
+void                              func_actor_450200_80131FA8(Task*);
 
 // The player indexes this pose bank in words, then reads a full pose.
 typedef union {
@@ -1281,6 +1288,11 @@ u16 D_actor_450200_801403E8[256] = { 0 };
 u16 D_actor_450200_801405E8[256] = { 0 };
 
 u16 D_actor_450200_801407E8[256] = { 0 };
+
+static void        func_actor_450200_80132220(void);
+static void        func_actor_450200_801322F8(void);
+static void        func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex);
+static inline void _actor450200LoadScaledClut(u16* src, u16* dst, s32 scale, s32 y);
 
 /// Effect state machine of this actor's first sub-task: state 0 arms the
 /// self-destruct countdown at 0x64 and state 2 re-arms it at 0x80, both then

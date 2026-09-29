@@ -1,31 +1,32 @@
-#include "dryfield_night_motel_balcony_private.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
+#include "types.h"
+
+#include "dryfield_night_motel_balcony_private.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-#include "gameplay/area_flags.h"
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -40,18 +41,12 @@ extern s32 D_80165060;
 extern s32 D_80165798;
 extern u8  D_80165720;
 
-/// The room's message table, installed on the room task.
-extern GpMsgEntry D_dryfield_night_motel_balcony_80182804[];
-
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg D_dryfield_night_motel_balcony_8018F2D4;
 extern RoomEventReq D_dryfield_night_motel_balcony_8018F2E0;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
-
-/// Descriptor of the event task the gate spawns.
-extern TaskDesc D_dryfield_night_motel_balcony_801827F8;
 
 GpAreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
     { 3, 29, 4, 0 },
@@ -68,6 +63,10 @@ u8 D_dryfield_night_motel_balcony_8018F2DC[4] = {
 };
 
 RoomEventReq D_dryfield_night_motel_balcony_8018F2E0 = { 0 };
+
+static s32  func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_motel_balcony_8017DC30(Task* task);
+static void func_dryfield_night_motel_balcony_8017DD0C(Task* task);
 
 /// The balcony's event gate. A request whose flag nibble already records the
 /// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One

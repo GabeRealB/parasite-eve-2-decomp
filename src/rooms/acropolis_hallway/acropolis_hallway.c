@@ -1,42 +1,46 @@
-#include "common.h"
 #include "rooms/acropolis_hallway.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d830.h"
+#include <psyq/inline_c.h>
 
+#include "gte.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/geometry.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
 
-#include "gameplay/geometry.h"
+#include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-#include "overlay.h"
+#include "main/tmd_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_akropolis.h"
+
+#include "overlay.h"
 
 extern GpMsgEntry D_acropolis_hallway_8017E238[];
 extern SVECTOR    D_acropolis_hallway_8017FA4C;
@@ -49,19 +53,19 @@ static const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
     { func_acropolis_hallway_8017D784, func_acropolis_hallway_8017D7C8, taskKill },
 };
 
-extern u32 D_acropolis_hallway_8017F8A4[1];
+extern u32     D_acropolis_hallway_8017F8A4[1];
 extern SVECTOR D_acropolis_hallway_8017F8A8[21];
 extern SVECTOR D_acropolis_hallway_8017F950[6];
 extern TmdBone D_acropolis_hallway_8017F880[1];
-extern u32 D_acropolis_hallway_8017F980[42];
+extern u32     D_acropolis_hallway_8017F980[42];
 
-extern GpGridParams D_acropolis_hallway_8017E5D0[1];
-extern GpObj4C D_acropolis_hallway_8017E5F4[4];
-extern GpObj4C D_acropolis_hallway_8017E724[9];
+extern GpGridParams   D_acropolis_hallway_8017E5D0[1];
+extern GpObj4C        D_acropolis_hallway_8017E5F4[4];
+extern GpObj4C        D_acropolis_hallway_8017E724[9];
 extern GpRoomCoordSet D_acropolis_hallway_8017EBC4[1];
-s32 func_acropolis_hallway_8017D5D0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_acropolis_hallway_8017D72C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_hallway_8017D734(Task *, s32, s32, GpMessageArg);
+s32                   func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                   func_acropolis_hallway_8017D72C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_acropolis_hallway_8017D734(Task*, s32, s32, GpMessageArg);
 
 GpMsgEntry D_acropolis_hallway_8017E238[4] = {
     { 5102, func_acropolis_hallway_8017D5D0 },
@@ -392,6 +396,10 @@ TmdSource D_acropolis_hallway_8017FA28 = {
 };
 
 SVECTOR D_acropolis_hallway_8017FA4C = { 0 };
+
+static s32  func_acropolis_hallway_8017D830(GpCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_hallway_8017D9D4(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void func_acropolis_hallway_8017E1C0(Task* task);
 
 /// Message gate for the hallway's first hotspot: copies the incoming record to
 /// the outgoing one, then edits the copy's `field_3` (the answer the caller

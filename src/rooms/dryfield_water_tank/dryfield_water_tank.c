@@ -1,53 +1,62 @@
-#include "dryfield_water_tank_private.h"
+#include "rooms/dryfield_water_tank.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "rooms/dryfield_water_tank.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "common.h"
 
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
+#include "dryfield_water_tank_private.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/animation.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
 #include "overlay.h"
-
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[19];
-        GpCopyArg copy;
+        GpCopyArg  copy;
     } data;
     s32 words[21];
 } DryfieldWaterTankAnimStorage4960;
@@ -114,63 +123,26 @@ STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 /// Main-executable flag word with no module header yet: while its bit 2 is
 /// raised the model task nudges the model 5 units off each position it snaps to.
 
-extern GpEvsCmd D_dryfield_water_tank_8017F114[];
-extern GpEvsCmd D_dryfield_water_tank_8017F21C[];
-extern GpMsgEntry     D_dryfield_water_tank_8017F324[];
-extern TaskDesc       D_dryfield_water_tank_8017F34C[];
 // Message-table callbacks use the argument views required by this TU.
 
-extern GpEvsCmd D_dryfield_water_tank_8017FDC0[];
-extern GpEvsCmd D_dryfield_water_tank_8017FEC8[];
-extern TaskDesc       D_dryfield_water_tank_8017FF88[];
-extern TaskDesc       D_dryfield_water_tank_80180794;
-extern GpEvsCmd D_dryfield_water_tank_80184E0C[];
-extern GpEvsCmd D_dryfield_water_tank_801859DC[];
+extern GpEvsCmd       D_dryfield_water_tank_80184E0C[];
+extern GpEvsCmd       D_dryfield_water_tank_801859DC[];
 extern TaskDesc       D_dryfield_water_tank_801868A4[];
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
 extern Task*          D_dryfield_water_tank_80188D44;
 extern s32            D_dryfield_water_tank_80188D48;
 extern Task*          D_dryfield_water_tank_80188D4C;
 
-/// The model's placement run at 0x8017FD60. `[1]` (0x8017FD78) is the lowered
-/// record: the model sinks until its Z passes `pos.vz` and is snapped to its
-/// `pos.vy` and then `pos.vx`. The model task reaches that record both from
-/// this head and through a direct reference to its second element;
-/// the driver sends the head itself as the 0x7D4 placement.
-extern GpXformArg D_dryfield_water_tank_8017FD60[2];
-
-/// X offsets the model task spawns effect 0x60054 with, indexed by the 0..10
-/// `killCountdown` counter it wraps.
-extern u16 D_dryfield_water_tank_8017FDA8[];
-
 static void func_dryfield_water_tank_8017DB48(void);
 
 extern GpAreaTmdRec D_dryfield_water_tank_80188BCC[2];
 
-extern GpGridParams D_dryfield_water_tank_80186EBC[1];
-extern GpObj4C D_dryfield_water_tank_80187FF8[4];
-extern GpObj4C D_dryfield_water_tank_80188920[9];
+extern GpGridParams   D_dryfield_water_tank_80186EBC[1];
+extern GpObj4C        D_dryfield_water_tank_80187FF8[4];
+extern GpObj4C        D_dryfield_water_tank_80188920[9];
 extern GpRoomCoordSet D_dryfield_water_tank_80188908[1];
 
 extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
-extern GpAnimSet D_dryfield_water_tank_80180A7C;
-extern GpAnimSet D_dryfield_water_tank_80180D3C;
-extern GpAnimSet D_dryfield_water_tank_80181020;
-extern GpAnimSet D_dryfield_water_tank_80181274;
-extern GpAnimSet D_dryfield_water_tank_801815C0;
-extern GpAnimSet D_dryfield_water_tank_80181D7C;
-extern GpAnimSet D_dryfield_water_tank_80182060;
-extern GpAnimSet D_dryfield_water_tank_80182258;
-extern GpAnimSet D_dryfield_water_tank_801825AC;
-extern GpAnimSet D_dryfield_water_tank_801827A4;
-extern GpAnimSet D_dryfield_water_tank_80182CC4;
-extern GpAnimSet D_dryfield_water_tank_80182FA4;
-extern GpAnimSet D_dryfield_water_tank_80183378;
-extern GpAnimSet D_dryfield_water_tank_80183768;
-extern GpAnimSet D_dryfield_water_tank_80183AD4;
-extern GpAnimSet D_dryfield_water_tank_80183E00;
-extern GpAnimSet D_dryfield_water_tank_80184228;
-extern GpAnimSet D_dryfield_water_tank_80184508;
 
 DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960 = { .data = { { NULL, &D_dryfield_water_tank_80180A7C, &D_dryfield_water_tank_80180D3C, &D_dryfield_water_tank_80181020, &D_dryfield_water_tank_80181274, &D_dryfield_water_tank_80181D7C, &D_dryfield_water_tank_80182258, &D_dryfield_water_tank_801825AC, &D_dryfield_water_tank_801827A4, &D_dryfield_water_tank_80182CC4, &D_dryfield_water_tank_80182FA4, &D_dryfield_water_tank_80183378, &D_dryfield_water_tank_80183768, &D_dryfield_water_tank_80183AD4, &D_dryfield_water_tank_80183E00, &D_dryfield_water_tank_801815C0, &D_dryfield_water_tank_80182060, &D_dryfield_water_tank_80184508, &D_dryfield_water_tank_80184228 }, { { .words = D_dryfield_water_tank_80184960.words }, 20 } } };
 
@@ -1217,6 +1189,10 @@ s32 D_dryfield_water_tank_80188D48 = 0;
 Task * D_dryfield_water_tank_80188D4C = NULL;
 
 Task * D_dryfield_water_tank_80188D50 = NULL;
+
+static void func_dryfield_water_tank_8017D9D4(Task* task);
+static void func_dryfield_water_tank_8017DA4C(Task* task);
+static s32  func_dryfield_water_tank_8017DB98(Task* arg0);
 
 void func_dryfield_water_tank_8017D618(Task* arg0)
 {

@@ -1,57 +1,59 @@
-#include "acropolis_helicopter_landing_pad_private.h"
-
-#include "common.h"
-
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/abs.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
-#include "gameplay/actor.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/abs.h>
+
+#include "types.h"
+
+#include "acropolis_helicopter_landing_pad_private.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/loading.h"
 #include "gameplay/collision.h"
 #include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-
-#include "rooms/stage_tables.h"
-
-/// The room's own task table, eight descriptors that attach no model,
-/// spawned by index and closed by an entry whose `flags` is all ones.
-extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
+#include "mapui/map_akropolis.h"
 
 /// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
 /// msg 0x3E8 record's `field_0` in `func_acropolis_helicopter_landing_pad_8017DA9C`.
@@ -70,25 +72,6 @@ extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4];
 extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2];
 extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4];
 extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D78[2];
-
-/// Script / cutscene blocks and message payloads used by the room's
-/// state-machine task `func_acropolis_helicopter_landing_pad_8017DA9C`:
-/// `..._801837B0` is the slot-3 msg 0x3E9 argument, `..._8018467C` /
-/// `..._80184CF4` the `func_800E8634` script pair started at the end,
-/// `..._80184E28` the 0x7D3 payload sent to the spawned enemy task and
-/// `..._80184E3C` the 0x14-byte msg 0x3E8 record.
-extern GpXformArg D_acropolis_helicopter_landing_pad_801837B0;
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_8018467C[];
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80184CF4[];
-extern GpAnimArg D_acropolis_helicopter_landing_pad_80184E28;
-extern GpAnimArg D_acropolis_helicopter_landing_pad_80184E3C;
-
-extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[];
-extern s32        D_acropolis_helicopter_landing_pad_801837E0[];
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80183A04[];
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80183A34[];
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80183FA4[];
-extern GpXformArg D_acropolis_helicopter_landing_pad_80184E50;
 
 static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
 static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
@@ -111,44 +94,44 @@ extern GpDrawAreaRec D_acropolis_helicopter_landing_pad_8018723C[2];
 extern GpDrawAreaRec D_acropolis_helicopter_landing_pad_80187358[2];
 extern GpDrawAreaRec D_acropolis_helicopter_landing_pad_801875B0[2];
 extern GpDrawAreaRec D_acropolis_helicopter_landing_pad_80187630[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80186B00[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80186C64[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80186C7C[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80186D04[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80186DBC[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80186EB0[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187120[5];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187224[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187340[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187588[5];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801875C4[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801875D4[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801875E4[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801875F4[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187618[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187644[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187690[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801876F8[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187710[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187720[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801877A8[3];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801877C0[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801877D0[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801877E0[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_801877F0[2];
-extern GpSprtCmd D_acropolis_helicopter_landing_pad_80187800[2];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80186B10[17];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80186CA0[5];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80186D1C[8];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80186DE8[10];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80186EDC[29];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_8018715C[10];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80187250[12];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_8018736C[27];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80187604[1];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80187654[3];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_801876A8[4];
-extern GpSprtElem D_acropolis_helicopter_landing_pad_80187730[6];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80186B00[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80186C64[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80186C7C[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80186D04[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80186DBC[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80186EB0[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187120[5];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187224[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187340[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187588[5];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801875C4[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801875D4[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801875E4[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801875F4[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187618[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187644[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187690[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801876F8[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187710[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187720[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801877A8[3];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801877C0[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801877D0[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801877E0[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_801877F0[2];
+extern GpSprtCmd     D_acropolis_helicopter_landing_pad_80187800[2];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186B10[17];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186CA0[5];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186D1C[8];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186DE8[10];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186EDC[29];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_8018715C[10];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187250[12];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_8018736C[27];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187604[1];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187654[3];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_801876A8[4];
+extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187730[6];
 
 GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9] = {
     { NULL, NULL, NULL, { -6528, -32, -6208, 0 }, { { -384, 0, -192, 0 }, { 384, 0, -192, 0 }, { -384, 0, 192, 0 }, { 384, 0, 192, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 429, 259, 0, 0, 2, 0 },

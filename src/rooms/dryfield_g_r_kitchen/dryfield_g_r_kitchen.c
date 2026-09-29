@@ -1,41 +1,51 @@
-#include "common.h"
 #include "rooms/dryfield_g_r_kitchen.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
+#include "actors/task_tables.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/message.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/items.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "rooms/room_common.h"
+
+#define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
+#define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -66,15 +76,15 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVE
 static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
-void func_dryfield_g_r_kitchen_8017D74C(Task *);
-s32 func_dryfield_g_r_kitchen_8017D8BC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_g_r_kitchen_8017D8C4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_g_r_kitchen_8017D948(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_g_r_kitchen_8017D950(Task *, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_g_r_kitchen_8017D74C(Task*);
+s32  func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_g_r_kitchen_8017D948(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_g_r_kitchen_8017D950(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_g_r_kitchen_8017EEC0[1];
-extern GpObj4C D_dryfield_g_r_kitchen_8017F038[2];
-extern GpObj4C D_dryfield_g_r_kitchen_8017F0D0[7];
+extern GpGridParams   D_dryfield_g_r_kitchen_8017EEC0[1];
+extern GpObj4C        D_dryfield_g_r_kitchen_8017F038[2];
+extern GpObj4C        D_dryfield_g_r_kitchen_8017F0D0[7];
 extern GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1];
 
 TaskDesc D_dryfield_g_r_kitchen_8017EBB4 = { 0, 32, func_dryfield_g_r_kitchen_8017D74C, { .model = NULL } };
@@ -349,8 +359,7 @@ u8 D_dryfield_g_r_kitchen_8017F564[4] = {
 
 RoomEventReq D_dryfield_g_r_kitchen_8017F568 = { 0 };
 
-#define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
-#define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
+static s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when

@@ -1,49 +1,60 @@
-#include "common.h"
-#include "rooms/shelter_b6_training_room.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
+
+#include "common.h"
+#include "gte.h"
 
 #include "actors/actor.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
+
+#include "rooms/shelter_b6_training_room.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -251,7 +262,7 @@ extern s16 D_actor_105100_801414C8[];
 /// into the work's third list node (`Actor105100Work::obj4E4.key`), and the
 /// `GpPairSrcE` at 0x80141398 is the pair source the context points at with
 /// `GpEnemy::param` -- its `hpMax` seeds the enemy's HP.
-extern GpU16Pair D_actor_105100_80141380[6];
+extern GpU16Pair  D_actor_105100_80141380[6];
 extern GpPairSrcE D_actor_105100_80141398;
 
 /// The animation data `func_800B3F84` builds the work block's clip context
@@ -286,7 +297,7 @@ static const GpEnemyTaskFuncTable3 D_actor_105100_80131E24 = {
 };
 
 extern TmdSource D_actor_105100_8013B19C;
-void func_actor_105100_80135DF8(Task *);
+void             func_actor_105100_80135DF8(Task*);
 
 extern GpAnimSet D_actor_105100_8013FB9C;
 extern GpAnimSet D_actor_105100_80140338;
@@ -744,9 +755,9 @@ s16 D_actor_105100_80141450[10] = {
     -1, 0,
 };
 
-void func_actor_105100_80135DF8(Task *);
-void func_actor_105100_8013667C(Task *);
-void func_actor_105100_8013672C(Task *);
+void func_actor_105100_80135DF8(Task*);
+void func_actor_105100_8013667C(Task*);
+void func_actor_105100_8013672C(Task*);
 
 TaskDesc D_actor_105100_80141464[3] = {
     { 1, 96, func_actor_105100_80135DF8, { .model = &D_actor_105100_8013B19C } },
@@ -834,6 +845,29 @@ SVECTOR D_actor_105100_801414E0[7] = {
     { -500, -3500, -2000, 0 },
     { 500, -3500, -2000, 0 },
 };
+
+/// The run of poses at 0x801413A8 this step's reroll picks from, one `s16`
+/// entry per draw. Declared as an aggregate on purpose: a bare `extern u16`
+/// makes `true_dependence` (`sched.c:846`) drop the dependence between the
+/// entry load and the `sh` to `Actor105100Work::field_598`, and sched2 then
+/// sinks that store past the `sw` of the LCG state instead of leaving the
+/// lookup and the pose store adjacent at the end of the block.
+extern u16 D_actor_105100_801413A8[16];
+
+/// The enemy descriptor run at 0x80141464 the spawn below draws from. Declared
+/// as a scalar rather than an aggregate on purpose: only its address is taken,
+/// so the two words `Gp_SpawnEnemyFromTable` splits it into are the function's
+/// addend, not a load this function has to model.
+extern TaskDesc D_actor_105100_80141464[];
+
+/// The 16-entry run at 0x801413C8 this step's LCG draw picks `field_5B0`
+/// from. Four entries are 0 (two children), five are 1 (three), seven are 2
+/// (one).
+extern u16 D_actor_105100_801413C8[16];
+
+static void        func_actor_105100_80131EBC(GpCoord* coord, s16 size);
+static inline void _actor105100AnimUpdate(Task* task);
+static void        func_actor_105100_80135CEC(GpCoord* arg0, s32 arg1);
 
 /// Projects `coord` onto two `POLY_FT4` billboards, lights `Gp_RoomCoords[2]`
 /// as a point light at that position, and traces the ground for the ground-quad
@@ -1402,14 +1436,6 @@ static void func_actor_105100_80133134(Task* arg0)
     }
 }
 
-/// The run of poses at 0x801413A8 this step's reroll picks from, one `s16`
-/// entry per draw. Declared as an aggregate on purpose: a bare `extern u16`
-/// makes `true_dependence` (`sched.c:846`) drop the dependence between the
-/// entry load and the `sh` to `Actor105100Work::field_598`, and sched2 then
-/// sinks that store past the `sw` of the LCG state instead of leaving the
-/// lookup and the pose store adjacent at the end of the block.
-extern u16 D_actor_105100_801413A8[16];
-
 /// The enemy's aim-retry step, run every frame the schedule is on step 1.
 ///
 /// The `field_59E` countdown at the top is the aim timer: it is stepped down
@@ -1495,12 +1521,6 @@ static void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1)
         }
     }
 }
-
-/// The enemy descriptor run at 0x80141464 the spawn below draws from. Declared
-/// as a scalar rather than an aggregate on purpose: only its address is taken,
-/// so the two words `Gp_SpawnEnemyFromTable` splits it into are the function's
-/// addend, not a load this function has to model.
-extern TaskDesc D_actor_105100_80141464[];
 
 /// The enemy's summon step, run every frame the schedule is on step 1. It is
 /// the half of the appearance that runs before the model shows: sub-step 0
@@ -1592,11 +1612,6 @@ static void func_actor_105100_8013345C(Task* arg0, GpEnemy* arg1)
             break;
     }
 }
-
-/// The 16-entry run at 0x801413C8 this step's LCG draw picks `field_5B0`
-/// from. Four entries are 0 (two children), five are 1 (three), seven are 2
-/// (one).
-extern u16 D_actor_105100_801413C8[16];
 
 /// The enemy's split-spawn step, run every frame the schedule is on step 2.
 /// It sits between the summon (`func_actor_105100_8013345C`) and the show

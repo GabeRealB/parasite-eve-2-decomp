@@ -1,32 +1,51 @@
 #include "pe/lifedrain.h"
 
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+/// Per-level band row. `field_2` is the starting inner radius (also the per-frame
+/// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
+/// radius `func_lifedrain_8012FAF8` copies into `GpEffWork.angle`. Indexed by
+/// `(Gp_StateC08.field_0 % 10) - 1`.
+typedef struct LifeDrainScale {
+    /* 0x0 */ s16 unk0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ s16 unk6;
+    /* 0x8 */ s16 unk8;
+} LifeDrainScale;
+STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
 
 static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);

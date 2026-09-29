@@ -1,60 +1,73 @@
-#include "common.h"
 #include "rooms/acropolis_security_room.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 #include <psyq/stdio.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d830.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/inventory.h"
-#include "gameplay/items.h"
-#include "gameplay/loading.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_input.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/geometry.h"
+#include "gameplay/inventory.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/pad_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_akropolis.h"
+
 #include "overlay.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "rooms/room_common.h"
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -170,16 +183,16 @@ extern SVECTOR D_acropolis_security_room_801855B0;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-        s32 (*call1)(Task *, s32, s32, s32);
-        void (*call2)(Task *, s32, GpMsg13EF *);
+        s32  (*call0)(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+        s32  (*call1)(Task*, s32, s32, s32);
+        void (*call2)(Task*, s32, GpMsg13EF*);
     } handler;
 } AcropolisSecurityRoomMsgEntry;
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomMsgEntry, 8);
 
 extern AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[];
-extern TaskDesc   D_acropolis_security_room_80182618[];
-extern TaskDesc   D_acropolis_security_room_8018263C;
+extern TaskDesc                      D_acropolis_security_room_80182618[];
+extern TaskDesc                      D_acropolis_security_room_8018263C;
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `func_acropolis_security_room_8017ECB4`.
@@ -216,7 +229,7 @@ extern u16 D_acropolis_security_room_80182F18[];
 /// `D_acropolis_security_room_80183918`.
 // Color/byte updates and the GPU upload share the same backing storage.
 typedef union {
-    u16 colors[256];
+    u16    colors[256];
     u_long words[128];
 } AcropolisSecurityRoomPalette;
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomPalette, 512);
@@ -285,39 +298,39 @@ static void func_acropolis_security_room_80180218(Task* task);
 static void func_acropolis_security_room_80180308(Task* task);
 static void func_acropolis_security_room_80180A78(Task* task);
 
-void func_acropolis_security_room_8017E9D8(Task *);
-void func_acropolis_security_room_8017F9C8(Task *);
-s32 func_acropolis_security_room_8017FE24(Task *, s32, s32, s32);
-void func_acropolis_security_room_80180368(Task *);
-void func_acropolis_security_room_801804CC(Task *);
+void func_acropolis_security_room_8017E9D8(Task*);
+void func_acropolis_security_room_8017F9C8(Task*);
+s32  func_acropolis_security_room_8017FE24(Task*, s32, s32, s32);
+void func_acropolis_security_room_80180368(Task*);
+void func_acropolis_security_room_801804CC(Task*);
 
-void func_acropolis_security_room_8017D77C(Task *);
-void func_acropolis_security_room_8017D834(Task *);
+void func_acropolis_security_room_8017D77C(Task*);
+void func_acropolis_security_room_8017D834(Task*);
 
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183118;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183318;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183518;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183718;
-extern GpGridParams D_acropolis_security_room_80183D94[1];
-extern GpObj4C D_acropolis_security_room_80183DB8[4];
-extern GpObj4C D_acropolis_security_room_80183EE8[5];
-extern GpRoomCoordSet D_acropolis_security_room_801841C8[1];
+extern GpGridParams                 D_acropolis_security_room_80183D94[1];
+extern GpObj4C                      D_acropolis_security_room_80183DB8[4];
+extern GpObj4C                      D_acropolis_security_room_80183EE8[5];
+extern GpRoomCoordSet               D_acropolis_security_room_801841C8[1];
 
-extern GpSprtCmd D_acropolis_security_room_801841E0[2];
-extern GpSprtCmd D_acropolis_security_room_80184358[3];
-extern GpSprtCmd D_acropolis_security_room_80184370[2];
-extern GpSprtCmd D_acropolis_security_room_80184380[2];
-extern GpSprtCmd D_acropolis_security_room_80184458[3];
-extern GpSprtCmd D_acropolis_security_room_80184498[4];
-extern GpSprtCmd D_acropolis_security_room_801844B8[2];
+extern GpSprtCmd  D_acropolis_security_room_801841E0[2];
+extern GpSprtCmd  D_acropolis_security_room_80184358[3];
+extern GpSprtCmd  D_acropolis_security_room_80184370[2];
+extern GpSprtCmd  D_acropolis_security_room_80184380[2];
+extern GpSprtCmd  D_acropolis_security_room_80184458[3];
+extern GpSprtCmd  D_acropolis_security_room_80184498[4];
+extern GpSprtCmd  D_acropolis_security_room_801844B8[2];
 extern GpSprtElem D_acropolis_security_room_801841F0[18];
 extern GpSprtElem D_acropolis_security_room_80184390[10];
 extern GpSprtElem D_acropolis_security_room_80184470[2];
 
-s32 func_acropolis_security_room_8017D6AC(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_acropolis_security_room_8017D6D4(Task *, s32, s32, s32);
-s32 func_acropolis_security_room_8017D708(Task *, s32, s32, s32);
-void func_acropolis_security_room_8017D740(Task *, s32, GpMsg13EF *);
+s32  func_acropolis_security_room_8017D6AC(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
+s32  func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
+void func_acropolis_security_room_8017D740(Task*, s32, GpMsg13EF*);
 
 AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
     { 5102, { .call0 = func_acropolis_security_room_8017D6AC } },
@@ -1103,6 +1116,14 @@ Task * D_acropolis_security_room_801855A8 = NULL;
 Task * D_acropolis_security_room_801855AC = NULL;
 
 SVECTOR D_acropolis_security_room_801855B0 = { 0 };
+
+static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_acropolis_security_room_8017F1BC(Task* task);
+static void func_acropolis_security_room_8017F300(Task* task);
+static s32  func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static void func_acropolis_security_room_80182574(Task* task);
 
 /// Message 0x13EE handler: copies the incoming location record onto the
 /// outgoing one and answers 1.

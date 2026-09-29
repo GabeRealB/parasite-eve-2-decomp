@@ -1,20 +1,24 @@
 #include "shelter_b6_training_room_private.h"
 
-#include "common.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "gameplay/display.h"
+#include "types.h"
+
 #include "gameplay/hud_sprites.h"
 
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/stream.h"
 #include "main/task.h"
-
-/// The stream playback descriptors: the one-shot launcher, then the player.
-extern TaskDesc D_shelter_b6_training_room_8018431C[];
+#include "main/task_types.h"
 
 /// Task that plays the stream filed under the current location with view 0x64.
 /// It blanks the display and allocates the image buffers, queues the stream,

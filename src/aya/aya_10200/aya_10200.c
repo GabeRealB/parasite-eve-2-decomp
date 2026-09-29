@@ -1,9 +1,29 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 
-#include "aya/aya.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/item_pickup.h"
+
+struct _GpImgRec;
+
+/// Texture animation frame lists, six per costume package. Each is a
+/// NULL-terminated run of `GpImgRec` upload lists, one per frame; the player's
+/// task uploads the frames in turn over a fixed rectangle of the costume
+/// model's texture page. Gameplay's two frame tables hold their addresses:
+/// the first four lists of a package belong to the first table, the last two
+/// to the second.
+extern struct _GpImgRec* D_aya_10200_8011D094[];
+
+extern struct _GpImgRec* D_aya_10200_8011D09C[];
+
+extern struct _GpImgRec* D_aya_10200_8011D0AC[];
+
+extern struct _GpImgRec* D_aya_10200_8011D0BC[];
+
+extern struct _GpImgRec* D_aya_10200_8011D0D4[];
+
+extern struct _GpImgRec* D_aya_10200_8011D0DC[];
 
 /* The costume's texture animation: five images, each with the one-image upload
  * list that places it, and the frame lists that sequence those uploads. The

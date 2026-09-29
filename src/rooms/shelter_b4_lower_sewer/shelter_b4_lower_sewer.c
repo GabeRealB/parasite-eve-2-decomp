@@ -1,26 +1,32 @@
 #include "rooms/shelter_b4_lower_sewer.h"
-#include "mapui/map_shelter.h"
-#include "common.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "types.h"
+
+#include "shelter_b4_lower_sewer_private.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/message.h"
 
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_shelter.h"
 
 /// One water surface: its near edge starts at (`x`, `z`) and runs `step` along
 /// X; its far edge sits `dz` further along Z. A surface whose `end` is -1
@@ -44,26 +50,19 @@ typedef struct {
 } _SurfaceScratch;
 
 extern GpMsgEntry D_shelter_b4_lower_sewer_80181E44[];
-/// The room's water height: the level the surfaces are drawn at and the value
-/// the water task publishes to the session.
-extern s16      D_shelter_b4_lower_sewer_80181E6C;
+
 extern TaskDesc D_shelter_b4_lower_sewer_80181E70[];
 extern _Surface D_shelter_b4_lower_sewer_80181E7C[];
 extern _Surface D_shelter_b4_lower_sewer_80181E90[];
 
-/// Primitive cursor the water drawers allocate their quads and draw-mode
-/// packets from; the water task's drawing state points it into the primitive
-/// area each frame before drawing.
-extern u8* D_shelter_b4_lower_sewer_80183E14;
-
 static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
 static void func_shelter_b4_lower_sewer_8017E37C(Task* task);
 
-s32 func_shelter_b4_lower_sewer_8017D608(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_lower_sewer_8017D610(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b4_lower_sewer_8017D654(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b4_lower_sewer_8017D65C(Task *, s32, GpMessageArg, GpMessageArg);
-void func_shelter_b4_lower_sewer_8017E2D4(Task *);
+s32  func_shelter_b4_lower_sewer_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_lower_sewer_8017D610(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b4_lower_sewer_8017D654(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_lower_sewer_8017D65C(Task*, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b4_lower_sewer_8017E2D4(Task*);
 
 GpMsgEntry D_shelter_b4_lower_sewer_80181E44[5] = {
     { 5102, func_shelter_b4_lower_sewer_8017D610 },
@@ -88,6 +87,11 @@ _Surface D_shelter_b4_lower_sewer_80181E90[2] = {
     { -0x32C8, 0, 3600, 1450, 0 },
     { 0, 0, 0, 0, -1 },
 };
+
+static void func_shelter_b4_lower_sewer_8017D664(Task* task);
+static void func_shelter_b4_lower_sewer_8017D6CC(Task* task);
+static void func_shelter_b4_lower_sewer_8017D72C(Task* task);
+static void func_shelter_b4_lower_sewer_8017DE8C(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table
 /// `D_shelter_b4_lower_sewer_80181E44`: does nothing and returns 0.

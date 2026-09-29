@@ -1,59 +1,66 @@
-#include "common.h"
 #include "rooms/shelter_b3_elevator_hall.h"
-#include "mapui/map_shelter.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017ff88.h"
+
+#include "shelter_b3_elevator_hall_private.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
-#include "gameplay/direction.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
 #include "gameplay/items.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_shelter.h"
+
 #include "overlay.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b3_elevator_hall_80184A08[4];
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8017dcb8.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
     RoomHaloShade entries[3];
-    u16 retained;
+    u16           retained;
 } ShelterB3ElevatorHallHaloStorage;
 STATIC_ASSERT_SIZEOF(ShelterB3ElevatorHallHaloStorage, 20);
 extern ShelterB3ElevatorHallHaloStorage D_shelter_b3_elevator_hall_80182B34;
 
-/// The event request latched by the gate, and the message that carried it.
-extern RoomEventMsg D_shelter_b3_elevator_hall_80184A00;
-extern RoomEventReq D_shelter_b3_elevator_hall_80184A0C;
 /// Set when the gate latched a request and spawned the task that runs it.
 /// Descriptor of the task that runs a latched request.
 extern TaskDesc D_shelter_b3_elevator_hall_80182A20;
@@ -76,14 +83,14 @@ static void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size);
 static void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1);
 static void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_shelter_b3_elevator_hall_8017D790(Task *);
-void func_shelter_b3_elevator_hall_8017D900(Task *);
-void func_shelter_b3_elevator_hall_8017DAF0(Task *);
-s32 func_shelter_b3_elevator_hall_8017DC78(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_elevator_hall_8017DC80(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_b3_elevator_hall_8017DD88(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_elevator_hall_8017DD90(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b3_elevator_hall_8017DD98(Task *, s32, s32, GpMessageArg);
+void func_shelter_b3_elevator_hall_8017D790(Task*);
+void func_shelter_b3_elevator_hall_8017D900(Task*);
+void func_shelter_b3_elevator_hall_8017DAF0(Task*);
+s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DC80(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, GpMessageArg);
 
 TaskDesc D_shelter_b3_elevator_hall_80182A20 = { 0, 32, func_shelter_b3_elevator_hall_8017D790, { .model = NULL } };
 
@@ -138,6 +145,9 @@ SVECTOR D_shelter_b3_elevator_hall_80182AF4[8] = {
 };
 
 ShelterB3ElevatorHallHaloStorage D_shelter_b3_elevator_hall_80182B34 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 1685 };
+
+static s32  func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg);
+static void func_shelter_b3_elevator_hall_8017F1A8(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// Decides whether the event `req` describes fires for message `msg`. A set
 /// flag nibble (a clear one for a negative `flagId`) means it already has, and

@@ -1,54 +1,71 @@
 #include "actor_510900_private.h"
-#include "rooms/acropolis_helicopter_landing_pad.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
 
 #include "common.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include "psyq/libgs.h"
-#include "psyq/inline_c.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actor_510900.h"
-#include "actors/actors_shared_80132074.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
+s32 func_actor_510900_801391B8(Task*, s32, s32);
+
+s32 func_actor_510900_8013BD5C(Task*);
+
+s32 func_actor_510900_8013BD84(Task*, s32, GpAnimArg*);
+
+s32 func_actor_510900_8013BE00(Task*, s32, GpXformArg*);
+
+s32 func_actor_510900_8013BE64(Task*, s32, s32);
+
+s16 func_actor_510900_8013BE84(Task*);
 
 // Only the leading view ID is read; retain the following halfwords.
 extern u16 D_actor_510900_80167CE4[4];
@@ -137,9 +154,6 @@ typedef struct Actor510900HitScratch {
     /* 0x18 */ GpAnimArg  anim;
 } Actor510900HitScratch;
 STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
-
-/// The pair `Gp_PackPair` packs entry 4 of for the 0x3F9 message the hold sends.
-extern GpU16Pair D_actor_510900_80167968;
 
 /// Animation-set table handed to the player as the 0x3FF payload's `animBlock`.
 extern GpAnimSet* D_actor_510900_80167B2C[];
@@ -272,7 +286,7 @@ static void func_actor_510900_8013BA58(Task* arg0);
 static void func_actor_510900_8013BB20(Task* arg0);
 static void func_actor_510900_8013BBE4(Task* arg0);
 static void func_actor_510900_8013BC80(Task* arg0);
-s16         func_actor_510900_8013BE84(Task* arg0);
+
 static void func_actor_510900_8013C380(Task* arg0);
 static void func_actor_510900_8013C430(Task* arg0);
 
@@ -283,30 +297,13 @@ static void func_actor_510900_8013C430(Task* arg0);
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
 
-extern GpAnimSet D_actor_510900_801597B4;
-extern GpAnimSet D_actor_510900_80159DFC;
-extern GpAnimSet D_actor_510900_80167294;
-extern GpAnimSet D_actor_510900_80167940;
-
-extern TmdSource D_actor_510900_80141B64;
-extern TmdSource D_actor_510900_80141E08;
-extern TmdSource D_actor_510900_80142124;
-extern TmdSource D_actor_510900_80142480;
-extern TmdSource D_actor_510900_801427AC;
-extern TmdSource D_actor_510900_8014313C;
-s16 func_actor_510900_8013BE84(Task *);
-s32 func_actor_510900_801391B8(Task *, s32, s32);
-s32 func_actor_510900_8013BD5C(Task *);
-s32 func_actor_510900_8013BD84(Task *, s32, GpAnimArg *);
-s32 func_actor_510900_8013BE00(Task *, s32, GpXformArg *);
-s32 func_actor_510900_8013BE64(Task *, s32, s32);
-void func_actor_510900_8013B3D0(Task *);
-void func_actor_510900_8013BE98(Task *);
-void func_actor_510900_8013BF90(Task *);
-void func_actor_510900_8013C090(Task *);
-void func_actor_510900_8013C190(Task *);
-void func_actor_510900_8013C1EC(Task *);
-void func_actor_510900_8013C3DC(Task *);
+void func_actor_510900_8013B3D0(Task*);
+void func_actor_510900_8013BE98(Task*);
+void func_actor_510900_8013BF90(Task*);
+void func_actor_510900_8013C090(Task*);
+void func_actor_510900_8013C190(Task*);
+void func_actor_510900_8013C1EC(Task*);
+void func_actor_510900_8013C3DC(Task*);
 
 GpU16Pair D_actor_510900_8016796C[5] = {
     { 24, 6 },
@@ -684,6 +681,57 @@ u16 D_actor_510900_80167CEC[7][4] = {
     { 0, 5, 5, 6 },
     { 0, 0, 0, 0 },
 };
+
+static void func_actor_510900_8013A310(Task* task);
+
+static void func_actor_510900_8013A9BC(Task* task);
+
+static s32 func_actor_510900_8013C240(Task* task);
+
+static void func_actor_510900_8013C338(Task* arg0, GpCoord* arg1);
+
+static void func_actor_510900_8013B0D8(Task* arg0);
+
+/// View index the child keeps running in; any other view parks it.
+/// Game-flag nibble 0xD values, indexed by the child's `field_74` and the
+/// parent work's `field_5C2`.
+extern u16 D_actor_510900_80167CEC[][4];
+
+static void func_actor_510900_8013B658(GpEnemy* arg0, Task* arg1);
+
+static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task);
+
+static void func_actor_510900_8013BFE4(GpEnemy* enemy, Task* task);
+
+static void func_actor_510900_8013C034(GpEnemy* enemy, Task* task);
+
+static void func_actor_510900_8013C0E4(GpEnemy* enemy, Task* task);
+
+static void func_actor_510900_8013C134(GpEnemy* enemy, Task* task);
+
+/// The three views the child is visible in, indexed by its `field_334`.
+extern u16 D_actor_510900_80167CD8[][3];
+
+static void func_actor_510900_80135744(Task* arg0);
+static void func_actor_510900_80135E90(Task* arg0);
+static void func_actor_510900_80136184(Task* arg0);
+static void func_actor_510900_80136B70(Task* arg0);
+static void func_actor_510900_80137008(Task* arg0);
+static void func_actor_510900_801373B8(Task* arg0);
+static void func_actor_510900_801375D8(Task* arg0);
+static void func_actor_510900_80137868(Task* arg0);
+static void func_actor_510900_80137E20(Task* arg0);
+static void func_actor_510900_80137FBC(Task* arg0);
+static void func_actor_510900_80138250(Task* arg0);
+static void func_actor_510900_801384C4(Task* arg0);
+static void func_actor_510900_801395AC(GpEnemy* enemy, Task* task);
+static void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1);
+static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task);
+static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task);
+static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task);
+static void func_actor_510900_8013A85C(GpEnemy* arg0, Task* arg1);
+static void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task);
+static void func_actor_510900_8013AF38(GpEnemy* arg0, Task* arg1);
 
 /// Applies this frame's hits from the three `rec49C` collision records. A
 /// type-2 id lands only while the `field_58C` cooldown is clear: its damage
@@ -2897,8 +2945,6 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     SCRATCH_POP_BYTES(sizeof(Actor510900ChildFxTickScratch));
 }
 
-static void func_actor_510900_8013A310(Task* task);
-
 /// Frame handler of the effect child task: state 0 fades the object in over
 /// 0x10 frames, state 1 holds it until its `GpRec18` reports a hit or 0x1F
 /// frames pass, state 2 runs the hit handler, and state 3 unlinks the object
@@ -3127,10 +3173,6 @@ static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     task->state         = 1;
     SCRATCH_POP_BYTES(8);
 }
-
-static void func_actor_510900_8013A9BC(Task* task);
-static s32  func_actor_510900_8013C240(Task* task);
-static void func_actor_510900_8013C338(Task* arg0, GpCoord* arg1);
 
 /// Frame handler (state 1) of the child task. Mode 1 of `Gp_StateF0.field_4` only
 /// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
@@ -3409,13 +3451,6 @@ static void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     task->state        = 1;
 }
 
-static void func_actor_510900_8013B0D8(Task* arg0);
-
-/// View index the child keeps running in; any other view parks it.
-/// Game-flag nibble 0xD values, indexed by the child's `field_74` and the
-/// parent work's `field_5C2`.
-extern u16 D_actor_510900_80167CEC[][4];
-
 static void func_actor_510900_8013AF38(GpEnemy* arg0, Task* arg1)
 {
     Actor510900ChildWork* work;
@@ -3600,8 +3635,6 @@ static void func_actor_510900_8013B0D8(Task* arg0)
             break;
     }
 }
-
-static void func_actor_510900_8013B658(GpEnemy* arg0, Task* arg1);
 
 void func_actor_510900_8013B3D0(Task* task)
 {
@@ -4018,8 +4051,6 @@ s16 func_actor_510900_8013BE84(Task* arg0)
     return ((Actor510900Work*)arg0->work)->field_592;
 }
 
-static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task);
-
 void func_actor_510900_8013BE98(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_510900_8013BEEC, func_actor_510900_801395AC };
@@ -4046,9 +4077,6 @@ static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task)
     obj->colorMtx = &work->field_43C;
     task->state   = 1;
 }
-
-static void func_actor_510900_8013BFE4(GpEnemy* enemy, Task* task);
-static void func_actor_510900_8013C034(GpEnemy* enemy, Task* task);
 
 void func_actor_510900_8013BF90(Task* task)
 {
@@ -4077,9 +4105,6 @@ static void func_actor_510900_8013C034(GpEnemy* enemy, Task* task)
     task->extra.tmd->coords->flg = 0;
     Gp_UpdateCoord(task->extra.tmd->coords);
 }
-
-static void func_actor_510900_8013C0E4(GpEnemy* enemy, Task* task);
-static void func_actor_510900_8013C134(GpEnemy* enemy, Task* task);
 
 void func_actor_510900_8013C090(Task* task)
 {
@@ -4128,9 +4153,6 @@ void func_actor_510900_8013C1EC(Task* task)
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
-
-/// The three views the child is visible in, indexed by its `field_334`.
-extern u16 D_actor_510900_80167CD8[][3];
 
 /// Reports whether the camera has cut away from every view this child runs in.
 /// Until then it returns 1 and the caller keeps ticking the animation; on the

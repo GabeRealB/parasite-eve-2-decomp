@@ -1,60 +1,70 @@
-#include "common.h"
 #include "rooms/neo_ark_observatory.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/gtemac.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include <psyq/inline_c.h>
 
-#include "gameplay/actor.h"
+#include "common.h"
+#include "gte.h"
+
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/model_objects.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
-
+#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[1];
-        GpCopyArg copy;
-        GpAnimArg arguments[1];
-        GpEvsCmd commands[8];
+        GpCopyArg  copy;
+        GpAnimArg  arguments[1];
+        GpEvsCmd   commands[8];
     } data;
     s32 words[56];
 } NeoArkObservatoryAnimStorage11E0;
@@ -96,10 +106,6 @@ extern void func_801322F8(void);
 /// is parented to, by `Task::spawnArg1`.
 extern u8 D_neo_ark_observatory_80180DB8[];
 
-/// The mirror's task descriptors: entry 0 runs the mirror task itself, entry 1
-/// the held-object reflections it spawns.
-extern TaskDesc D_neo_ark_observatory_80180DBC[];
-
 /// The departure task's descriptor.
 extern TaskDesc D_neo_ark_observatory_80180DD4;
 
@@ -138,22 +144,22 @@ static void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpGridParams D_neo_ark_observatory_80181FA4;
-extern GpObj3A D_neo_ark_observatory_801878D4[4];
-extern GpObj4C D_neo_ark_observatory_80186ED4[18];
-extern GpObj4C D_neo_ark_observatory_8018742C[14];
+extern GpGridParams   D_neo_ark_observatory_80181FA4;
+extern GpObj3A        D_neo_ark_observatory_801878D4[4];
+extern GpObj4C        D_neo_ark_observatory_80186ED4[18];
+extern GpObj4C        D_neo_ark_observatory_8018742C[14];
 extern GpRoomCoordSet D_neo_ark_observatory_80186844[1];
 extern GpRoomCoordSet D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
-s32 func_neo_ark_observatory_8017F6F8(Task *, s32, GpMsg13EF *, s32);
-s32 func_neo_ark_observatory_8017FBE0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_observatory_8017FBE8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_neo_ark_observatory_8017FCA0(Task *, s32, s32, GpMessageArg);
-void func_neo_ark_observatory_8017F22C(Task *);
-void func_neo_ark_observatory_8017F3FC(Task *);
-void func_neo_ark_observatory_8017F588(Task *);
-void func_neo_ark_observatory_8017FB1C(Task *);
+s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, GpMsg13EF*, s32);
+s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, GpMessageArg, GpMessageArg);
+s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, GpMessageArg);
+void                                    func_neo_ark_observatory_8017F22C(Task*);
+void                                    func_neo_ark_observatory_8017F3FC(Task*);
+void                                    func_neo_ark_observatory_8017F588(Task*);
+void                                    func_neo_ark_observatory_8017FB1C(Task*);
 
 u8 D_neo_ark_observatory_80180DB8[4] = {
     12,
@@ -2129,6 +2135,11 @@ GpAreaApplyRec D_neo_ark_observatory_80187A28[2] = {
 RoomDeparture D_neo_ark_observatory_80187A30 = { 0 };
 
 s16 D_neo_ark_observatory_80187A3C = 0;
+
+static void            func_neo_ark_observatory_8017D6F4(Task* task);
+static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMarkerResolve resolve);
+static void            func_neo_ark_observatory_8017FCE0(Task* arg0);
+static void            func_neo_ark_observatory_8017FD7C(Task* task);
 
 /// Sets up the room's mirror: re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the

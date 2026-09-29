@@ -1,29 +1,74 @@
 #include "pe/antibody.h"
 
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
+#include "gte.h"
+
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// One 14-byte row of `D_antibody_80130BD4`, indexed by `GpEffWork.index`
+/// (`Gp_StateC08.field_0 % 10 - 1`, so the effect scales with the combo
+/// counter). `field_6` is the draw parameter `func_antibody_8012F734` seeds
+/// `GpEffWork.scale` with, and `field_8` is the base it is re-rolled from
+/// on later frames (doubled in state 3). The remaining fields belong to the
+/// draw helpers.
+typedef struct AntibodyStep {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ u16 field_8;
+    /* 0xA */ s16 field_A;
+    /* 0xC */ s16 field_C;
+} AntibodyStep;
+STATIC_ASSERT_SIZEOF(AntibodyStep, 0xE);
+
+/// 0x28-byte scratch block `func_antibody_80130428` takes from
+/// `G_SCRATCH_HEAD` to draw one antibody arc. `v0` is the effect
+/// coordinate's world position and `v1` the player's second part coordinate;
+/// both are projected through `GsWSMATRIX` with one `RTPS` each, giving
+/// `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever
+/// projection ran last (a negative value drops the quad) and `otz` is the
+/// first projection's `gte_stszotz`, incremented by 1 before it becomes both
+/// the radius divisor and the OT bucket. `dx` / `dy` hold the current
+/// `(arg2 * 23 / otz) * rsin|rcos(angle) >> 12` half-extents; only their low
+/// halves are read back.
+typedef struct AntibodyArcScratch {
+    /* 0x00 */ SVECTOR v0;
+    /* 0x08 */ SVECTOR v1;
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ s32     flag;
+    /* 0x18 */ s32     dx;
+    /* 0x1C */ s32     dy;
+    /* 0x20 */ s16     sx0;
+    /* 0x22 */ s16     sy0;
+    /* 0x24 */ s16     sx1;
+    /* 0x26 */ s16     sy1;
+} AntibodyArcScratch;
+STATIC_ASSERT_SIZEOF(AntibodyArcScratch, 0x28);
 
 /// Per-level tuning for the antibody motes, one row per PE level 1-3,
 /// weakest first.

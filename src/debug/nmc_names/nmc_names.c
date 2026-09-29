@@ -1,6 +1,6 @@
-#include "common.h"
+#include "debug/nmc_names.h"
 
-#include "debug/debug.h"
+#include "types.h"
 
 /* Each name is its own array, laid out in table order. */
 

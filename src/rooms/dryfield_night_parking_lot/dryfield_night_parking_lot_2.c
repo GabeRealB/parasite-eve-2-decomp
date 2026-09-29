@@ -1,39 +1,45 @@
-#include "dryfield_night_parking_lot_private.h"
 #include "rooms/dryfield_night_parking_lot.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
-#include "rooms/room_common.h"
+#include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/loading.h"
+#include "dryfield_night_parking_lot_private.h"
 
-#include "gameplay/scene.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
-
-#include "gameplay/animation.h"
 #include "gameplay/evs.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 #include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "rooms/room_common.h"
 
 /// The room's per-view table: `Gp_State1C->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.
@@ -50,10 +56,10 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 static void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
-extern GpGridParams D_dryfield_night_parking_lot_8017FAD0[1];
-extern GpObj3A D_dryfield_night_parking_lot_80181330[2];
-extern GpObj4C D_dryfield_night_parking_lot_80180CA8[10];
-extern GpObj4C D_dryfield_night_parking_lot_80180FA0[12];
+extern GpGridParams   D_dryfield_night_parking_lot_8017FAD0[1];
+extern GpObj3A        D_dryfield_night_parking_lot_80181330[2];
+extern GpObj4C        D_dryfield_night_parking_lot_80180CA8[10];
+extern GpObj4C        D_dryfield_night_parking_lot_80180FA0[12];
 extern GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;

@@ -1,51 +1,60 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include "common.h"
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
-#include "psyq/abs.h"
-#include "psyq/inline_c.h"
+#include "common.h"
 #include "gte.h"
 
-#include "actors/actor.h"
-
 #include "actors/actors_shared_80163354.h"
+
 #include "actors/actors_shared_801673f8.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/collision.h"
 #include "gameplay/damage.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
 #include "gameplay/object_fields.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/collision.h"
-#include "gameplay/effects.h"
-#include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
-#include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
 
-#include "gameplay/animation.h"
-#include "main/task.h"
+#include "rooms/shelter_b3_dumping_hole.h"
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 /// Status flags at `Actor104400Work` + 0xEC, read through two widths.
 ///
@@ -150,29 +159,29 @@ typedef struct Actor104400Work {
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
-extern u8                   Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
-extern u8                   Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
-extern GpPairSrcE           Actor04400_D0D318;   // the main enemy's `GpEnemy::param` record
+extern u8         Actor04400_D10814[];   // per animation id (1-based): the value to put in `field_44F`
+extern u8         Actor04400_D10828[];   // per animation id (1-based): the animation to follow it
+extern GpPairSrcE Actor04400_D0D318;     // the main enemy's `GpEnemy::param` record
 extern GpAnimSet* Actor04400_D10778[21]; // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task *, s16, VECTOR3 *);
-        void (*call1)(Task *, s32, GpCmdArg *);
+        void (*call0)(Task*, s16, VECTOR3*);
+        void (*call1)(Task*, s32, GpCmdArg*);
     } handler;
 } Actor04400RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04400RecoveredMsgEntry, 8);
 
 extern Actor04400RecoveredMsgEntry Actor04400_D107CC[3]; // stored into `Task::msgTable` by Actor04400_Fn00B24
-static const TaskFuncTable3 Actor04400_D00070;   // dispatcher table Actor04400_Fn06ACC copies onto its stack
-static const TaskFuncTable3 Actor04400_D0007C;   // dispatcher table Actor04400_Fn06870 copies onto its stack
-static const TaskFuncTable5 Actor04400_D00088;   // dispatcher table Actor04400_Fn068F8 copies onto its stack
-static const TaskFuncTable5 Actor04400_D0009C;   // dispatcher table Actor04400_Fn06964 copies onto its stack
-static const TaskFuncTable3 Actor04400_D00150;   // dispatcher table Actor04400_Fn07CF0 copies onto its stack
-static const TaskFuncTable3 Actor04400_D0015C;   // dispatcher table Actor04400_Fn07D78 copies onto its stack
-static const TaskFuncTable4 Actor04400_D00174;   // dispatcher table Actor04400_Fn07F04 copies onto its stack
-static const TaskFuncTable6 Actor04400_D001AC;   // dispatcher table Actor04400_Fn06B50 copies onto its stack
+static const TaskFuncTable3        Actor04400_D00070;    // dispatcher table Actor04400_Fn06ACC copies onto its stack
+static const TaskFuncTable3        Actor04400_D0007C;    // dispatcher table Actor04400_Fn06870 copies onto its stack
+static const TaskFuncTable5        Actor04400_D00088;    // dispatcher table Actor04400_Fn068F8 copies onto its stack
+static const TaskFuncTable5        Actor04400_D0009C;    // dispatcher table Actor04400_Fn06964 copies onto its stack
+static const TaskFuncTable3        Actor04400_D00150;    // dispatcher table Actor04400_Fn07CF0 copies onto its stack
+static const TaskFuncTable3        Actor04400_D0015C;    // dispatcher table Actor04400_Fn07D78 copies onto its stack
+static const TaskFuncTable4        Actor04400_D00174;    // dispatcher table Actor04400_Fn07F04 copies onto its stack
+static const TaskFuncTable6        Actor04400_D001AC;    // dispatcher table Actor04400_Fn06B50 copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
 /// so a negated angle is passed without re-truncation to 16 bits.
@@ -301,7 +310,7 @@ static s32  Actor04400_Fn08DBC(Task* arg0);
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
  * cannot treat the store as a non-aliasing scalar and sink it past the
  * `TmdObject` loads. */
-extern void* D_800678F0[1];
+extern void*     D_800678F0[1];
 extern TmdSource Actor04400_D098FC;
 extern TmdSource Actor04400_D09FA0;
 extern TmdSource Actor04400_D0A510;
@@ -316,12 +325,12 @@ static const TaskFuncTable4 Actor04400_D00174;
 static const TaskFuncTable6 Actor04400_D001AC;
 
 extern TmdSource Actor04400_D0D2F0;
-void Actor04400_Fn06658(Task *);
+void             Actor04400_Fn06658(Task*);
 
-void Actor04400_Fn0648C(Task *, s32, GpCmdArg *);
-void Actor04400_Fn064EC(Task *, s16, VECTOR3 *);
-void Actor04400_Fn06658(Task *);
-void Actor04400_Fn066DC(Task *);
+void Actor04400_Fn0648C(Task*, s32, GpCmdArg*);
+void Actor04400_Fn064EC(Task*, s16, VECTOR3*);
+void Actor04400_Fn06658(Task*);
+void Actor04400_Fn066DC(Task*);
 
 TmdBone Actor04400_D08E14[1] = {
 #include "assets/actor_104400_model_098FC_skeleton.inc"
@@ -986,6 +995,21 @@ u8 Actor04400_D10814[20] = {
 };
 
 u8 Actor04400_D10828[19] = { 5, 6, 5, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 5, 5, 6, 5, 6, 5 };
+
+static __inline__ void Actor04400_SetTaskState(Task* task, s32 state);
+static __inline__ void Actor04400_SetWorkState(Task* task, s16 state);
+static __inline__ void Actor04400_UpdateColor(void* enemy, GpCoord* coord);
+static __inline__ s16  Actor04400_TakeHit(Task* arg0);
+static __inline__ s16  Actor04400_TakeHit3(Task* arg0);
+static __inline__ s32  Actor04400_TakeRequest(Task* arg0);
+static __inline__ s32  Actor04400_IsHit(Task* arg0);
+static __inline__ void Actor04400_UpdateRotation(Task* arg0);
+static __inline__ s16  Actor04400_PickStep(s16 step, s16 push);
+static __inline__ void Actor04400_CalcPush(Task* arg0, GpCoord* coord, GpRec18* rec, SVECTOR* out);
+static void            Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
+static void            Actor04400_Fn006A8(Task* arg0);
+static void            Actor04400_Fn00874(Task* arg0);
+static void            Actor04400_Fn03390(Task* arg0);
 
 /// Puts the task in `state` with its work block's state machine reset to 0/0.
 static __inline__ void Actor04400_SetTaskState(Task* task, s32 state)

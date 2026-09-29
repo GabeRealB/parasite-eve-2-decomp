@@ -1,34 +1,40 @@
-#include "gameplay/message.h"
-#include "common.h"
+#include "actors/actor_800300.h"
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
+#include "common.h"
+
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/item_pickup.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-
-#include "gameplay/animation.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800300_80162064` takes for the
 /// ground-quad heading it copies into the three `GameActor.field_88` records.
@@ -46,28 +52,28 @@ typedef struct {
     u8   field_973;
 } Actor800300DirByte;
 
-extern s32        D_8017A99C;
+extern s32 D_8017A99C;
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpCopyArg *);
-        s32 (*call3)(Task *, s32, GpCountArg *);
-        s32 (*call4)(Task *, s32, GpXformArg *);
-        s32 (*call5)(Task *, s32, GpXformArg *, GpOverrideArg *);
-        s32 (*call6)(Task *, s32, s32);
-        s32 (*call7)(Task *, s32, s32, s32);
-        s32 (*call9)(Task *, s32, GpCoord *);
-        void (*call8)(Task *, s32, GpMoveArg *);
+        s32  (*call0)(Task*);
+        s32  (*call1)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, GpCopyArg*);
+        s32  (*call3)(Task*, s32, GpCountArg*);
+        s32  (*call4)(Task*, s32, GpXformArg*);
+        s32  (*call5)(Task*, s32, GpXformArg*, GpOverrideArg*);
+        s32  (*call6)(Task*, s32, s32);
+        s32  (*call7)(Task*, s32, s32, s32);
+        s32  (*call9)(Task*, s32, GpCoord*);
+        void (*call8)(Task*, s32, GpMoveArg*);
     } handler;
 } Actor800300MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor800300MessageEntry, 8);
 
 extern Actor800300MessageEntry D_actor_800300_80168880[26];
-extern GpImgRec** D_actor_800300_80168950[];
-extern GpImgRec** D_actor_800300_80168960[];
+extern GpImgRec**              D_actor_800300_80168950[];
+extern GpImgRec**              D_actor_800300_80168960[];
 
 static void func_actor_800300_801623F8(Task* arg0);
 static void func_actor_800300_801625A8(Task* task);
@@ -83,12 +89,12 @@ static void func_actor_800300_80162F98(Task* arg0);
 static void func_actor_800300_80163048(Task* arg0);
 static void func_actor_800300_80163074(Task* arg0);
 
-extern GpImgRec * D_actor_800300_80169A20[2];
-extern GpImgRec * D_actor_800300_80169A28[4];
-extern GpImgRec * D_actor_800300_80169A38[4];
-extern GpImgRec * D_actor_800300_80169A48[6];
-extern GpImgRec * D_actor_800300_80169A60[2];
-extern GpImgRec * D_actor_800300_80169A68[2];
+extern GpImgRec* D_actor_800300_80169A20[2];
+extern GpImgRec* D_actor_800300_80169A28[4];
+extern GpImgRec* D_actor_800300_80169A38[4];
+extern GpImgRec* D_actor_800300_80169A48[6];
+extern GpImgRec* D_actor_800300_80169A60[2];
+extern GpImgRec* D_actor_800300_80169A68[2];
 
 extern GpAnimSet D_actor_800300_80169C5C;
 extern GpAnimSet D_actor_800300_8016A038;
@@ -1626,6 +1632,10 @@ GpAnimSet * D_actor_800300_8016CB98[79] = {
     NULL,
     NULL,
 };
+
+static void func_actor_800300_80161E80(Task* arg0);
+static void func_actor_800300_80162064(Task* arg0);
+static void func_actor_800300_8016259C(Task* arg0);
 
 static void func_actor_800300_80161E80(Task* arg0)
 {

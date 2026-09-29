@@ -1,66 +1,62 @@
-#include "mist_parking_private.h"
-
-#include "gameplay/evs.h"
-#include "common.h"
 #include "rooms/mist_parking.h"
 
-#include "gameplay/actor.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "types.h"
+
+#include "mist_parking_private.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 
-#include "gameplay/enemy.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "main/text.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
-
-#include "gameplay/message.h"
+#include "main/wipsys_types.h"
 
 /// Scratch state of the parking-lot cap script driven by
 /// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
 
-void                       func_mist_parking_801846A4(s32 arg0);
+void            func_mist_parking_801846A4(s32 arg0);
 extern GpEvsCmd D_mist_parking_80190C74[];
 extern GpEvsCmd D_mist_parking_80190D64[];
 extern GpEvsCmd D_mist_parking_80190E84[];
 extern GpEvsCmd D_mist_parking_80191034[];
-extern GpEvsCmd D_mist_parking_80191154[];
-extern GpEvsCmd D_mist_parking_80191214[];
-extern GpEvsCmd D_mist_parking_80191304[];
-extern GpEvsCmd D_mist_parking_801913C4[];
 
-extern GpCopyArg D_mist_parking_80190870;
-extern s8           D_mist_parking_801908C8[];
-extern GpGridParams D_mist_parking_8018FCB8;
-extern GpGridParams D_mist_parking_80192204;
+extern s8 D_mist_parking_801908C8[];
 
-extern GpAnimSet D_mist_parking_8018FFB8;
-extern GpAnimSet D_mist_parking_8019038C;
-extern GpAnimSet D_mist_parking_801907FC;
-void func_mist_parking_80183D58(Task *);
-void func_mist_parking_80183EAC(Task *);
-void func_mist_parking_801842DC(Task *);
-void func_mist_parking_8018451C(Task *);
-void func_mist_parking_80184668(Task *);
+void func_mist_parking_80183D58(Task*);
+void func_mist_parking_80183EAC(Task*);
+void func_mist_parking_801842DC(Task*);
+void func_mist_parking_8018451C(Task*);
+void func_mist_parking_80184668(Task*);
 
 extern GpAnimArg D_mist_parking_801908A0;
 extern GpAnimArg D_mist_parking_801908B4;
 extern GpAnimArg D_mist_parking_80190944;
 extern GpAnimArg D_mist_parking_801909F8;
-extern GpCmdArg D_mist_parking_80190BA4;
-extern GpCmdArg D_mist_parking_80190BA8;
-extern GpCopyArg D_mist_parking_80190870;
+extern GpCmdArg  D_mist_parking_80190BA4;
+extern GpCmdArg  D_mist_parking_80190BA8;
+
 void func_mist_parking_80184408(s32);
 void func_mist_parking_80184428(s32);
 void func_mist_parking_80184468(s32);

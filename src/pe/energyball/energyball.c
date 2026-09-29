@@ -1,32 +1,61 @@
 #include "pe/energyball.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/attachments.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/attachments.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 #include "overlay.h"
+
+/// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.index`
+/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
+/// to before it is launched (`GpEffWork.angle`; half of it is the linked
+/// `GpObj.radius`, twice it the burst's final size) and `field_2` the
+/// per-frame growth step, also the initial upward speed while charging.
+typedef struct EnergyBallStep {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+} EnergyBallStep;
+STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
+
+/// Collision block allocated by `func_energyball_8012F180` (`memCalloc(0x38)`)
+/// and stored in `Task::work`: `obj` is linked on list 1 with `ctx.recs`
+/// pointing at the one-element `rec` table (terminator `field_0 = 2`).
+typedef struct EnergyBallWork {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec;
+} EnergyBallWork;
+STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
 
 static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);

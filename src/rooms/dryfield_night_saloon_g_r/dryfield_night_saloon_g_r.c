@@ -1,53 +1,71 @@
-#include "common.h"
 #include "rooms/dryfield_night_saloon_g_r.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8018055c.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/evs.h"
-#include "gameplay/message.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/loadui.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
-#include "gameplay/room.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_dryfield_full.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "rooms/room.h"
 
-#include "gameplay/animation.h"
+#include "rooms/room_common.h"
+
+#include "rooms/rooms_shared_8018055c.h"
+
+#define D_dryfield_night_saloon_g_r_801850DC (D_dryfield_night_saloon_g_r_80185074 + 13)
+#define D_dryfield_night_saloon_g_r_801850E4 (D_dryfield_night_saloon_g_r_80185074[14])
+#define D_dryfield_night_saloon_g_r_801850FC (D_dryfield_night_saloon_g_r_80185074[17])
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -136,25 +154,25 @@ static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord);
 static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
-void func_dryfield_night_saloon_g_r_8017E28C(Task *);
-void func_dryfield_night_saloon_g_r_8017E564(Task *);
+void func_dryfield_night_saloon_g_r_8017E28C(Task*);
+void func_dryfield_night_saloon_g_r_8017E564(Task*);
 
 extern GpRoomCoordSet D_dryfield_night_saloon_g_r_80188304[1];
-void func_dryfield_night_saloon_g_r_8017E0C0(UiList *, UiObject *);
+void                  func_dryfield_night_saloon_g_r_8017E0C0(UiList*, UiObject*);
 
 extern GpGridParams D_dryfield_night_saloon_g_r_80185B50[1];
-extern GpObj3A D_dryfield_night_saloon_g_r_80188E18[2];
-extern GpObj4C D_dryfield_night_saloon_g_r_8018831C[16];
+extern GpObj3A      D_dryfield_night_saloon_g_r_80188E18[2];
+extern GpObj4C      D_dryfield_night_saloon_g_r_8018831C[16];
 
-extern GpSprtCmd D_dryfield_night_saloon_g_r_80185D48[2];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_80185EAC[3];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_80185FDC[4];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_80186574[6];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_80186A90[5];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_801871D4[5];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_801873C8[5];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_801873F0[2];
-extern GpSprtCmd D_dryfield_night_saloon_g_r_80187504[5];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_80185D48[2];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_80185EAC[3];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_80185FDC[4];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_80186574[6];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_80186A90[5];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_801871D4[5];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_801873C8[5];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_801873F0[2];
+extern GpSprtCmd  D_dryfield_night_saloon_g_r_80187504[5];
 extern GpSprtElem D_dryfield_night_saloon_g_r_80185D58[17];
 extern GpSprtElem D_dryfield_night_saloon_g_r_80185EC4[14];
 extern GpSprtElem D_dryfield_night_saloon_g_r_80185FFC[70];
@@ -163,64 +181,64 @@ extern GpSprtElem D_dryfield_night_saloon_g_r_80186AB8[91];
 extern GpSprtElem D_dryfield_night_saloon_g_r_801871FC[23];
 extern GpSprtElem D_dryfield_night_saloon_g_r_80187400[13];
 
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183968;
-extern GpAnimArg D_dryfield_night_saloon_g_r_8018397C;
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183990;
-extern GpAnimArg D_dryfield_night_saloon_g_r_801839B8;
-extern GpAnimArg D_dryfield_night_saloon_g_r_801839CC;
-extern GpAnimArg D_dryfield_night_saloon_g_r_801839F4;
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183A08;
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183A1C;
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183A6C;
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183A94;
-extern GpAnimArg D_dryfield_night_saloon_g_r_80183AA8;
-extern GpCopyArg D_dryfield_night_saloon_g_r_8018394C;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183968;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_8018397C;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183990;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_801839B8;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_801839CC;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_801839F4;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A08;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A1C;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A6C;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A94;
+extern GpAnimArg     D_dryfield_night_saloon_g_r_80183AA8;
+extern GpCopyArg     D_dryfield_night_saloon_g_r_8018394C;
 extern GpOverrideArg D_dryfield_night_saloon_g_r_80183B34;
-extern GpXformArg D_dryfield_night_saloon_g_r_80183ABC;
-extern GpXformArg D_dryfield_night_saloon_g_r_80183AD4;
-extern GpXformArg D_dryfield_night_saloon_g_r_80183AEC;
-extern GpXformArg D_dryfield_night_saloon_g_r_80183B04;
-extern GpXformArg D_dryfield_night_saloon_g_r_80183B1C;
-extern const char D_dryfield_night_saloon_g_r_8017D600[22];
-extern const char D_dryfield_night_saloon_g_r_8017D618[19];
-extern const char D_dryfield_night_saloon_g_r_8017D62C[14];
-extern const char D_dryfield_night_saloon_g_r_8017D63C[26];
-extern const char D_dryfield_night_saloon_g_r_8017D658[24];
-extern const char D_dryfield_night_saloon_g_r_8017D670[17];
-extern const char D_dryfield_night_saloon_g_r_8017D684[23];
-extern const char D_dryfield_night_saloon_g_r_8017D69C[17];
-extern const char D_dryfield_night_saloon_g_r_8017D6B0[16];
-extern const char D_dryfield_night_saloon_g_r_8017D6C0[15];
-extern const char D_dryfield_night_saloon_g_r_8017D6D0[24];
-extern const char D_dryfield_night_saloon_g_r_8017D6E8[11];
-extern const char D_dryfield_night_saloon_g_r_8017D6F4[27];
-extern const char D_dryfield_night_saloon_g_r_8017D710[11];
-extern const char D_dryfield_night_saloon_g_r_8017D71C[17];
-extern const char D_dryfield_night_saloon_g_r_8017D730[14];
-extern const char D_dryfield_night_saloon_g_r_8017D740[11];
-extern const char D_dryfield_night_saloon_g_r_8017D74C[13];
-extern const char D_dryfield_night_saloon_g_r_8017D75C[23];
-extern const char D_dryfield_night_saloon_g_r_8017D774[13];
-extern const char D_dryfield_night_saloon_g_r_8017D784[17];
-extern const char D_dryfield_night_saloon_g_r_8017D798[16];
-extern const char D_dryfield_night_saloon_g_r_8017D7A8[12];
-extern const char D_dryfield_night_saloon_g_r_8017D7B4[20];
-extern const char D_dryfield_night_saloon_g_r_8017D7C8[17];
-extern const char D_dryfield_night_saloon_g_r_8017D7DC[19];
-extern const char D_dryfield_night_saloon_g_r_8017D7F0[24];
-extern const char D_dryfield_night_saloon_g_r_8017D808[19];
-extern const char D_dryfield_night_saloon_g_r_8017D81C[27];
-extern const char D_dryfield_night_saloon_g_r_8017D838[18];
-extern const char D_dryfield_night_saloon_g_r_8017D84C[16];
-extern const char D_dryfield_night_saloon_g_r_8017D85C[20];
-void func_dryfield_night_saloon_g_r_8017E0A8(u8);
+extern GpXformArg    D_dryfield_night_saloon_g_r_80183ABC;
+extern GpXformArg    D_dryfield_night_saloon_g_r_80183AD4;
+extern GpXformArg    D_dryfield_night_saloon_g_r_80183AEC;
+extern GpXformArg    D_dryfield_night_saloon_g_r_80183B04;
+extern GpXformArg    D_dryfield_night_saloon_g_r_80183B1C;
+extern const char    D_dryfield_night_saloon_g_r_8017D600[22];
+extern const char    D_dryfield_night_saloon_g_r_8017D618[19];
+extern const char    D_dryfield_night_saloon_g_r_8017D62C[14];
+extern const char    D_dryfield_night_saloon_g_r_8017D63C[26];
+extern const char    D_dryfield_night_saloon_g_r_8017D658[24];
+extern const char    D_dryfield_night_saloon_g_r_8017D670[17];
+extern const char    D_dryfield_night_saloon_g_r_8017D684[23];
+extern const char    D_dryfield_night_saloon_g_r_8017D69C[17];
+extern const char    D_dryfield_night_saloon_g_r_8017D6B0[16];
+extern const char    D_dryfield_night_saloon_g_r_8017D6C0[15];
+extern const char    D_dryfield_night_saloon_g_r_8017D6D0[24];
+extern const char    D_dryfield_night_saloon_g_r_8017D6E8[11];
+extern const char    D_dryfield_night_saloon_g_r_8017D6F4[27];
+extern const char    D_dryfield_night_saloon_g_r_8017D710[11];
+extern const char    D_dryfield_night_saloon_g_r_8017D71C[17];
+extern const char    D_dryfield_night_saloon_g_r_8017D730[14];
+extern const char    D_dryfield_night_saloon_g_r_8017D740[11];
+extern const char    D_dryfield_night_saloon_g_r_8017D74C[13];
+extern const char    D_dryfield_night_saloon_g_r_8017D75C[23];
+extern const char    D_dryfield_night_saloon_g_r_8017D774[13];
+extern const char    D_dryfield_night_saloon_g_r_8017D784[17];
+extern const char    D_dryfield_night_saloon_g_r_8017D798[16];
+extern const char    D_dryfield_night_saloon_g_r_8017D7A8[12];
+extern const char    D_dryfield_night_saloon_g_r_8017D7B4[20];
+extern const char    D_dryfield_night_saloon_g_r_8017D7C8[17];
+extern const char    D_dryfield_night_saloon_g_r_8017D7DC[19];
+extern const char    D_dryfield_night_saloon_g_r_8017D7F0[24];
+extern const char    D_dryfield_night_saloon_g_r_8017D808[19];
+extern const char    D_dryfield_night_saloon_g_r_8017D81C[27];
+extern const char    D_dryfield_night_saloon_g_r_8017D838[18];
+extern const char    D_dryfield_night_saloon_g_r_8017D84C[16];
+extern const char    D_dryfield_night_saloon_g_r_8017D85C[20];
+void                 func_dryfield_night_saloon_g_r_8017E0A8(u8);
 
-s32 func_dryfield_night_saloon_g_r_8017DCA4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_saloon_g_r_8017DD7C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_saloon_g_r_8017DD84(Task *, s32, s32, s32);
-s32 func_dryfield_night_saloon_g_r_8017DE68(Task *, s32, GpMsg13EF *, GpMessageArg);
-void func_dryfield_night_saloon_g_r_8017DA04(Task *);
-void func_dryfield_night_saloon_g_r_8017DB74(Task *);
+s32  func_dryfield_night_saloon_g_r_8017DCA4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
+s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, GpMsg13EF*, GpMessageArg);
+void func_dryfield_night_saloon_g_r_8017DA04(Task*);
+void func_dryfield_night_saloon_g_r_8017DB74(Task*);
 
 TaskDesc D_dryfield_night_saloon_g_r_8017F90C = { 0, 32, func_dryfield_night_saloon_g_r_8017DA04, { .model = NULL } };
 
@@ -2412,9 +2430,7 @@ u8 D_dryfield_night_saloon_g_r_80188FB4[4] = {
 
 RoomEventReq D_dryfield_night_saloon_g_r_80188FB8 = { 0 };
 
-#define D_dryfield_night_saloon_g_r_801850DC (D_dryfield_night_saloon_g_r_80185074 + 13)
-#define D_dryfield_night_saloon_g_r_801850E4 (D_dryfield_night_saloon_g_r_80185074[14])
-#define D_dryfield_night_saloon_g_r_801850FC (D_dryfield_night_saloon_g_r_80185074[17])
+static s32 func_dryfield_night_saloon_g_r_8017D8A0(RoomEventReq* req, RoomEventMsg* msg);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when

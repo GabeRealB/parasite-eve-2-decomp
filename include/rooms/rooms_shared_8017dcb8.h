@@ -1,9 +1,7 @@
-#ifndef ROOMS_SHARED_8017DCB8_H
-#define ROOMS_SHARED_8017DCB8_H
+#ifndef INCLUDE_ROOMS_ROOMS_SHARED_8017DCB8_H
+#define INCLUDE_ROOMS_ROOMS_SHARED_8017DCB8_H
 
 #include "common.h"
-
-#include "main/task_types.h"
 
 /// Packed view of Task::spawnArg1 for the drifting room effect. The low
 /// halfword supplies mode and drawing flags; the upper bytes supply vertical
@@ -15,10 +13,4 @@ typedef struct RoomMoteArg {
 } RoomMoteArg;
 STATIC_ASSERT_SIZEOF(RoomMoteArg, 0x4);
 
-/// Moves the effect's coordinate vertically and advances its drawing phase
-/// every other tick. State 1 ramps brightness up before fading; state 2 holds
-/// its initial brightness until the fade. Releases the work block when dark
-/// or when the room transition reaches state 4.
-void RoomsShared8017dcb8(Task* task);
-
-#endif
+#endif // INCLUDE_ROOMS_ROOMS_SHARED_8017DCB8_H

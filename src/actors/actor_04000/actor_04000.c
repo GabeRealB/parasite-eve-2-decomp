@@ -1,52 +1,54 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
-#include "actors/actor.h"
-#include "actors/actors_shared_80135990.h"
-#include "actors/actors_shared_80138548.h"
-#include "psyq/abs.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
+#include "common.h"
+#include "gte.h"
+
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
-#include "main/task_types.h"
-#include "main/wipsys.h"
-#include "overlay.h"
-
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/animation.h"
-
-
+#include "overlay.h"
 
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
@@ -59,11 +61,11 @@ typedef union Actor104000Event {
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, Actor104000Event *);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, s32);
-        s32 (*call4)(Task *, s32, void *);
+        s32 (*call0)(Task*, s32, Actor104000Event*);
+        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, s32);
+        s32 (*call4)(Task*, s32, void*);
     } handler;
 } Actor04000RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04000RecoveredMsgEntry, 8);
@@ -157,7 +159,7 @@ typedef struct Actor104000StateTable {
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
 extern Task* Actor04000_D0C710[2];
-extern Task * Actor04000_D0C718[8];
+extern Task* Actor04000_D0C718[8];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -170,17 +172,17 @@ static void Actor04000_Fn06C80(GpEnemy* arg0, Task* arg1);
 static void Actor04000_Fn06D38(GpEnemy* arg0, Task* arg1);
 
 extern TmdSource Actor04000_D08718;
-void Actor04000_Fn06380(Task *);
-void Actor04000_Fn06E4C(Task *);
-void Actor04000_Fn06EA8(Task *);
-void Actor04000_Fn06F54(Task *);
-void Actor04000_Fn0703C(Task *);
+void             Actor04000_Fn06380(Task*);
+void             Actor04000_Fn06E4C(Task*);
+void             Actor04000_Fn06EA8(Task*);
+void             Actor04000_Fn06F54(Task*);
+void             Actor04000_Fn0703C(Task*);
 
-s32 Actor04000_Fn0093C(Task *, s32, Actor104000Event *);
-s32 Actor04000_Fn06590(Task *, s32, s32);
-s32 Actor04000_Fn06634(Task *, s32, GpXformArg *);
-s32 Actor04000_Fn06704(Task *, s32, void *);
-s32 Actor04000_Fn06728(Task *, s32, GpAnimArg *, s32);
+s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*);
+s32 Actor04000_Fn06590(Task*, s32, s32);
+s32 Actor04000_Fn06634(Task*, s32, GpXformArg*);
+s32 Actor04000_Fn06704(Task*, s32, void*);
+s32 Actor04000_Fn06728(Task*, s32, GpAnimArg*, s32);
 
 GpU16Pair Actor04000_D07078[3] = {
     { 1, 7 },
@@ -1225,6 +1227,53 @@ Task * Actor04000_D0C710[2] = { 0 };
 
 Task * Actor04000_D0C718[8] = { 0 };
 
+/// Whole-unit part of the last step `Actor04000_Fn00798` applied.
+extern SVECTOR Actor04000_D0C708;
+
+extern GpPairSrcE Actor04000_D07084;
+
+extern GpAnimSet* Actor04000_D0C4C4[19];
+
+extern Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6];
+
+extern GpAnimArg Actor04000_D0C530;
+
+extern GpScriptCmd Actor04000_D07094[3];
+
+extern GpScriptRec Actor04000_D070A0[3];
+
+extern GpAnimSet* Actor04000_D0C510[4];
+
+extern GpAnimSet* Actor04000_D0C520[4];
+
+/// The controller task's state handlers, indexed by its `state`.
+extern TaskFunc Actor04000_D0C6EC[];
+
+static s32             Actor04000_Fn0024C(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* push);
+static s32             Actor04000_Fn00798(GpCoord* coord, GpRec18* movement, s16 arg2);
+static __inline__ void Actor204000_ResetSlots(Actor104000Work* arg0);
+static __inline__ void Actor204000_TickSlots(Task* arg0);
+static void            Actor04000_Fn00E6C(Task* arg0);
+static s32             Actor04000_Fn00FDC(Actor104000Work* arg0);
+static void            Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1);
+static __inline__ void Actor204000_FaceScale(GpCoord* coord, s16 s);
+static void            Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn03798(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2);
+static void            Actor04000_Fn03FB4(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn04FA4(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1);
+static void            Actor04000_Fn06760(GpCoord* coord, s16 scale);
+
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
 /// bearing, at most eight; bearings more than 0x400 apart cancel each other.
@@ -1316,9 +1365,6 @@ static s32 Actor04000_Fn0024C(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
-
-/// Whole-unit part of the last step `Actor04000_Fn00798` applied.
-extern SVECTOR Actor04000_D0C708;
 
 /// Steps `coord` by the movement the first `arg2` `GpRec18` records of
 /// `movement` resolve to, and keeps the whole-unit part of that step in
@@ -1594,11 +1640,7 @@ static s32 Actor04000_Fn00FDC(Actor104000Work* arg0)
     return 0;
 }
 
-extern GpPairSrcE Actor04000_D07084;
-extern GpAnimSet* Actor04000_D0C4C4[19]; // animation bank handed to `func_800B3F84`
-
-
-extern Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6];
+// animation bank handed to `func_800B3F84`
 
 /// Spawn state: allocates the work block, links the four collision objects and
 /// the enemy node, seeds the size and HP from the enemy's level nibble, records
@@ -1762,12 +1804,6 @@ static void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
     work->field_47A = 0;
     arg1->state++;
 }
-
-extern GpAnimArg Actor04000_D0C530;
-extern GpScriptCmd Actor04000_D07094[3];
-extern GpScriptRec Actor04000_D070A0[3];
-extern GpAnimSet* Actor04000_D0C510[4];
-extern GpAnimSet* Actor04000_D0C520[4];
 
 /// Lunge state: steps forward on frames 8 and 9, then from frame 9 on grabs
 /// the player when within 600 units and a quarter turn of the facing, dispatches
@@ -3516,9 +3552,6 @@ void Actor04000_Fn06E4C(Task* task)
     sp = Actor04000_D00240;
     sp.funcs[task->state](task->spawnArg2.pointer, task);
 }
-
-/// The controller task's state handlers, indexed by its `state`.
-extern TaskFunc Actor04000_D0C6EC[];
 
 void Actor04000_Fn06EA8(Task* arg0)
 {

@@ -1,37 +1,44 @@
-#include "gameplay/message.h"
-#include "common.h"
+#include "actors/actor_800200.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
+#include "common.h"
+
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/area_entry.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/items.h"
 #include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
+#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/actor.h"
-#include "gameplay/animation.h"
-#include "gameplay/room.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// 8-byte fixed-point X/Z entry of a path table (`D_actor_800200_8016A128`
 /// and its neighbours). `GpActorD4.pathStep` selects the entry; the Y
@@ -59,38 +66,38 @@ typedef struct {
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *);
-        s32 (*call1)(Task *, s32, GpAnimArg *);
-        s32 (*call2)(Task *, s32, GpCopyArg *);
-        s32 (*call3)(Task *, s32, GpCountArg *);
-        s32 (*call4)(Task *, s32, GpXformArg *);
-        s32 (*call5)(Task *, s32, GpXformArg *, GpOverrideArg *);
-        s32 (*call6)(Task *, s32, s32);
-        s32 (*call7)(Task *, s32, s32, s32);
-        s32 (*call8)(Task *, s32, GpCoord *);
+        s32 (*call0)(Task*);
+        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, GpCopyArg*);
+        s32 (*call3)(Task*, s32, GpCountArg*);
+        s32 (*call4)(Task*, s32, GpXformArg*);
+        s32 (*call5)(Task*, s32, GpXformArg*, GpOverrideArg*);
+        s32 (*call6)(Task*, s32, s32);
+        s32 (*call7)(Task*, s32, s32, s32);
+        s32 (*call8)(Task*, s32, GpCoord*);
     } handler;
 } Actor800200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor800200MessageEntry, 8);
 
 extern Actor800200MessageEntry D_actor_800200_80169EF0[20];
-extern u8*             D_actor_800200_80169FD0[4];
-extern GpActorPathStep D_actor_800200_80169FE0[];
-extern GpActorPathStep D_actor_800200_80169FF8[];
-extern GpActorPathStep D_actor_800200_8016A018[];
-extern GpActorPathStep D_actor_800200_8016A020[];
-extern GpActorPathStep D_actor_800200_8016A040[];
-extern GpActorPathStep D_actor_800200_8016A048[];
-extern GpActorPathStep D_actor_800200_8016A058[];
-extern GpActorPathStep D_actor_800200_8016A068[];
-extern GpActorPathStep D_actor_800200_8016A080[];
-extern GpActorPathStep D_actor_800200_8016A090[];
-extern GpActorPathStep D_actor_800200_8016A098[];
-extern GpActorPathStep D_actor_800200_8016A0B0[];
-extern GpActorPathStep D_actor_800200_8016A0C8[];
-extern GpActorPathStep D_actor_800200_8016A0E0[];
-extern GpActorPathStep D_actor_800200_8016A108[];
-extern GpActorPathStep D_actor_800200_8016A128[];
-extern GpActorPathStep D_actor_800200_8016A130[];
+extern u8*                     D_actor_800200_80169FD0[4];
+extern GpActorPathStep         D_actor_800200_80169FE0[];
+extern GpActorPathStep         D_actor_800200_80169FF8[];
+extern GpActorPathStep         D_actor_800200_8016A018[];
+extern GpActorPathStep         D_actor_800200_8016A020[];
+extern GpActorPathStep         D_actor_800200_8016A040[];
+extern GpActorPathStep         D_actor_800200_8016A048[];
+extern GpActorPathStep         D_actor_800200_8016A058[];
+extern GpActorPathStep         D_actor_800200_8016A068[];
+extern GpActorPathStep         D_actor_800200_8016A080[];
+extern GpActorPathStep         D_actor_800200_8016A090[];
+extern GpActorPathStep         D_actor_800200_8016A098[];
+extern GpActorPathStep         D_actor_800200_8016A0B0[];
+extern GpActorPathStep         D_actor_800200_8016A0C8[];
+extern GpActorPathStep         D_actor_800200_8016A0E0[];
+extern GpActorPathStep         D_actor_800200_8016A108[];
+extern GpActorPathStep         D_actor_800200_8016A128[];
+extern GpActorPathStep         D_actor_800200_8016A130[];
 
 static void func_actor_800200_801626A0(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
@@ -964,6 +971,33 @@ GpAnimSet * D_actor_800200_8016F208[79] = {
     NULL,
     NULL,
 };
+
+static void func_actor_800200_80162088(Task* arg0);
+static void func_actor_800200_801622B0(Task* arg0);
+static void func_actor_800200_80162694(Task* arg0);
+static void func_actor_800200_80162750(Task* arg0);
+static void func_actor_800200_80162990(Task* arg0);
+static void func_actor_800200_80162BFC(Task* arg0);
+static void func_actor_800200_80162E0C(Task* arg0);
+static void func_actor_800200_80163044(Task* arg0);
+static void func_actor_800200_80163180(Task* arg0);
+static void func_actor_800200_8016337C(Task* arg0);
+static void func_actor_800200_80163584(Task* arg0);
+static void func_actor_800200_801637B4(Task* arg0);
+static void func_actor_800200_8016390C(Task* arg0);
+static void func_actor_800200_80163A54(Task* arg0);
+static void func_actor_800200_80163B90(Task* arg0);
+static void func_actor_800200_80163CCC(Task* arg0);
+static void func_actor_800200_80163E14(Task* arg0);
+static void func_actor_800200_80163F5C(Task* arg0);
+static void func_actor_800200_80164180(Task* arg0);
+static void func_actor_800200_8016436C(Task* arg0);
+static void func_actor_800200_80164598(Task* arg0);
+static void func_actor_800200_801647A8(Task* arg0);
+static void func_actor_800200_801649D8(Task* arg0);
+static void func_actor_800200_80164C54(Task* arg0);
+static void func_actor_800200_80164EBC(Task* arg0);
+static s32  func_actor_800200_80165104(Task* arg0);
 
 static void func_actor_800200_80162088(Task* arg0)
 {

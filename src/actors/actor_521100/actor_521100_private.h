@@ -1,9 +1,124 @@
-#ifndef ACTOR_521100_PRIVATE_H
-#define ACTOR_521100_PRIVATE_H
+#ifndef SRC_ACTORS_ACTOR_521100_ACTOR_521100_PRIVATE_H
+#define SRC_ACTORS_ACTOR_521100_ACTOR_521100_PRIVATE_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
+#include "common.h"
+
+#include "actors/actor.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
 #include "gameplay/message.h"
 
+#include "main/session_types.h"
 #include "main/task_types.h"
+
+/// Work block of the actor `func_actor_521100_80131E8C` spawns:
+/// `memCalloc(0x6C0, 0)`, hung off `Task::work`. It holds the model's
+/// animation context, slots and pose buffer, the `color` / `light` matrices the
+/// model is drawn under, and the collision bodies the spawn links: `obj47C`
+/// and `obj514` (kind 2, over the `rec49C` and `rec534` contact tables),
+/// `obj57C` / `obj59C` sharing `rec5BC`, and `obj5D4` / `obj5F4` sharing
+/// `rec62C`, the first of that pair carrying the `shape` segment.
+typedef struct Actor521100Work {
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ MATRIX         color;
+    /* 0x45C */ MATRIX         light;
+    /* 0x47C */ GpObj          obj47C;
+    /* 0x49C */ GpRec18        rec49C[5];
+    /* 0x514 */ GpObj          obj514;
+    /* 0x534 */ GpRec18        rec534[3];
+    /// The two collision nodes the burn-out sequence arms, the pair
+    /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `func_actor_521100_80131E8C`
+    /// fills both - the two pointers, `pos` and
+    /// `key` / `radius` - and links them. The state bodies then raise
+    /// `flags` bit 0x8000 on the frame their effect fires, hand both back with
+    /// an `&= 0x7FFF` when the sequence advances, and take the word
+    /// `Gp_PackPair` returns into `key`.
+    /* 0x57C */ GpObj obj57C;
+    /// See `obj57C`.
+    /* 0x59C */ GpObj        obj59C;
+    /* 0x5BC */ GpRec18      rec5BC[1];
+    /* 0x5D4 */ GpObj        obj5D4;
+    /* 0x5F4 */ GpObj        obj5F4;
+    /* 0x614 */ GpActorD4Rec shape;
+    /* 0x62C */ GpRec18      rec62C[1];
+    /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
+    /// on the effect frames of the burn-out sequence.
+    /* 0x644 */ GpEffArg eff;
+    /* 0x64C */ s16      field_64C; // the attach coordinate's translation, snapshotted each frame
+    /* 0x64E */ s16      field_64E;
+    /* 0x650 */ s16      field_650;
+    /* 0x652 */ byte     pad_652[2];
+    /* 0x654 */ Task*    field_654;
+    /* 0x658 */ byte     pad_658[0x20];
+    /// Residual twist of the coordinate at `field_8[3]`, two angles of the
+    /// +/-(0x40..0xBF) range the hit body `func_actor_521100_801322F8` draws
+    /// from `Gp_LcgState` on the frame it takes a hit. It writes them here and
+    /// arms `field_680`; the untwist body `func_actor_521100_80135024` then
+    /// rotates that coordinate's matrix back by them, stepping each angle 0x20
+    /// towards zero per frame until both arrive and it clears the flag. Same
+    /// pair as `Actor510900Work::field_570` / `field_584` and
+    /// `Actor105600Work::field_688` / `field_6B4`.
+    /* 0x678 */ SVECTOR field_678;
+    /* 0x680 */ s16     field_680;
+    /* 0x682 */ s16     field_682; // non-zero while the tick in func_actor_521100_80135B80 remaps the model's field_C
+    /* 0x684 */ s16     field_684;
+    /// The clip the slots are blended to and the clip they currently carry.
+    /// The preset handler `func_actor_521100_80135C14` stores one clip id into
+    /// both, so the blend is skipped; `func_actor_521100_80135964` later walks
+    /// every slot towards `field_686` while the two differ, then ticks them
+    /// once they agree. `field_68A` counts the ticks, and is cleared when a new
+    /// clip is latched into `field_688`.
+    /* 0x686 */ s16 field_686;
+    /* 0x688 */ s16 field_688;
+    /* 0x68A */ u16 field_68A;
+    /* 0x68C */ s16 field_68C;
+    /* 0x68E */ s16 field_68E;
+    /* 0x690 */ s16 field_690;
+    /* 0x692 */ s16 field_692;
+    /* 0x694 */ s16 field_694;
+    /// 12-bit angles. The step-1 entry body `func_actor_521100_80135680`
+    /// subtracts them, wraps the difference into [-0x800, 0x800] and reads
+    /// `field_6AA` when the result is under 0x200.
+    /* 0x696 */ u16 field_696;
+    /* 0x698 */ u16 field_698;
+    /* 0x69A */ s16 field_69A; // forward speed, in 12-bit fixed point
+    /* 0x69C */ s16 field_69C; // cleared together with the forward speed
+    /* 0x69E */ s16 field_69E;
+    /* 0x6A0 */ s16 field_6A0;
+    /* 0x6A2 */ s16 field_6A2;
+    /* 0x6A4 */ s16 field_6A4;
+    /// Parked animation the burn-out body `func_actor_521100_80133104` clears
+    /// on its own frame, the same slot `actor_102000` and `actor_105700` park
+    /// into.
+    /* 0x6A6 */ s16 field_6A6;
+    /* 0x6A8 */ s16 field_6A8;
+    /* 0x6AA */ s16 field_6AA;
+    /* 0x6AC */ s16 field_6AC;
+    /// Armed by `func_actor_521100_80133104` on the frame the burn-out sound
+    /// fires and cleared again when the sequence advances.
+    /* 0x6AE */ s16 field_6AE;
+    /* 0x6B0 */ s16 field_6B0;
+    /* 0x6B2 */ s16 field_6B2;
+    /// The animation record's flag nibble (`rec->field_3 & 0x30`) latched for
+    /// the next frame by the footstep cue body `func_actor_521100_80134D88`, so
+    /// each foot fires on the frame its bit has just dropped.
+    /* 0x6B4 */ u16 field_6B4;
+    /// Current and previous burn-out choices, used to avoid a third repeat.
+    /* 0x6B6 */ s16 field_6B6;
+    /* 0x6B8 */ s16 field_6B8;
+    /// Non-zero asks the burn-out bodies to hand the actor on to state 6
+    /// (`field_69E = 6`) instead of back to the idle state 0; `field_6BC` is
+    /// the sub-state they then start at.
+    /* 0x6BA */ s16 field_6BA;
+    /* 0x6BC */ u16 field_6BC;
+    /* 0x6BE */ s16 field_6BE;
+} Actor521100Work;
+STATIC_ASSERT_SIZEOF(Actor521100Work, 0x6C0);
 
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
@@ -11,29 +126,116 @@ typedef struct Actor521100FireRow {
 } Actor521100FireRow;
 STATIC_ASSERT_SIZEOF(Actor521100FireRow, 4);
 
+extern GpAnimSet D_actor_521100_80142CCC;
+
+extern GpAnimSet D_actor_521100_80143434;
+
+extern GpAnimSet D_actor_521100_80144024;
+
+extern GpAnimSet D_actor_521100_8014453C;
+
+extern GpAnimSet D_actor_521100_80145274;
+
+extern GpAnimSet D_actor_521100_801459AC;
+
+extern GpAnimSet D_actor_521100_80146210;
+
+extern GpAnimSet D_actor_521100_80146738;
+
+extern GpAnimSet D_actor_521100_80146A58;
+
+extern GpAnimSet D_actor_521100_80146F88;
+
+extern GpAnimSet D_actor_521100_80147118;
+
+extern GpAnimSet D_actor_521100_80147724;
+
+extern GpAnimSet D_actor_521100_80147C48;
+
+extern GpAnimSet D_actor_521100_80148448;
+
+extern GpAnimSet D_actor_521100_80148DB0;
+
+extern GpAnimSet D_actor_521100_8014A940;
+
+extern GpAnimSet D_actor_521100_8014C704;
+
+extern GpAnimSet D_actor_521100_8014D718;
+
+extern GpAnimSet D_actor_521100_8014DF24;
+
+extern GpAnimSet D_actor_521100_8014E3AC;
+
+extern GpAnimSet D_actor_521100_801526A0;
+
+extern GpAnimSet D_actor_521100_80152DB4;
+
+extern GpAnimSet D_actor_521100_8015359C;
+
+extern GpAnimSet D_actor_521100_80153ED8;
+
+extern GpAnimSet D_actor_521100_801547C0;
+
+extern GpAnimSet D_actor_521100_80154FAC;
+
+extern GpAnimSet D_actor_521100_801557E0;
+
+extern GpAnimSet D_actor_521100_80156D7C;
+
+extern GpAnimSet D_actor_521100_801578EC;
+
+extern GpAnimSet D_actor_521100_80157E44;
+
+extern GpAnimSet D_actor_521100_80158C5C;
+
+extern GpAnimSet D_actor_521100_80158DEC;
+
+extern GpAnimSet D_actor_521100_80158FC8;
+
+extern GpAnimSet D_actor_521100_80159898;
+
+extern GpAnimSet D_actor_521100_80159BD0;
+
+extern GpAnimSet D_actor_521100_8015A1A0;
+
+extern GpAnimSet D_actor_521100_8015ABF8;
+
+extern GpAnimSet D_actor_521100_8015B018;
+
+extern GpAnimSet D_actor_521100_8015B354;
+
+extern GpAnimSet D_actor_521100_8015B8A8;
+
+extern GpAnimSet D_actor_521100_8015C7B8;
+
+extern GpAnimSet D_actor_521100_8015D6BC;
+
+extern GpAnimSet D_actor_521100_8015E198;
+
+extern GpAnimSet D_actor_521100_8015EAC8;
+
+extern GpAnimSet D_actor_521100_8015F528;
+
+extern GpAnimSet* D_actor_521100_8015F73C[36];
+
+extern GpAnimSet* D_actor_521100_8015F7CC[14];
+
+extern GpEffArg D_actor_521100_8015F804;
+
+extern s16 D_actor_521100_8015F894[20];
+
+extern s16 D_actor_521100_8015F8BC[8];
+
+extern s16 D_actor_521100_8015F8CC[4];
+
 extern Actor521100FireRow D_actor_521100_8015F80C[2][17];
 
-typedef struct {
-    s32 id;
-    union {
-        s16 (*call0)(Task *);
-        s32 (*call1)(Task *);
-        s32 (*call2)(Task *, s32, GpAnimArg *);
-        s32 (*call3)(Task *, s32, GpCmdArg *);
-        s32 (*call4)(Task *, s32, GpXformArg *);
-        s32 (*call5)(Task *, s32, s32);
-    } handler;
-} Actor521100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor521100MessageEntry, 8);
+s32 func_actor_521100_80135D10(Task*, s32, s32);
 
-extern Actor521100MessageEntry D_actor_521100_8015F6FC[8];
+s32 func_actor_521100_80135D58(Task*, s32, GpCmdArg*);
 
-s32 func_actor_521100_80135BEC(Task *);
-s32 func_actor_521100_80135C14(Task *, s32, GpAnimArg *);
-s32 func_actor_521100_80135CAC(Task *, s32, GpXformArg *);
-s32 func_actor_521100_80135D10(Task *, s32, s32);
-s32 func_actor_521100_80135D58(Task *, s32, GpCmdArg *);
-s32 func_actor_521100_80135D9C(Task *);
-s16 func_actor_521100_80135DC8(Task *);
+s32 func_actor_521100_80135D9C(Task*);
 
-#endif // ACTOR_521100_PRIVATE_H
+s16 func_actor_521100_80135DC8(Task*);
+
+#endif // SRC_ACTORS_ACTOR_521100_ACTOR_521100_PRIVATE_H

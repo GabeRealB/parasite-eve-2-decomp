@@ -1,7 +1,8 @@
-#ifndef MAIN_TITLE_H
-#define MAIN_TITLE_H
+#ifndef INCLUDE_TITLE_TITLE_H
+#define INCLUDE_TITLE_TITLE_H
 
-#include "common.h"
+#include "types.h"
+
 #include "main/task_types.h"
 
 /// TaskDesc table: [0]=Title_BootTask, [1]=Title_DemoStreamTask.
@@ -16,4 +17,4 @@ void Title_Dispatch(Task* arg0);
 
 void Title_ExitTask(Task* arg0);
 
-#endif // MAIN_TITLE_H
+#endif // INCLUDE_TITLE_TITLE_H

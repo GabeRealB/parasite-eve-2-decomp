@@ -1,18 +1,74 @@
-#include "common.h"
 #include "rooms/dryfield_night_main_street.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
+
+#include "actors/task_tables.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "overlay.h"
+
 #include "rooms/room.h"
+
 #include "rooms/room_common.h"
+
 #include "rooms/rooms_shared_8017dcb8.h"
-#include "rooms/rooms_shared_8017ff88.h"
+
+#define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define D_dryfield_night_main_street_801821B8 (D_dryfield_night_main_street_801821A8[2])
+#define D_dryfield_night_main_street_801821C8 (D_dryfield_night_main_street_801821A8[4])
+#define D_dryfield_night_main_street_801821D8 (D_dryfield_night_main_street_801821A8[6])
+#define D_dryfield_night_main_street_801821E8 (D_dryfield_night_main_street_801821A8[8])
 
 /// Advances the gameplay LCG and yields the high half of the new state.
-#define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 /// Applies the patch list `table[GameFlag_GetNibble(nibble)]` to the current
 /// area's view sprite commands. The list is a stream of byte pairs ended by a
@@ -45,44 +101,6 @@
             } while (p[0] != 0xFF);                                     \
         }                                                               \
     }
-
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/items.h"
-#include "gameplay/loading.h"
-#include "gameplay/message.h"
-#include "gameplay/object_task.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/effects.h"
-#include "gameplay/light.h"
-#include "gameplay/scene.h"
-#include "gameplay/sprites.h"
-#include "gameplay/world_state.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "overlay.h"
-
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_night_main_street_8018208C;
@@ -117,7 +135,7 @@ extern s32 D_dryfield_night_main_street_80182230[];
 // The retained trailing word is present in the exported data after the three shades.
 typedef struct {
     RoomHaloShade shades[3];
-    u16 trailing;
+    u16           trailing;
 } NightMainStreetHaloShades;
 STATIC_ASSERT_SIZEOF(NightMainStreetHaloShades, 20);
 
@@ -128,7 +146,7 @@ extern RoomFadeStorage D_dryfield_night_main_street_80188BA4;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag it raises once it has spawned that task.
-extern RoomEventMsg     D_dryfield_night_main_street_80188BAC;
+extern RoomEventMsg D_dryfield_night_main_street_80188BAC;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -144,7 +162,7 @@ extern DryfieldNightMainStreetStorage8BB4 D_dryfield_night_main_street_80188BB4;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomLatchedEvent value;
-    u8 retained[4];
+    u8               retained[4];
 } DryfieldNightMainStreetStorage8BC8;
 STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BC8, 16);
 
@@ -169,46 +187,46 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size);
 static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1);
 static void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2);
 
-s32 func_dryfield_night_main_street_8017DA6C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_main_street_8017DEF0(Task *, s32, s32, s32);
-s32 func_dryfield_night_main_street_8017DFC8(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_main_street_8017E054(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_main_street_8017E05C(Task *, s32, GpMessageArg, GpMessageArg);
-void func_dryfield_night_main_street_8017D600(Task *);
-void func_dryfield_night_main_street_8017D8FC(Task *);
-void func_dryfield_night_main_street_8017DE78(Task *);
+s32  func_dryfield_night_main_street_8017DA6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_dryfield_night_main_street_8017DEF0(Task*, s32, s32, s32);
+s32  func_dryfield_night_main_street_8017DFC8(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_main_street_8017E054(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_main_street_8017E05C(Task*, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_night_main_street_8017D600(Task*);
+void func_dryfield_night_main_street_8017D8FC(Task*);
+void func_dryfield_night_main_street_8017DE78(Task*);
 
 extern GpGridParams D_dryfield_night_main_street_801833D0[1];
 extern GpGridParams D_dryfield_night_main_street_80184540[1];
-extern GpObj4C D_dryfield_night_main_street_80187704[26];
-extern GpObj4C D_dryfield_night_main_street_80187EBC[12];
-extern GpObj4C D_dryfield_night_main_street_8018824C[12];
+extern GpObj4C      D_dryfield_night_main_street_80187704[26];
+extern GpObj4C      D_dryfield_night_main_street_80187EBC[12];
+
 extern GpRoomBoundVec D_dryfield_night_main_street_80188A70[25];
 extern GpRoomCoordSet D_dryfield_night_main_street_8018899C[1];
 
-extern GpSprtCmd D_dryfield_night_main_street_801848C4[2];
-extern GpSprtCmd D_dryfield_night_main_street_80184CD0[8];
-extern GpSprtCmd D_dryfield_night_main_street_80184F18[3];
-extern GpSprtCmd D_dryfield_night_main_street_80185084[3];
-extern GpSprtCmd D_dryfield_night_main_street_801852B8[3];
-extern GpSprtCmd D_dryfield_night_main_street_801854D8[6];
-extern GpSprtCmd D_dryfield_night_main_street_80185774[5];
-extern GpSprtCmd D_dryfield_night_main_street_8018579C[2];
-extern GpSprtCmd D_dryfield_night_main_street_801857AC[2];
-extern GpSprtCmd D_dryfield_night_main_street_801857BC[2];
-extern GpSprtCmd D_dryfield_night_main_street_801857CC[2];
-extern GpSprtCmd D_dryfield_night_main_street_801857DC[2];
-extern GpSprtCmd D_dryfield_night_main_street_80185AA8[6];
-extern GpSprtCmd D_dryfield_night_main_street_80185FB0[10];
-extern GpSprtCmd D_dryfield_night_main_street_8018626C[7];
-extern GpSprtCmd D_dryfield_night_main_street_801864C0[3];
-extern GpSprtCmd D_dryfield_night_main_street_80186834[8];
-extern GpSprtCmd D_dryfield_night_main_street_80186950[3];
-extern GpSprtCmd D_dryfield_night_main_street_80186968[2];
-extern GpSprtCmd D_dryfield_night_main_street_80186978[2];
-extern GpSprtCmd D_dryfield_night_main_street_80186C94[7];
-extern GpSprtCmd D_dryfield_night_main_street_801870F0[7];
-extern GpSprtCmd D_dryfield_night_main_street_8018759C[7];
+extern GpSprtCmd  D_dryfield_night_main_street_801848C4[2];
+extern GpSprtCmd  D_dryfield_night_main_street_80184CD0[8];
+extern GpSprtCmd  D_dryfield_night_main_street_80184F18[3];
+extern GpSprtCmd  D_dryfield_night_main_street_80185084[3];
+extern GpSprtCmd  D_dryfield_night_main_street_801852B8[3];
+extern GpSprtCmd  D_dryfield_night_main_street_801854D8[6];
+extern GpSprtCmd  D_dryfield_night_main_street_80185774[5];
+extern GpSprtCmd  D_dryfield_night_main_street_8018579C[2];
+extern GpSprtCmd  D_dryfield_night_main_street_801857AC[2];
+extern GpSprtCmd  D_dryfield_night_main_street_801857BC[2];
+extern GpSprtCmd  D_dryfield_night_main_street_801857CC[2];
+extern GpSprtCmd  D_dryfield_night_main_street_801857DC[2];
+extern GpSprtCmd  D_dryfield_night_main_street_80185AA8[6];
+extern GpSprtCmd  D_dryfield_night_main_street_80185FB0[10];
+extern GpSprtCmd  D_dryfield_night_main_street_8018626C[7];
+extern GpSprtCmd  D_dryfield_night_main_street_801864C0[3];
+extern GpSprtCmd  D_dryfield_night_main_street_80186834[8];
+extern GpSprtCmd  D_dryfield_night_main_street_80186950[3];
+extern GpSprtCmd  D_dryfield_night_main_street_80186968[2];
+extern GpSprtCmd  D_dryfield_night_main_street_80186978[2];
+extern GpSprtCmd  D_dryfield_night_main_street_80186C94[7];
+extern GpSprtCmd  D_dryfield_night_main_street_801870F0[7];
+extern GpSprtCmd  D_dryfield_night_main_street_8018759C[7];
 extern GpSprtElem D_dryfield_night_main_street_801848D4[51];
 extern GpSprtElem D_dryfield_night_main_street_80184D10[26];
 extern GpSprtElem D_dryfield_night_main_street_80184F30[17];
@@ -224,7 +242,7 @@ extern GpSprtElem D_dryfield_night_main_street_80186874[11];
 extern GpSprtElem D_dryfield_night_main_street_80186988[39];
 extern GpSprtElem D_dryfield_night_main_street_80186CCC[53];
 extern GpSprtElem D_dryfield_night_main_street_80187128[57];
-extern TaskDesc D_8014D8A4;
+extern TaskDesc   D_8014D8A4;
 
 TaskDesc D_dryfield_night_main_street_8018208C = { 0, 32, func_dryfield_night_main_street_8017D600, { .model = NULL } };
 
@@ -3731,10 +3749,9 @@ DryfieldNightMainStreetStorage8BC8 D_dryfield_night_main_street_80188BC8 = { { 0
 
 RoomEventReq D_dryfield_night_main_street_80188BD8 = { 0, 0, 0, 0, 0, 0 };
 
-#define D_dryfield_night_main_street_801821B8 (D_dryfield_night_main_street_801821A8[2])
-#define D_dryfield_night_main_street_801821C8 (D_dryfield_night_main_street_801821A8[4])
-#define D_dryfield_night_main_street_801821D8 (D_dryfield_night_main_street_801821A8[6])
-#define D_dryfield_night_main_street_801821E8 (D_dryfield_night_main_street_801821A8[8])
+static s32  func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg);
+static void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// The room's own event task, spawned by its message handler. State 0 runs
 /// the latched event's CAP command; state 1 waits for it to finish and, when

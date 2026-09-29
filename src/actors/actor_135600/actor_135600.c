@@ -1,37 +1,39 @@
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/abs.h>
 
-#include "decomp/common.h"
+#include "common.h"
 
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
-#include "overlay.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/animation.h"
+#include "overlay.h"
 
 /// Optional start animation for `func_actor_135600_8013282C`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 0xD and 1.
@@ -45,7 +47,7 @@ extern SVECTOR D_actor_135600_8013B060[4];
 
 /// Animation bank table the 0x7D3 handler seeds the slot array from, indexed
 /// by the preset's bank index.
-extern GpAnimSet* D_actor_135600_8013B080[16];
+extern GpAnimSet*  D_actor_135600_8013B080[16];
 extern GpAnimSet** D_actor_135600_8013B0C0[1];
 
 /// Child task table the setup handler spawns from: entry 0 is the actor
@@ -60,10 +62,10 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call2)(Task *, s32, GpXformArg *, Actor135600SpawnAnim *);
-        s32 (*call3)(Task *, s32, GpXformArg *, s32);
-        s32 (*call4)(Task *, s32, s32, s32);
+        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call2)(Task*, s32, GpXformArg*, Actor135600SpawnAnim*);
+        s32 (*call3)(Task*, s32, GpXformArg*, s32);
+        s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor135600MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor135600MsgEntry, 8);
@@ -148,14 +150,14 @@ extern TmdSource D_actor_135600_80137E94;
 extern TmdSource D_actor_135600_801382E8;
 extern TmdSource D_actor_135600_801387D8;
 extern TmdSource D_actor_135600_80138AE8;
-s32 func_actor_135600_8013282C(Task *, s32, GpXformArg *, Actor135600SpawnAnim *);
-s32 func_actor_135600_801330A8(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_135600_801331C4(Task *, s32, GpXformArg *, s32);
-s32 func_actor_135600_80133240(Task *, s32, s32, s32);
-s32 func_actor_135600_8013336C(void);
-void func_actor_135600_801329E0(Task *);
-void func_actor_135600_80132ABC(Task *);
-void func_actor_135600_80132D64(Task *);
+s32              func_actor_135600_8013282C(Task*, s32, GpXformArg*, Actor135600SpawnAnim*);
+s32              func_actor_135600_801330A8(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_135600_801331C4(Task*, s32, GpXformArg*, s32);
+s32              func_actor_135600_80133240(Task*, s32, s32, s32);
+s32              func_actor_135600_8013336C(void);
+void             func_actor_135600_801329E0(Task*);
+void             func_actor_135600_80132ABC(Task*);
+void             func_actor_135600_80132D64(Task*);
 
 TmdBone D_actor_135600_80133374[20] = {
 #include "assets/actor_135600_model_06074_skeleton.inc"
@@ -703,6 +705,8 @@ Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
     { 2011, { .call0 = func_actor_135600_8013336C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
+
+static s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1);
 
 /// Recomputes `coord`'s world matrix (`Gp_UpdateCoord`), composes its parent
 /// chain, then projects two offsets along the part's local Z - the near one 10 units

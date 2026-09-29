@@ -1,74 +1,50 @@
-#ifndef ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
-#define ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
-
-#include "gameplay/area.h"
+#ifndef INCLUDE_ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
+#define INCLUDE_ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
 
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
-#include "main/ui_types.h"
-
-/// Work block of the parking-lot examine task, hung off the `Task::work` slot
-/// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
-/// `(SbupExamineWork*)task->work`.
-///
-/// `func_shelter_b1_underground_parking_80184468` copies a matched hotspot's
-/// two table fields into `field_C` and `promptKind`;
-/// `func_shelter_b1_underground_parking_80184594` forwards `promptKind` to
-/// `func_800D4E78` as the display mode of the prompt it spawns.
-/// `fadeLevel` is the intensity of the closing fade: the last state raises it
-/// each frame, clamps it at 0xFF and draws it on all three channels of
-/// `Fade_DrawOverlay`.
-typedef struct SbupExamineWork {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x4];
-    /* 0x08 */ s16  fadeLevel;
-    /* 0x0A */ byte pad_A[0x2];
-    /* 0x0C */ s16  field_C;
-    /* 0x0E */ s8   promptKind;
-    /* 0x0F */ byte pad_F[0x1];
-} SbupExamineWork;
-
-/// The departure the departure task carries out.
-extern RoomDeparture D_shelter_b1_underground_parking_8018D77C;
-
-/// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
-/// is the scene's sub-task.
-extern TaskDesc D_shelter_b1_underground_parking_8018720C[];
-
-/// The "%" suffix appended to the play-data percentages.
-extern u8 D_shelter_b1_underground_parking_8018691C[];
-
-/// Descriptor of the play-data panels' shared frame.
-extern UiObjectDesc D_shelter_b1_underground_parking_80186B34;
-
-/// The item id the shop list's cursor last rested on.
-extern s32 D_shelter_b1_underground_parking_80186FB0;
-
-/// Flag tested as zero / non-zero when drawing the room's view-dependent
-/// markers: it selects 0x180 or 0x60 as the second argument of their draw
-/// calls. Its meaning is unproven.
-extern u16 D_shelter_b1_underground_parking_8018D78C;
-
-extern GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
-
-void func_shelter_b1_underground_parking_8017EDE8(Task* task);
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     TaskDesc value;
-    u8 retained[4];
+    u8       retained[4];
 } ShelterB1UndergroundParkingStorage71F0;
 STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorage71F0, 16);
 
+extern GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
+
 extern ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0;
+
+// shelter_b1_underground_parking
+extern GpRoomCoordRec D_shelter_b1_underground_parking_801877B4[];
+
+extern GpRoomObjRec D_shelter_b1_underground_parking_801877F4[];
+
+extern u8* D_shelter_b1_underground_parking_8018791C[];
+
+extern GpViewCountRec D_shelter_b1_underground_parking_8018793C[];
+
+extern GpWarpRec D_shelter_b1_underground_parking_8018794C[];
+
+extern GpViewRec D_shelter_b1_underground_parking_80189778[];
+
+extern GpSprtRec D_shelter_b1_underground_parking_8018AB9C[];
+
+extern GpRoomParamRec* D_shelter_b1_underground_parking_8018D724[];
+
+void func_shelter_b1_underground_parking_801838B4(Task* task);
+
+void func_shelter_b1_underground_parking_8017EDE8(Task* task);
 
 void func_shelter_b1_underground_parking_80184A18(Task* unused);
 
-#endif // ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
+#endif // INCLUDE_ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H

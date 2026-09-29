@@ -1,24 +1,44 @@
 #include "pe/energyshot.h"
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/attachment_state.h"
-#include "gameplay/effects.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// One 8-byte row of `D_energyshot_801300E4`, indexed by `GpEffWork.index`
+/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the wedge count. `field_2` is
+/// the brightness cap state 1 grows `GpEffWork.scale` toward (and the ring
+/// radius in state 2). `field_4` is the per-frame brightness step. `field_6` is
+/// the beam depth / spawn height.
+typedef struct EnergyShotScale {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ s16 field_6;
+} EnergyShotScale;
+STATIC_ASSERT_SIZEOF(EnergyShotScale, 8);
 
 /// Per-level tuning for the energy shot: rows are PE levels 1-3.
 static EnergyShotScale D_energyshot_801300E4[] = {

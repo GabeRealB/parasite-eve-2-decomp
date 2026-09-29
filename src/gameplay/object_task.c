@@ -11,12 +11,20 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "mapui/stage_tables.h"
-
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/task.h"
+
+#include "mapui/map_akropolis.h"
+
+#include "mapui/map_dryfield.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "mapui/map_neo_ark.h"
+
+#include "mapui/map_shelter.h"
 
 /// Fallback message handlers installed by `func_800E31E8` for pointer slot 7.
 typedef struct {

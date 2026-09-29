@@ -1,36 +1,7 @@
-#ifndef PE_NECROSIS_H
-#define PE_NECROSIS_H
+#ifndef INCLUDE_PE_NECROSIS_H
+#define INCLUDE_PE_NECROSIS_H
 
 #include "main/task_types.h"
-
-#include "common.h"
-
-#include "gameplay/actor.h"
-
-#include "main/session_types.h"
-
-/// One 4-byte row of `D_necrosis_801306BC`, indexed by `GpEffWork.index`
-/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
-/// parameter (plus `field_22 * 0x60` each frame) and is copied into the
-/// first `GpObj.radius`. `field_2` is the last `GpEffWork.age` tick
-/// of the spawn loop; state 2 waits an extra 0x10 ticks past it. `field_2 +
-/// 0xC` is also the pad-rumble duration at ignition.
-typedef struct NecrosisStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ s16 field_2;
-} NecrosisStep;
-STATIC_ASSERT_SIZEOF(NecrosisStep, 4);
-
-/// Collision pair allocated by `func_necrosis_8012EF34` (`memCalloc(0x58)`)
-/// and stored in `Task::work`. `obj` is linked on list 1, `obj2` on list 7;
-/// both point `ctx.recs` at the one-element `rec` table (terminator `field_0
-/// = 2`).
-typedef struct NecrosisWork {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpObj   obj2;
-    /* 0x40 */ GpRec18 rec;
-} NecrosisWork;
-STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
 
 void func_necrosis_8012F52C(Task* arg0);
 
@@ -38,4 +9,4 @@ void func_necrosis_8012FAF8(Task* arg0);
 
 void func_necrosis_8012EF34(Task* arg0);
 
-#endif /* PE_NECROSIS_H */
+#endif // INCLUDE_PE_NECROSIS_H

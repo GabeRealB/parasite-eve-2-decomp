@@ -1,37 +1,66 @@
-#include "common.h"
-
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include "weapons/m4a1_grenade.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "m4a1_grenade_private.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+
+#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "weapons/weapon.h"
+
+/// 0x34-byte scratch the flight state takes from `G_SCRATCH_HEAD`. The
+/// `GpDeltaScratch` at 0x20 is handed to `func_800E0FEC` and also holds the
+/// per-frame translation the state adds onto the projectile coordinate;
+/// `sfx` is the attachment id the explosion effect and sound are keyed on.
+typedef struct M4a1GrenadeScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ s32            sfx;
+} M4a1GrenadeScratch;
+STATIC_ASSERT_SIZEOF(M4a1GrenadeScratch, 0x34);
+
+typedef void (*M4a1GrenadeStateFn)(Task* task);
 
 /// Equipped-weapon index; `Gp_GetItemSlot(Player_Status.weapon + 0x7F)` is the slot the
 /// player is holding, and its `attachId` is the attachment id the sound bank is
 /// keyed on. A main-executable global with no module header yet.
 
 static void func_m4a1_grenade_8011DE24(Task* task);
+
+static void func_m4a1_grenade_8011D1EC(Task* arg0);
+static void func_m4a1_grenade_8011D654(Task* arg0);
+static void func_m4a1_grenade_8011D994(Task* arg0);
+static void func_m4a1_grenade_8011DDF8(Task* task);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
 /// the shot and raises the weapon (clip 8 instead of 1 when it was already up),

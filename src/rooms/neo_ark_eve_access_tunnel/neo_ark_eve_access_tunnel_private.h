@@ -1,23 +1,49 @@
-#ifndef NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H
-#define NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H
+#ifndef SRC_ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H
+#define SRC_ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H
+
+#include "types.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
 
 #include "main/task_types.h"
 
-#include "gameplay/message.h"
+extern GpRoomCoordSet D_neo_ark_eve_access_tunnel_801802D4[1];
 
-#include "gameplay/direction.h"
+extern GpObj4C D_neo_ark_eve_access_tunnel_801802EC[6];
 
-#include "common.h"
+extern GpObj4C D_neo_ark_eve_access_tunnel_801804B4[6];
+
+extern GpObj3A D_neo_ark_eve_access_tunnel_80180720[1];
+
+extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
+
+extern GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[6];
+
+extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[3];
+
+extern GpSprtCmd D_neo_ark_eve_access_tunnel_8017F17C[2];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_eve_access_tunnel_8017D810(Task *);
-void func_neo_ark_eve_access_tunnel_8017D980(Task *);
-void func_neo_ark_eve_access_tunnel_8017DB18(Task *);
-s32 func_neo_ark_eve_access_tunnel_8017DC64(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_eve_access_tunnel_8017DD70(Task *, s32, s32, GpMessageArg);
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task *, s32, GpMsg13EF *, GpMessageArg);
-s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task *, s32, s32, GpMessageArg);
-void func_neo_ark_eve_access_tunnel_8017DED0(Task *);
+void func_neo_ark_eve_access_tunnel_8017D810(Task*);
 
-#endif // NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H
+void func_neo_ark_eve_access_tunnel_8017D980(Task*);
+
+void func_neo_ark_eve_access_tunnel_8017DB18(Task*);
+
+s32 func_neo_ark_eve_access_tunnel_8017DC64(Task*, s32, GpMessageArg, GpMessageArg);
+
+s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+
+s32 func_neo_ark_eve_access_tunnel_8017DD70(Task*, s32, s32, GpMessageArg);
+
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task*, s32, GpMsg13EF*, GpMessageArg);
+
+s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task*, s32, s32, GpMessageArg);
+
+void func_neo_ark_eve_access_tunnel_8017DED0(Task*);
+
+#endif // SRC_ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H

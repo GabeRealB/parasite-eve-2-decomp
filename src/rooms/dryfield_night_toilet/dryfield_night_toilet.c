@@ -1,37 +1,40 @@
-#include "common.h"
 #include "rooms/dryfield_night_toilet.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+
 #include "gte.h"
+#include "types.h"
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "actors/task_tables.h"
 
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
-#include "gameplay/message.h"
-
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/area.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_dryfield_full.h"
+
+#include "rooms/room_common.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_toilet_8017DA70[];
@@ -44,16 +47,16 @@ extern SVECTOR D_dryfield_night_toilet_8017DAA8[];
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
 extern TaskDesc D_8013E51C[];
 
-s32 func_dryfield_night_toilet_8017D5D0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_dryfield_night_toilet_8017D644(Task *, s32, s32, s32);
-s32 func_dryfield_night_toilet_8017D678(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_toilet_8017D680(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_toilet_8017D688(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_toilet_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_toilet_8017D644(Task*, s32, s32, s32);
+s32 func_dryfield_night_toilet_8017D678(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_toilet_8017D680(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_toilet_8017D688(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams D_dryfield_night_toilet_8017DD88[1];
-extern GpObj3A D_dryfield_night_toilet_8017F2C4[1];
-extern GpObj4C D_dryfield_night_toilet_8017EE9C[6];
-extern GpObj4C D_dryfield_night_toilet_8017F064[8];
+extern GpGridParams   D_dryfield_night_toilet_8017DD88[1];
+extern GpObj3A        D_dryfield_night_toilet_8017F2C4[1];
+extern GpObj4C        D_dryfield_night_toilet_8017EE9C[6];
+extern GpObj4C        D_dryfield_night_toilet_8017F064[8];
 extern GpRoomCoordSet D_dryfield_night_toilet_8017EE84[1];
 
 GpMsgEntry D_dryfield_night_toilet_8017DA70[6] = {
@@ -564,6 +567,10 @@ GpRoomParamRec * D_dryfield_night_toilet_8017F3D8[8] = {
     D_dryfield_night_toilet_8017F3C0,
     D_dryfield_night_toilet_8017F3C0,
 };
+
+static void func_dryfield_night_toilet_8017D690(Task* task);
+static void func_dryfield_night_toilet_8017D71C(Task* task);
+static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
 /// reply and, for a message 0xF that is not report-only (`field_5 == 0`),

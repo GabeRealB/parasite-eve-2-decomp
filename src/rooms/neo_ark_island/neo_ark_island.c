@@ -1,55 +1,61 @@
-#include "neo_ark_island_private.h"
-#include "mapui/map_neo_ark.h"
-
 #include "rooms/neo_ark_island.h"
-#include "common.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
 
+#include "gte.h"
+#include "types.h"
+
+#include "neo_ark_island_private.h"
+
+#include "actors/task_tables.h"
+
+#include "actors/waypoints.h"
+
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/display.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/object_task.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+
+#include "mapui/map_neo_ark.h"
+
 #include "overlay.h"
-
-#include "gameplay/area.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
-
-#include "actors/task_tables.h"
-#include "gameplay/collision.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-
-extern GpMsgEntry D_neo_ark_island_80181B48[];
 
 /// Staging save location the island commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
 /// location, and `func_neo_ark_island_8017E844` moves those same three bytes
 /// into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
 extern GpSaveLoc D_neo_ark_island_80184008;
-
-extern TaskDesc D_neo_ark_island_80181B78;
 
 static void func_neo_ark_island_8017EA94(Task* arg0);
 static void func_neo_ark_island_8017EB08(Task* task);

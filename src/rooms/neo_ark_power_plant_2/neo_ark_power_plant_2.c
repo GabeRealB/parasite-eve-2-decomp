@@ -1,63 +1,70 @@
-#include "common.h"
 #include "rooms/neo_ark_power_plant_2.h"
-#include "mapui/map_neo_ark.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/attachment_state.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/room.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/direction_input.h"
+#include "rooms/room_common.h"
 
-#include "gameplay/animation.h"
-
-extern GpObj3A D_neo_ark_power_plant_2_80182E78[1];
+extern GpObj3A        D_neo_ark_power_plant_2_80182E78[1];
 extern GpRoomBoundVec D_neo_ark_power_plant_2_80182EB4[10];
 
 extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
-extern GpEvsCmd D_neo_ark_power_plant_2_801802A8[];
-extern GpEvsCmd D_neo_ark_power_plant_2_80180560[];
+extern GpEvsCmd       D_neo_ark_power_plant_2_801802A8[];
+extern GpEvsCmd       D_neo_ark_power_plant_2_80180560[];
 extern SVECTOR        D_neo_ark_power_plant_2_80180668;
 extern SVECTOR        D_neo_ark_power_plant_2_80180678;
 extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F70[];
@@ -86,15 +93,15 @@ extern GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3];
 extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3];
 extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2];
 
-extern GpGridParams D_neo_ark_power_plant_2_80180DC4[1];
-extern GpObj4C D_neo_ark_power_plant_2_801828C0[8];
-extern GpObj4C D_neo_ark_power_plant_2_80182B20[8];
+extern GpGridParams   D_neo_ark_power_plant_2_80180DC4[1];
+extern GpObj4C        D_neo_ark_power_plant_2_801828C0[8];
+extern GpObj4C        D_neo_ark_power_plant_2_80182B20[8];
 extern GpRoomCoordSet D_neo_ark_power_plant_2_801828A8[1];
 
-s32 func_neo_ark_power_plant_2_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_power_plant_2_8017D5D8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_neo_ark_power_plant_2_8017D61C(Task *, s32, s32, GpMessageArg);
-s32 func_neo_ark_power_plant_2_8017D694(Task *, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_power_plant_2_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_power_plant_2_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, GpMessageArg);
+s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, GpMessageArg, GpMessageArg);
 void func_neo_ark_power_plant_2_8017D69C(void);
 void func_neo_ark_power_plant_2_8017D6D4(void);
 

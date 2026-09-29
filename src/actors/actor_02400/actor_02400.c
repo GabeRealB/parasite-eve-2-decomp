@@ -1,50 +1,59 @@
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/memory.h>
+
+#include "common.h"
 #include "gte.h"
 
 #include "actors/actor.h"
 
+#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/damage.h"
-#include "gameplay/display.h"
-#include "gameplay/effect_tasks.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
-#include "gameplay/object_fields.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_runtime.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/actor.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "overlay.h"
-#include <psyq/memory.h>
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -131,7 +140,7 @@ typedef struct Actor02400ScaleScratch {
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
-extern GpU16Pair Actor02400_BodyPairs[4];
+extern GpU16Pair  Actor02400_BodyPairs[4];
 extern GpPairSrcE Actor02400_Params0;
 extern GpPairSrcE Actor02400_Params1;
 /// Frames the grown body waits before it spawns, indexed by `variant`.
@@ -157,8 +166,8 @@ static void Actor02400_Fn03228(Task* task);
 static void Actor02400_Fn03278(Task* task);
 
 extern TmdSource Actor02400_D04580;
-void Actor02400_Fn02DB0(Task *);
-void Actor02400_Fn03358(Task *);
+void             Actor02400_Fn02DB0(Task*);
+void             Actor02400_Fn03358(Task*);
 
 TmdBone Actor02400_D03448[4] = {
 #include "assets/actor_102400_model_04580_skeleton.inc"
@@ -222,6 +231,18 @@ TaskDesc Actor02400_D0465C[2] = {
     { 1, 96, Actor02400_Fn02DB0, { .model = &Actor02400_D04580 } },
     { 2, 96, Actor02400_Fn03358, { .model = NULL } },
 };
+
+static void Actor02400_Fn00064(GpCoord* coord, s16 size);
+static void Actor02400_Fn00C08(Task* task);
+static void Actor02400_Fn01420(Task* task);
+static void Actor02400_Fn01590(Task* task);
+static void Actor02400_Fn01A10(Task* task);
+static void Actor02400_Fn01B90(Task* task);
+static void Actor02400_Fn01F74(Task* task);
+static void Actor02400_Fn0208C(Task* task);
+static void Actor02400_Fn02264(Task* task);
+static void Actor02400_Fn023B4(Task* task);
+static void Actor02400_Fn02CA4(GpCoord* arg0, s32 arg1);
 
 /// Draws the glow around `coord`: lights `Gp_RoomCoords[2]` there
 /// with a randomly flickering intensity, then projects `coord` and queues two

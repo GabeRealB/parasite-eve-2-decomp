@@ -1,42 +1,41 @@
-#include "common.h"
-#include "rooms/neo_ark_r31.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+
+#include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/collision.h"
-#include "gameplay/display.h"
+#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/damage.h"
-#include "gameplay/enemy.h"
-#include "gameplay/scene.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/evs.h"
+#include "rooms/neo_ark_r31.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -67,18 +66,18 @@ extern TaskDesc D_actor_461800_80133EBC[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task *, s32, GpAnimArg *, s32);
-        s32 (*call1)(Task *, s32, GpCmdArg *, s32);
-        s32 (*call2)(Task *, s32, GpXformArg *);
-        s32 (*call3)(Task *, s32, VECTOR *, s32);
-        s32 (*call4)(Task *, s32, s32);
+        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, GpCmdArg*, s32);
+        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, VECTOR*, s32);
+        s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor461800MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor461800MessageEntry, 8);
 
 extern Actor461800MessageEntry D_actor_461800_80139F5C[6];
-extern TaskDesc D_actor_461800_80139F8C[];
-extern GpAnimSet* D_actor_461800_80139FB0[6];
+extern TaskDesc                D_actor_461800_80139F8C[];
+extern GpAnimSet*              D_actor_461800_80139FB0[6];
 
 extern s32 D_actor_461800_80143884;
 extern s32 D_actor_461800_80143888;
@@ -86,7 +85,7 @@ extern s32 D_actor_461800_8014388C;
 extern s32 D_actor_461800_80143890;
 
 extern Actor461800MessageEntry D_actor_461800_801437BC[6];
-extern GpAnimSet* D_actor_461800_801437F8[35];
+extern GpAnimSet*              D_actor_461800_801437F8[35];
 
 /// Reset argument the first variant forwards to every reseeded slot.
 extern s16 D_actor_461800_80139F58;
@@ -115,22 +114,22 @@ static void func_actor_461800_80133770(void);
 static void func_actor_461800_8013380C(void);
 static void func_actor_461800_80133B98(Task* task);
 
-s32 func_actor_461800_80132D84(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_461800_80132E14(Task *, s32, s32);
-s32 func_actor_461800_80132EA4(Task *, s32, GpXformArg *);
-s32 func_actor_461800_80132F20(Task *, s32, GpCmdArg *, s32);
-s32 func_actor_461800_80132F44(Task *, s32, VECTOR *, s32);
-s32 func_actor_461800_80133898(Task *, s32, GpAnimArg *, s32);
-s32 func_actor_461800_80133928(Task *, s32, s32);
-s32 func_actor_461800_80133970(Task *, s32, GpXformArg *);
-s32 func_actor_461800_801339EC(Task *, s32, GpCmdArg *, s32);
-s32 func_actor_461800_80133A3C(Task *, s32, VECTOR *, s32);
-void func_actor_461800_801329B0(Task *);
-void func_actor_461800_80132B74(Task *);
-void func_actor_461800_80133554(Task *);
+s32  func_actor_461800_80132D84(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_461800_80132E14(Task*, s32, s32);
+s32  func_actor_461800_80132EA4(Task*, s32, GpXformArg*);
+s32  func_actor_461800_80132F20(Task*, s32, GpCmdArg*, s32);
+s32  func_actor_461800_80132F44(Task*, s32, VECTOR*, s32);
+s32  func_actor_461800_80133898(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_461800_80133928(Task*, s32, s32);
+s32  func_actor_461800_80133970(Task*, s32, GpXformArg*);
+s32  func_actor_461800_801339EC(Task*, s32, GpCmdArg*, s32);
+s32  func_actor_461800_80133A3C(Task*, s32, VECTOR*, s32);
+void func_actor_461800_801329B0(Task*);
+void func_actor_461800_80132B74(Task*);
+void func_actor_461800_80133554(Task*);
 
-void func_actor_461800_80131E38(Task *);
-void func_actor_461800_80132048(Task *);
+void func_actor_461800_80131E38(Task*);
+void func_actor_461800_80132048(Task*);
 void func_actor_461800_801321DC(s32);
 void func_actor_461800_8013223C(s32);
 void func_actor_461800_8013229C(void);
@@ -973,6 +972,9 @@ Actor151000Work * D_actor_461800_801438A0 = NULL;
 Task * D_actor_461800_801438A4 = NULL;
 
 s16 D_actor_461800_801438A8 = 0;
+
+static void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
+static void func_actor_461800_8013307C(GpEnemy* enemy, Task* task);
 
 void func_actor_461800_80131E38(Task* task)
 {

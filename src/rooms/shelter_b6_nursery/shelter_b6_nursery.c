@@ -1,59 +1,71 @@
 #include "rooms/shelter_b6_nursery.h"
-#include "mapui/map_neo_ark.h"
 
-#include "gameplay/message.h"
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/acropolis_square.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/direction.h"
+#include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/hud_sprites.h"
-#include "gameplay/items.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/loading.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/items.h"
+#include "gameplay/light.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
+#include "main/tmd_types.h"
 #include "main/ui.h"
+#include "main/ui_types.h"
 
-#include "actors/task_tables.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/acropolis_square.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 extern SVECTOR D_shelter_b6_nursery_801852F4[2];
 
@@ -91,8 +103,8 @@ extern s32 D_8013A84C;
 // Script in the companion actor slot; this address also holds a task table
 // when a different actor package is loaded.
 extern GpEvsCmd D_nursery_script_8013A8DC[];
-extern s32 D_8013AF8C;
-extern s32 D_8013BA84;
+extern s32      D_8013AF8C;
+extern s32      D_8013BA84;
 
 /// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
@@ -156,9 +168,9 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task *, s32, GpMsg13EF *, s32);
-        s32 (*call2)(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-        s32 (*call3)(Task *, s32, s32, s32);
+        s32 (*call1)(Task*, s32, GpMsg13EF*, s32);
+        s32 (*call2)(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+        s32 (*call3)(Task*, s32, s32, s32);
     } handler;
 } ShelterB6NurseryMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB6NurseryMessageEntry, 8);
@@ -183,7 +195,7 @@ extern s32 D_shelter_b6_nursery_8018797C;
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomCutsceneRec value;
-    u8 retained[8];
+    u8              retained[8];
 } ShelterB6NurseryStorage7980;
 STATIC_ASSERT_SIZEOF(ShelterB6NurseryStorage7980, 32);
 
@@ -207,21 +219,21 @@ static void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2);
 
-void func_shelter_b6_nursery_8017D72C(UiList *, UiObject *);
-void func_shelter_b6_nursery_8017DEF8(UiList *, UiObject *);
-void func_shelter_b6_nursery_8017E910(Task *);
-void func_shelter_b6_nursery_8017EDBC(Task *);
-void func_shelter_b6_nursery_8017EF7C(Task *);
-void func_shelter_b6_nursery_8017F170(UiList *, UiObject *);
-void func_shelter_b6_nursery_8017F254(UiList *, UiObject *);
-void func_shelter_b6_nursery_8017F31C(UiList *, UiObject *);
-void func_shelter_b6_nursery_8017F3E4(UiList *, UiObject *);
-void func_shelter_b6_nursery_8017F4E8(Task *);
+void func_shelter_b6_nursery_8017D72C(UiList*, UiObject*);
+void func_shelter_b6_nursery_8017DEF8(UiList*, UiObject*);
+void func_shelter_b6_nursery_8017E910(Task*);
+void func_shelter_b6_nursery_8017EDBC(Task*);
+void func_shelter_b6_nursery_8017EF7C(Task*);
+void func_shelter_b6_nursery_8017F170(UiList*, UiObject*);
+void func_shelter_b6_nursery_8017F254(UiList*, UiObject*);
+void func_shelter_b6_nursery_8017F31C(UiList*, UiObject*);
+void func_shelter_b6_nursery_8017F3E4(UiList*, UiObject*);
+void func_shelter_b6_nursery_8017F4E8(Task*);
 
-void func_shelter_b6_nursery_8017F4E8(Task *);
-void func_shelter_b6_nursery_8017FD3C(Task *);
+void func_shelter_b6_nursery_8017F4E8(Task*);
+void func_shelter_b6_nursery_8017FD3C(Task*);
 
-void func_shelter_b6_nursery_8017FBC0(Task *);
+void func_shelter_b6_nursery_8017FBC0(Task*);
 
 u8 D_shelter_b6_nursery_80184CBC[8] = {
     83, 97, 118, 101, 0, 0, 0, 0,
@@ -370,8 +382,8 @@ UiListItemFunc D_shelter_b6_nursery_80184FA8[4] = {
 
 UiList D_shelter_b6_nursery_80184FB8 = { D_shelter_b6_nursery_80184FA8, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
 
-void func_shelter_b6_nursery_8017F4E8(Task *);
-void func_shelter_b6_nursery_8017FD3C(Task *);
+void func_shelter_b6_nursery_8017F4E8(Task*);
+void func_shelter_b6_nursery_8017FD3C(Task*);
 
 TaskDesc D_shelter_b6_nursery_80184FDC[3] = {
     { 0, 32, func_shelter_b6_nursery_8017F4E8, { .model = NULL } },
@@ -381,10 +393,10 @@ TaskDesc D_shelter_b6_nursery_80184FDC[3] = {
 
 TaskDesc D_shelter_b6_nursery_80185000 = { 0, 32, func_shelter_b6_nursery_8017FBC0, { .model = NULL } };
 
-s32 func_shelter_b6_nursery_8017FA54(Task *, s32, s32, s32);
+s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
 s32 func_shelter_b6_nursery_8017FDCC(void);
-s32 func_shelter_b6_nursery_8017FDD4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_shelter_b6_nursery_8017FE3C(Task *, s32, GpMsg13EF *, s32);
+s32 func_shelter_b6_nursery_8017FDD4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_b6_nursery_8017FE3C(Task*, s32, GpMsg13EF*, s32);
 
 ShelterB6NurseryMessageEntry D_shelter_b6_nursery_8018500C[5] = {
     { 5102, { .call2 = func_shelter_b6_nursery_8017FDD4 } },
@@ -1260,6 +1272,12 @@ ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980 = { 0 };
 GpCoord D_shelter_b6_nursery_801879A0 = { 0 };
 
 ShelterB6NurseryPair D_shelter_b6_nursery_801879F0 = { 0 };
+
+static void func_shelter_b6_nursery_8017E2F4(UiList* list, UiObject* obj);
+static void func_shelter_b6_nursery_8017E5F0(UiList* list, UiObject* obj);
+static void func_shelter_b6_nursery_8017EE18(u8* str, s32 decimals);
+static u8*  func_shelter_b6_nursery_8017EE88(u8* buf, s32 value, s32 decimals);
+static void func_shelter_b6_nursery_8017F06C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 
 /// Draws row `field_8` of the play-data statistics list: its label, then its
 /// value - a time, a count with its suffix, or a percentage with two decimals

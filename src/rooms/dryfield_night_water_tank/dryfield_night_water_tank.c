@@ -1,38 +1,42 @@
-#include "common.h"
 #include "rooms/dryfield_night_water_tank.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/rand.h>
-#include "rooms/room.h"
-#include "rooms/room_common.h"
+
+#include "types.h"
+
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
+#include "gameplay/area_flags.h"
+#include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
-#include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
-
-#include "gameplay/evs.h"
-#include "gameplay/world_state.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "gameplay/area.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "rooms/stage_tables.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
 
-#include "actors/task_tables.h"
-#include "mapui/stage_tables.h"
+#include "main/coord.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "mapui/map_dryfield_full.h"
 
 extern GpGridParams D_dryfield_night_water_tank_8017E08C;
 extern GpGridParams D_dryfield_night_water_tank_8017F4B0;
@@ -82,19 +86,19 @@ extern s32 D_dryfield_night_water_tank_8017EE4C;
 
 static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
-extern GpGridParams D_dryfield_night_water_tank_8017F4B0;
-extern GpObj3A D_dryfield_night_water_tank_801807CC[2];
-extern GpObj4C D_dryfield_night_water_tank_8018038C[4];
-extern GpObj4C D_dryfield_night_water_tank_801804BC[8];
+extern GpGridParams   D_dryfield_night_water_tank_8017F4B0;
+extern GpObj3A        D_dryfield_night_water_tank_801807CC[2];
+extern GpObj4C        D_dryfield_night_water_tank_8018038C[4];
+extern GpObj4C        D_dryfield_night_water_tank_801804BC[8];
 extern GpRoomCoordSet D_dryfield_night_water_tank_80180374[1];
-extern TmdSource D_dryfield_night_water_tank_8017EE04;
-void func_dryfield_night_water_tank_8017DB8C(Task *);
+extern TmdSource      D_dryfield_night_water_tank_8017EE04;
+void                  func_dryfield_night_water_tank_8017DB8C(Task*);
 
-s32 func_dryfield_night_water_tank_8017D70C(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_water_tank_8017D714(Task *, s32, GpSaveLoc *, GpSaveLoc *);
-s32 func_dryfield_night_water_tank_8017D73C(Task *, s32, s32, GpMessageArg);
-s32 func_dryfield_night_water_tank_8017D76C(Task *, s32, RoomEventMsg *, GpMessageArg);
-void func_dryfield_night_water_tank_8017D5D0(Task *);
+s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_water_tank_8017D714(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, GpMessageArg);
+void func_dryfield_night_water_tank_8017D5D0(Task*);
 
 GpXformArg D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
 
@@ -866,6 +870,9 @@ GpAreaApplyRec D_dryfield_night_water_tank_801808B0[2] = {
     { 3, 21, 11, 0 },
     { 255, 0, 0, 0 },
 };
+
+static void func_dryfield_night_water_tank_8017D870(Task* task);
+static void func_dryfield_night_water_tank_8017D94C(Task* task);
 
 /// Exit task of the night water-tank room, in the shape the other rooms' wait
 /// tasks have: three states on `Task::state`. State 0 raises bit 0x80 of

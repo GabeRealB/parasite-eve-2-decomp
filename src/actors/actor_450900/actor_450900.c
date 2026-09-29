@@ -1,34 +1,43 @@
-#include "gameplay/evs.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/rand.h>
+
 #include "common.h"
-#include "psyq/rand.h"
-#include "rooms/shelter_b6_growth_room.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
+#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/animation.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
+#include "rooms/shelter_b6_growth_room.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
         GpAnimSet* sets[16];
-        GpCopyArg copies[2];
-        GpAnimArg arguments[5];
+        GpCopyArg  copies[2];
+        GpAnimArg  arguments[5];
     } data;
     s32 words[45];
 } Actor450900AnimStorage5EC0;
@@ -41,18 +50,18 @@ extern Actor450900AnimStorage5EC0 D_actor_450900_80135EC0;
 // The symbol view shares the union backing; it allocates no extra storage.
 extern GpAnimArg Actor450900AllyAnim __asm__("D_actor_450900_80135EC0+100");
 
-extern s32 D_8017A99C;
-extern s8  D_actor_450900_80135E70;
-extern s32 D_actor_450900_80135E74;
-extern GpAnimArg D_actor_450900_80135FEC;
-extern GpAnimArg D_actor_450900_801360B4;
+extern s32        D_8017A99C;
+extern s8         D_actor_450900_80135E70;
+extern s32        D_actor_450900_80135E74;
+extern GpAnimArg  D_actor_450900_80135FEC;
+extern GpAnimArg  D_actor_450900_801360B4;
 extern GpXformArg D_actor_450900_80136458;
-extern GpEvsCmd D_actor_450900_80136470[];
-extern GpEvsCmd D_actor_450900_80136680[];
-extern GpEvsCmd D_actor_450900_80136890[];
-extern GpEvsCmd D_actor_450900_80136B00[];
-extern GpEvsCmd D_actor_450900_80136BD8[];
-extern s32 D_actor_450900_80136C98;
+extern GpEvsCmd   D_actor_450900_80136470[];
+extern GpEvsCmd   D_actor_450900_80136680[];
+extern GpEvsCmd   D_actor_450900_80136890[];
+extern GpEvsCmd   D_actor_450900_80136B00[];
+extern GpEvsCmd   D_actor_450900_80136BD8[];
+extern s32        D_actor_450900_80136C98;
 
 /// The save-point capture task spawned by `func_actor_450900_80131E38`, kept
 /// alive until `func_actor_450900_80132548` kills it. Script opcode 0xD reaches
@@ -75,35 +84,35 @@ typedef union {
 } Actor450900PoseBankA84;
 
 extern Actor450900AnimStorage5EC0 D_actor_450900_80135EC0;
-extern GpAnimSet D_actor_450900_80132DA0;
-extern GpAnimSet D_actor_450900_801330F8;
-extern GpAnimSet D_actor_450900_8013358C;
-extern GpAnimSet D_actor_450900_80133754;
-extern GpAnimSet D_actor_450900_80133970;
-extern GpAnimSet D_actor_450900_80133B24;
-extern GpAnimSet D_actor_450900_80133F0C;
-extern GpAnimSet D_actor_450900_80134248;
-extern GpAnimSet D_actor_450900_80134410;
-extern GpAnimSet D_actor_450900_80134850;
-extern GpAnimSet D_actor_450900_80134F14;
-extern GpAnimSet D_actor_450900_80135158;
-extern GpAnimSet D_actor_450900_80135558;
-extern GpAnimSet D_actor_450900_80135754;
-extern GpAnimSet D_actor_450900_80135A90;
-extern GpAnimSet D_actor_450900_80135E48;
+extern GpAnimSet                  D_actor_450900_80132DA0;
+extern GpAnimSet                  D_actor_450900_801330F8;
+extern GpAnimSet                  D_actor_450900_8013358C;
+extern GpAnimSet                  D_actor_450900_80133754;
+extern GpAnimSet                  D_actor_450900_80133970;
+extern GpAnimSet                  D_actor_450900_80133B24;
+extern GpAnimSet                  D_actor_450900_80133F0C;
+extern GpAnimSet                  D_actor_450900_80134248;
+extern GpAnimSet                  D_actor_450900_80134410;
+extern GpAnimSet                  D_actor_450900_80134850;
+extern GpAnimSet                  D_actor_450900_80134F14;
+extern GpAnimSet                  D_actor_450900_80135158;
+extern GpAnimSet                  D_actor_450900_80135558;
+extern GpAnimSet                  D_actor_450900_80135754;
+extern GpAnimSet                  D_actor_450900_80135A90;
+extern GpAnimSet                  D_actor_450900_80135E48;
 
 extern Actor450900AnimStorage5EC0 D_actor_450900_80135EC0;
-extern GpAnimArg D_actor_450900_80135F74;
-extern GpAnimArg D_actor_450900_80136014;
-extern GpAnimArg D_actor_450900_80136028;
-extern GpAnimArg D_actor_450900_8013603C;
-extern GpAnimArg D_actor_450900_80136050;
-extern GpAnimArg D_actor_450900_80136064;
-extern GpAnimArg D_actor_450900_80136078;
-void func_actor_450900_80132518(s32);
-void func_actor_450900_80132678(u8);
-void func_actor_450900_80132684(s32);
-void func_actor_450900_80132724(void);
+extern GpAnimArg                  D_actor_450900_80135F74;
+extern GpAnimArg                  D_actor_450900_80136014;
+extern GpAnimArg                  D_actor_450900_80136028;
+extern GpAnimArg                  D_actor_450900_8013603C;
+extern GpAnimArg                  D_actor_450900_80136050;
+extern GpAnimArg                  D_actor_450900_80136064;
+extern GpAnimArg                  D_actor_450900_80136078;
+void                              func_actor_450900_80132518(s32);
+void                              func_actor_450900_80132678(u8);
+void                              func_actor_450900_80132684(s32);
+void                              func_actor_450900_80132724(void);
 
 Actor450900PoseBankA84 D_actor_450900_801328A4 = { .poses = {
 #include "assets/actor_450900_animation_00F80_bank1.inc"
@@ -535,11 +544,11 @@ s8 D_actor_450900_80135E70 = 0;
 
 s32 D_actor_450900_80135E74 = 0;
 
-void func_actor_450900_80131E38(Task *);
-void func_actor_450900_8013207C(Task *);
-void func_actor_450900_8013223C(Task *);
-void func_actor_450900_8013235C(Task *);
-void func_actor_450900_80132548(Task *);
+void func_actor_450900_80131E38(Task*);
+void func_actor_450900_8013207C(Task*);
+void func_actor_450900_8013223C(Task*);
+void func_actor_450900_8013235C(Task*);
+void func_actor_450900_80132548(Task*);
 
 TaskDesc D_actor_450900_80135E78[6] = {
     { 0, 192, taskKill, { .model = NULL } },
@@ -738,6 +747,9 @@ GpEvsCmd D_actor_450900_80136BD8[8] = {
 s32 D_actor_450900_80136C98 = 0;
 
 Task * D_actor_450900_80136C9C = NULL;
+
+static void func_actor_450900_801327A8(void);
+static void func_actor_450900_80132834(void);
 
 /// State handler that runs the save-point capture. State 0 spawns the capture
 /// task `func_actor_450900_80132548` into `D_actor_450900_80136C9C`; state 1

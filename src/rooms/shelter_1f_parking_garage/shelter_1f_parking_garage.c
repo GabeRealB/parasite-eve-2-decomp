@@ -1,46 +1,56 @@
-#include "common.h"
 #include "rooms/shelter_1f_parking_garage.h"
-#include "mapui/map_neo_ark.h"
+
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
 
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-
 #include "gameplay/actor_render.h"
+#include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
+#include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/room_effects.h"
+#include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "gameplay/effects.h"
-#include "gameplay/message.h"
-#include "gameplay/scene.h"
-#include "gameplay/world_state.h"
+#include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-#include "gameplay/collision.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/light.h"
-#include "gameplay/room.h"
-#include "gameplay/view.h"
-#include "mapui/stage_tables.h"
-#include "rooms/stage_tables.h"
+#include "mapui/map_neo_ark.h"
+
+#include "rooms/room.h"
+
+#include "rooms/room_common.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -58,20 +68,20 @@ extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
 /// Offsets from the parent coordinate of the two trail heads the smoke-trail
 /// task follows. The second is also reached under its own name.
 
-extern GpFadeWork       D_shelter_1f_parking_garage_80181974;
-extern GpFadeWork       D_shelter_1f_parking_garage_80181978;
-extern RoomEventMsg     D_shelter_1f_parking_garage_8018197C;
+extern GpFadeWork   D_shelter_1f_parking_garage_80181974;
+extern GpFadeWork   D_shelter_1f_parking_garage_80181978;
+extern RoomEventMsg D_shelter_1f_parking_garage_8018197C;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
     RoomDeparture value;
-    u8 retained[4];
+    u8            retained[4];
 } Shelter1fParkingGarageStorage1988;
 STATIC_ASSERT_SIZEOF(Shelter1fParkingGarageStorage1988, 16);
 
 extern Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
-extern RoomLatchedEvent D_shelter_1f_parking_garage_80181998;
+extern RoomLatchedEvent                  D_shelter_1f_parking_garage_80181998;
 
 static s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
@@ -83,19 +93,19 @@ static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8*
 static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams D_shelter_1f_parking_garage_80180FE8[1];
-extern GpObj4C D_shelter_1f_parking_garage_801815F8[4];
-extern GpObj4C D_shelter_1f_parking_garage_80181728[5];
+extern GpGridParams   D_shelter_1f_parking_garage_80180FE8[1];
+extern GpObj4C        D_shelter_1f_parking_garage_801815F8[4];
+extern GpObj4C        D_shelter_1f_parking_garage_80181728[5];
 extern GpRoomBoundVec D_shelter_1f_parking_garage_801818A4[5];
 extern GpRoomCoordSet D_shelter_1f_parking_garage_801815E0[1];
 
-s32 func_shelter_1f_parking_garage_8017DCEC(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_parking_garage_8017DCF4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
-s32 func_shelter_1f_parking_garage_8017DE44(Task *, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_parking_garage_8017DE4C(Task *, s32, GpMsg13EF *, GpMessageArg);
-void func_shelter_1f_parking_garage_8017D7E8(Task *);
-void func_shelter_1f_parking_garage_8017D958(Task *);
-void func_shelter_1f_parking_garage_8017DAF0(Task *);
+s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, GpMsg13EF*, GpMessageArg);
+void func_shelter_1f_parking_garage_8017D7E8(Task*);
+void func_shelter_1f_parking_garage_8017D958(Task*);
+void func_shelter_1f_parking_garage_8017DAF0(Task*);
 
 TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, func_shelter_1f_parking_garage_8017D7E8, { .model = NULL } };
 
@@ -550,6 +560,8 @@ u8 D_shelter_1f_parking_garage_80181984[4] = {
 Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988 = { 0 };
 
 RoomLatchedEvent D_shelter_1f_parking_garage_80181998 = { 0 };
+
+static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
