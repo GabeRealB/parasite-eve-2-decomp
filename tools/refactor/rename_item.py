@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rename a C symbol, or a header, and update everything that refers to it.
+"""Rename a C symbol, project macro, or header and update its references.
 
 Renaming uses libclang rather than text substitution, so each edit lands at the
 exact source location the parser reports for that reference. A member name
@@ -149,12 +149,12 @@ def record_rename(root: str, ledger: str, kind: str, old: str, new: str,
                   where: str, edits: int) -> None:
     """Append one rename to the ledger.
 
-    Functions, globals and types only. A field is skipped: its old name means
-    nothing without the type that owned it, and that type's own entry is what a
-    reader needs to follow the trail back.
+    Functions, globals, types and file-qualified macros. A field is skipped:
+    its old name means nothing without the type that owned it, and that type's
+    own entry is what a reader needs to follow the trail back.
     """
     if kind not in ("function", "global", "typedef", "struct", "union", "enum",
-                    "enum-constant"):
+                    "enum-constant", "macro"):
         return
     path = ledger if os.path.isabs(ledger) else os.path.join(root, ledger)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -185,6 +185,8 @@ def main() -> int:
     ap.add_argument("-q", "--quiet", action="store_true")
     ap.add_argument("--guard", action="store_true",
                     help="header rename: also rewrite the include guard macro")
+    ap.add_argument("--macro-reviewed", action="store_true",
+                    help="macro rename: caller checked lexical scope, branches and token construction")
     args = ap.parse_args()
 
     if args.spec.endswith((".h", ".c")) and "::" not in args.spec:
@@ -195,6 +197,15 @@ def main() -> int:
         sys.exit(f"not a C identifier: {args.new_name!r}")
 
     root = cref.repo_root()
+    import macro_refs
+    if macro_refs.definition_exists(root, args.spec):
+        try:
+            macro_refs.Inventory(root).rename(args.spec, args.new_name,
+                                             reviewed=args.macro_reviewed, dry_run=args.dry_run,
+                                             ledger=args.ledger)
+        except ValueError as exc:
+            sys.exit(str(exc))
+        return 0
     db = cref.load_db(root, args.version)
     spec = cref.parse_spec(args.spec)
     if spec.name == args.new_name:

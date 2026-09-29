@@ -163,7 +163,7 @@ record the specific next step in the structured review.
 
 ## Names
 
-lowerCamelCase, one identifier, no separators, opening with the module or
+Functions and data use lowerCamelCase, one identifier, no separators, opening with the module or
 package that owns the symbol. A leading marker carries the rest:
 
 | | |
@@ -174,9 +174,46 @@ package that owns the symbol. A leading marker carries the rest:
 | PascalCase | a type — `FsCdfFile`; a private one is `_SectorCache` |
 
 A private symbol is the public name with `_` prepended. A struct tag has the
-same spelling as its type. The module or package part is derived, never
-invented: for core code the module prefix lowercased, for an overlay the
-manifest key camelCased (`mine_mesa` → `mineMesa…`), never abbreviated.
+same spelling as its type. Choose the owner using `NAMING.md`'s subsystem guide
+and the item's actual implementation, interface and consumers:
+
+- Main and gameplay use subsystem prefixes: `fs`, `cap`, `inventory`,
+  `actorRender`, `worldCollision`, and so on. Gameplay has no blanket `gp`
+  namespace. Do not mechanically convert `Gp_*` to `gp*` or substitute
+  `gameplay*`; apply the same ownership reasoning to globals and types.
+- A `current` classification checks spelling, not ownership. Reassess existing
+  `gp...` names too. One TU or header may contain several subsystems, and one
+  subsystem can span several TUs; choose the prefix per item, not per file.
+- Package-specific routines use the manifest key camelCased
+  (`mine_mesa` → `mineMesa…`), never abbreviated. Exported resident APIs keep
+  their subsystem identity even when many packages call them.
+- Included shared source uses its own subsystem (`actorContact`, `capCaption`,
+  `planarReflection`, etc.), with `_` on static instances. Overlay wrappers use
+  the package's prefix. Neither the first carrier nor a generic `Shared` marker
+  defines the implementation's identity.
+
+If the guide lacks a proven subsystem, establish and document its responsibility
+and interface before choosing a new prefix, and check for collisions. The guide
+does not require changing headers, TU splits or linkage merely to fit a name.
+
+**Macros are first-class review items.** Use UPPER_SNAKE_CASE; any subsystem or
+package prefix is spelled in full (`INVENTORY_`, `WORLD_COLLISION_`,
+`ROOM_VISUAL_EFFECTS_`, `FILE_SYSTEM_`), never shortened like `GP_`, `INV_`,
+`FX_` or `FS_`. Generic common helpers such as `ARRAY_SIZE`, `PARENT_OF` and
+`ALIGN` need no prefix. **GTE macros are the exception:** retain established
+PsyQ-style names such as `gte_RotTransLV`, including project wrappers. Macro
+parameters can use local camelCase. Do not add private `_` or global `g` markers.
+Macros have preprocessor scope, not C linkage; place them with their consumers
+under the same source/private/public-header rules without applying `static`.
+
+Review constants, helpers, alias/accessor macros and shared-source configuration
+bindings: meaning, units, captured identifiers, argument evaluation, side
+effects, parentheses, types/promotions and control flow. Inspect all definitions,
+inactive branches, `#undef`, stringification and token pasting, and all carriers
+and manifest variants. Document the contract beside the definition, including
+configuration requirements. Convert to an enum/constant/inline function only
+when its semantics and matching permit. SDK definitions, guards and compiler
+plumbing are excluded; project GTE wrappers can still need semantic review.
 
 **A field you can describe is a field you can name.** Writing a comment that
 states a field's role and leaving it called `field_14` contradicts itself — the
@@ -200,7 +237,7 @@ are `unnamed`, so treating the two alike leaves the bulk of the work undone.
 
 ## Every rename goes through the tool
 
-Make every rename with `rename_item.py` - symbols, types, fields and parameters
+Make every supported rename with `rename_item.py` - symbols, types, fields, parameters and macros
 alike - and never with a hand edit, a `sed`, or a script of your own:
 
     venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
@@ -217,10 +254,10 @@ re-check, not a run to wait out - and the first line of a healthy run names the
 declaration it resolved, which is also the check that you asked about the item
 you meant.
 
-Two reasons, and the second is the one that bites. It resolves references
-through the C parser, so it cannot miss a use or rewrite an unrelated one - a
-field name that several unrelated types also declare, or a mention that only
-exists after macro expansion, are both cases a textual pass gets wrong. And it
+For C declarations, there are two reasons. It resolves references
+through the C parser to distinguish declarations, including unrelated fields
+with the same name. Macro expansion and non-C uses still need the separate
+checks below. And it
 appends the old and new spelling to `local/renames.tsv`.
 
 **That file is now a source of truth.** The pass decides what has already been
@@ -232,6 +269,20 @@ bookkeeping - it puts the worklist out of step with the tree.
 
 If the rename is one the tool cannot express, do it by hand and say so plainly
 in your report, naming the old and new spelling, so the row can be added.
+
+**For macro items, the assigned name is `<definition-file>/<MACRO>`.** Pass it
+directly to `find_references.py` and `rename_item.py`, without prepending another
+path. Keep that qualified identity in the review's `name`; `current_name` is the
+final identifier. References are lexical candidates across conditional branches,
+not resolved expansions. Inspect the full report under `local/refs/`, include
+order, SDK collisions and `#`/`##` constructions. Run a rename dry run before
+using `--macro-reviewed`; that flag acknowledges the reviewing agent's checks,
+not a need for user approval. The tool refuses ambiguous shared bindings and
+manifest keys: update those definitions, consumers and build configurations
+together, then record each qualified old/new identity using
+`rename_item.record_rename` as described in `NAMING.md`. Comments, strings and
+sidecars are outside macro token edits and need a separate sweep. Do not remove
+same-spelled macros in unrelated TUs as stale references.
 
 **The parser-resolved pass cannot see every occurrence, so sweep after it.** The
 step's completeness check - a word-boundary grep of `src` and `include` for the
@@ -265,7 +316,7 @@ purpose, and the rename is the one that needs telling.
 
 ## What the tools reach, and what they do not
 
-The refactor tools understand C and nothing else. Knowing where their edge is
+The C resolver and the lexical macro inventory have different limits. Knowing where their edge is
 saves both halves of the usual failure - trusting them with something they never
 touched, and re-doing by hand what they already did. `NAMING.md`'s Tooling
 section states the same boundary for readers outside this pass; keep the two in
@@ -279,7 +330,9 @@ step.
   repository root and under `doc/` - unless `--no-comments`;
 - with `--sidecars`, whole-word hits in the version's `configs/` tree: symbol
   maps, splat configs, the overlay manifest;
-- a ledger row in `local/renames.tsv`, for functions, globals and types. A field
+- macro definitions and unambiguous lexical candidates after caller review, as
+  described above; this does not use libclang or the C prose/sidecar pass;
+- a ledger row in `local/renames.tsv`, for functions, globals, types and qualified macros. A field
   or a parameter gets none by design, so say in your report that you renamed
   one.
 
@@ -316,7 +369,7 @@ report:
   neighbouring line whose note *names* it - an alabel described by the sibling
   it enters - is prose, and stays stale until you fix it.
 - **Inline assembly in C**, which is a relocation the parser never reads.
-- **References reached through a macro**, which the tool lists rather than
+- **C-symbol references reached through a macro**, which the tool lists rather than
   edits: the macro body is where the name is spelled.
 - **Prose outside the scanned set** - the rules files, tool docstrings, anything
   under a directory the comment pass does not walk.
@@ -381,7 +434,7 @@ GCC 2.8.1, `-O2`, no `-finline-functions`.
 
 - **Anonymous struct and union members do not work.** The declaration is
   accepted and every access to it is then rejected. Nest with *named* members:
-  `owner->at4.loc`, not `owner->loc`. `include/main/gpuext.h` looks like a
+  `owner->at4.loc`, not `owner->loc`. `src/main/gpuext.c` looks like a
   counter-example; the line that would read through its anonymous struct is
   commented out in `src/main/gpuext.c`.
 - `static` is safe more often than it looks, since nothing is inlined unless

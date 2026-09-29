@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Find every reference to a C symbol, and say how each one is used.
+"""Find references to a C declaration or potential uses of a project macro.
 
 Resolution goes through libclang and the compilation database, matching on the
 declaration's USR, so a member name that several unrelated types share is never
-confused: identity decides, not spelling.
+confused: identity decides, not spelling. Macro specs use a separate lexical
+inventory that includes inactive branches and reports ambiguous bindings.
 
     find_references.py <header>/<Type>::<member>
     find_references.py <source>/<function>
@@ -96,6 +97,33 @@ def main() -> int:
     args = ap.parse_args()
 
     root = cref.repo_root()
+    import macro_refs
+    macro_specs = [s for s in args.spec if macro_refs.definition_exists(root, s)]
+    if macro_specs:
+        if len(macro_specs) != len(args.spec):
+            ap.error("query macros separately from C declarations")
+        import contextlib
+        import io
+        from pathlib import Path
+        inv = macro_refs.Inventory(root)
+        for spec in macro_specs:
+            if args.files:
+                print("\n".join(sorted({s.file for s, _ in inv.references(spec)})))
+                continue
+            detail = io.StringIO()
+            with contextlib.redirect_stdout(detail):
+                inv.report(spec)
+            path = Path(args.out) if args.out else Path(root) / _OUT_DIR / (_slug(spec) + ".txt")
+            if args.out and len(macro_specs) > 1:
+                ap.error("--out requires one macro spec")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(detail.getvalue())
+            if args.summary:
+                inv.report(spec, summary=True)
+            else:
+                print(detail.getvalue(), end="")
+            print(f"Full macro review context: {path}")
+        return 0
     db = cref.load_db(root, args.version)
 
     specs = [cref.parse_spec(t) for t in args.spec]

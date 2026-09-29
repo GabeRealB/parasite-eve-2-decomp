@@ -16,7 +16,7 @@ Each symbol lands in one state:
     legacy      named, but in the older Module_VerbNoun style; needs converting
     shared-placeholder
                 a body shared by a family, still named after its load address
-    current     named in the convention NAMING.md specifies
+    current     spelling fits the casing/marker rules; ownership still needs review
     vendored    belongs to the third-party library; never renamed
     other       fits none of the above and wants a human decision
 
@@ -286,6 +286,12 @@ def type_index(root: str):
 
 
 def classify(name: str, kind: str, vendor: set) -> str:
+    # Spelling cannot establish subsystem ownership: e.g. gpLoad... is still
+    # current here, but the naming review must replace an overlay-wide prefix
+    # with the actual owner's identity where that role is established.
+    if kind == "macro":
+        from macro_refs import conventional
+        return "current" if conventional(name.rsplit("/", 1)[-1]) else "legacy"
     if name in vendor or name.startswith("__"):
         return "vendored"
     if _GENERATED.match(name):

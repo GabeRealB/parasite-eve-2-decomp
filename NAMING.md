@@ -10,8 +10,11 @@ goes stale, and a stale one is worse than none because it reads as established.
 ## Scheme
 
 Functions and data are **lowerCamelCase, one identifier, no separators**, opening
-with the module or package that owns the symbol so a name still identifies
-exactly one overlay. Three markers carry the rest of the meaning:
+with the subsystem or package that owns the symbol. Choose that owner from the
+implementation, interface and consumers, not from the symbol's old prefix.
+Externally linked names must remain unambiguous across their consumers; static
+instances of included shared source may reuse their subsystem names.
+Three markers carry the rest of the meaning:
 
 | Marker | Means | Example |
 |---|---|---|
@@ -34,7 +37,7 @@ distinct role word and so cannot collide with the library's.
 |---|---|---|
 | **Module function** | `moduleVerbNoun` | `fsLoadFile`, `cdCmdEnqueue`, `bootLoadInitialFile` |
 | **Overlay function** | `packageVerbNoun` | `gunbladeFireRound`, `pyrokinesisSpawnFlame` |
-| **Shared overlay body** | `familySharedVerbNoun` | `weaponsSharedApplyRecoil` |
+| **Included shared implementation** | `subsystemVerbNoun` with the private marker for static instances | `_actorContactPushContact`, `_planarReflectionDraw` |
 | **Global data** | `gModuleName` | `gFsFileTable`, `gPlayerStatus` |
 | **Private function** | `_moduleVerbNoun` | `_fsReadSector` |
 | **Private data** | `_gModuleName` | `_gSectorCache` |
@@ -43,20 +46,71 @@ distinct role word and so cannot collide with the library's.
 | **Unknown members** | `field_XX` / `unknown_XX` | keep until the role is proven |
 | **Unnamed symbols** | `func_<package>_<VRAM>`, `D_<VRAM>` | generated; only until matched and understood |
 
-The module or package part is derived mechanically, never invented:
+Choose the owner before composing the name:
 
-- **Core** — the module prefix from the table below with its first letter
-  lowercased: `Fs_` → `fs…`, `CdCmd_` → `cdCmd…`.
-- **Overlay** — the manifest key, camelCased: `mine_mesa` → `mineMesa…`,
-  `shelter_1f_bulwark` → `shelter1fBulwark…`. Do not abbreviate; the full key is
-  unique across all 448 packages, while dropping a leading word collides.
+- **Resident main and gameplay code** — use the owning subsystem from the guide
+  below, such as `fs`, `cap`, `inventory`, `actorRender` or `worldCollision`.
+  Gameplay is a collection of subsystems, not a naming module. Do not turn
+  `Gp_*` mechanically into `gp*`, replace it with a blanket `gameplay*`, or keep
+  `Gp` on a type merely because of its history. Use the subsystem for globals
+  and types as well: `gCap...`, `Cap...`, `Inventory...`, with `_` for TU-local
+  items. A descriptive type such as `PlayerStatus` needs no extra owner repeated
+  in front of it. Existing `gp...` spellings still require ownership review even
+  when the index calls their casing `current`.
+- **Package-specific overlay code** — use the manifest key, camelCased:
+  `mine_mesa` → `mineMesa…`, `shelter_1f_bulwark` → `shelter1fBulwark…`.
+  Do not abbreviate package keys; dropping a leading word can cause collisions.
+  This rule applies to room, actor, weapon and other package-specific routines,
+  not to every subsystem implemented in the gameplay overlay.
 - **Actors** — the actor id, until the packages are identified:
   `actor00300UpdateTransform`. One body serves that actor's several RAM slots,
   so the id, not a load address, is its identity.
+- **Included shared source** — use the shared subsystem's identity, such as
+  `actorContact`, `capCaption`, `planarReflection`, `roomEffect`, `shop` or
+  `telephone`. Static instances retain `_`; an externally linked overlay
+  wrapper uses its package prefix. The wrapper and included implementation have
+  different owners. Do not rename shared code after whichever carrier was read
+  first, or add a generic `Shared` component solely because code is reused.
+
+A TU or a header may contain several subsystems, and one subsystem may span
+several TUs. For example, an effect handler in `player_actor.c` still belongs to
+the effect subsystem. A function exported to other overlays keeps its owner's
+prefix; its callers do not become its owner. If the current guide lacks a
+proven subsystem, establish its interface and responsibility, add a descriptive
+entry, and check for name collisions. Leave unproven roles explicit instead of
+inventing a namespace from an address, old prefix or temporary file grouping.
 
 Generated placeholders keep their `func_<package>_<VRAM>` form. The vacuum parses
 that shape to recognise a promoted alias, so only human-assigned names take the
 convention.
+
+### Macros
+
+Project macros are naming-pass items too: constants, function-like helpers,
+aliases/accessors and shared-source configuration bindings. Use
+**UPPER_SNAKE_CASE**. When a prefix is useful, spell the owning subsystem or
+package in full: `INVENTORY_`, `WORLD_COLLISION_`, `ROOM_VISUAL_EFFECTS_`,
+`FILE_SYSTEM_`; do not reuse shortened C prefixes such as `GP_`, `INV_`, `FX_`
+or `FS_`. Do not add a blanket gameplay prefix. Generic helpers, including
+`ARRAY_SIZE`, `OFFSET_OF`, `PARENT_OF` and `ALIGN` in `common.h`, need no prefix.
+**GTE macros are the exception:** preserve established PsyQ-style spelling
+such as `gte_RotTransLV`, including project wrappers following that interface.
+Macro parameters may use ordinary local camelCase.
+
+Macros do not take the global `g` or TU-private `_` markers, and have no C
+linkage. Keep definitions in the narrowest source/private/public header scope
+covering their consumers, including shared-source carriers. Review all
+conditional definitions and `#undef` sites together. Document purpose, units,
+argument requirements, captured identifiers, repeated evaluation and other
+non-obvious constraints beside the definition. For configuration bindings,
+document the required value/type and the instances that supply them.
+
+Check parenthesization, signedness, widths, side effects, control flow and
+stringification/token pasting before simplifying a macro or replacing it with
+an enum, typed constant or inline function. Preserve matching and semantics;
+being a macro alone is not a reason to replace it. SDK macros, include guards
+and compiler/assembly plumbing are outside ordinary semantic naming review;
+project GTE wrappers remain eligible without needing uppercase renames.
 
 ### Types
 
@@ -66,9 +120,9 @@ stands alone, so a tag that *is* present means the type is used in one of those
 two ways.
 
 ```c
-typedef struct _GpLinkXform {      /* self-referential: tag required */
-    struct _GpLinkXform *next;
-} GpLinkXform;
+typedef struct ListNode {         /* self-referential: tag required */
+    struct ListNode *next;
+} ListNode;
 
 typedef struct {                   /* plain value type: no tag */
     s16 x, y, z, yaw;
@@ -179,78 +233,120 @@ than an invented visual description:
 
 | Family | Pattern | Dispatched by |
 |---|---|---|
-| Gameplay effect tasks | `gpEff<Kind>Task<ID>` (`gpEffSprTask34`) | `Task_Spawn(6, ID, …)` via the bank-6 `TaskDesc` table `D_8010FC2C`; `Gp_SpawnEff(0x6xxxx, …)` passes the same ID. `Kind` is the primitive the body draws: `Spr` (animated textured billboard), `Line`, `Tile`, `Poly` (gouraud tris/quads), `Model`, `Attach`, or `Ctl` when the task only spawns and steps other effects. |
-| Player actor states | `gpPlayer<Mode>State<N>` (`gpPlayerNormalState5`) | `GameActor.field_956` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `Gp_PlayerMode2States` in mode 2; `field_954` picks the mode through `Gp_PlayerModeFns`, which also has a mode 1 (`Gp_TickPlayerMode1`). `Gp_PlayerWorkStates` is a separate four-entry `Task::state` dispatcher, not a mode. |
+| Gameplay effect tasks | `effect<Kind>Task<ID>` (`effectSpriteTask34`) | `Task_Spawn(6, ID, …)` via the bank-6 `TaskDesc` table `D_8010FC2C`; `Gp_SpawnEff(0x6xxxx, …)` passes the same ID. `Kind` describes the primitive or role: `Sprite`, `Line`, `Tile`, `Poly`, `Model`, `Attach`, or `Control`. |
+| Player actor states | `playerActor<Mode>State<N>` (`playerActorNormalState5`) | `GameActor.field_956` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `Gp_PlayerMode2States` in mode 2; `field_954` picks the mode through `Gp_PlayerModeFns`, which also has a mode 1 (`Gp_TickPlayerMode1`). `Gp_PlayerWorkStates` is a separate four-entry `Task::state` dispatcher, not a mode. |
 
 A handler shared by several slots takes a behavioural name instead
 (`Gp_EffModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).
 
-## Modules (current)
+Names in the dispatch evidence above identify the current code, not target
+prefixes. Apply the TU-private `_` marker to the target pattern where appropriate.
 
-The prefixes below are written in the target style. The tree is mid-migration,
-so much of the code still spells them `Fs_`, `CdCmd_` and so on; treat a name in
-the old style as not yet converted rather than as a second convention.
+## Subsystem ownership guide
 
-| Prefix | Area | Source / splat unit | Header |
+These are target prefixes and starting points for finding each subsystem's
+interface. Source and header columns are navigation aids, not a requirement
+that everything in one file take one prefix. Confirm ownership from the item's
+role and consumers. Related TUs can share a subsystem; their names need not
+repeat a source filename. The guide does not establish original library or TU
+boundaries and does not require splitting or moving code.
+
+Headers under `include/` are public; headers under `src/` are private to their
+overlay or included implementation. A listed header does not authorize moving
+a TU-local declaration into it. Keep type-only headers where declaration order
+requires them, and include only the interface actually used.
+
+### Resident executable
+
+Source basenames in this table are relative to `src/main/`. Multiple prefixes
+in a row identify different responsibilities in the same source group.
+
+| Prefix | Responsibility | Source examples | Interface / type headers |
 |---|---|---|---|
-| `fs` | CD filesystem, STAGE*.CDF / STAGE0.HED | `src/main/fs.c` | `include/main/fs.h` |
-| `cdCmd` | CD load command ring buffer | `src/main/cdcmd.c` | `include/main/fs.h` |
-| `fade` / bootload | Boot-image load + fullscreen fade TILE | `src/main/bootload.c` | `include/main/gameflow.h` (Fade) / `fs.h` |
-| `cdSync` | CD seek/sync/disk-recovery helpers | `src/main/cdsync.c` | `include/main/fs.h` (CdCmd_*) |
-| `cdVol` | CD-DA volume table apply | `src/main/cdvol.c` | `include/main/fs.h` |
-| `mc` / mcprompt | Memcard prompts + early Mc states | `src/main/mcprompt.c` | `include/main/mc.h` |
-| `gfx` / gfxlight / gfxmtx | Flat lights + rotation matrices + image slots | `src/main/gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h` |
-| `display` / displaymode | Display mode / auto-clear setup | `src/main/displaymode.c` | `include/main/display.h` |
-| `stage` / stage | Stage fade / transition / MDEC during load | `src/main/stage.c` | `include/main/stage.h` |
-| `task` / taskutil | Small task helper near stage tables | `src/main/taskutil.c` | `include/main/task.h` |
-| loadui | Loading SPRT + CD load enqueue | `src/main/loadui.c` | — |
-| `mdec` | MDEC/STR strip decode | `src/main/stream.c`, `stage.c` | `include/main/stream.h` |
-| `midi` | Song block / MIDI sequencer | `src/main/sndevt.c` | `include/main/sound.h` |
-| `sndVoice` / `SndBank` / `sndBankSlot` | SFX voice slots + bank table | `src/main/sndscript.c` | `include/main/sound.h` |
-| `cdAudio` | CD-driven audio player | `src/main/cdaudio.c` | `include/main/cdaudio.h` |
-| `gpu` | OT / graph reset helpers | `src/main/otutil.c`, `tmd.c`, `gamemain.c` | `include/main/display.h` |
-| `boot` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
-| `title` | Title / demo / main-menu overlay | `src/title/title.c` | `include/main/title.h` |
-| `gp` | Resident in-game overlay (actors, view, TMD attach, …) | `src/gameplay/` | `include/gameplay/` (per-TU, e.g. `gameplay.h`, `1BC.h`) |
-| `mem` / `gMemHeap` | Main / aux heaps | `src/main/mem.c` | `include/main/mem.h` |
-| `sndHeap` | Dedicated 0x3D00 first-fit sound heap | `src/main/sndbank.c` | `include/main/sound.h` |
-| `task` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
-| `pad` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |
-| `mc` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c`, `mcprompt.c` | `include/main/mc.h` |
-| `ui` | UI layout / draw / list chrome | `src/main/ui.c` | `include/main/ui.h` |
-| `text` / `font` / `prim` | Text measure / glyph / SPRT helpers | `textdraw.c`, `textutil.c`, `font.c` | `include/main/text.h` |
-| `spu` / `asyncCb` | SPU voices + async callback ring | `src/main/spu.c` | `include/main/sound.h` |
-| `sndLoad` / `sndScript` / `sndEvt` | Bank load / scripts / event queue | `sndscript.c`, `sndevt.c` | `include/main/sound.h` |
-| `linInterp` / `audioTick` | Volume ramp + frame tick list | `src/main/sndbank.c` | `include/main/sound.h` |
-| `game` | Session pointer-slot table | globals / `task.c` | `include/main/session.h` |
-| `display` | Dual DISPENV/DRAWENV + system flags | used from `gamemain.c` etc. | `include/main/display.h` |
-| `gameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
-| `gpuExt` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
-| `gameFlow` / `fade` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` | `include/main/gameflow.h` |
-| `gameFlag` | Packed 4-bit flag nibble table | `src/main/gameflag.c` | `include/main/gameflag.h` |
-| `cdStream` / `cdReady` | CD→SPU MTS stream | `src/main/cdstream.c` | `include/main/cdstream.h` |
-| `tmd` | TMD model lists / stream | `src/main/tmd.c` | `include/main/tmd.h` |
-| `stream` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |
-| `game` | Main session object | globals | `GameSession`, `gGameSession` |
-| `player` | Player character state: position, HP/MP, equipped items | `src/main/wipsyscfg.c` | `include/main/wipsys.h` |
-| `wip` | Weak-evidence placeholders | `wipsyscfg.c`, etc. | rename when proven |
-`Wip*` types and `Wip_*` globals are provisional: keep them only until a better
-role name is proven, and prefer replacing one over inventing a second
-provisional alias. The file and prefix are historical — the block that gave them
-their name turned out to be the player state and now uses `Player_`, while the
-remaining `Wip_` symbols are unrelated to it and to each other.
+| `fs`, `cdCmd`, `cdSync`, `cdVol` | Filesystem, queued CD requests, drive recovery, CD volume | `fs.c`, `cdcmd.c`, `cdsync.c`, `cdvol.c` | `include/main/fs.h`, `include/main/fs_types.h`, `src/main/fs.h` |
+| `boot`, `gameMain` | Initialization and main loop | `main.c`, `boot.c`, `gamemain.c` | `src/main/boot.h`, `src/main/gamemain.h`, `include/main/gamemain.h` |
+| `gameFlow`, `fade` | Session flow and screen fades | `gameflow.c`, `bootload.c` | `include/main/gameflow.h`, `src/main/gameflow.h` |
+| `loadUi` | Loading and disk-swap presentation | `loadui.c` | `include/main/loadui.h` |
+| `stage` | Stage transitions and music selection | `stage.c`, `stage_music.c` | `include/main/stage.h`, `include/main/stage_types.h`, `src/main/stage.h` |
+| `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `include/main/display.h`, `include/main/display_types.h`, `src/main/display.h` |
+| `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h`, `include/main/gfx_types.h`, `include/main/coord.h`, `src/main/gfx.h` |
+| `gpuExt` | GPU status helpers | `gpuext.c` | `src/main/gpuext.h` |
+| `mem` | Main and auxiliary heaps and memory operations | `mem.c` | `include/main/mem.h`, `src/main/mem.h` |
+| `task` | Task allocation, lists, dispatch and banks | `task.c`, `taskbank.c`, `taskutil.c` | `include/main/task.h`, `include/main/task_types.h`, `src/main/task.h` |
+| `pad` | Controller state and polling | `pad.c`, `padutil.c` | `include/main/pad.h`, `include/main/pad_types.h`, `src/main/pad.h` |
+| `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `include/main/mc.h`, `include/main/mc_types.h`, `src/main/mc.h` |
+| `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `include/main/ui.h`, `include/main/ui_types.h`, `src/main/ui.h` |
+| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/main/text.h`, `src/main/text.h`, `src/main/text_types.h` |
+| `cdAudio` | CD audio playback | `cdaudio.c` | `include/main/cdaudio.h`, `include/main/cdaudio_types.h`, `src/main/cdaudio.h` |
+| `cdStream`, `cdReady` | CD-to-SPU streaming and ready queue | `cdstream.c` | `src/main/cdstream.h` |
+| `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/main/sound.h`, `include/main/sound_types.h`, `src/main/sound.h` |
+| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c` | `include/main/sound.h`, `src/main/sound.h`, `src/main/sound_types.h` |
+| `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/main/sound.h`, `src/main/sound.h` |
+| `stream`, `mdec` | Stream slots and movie decoding | `stream.c` | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h` |
+| `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/main/tmd.h`, `include/main/tmd_types.h`, `src/main/tmd.h` |
+| `gameFlag` | Packed game flags | `gameflag.c` | `include/main/gameflag.h`, `include/main/gameflag_types.h` |
+| `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/main/session.h`, `include/main/session_types.h`, `include/main/wipsys.h`, `include/main/wipsys_types.h` |
 
-Main-executable types live in module headers under `include/main/` (not a kitchen-sink header). Stage/file overlays may use a different `src/` / `include/` layout when decompiled:
+`Wip*` and `Wip_*` are provisional spellings, not a subsystem to perpetuate.
+Establish the owner of each remaining item. The historical `wipsyscfg.c` filename
+does not make its unrelated contents one module. Likewise, a `Gp` type declared
+in a main header is not automatically owned by gameplay.
 
-| Header | Types |
-|---|---|
-| `session.h` | `GameSession`, `GameActor*`, `GBytes*` |
-| `stage.h` | `StageCtx` |
-| `wipsys.h` | `PlayerStatus`, `PlayerPos`, `WipSysFlags` |
-| `gfx.h` | `GfxImageSlot` |
-| `sound.h` / `ui.h` / `text.h` / `display.h` / … | subsystem types |
+### Gameplay subsystems
 
-Prefer including the specific module header when you only need that subsystem.
+Source basenames here are relative to `src/gameplay/`. Use these subsystem
+identities instead of an overlay-wide `gp` prefix. Where a row offers multiple
+prefixes, choose the responsibility the symbol actually implements.
+
+| Prefix | Responsibility | Source examples | Interface / type headers |
+|---|---|---|---|
+| `actorRender` | Actor model drawing and coordinate updates | `actor_render.c` | `include/gameplay/actor_render.h`, `src/gameplay/actor_render.h` |
+| `modelObject`, `animation` | Model attachments and animation state | `model_objects.c` | `include/gameplay/model_objects.h`, `include/gameplay/animation.h`, `src/gameplay/model_objects.h` |
+| `modelLighting` | Lit model transforms and primitive emission | `model_lighting.c` | `include/gameplay/model_lighting.h`, `src/gameplay/model_lighting.h` |
+| `worldCoord` | Room/world transforms and light queries | `world_coords.c` | `include/gameplay/world_coords.h`, `src/gameplay/world_coords.h` |
+| `worldCollision` | Collision grids, object lists and contact dispatch | `world_collision.c`, `collision_grid.c`, `object_lists.c` | `include/gameplay/world_collision.h`, `include/gameplay/collision.h`, `src/gameplay/world_collision.h` |
+| `worldTarget` | Target tracking and lock-on | `world_targets.c` | `include/gameplay/world_targets.h`, `src/gameplay/world_targets.h` |
+| `objectField`, `objectTask` | Object properties and task/message control | `object_fields.c`, `object_task.c` | `include/gameplay/object_fields.h`, `include/gameplay/object_task.h`, `src/gameplay/object_task.h` |
+| `linkedActor` | Linked actor helpers | `linked_actors.c` | `src/gameplay/linked_actors.h` |
+| `area`, `direction` | Area entry, flags, transitions, facing and warps | `area_entry.c`, `area_transitions.c`, `direction_input.c`, `direction_facing.c` | `include/gameplay/area_entry.h`, `include/gameplay/area_transitions.h`, `include/gameplay/direction.h`, `src/gameplay/area_transitions.h` |
+| `loading`, `view` | Gameplay loading and view images | `area_cd.c`, `cd_loading.c`, `load_screen.c`, `view_load.c`, `view_image.c` | `include/gameplay/loading.h`, `include/gameplay/view.h`, `src/gameplay/loading.h` |
+| `sprite` | Sprite allocation and linking | `sprite_link.c` | `include/gameplay/sprites.h`, `include/gameplay/loading.h` |
+| `companion` | Companion selection and actor setup | `companion_load.c` | `include/gameplay/companion_load.h`, `src/gameplay/companion_load.h` |
+| `inventory`, `item` | Inventory contents, quantities, sorting, item properties and use | `item_inventory.c`, `item_sort.c`, `item_collect.c`, `item_boost.c`, `item_use.c`, `starter_inventory.c` | `include/gameplay/items.h`, `include/gameplay/inventory.h`, `src/gameplay/items.h`, `src/gameplay/item_use.h` |
+| `equipment`, `attachment` | Equipment selection, attachment combinations and modifiers | `equipment.c`, `attachments.c`, `attach_combo.c`, `attachment_stats.c`, `attachment_menu.c` | `include/gameplay/items.h`, `include/gameplay/attachments.h`, `include/gameplay/attachment_state.h`, `src/gameplay/attachments.h` |
+| `itemMenu`, `menu` | Inventory panels, commands and menu flow | `item_menu.c`, `item_panels.c`, `item_stats.c`, `menu_root.c`, `menu_actions.c`, `menu_armor.c`, `menu_prompt.c` | `include/gameplay/item_menu.h`, `src/gameplay/item_menu.h`, `src/gameplay/menu.h` |
+| `itemPickup`, `itemPlacement` | Pickup dispatch and placed items | `pickup_dispatch.c`, `item_placement.c` | `include/gameplay/item_pickup.h`, `include/gameplay/item_placement.h`, `src/gameplay/item_placement.h` |
+| `weapon` | Resident weapon/ammunition properties and stat presentation | `weapon_stats.c` | `include/gameplay/weapon_data.h`, `src/gameplay/weapon_data.h` |
+| `damage` | Damage calculation and combat modifiers | `damage.c` | `include/gameplay/damage.h`, `src/gameplay/damage.h` |
+| `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `include/gameplay/cap.h`, `include/gameplay/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
+| `evs` | Event-script dispatch | `evs_scripts.c` | `include/gameplay/evs.h`, `include/gameplay/evs_scripts.h`, `src/gameplay/evs_scripts.h` |
+| `effect` | Gameplay effect tasks | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `src/gameplay/effect_tasks.h` |
+| `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
+| `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
+| `padInput`, `padScript` | Gameplay input mapping and scripted input | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
+| `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
+| `scene` | Scene tasks and runtime coordination | `scene_runtime.c` | `include/gameplay/scene_runtime.h`, `src/gameplay/scene_runtime.h` |
+| `ending` | Ending sequence control | `ending.c` | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
+
+This is not a blanket assignment of every symbol in those files. For example,
+inventory state, effects and player state are different owners even when their
+implementations occur in one TU. Check each item's references before selecting
+its prefix. Uncertain state blocks in otherwise understood files remain subject
+to analysis.
+
+### Packages and included shared implementations
+
+Package-specific routines keep their manifest-derived prefixes. The title
+interface is `include/title/title.h`, implemented by `src/title/title.c`.
+Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
+whose entry points retain package identities.
+
+Shared implementation interfaces live beside their source in `src/shared/`,
+including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
+`room_visual_effects.h`, `shop.h` and `telephone.h`. Use their subsystem prefixes
+with static per-instance linkage as described above. If a shared implementation
+and a gameplay subsystem have similar names, distinguish actual ownership and
+linkage before introducing a qualifier; do not assume that they are one API.
 
 ## Documentation
 
@@ -281,7 +377,7 @@ rename can find them.
 
 ### Struct fields
 
-[`include/main/gpuext.h`](include/main/gpuext.h) is the example. The type carries
+[`src/main/gpuext.c`](src/main/gpuext.c) is the example. The type carries
 a `///` block; the fields carry **aligned trailing `//`**, which keeps the
 declaration readable as a table:
 
@@ -444,7 +540,7 @@ typedef struct GameSession {
 
 **Every member has to be named.** This compiler does not support anonymous
 struct or union members: it accepts the declaration and then rejects every
-access to it. `include/main/gpuext.h` looks like a counter-example, but the one
+access to it. `src/main/gpuext.c` looks like a counter-example, but the one
 line that reads through its anonymous struct is commented out in
 `src/main/gpuext.c` — someone met this already. So a union form is
 `session->at4.loc`, not `session->loc`; a nested struct form is `session->loc`.
@@ -680,8 +776,9 @@ Category tables:
 
 ## Tooling
 
-Finding references and renaming go through `tools/refactor/`, which resolves
-symbols with libclang and the compilation database instead of matching text:
+Finding references and renaming go through `tools/refactor/`. C declarations
+resolve through libclang and the compilation database; macros use the separate
+preprocessor inventory described below:
 
 - `find_references.py <spec> [<spec>…]` — every reference, each classified as
   read, write, read-write, address-of, call, declaration or definition. `--asm`
@@ -719,6 +816,41 @@ A spec is a source path with the symbol appended:
 
 Both tools take `--version` (default `USA`).
 
+**Macro items use `<definition-file>/<MACRO>` as their identity**, including in
+the worklist, review reports and rename ledger. Unrelated macros with the same
+spelling remain separate items; conditional definitions in one file are one
+item. Build-defined keys in `configs/USA/overlays.toml` are configuration items.
+Rebuild the dependency graph and worklist to include them:
+
+```sh
+venv/bin/python3 tools/refactor/dep_graph.py --build
+venv/bin/python3 tools/refactor/dep_graph.py worklist
+venv/bin/python3 tools/refactor/find_references.py include/decomp/common.h/PARENT_OF
+venv/bin/python3 tools/refactor/rename_item.py <file>/<MACRO> <NEW_MACRO> --dry-run
+```
+
+`macro_refs.py` scans project definitions, replacement tokens, conditional tests,
+undefinitions and potential uses in every branch, plus manifest `defines` keys.
+It excludes comments and string contents. Include reachability limits candidates
+but does not resolve include order, conditional expansion, SDK collisions or
+tokens manufactured with `#`/`##`. The reference report preserves all definitions
+and ambiguity details under `local/refs/`; these are lexical candidates, not
+parser-proven uses. C declarations depend on the macros they spell; bindings
+with ambiguous shared-source uses are grouped for coordinated review.
+
+After inspecting references and the dry run, the reviewing agent may use
+`rename_item.py ... --macro-reviewed` to apply an unambiguous lexical rename.
+The flag records the caller's scope/branch/token-construction review; it does
+not request user approval. Ambiguous bindings and manifest configuration keys
+require coordinated explicit edits. Macro renames do not run the C prose or
+sidecar pass: check comments, inline assembly, build configuration, generated
+tokens and all variants separately. For manual changes, record each identity
+with `rename_item.record_rename(root, "local/renames.tsv", "macro",
+"<file>/<OLD>", "<file>/<NEW>", "<file>", edits)` and explain them in the report.
+The report keeps its assigned qualified `name`; `current_name` is the final
+identifier alone. Replacing a macro with another kind of declaration also needs
+an explicit report of that change.
+
 **The path in a spec is where the symbol is declared**, not where it is used. A
 path that does not declare it cannot resolve, and the tools say so only after
 parsing every translation unit in turn, which reads as a hang rather than as
@@ -731,7 +863,7 @@ the error it is.
   the opposite case: never edit it, rename in the symbol map and re-split;
 - notes in a symbol map that name a *different* symbol than the one renamed;
 - inline assembly in C, which is a relocation rather than a parsed reference;
-- references reached through a macro, which are listed rather than edited,
+- C-symbol references reached through a macro, which are listed rather than edited,
   since the macro body is where the name is spelled;
 - a reference a macro invocation carries *as an argument*, which the parser
   reports at the invocation rather than at the argument. A symbol used that way
@@ -743,7 +875,7 @@ the error it is.
 - prose outside the scanned set, such as the agent rules files and tool
   docstrings.
 
-`rename_item.py` logs functions, globals and types to `local/renames.tsv`; a
+`rename_item.py` logs functions, globals, types and qualified macro identities to `local/renames.tsv`; a
 field or parameter rename leaves no row, by design.
 
 Why a parser and not a search-and-replace: hundreds of unrelated types here

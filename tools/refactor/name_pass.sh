@@ -137,6 +137,10 @@ rows() {
 # An item is still outstanding if its current name is anywhere in the sources.
 # The worklist is a snapshot, so this is checked afresh rather than trusted.
 outstanding() {
+  if [[ "$1" == */* ]]; then
+    venv/bin/python3 tools/refactor/macro_refs.py "$1" --exists
+    return
+  fi
   grep -rqlw --include='*.c' --include='*.h' -- "$1" src include 2>/dev/null
 }
 
@@ -223,11 +227,14 @@ referrers: $refs
       # glance which members are live, and the item's own sites, which are the
       # part that can run long. `refs` is already the referrer count read from
       # the row, so the capture uses names of its own.
-      local fr_out fr_members fr_sites
+      local fr_out fr_members fr_sites spec="$file/$name"
+      [[ "$kind" == "macro" ]] && spec="$name"
       fr_out=$(timeout 600 venv/bin/python3 tools/refactor/find_references.py \
-                 "$file/$name" -q 2>/dev/null)
+                 "$spec" -q 2>/dev/null)
       fr_members=$(printf '%s\n' "$fr_out" | sed -n '/^# [0-9][0-9]* symbol/,/^$/p')
       fr_sites=$(printf '%s\n' "$fr_out" | sed '/^# [0-9][0-9]* symbol/,/^$/d' | tail -40)
+      # Retain definitions, conditional branches and ambiguous binding details.
+      [[ "$kind" == "macro" ]] && { fr_members=""; fr_sites="$fr_out"; }
       line+="
 references (how each use reads or writes it):
 \`\`\`
@@ -257,8 +264,19 @@ The conventions, the compiler's limits and what counts as evidence are above
    sit in. The reference listing marks reads, writes, casts, address-taken and
    mentions in prose. Investigate what each cast represents before deciding
    whether it indicates an incorrect type.
-2. If its state above is \`current\`, its spelling already follows the convention.
-   Keep it unless the evidence establishes a misleading meaning or ownership.
+2. Establish the owning subsystem using NAMING.md's ownership guide and the
+   item's interface and consumers. Gameplay has no blanket \`gp\` prefix;
+   use \`cap\`, \`inventory\`, \`actorRender\`, etc. as the evidence warrants.
+   Shared implementations keep their subsystem identity; package wrappers use
+   their package identity. A file can contain several subsystems.
+   Macros use UPPER_SNAKE_CASE with full, unshortened subsystem prefixes where
+   needed; generic helpers such as ARRAY_SIZE and PARENT_OF need no prefix.
+   Established gte_* macros retain PsyQ spelling. Macro names carry no private
+   underscore or global g marker. Review replacements, arguments, captures,
+   conditional definitions and configuration bindings across all carriers.
+   If its state above is \`current\`, only its spelling has been classified.
+   Reassess ownership even for existing \`gp...\` names. Keep an established
+   name unless the evidence establishes a misleading meaning or ownership.
    Review its type, declaration, fields, parameters, locals and documentation.
    Rename with the tool so its alias ledger preserves the item's history:
      venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
@@ -271,6 +289,7 @@ The conventions, the compiler's limits and what counts as evidence are above
    carriers, variants and imports. TU-local declarations belong in the source;
    overlay-shared ones in private headers; cross-overlay ones in public headers.
    Apply \`static\` where appropriate and preserve BSS declaration ordering.
+   Macros have preprocessor scope, not C linkage: do not apply static to them.
 5. Where the role genuinely cannot be established, leave the name and say so.
    An invented name is worse than a generated one.
 6. Resolve meaningful literals, proven sizes and array bounds; review pointer

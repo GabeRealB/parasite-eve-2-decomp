@@ -17,6 +17,10 @@ has been processed.
 `src/main/stage.c/stageSetFadeRate`. With no argument, `next` considers the
 whole graph.
 
+Project macros use definition-file/name identity and conservative lexical
+dependencies, including conditional configuration and shared-source bindings.
+The reference tool supplies their definitions and potential uses for review.
+
 **Cycles.** Mutual recursion and mutually referencing types mean the graph is
 not a DAG. Each strongly connected component is collapsed to a single node, so a
 cycle becomes one unit of work that has to be understood together rather than a
@@ -36,6 +40,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import clang.cindex as ci  # noqa: E402
 import cref  # noqa: E402
 import name_index  # noqa: E402
+import macro_refs  # noqa: E402
 
 DEFAULT_GRAPH = os.path.join("local", "dep_graph.json")
 
@@ -116,7 +121,7 @@ def scan_tu(job):
                     if d_usr and d_usr != t_usr:
                         uses.add((d_usr, d.spelling))
             if cur.spelling:
-                out.append(((t_usr, cur.spelling, where, loc.line), sorted(uses)))
+                out.append(((t_usr, cur.spelling, where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
             continue
         if cur.kind not in _DEF_KINDS:
             continue
@@ -143,7 +148,7 @@ def scan_tu(job):
                 if u and u != d_usr:
                     uses.add((u, d.spelling))
             if uses:
-                out.append(((d_usr, cur.spelling, "", loc.line), sorted(uses)))
+                out.append(((d_usr, cur.spelling, "", loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
             continue
         loc = cur.location
         if loc.file is None:
@@ -177,7 +182,7 @@ def scan_tu(job):
             if not r_usr or r_usr == usr or _is_local(r_usr):
                 continue
             uses.add((r_usr, ref.spelling))
-        out.append(((usr, cur.spelling, where, loc.line), sorted(uses)))
+        out.append(((usr, cur.spelling, where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
     return out
 
 
@@ -193,8 +198,11 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
             done += 1
             if done % 50 == 0 or done == len(files):
                 print(f"\r  parsed {done}/{len(files)} TUs", end="", file=sys.stderr, flush=True)
-            for (usr, spelling, where, line), uses in res:
-                nodes[usr] = {"name": spelling, "file": where, "line": line}
+            for (usr, spelling, where, line, start_line, end_line), uses in res:
+                # An extern declaration must not erase the definition's extent.
+                if where or not nodes.get(usr, {}).get("file"):
+                    nodes[usr] = {"name": spelling, "file": where, "line": line,
+                                  "start_line": start_line, "end_line": end_line}
                 edges.setdefault(usr, set()).update(u for u, _ in uses)
                 for u, s in uses:
                     nodes.setdefault(u, {"name": s, "file": ""})
@@ -232,11 +240,12 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
             edges[usr] = {alias.get(d, d) for d in edges[usr]} - {usr}
         print(f"  merged {len(alias)} typedef/record pairs", file=sys.stderr)
 
+    macro_refs.add_graph(root, nodes, edges)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as fh:
         json.dump({"nodes": nodes,
                    "edges": {k: sorted(v) for k, v in edges.items()},
-                   "alias": alias}, fh)
+                   "alias": alias, "macro_inventory": 1}, fh)
     print(f"{len(nodes)} nodes, {sum(len(v) for v in edges.values())} edges "
           f"-> {os.path.relpath(out_path, root)}", file=sys.stderr)
 
@@ -250,6 +259,8 @@ def load(path: str):
     if not os.path.exists(path):
         sys.exit(f"no graph at {path}; run dep_graph.py --build first")
     g = json.load(open(path))
+    if not g.get("macro_inventory"):
+        sys.exit("graph predates macro inventory; run dep_graph.py --build first")
     # Merged typedef USRs redirect to the record they name, so a spec that
     # resolves to the typedef still finds its node.
     return (g["nodes"], {k: set(v) for k, v in g["edges"].items()},
@@ -288,6 +299,8 @@ def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
     assembler shim symbols, and the symbols the static-assert macro generates,
     which exist once per assertion and carry no meaning of their own.
     """
+    if meta.get("kind") == "macro":
+        return False  # The inventory already excludes guards and infrastructure.
     if name in vendor or name in _PRIMITIVE:
         return True
     if name.startswith("__maspsx_") or name.startswith("static_assertion_"):
@@ -351,6 +364,8 @@ def _former_names(root: str) -> dict:
     return out
 
 def _node_kind(usr: str) -> str:
+    if usr.startswith("macro:"):
+        return "macro"
     if "@F@" in usr:
         return "func"
     if any(t in usr for t in ("@S@", "@SA@", "@U@", "@UA@", "@E@", "@EA@", "@T@")):
@@ -445,17 +460,17 @@ def closure(start, edges, nodes):
 def leaves(cands, edges, nodes, done, comp):
     """Components all of whose outside dependencies are already processed."""
     out = []
-    for usr in cands:
-        if usr in done:
-            continue
-        group = comp.get(usr, (usr,))
+    # A large cycle is one review. Inspect it once, not once per member, and
+    # use set membership for its internal edges.
+    groups = {comp.get(usr, (usr,)) for usr in cands if usr not in done}
+    for group in groups:
+        members = set(group)
         deps = set()
         for m in group:
-            deps |= {w for w in edges.get(m, ()) if w in nodes and w not in group}
+            deps |= {w for w in edges.get(m, ()) if w in nodes and w not in members}
         if deps <= done:
             out.append(group)
-    uniq = {g: None for g in out}
-    return list(uniq)
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -554,7 +569,8 @@ def topo_order(nodes, edges, comp, vendor=frozenset()):
             deg[u] -= 1
             if deg[u] == 0:
                 q.append(u)
-    plain.extend(g for g in groups if g not in set(plain))
+    plain_seen = set(plain)
+    plain.extend(g for g in groups if g not in plain_seen)
     impact = _impact(groups, out_deg, users, plain)
 
     import heapq
@@ -633,7 +649,7 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
                 referrers[d].add(usr)
 
     todo_names = {nodes[u]["name"] for g in order for u in g
-                  if u not in done and nodes[u].get("file")}
+                  if u not in done and nodes[u].get("file") and _node_kind(u) != "macro"}
     used_in_asm = asm_used(root, version, todo_names)
 
     step_of, after = _step_numbers(order, nodes, edges, comp, done)
@@ -669,7 +685,9 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
             # assembly. Say so instead of guessing.
             homes = {nodes.get(r, {}).get("file") for r in refs}
             homes.discard(None)
-            if name in used_in_asm:
+            if kind == "macro":
+                vis = "configuration" if meta.get("configuration") else "preprocessor"
+            elif name in used_in_asm:
                 vis = "public (asm)"
             elif not where:
                 vis = "unknown (no C definition)"
@@ -738,12 +756,15 @@ def main() -> int:
 
     target = None
     if args.spec:
-        spec = cref.parse_spec(args.spec)
-        usrs, _names, kind, where = cref.resolve(spec, root, cref.load_db(root, args.version))
-        usr = sorted(usrs)[0]
+        if macro_refs.definition_exists(root, args.spec):
+            usr = "macro:" + args.spec
+        else:
+            spec = cref.parse_spec(args.spec)
+            usrs, _names, kind, where = cref.resolve(spec, root, cref.load_db(root, args.version))
+            usr = sorted(usrs)[0]
         target = alias.get(usr, usr)
         if target not in nodes:
-            sys.exit(f"{spec.name} is not in the graph; rebuild after it was added")
+            sys.exit(f"{args.spec} is not in the graph; rebuild after it was added (SDK/plumbing macros are excluded)")
         usr = target
 
     if args.command == "ready":

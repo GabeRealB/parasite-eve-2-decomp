@@ -31,6 +31,9 @@ def aliases(root, names):
 
 def context(root, names):
     names = aliases(root, names)
+    # Qualified macro identity stays in ledgers, but older audit prose often
+    # mentions only its spelling. Treat those hits as leads, not identity proof.
+    names |= {name.rsplit("/", 1)[-1] for name in names}
     pattern = re.compile(r"\b(?:" + "|".join(map(re.escape, sorted(names))) + r")\b")
     print("Prior findings are historical leads; verify current uses and rerun affected-TU checks.")
     print("Names searched (including rename history): " + ", ".join(sorted(names)))
@@ -69,7 +72,7 @@ def context(root, names):
 def initialize(path, names):
     path.parent.mkdir(parents=True, exist_ok=True)
     report = {"items": [{
-        "name": name, "current_name": name, "outcome": "pending",
+        "name": name, "current_name": name.rsplit("/", 1)[-1], "outcome": "pending",
         "meaning": "", "evidence": [], "changes": [], "unresolved": [],
     } for name in names]}
     # Each driver run uses a unique filename. Refuse to reuse a stale result.
