@@ -763,7 +763,7 @@ void func_actor_310100_801620FC(Task* task)
     Actor310100Work* display;
     Task*            modelTask;
     TmdObject*       obj;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     u8               mode;
 
@@ -827,7 +827,7 @@ void func_actor_310100_80162284(Task* task)
     Actor310100Work* display;
     Task*            modelTask;
     TmdObject*       obj;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     u8               mode;
 
@@ -886,7 +886,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     Actor310100Work* work;
     Actor310100Work* work2;
     TmdObject*       obj;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     u16              mode;
     u16              active;
@@ -946,7 +946,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     Actor310100Work* work;
     Actor310100Work* work2;
     TmdObject*       obj;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     u16              mode;
     u16              active;
@@ -1008,7 +1008,7 @@ void func_actor_310100_801627BC(Task* task)
     Actor310100Work* work;
     Actor310100Work* work2;
     AreaPlacement*   place;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     Task*            child;
     u16              st;
     u16              on;
@@ -1079,7 +1079,7 @@ void func_actor_310100_801629FC(Task* task)
 {
     Actor310100Work* work;
     AreaPlacement*   place;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     Task*            child;
     u16              st;
     u16              on;

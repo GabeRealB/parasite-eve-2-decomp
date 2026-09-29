@@ -1634,7 +1634,7 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     Actor521100Work* work;
     GpEnemy*         spawned;
     TmdObject*       model;
-    GameLocationKey*       sessionKey;
+    GameLocationKey* sessionKey;
     AreaPlacement*   place;
     s32              idx;
     u32              raw;

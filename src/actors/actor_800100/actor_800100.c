@@ -95,9 +95,9 @@ STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
 /// applied to it, and the planar contact distance retained for the placement offset.
 typedef struct _Actor800100PlaceScratch {
     /* 0x00 */ GfxCoord coord;
-    /* 0x50 */ SVECTOR rot;
-    /* 0x58 */ u16     distance;
-    /* 0x5A */ byte    pad_5A[2];
+    /* 0x50 */ SVECTOR  rot;
+    /* 0x58 */ u16      distance;
+    /* 0x5A */ byte     pad_5A[2];
 } Actor800100PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
 
@@ -1555,9 +1555,9 @@ static void func_actor_800100_80163214(Task* arg0)
 {
     GameActor*             actor;
     TmdObject*             extra;
-    GfxCoord*               coord;
-    GfxCoord*               next;
-    GfxCoord*               third;
+    GfxCoord*              coord;
+    GfxCoord*              next;
+    GfxCoord*              third;
     McSaveData*            save;
     WorldCollisionContact* recs;
     GpObj*                 obj;

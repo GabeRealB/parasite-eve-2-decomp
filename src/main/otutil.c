@@ -133,10 +133,10 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
     ret  = NULL;
     if (temp->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
         ot                          = Gpu_OrderingTables;
-        ot->length                  = 6;
+        ot->length                  = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
         ot->org                     = Gpu_SmallOtTags;
-        ot[1].length                = 6;
-        ot[1].org                   = Gpu_SmallOtTags + ARRAY_SIZE(Gpu_SmallOtTags) / 2;
+        ot[1].length                = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+        ot[1].org                   = Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES;
         _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
         _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
         temp->frameBuffer           = temp->drawBuffer ^ 1;
@@ -164,10 +164,10 @@ Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, Tas
     ret  = NULL;
     if (temp->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
         ot                          = Gpu_OrderingTables;
-        ot->length                  = 6;
+        ot->length                  = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
         ot->org                     = Gpu_SmallOtTags;
-        ot[1].length                = 6;
-        ot[1].org                   = Gpu_SmallOtTags + ARRAY_SIZE(Gpu_SmallOtTags) / 2;
+        ot[1].length                = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+        ot[1].org                   = Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES;
         _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
         _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
         temp->frameBuffer           = temp->drawBuffer ^ 1;
@@ -289,10 +289,10 @@ void Gpu_InitOtSmall(void)
     GsOT* ot;
 
     ot                          = Gpu_OrderingTables;
-    ot->length                  = 6;
+    ot->length                  = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
     ot->org                     = Gpu_SmallOtTags;
-    ot[1].length                = 6;
-    ot[1].org                   = Gpu_SmallOtTags + ARRAY_SIZE(Gpu_SmallOtTags) / 2;
+    ot[1].length                = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    ot[1].org                   = Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES;
     _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
     _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
 }

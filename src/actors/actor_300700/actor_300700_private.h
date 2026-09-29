@@ -67,7 +67,7 @@ typedef struct Actor300700Work {
     /* 0x31A */ u16                       field_31A;
     /* 0x31C */ WorldCollisionContact     attackContacts[1]; // Single result for the paired attack body
     /* 0x334 */ GpEffArg                  field_334;         // record the hit's effect is spawned with
-    /* 0x33C */ GfxCoord*                  field_33C;
+    /* 0x33C */ GfxCoord*                 field_33C;
     /* 0x340 */ MATRIX                    field_340;
     /* 0x360 */ s32                       field_360;
     /* 0x364 */ s32                       field_364;

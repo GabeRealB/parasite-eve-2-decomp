@@ -2545,7 +2545,7 @@ static void func_actor_121300_80133BFC(Task* task)
     Actor121300Work* allocatedWork;
     Actor121300Work* slotsWork;
     TmdObject*       tmd;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     s32              slotIndex;
     u8               entryId;
@@ -2562,7 +2562,7 @@ static void func_actor_121300_80133BFC(Task* task)
     Mem_Set(work, 0, sizeof(*work));
     work->field_488         = gameGetPtrSlot(3);
     D_actor_121300_8013D418 = task;
-    coord->parent              = &gGfxViewCoord;
+    coord->parent           = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_43C;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_45C;

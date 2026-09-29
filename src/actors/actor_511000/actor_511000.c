@@ -3121,8 +3121,8 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
 {
     enum { MODEL_HIDDEN = 0x80,
            STATE_UPDATE = 1 };
-    GameLocationKey              key;
-    GameLocationKey*             sessionKey;
+    GameLocationKey        key;
+    GameLocationKey*       sessionKey;
     u8                     view;
     u8                     stage;
     GpAreaVariant*         layout;
@@ -3166,7 +3166,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     view          = session->at4.loc.view;
     placementWord = placementWord >> 12;
     key.view      = view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     layout          = Gp_GetNestedAreaRec(&key);
     placementWord <<= 4;
     placementWord  += (u32)layout->field_0;
@@ -3189,7 +3189,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     view          = session->at4.loc.view;
     placementWord = placementWord >> 12;
     key.view      = view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     layout          = Gp_GetNestedAreaRec(&key);
     placementWord <<= 4;
     placementWord  += (u32)layout->field_0;

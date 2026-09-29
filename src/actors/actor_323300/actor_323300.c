@@ -623,8 +623,8 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* 
     AnimationPlayRequest* preset;
     TmdObject*            extra;
     Task*                 spawned;
-    GfxCoord*              src;
-    GfxCoord*              dst;
+    GfxCoord*             src;
+    GfxCoord*             dst;
     SVECTOR               vec;
     s32                   i;
 

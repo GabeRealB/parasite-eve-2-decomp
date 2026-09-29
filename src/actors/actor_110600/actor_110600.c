@@ -2358,7 +2358,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     GpObj*                 bodyObj;
     WorldCollisionContact* contactRecs;
     WorldCollisionContact* walkRecs;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     TmdObject*             model;
     s16                    enabled;
     u32                    placement;
@@ -3386,27 +3386,27 @@ static void func_actor_110600_80136ECC(Task* arg0)
     GpEffWork*       effect1;
     TmdObject*       model1;
     AreaPlacement*   entry1;
-    GameLocationKey*       sessionKey1;
+    GameLocationKey* sessionKey1;
     u32              raw2, index2;
     GpEffWork*       effect2;
     TmdObject*       model2;
     AreaPlacement*   entry2;
-    GameLocationKey*       sessionKey2;
+    GameLocationKey* sessionKey2;
     u32              raw3, index3;
     GpEffWork*       effect3;
     TmdObject*       model3;
     AreaPlacement*   entry3;
-    GameLocationKey*       sessionKey3;
+    GameLocationKey* sessionKey3;
     u32              raw4, index4;
     GpEffWork*       effect4;
     TmdObject*       model4;
     AreaPlacement*   entry4;
-    GameLocationKey*       sessionKey4;
+    GameLocationKey* sessionKey4;
     u32              raw5, index5;
     GpEffWork*       effect5;
     TmdObject*       model5;
     AreaPlacement*   entry5;
-    GameLocationKey*       sessionKey5;
+    GameLocationKey* sessionKey5;
 
     work = arg0->work;
     if (work->field_4 != 0) {

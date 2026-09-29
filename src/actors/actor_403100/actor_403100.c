@@ -118,7 +118,7 @@ typedef struct Actor403100Entry {
     /* 0x06 */ SVECTOR               delta;
     /* 0x0E */ SVECTOR               position;
     /* 0x16 */ u8                    pad_16[0xA];
-    /* 0x20 */ GfxCoord               coord;
+    /* 0x20 */ GfxCoord              coord;
     /* 0x70 */ GpObj                 obj;
     /* 0x90 */ WorldCollisionContact records[4];
 } Actor403100Entry;
@@ -3551,12 +3551,12 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
     OverlayMat             matrix;
     u16                    mode;
     OverlayMat*            identity;
-    GfxCoord*               joint;
+    GfxCoord*              joint;
     s32                    i;
     u32                    random;
     WorldCollisionContact* records;
     GpObj*                 obj;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
 
     i      = 0;
     mode   = arg3;

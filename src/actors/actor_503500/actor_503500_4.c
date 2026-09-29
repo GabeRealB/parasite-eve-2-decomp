@@ -484,7 +484,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
 {
     GpEnemy*               enemy;
     Task*                  parent;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     MATRIX*                mtx;
     WorldCollisionContact* rec;
     Actor503500Work774C0*  work;
@@ -962,8 +962,8 @@ static void func_actor_503500_8013BEE4(Task* arg0)
 {
     GpEnemy*               enemy;
     Task*                  parent;
-    GfxCoord*               coord;
-    GfxCoord*               parts;
+    GfxCoord*              coord;
+    GfxCoord*              parts;
     MATRIX*                mtx;
     WorldCollisionContact* rec;
 
@@ -1299,9 +1299,9 @@ static void func_actor_503500_8013CAE4(Task* arg0)
 {
     GpEnemy*               enemy;
     Task*                  parent;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     MATRIX*                mtx;
-    GfxCoord*               parts;
+    GfxCoord*              parts;
     WorldCollisionContact* rec;
     Actor503500Work770E8*  work;
     SVECTOR*               pos;
@@ -1834,8 +1834,8 @@ static void func_actor_503500_8013DD10(Task* arg0)
 {
     GpEnemy*               enemy;
     Task*                  parent;
-    GfxCoord*               coord;
-    GfxCoord*               parts;
+    GfxCoord*              coord;
+    GfxCoord*              parts;
     MATRIX*                mtx;
     WorldCollisionContact* rec;
 
@@ -2266,8 +2266,8 @@ static void func_actor_503500_8013ECBC(Task* arg0)
 {
     GpEnemy*               enemy;
     Task*                  parent;
-    GfxCoord*               coord;
-    GfxCoord*               parts;
+    GfxCoord*              coord;
+    GfxCoord*              parts;
     MATRIX*                mtx;
     WorldCollisionContact* rec;
 
@@ -2677,8 +2677,8 @@ static void func_actor_503500_8013FA74(Task* arg0)
 {
     GpEnemy*               enemy;
     TmdObject*             tmd;
-    GfxCoord*               coord;
-    GfxCoord*               part;
+    GfxCoord*              coord;
+    GfxCoord*              part;
     Actor503500Work3D8*    work;
     WorldCollisionContact* rec;
     WorldCollisionContact* rec2;
@@ -3784,12 +3784,12 @@ static void func_actor_503500_801423C8(Task* arg0)
     Task*                  parent;
     s32                    slot;
     Actor503500Work224*    work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     TmdObject*             parentTmd;
     SVECTOR*               ofs;
     WorldCollisionContact* rec;
-    GfxCoord*               parts;
-    GfxCoord*               parts2;
+    GfxCoord*              parts;
+    GfxCoord*              parts2;
 
     enemy     = arg0->spawnArg2.pointer;
     tmd       = arg0->extra.tmd;
@@ -4666,7 +4666,7 @@ static const TaskFuncTable3 D_actor_503500_801321DC = {
 static void func_actor_503500_80144300(Task* arg0)
 {
     Actor503500WorkC0*     work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
     GpEffWork*             eff;
     Task*                  child;
@@ -4863,7 +4863,7 @@ static const TaskFuncTable3 D_actor_503500_801321E8 = {
 static void func_actor_503500_801448E8(Task* arg0)
 {
     Actor503500WorkB4*     work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
     GpEffWork*             eff;
     Task*                  child;

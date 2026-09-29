@@ -371,7 +371,7 @@ static void func_actor_111800_80132390(Task* task)
     Actor111800Work* work;
     Actor111800Work* work2;
     TmdObject*       obj;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     s32              i;
 

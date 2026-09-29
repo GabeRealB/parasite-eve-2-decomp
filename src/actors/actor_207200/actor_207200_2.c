@@ -613,9 +613,9 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {
     _Actor207200LargeWork* work;
     TmdObject*             obj;
-    GfxCoord*               coord;
-    GfxCoord*               part6;
-    GfxCoord*               part3;
+    GfxCoord*              coord;
+    GfxCoord*              part6;
+    GfxCoord*              part3;
     s32                    i;
 
     obj   = arg1->extra.tmd;
@@ -742,7 +742,7 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 static void func_actor_207200_8014B628(Task* arg0)
 {
     _Actor207200LargeWork* work;
-    GfxCoord*               obj;
+    GfxCoord*              obj;
     s32                    id;
     s32                    pan;
     u32                    rnd;
@@ -808,7 +808,7 @@ static void func_actor_207200_8014B628(Task* arg0)
 static void func_actor_207200_8014B87C(Task* arg0)
 {
     _Actor207200LargeWork* work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     s32                    angle;
     u32                    dist;
     s32                    id;
@@ -1228,7 +1228,7 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
 {
     _Actor207200LargeWork* work;
     GpEnemy*               ctx;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     GpEffArg*              effArg;
     s32                    snd;
 
@@ -1324,7 +1324,7 @@ static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
 {
     _Actor207200LargeWork* work;
     TmdObject*             obj;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     s16                    state;
 
     obj   = arg1->extra.tmd;
@@ -1645,7 +1645,7 @@ static void func_actor_207200_8014D49C(Task* arg0)
 static void func_actor_207200_8014D5C4(Task* arg0)
 {
     _Actor207200LargeWork* work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1715,7 +1715,7 @@ static void func_actor_207200_8014D77C(Task* task)
 /// `Gp_UpdateCoord` recomputes it.
 static void func_actor_207200_8014D7E8(Task* arg0)
 {
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     ActorScaleScratch*     head;
     ActorScaleScratch*     scratch;
     _Actor207200LargeWork* work;
@@ -1751,7 +1751,7 @@ static void func_actor_207200_8014D8DC(Task* arg0)
 {
     _Actor207200LargeWork* work;
     GpEnemy*               ctx;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     s32                    dist;
     s32                    angle;
 

@@ -1384,7 +1384,7 @@ static void Actor03700_Fn011B4(Task* task)
 static void Actor03700_Fn01550(Task* task)
 {
     Actor103700Work*      work;
-    GfxCoord*              obj;
+    GfxCoord*             obj;
     Task*                 player;
     void*                 head;
     AnimationPlayRequest* arg;
@@ -1540,7 +1540,7 @@ static void Actor03700_Fn018C8(Task* task)
 static void Actor03700_Fn01C94(Task* task)
 {
     Actor103700Work*      work;
-    GfxCoord*              obj;
+    GfxCoord*             obj;
     Task*                 player;
     void*                 head;
     AnimationPlayRequest* arg;
@@ -1718,15 +1718,15 @@ static inline void _actor03700UpdateColor(Task* task)
 /// CLUT of the actor's placement in the current area.
 static inline void _actor03700SpawnRemains(Task* task)
 {
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    u8             view;
-    GpAreaVariant* rec;
-    AreaPlacement* entry;
-    GpEffWork*     eff;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               view;
+    GpAreaVariant*   rec;
+    AreaPlacement*   entry;
+    GpEffWork*       eff;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((Gp_LcgState >> 16) & 1) {
@@ -1766,7 +1766,7 @@ static inline void _actor03700SpawnRemains(Task* task)
 static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
 {
     TmdObject*           model;
-    GfxCoord*             obj;
+    GfxCoord*            obj;
     Actor103700Work*     work;
     Task*                player;
     AnimationPlayRequest arg;

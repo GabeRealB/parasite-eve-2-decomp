@@ -1280,7 +1280,7 @@ void Gp_LoadStageView(void)
     GpViewTbl*       tbl;
     GpViewRec*       recs;
     GpViewRec*       rec;
-    GfxCoord*         c1;
+    GfxCoord*        c1;
     MATRIX*          rot;
     VECTOR3*         trans;
     u8               idx;

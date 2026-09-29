@@ -574,7 +574,7 @@ static void func_actor_310600_80161FA0(Task* task)
 static void func_actor_310600_8016231C(Task* arg0)
 {
     Actor310600Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              d;
     s32                  dx;
     s32                  dz;

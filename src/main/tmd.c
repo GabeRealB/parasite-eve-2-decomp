@@ -512,7 +512,7 @@ done:
 TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
 {
     TmdObject*     obj;
-    GfxCoord*       coord;
+    GfxCoord*      coord;
     const TmdBone* bone;
     u32            partIndex;
     void*          buffer = NULL;

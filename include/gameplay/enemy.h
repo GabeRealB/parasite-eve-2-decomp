@@ -42,12 +42,12 @@ typedef struct GpEnemy {
     u16                    workType;      // Work type the enemy was spawned as, bank in the high byte and type in the low (0x900 is the plain enemy)
     s32                    waitTicks;     // Frames an enemy with no actor body waits before it is torn down
     GpLinkNode             node;          // Lock-on link: the entry the aim scan, HP readout and damage reactions reach the enemy by
-    GfxCoord*               coord;         // Coordinate the body sits at, usually one of the actor's model parts
+    GfxCoord*              coord;         // Coordinate the body sits at, usually one of the actor's model parts
     VECTOR3                bodyPos;       // Body position in `coord`'s frame: the point distance and damage-chance rolls measure from
     byte                   pad_28[4];
     VECTOR3                playerRelPos;  // `bodyPos` brought to world space and made relative to the player, refreshed each frame; the aim and lock-on scans take their angle and distance from it
     byte                   pad_38[4];
-    AreaPlacement*           place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
+    AreaPlacement*         place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
     s16                    hp;            // Hit points left; damage subtracts from it and the readout shows it against `hpMax`
     u16                    hpMax;         // Hit points the enemy is spawned with; a damage reaction is picked by fractions of it
     byte                   pad_44[4];

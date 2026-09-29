@@ -147,9 +147,9 @@ void GameFlow_StateByField34(Task* task)
             Title_RestoreDemoCard();
             MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
-            gDisplayState.gameRunning                  = 0;
-            gGameSession->applySaveVariant             = 1;
-            gGameSession->field_80                     = 0;
+            gDisplayState.gameRunning                    = 0;
+            gGameSession->applySaveVariant               = 1;
+            gGameSession->field_80                       = 0;
             Snd_SetMutedVolumes(1);
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.stopTaskWalk                   = 1;
@@ -175,12 +175,12 @@ void GameFlow_StateByField34(Task* task)
             task->state                    = task->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(GameSession));
-            gDisplayState.gameRunning                  = 1;
+            gDisplayState.gameRunning                    = 1;
             gDisplayState.control.flags.pendingPlayerPos = 0;
-            p->field_248                               = 1;
-            p->field_244                               = 1;
-            Wip_SysFlags.field_4                       = 1;
-            gGameSession->applySaveVariant             = 1;
+            p->field_248                                 = 1;
+            p->field_244                                 = 1;
+            Wip_SysFlags.field_4                         = 1;
+            gGameSession->applySaveVariant               = 1;
         }
         gDisplayState.stopTaskWalk = 1;
         taskKill(task);

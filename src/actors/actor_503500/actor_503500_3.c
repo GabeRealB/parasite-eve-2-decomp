@@ -265,21 +265,21 @@ static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, WorldColl
 /// `func_actor_503500_80135D00` does) and applies preset 0x7D3.
 static void func_actor_503500_80132F64(Task* arg0)
 {
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    AreaPlacement* entry;
-    GpEnemy*       child;
-    TmdObject*     model;
-    u32            raw;
-    s32            idx;
-    s32            i;
-    TmdObject*     tmd;
-    GpEnemy*       enemy;
-    GfxCoord*       coord;
-    GfxCoord*       part;
-    WorldCollisionContact*       recs;
+    GameLocationKey        key;
+    GameLocationKey*       sessionKey;
+    u8                     areaByte0;
+    GpAreaVariant*         rec;
+    AreaPlacement*         entry;
+    GpEnemy*               child;
+    TmdObject*             model;
+    u32                    raw;
+    s32                    idx;
+    s32                    i;
+    TmdObject*             tmd;
+    GpEnemy*               enemy;
+    GfxCoord*              coord;
+    GfxCoord*              part;
+    WorldCollisionContact* recs;
     /* Kept in a register across the spawn loop: the ROM stores enemies[0]
        through the same base rather than rebuilding the address. */
     Actor503500Work* work = &D_actor_503500_80176574.value;
@@ -1727,15 +1727,15 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 /// work block's `enemies` array. Returns the new enemy, or NULL.
 GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 {
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    AreaPlacement* entry;
-    GpEnemy*       enemy;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    AreaPlacement*   entry;
+    GpEnemy*         enemy;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
     /* Taken before the spawn call: the ROM keeps the address in s4 across
        every call rather than rebuilding it at the store. */
     Actor503500Work* work = &D_actor_503500_80176574.value;
@@ -2598,7 +2598,7 @@ static void func_actor_503500_801372C8(Task* arg0)
     Task*                  parent;
     TmdObject*             tmd;
     TmdObject*             parentTmd;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
 
     enemy     = arg0->spawnArg2.pointer;
@@ -3135,8 +3135,8 @@ static void func_actor_503500_8013852C(Task* arg0)
 {
     GpEnemy*               enemy;
     TmdObject*             tmd;
-    GfxCoord*               coord;
-    GfxCoord*               part;
+    GfxCoord*              coord;
+    GfxCoord*              part;
     Actor503500Work2EC*    work;
     WorldCollisionContact* rec;
     OverlayMat             m;

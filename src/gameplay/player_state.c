@@ -228,7 +228,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
     u8*                    head;
     GpPushBackScratch*     s;
     GameActor*             actor;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
     GpObj*                 obj;
     VECTOR*                delta;
@@ -1627,8 +1627,8 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 s32 func_8010C30C(Task* arg0)
 {
     TmdObject*  extra;
-    GfxCoord*    coord;
-    GfxCoord*    next;
+    GfxCoord*   coord;
+    GfxCoord*   next;
     GameActor*  actor;
     VECTOR      vec;
     GpAnimSet** prev;

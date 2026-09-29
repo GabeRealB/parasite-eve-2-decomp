@@ -3810,7 +3810,7 @@ static void func_actor_401000_801394EC(Task* arg0)
     ActorTurnScratch*      turn;
     TmdObject*             obj;
     WorldCollisionContact* rec;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
 
     work = arg0->work;
     if (work->field_4 != 0) {

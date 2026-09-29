@@ -631,7 +631,7 @@ static void func_actor_350700_80161E88(Task* arg0)
 static void func_actor_350700_80162070(Task* arg0)
 {
     Actor350500Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              d;
     s32                  dx;
     s32                  dz;
@@ -893,7 +893,7 @@ static void func_actor_350700_80162764(Task* arg0)
 {
     Actor350500Work*     work;
     GpMtxWords*          words;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
     s32                  vy;
@@ -1207,7 +1207,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
 static void func_actor_350700_80162F7C(Task* arg0)
 {
     Actor135600Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              d;
     s32                  dx;
     s32                  dz;
@@ -1465,7 +1465,7 @@ static void func_actor_350700_801635A8(Task* arg0)
 {
     Actor135600Work*     work;
     GpMtxWords*          words;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
     s32                  vy;

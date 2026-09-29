@@ -3870,7 +3870,7 @@ static void func_actor_206100_8014EEC0(Task* task)
 {
     Actor206100ChildWork*  child;
     WorldCollisionContact* rec;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
 
     child               = (Actor206100ChildWork*)task->work;
     coord               = task->extra.tmd->coords;

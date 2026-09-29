@@ -916,9 +916,9 @@ static void func_actor_800200_80162088(Task* arg0)
 {
     GameActor*             actor;
     TmdObject*             extra;
-    GfxCoord*               coord;
-    GfxCoord*               next;
-    GfxCoord**              addr;
+    GfxCoord*              coord;
+    GfxCoord*              next;
+    GfxCoord**             addr;
     GpObj*                 obj;
     WorldCollisionContact* recs;
     McSaveData*            save;

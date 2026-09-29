@@ -2699,9 +2699,9 @@ static void func_actor_421600_80133444(GfxCoord* coord)
                 gte_ldsv(direction);
                 gte_gpf12();
                 gte_stsv(direction);
-                coord->coord.t[0] = vec.vx + 0x3E8;
-                coord->coord.t[2] = vec.vz;
-                coord->composeStamp        = GRAPHICS_COORD_DIRTY;
+                coord->coord.t[0]   = vec.vx + 0x3E8;
+                coord->coord.t[2]   = vec.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
         }
     }
@@ -4346,9 +4346,9 @@ static void func_actor_421600_80136C88(Task* arg0)
     ActorTurnScratch*      head;
     ActorTurnScratch*      scratch;
     TmdObject*             obj;
-    GfxCoord*               coord;
-    GfxCoord*               playerCoord;
-    GfxCoord*               turnCoord;
+    GfxCoord*              coord;
+    GfxCoord*              playerCoord;
+    GfxCoord*              turnCoord;
     WorldCollisionContact* records;
     u16                    angle;
     s16                    delta;
@@ -5324,15 +5324,15 @@ static void func_actor_421600_80139718(Task* arg0)
     s32                    radius = 0x5DC;
     Actor421600Work*       work;
     WorldCollisionContact* record;
-    GfxCoord*               coord;
-    GfxCoord*               coord2;
-    GfxCoord*               coord3;
-    GfxCoord*               facing3;
-    GfxCoord*               facing4;
-    GfxCoord*               facing5;
-    GfxCoord*               facing;
-    GfxCoord*               facing2;
-    GfxCoord*               turnCoord;
+    GfxCoord*              coord;
+    GfxCoord*              coord2;
+    GfxCoord*              coord3;
+    GfxCoord*              facing3;
+    GfxCoord*              facing4;
+    GfxCoord*              facing5;
+    GfxCoord*              facing;
+    GfxCoord*              facing2;
+    GfxCoord*              turnCoord;
     MATRIX*                matrix;
     ActorMoveScratch*      scratch;
     SVECTOR*               target;
@@ -6255,15 +6255,15 @@ static void func_actor_421600_8013BA70(Task* arg0)
     GfxCoord*                clampCoord;
     s32                      x, zClamp;
     WorldCollisionContact*   record;
-    GfxCoord*                 coord;
-    GfxCoord*                 coord2;
-    GfxCoord*                 coord3;
-    GfxCoord*                 facing3;
-    GfxCoord*                 facing4;
-    GfxCoord*                 facing5;
-    GfxCoord*                 facing;
-    GfxCoord*                 facing2;
-    GfxCoord*                 turnCoord;
+    GfxCoord*                coord;
+    GfxCoord*                coord2;
+    GfxCoord*                coord3;
+    GfxCoord*                facing3;
+    GfxCoord*                facing4;
+    GfxCoord*                facing5;
+    GfxCoord*                facing;
+    GfxCoord*                facing2;
+    GfxCoord*                turnCoord;
     Actor421600RouteScratch* scratch;
     SVECTOR*                 target;
     SVECTOR*                 target2;

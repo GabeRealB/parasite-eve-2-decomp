@@ -1551,7 +1551,7 @@ static s32 Actor04000_Fn00FDC(Actor104000Work* arg0)
 static void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     Actor104000Work*       work;
     WorldCollisionContact* hits;
     SVECTOR                sv;

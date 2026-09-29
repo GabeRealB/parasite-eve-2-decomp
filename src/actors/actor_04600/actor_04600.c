@@ -843,7 +843,7 @@ static void Actor04600_Fn00978(Task* arg0)
     s32                    distance;
     u32                    damage;
     Actor104600Work*       work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     ActorContactFrame*     scratch;
     s32                    i;
 

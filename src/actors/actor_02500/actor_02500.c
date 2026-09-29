@@ -1302,24 +1302,24 @@ done:
 
 static void Actor02500_Fn0184C(Task* arg0)
 {
-    GameLocationKey      key;
-    u32            raw1, raw2, raw3;
-    u8             areaByte0;
-    TmdObject*     model1;
-    TmdObject*     model2;
-    TmdObject*     model3;
-    u32            index1;
-    u32            index2;
-    u32            index3;
-    GpEffWork*     effect1;
-    GpEffWork*     effect2;
-    GpEffWork*     effect3;
-    AreaPlacement* entry1;
-    AreaPlacement* entry2;
-    AreaPlacement* entry3;
-    GameLocationKey*     sessionKey1;
-    GameLocationKey*     sessionKey2;
-    GameLocationKey*     sessionKey3;
+    GameLocationKey  key;
+    u32              raw1, raw2, raw3;
+    u8               areaByte0;
+    TmdObject*       model1;
+    TmdObject*       model2;
+    TmdObject*       model3;
+    u32              index1;
+    u32              index2;
+    u32              index3;
+    GpEffWork*       effect1;
+    GpEffWork*       effect2;
+    GpEffWork*       effect3;
+    AreaPlacement*   entry1;
+    AreaPlacement*   entry2;
+    AreaPlacement*   entry3;
+    GameLocationKey* sessionKey1;
+    GameLocationKey* sessionKey2;
+    GameLocationKey* sessionKey3;
 
     D_80067704[0] = &Actor02500_D04448;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
@@ -1852,9 +1852,9 @@ void Actor02500_Fn02574(Task* arg0)
 static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
 {
     Actor02500EffWork*     work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
-    GfxCoord*               parentCoord;
+    GfxCoord*              parentCoord;
     void*                  effect;
 
     coord       = task->extra.tmd->coords;
@@ -1892,7 +1892,7 @@ static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
 static void Actor02500_Fn02750(GpEnemy* ctx, Task* task)
 {
     s32                    sound;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
     s32                    done;
     s32                    pan;

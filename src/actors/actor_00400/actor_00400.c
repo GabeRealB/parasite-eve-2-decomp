@@ -3507,8 +3507,8 @@ static void Actor00400_Fn04E18(Task* arg0)
     TmdObject*       ctx3;
     TmdObject*       ctxN;
     GameLocationKey* sess;
-    GfxCoord*         coord;
-    GfxCoord*         coordN;
+    GfxCoord*        coord;
+    GfxCoord*        coordN;
     MATRIX*          dst;
     s32              i;
 

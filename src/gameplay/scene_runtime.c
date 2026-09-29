@@ -93,7 +93,7 @@ enum {
     ANIMATION_TIME_FRACTION_BITS       = 4,                                       // Playback time in sixteenths of a normal-rate frame
     ANIMATION_TIME_UNITS_PER_FRAME     = 1 << ANIMATION_TIME_FRACTION_BITS,
     ANIMATION_POSE_BUFFER_STRIDE_SHIFT = 4,                                       // Byte-offset shift for a buffered slot pose
-    ANIMATION_POSE_BUFFER_BYTES        = 1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT, // Four-byte words reserved for each buffered slot pose
+    ANIMATION_POSE_BUFFER_BYTES        = 1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT, // Bytes reserved for each buffered slot pose
     ANIMATION_SET_BUFFERED_POSE        = 0x7FFF,                                  // Current or next pose comes from the context buffer
     ANIMATION_SLOT_REACHED_END         = 1,                                       // End marker or jump back to the current keyframe
     ANIMATION_SLOT_FOLLOWED_JUMP       = 2,                                       // A nonterminal control record was followed
@@ -107,7 +107,6 @@ enum {
     AREA_PLACEMENT_STAGE_SHIFT     = 8,
     AREA_PLACEMENT_STAGE_AREA_MASK = 0xFFF
 };
-
 
 /// Encoded inputs and optional outputs of one animation slot's pose blend.
 ///
@@ -2757,7 +2756,7 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
     McPosRec*        savedPose;
     GameLocationKey* savedLocation;
     TmdObject*       model;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR*         euler;
     u16              placementKey;
     s32              poseIndex;
@@ -2818,12 +2817,12 @@ void Gp_SpawnArea(GameLocationKey* location)
     GpAreaRec*     areaRecords;
     GpAreaVariant* variants;
     GpAreaObj*     areaState;
-    AreaPlacement*   placement;
+    AreaPlacement* placement;
     GpAreaTmdRec*  resource;
     GpEnemy*       enemy;
     Task*          task;
     TmdObject*     model;
-    GfxCoord*       coord;
+    GfxCoord*      coord;
     u16            resourceId;
     s8             placementIndex;
     s32            poseIndex;
@@ -3152,20 +3151,20 @@ static void func_800B51F4(Task* task)
 
 void Gp_ApplyAreaTmdFlags(void)
 {
-    Task*          head;
-    Task*          iter;
-    GameLocationKey*     key;
-    GpAreaRec*     rec;
-    GpAreaVariant* nested;
-    GpAreaTmdRec*  table;
-    GpAreaTmdRec*  entry;
-    GpWorkObj*     work;
-    AreaPlacement* place;
-    TmdObject*     extra;
-    u16            id;
-    u16            flags;
-    u16            limit;
-    u8             idx;
+    Task*            head;
+    Task*            iter;
+    GameLocationKey* key;
+    GpAreaRec*       rec;
+    GpAreaVariant*   nested;
+    GpAreaTmdRec*    table;
+    GpAreaTmdRec*    entry;
+    GpWorkObj*       work;
+    AreaPlacement*   place;
+    TmdObject*       extra;
+    u16              id;
+    u16              flags;
+    u16              limit;
+    u8               idx;
 
     head = (gameGetPtrSlot(4))->firstChild;
     if (head != NULL) {
@@ -3599,7 +3598,7 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
 {
     GpDirScratch* scratch;
     SVECTOR*      delta;
-    GfxCoord*      viewCoord;
+    GfxCoord*     viewCoord;
     s32           scale;
 
     scratch = SCRATCH_PUSH(GpDirScratch);

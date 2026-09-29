@@ -751,14 +751,14 @@ SVECTOR Actor01500_D0A098 = { 1900, -0x2EE0, 1000, 0 };
 /// objects, and seeds the pose from the spawn variant in `AreaPlacement.variant`.
 static void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
 {
-    Actor101500Work* work;
-    TmdObject*       obj;
-    GfxCoord*         coord;
-    AreaPlacement*   place;
-    WorldCollisionContact*         records;
-    u32              draw;
-    s32              i;
-    s32              r;
+    Actor101500Work*       work;
+    TmdObject*             obj;
+    GfxCoord*              coord;
+    AreaPlacement*         place;
+    WorldCollisionContact* records;
+    u32                    draw;
+    s32                    i;
+    s32                    r;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -885,8 +885,8 @@ static void Actor01500_Fn004EC(Task* actor)
     ActorPushFrame*        frame;
     s32                    push;
     VECTOR*                normal;
-    GfxCoord*               coord;
-    GfxCoord*               sourceCoord;
+    GfxCoord*              coord;
+    GfxCoord*              sourceCoord;
     WorldCollisionContact* effectRec;
     s16                    cooldown;
     s32                    result;
@@ -1539,28 +1539,28 @@ static void Actor01500_Fn01988(Task* arg0)
 
 static void Actor01500_Fn01AB0(Task* arg0)
 {
-    GameLocationKey      key;
-    u8             areaByte0;
-    u32            raw1, index1;
-    GpEffWork*     effect1;
-    TmdObject*     model1;
-    AreaPlacement* entry1;
-    GameLocationKey*     sessionKey1;
-    u32            raw2, index2;
-    GpEffWork*     effect2;
-    TmdObject*     model2;
-    AreaPlacement* entry2;
-    GameLocationKey*     sessionKey2;
-    u32            raw3, index3;
-    GpEffWork*     effect3;
-    TmdObject*     model3;
-    AreaPlacement* entry3;
-    GameLocationKey*     sessionKey3;
-    u32            raw4, index4;
-    GpEffWork*     effect4;
-    TmdObject*     model4;
-    AreaPlacement* entry4;
-    GameLocationKey*     sessionKey4;
+    GameLocationKey  key;
+    u8               areaByte0;
+    u32              raw1, index1;
+    GpEffWork*       effect1;
+    TmdObject*       model1;
+    AreaPlacement*   entry1;
+    GameLocationKey* sessionKey1;
+    u32              raw2, index2;
+    GpEffWork*       effect2;
+    TmdObject*       model2;
+    AreaPlacement*   entry2;
+    GameLocationKey* sessionKey2;
+    u32              raw3, index3;
+    GpEffWork*       effect3;
+    TmdObject*       model3;
+    AreaPlacement*   entry3;
+    GameLocationKey* sessionKey3;
+    u32              raw4, index4;
+    GpEffWork*       effect4;
+    TmdObject*       model4;
+    AreaPlacement*   entry4;
+    GameLocationKey* sessionKey4;
 
     D_80067704[0] = &Actor01500_D0458C;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);

@@ -711,7 +711,7 @@ static void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work*     work;
     GpMtxWords*          words;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
     s32                  vy;
@@ -780,7 +780,7 @@ static void func_actor_317000_801628D8(Task* task)
 /// flag the previous body raised is cleared and the dispatcher advances again.
 static void func_actor_317000_80162950(Task* arg0)
 {
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     Actor317000Work*     work;
     AnimationPlayRequest preset;
     s32                  pan;

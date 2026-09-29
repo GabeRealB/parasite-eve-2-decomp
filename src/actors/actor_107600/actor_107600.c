@@ -2056,7 +2056,7 @@ static void func_actor_107600_80134920(Task* arg0)
 static void func_actor_107600_80134958(Task* arg0)
 {
     Actor107600Work*       work  = (Actor107600Work*)arg0->work;
-    GfxCoord*               coord = arg0->extra.tmd->coords;
+    GfxCoord*              coord = arg0->extra.tmd->coords;
     WorldCollisionContact* rec   = work->rec18;
 
     work->obj.coord    = coord;

@@ -30,7 +30,7 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// at the per-part array carried by a `TmdObject`.
 typedef struct GpDisp2d {
     TmdListNode link;    // Its place on `gTmdDisp2dList`
-    GfxCoord*    coords;  // The body's coordinate, i.e. `&coord`
+    GfxCoord*   coords;  // The body's coordinate, i.e. `&coord`
     s32         field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
     GfxCoord    coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;

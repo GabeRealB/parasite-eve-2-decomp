@@ -1060,7 +1060,7 @@ static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
 {
     Actor105100Work*       work;
     TmdObject*             obj;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* records1;
     WorldCollisionContact* records2;
     WorldCollisionContact* records3;

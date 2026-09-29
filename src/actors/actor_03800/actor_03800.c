@@ -2184,15 +2184,15 @@ static void Actor03800_Fn02E50(Task* actor)
 
 static void Actor03800_Fn03008(Task* actor, u32 variant)
 {
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    AreaPlacement* entry;
-    GpEffWork*     eff;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    AreaPlacement*   entry;
+    GpEffWork*       eff;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     switch (variant) {
         case 0:

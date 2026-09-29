@@ -142,16 +142,6 @@ STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpackedDestination,
                            void* encodedDestination);
 
-/// Input for `Gp_MakeDirOffset`. `field_2` is the signed length subtracted
-/// from `SquareRoot0(Gfx_ApplyMatrixNoSf(delta, delta))` (the difference
-/// is then forced `<= 0`). `pos` is the far end of that delta.
-typedef struct _GpDirSrc {
-    /* 0x00 */ byte    pad_0[2];
-    /* 0x02 */ s16     field_2;
-    /* 0x04 */ byte    pad_4[4];
-    /* 0x08 */ SVECTOR pos;
-} GpDirSrc;
-
 /// Persistent head-tracking state for `func_800B17D4`, allocated by the task
 /// that drives the head turn and kept in its `Task::work`. `yawLimit` /
 /// `pitchLimit` are the base clamps (widened to the head's current pose each

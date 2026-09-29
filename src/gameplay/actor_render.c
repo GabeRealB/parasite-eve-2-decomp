@@ -187,7 +187,7 @@ static __inline__ void _gpRefreshAllCoords(void)
     // The cursors have disjoint lifetimes and reuse one saved register.
     register GpDisp2d*  display asm("s3");
     register TmdObject* model asm("s3");
-    GfxCoord*            coord;
+    GfxCoord*           coord;
     s32                 stamp;
     s32                 parity;
     u32                 partIndex;

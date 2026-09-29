@@ -88,7 +88,7 @@ typedef struct Actor00300MainWork {
     /* 0x558 */ WorldCollisionContact rec558[4];
     /* 0x5B8 */ GpObj                 obj5B8;
     /* 0x5D8 */ WorldCollisionContact rec5D8;
-    /* 0x5F0 */ GfxCoord*              field_5F0;
+    /* 0x5F0 */ GfxCoord*             field_5F0;
     /* 0x5F4 */ s16                   field_5F4;
     /* 0x5F6 */ s16                   field_5F6;
     /* 0x5F8 */ u8                    pad_5F8[0x10];
@@ -1460,25 +1460,25 @@ static void Actor00300_Fn005D0(GfxCoord* arg0, s32 arg1)
 
 static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
 {
-    GameLocationKey           key;
-    GpEnemy*            child;
-    WorldCollisionContact*            rec4B8;
-    WorldCollisionContact*            rec4F0;
-    WorldCollisionContact*            rec558;
-    WorldCollisionContact*            rec5D8;
-    Actor00300MainWork* work;
-    TmdObject*          model;
-    s32                 areaIndex;
-    Task*               childTask;
-    s32                 slot;
-    u32                 index;
-    u32                 rawId;
-    u8                  areaByte0;
-    GameLocationKey*          sessionKey;
-    AreaPlacement*      entry;
-    TmdObject*          obj;
-    GfxCoord*            coord;
-    GfxCoord*            parts;
+    GameLocationKey        key;
+    GpEnemy*               child;
+    WorldCollisionContact* rec4B8;
+    WorldCollisionContact* rec4F0;
+    WorldCollisionContact* rec558;
+    WorldCollisionContact* rec5D8;
+    Actor00300MainWork*    work;
+    TmdObject*             model;
+    s32                    areaIndex;
+    Task*                  childTask;
+    s32                    slot;
+    u32                    index;
+    u32                    rawId;
+    u8                     areaByte0;
+    GameLocationKey*       sessionKey;
+    AreaPlacement*         entry;
+    TmdObject*             obj;
+    GfxCoord*              coord;
+    GfxCoord*              parts;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -2812,33 +2812,33 @@ static void Actor00300_Fn0340C(Task* arg0)
 
 static void Actor00300_Fn03618(Task* arg0)
 {
-    GameLocationKey      key;
-    u8             areaByte0;
-    u32            raw1, index1;
-    GpEffWork*     effect1;
-    TmdObject*     model1;
-    AreaPlacement* entry1;
-    GameLocationKey*     sessionKey1;
-    u32            raw2, index2;
-    GpEffWork*     effect2;
-    TmdObject*     model2;
-    AreaPlacement* entry2;
-    GameLocationKey*     sessionKey2;
-    u32            raw3, index3;
-    GpEffWork*     effect3;
-    TmdObject*     model3;
-    AreaPlacement* entry3;
-    GameLocationKey*     sessionKey3;
-    u32            raw4, index4;
-    GpEffWork*     effect4;
-    TmdObject*     model4;
-    AreaPlacement* entry4;
-    GameLocationKey*     sessionKey4;
-    u32            raw5, index5;
-    GpEffWork*     effect5;
-    TmdObject*     model5;
-    AreaPlacement* entry5;
-    GameLocationKey*     sessionKey5;
+    GameLocationKey  key;
+    u8               areaByte0;
+    u32              raw1, index1;
+    GpEffWork*       effect1;
+    TmdObject*       model1;
+    AreaPlacement*   entry1;
+    GameLocationKey* sessionKey1;
+    u32              raw2, index2;
+    GpEffWork*       effect2;
+    TmdObject*       model2;
+    AreaPlacement*   entry2;
+    GameLocationKey* sessionKey2;
+    u32              raw3, index3;
+    GpEffWork*       effect3;
+    TmdObject*       model3;
+    AreaPlacement*   entry3;
+    GameLocationKey* sessionKey3;
+    u32              raw4, index4;
+    GpEffWork*       effect4;
+    TmdObject*       model4;
+    AreaPlacement*   entry4;
+    GameLocationKey* sessionKey4;
+    u32              raw5, index5;
+    GpEffWork*       effect5;
+    TmdObject*       model5;
+    AreaPlacement*   entry5;
+    GameLocationKey* sessionKey5;
 
     D_80067704[0] = &Actor00300_D0AA18;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);

@@ -228,7 +228,7 @@ static void func_grenade_pistol_8011D6FC(Task* arg0)
 {
     WeaponGrenadeScratch*  blk;
     WeaponGrenadeWork*     work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec;
     GpRoomParamRec*        param;
     u8*                    head;

@@ -1126,7 +1126,7 @@ Actor5035005MsgEntry D_actor_503500_80176530[5] = {
 static void func_actor_503500_80144E8C(Task* arg0)
 {
     Actor503500WorkD0*     work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     GpActorD4Rec*          d4;
     WorldCollisionContact* rec;
     GpEffWork*             eff;
@@ -1520,7 +1520,7 @@ static const TaskFuncTable3 D_actor_503500_80132224 = {
 static void func_actor_503500_80145A2C(Task* arg0)
 {
     Actor503500WorkAC*     work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     GpActorD4Rec*          d4;
     WorldCollisionContact* rec;
     GpEffWork*             eff;

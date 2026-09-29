@@ -12261,10 +12261,8 @@ Match by assigning a nested 8-byte, byte-aligned cell that lives at offset 4
 inside the owning object:
 
 ```c
-typedef struct { u8 data[8]; } GBytes8;
-typedef union { GameLocationKey loc; GBytes8 raw; } GameLoc;   /* GameSession.at4 */
 typedef struct {
-    GpAreaKey loc;
+    GameLocationKey loc;
     u8 unknown_6[2];
 } GameLoc;   /* GameSession.at4 */
 
@@ -26799,7 +26797,6 @@ case 2:
     break;
 ```
 
-`Gp_FindTaskByCoord` is the example. `if ((GfxCoord*)extra->coords == index)`
 `_modelObjectFindTaskByCoord` is the example. `if (task->extra.disp2d->coords == targetCoord)`
 stuck at 99.8% with only that load dest different.
 
@@ -32744,10 +32741,9 @@ val = one << 4;
 
 ## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
 
-`animationTickSlotPose(ctx, i, 0, field_8 + (i << 4))` wants `addu a3, a3, t0` in
-`animationTickSlotPose(ctx, i, 0, (u8*)ctx->poses + (i << 4))` wants `addu a3, a3, t0` in
+`animationTickSlotPose(ctx, i, 0, ctx->poses + (i << 4))` wants `addu a3, a3, t0` in
 the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named
-`call_a3 = (u8*)ctx->poses + off` emits the add too early and leaves `a2 = 0` as
+`call_a3 = ctx->poses + off` emits the add too early and leaves `a2 = 0` as
 the `jal` delay.
 
 Pin the base to `$a3` and add only at the call. A `register s32 raw
@@ -32758,14 +32754,13 @@ copy:
 ```c
 register s32 raw asm("a2");
 register s32 off asm("t0");
-register s32 f8 asm("a3");
+register u8* poseBytes asm("a3");
 
 raw = arg2;
 off = arg1 << 4;
-f8  = (s32)arg0->poses;
+poseBytes = arg0->poses;
 asm volatile("" : "+r"(raw));
-animationTickSlotPose(arg0, arg1, 0, f8 + off);
-animationTickSlotPose(arg0, arg1, 0, f8 + off);
+animationTickSlotPose(arg0, arg1, 0, poseBytes + off);
 ```
 
 `Gp_AnimSeekSlotEx` is the example. `slot->sets[arg2]` loads `sets`
@@ -36091,13 +36086,9 @@ gte_lddp(scratch->nextWeight);
 ```
 
 Pin the optional dest to `$v1` so `lui v1, 0x1F80` for the scratch pop
-cannot hoist into the `beqz dest` delay. Write `field_C` dest through
-`index->field_C->vx` (no local) so each `sh` reloads the pointer. A named
-`z = trans.vz` before `field_0 = 0` keeps that store in the `lh vz` delay
-rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 cannot hoist into the `beqz dest` delay. Write the unpacked translation through
 `request->unpackedDestination->trans.vx` (no local) so each `sh` reloads the pointer. A named
-`z = scratch->translation.vz` before `coord->flg = 0` keeps that store in the `lh vz` delay
+`z = scratch->translation.vz` before `coord->composeStamp = 0` keeps that store in the `lh vz` delay
 rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 
 ## Put a later call's constant in each wrap-select arm
@@ -39077,7 +39068,6 @@ and the three `move` instructions land after `subu $sp`. This alone was 95.8% ->
 ## One C variable = one hard register: split reused temporaries per loop
 
 `animationTickSlotPose` stalled at ~98% with the *same* mismatch shape in two similar
-`animationTickSlotPose` stalled at ~98% with the *same* mismatch shape in two similar
 loops: the target used one register pair (`a2`/`t1`) for `(setIdx, field_15*2)`
 and mine used the swap, and likewise for `(idx, lim)`. GCC 2.8.1 builds one
 pseudo per declared local, so a variable reused in two disjoint loops gets a
@@ -39117,25 +39107,15 @@ The last two diffs in `animationTickSlotPose` were `addu v0,v1,v0` vs `addu v1,v
 same operands, different destination — from
 
 ```c
-scratch->src.currentPose = &((u8*)set->poseBanks[poseKind])[records[slot->curRec].pose * sizeof(u32)];
-The last two diffs in `animationTickSlotPose` were `addu v0,v1,v0` vs `addu v1,v1,v0` —
-same operands, different destination — from
-
-```c
-scratch->request.currentPose = &set->poseBanks[poseKind][records[slot->curRec].pose];
-scratch->src.field_0 = &set->poseBanks[poseKind][recs[slot->curRec].wordOffset];
+scratch->request.currentPose = &((u8*)set->poseBanks[poseKind])[records[slot->curRec].wordOffset * sizeof(u32)];
 ```
 
 GCC ties the add's output to whichever input pseudo it decides dies first.
 Hoisting the inner pointer into its own local flips that choice:
 
 ```c
-poseBytes                = set->poseBanks[poseKind];
-scratch->src.currentPose = &poseBytes[records[slot->curRec].pose * sizeof(u32)];
-bankWords                     = set->poseBanks[poseKind];
-scratch->request.currentPose = &bankWords[records[slot->curRec].pose];
-poses                = set->poseBanks[poseKind];
-scratch->src.field_0 = &poses[recs[slot->curRec].wordOffset];
+poseBytes                    = set->poseBanks[poseKind];
+scratch->request.currentPose = &poseBytes[records[slot->curRec].wordOffset * sizeof(u32)];
 ```
 
 Neither a temporary for the whole address (`p = &...; x = p;`) nor the
@@ -39143,7 +39123,6 @@ Neither a temporary for the whole address (`p = &...; x = p;`) nor the
 
 ## `lbu` + `sll 24` + `sra 24` vs `lb`: it is the statement form, not the cast
 
-Both branches of an if in `animationTickSlotPose` sign-extend the same `u8` field, but
 Both branches of an if in `animationTickSlotPose` sign-extend the same `u8` field, but
 the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The cast is
 identical in both; what differs is the assignment:
@@ -67038,8 +67017,6 @@ into it. Shorten the recipient to a single block rather than pinning.
 
 The opposite shape has a second fix: `expand_preferences` only merges across a
 dying copy when the two allocnos do **not** conflict. `_animationBlendTranslationRotation` reads
-three packed-pose pointers off `index` (`field_0`, `field_4`, then `field_8`
-dying copy when the two allocnos do **not** conflict. `_animationBlendTranslationRotation` reads
 three packed-pose pointers off `request` (`currentPose`, `nextPose`, then `encodedDestination`
 after the call). With a separate `dest` for the last one, `dest` inherited
 `$a0` from the dying `request` and landed in `$a0`, not the target's `$v1`. Using
@@ -76049,8 +76026,7 @@ arguments. GCC emits argument setup only for the arguments the call expression
 actually has, so `$a3` keeps whatever the switch tree left in it:
 
 ```c
-s32 func_actor_800100_80166B40(GpRec18* rec, GfxCoord* coord, GfxCoord* place);
-s32 func_actor_800100_80166B40(WorldCollisionContact* rec, GsCOORDINATE2* coord, GsCOORDINATE2* place);
+s32 func_actor_800100_80166B40(WorldCollisionContact* rec, GfxCoord* coord, GfxCoord* place);
 ...
 if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0)   /* 99.055% -> 100% */
 ```
@@ -81956,7 +81932,6 @@ call instead —
 
 ```c
     id    = mode;
-    place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
 ```
 
@@ -111619,9 +111594,6 @@ value "modified", so cse cannot fold the second `&key` into it:
         TOUCH_REG(keyp);
         key.view = areaByte0;
         areaSyncLocationVariant(keyp);
-        entry       = (GpAreaPlace*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        key.field_0 = areaByte0;
-        Gp_SyncAreaKeyIndex(keyp);
         entry       = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, 2);
 ```
 
@@ -123626,10 +123598,6 @@ matched* scored 100.000% with every penalty zero on the first build.
 
 ```c
 /* from func_actor_120300_801335D8, same file, already matched */
-place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-id    = place->entryId;
-while (id != 0xFF) {
-    if (id == 0x6A) { break; }
 place   = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
 entryId = place->entryId;
 while (entryId != AREA_PLACEMENT_END) {
@@ -124046,7 +124014,6 @@ pins, no empty asm, no permuter run. Scratch
 ## An m2c seed's stack locals are 4-byte `M2C_UNK`, so passing a 0x10-byte struct to a callee costs the frame and a saved register (func_actor_323000_8016331C, 2026-09-17)
 
 `m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
-function passes two 0x10-byte `GpAnimPose` locals to `animationTickSlotPose` and
 function passes two 0x10-byte `GpAnimPose` locals to `animationTickSlotPose` and
 `Gp_AnimWritePoseCopy`, the seed's frame comes out one pose short
 (`addiu sp,sp,-0x48` against a target `-0x58`) and the two poses sit at
@@ -127849,8 +127816,6 @@ key.room = sessionKey->room;
 TOUCH_REG(keyp);
 ...
 areaSyncLocationVariant(keyp);      /* first call through the pointer */
-entry = (GpAreaPlace*)((idx * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-Gp_SyncAreaKeyIndex(keyp);      /* first call through the pointer */
 entry = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
 ```
 

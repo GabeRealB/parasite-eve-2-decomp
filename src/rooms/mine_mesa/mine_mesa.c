@@ -4127,9 +4127,9 @@ static void func_mine_mesa_80181358(Task* arg0)
     _MineMesaSpawnPoint* table;
     _MineMesaSpawnPoint* pt;
     TmdObject*           tmd;
-    GameLocationKey*           loc;
+    GameLocationKey*     loc;
     AreaPlacement*       place;
-    GfxCoord*             coords;
+    GfxCoord*            coords;
     GpEnemy*             enemy;
 
     for (i = 0; i < 2; i++) {

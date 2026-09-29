@@ -38,7 +38,7 @@ typedef struct Actor300700Spawn2Work {
     /* 0x29C */ WorldCollisionContact rec3[4];
     /* 0x2FC */ GpObj                 obj4;
     /* 0x31C */ WorldCollisionContact rec4[1];
-    /* 0x334 */ GfxCoord*              field_334;
+    /* 0x334 */ GfxCoord*             field_334;
     /* 0x338 */ s16                   field_338;
     /* 0x33A */ s16                   field_33A;
     /* 0x33C */ byte                  pad_33C[0x42];

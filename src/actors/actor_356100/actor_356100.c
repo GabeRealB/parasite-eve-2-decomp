@@ -2047,8 +2047,8 @@ static void func_actor_356100_801668FC(Task* actor)
     GpEnemy*          enemy;
     PlayerStatus*     playerStatus;
     McSaveData*       saveData;
-    GfxCoord*          coord;
-    GfxCoord*          root;
+    GfxCoord*         coord;
+    GfxCoord*         root;
     u8*               scratchBase;
     u8*               collisionScratchBase;
     u8*               savedVectorHead;
@@ -2102,7 +2102,7 @@ static void func_actor_356100_801668FC(Task* actor)
             coord->coord.t[0]                                         += movementDirection->vx;
             coord->coord.t[1]                                         += movementDirection->vy;
             coord->coord.t[2]                                         += movementDirection->vz;
-            coord->composeStamp                                                 = GRAPHICS_COORD_DIRTY;
+            coord->composeStamp                                        = GRAPHICS_COORD_DIRTY;
             scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
             releasedVectorHead                                         = (*(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1);
             scratchBase                                                = savedVectorHead;

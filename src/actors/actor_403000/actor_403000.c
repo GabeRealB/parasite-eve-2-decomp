@@ -4559,7 +4559,7 @@ static void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     VECTOR                 pos;
     Actor403000Work*       work;
     TmdObject*             obj;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     GpObj*                 node;
     GpObj*                 node2;
     GpObj*                 node3;
@@ -6002,8 +6002,8 @@ static void func_actor_403000_801386E8(Task* arg0)
     s32                      dist;
     s32                      mag;
     SVECTOR*                 t;
-    GfxCoord*                 coord2;
-    GfxCoord*                 coord3;
+    GfxCoord*                coord2;
+    GfxCoord*                coord3;
     WorldCollisionContact*   recs;
     GameActor*               pw;
 

@@ -1540,7 +1540,7 @@ void func_actor_403600_80134398(Task* arg0)
     s32                    temp_v1_13;
     s32                    temp_v1_6;
     s32                    var_a0;
-    GfxCoord*               var_a1_2;
+    GfxCoord*              var_a1_2;
     s32                    var_fp;
     s32                    var_s4;
     s32                    temp_s0_3;
@@ -1555,7 +1555,7 @@ void func_actor_403600_80134398(Task* arg0)
     u8                     temp_v1_4;
     u8                     temp_v1_5;
     u8                     temp_v1_7;
-    GfxCoord*               ownerCoord;
+    GfxCoord*              ownerCoord;
     Task*                  motionParent;
     Task*                  temp_a0_3;
     GpObj*                 obj;
@@ -1563,8 +1563,8 @@ void func_actor_403600_80134398(Task* arg0)
     SVECTOR*               temp_s0_4;
     SVECTOR*               temp_s1;
     GpActorD4Rec*          newShape;
-    GfxCoord*               target;
-    GfxCoord*               view;
+    GfxCoord*              target;
+    GfxCoord*              view;
     /* The setup and draw phases reuse this pointer; steering has its own counter. */
     void*                         shared;
     s32                           steeringPass;

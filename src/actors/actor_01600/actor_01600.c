@@ -76,9 +76,9 @@ typedef struct Actor01600Work {
     /* 0x17C */ byte                   pad_17C[0x90];
     /* 0x20C */ MATRIX                 field_20C;
     /* 0x22C */ MATRIX                 field_22C;
-    /* 0x24C */ GfxCoord                field_24C;
+    /* 0x24C */ GfxCoord               field_24C;
     /* 0x29C */ byte                   field_29C[8];
-    /* 0x2A4 */ GfxCoord*               field_2A4;
+    /* 0x2A4 */ GfxCoord*              field_2A4;
     /* 0x2A8 */ s8*                    field_2A8;
     /* 0x2AC */ s16                    field_2AC;
     /* 0x2AE */ s16                    field_2AE;
@@ -96,7 +96,7 @@ typedef struct Actor01600Work {
     /* 0x2D4 */ WorldCollisionContact  field_2D4;
     /* 0x2EC */ Actor01600Contacts     collision;
     /* 0x3CC */ byte                   field_3CC[8];
-    /* 0x3D4 */ GfxCoord*               field_3D4;
+    /* 0x3D4 */ GfxCoord*              field_3D4;
     /* 0x3D8 */ WorldCollisionContact* field_3D8;
     /* 0x3DC */ s16                    field_3DC;
     /* 0x3DE */ s16                    field_3DE;
@@ -108,7 +108,7 @@ typedef struct Actor01600Work {
     /* 0x3EC */ WorldCollisionContact  contact_3EC;
     /* 0x404 */ GpEffArg               hitEffect;
     /* 0x40C */ byte                   field_40C[8];
-    /* 0x414 */ GfxCoord*               field_414;
+    /* 0x414 */ GfxCoord*              field_414;
     /* 0x418 */ s8*                    field_418;
     /* 0x41C */ s16                    field_41C;
     /* 0x41E */ s16                    field_41E;
@@ -1470,7 +1470,7 @@ static void Actor01600_Fn00480(Task* actor)
 {
     Actor01600Work*        work;
     WorldCollisionContact* table1;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* table2;
     WorldCollisionContact* table3;
     WorldCollisionContact* table4;
@@ -2064,7 +2064,7 @@ static void Actor01600_Fn017BC(Task* actor)
 {
     GpEnemy*               ctx;
     Actor01600Work*        work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     TmdObject*             model;
     s16                    frameOffset;
     s16                    count;

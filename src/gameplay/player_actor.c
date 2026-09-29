@@ -1321,9 +1321,9 @@ void Gp_EffSprTask46(Task* arg0)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            mem->angle = arg0->spawnArg1.halves.low & 0xFFF;
-            param      = arg0->spawnArg1.halves.high;
-            mem->step  = param & 0xF;
+            mem->angle          = arg0->spawnArg1.halves.low & 0xFFF;
+            param               = arg0->spawnArg1.halves.high;
+            mem->step           = param & 0xF;
             if (arg0->spawnArg1.value & 0x20000000) {
                 mem->period = 0x80;
                 mem->scale  = mem->angle;
@@ -1896,16 +1896,16 @@ void Gp_EffCtlTask9B(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
         if (arg0->state == 0) {
-            coord->parent        = mem->parent;
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
-            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-            arg0->state       = 1;
-            mem->scale        = ((u16)arg0->spawnArg1.value * 3u) >> 4;
-            temp              = arg0->spawnArg1.halves.high;
-            mem->angle        = temp;
-            mem->period       = temp << 2;
+            coord->parent       = mem->parent;
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state         = 1;
+            mem->scale          = ((u16)arg0->spawnArg1.value * 3u) >> 4;
+            temp                = arg0->spawnArg1.halves.high;
+            mem->angle          = temp;
+            mem->period         = temp << 2;
             if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->pos.vx = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
@@ -2670,12 +2670,12 @@ void Gp_EffCtlTaskC1(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
-        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-        mem->scale  = 0x80;
-        mem->angle  = 0x100;
-        idx         = arg0->spawnArg1.halves.high;
-        mem->period = D_80112C6C[idx & 3];
-        arg0->state = 1;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        mem->scale          = 0x80;
+        mem->angle          = 0x100;
+        idx                 = arg0->spawnArg1.halves.high;
+        mem->period         = D_80112C6C[idx & 3];
+        arg0->state         = 1;
     }
 
     Gp_UpdateCoord(coord);
@@ -3686,16 +3686,16 @@ void Gp_EffCtlTaskE3(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
     } else {
         if (arg0->state == 0) {
-            coord->parent        = mem->parent;
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
-            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-            arg0->state       = 1;
-            mem->scale        = arg0->spawnArg1.halves.low;
-            temp              = arg0->spawnArg1.halves.high;
-            mem->angle        = temp;
-            mem->period       = temp << 2;
+            coord->parent       = mem->parent;
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state         = 1;
+            mem->scale          = arg0->spawnArg1.halves.low;
+            temp                = arg0->spawnArg1.halves.high;
+            mem->angle          = temp;
+            mem->period         = temp << 2;
         }
         Gp_UpdateCoord(coord);
         if (Gp_State1C->eventState != 0) {
@@ -4477,15 +4477,15 @@ static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoor
 
 static void Gp_InitPlayerWork(Task* arg0)
 {
-    GameActor*           actor;
-    TmdObject*           extra;
-    GfxCoord*             coord;
-    GpObj*               obj;
-    WorldCollisionContact*             recs;
-    s32                  kind;
-    s32                  anim;
-    AnimationPlayRequest sp;
-    Task*                task;
+    GameActor*             actor;
+    TmdObject*             extra;
+    GfxCoord*              coord;
+    GpObj*                 obj;
+    WorldCollisionContact* recs;
+    s32                    kind;
+    s32                    anim;
+    AnimationPlayRequest   sp;
+    Task*                  task;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;

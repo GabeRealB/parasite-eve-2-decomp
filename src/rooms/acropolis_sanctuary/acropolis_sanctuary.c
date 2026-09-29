@@ -1948,7 +1948,7 @@ static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// 0xC, 0 otherwise.
 void func_acropolis_sanctuary_8017E00C(Task* task)
 {
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     GameLocationKey* sess;
     s32              i;
 

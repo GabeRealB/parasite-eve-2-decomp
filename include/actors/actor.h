@@ -1501,7 +1501,7 @@ STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 typedef struct Actor403200DropWork {
     VECTOR3               target;
     byte                  pad_C[0x4];
-    GfxCoord               coord;
+    GfxCoord              coord;
     byte                  pad_60[0x50];
     GpObj                 obj;
     byte                  pad_D0[0x20];
@@ -2509,12 +2509,12 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 /// `actorTintModel` for the model carried by the spawned task `spawned`.
 static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
 {
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    GpAreaVariant* rec;
-    AreaPlacement* place;
-    TmdObject*     model;
-    s32            idx;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    GpAreaVariant*   rec;
+    AreaPlacement*   place;
+    TmdObject*       model;
+    s32              idx;
 
     sessionKey = &gGameSession->at4.loc;
     idx        = enemy->placeKey >> 12;

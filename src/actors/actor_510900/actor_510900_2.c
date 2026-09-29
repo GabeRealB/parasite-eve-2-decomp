@@ -1625,12 +1625,12 @@ static void func_actor_510900_801373B8(Task* arg0)
 {
     Actor510900Work* work;
     GpEnemy*         enemy;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     GameLocationKey* sessionKey;
     TmdObject*       model;
     GpAreaVariant*   rec;
     AreaPlacement*   entry;
-    GameLocationKey        key;
+    GameLocationKey  key;
     s32              idx;
     s32              snd;
     s32              pan;

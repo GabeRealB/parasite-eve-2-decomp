@@ -5945,8 +5945,8 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     Actor403200Work*       escorts;
     OverlayMat*            mtx;
     TmdObject*             tmd;
-    GfxCoord*               coord;
-    GfxCoord*               freeCoord;
+    GfxCoord*              coord;
+    GfxCoord*              freeCoord;
     GpEnemy*               esc;
     Task*                  escTask;
     WorldCollisionContact* recs2;
@@ -6018,8 +6018,8 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     work->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
     work->field_F12                 = 0;
     task->msgTable                  = D_actor_403200_8015F770;
-    coord->parent                      = &gGfxViewCoord;
-    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
+    coord->parent                   = &gGfxViewCoord;
+    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     work->field_2 = -1;
@@ -6429,7 +6429,7 @@ static void func_actor_403200_80139E94(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* recs;
     WorldCollisionContact* recs2;
     SVECTOR*               pos;
@@ -6853,7 +6853,7 @@ static void func_actor_403200_8013AB70(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* recs;
     WorldCollisionContact* recs2;
     WorldCollisionContact* recs3;
@@ -8694,8 +8694,8 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     GfxCoord*                facing;
     TmdObject*               model;
     AreaPlacement*           entry;
-    GameLocationKey                key;
-    GameLocationKey*               sessionKey;
+    GameLocationKey          key;
+    GameLocationKey*         sessionKey;
     s32                      cueId;
     s32                      cuePan;
     s32                      blastId;
@@ -9696,14 +9696,14 @@ static void func_actor_403200_8014123C(Task* arg0)
 /// CLUT, run its stream twice when it has one, and step the task on.
 static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
 {
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    AreaPlacement* entry;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    AreaPlacement*   entry;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     sessionKey = &gGameSession->at4.loc;
     raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;

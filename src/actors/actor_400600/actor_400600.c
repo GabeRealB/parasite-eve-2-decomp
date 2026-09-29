@@ -2582,9 +2582,9 @@ static void func_actor_400600_80134218(Task* arg0)
     Actor400600Work*     work;
     Actor400600Work*     work2;
     GpEnemy*             enemy;
-    GfxCoord*             coord;
-    GfxCoord*             player;
-    GfxCoord*             root;
+    GfxCoord*            coord;
+    GfxCoord*            player;
+    GfxCoord*            root;
     s32                  id;
     s32                  sound;
     s32                  pan;

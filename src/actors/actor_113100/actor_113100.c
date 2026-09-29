@@ -1403,7 +1403,7 @@ static void func_actor_113100_80132104(Task* task)
 static void func_actor_113100_801324DC(Task* task)
 {
     Actor113100Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     GpMtxWords*          words;
     GpMtxWords*          turnWords;
     VECTOR               delta;
@@ -1472,7 +1472,7 @@ static void func_actor_113100_801324DC(Task* task)
 static void func_actor_113100_8013264C(Task* task)
 {
     Actor113100Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              d;
     s32                  dx;
     s32                  dz;
@@ -1860,7 +1860,7 @@ static void func_actor_113100_80132FB4(Task* arg0)
 static void func_actor_113100_8013301C(Task* arg0)
 {
     Actor113100Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     AnimationPlayRequest preset;
     VECTOR               delta;
     SVECTOR              dir;
@@ -1887,7 +1887,7 @@ static void func_actor_113100_801330E8(Task* arg0)
 {
     Actor113100Work*     work;
     GpMtxWords*          words;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
     s32                  vy;

@@ -103,7 +103,7 @@ typedef struct MineCavernWork {
     /* 0x060 */ WorldCollisionContact recs[4];
     /* 0x0C0 */ GpObj                 objC0;
     /* 0x0E0 */ WorldCollisionContact recE0;
-    /* 0x0F8 */ GfxCoord               coord;
+    /* 0x0F8 */ GfxCoord              coord;
     /* 0x148 */ u16                   field_148;
     /* 0x14A */ byte                  pad_14A[2];
 } MineCavernWork;
@@ -3968,7 +3968,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     Task*                  player;
     u8*                    head;
     _MineCavernHitScratch* blk;
-    GfxCoord*               coords;
+    GfxCoord*              coords;
     WorldCollisionContact* recs;
     SVECTOR*               d;
     SVECTOR*               dst;

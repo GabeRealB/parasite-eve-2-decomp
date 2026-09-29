@@ -85,8 +85,8 @@ void func_necrosis_8012EF34(Task* arg0)
 {
     NecrosisWork*          work;
     GpEffWork*             mem;
-    GfxCoord*               coord;
-    GfxCoord*               player;
+    GfxCoord*              coord;
+    GfxCoord*              player;
     GpMtxWords*            dstm;
     GpMtxWords*            srcm;
     WorldCollisionContact* rec;

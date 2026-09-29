@@ -2482,9 +2482,9 @@ static void func_actor_405800_80134314(Task* arg0)
     Actor405800Work*     work;
     Actor405800Work*     work2;
     GpEnemy*             enemy;
-    GfxCoord*             coord;
-    GfxCoord*             player;
-    GfxCoord*             root;
+    GfxCoord*            coord;
+    GfxCoord*            player;
+    GfxCoord*            root;
     PlayerStatus*        cfg;
     s32                  id;
     s32                  sound;

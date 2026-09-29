@@ -303,7 +303,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
                 _uiSpawnResult->panel.bounds.unsignedRect.w = _uiSpawnDescriptor->field_8;                           \
                 _uiSpawnResult->panel.bounds.unsignedRect.h = _uiSpawnDescriptor->field_A;                           \
                 _uiSpawnResult->panel.field_14.s            = _uiSpawnDescriptor->field_C & 0xFFFC;                  \
-                _uiSpawnResult->panel.field_24              = _uiSpawnDescriptor->field_14;                          \
+                _uiSpawnResult->panel.contentCallback       = _uiSpawnDescriptor->contentCallback;                   \
                 _uiSpawnResult->panel.field_16              = _uiSpawnAnimationTicks;                                \
                 if (_uiSpawnParent != NULL) {                                                                        \
                     Task_Reparent(_uiSpawnParent->owner, _uiSpawnTask);                                              \

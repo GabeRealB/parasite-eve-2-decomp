@@ -1540,7 +1540,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
     s32                    rate;
     GpAnimSlot*            slot;
     WorldCollisionContact* world;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     s32                    savedY;
     s32                    moved;
     s16                    timer;
@@ -3677,8 +3677,8 @@ static void Actor01100_Fn06198(Task* task)
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             d4;
     WorldCollisionContact*    rec;
-    GfxCoord*                  coord;
-    GfxCoord*                  soundCoord;
+    GfxCoord*                 coord;
+    GfxCoord*                 soundCoord;
     Task*                     child;
     u32                       map;
     s32                       flag;

@@ -1324,7 +1324,7 @@ void func_actor_136100_801320E0(Task* task)
 
     if (task->state == 0) {
         TmdObject* tmd   = task->extra.tmd;
-        GfxCoord*   coord = tmd->coords;
+        GfxCoord*  coord = tmd->coords;
 
         work       = Mem_Malloc(sizeof(Actor136100Work), 0);
         task->work = work;
@@ -1332,7 +1332,7 @@ void func_actor_136100_801320E0(Task* task)
             taskKill(task);
         } else {
             Mem_Set(work, 0, sizeof(*work));
-            coord->parent             = task->spawnArg2.pointer;
+            coord->parent          = task->spawnArg2.pointer;
             task->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
@@ -2073,7 +2073,7 @@ static void func_actor_136100_80133A88(Task* task)
     Actor136100Work* work;
     Actor136100Work* allocatedWork;
     TmdObject*       tmd;
-    GfxCoord*         coord;
+    GfxCoord*        coord;
     AreaPlacement*   place;
     u8               entryId;
 
@@ -2089,7 +2089,7 @@ static void func_actor_136100_80133A88(Task* task)
     Mem_Set(work, 0, sizeof(*work));
     work->field_4B4         = gameGetPtrSlot(3);
     D_actor_136100_8014078C = task;
-    coord->parent              = &gGfxViewCoord;
+    coord->parent           = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;

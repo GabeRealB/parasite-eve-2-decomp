@@ -275,7 +275,7 @@ GpDisp2d* gpAttachDisp2d(Task* task)
     GpDisp2d*    node;
     TmdListNode* last;
     TmdListNode* list;
-    GfxCoord*     coord;
+    GfxCoord*    coord;
 
     node = memCalloc(sizeof(*node), 0);
     if (node != NULL) {
@@ -409,7 +409,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
 {
     Task*      task;
     TmdObject* model;
-    GfxCoord*   coord;
+    GfxCoord*  coord;
     u32        partIndex;
     s32        found;
     u32        partCount;

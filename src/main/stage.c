@@ -301,7 +301,7 @@ static Task* Display_SpawnFromMode(void)
     u32              mode;
     Task*            slot;
     GameActor*       obj;
-    GfxCoord*         ptr;
+    GfxCoord*        ptr;
     GameLocationKey* ed;
     s32              flag;
 

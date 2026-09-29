@@ -78,7 +78,7 @@ STATIC_ASSERT_SIZEOF(TmdListNode, 0x8);
 /// each pass flips it.
 typedef struct {
     TmdListNode link;        // Its place on `gTmdList`
-    GfxCoord*    coords;      // Per-part coordinate array, part of this object's own block
+    GfxCoord*   coords;      // Per-part coordinate array, part of this object's own block
     u16         flags;       // State bits (0x2 semi-transparent primitives, 0x4 skip automatic buffer allocation, 0x8 selected by the flagged draw pass, 0x10 reverse face culling, 0x80 hidden)
     s8          otOffset;    // Ordering-table offset the model's primitives are linked at
     byte        unknown_F;

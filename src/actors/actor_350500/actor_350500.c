@@ -292,7 +292,7 @@ static void func_actor_350500_80161E50(Task* arg0)
 static void func_actor_350500_80162038(Task* arg0)
 {
     Actor350500Work*     work;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              d;
     s32                  dx;
     s32                  dz;
@@ -549,7 +549,7 @@ static void func_actor_350500_8016272C(Task* arg0)
 {
     Actor350500Work*     work;
     GpMtxWords*          words;
-    GfxCoord*             coord;
+    GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
     s32                  vy;

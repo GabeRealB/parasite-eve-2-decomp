@@ -833,8 +833,8 @@ static s32 Actor01200_Fn00990(Actor01200Work* arg0)
 static void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
-    GfxCoord*               coord;
-    GfxCoord*               part;
+    GfxCoord*              coord;
+    GfxCoord*              part;
     Actor01200Work*        work;
     WorldCollisionContact* hits;
     SVECTOR                sv;

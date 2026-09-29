@@ -3525,7 +3525,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
     u8                     param2[4];
     Actor402200Work*       work;
     TmdObject*             obj;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     s16*                   cues;
     WorldCollisionContact* records1;
     WorldCollisionContact* records2;

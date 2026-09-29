@@ -693,7 +693,7 @@ static void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     TmdObject*             obj;
     Actor05300Work*        work;
     Actor05300Part*        part;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     WorldCollisionContact* rec18;
     s32                    flag;
     u16                    type;
@@ -828,18 +828,18 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
 
 static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 {
-    Actor05300Work* work;
-    TmdObject*      obj;
+    Actor05300Work*  work;
+    TmdObject*       obj;
     GfxCoord*        coord;
-    GameLocationKey*      sessionKey;
-    GpAreaVariant*  rec;
-    AreaPlacement*  place;
-    TmdObject*      model;
-    GpEnemy*        spawned;
-    GameLocationKey       key;
-    u16             idx;
-    s32             sound;
-    s32             i;
+    GameLocationKey* sessionKey;
+    GpAreaVariant*   rec;
+    AreaPlacement*   place;
+    TmdObject*       model;
+    GpEnemy*         spawned;
+    GameLocationKey  key;
+    u16              idx;
+    s32              sound;
+    s32              i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;

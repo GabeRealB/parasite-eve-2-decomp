@@ -99,7 +99,7 @@ typedef struct Actor00700Work {
     /* 0x31A */ u16                      field_31A;
     /* 0x31C */ WorldCollisionContact    attackContacts[1]; // Single result for the paired attack body
     /* 0x334 */ GpEffArg                 field_334;         // record the hit's effect is spawned with
-    /* 0x33C */ GfxCoord*                 field_33C;
+    /* 0x33C */ GfxCoord*                field_33C;
     /* 0x340 */ MATRIX                   field_340;
     /* 0x360 */ s32                      field_360;
     /* 0x364 */ s32                      field_364;
@@ -199,7 +199,7 @@ typedef struct Actor00700InitWork {
     /* 0x29C */ WorldCollisionContact rec3[4];
     /* 0x2FC */ GpObj                 obj4;
     /* 0x31C */ WorldCollisionContact rec4;
-    /* 0x334 */ GfxCoord*              field_334;
+    /* 0x334 */ GfxCoord*             field_334;
     /* 0x338 */ u16                   field_338;
     /* 0x33A */ u16                   field_33A;
     /* 0x33C */ byte                  pad_33C[0x42];
@@ -815,8 +815,8 @@ static void Actor00700_Fn00334(Task* actor)
     Actor00700Work*        work;
     ActorWallPushFrame*    frame;
     GpEnemy*               ctx;
-    GfxCoord*               coord;
-    GfxCoord*               sourceCoord;
+    GfxCoord*              coord;
+    GfxCoord*              sourceCoord;
     WorldCollisionContact* effectRec;
     WorldCollisionContact* contactRec;
     s32                    push;

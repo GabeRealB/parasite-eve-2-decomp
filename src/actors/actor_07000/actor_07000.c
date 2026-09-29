@@ -957,7 +957,7 @@ typedef struct Actor107000Spawn2Work {
     /* 0x2EC */ byte                  pad_2EC[0x50];
     /* 0x33C */ VECTOR3               field_33C; // saved position restored by collision response 2
     /* 0x348 */ byte                  pad_348[0x14];
-    GpEffArg hitEffect; // Hit effect placement and spawn arguments
+    GpEffArg                          hitEffect; // Hit effect placement and spawn arguments
     /* 0x364 */ s16                   field_364; // spawn arg's high half
     /* 0x366 */ u16                   field_366; // spawn arg's low half
     /* 0x368 */ byte                  pad_368[0x2];
@@ -1571,7 +1571,7 @@ static void Actor07000_Fn00A1C(Task* arg0)
     u32                    id;
     u32                    damage;
     Actor107000Work*       work;
-    GfxCoord*               coord;
+    GfxCoord*              coord;
     ActorContactFrame*     scratch;
     Actor107000Work*       contact;
 
@@ -3569,7 +3569,7 @@ static void Actor07000_Fn04E60(Task* arg0)
     ActorsShared80136c80Work* work;
     TmdObject*                part;
     Task*                     child;
-    GfxCoord*                  coord;
+    GfxCoord*                 coord;
     WorldCollisionContact*    rec;
     WorldCollisionContact*    hit;
     WorldCollisionContact*    recs;
