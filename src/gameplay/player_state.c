@@ -120,9 +120,9 @@ s32 func_8010C30C(Task* arg0);
 
 static void func_8010C46C(Task* arg0);
 
-s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request);
 
-s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
 
 s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
 
@@ -1205,12 +1205,12 @@ void Gp_EndPlayerActorTask(Task* arg0)
     task  = actor->field_91C;
     if (task != NULL) {
         taskKill(task);
-        actor->field_91C = NULL;
-        extra            = arg0->extra.tmd;
-        inner            = arg0->work;
-        inner->field_93A = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
-        inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
-        func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
+        actor->field_91C     = NULL;
+        extra                = arg0->extra.tmd;
+        inner                = arg0->work;
+        inner->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+        inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
+        func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
                       inner->field_438);
         Gp_AnimResetChildSlots(arg0, 1);
         next            = arg0->work;
@@ -1276,11 +1276,11 @@ Task* Gp_SetupAllyWeapon(void)
         }
     }
 
-    inner            = work->work;
-    extra            = work->extra.tmd;
-    inner->field_93A = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
-    inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
-    func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
+    inner                = work->work;
+    extra                = work->extra.tmd;
+    inner->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
+    func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
                   inner->field_438);
     next            = work->work;
     next->field_954 = 0;
@@ -1516,11 +1516,11 @@ void func_8010BFCC(Task* arg0)
     GameActor* actor;
     TmdObject* extra;
 
-    actor            = arg0->work;
-    extra            = arg0->extra.tmd;
-    actor->field_93A = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
-    actor->field_928 = Gp_AnimBlkTbl[actor->field_93A];
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    actor                = arg0->work;
+    extra                = arg0->extra.tmd;
+    actor->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    actor->animationSets = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
 }
 
@@ -1626,14 +1626,14 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 
 s32 func_8010C30C(Task* arg0)
 {
-    TmdObject* extra;
-    GfxCoord*  coord;
-    GfxCoord*  next;
-    GameActor* actor;
-    VECTOR     vec;
-    void*      prev;
-    void*      anim;
-    s32        changed;
+    TmdObject*  extra;
+    GfxCoord*    coord;
+    GfxCoord*    next;
+    GameActor*  actor;
+    VECTOR      vec;
+    GpAnimSet** prev;
+    GpAnimSet** anim;
+    s32         changed;
 
     extra  = arg0->extra.tmd;
     coord  = extra->coords;
@@ -1643,19 +1643,19 @@ s32 func_8010C30C(Task* arg0)
     vec.vy = next->coord.t[1];
     vec.vz = next->coord.t[2];
     ApplyMatrixLV(&coord->coord, &vec, &vec);
-    coord->coord.t[0] += vec.vx;
-    coord->coord.t[2] += vec.vz;
-    next->coord.t[0]   = 0;
-    next->coord.t[2]   = 0;
-    actor->field_10    = coord->coord.t[0];
-    actor->field_14    = coord->coord.t[1];
-    actor->field_18    = coord->coord.t[2];
-    prev               = actor->field_928;
-    actor->field_93A   = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
-    anim               = Gp_AnimBlkTbl[actor->field_93A];
-    changed            = prev != anim;
-    actor->field_928   = anim;
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    coord->coord.t[0]   += vec.vx;
+    coord->coord.t[2]   += vec.vz;
+    next->coord.t[0]     = 0;
+    next->coord.t[2]     = 0;
+    actor->field_10      = coord->coord.t[0];
+    actor->field_14      = coord->coord.t[1];
+    actor->field_18      = coord->coord.t[2];
+    prev                 = actor->animationSets;
+    actor->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    anim                 = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
+    changed              = prev != anim;
+    actor->animationSets = anim;
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
     actor->field_985 = 0x10;
     actor->field_983 = 7;
@@ -1686,13 +1686,13 @@ static void func_8010C46C(Task* arg0)
     func_80106350(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
 }
 
-s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
 {
     GameActor* actor;
     TmdObject* extra;
 
-    actor             = arg0->work;
-    extra             = arg0->extra.tmd;
+    actor             = task->work;
+    extra             = task->extra.tmd;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -1706,37 +1706,38 @@ s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    func_80106350(task, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    // Select the animation table before resetting or blending its slots.
     actor->field_956 = 1;
-    if (actor->field_928 != Gp_AnimBlkTbl[arg2->animBlock.index]) {
-        actor->field_928 = Gp_AnimBlkTbl[arg2->animBlock.index];
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
+        actor->animationSets = Gp_AnimBlkTbl[request->source.index]->table.sets;
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
-        actor->field_93A = (u16)arg2->animBlock.index;
+        actor->field_93A = (u16)request->source.index;
     }
-    actor->field_985 = 0x10;
-    if (arg2->field_8 == 0) {
-        Gp_AnimResetChildSlots(arg0, arg2->field_4);
+    actor->field_985 = ANIMATION_RATE_ONE;
+    if (request->blend == ANIMATION_BLEND_RESET) {
+        Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 1, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(task, request->animationId, 1, request->blendFrames);
     }
-    if (arg2->field_10 == 0) {
-        actor->field_983 = 0x38;
+    if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
+        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     } else {
-        actor->field_983 = 7;
+        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
     }
     return 0;
 }
 
-s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request)
 {
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
     u8            saved;
 
-    p     = &Player_Status;
-    saved = p->field_24;
-    func_80104B54(arg0, arg1, arg2);
-    p->field_24 = saved;
+    playerStatus = &Player_Status;
+    saved        = playerStatus->field_24;
+    func_80104B54(task, msgId, request);
+    playerStatus->field_24 = saved;
     return 0;
 }
 
@@ -1831,10 +1832,10 @@ s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     dest.block = Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant];
     src        = arg2->source.words;
     count      = arg2->count;
-    if (count >= 0x21) {
+    if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
-    dest.words = dest.block->field_BC;
+    dest.words = &dest.block->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
     for (i = 0; i < arg2->count; i++) {
         dest.words[i] = src[i];
     }

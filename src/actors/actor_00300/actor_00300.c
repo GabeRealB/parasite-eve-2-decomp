@@ -227,7 +227,7 @@ extern TaskDesc             Actor00300_D162F0[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -271,7 +271,7 @@ extern GpAnimSet Actor00300_D15594;
 extern GpAnimSet Actor00300_D15FB0;
 extern TmdSource Actor00300_D09E84;
 extern TmdSource Actor00300_D0A120;
-s32              Actor00300_Fn05304(Task*, s32, GpAnimArg*);
+s32              Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*);
 s32              Actor00300_Fn05388(Task*, s32, GpXformArg*);
 s32              Actor00300_Fn053EC(Task*, s32, s32);
 s32              Actor00300_Fn05434(Task*, s32, GpCmdArg*);
@@ -3739,7 +3739,7 @@ static void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
     }
 }
 
-s32 Actor00300_Fn05304(Task* arg0, s32 arg1, GpAnimArg* args)
+s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
 {
     Actor100300Work* work;
     s32              i;
@@ -3747,12 +3747,12 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, GpAnimArg* args)
     s16              anim;
 
     work            = arg0->work;
-    anim            = args->field_4 + 0x13;
+    anim            = args->animationId + 0x13;
     work->field_66E = anim;
     work->field_670 = anim;
     frames          = 0;
-    if (args->field_8 != 0) {
-        frames = args->field_C;
+    if (args->blend != ANIMATION_BLEND_RESET) {
+        frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
         func_800B4114((GpAnimCtx*)work, i, work->field_66E, 0, frames);

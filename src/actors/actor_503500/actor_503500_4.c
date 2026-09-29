@@ -4483,7 +4483,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]
-                        ->prefix.addresses[7];
+                        ->table.addresses[7];
                 Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171530, 0);
                 arg0->state++;
             }

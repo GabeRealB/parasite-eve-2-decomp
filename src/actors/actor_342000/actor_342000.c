@@ -605,7 +605,7 @@ static void func_actor_342000_80162158(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_342000_801647F8, extra, &w->pad_154, w->slots);
             ctx = (Actor342000Work*)arg0->work;
             for (i = 1; i < 8; i++) {
-                ctx->slots[i].rate = 0x10;
+                ctx->slots[i].rate = ANIMATION_RATE_ONE;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
             }
             break;
@@ -618,7 +618,7 @@ static void func_actor_342000_80162158(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_342000_80164800, extra, &w->pad_154, w->slots);
             ctx2 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx2->slots[i].rate = 0x10;
+                ctx2->slots[i].rate = ANIMATION_RATE_ONE;
                 Gp_AnimResetSlot(&ctx2->ctx, i, 0);
             }
             break;
@@ -631,7 +631,7 @@ static void func_actor_342000_80162158(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_342000_80164808, extra, &w->pad_154, w->slots);
             ctx3 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx3->slots[i].rate = 0x10;
+                ctx3->slots[i].rate = ANIMATION_RATE_ONE;
                 Gp_AnimResetSlot(&ctx3->ctx, i, 0);
             }
             break;
@@ -756,7 +756,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
 {
     Actor342000EventWork* work;
     Actor342000EventWork* ev;
-    GpAnimArg             msg;
+    AnimationPlayRequest  msg;
 
     work = (Actor342000EventWork*)arg0->work;
     if (work->field_48 != NULL) {
@@ -784,77 +784,77 @@ static void func_actor_342000_80162BBC(Task* arg0)
                     return;
                 case 2:
                     if (++work->field_6C > 10) {
-                        work->field_68    = 0;
-                        msg.animBlock.ptr = D_actor_342000_801647E8;
-                        msg.field_4       = 0;
-                        msg.field_8       = 0;
-                        msg.field_C       = 0;
-                        msg.field_10      = 0;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+                        work->field_68           = 0;
+                        msg.source.sets          = D_actor_342000_801647E8;
+                        msg.animationId          = 0;
+                        msg.blend                = ANIMATION_BLEND_RESET;
+                        msg.blendFrames          = 0;
+                        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
                     }
                     return;
             }
             return;
         case 3:
             Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
-            msg.animBlock.ptr = D_actor_342000_801647E8;
-            msg.field_4       = 0;
-            msg.field_8       = 0;
-            msg.field_C       = 0;
-            msg.field_10      = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+            msg.source.sets          = D_actor_342000_801647E8;
+            msg.animationId          = 0;
+            msg.blend                = ANIMATION_BLEND_RESET;
+            msg.blendFrames          = 0;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 4:
-            msg.animBlock.ptr = D_actor_342000_801647E8;
-            msg.field_4       = 1;
-            msg.field_8       = 1;
-            msg.field_C       = 10;
-            msg.field_10      = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+            msg.source.sets          = D_actor_342000_801647E8;
+            msg.animationId          = 1;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 10;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 5: {
             s32 weaponId;
             s32 anim;
 
-            weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.animBlock.index = anim;
-            msg.field_4         = 1;
-            msg.field_8         = 0;
-            msg.field_C         = 0;
-            msg.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
+            weaponId                 = Player_Status.weapon;
+            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.source.index         = anim;
+            msg.animationId          = 1;
+            msg.blend                = ANIMATION_BLEND_RESET;
+            msg.blendFrames          = 0;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         }
         case 6:
-            msg.animBlock.ptr = D_actor_342000_801647E8;
-            msg.field_4       = 2;
-            msg.field_8       = 1;
-            msg.field_C       = 10;
-            msg.field_10      = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+            msg.source.sets          = D_actor_342000_801647E8;
+            msg.animationId          = 2;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 10;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 7: {
             s32 weaponId;
             s32 anim;
 
-            weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.animBlock.index = anim;
-            msg.field_4         = 1;
-            msg.field_8         = 1;
-            msg.field_C         = 10;
-            msg.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
+            weaponId                 = Player_Status.weapon;
+            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.source.index         = anim;
+            msg.animationId          = 1;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 10;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         }
         case 8:
-            msg.animBlock.ptr = D_actor_342000_801647E8;
-            msg.field_4       = 3;
-            msg.field_8       = 0;
-            msg.field_C       = 0;
-            msg.field_10      = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+            msg.source.sets          = D_actor_342000_801647E8;
+            msg.animationId          = 3;
+            msg.blend                = ANIMATION_BLEND_RESET;
+            msg.blendFrames          = 0;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             ev = (Actor342000EventWork*)D_actor_342000_80165070->work;
             if (ev->field_7A == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
@@ -885,7 +885,7 @@ static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     ctx   = (Actor342000Work*)task->work;
     if (blend == 0) {
         for (i = first; i < n; i++) {
-            ctx->slots[i].rate = 0x10;
+            ctx->slots[i].rate = ANIMATION_RATE_ONE;
             Gp_AnimResetSlot(&ctx->ctx, i, anim);
         }
     } else {
@@ -1482,21 +1482,21 @@ void func_actor_342000_80164364(s32 arg0)
 void func_actor_342000_8016439C(void)
 {
     Actor342000EventWork* work;
-    GpAnimArg             msg;
+    AnimationPlayRequest  msg;
     s32                   weaponId;
     s32                   anim;
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
     func_shelter_b3_garbage_incinerator_8018507C();
-    weaponId            = Player_Status.weapon;
-    anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.animBlock.index = anim;
-    msg.field_4         = 1;
-    msg.field_8         = 0;
-    msg.field_C         = 0;
-    msg.field_10        = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
+    weaponId                 = Player_Status.weapon;
+    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.source.index         = anim;
+    msg.animationId          = 1;
+    msg.blend                = ANIMATION_BLEND_RESET;
+    msg.blendFrames          = 0;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
     Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
         taskKill(work->field_64);

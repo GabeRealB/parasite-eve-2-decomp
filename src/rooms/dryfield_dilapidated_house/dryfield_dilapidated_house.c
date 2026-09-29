@@ -363,90 +363,90 @@ GpAnimSet* D_dryfield_dilapidated_house_80183F00[16] = {
 
 GpCopyArg D_dryfield_dilapidated_house_80183F40 = { { .sets = D_dryfield_dilapidated_house_80183F00 }, 16 };
 
-GpAnimArg D_dryfield_dilapidated_house_80183F48[4] = {
-    { { .index = 1 }, 47, 0, 0, 1 },
-    { { .index = 1 }, 48, 0, 0, 1 },
-    { { .index = 1 }, 49, 0, 0, 1 },
-    { { .index = 1 }, 50, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_dilapidated_house_80183F48[4] = {
+    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_dilapidated_house_80183F98 = { { .index = 1 }, 51, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80183F98 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80183FAC = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80183FAC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80183FC0 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80183FC0 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80183FD4 = { { .index = 1 }, 54, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80183FD4 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80183FE8 = { { .index = 1 }, 55, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80183FE8 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80183FFC[2] = {
-    { { .index = 1 }, 56, 0, 0, 0 },
-    { { .index = 1 }, 57, 1, 8, 0 },
+AnimationPlayRequest D_dryfield_dilapidated_house_80183FFC[2] = {
+    { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_dilapidated_house_80184024 = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184024 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184038 = { { .index = 1 }, 58, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184038 = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_8018404C = { { .index = 1 }, 59, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_8018404C = { { .index = 1 }, 59, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184060 = { { .index = 1 }, 60, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184060 = { { .index = 1 }, 60, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184074 = { { .index = 1 }, 61, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184074 = { { .index = 1 }, 61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184088 = { { .index = 0 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184088 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_8018409C = { { .index = 0 }, 1, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_8018409C = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801840B0 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801840B0 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801840C4 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801840C4 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801840D8[5] = {
-    { { .index = 0 }, 4, 0, 0, 0 },
-    { { .index = 0 }, 5, 0, 0, 0 },
-    { { .index = 0 }, 6, 0, 0, 0 },
-    { { .index = 0 }, 7, 0, 0, 0 },
-    { { .index = 0 }, 8, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_dilapidated_house_801840D8[5] = {
+    { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_dilapidated_house_8018413C = { { .index = 0 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_8018413C = { { .index = 0 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184150 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184150 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184164 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184164 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184178 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184178 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_8018418C = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_8018418C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801841A0 = { { .index = 0 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801841A0 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801841B4 = { { .index = 0 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801841B4 = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801841C8 = { { .index = 0 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801841C8 = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801841DC = { { .index = 0 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801841DC = { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_801841F0 = { { .index = 1 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_801841F0 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184204 = { { .index = 1 }, 1, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184204 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184218[2] = {
-    { { .index = 1 }, 2, 0, 0, 0 },
-    { { .index = 1 }, 3, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_dilapidated_house_80184218[2] = {
+    { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_dilapidated_house_80184240 = { { .index = 1 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184240 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184254 = { { .index = 1 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184254 = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184268 = { { .index = 1 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184268 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_8018427C = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_dilapidated_house_8018427C = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_dilapidated_house_80184290 = { { .index = 1 }, 1, 1, 8, 1 };
+AnimationPlayRequest D_dryfield_dilapidated_house_80184290 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCmdArg D_dryfield_dilapidated_house_801842A4 = { { .loc = { 2, 9 } }, 0 };
 
@@ -1789,7 +1789,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_dryfield_dilapidated_house_80189B74->blend == 0) {
+                    if (D_dryfield_dilapidated_house_80189B74->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);

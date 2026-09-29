@@ -228,9 +228,9 @@ GpAnimSet* D_dryfield_night_water_hole_80180620[1] = {
 
 GpCopyArg D_dryfield_night_water_hole_80180624 = { { .sets = D_dryfield_night_water_hole_80180620 }, 1 };
 
-GpAnimArg D_dryfield_night_water_hole_8018062C = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_water_hole_8018062C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_night_water_hole_80180640 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_water_hole_80180640 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCmdArg D_dryfield_night_water_hole_80180654 = { { .loc = { 3, 32 } }, 0 };
 

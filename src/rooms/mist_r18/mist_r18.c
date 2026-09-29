@@ -583,67 +583,67 @@ GpAnimSet* D_mist_r18_80184F64[11] = {
 
 GpCopyArg D_mist_r18_80184F90 = { { .sets = D_mist_r18_80184F64 }, 11 };
 
-GpAnimArg D_mist_r18_80184F98 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80184F98 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80184FAC = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80184FAC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80184FC0 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80184FC0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80184FD4 = { { .index = 1 }, 50, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80184FD4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80184FE8 = { { .index = 1 }, 51, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80184FE8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80184FFC = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80184FFC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185010 = { { .index = 1 }, 53, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185010 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185024 = { { .index = 1 }, 54, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185024 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185038 = { { .index = 1 }, 55, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185038 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_8018504C = { { .index = 1 }, 56, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_8018504C = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185060 = { { .index = 1 }, 57, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185060 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185074 = { { .ptr = NULL }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185074 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185088 = { { .ptr = NULL }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185088 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_8018509C = { { .ptr = NULL }, 2, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_8018509C = { { .sets = NULL }, 2, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801850B0 = { { .ptr = NULL }, 3, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_801850B0 = { { .sets = NULL }, 3, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801850C4 = { { .ptr = NULL }, 4, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_801850C4 = { { .sets = NULL }, 4, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801850D8 = { { .ptr = NULL }, 5, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_801850D8 = { { .sets = NULL }, 5, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801850EC = { { .ptr = NULL }, 6, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_801850EC = { { .sets = NULL }, 6, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185100 = { { .ptr = NULL }, 7, 0, 1, 0 };
+AnimationPlayRequest D_mist_r18_80185100 = { { .sets = NULL }, 7, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185114 = { { .ptr = NULL }, 8, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_80185114 = { { .sets = NULL }, 8, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185128 = { { .ptr = NULL }, 9, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_80185128 = { { .sets = NULL }, 9, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_8018513C = { { .ptr = NULL }, 10, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_8018513C = { { .sets = NULL }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185150 = { { .ptr = NULL }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185150 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185164 = { { .ptr = NULL }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_80185164 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_80185178 = { { .ptr = NULL }, 2, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_80185178 = { { .sets = NULL }, 2, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_8018518C = { { .ptr = NULL }, 3, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_8018518C = { { .sets = NULL }, 3, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801851A0 = { { .ptr = NULL }, 4, 0, 1, 0 };
+AnimationPlayRequest D_mist_r18_801851A0 = { { .sets = NULL }, 4, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801851B4 = { { .ptr = NULL }, 5, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_801851B4 = { { .sets = NULL }, 5, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801851C8 = { { .ptr = NULL }, 6, 0, 1, 0 };
+AnimationPlayRequest D_mist_r18_801851C8 = { { .sets = NULL }, 6, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801851DC = { { .ptr = NULL }, 7, 1, 6, 0 };
+AnimationPlayRequest D_mist_r18_801851DC = { { .sets = NULL }, 7, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_r18_801851F0 = { { .ptr = NULL }, 8, 0, 0, 0 };
+AnimationPlayRequest D_mist_r18_801851F0 = { { .sets = NULL }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_mist_r18_80185204 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 

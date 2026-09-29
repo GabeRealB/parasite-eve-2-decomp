@@ -35,8 +35,8 @@ extern Actor146000RetainedTaskSeed D_actor_146000_801351FC;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[8];
-        GpAnimArg  arguments[5];
+        GpAnimSet*           sets[8];
+        AnimationPlayRequest arguments[5];
     } data;
     s32 words[33];
 } Actor146000AnimStorage52BC;
@@ -48,8 +48,8 @@ extern Actor146000AnimStorage52BC D_actor_146000_801352BC;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[7];
-        GpAnimArg  arguments[5];
+        GpAnimSet*           sets[7];
+        AnimationPlayRequest arguments[5];
     } data;
     s32 words[32];
 } Actor146000AnimStorage5214;
@@ -61,8 +61,8 @@ extern GpEvsCmd D_actor_146000_80135428[];
 extern GpEvsCmd D_actor_146000_80135980[];
 extern GpEvsCmd D_actor_146000_80135BD8[];
 
-extern GpAnimArg D_actor_146000_80135294;
-extern GpAnimArg D_actor_146000_801352A8;
+extern AnimationPlayRequest D_actor_146000_80135294;
+extern AnimationPlayRequest D_actor_146000_801352A8;
 
 // Retained parameter record; layout follows the adjacent script arguments.
 
@@ -421,24 +421,24 @@ TaskDesc D_actor_146000_80135208 = { 0, 32, func_actor_146000_80131E24, { .model
 
 Actor146000AnimStorage5214 D_actor_146000_80135214 = { .data = { { &D_actor_146000_80133E9C, &D_actor_146000_801342B8, &D_actor_146000_80134474, &D_actor_146000_8013476C, &D_actor_146000_80134A40, &D_actor_146000_80134C60, &D_actor_146000_801351D4 }, { { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 48, 0, 0, 1 }, { { .index = 1 }, 49, 1, 10, 1 }, { { .index = 1 }, 50, 0, 0, 1 }, { { .index = 1 }, 51, 0, 0, 1 } } } };
 
-GpAnimArg D_actor_146000_80135294 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_80135294 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_146000_801352A8 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_801352A8 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 Actor146000AnimStorage52BC D_actor_146000_801352BC = { .data = { { &D_actor_146000_80132324, &D_actor_146000_80132770, &D_actor_146000_80132A98, &D_actor_146000_80133018, &D_actor_146000_801333F8, &D_actor_146000_801336B8, &D_actor_146000_8013390C, &D_actor_146000_80133CC4 }, { { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 48, 0, 0, 1 }, { { .index = 1 }, 49, 0, 0, 1 }, { { .index = 1 }, 50, 0, 0, 1 }, { { .index = 1 }, 51, 0, 0, 1 } } } };
 
-GpAnimArg D_actor_146000_80135340 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_80135340 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_146000_80135354 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_80135354 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_actor_146000_80135368 = { { .index = 1 }, 54, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_80135368 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_146000_8013537C = { { .index = 1 }, 54, 1, 10, 1 };
+AnimationPlayRequest D_actor_146000_8013537C = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_146000_80135390 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_80135390 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_146000_801353A4 = { { .index = 6 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_146000_801353A4 = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCopyArg D_actor_146000_801353B8 = { { .words = D_actor_146000_801352BC.words }, 32 };
 

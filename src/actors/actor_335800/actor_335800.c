@@ -95,8 +95,8 @@ typedef struct Actor335800Pose {
 
 extern Actor335800Pose D_actor_335800_80164F80;
 
-extern TaskDesc  D_actor_335800_80164DE0[];
-extern GpAnimArg D_actor_335800_80164E7C;
+extern TaskDesc             D_actor_335800_80164DE0[];
+extern AnimationPlayRequest D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
 /// `func_actor_335800_801621B4` selects an entry of it by index.
@@ -119,7 +119,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, GpCmdArg*, s32);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
@@ -146,7 +146,7 @@ static void func_actor_335800_80162FFC(Task* task);
 static void func_actor_335800_80163064(Task* task);
 static void func_actor_335800_80163124(Task* task);
 static void func_actor_335800_801631A4(Task* arg0);
-s32         func_actor_335800_801632A4(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+s32         func_actor_335800_801632A4(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 static void func_actor_335800_80163568(Task* task);
 static void func_actor_335800_8016373C(Task* arg0);
 static void func_actor_335800_80163AA0(Task* arg0);
@@ -157,7 +157,7 @@ static void func_actor_335800_80163B78(Task* arg0);
 static void func_actor_335800_80163BE0(Task* task);
 static void func_actor_335800_80163CA0(Task* task);
 static void func_actor_335800_80163D20(Task* arg0);
-s32         func_actor_335800_80163E20(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+s32         func_actor_335800_80163E20(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 /// Spawn, tick and teardown handlers of the two part tasks the parent block
 /// spawns, dispatched by `func_actor_335800_80162E34`.
@@ -215,67 +215,67 @@ void func_actor_335800_80162364(Task*);
 void func_actor_335800_801624DC(Task*);
 void func_actor_335800_80162588(Task*);
 
-extern Actor335800Pose D_actor_335800_80164F80;
-extern GpAnimArg       D_actor_335800_80164E54;
-extern GpAnimArg       D_actor_335800_80164E90;
-extern GpAnimArg       D_actor_335800_80164F44;
-extern GpAnimArg       D_actor_335800_80164F58;
-extern GpAnimArg       D_actor_335800_80164F6C;
-extern GpCmdArg        D_actor_335800_80164FC8;
-extern GpCopyArg       D_actor_335800_80164E24;
-extern GpXformArg      D_actor_335800_80164EA4[5];
-extern GpXformArg      D_actor_335800_80164F98;
-extern GpXformArg      D_actor_335800_80164FB0;
-void                   func_actor_335800_80162040(void);
-void                   func_actor_335800_80162060(void);
-void                   func_actor_335800_80162080(void);
-void                   func_actor_335800_801620C0(void);
-void                   func_actor_335800_801623D8(void);
-void                   func_actor_335800_80162408(void);
-void                   func_actor_335800_801624B8(s32);
-void                   func_actor_335800_80162558(void);
+extern Actor335800Pose      D_actor_335800_80164F80;
+extern AnimationPlayRequest D_actor_335800_80164E54;
+extern AnimationPlayRequest D_actor_335800_80164E90;
+extern AnimationPlayRequest D_actor_335800_80164F44;
+extern AnimationPlayRequest D_actor_335800_80164F58;
+extern AnimationPlayRequest D_actor_335800_80164F6C;
+extern GpCmdArg             D_actor_335800_80164FC8;
+extern GpCopyArg            D_actor_335800_80164E24;
+extern GpXformArg           D_actor_335800_80164EA4[5];
+extern GpXformArg           D_actor_335800_80164F98;
+extern GpXformArg           D_actor_335800_80164FB0;
+void                        func_actor_335800_80162040(void);
+void                        func_actor_335800_80162060(void);
+void                        func_actor_335800_80162080(void);
+void                        func_actor_335800_801620C0(void);
+void                        func_actor_335800_801623D8(void);
+void                        func_actor_335800_80162408(void);
+void                        func_actor_335800_801624B8(s32);
+void                        func_actor_335800_80162558(void);
 
-extern GpAnimArg    D_actor_335800_80164E40;
-extern GpAnimArg    D_actor_335800_80164E7C;
-extern GpAnimArg    D_actor_335800_80164E90;
-extern GpCmdArg     D_actor_335800_8016502C;
-extern GpCmdArg     D_actor_335800_80165038;
-extern GpCmdArg     D_actor_335800_8016503C;
-extern GpCmdArg     D_actor_335800_80165040;
-extern GpCmdArg     D_actor_335800_80165044;
-extern GpCopyArg    D_actor_335800_80164E24;
-extern GpOverlayIds D_actor_335800_80165050;
-extern GpOverlayIds D_actor_335800_80165058;
-extern GpXformArg   D_actor_335800_80164EA4[5];
-s32                 func_actor_335800_80162C80(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
-s32                 func_actor_335800_801632A4(Task*, s32, GpAnimArg*, s32);
-s32                 func_actor_335800_801633C0(Task*, s32, GpXformArg*);
-s32                 func_actor_335800_8016343C(Task*, s32, s32);
-s32                 func_actor_335800_8016354C(Task*, s32, GpCmdArg*, s32);
-s32                 func_actor_335800_80163880(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
-s32                 func_actor_335800_80163E20(Task*, s32, GpAnimArg*, s32);
-s32                 func_actor_335800_80163F3C(Task*, s32, GpXformArg*);
-s32                 func_actor_335800_80163FB8(Task*, s32, s32);
-s32                 func_actor_335800_80164098(void);
-void                func_actor_335800_80162040(void);
-void                func_actor_335800_80162060(void);
-void                func_actor_335800_80162080(void);
-void                func_actor_335800_801620A0(void);
-void                func_actor_335800_801620F0(u8);
-void                func_actor_335800_80162114(void);
-void                func_actor_335800_801621B4(s32);
-void                func_actor_335800_8016224C(void);
-void                func_actor_335800_801622C0(s32);
-void                func_actor_335800_80162408(void);
-void                func_actor_335800_80162428(s8);
-void                func_actor_335800_80162434(s32);
-void                func_actor_335800_80162460(void);
-void                func_actor_335800_80162484(void);
-void                func_actor_335800_801624B8(s32);
-void                func_actor_335800_80162558(void);
-void                func_actor_335800_80162E34(Task*);
-void                func_actor_335800_80162F10(Task*);
-void                func_actor_335800_80163A34(Task*);
+extern AnimationPlayRequest D_actor_335800_80164E40;
+extern AnimationPlayRequest D_actor_335800_80164E7C;
+extern AnimationPlayRequest D_actor_335800_80164E90;
+extern GpCmdArg             D_actor_335800_8016502C;
+extern GpCmdArg             D_actor_335800_80165038;
+extern GpCmdArg             D_actor_335800_8016503C;
+extern GpCmdArg             D_actor_335800_80165040;
+extern GpCmdArg             D_actor_335800_80165044;
+extern GpCopyArg            D_actor_335800_80164E24;
+extern GpOverlayIds         D_actor_335800_80165050;
+extern GpOverlayIds         D_actor_335800_80165058;
+extern GpXformArg           D_actor_335800_80164EA4[5];
+s32                         func_actor_335800_80162C80(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+s32                         func_actor_335800_801632A4(Task*, s32, AnimationPlayRequest*, s32);
+s32                         func_actor_335800_801633C0(Task*, s32, GpXformArg*);
+s32                         func_actor_335800_8016343C(Task*, s32, s32);
+s32                         func_actor_335800_8016354C(Task*, s32, GpCmdArg*, s32);
+s32                         func_actor_335800_80163880(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+s32                         func_actor_335800_80163E20(Task*, s32, AnimationPlayRequest*, s32);
+s32                         func_actor_335800_80163F3C(Task*, s32, GpXformArg*);
+s32                         func_actor_335800_80163FB8(Task*, s32, s32);
+s32                         func_actor_335800_80164098(void);
+void                        func_actor_335800_80162040(void);
+void                        func_actor_335800_80162060(void);
+void                        func_actor_335800_80162080(void);
+void                        func_actor_335800_801620A0(void);
+void                        func_actor_335800_801620F0(u8);
+void                        func_actor_335800_80162114(void);
+void                        func_actor_335800_801621B4(s32);
+void                        func_actor_335800_8016224C(void);
+void                        func_actor_335800_801622C0(s32);
+void                        func_actor_335800_80162408(void);
+void                        func_actor_335800_80162428(s8);
+void                        func_actor_335800_80162434(s32);
+void                        func_actor_335800_80162460(void);
+void                        func_actor_335800_80162484(void);
+void                        func_actor_335800_801624B8(s32);
+void                        func_actor_335800_80162558(void);
+void                        func_actor_335800_80162E34(Task*);
+void                        func_actor_335800_80162F10(Task*);
+void                        func_actor_335800_80163A34(Task*);
 
 AnimationPackedPose D_actor_335800_801640A0[6] = {
 #include "assets/actor_335800_animation_0255C_bank1.inc"
@@ -382,20 +382,20 @@ GpAnimSet* D_actor_335800_80164E10[5] = {
 
 GpCopyArg D_actor_335800_80164E24 = { { .sets = D_actor_335800_80164E10 }, 5 };
 
-GpAnimArg D_actor_335800_80164E2C = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164E2C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_335800_80164E40 = { { .index = 1 }, 48, 1, 20, 0 };
-
-// Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_actor_335800_80164E54 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164E40 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_actor_335800_80164E68 = { { .index = 1 }, 50, 0, 0, 0 };
-
-GpAnimArg D_actor_335800_80164E7C = { { .index = 1 }, 51, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164E54 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_actor_335800_80164E90 = { { .index = 1 }, 9, 0, 0, 1 };
+AnimationPlayRequest D_actor_335800_80164E68 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_335800_80164E7C = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+AnimationPlayRequest D_actor_335800_80164E90 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_actor_335800_80164EA4[5] = {
     { { -7180, -3200, 4310, 0 }, { 0, 1024, 0, 0 } },
@@ -405,16 +405,16 @@ GpXformArg D_actor_335800_80164EA4[5] = {
     { { -6280, -3200, 5570, 0 }, { 0, 2047, 0, 0 } },
 };
 
-GpAnimArg D_actor_335800_80164F1C[2] = {
-    { { .index = 0 }, 1, 0, 0, 0 },
-    { { .index = 0 }, 1, 1, 20, 0 },
+AnimationPlayRequest D_actor_335800_80164F1C[2] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_actor_335800_80164F44 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164F44 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_335800_80164F58 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164F58 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_335800_80164F6C = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164F6C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 Actor335800Pose D_actor_335800_80164F80 = { -4000, 0, 1970, { 0, 0, 0, 0 }, { 0, 2047, 0, 0 } };
 
@@ -424,11 +424,11 @@ GpXformArg D_actor_335800_80164FB0 = { { -6260, 0, 1280, 0 }, { 0, -1024, 0, 0 }
 
 GpCmdArg D_actor_335800_80164FC8 = { { .loc = { 3, 29 } }, 0 };
 
-GpAnimArg D_actor_335800_80164FCC = { 0 };
+AnimationPlayRequest D_actor_335800_80164FCC = { 0 };
 
-GpAnimArg D_actor_335800_80164FE0 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_335800_80164FE0 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_335800_80164FF4 = { { .index = 0 }, 1, 1, 10, 0 };
+AnimationPlayRequest D_actor_335800_80164FF4 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_335800_80165008 = { { -1287, 0, -2750, 0 }, { 0, -1650, 0, 0 } };
 
@@ -1198,8 +1198,8 @@ void func_actor_335800_801624DC(Task* arg0)
 
     if (gGameSession->field_126 != 0) {
         slot = gameGetPtrSlot(3);
-        Gp_PlayerWeaponId(&D_actor_335800_80164E7C.animBlock.index);
-        Gp_DispatchMsgPtr(slot, 0x3E8, &D_actor_335800_80164E7C, 0);
+        Gp_PlayerWeaponId(&D_actor_335800_80164E7C.source.index);
+        Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
         taskKill(arg0);
     }
 }
@@ -1385,7 +1385,7 @@ static void func_actor_335800_80162B3C(Task* arg0)
     SVECTOR              d;
     s32                  dx;
     s32                  dz;
-    GpAnimArg            preset;
+    AnimationPlayRequest preset;
 
     work  = (Actor335800MainWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1402,11 +1402,11 @@ static void func_actor_335800_80162B3C(Task* arg0)
     }
     d.vz = dz;
     if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.animBlock.index = 0;
-        preset.field_4         = work->model.nextAnimId;
-        preset.field_8         = 1;
-        preset.field_C         = 5;
-        preset.field_10        = 0;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_335800_801632A4(arg0, 0x7D3, &preset, 0);
         work->walk.step.vx = 0;
         work->walk.step.vy = 0;
@@ -1423,46 +1423,46 @@ static void func_actor_335800_80162B3C(Task* arg0)
 /// does (inlined here).
 s32 func_actor_335800_80162C80(Task* task, s32 arg1, GpXformArg* place, Actor335800SpawnAnim* anim)
 {
-    Actor335800MainWork* work;
-    Actor335800MainWork* w;
-    GpAnimArg            preset;
-    GpAnimArg*           msg;
-    s32                  i;
-    TmdObject*           ext;
+    Actor335800MainWork*  work;
+    Actor335800MainWork*  w;
+    AnimationPlayRequest  preset;
+    AnimationPlayRequest* msg;
+    s32                   i;
+    TmdObject*            ext;
 
-    w                      = (Actor335800MainWork*)task->work;
-    w->walk.motion         = 1;
-    w->walk.motionStep     = 0;
-    w->walk.target.vx      = place->pos.vx;
-    w->walk.target.vy      = place->pos.vy;
-    w->walk.target.vz      = place->pos.vz;
-    w->walk.rotX           = place->rot.vx;
-    w->walk.rotY           = place->rot.vy;
-    w->walk.rotZ           = place->rot.vz;
-    preset.animBlock.index = 0;
+    w                   = (Actor335800MainWork*)task->work;
+    w->walk.motion      = 1;
+    w->walk.motionStep  = 0;
+    w->walk.target.vx   = place->pos.vx;
+    w->walk.target.vy   = place->pos.vy;
+    w->walk.target.vz   = place->pos.vz;
+    w->walk.rotX        = place->rot.vx;
+    w->walk.rotY        = place->rot.vy;
+    w->walk.rotZ        = place->rot.vz;
+    preset.source.index = 0;
     if (anim != NULL) {
-        preset.field_4      = anim->field_0;
+        preset.animationId  = anim->field_0;
         w->model.nextAnimId = anim->field_4;
     } else {
-        preset.field_4      = 0xD;
+        preset.animationId  = 0xD;
         w->model.nextAnimId = 1;
     }
-    preset.field_8  = 1;
-    preset.field_C  = 5;
-    preset.field_10 = 1;
+    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+    preset.blendFrames          = 5;
+    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
     work = (Actor335800MainWork*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank = msg->source.index;
         func_800B3F84(&work->rig.anim, D_actor_335800_8016EAD8[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
@@ -1624,7 +1624,7 @@ static void func_actor_335800_801631A4(Task* arg0)
     GpMtxWords*          words;
     GfxCoord*            coord;
     SVECTOR              vec;
-    GpAnimArg            preset;
+    AnimationPlayRequest preset;
     s32                  vy;
     s16                  diff;
 
@@ -1641,12 +1641,12 @@ static void func_actor_335800_801631A4(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                 = work->walk.rotY;
-        preset.animBlock.index = 0;
-        preset.field_4         = work->model.nextAnimId;
-        preset.field_8         = 1;
-        preset.field_C         = 5;
-        preset.field_10        = 0;
+        vec.vy                      = work->walk.rotY;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_335800_801632A4(arg0, 0x7D3, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
@@ -1666,7 +1666,7 @@ static void func_actor_335800_801631A4(Task* arg0)
 /// `func_actor_335800_80163E20`: re-seeds the slot array off bank table
 /// `D_actor_335800_8016EAD8` when the preset's bank index changes, then
 /// restarts or resets every slot and ticks them.
-s32 func_actor_335800_801632A4(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+s32 func_actor_335800_801632A4(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor335800MainWork* work;
     TmdObject*           ext;
@@ -1674,15 +1674,15 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor335800MainWork*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank = msg->source.index;
         func_800B3F84(&work->rig.anim, D_actor_335800_8016EAD8[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
@@ -1818,12 +1818,12 @@ static void func_actor_335800_80163568(Task* task)
 /// 0x7D3, clears `step` and advances the state; otherwise records the distance.
 static void func_actor_335800_8016373C(Task* arg0)
 {
-    Actor335800Work* work;
-    GfxCoord*        coord;
-    SVECTOR          d;
-    s32              dx;
-    s32              dz;
-    GpAnimArg        preset;
+    Actor335800Work*     work;
+    GfxCoord*             coord;
+    SVECTOR              d;
+    s32                  dx;
+    s32                  dz;
+    AnimationPlayRequest preset;
 
     work  = (Actor335800Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1840,11 +1840,11 @@ static void func_actor_335800_8016373C(Task* arg0)
     }
     d.vz = dz;
     if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.animBlock.index = 0;
-        preset.field_4         = work->model.nextAnimId;
-        preset.field_8         = 1;
-        preset.field_C         = 5;
-        preset.field_10        = 0;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_335800_80163E20(arg0, 0x7D3, &preset, 0);
         work->walk.step.vx = 0;
         work->walk.step.vy = 0;
@@ -1862,46 +1862,46 @@ static void func_actor_335800_8016373C(Task* arg0)
 /// (inlined here).
 s32 func_actor_335800_80163880(Task* task, s32 arg1, GpXformArg* place, Actor335800SpawnAnim* anim)
 {
-    Actor335800Work* work;
-    Actor335800Work* w;
-    GpAnimArg        preset;
-    GpAnimArg*       msg;
-    s32              i;
-    TmdObject*       ext;
+    Actor335800Work*      work;
+    Actor335800Work*      w;
+    AnimationPlayRequest  preset;
+    AnimationPlayRequest* msg;
+    s32                   i;
+    TmdObject*            ext;
 
-    w                      = (Actor335800Work*)task->work;
-    w->walk.motion         = 1;
-    w->walk.motionStep     = 0;
-    w->walk.target.vx      = place->pos.vx;
-    w->walk.target.vy      = place->pos.vy;
-    w->walk.target.vz      = place->pos.vz;
-    w->walk.rotX           = place->rot.vx;
-    w->walk.rotY           = place->rot.vy;
-    w->walk.rotZ           = place->rot.vz;
-    preset.animBlock.index = 0;
+    w                   = (Actor335800Work*)task->work;
+    w->walk.motion      = 1;
+    w->walk.motionStep  = 0;
+    w->walk.target.vx   = place->pos.vx;
+    w->walk.target.vy   = place->pos.vy;
+    w->walk.target.vz   = place->pos.vz;
+    w->walk.rotX        = place->rot.vx;
+    w->walk.rotY        = place->rot.vy;
+    w->walk.rotZ        = place->rot.vz;
+    preset.source.index = 0;
     if (anim != NULL) {
-        preset.field_4      = anim->field_0;
+        preset.animationId  = anim->field_0;
         w->model.nextAnimId = anim->field_4;
     } else {
-        preset.field_4      = 0xD;
+        preset.animationId  = 0xD;
         w->model.nextAnimId = 1;
     }
-    preset.field_8  = 1;
-    preset.field_C  = 5;
-    preset.field_10 = 1;
+    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+    preset.blendFrames          = 5;
+    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
     work = (Actor335800Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank = msg->source.index;
         func_800B3F84(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x13; i++) {
@@ -2057,13 +2057,13 @@ static void func_actor_335800_80163CA0(Task* task)
 /// `vec`.
 static void func_actor_335800_80163D20(Task* arg0)
 {
-    Actor335800Work* work;
-    GpMtxWords*      words;
-    GfxCoord*        coord;
-    SVECTOR          vec;
-    GpAnimArg        preset;
-    s32              vy;
-    s16              diff;
+    Actor335800Work*     work;
+    GpMtxWords*          words;
+    GfxCoord*             coord;
+    SVECTOR              vec;
+    AnimationPlayRequest preset;
+    s32                  vy;
+    s16                  diff;
 
     coord = arg0->extra.tmd->coords;
     work  = (Actor335800Work*)arg0->work;
@@ -2078,12 +2078,12 @@ static void func_actor_335800_80163D20(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                 = work->walk.rotY;
-        preset.animBlock.index = 0;
-        preset.field_4         = work->model.nextAnimId;
-        preset.field_8         = 1;
-        preset.field_C         = 5;
-        preset.field_10        = 0;
+        vec.vy                      = work->walk.rotY;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_335800_80163E20(arg0, 0x7D3, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
@@ -2103,7 +2103,7 @@ static void func_actor_335800_80163D20(Task* arg0)
 /// `func_actor_335800_801632A4`: re-seeds the slot array off bank table
 /// `D_actor_335800_80172E98` when the preset's bank index changes, then
 /// restarts or resets every slot and ticks them.
-s32 func_actor_335800_80163E20(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+s32 func_actor_335800_80163E20(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor335800Work* work;
     TmdObject*       ext;
@@ -2111,15 +2111,15 @@ s32 func_actor_335800_80163E20(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor335800Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank = msg->source.index;
         func_800B3F84(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x13; i++) {

@@ -68,12 +68,12 @@ typedef struct Actor120500Work {
 STATIC_ASSERT_SIZEOF(Actor120500Work, 0x4CC);
 
 /// Scratch buffer `func_actor_120500_8013241C` fills twice in one tick: as the
-/// `GpAnimArg` it hands the task in pointer slot 3 with message 0x3E8, then as
+/// `AnimationPlayRequest` it hands the task in pointer slot 3 with message 0x3E8, then as
 /// the model's part-1 translation `func_800D7A9C` draws with. The two uses
 /// cannot overlap, and the frame keeps them in one 0x14-byte stack slot.
 typedef union Actor120500Args {
-    /* 0x0 */ GpAnimArg msg; // message 0x3E8 payload
-    /* 0x0 */ VECTOR    pos; // model part-1 translation
+    /* 0x0 */ AnimationPlayRequest msg; // message 0x3E8 payload
+    /* 0x0 */ VECTOR               pos; // model part-1 translation
 } Actor120500Args;
 
 /// The actor task, published by `func_actor_120500_801322A0` so the setters,
@@ -110,7 +110,7 @@ extern Actor120500MessageEntry D_actor_120500_80138408[2];
 /// (`gDisplayState.control.flags.flipMode`).
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
-/// `GpAnimArg::animBlock`; the messages select sets 0, 1 and 2 of it.
+/// `AnimationPlayRequest::source`; the messages select sets 0, 1 and 2 of it.
 extern GpAnimSet* D_actor_120500_8013807C[];
 
 /// Placement records sent to that same task as message 0x3E9, passed by
@@ -415,15 +415,15 @@ void func_actor_120500_80131E58(Task* arg0)
 /// other code, 0 and 1 included, just clears the request.
 static void func_actor_120500_80132028(Task* arg0)
 {
-    Actor120500Work* work;
-    Actor120500Work* w;
-    Actor120500Work* w2;
-    Actor120500Work* w3;
-    SVECTOR          vec;
-    GpAnimArg        msg;
-    GpAnimArg*       p;
-    s32              anim;
-    s32              base;
+    Actor120500Work*      work;
+    Actor120500Work*      w;
+    Actor120500Work*      w2;
+    Actor120500Work*      w3;
+    SVECTOR               vec;
+    AnimationPlayRequest  msg;
+    AnimationPlayRequest* p;
+    s32                   anim;
+    s32                   base;
 
     work = (Actor120500Work*)arg0->work;
     if (work->field_4B4 != NULL) {
@@ -443,12 +443,12 @@ static void func_actor_120500_80132028(Task* arg0)
                     w3 = (Actor120500Work*)arg0->work;
                     p  = &msg;
                     if (w3->field_4B4 != NULL) {
-                        msg.animBlock.ptr = D_actor_120500_8013807C;
-                        msg.field_4       = 0;
-                        msg.field_8       = 0;
-                        msg.field_C       = 0;
-                        p->field_10       = 1;
-                        Gp_DispatchMsgPtr(w3->field_4B4, 0x3F4, p, 0);
+                        msg.source.sets         = D_actor_120500_8013807C;
+                        msg.animationId         = 0;
+                        msg.blend               = ANIMATION_BLEND_RESET;
+                        msg.blendFrames         = 0;
+                        p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                        Gp_DispatchMsgPtr(w3->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
                     }
                     work->field_4BA = work->field_4BA + 1;
                     /* fallthrough */
@@ -467,24 +467,24 @@ static void func_actor_120500_80132028(Task* arg0)
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
-                msg.animBlock.ptr = D_actor_120500_8013807C;
-                p->field_4        = 1;
-                msg.field_8       = 0;
-                msg.field_C       = 0;
-                p->field_10       = 1;
-                Gp_DispatchMsgPtr(w2->field_4B4, 0x3F4, p, 0);
+                msg.source.sets         = D_actor_120500_8013807C;
+                p->animationId          = 1;
+                msg.blend               = ANIMATION_BLEND_RESET;
+                msg.blendFrames         = 0;
+                p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
             }
             break;
         case 4:
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
-                msg.animBlock.ptr = D_actor_120500_8013807C;
-                p->field_4        = 2;
-                p->field_8        = 1;
-                p->field_C        = 8;
-                p->field_10       = 1;
-                Gp_DispatchMsgPtr(w2->field_4B4, 0x3F4, p, 0);
+                msg.source.sets         = D_actor_120500_8013807C;
+                p->animationId          = 2;
+                p->blend                = ANIMATION_BLEND_INTERPOLATE;
+                p->blendFrames          = 8;
+                p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
             }
             break;
         case 5:
@@ -497,12 +497,12 @@ static void func_actor_120500_80132028(Task* arg0)
             } else {
                 anim = base + 0x22;
             }
-            msg.animBlock.index = anim;
-            msg.field_4         = 1;
-            msg.field_8         = 0;
-            msg.field_C         = 0;
-            msg.field_10        = 0;
-            Gp_DispatchMsgPtr(work->field_4B4, 0x3E8, &msg, 0);
+            msg.source.index         = anim;
+            msg.animationId          = 1;
+            msg.blend                = ANIMATION_BLEND_RESET;
+            msg.blendFrames          = 0;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
     }
     work->field_4B8 = 0;
@@ -560,7 +560,7 @@ static void func_actor_120500_801322A0(Task* arg0)
     arg0->msgTable = D_actor_120500_80138408;
     i              = 1;
     do {
-        slotsWork->rig.slots[(u16)i].rate = 0x10;
+        slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
@@ -605,12 +605,12 @@ void func_actor_120500_8013241C(Task* arg0)
                 } else {
                     anim = anim + 0x22;
                 }
-                args.msg.animBlock.index = anim;
-                args.msg.field_4         = 1;
-                args.msg.field_8         = 1;
-                args.msg.field_C         = 10;
-                args.msg.field_10        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &args.msg, 0);
+                args.msg.source.index         = anim;
+                args.msg.animationId          = 1;
+                args.msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+                args.msg.blendFrames          = 10;
+                args.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &args.msg, 0);
                 func_800E3FAC(0xA2, 0xD);
                 func_800E8634(D_actor_120500_801380D8, 0, D_actor_120500_80138318);
                 arg0->state += 1;
@@ -804,10 +804,10 @@ void func_actor_120500_80132900(s16 arg0)
 /// as message 0x3E9, with the override vector cleared in between.
 void func_actor_120500_80132920(void)
 {
-    Task*            actor;
-    Actor120500Work* work;
-    Actor120500Work* animWork;
-    GpAnimArg        msg;
+    Task*                actor;
+    Actor120500Work*     work;
+    Actor120500Work*     animWork;
+    AnimationPlayRequest msg;
 
     actor = D_actor_120500_80138454;
     work  = actor->work;
@@ -818,12 +818,12 @@ void func_actor_120500_80132920(void)
     work->field_4C8 = 0;
     animWork        = actor->work;
     if (animWork->field_4B4 != NULL) {
-        msg.animBlock.ptr = D_actor_120500_8013807C;
-        msg.field_4       = 2;
-        msg.field_8       = 0;
-        msg.field_C       = 0;
-        msg.field_10      = 1;
-        Gp_DispatchMsgPtr(animWork->field_4B4, 0x3F4, &msg, 0);
+        msg.source.sets          = D_actor_120500_8013807C;
+        msg.animationId          = 2;
+        msg.blend                = ANIMATION_BLEND_RESET;
+        msg.blendFrames          = 0;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(animWork->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
     work = actor->work;
     Gp_SetOverrideVec(NULL);

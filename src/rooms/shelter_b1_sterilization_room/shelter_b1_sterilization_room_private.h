@@ -21,17 +21,17 @@ extern s32 D_shelter_b1_sterilization_room_8018C340;
 
 extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885AC;
+extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885AC;
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885C0;
+extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885C0;
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885D4;
+extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885D4;
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885E8;
+extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885E8;
 
-extern GpAnimArg D_shelter_b1_sterilization_room_801885FC;
+extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885FC;
 
-extern GpAnimArg D_shelter_b1_sterilization_room_80188610;
+extern AnimationPlayRequest D_shelter_b1_sterilization_room_80188610;
 
 extern GpXformArg D_shelter_b1_sterilization_room_80188638;
 

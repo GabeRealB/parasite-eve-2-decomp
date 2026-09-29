@@ -25,8 +25,8 @@
 // Typed fields and the copy view cover the complete retained allocation.
 typedef union {
     struct {
-        GpAnimSet* sets[13];
-        GpAnimArg  arguments[14];
+        GpAnimSet*           sets[13];
+        AnimationPlayRequest arguments[14];
     } data;
     s32 words[83];
 } Actor142900AnimStorage7618;
@@ -37,8 +37,8 @@ extern Actor142900AnimStorage7618 D_actor_142900_80137618;
 // Typed fields and the copy view cover the complete retained allocation.
 typedef union {
     struct {
-        GpAnimSet* sets[10];
-        GpAnimArg  arguments[13];
+        GpAnimSet*           sets[10];
+        AnimationPlayRequest arguments[13];
     } data;
     s32 words[75];
 } Actor142900AnimStorage7764;

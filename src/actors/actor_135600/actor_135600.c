@@ -61,7 +61,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, GpXformArg*, Actor135600SpawnAnim*);
         s32 (*call3)(Task*, s32, GpXformArg*, s32);
         s32 (*call4)(Task*, s32, s32, s32);
@@ -86,7 +86,7 @@ static void func_actor_135600_80132E00(Task* task);
 static void func_actor_135600_80132E68(Task* task);
 static void func_actor_135600_80132F28(Task* task);
 static void func_actor_135600_80132FA8(Task* task);
-s32         func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg3);
+s32         func_actor_135600_801330A8(Task* task, s32 msgId, AnimationPlayRequest* preset, s32 arg3);
 s32         func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3);
 s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
 
@@ -150,7 +150,7 @@ extern TmdSource D_actor_135600_801382E8;
 extern TmdSource D_actor_135600_801387D8;
 extern TmdSource D_actor_135600_80138AE8;
 s32              func_actor_135600_8013282C(Task*, s32, GpXformArg*, Actor135600SpawnAnim*);
-s32              func_actor_135600_801330A8(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_135600_801330A8(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_135600_801331C4(Task*, s32, GpXformArg*, s32);
 s32              func_actor_135600_80133240(Task*, s32, s32, s32);
 s32              func_actor_135600_8013336C(void);
@@ -782,10 +782,10 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
 /// steps to the tick state.
 static void func_actor_135600_80132234(Task* task)
 {
-    Actor135600Work* work;
-    Task*            spawned;
-    GpXformArg       args;
-    GpAnimArg        preset;
+    Actor135600Work*     work;
+    Task*                spawned;
+    GpXformArg           args;
+    AnimationPlayRequest preset;
 
     work = (Actor135600Work*)memCalloc(0x50C, false);
     if (work == NULL) {
@@ -827,9 +827,9 @@ static void func_actor_135600_80132234(Task* task)
     args.rot.vz = 0;
     func_actor_135600_801331C4(task, 0x7D4, &args, 0);
 
-    preset.animBlock.index = 0;
-    preset.field_4         = 2;
-    preset.field_8         = 0;
+    preset.source.index = 0;
+    preset.animationId  = 2;
+    preset.blend        = ANIMATION_BLEND_RESET;
     func_actor_135600_801330A8(task, 0x7D3, &preset, 0);
 
     func_actor_135600_80133240(task, 0x7D5, 1, 0);
@@ -899,12 +899,12 @@ static void func_actor_135600_801324D0(Task* arg0)
 /// advances `walk.motionStep`; otherwise records the distances as the new `limit`.
 static void func_actor_135600_801326E8(Task* arg0)
 {
-    Actor135600Work* work;
-    GfxCoord*        coord;
-    SVECTOR          d;
-    s32              dx;
-    s32              dz;
-    GpAnimArg        preset;
+    Actor135600Work*     work;
+    GfxCoord*             coord;
+    SVECTOR              d;
+    s32                  dx;
+    s32                  dz;
+    AnimationPlayRequest preset;
 
     work  = (Actor135600Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -921,11 +921,11 @@ static void func_actor_135600_801326E8(Task* arg0)
     }
     d.vz = dz;
     if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.animBlock.index = 0;
-        preset.field_4         = work->model.nextAnimId;
-        preset.field_8         = 1;
-        preset.field_C         = 5;
-        preset.field_10        = 0;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_135600_801330A8(arg0, 0x7D3, &preset, 0);
         work->walk.step.vx = 0;
         work->walk.step.vy = 0;
@@ -944,45 +944,45 @@ static void func_actor_135600_801326E8(Task* arg0)
 /// `func_actor_135600_801330A8` written out inline. Returns 0.
 s32 func_actor_135600_8013282C(Task* task, s32 arg1, GpXformArg* place, Actor135600SpawnAnim* anim)
 {
-    Actor135600Work* work;
-    Actor135600Work* w;
-    GpAnimArg        preset;
-    GpAnimArg*       msg;
-    s32              i;
-    TmdObject*       ext;
+    Actor135600Work*      work;
+    Actor135600Work*      w;
+    AnimationPlayRequest  preset;
+    AnimationPlayRequest* msg;
+    s32                   i;
+    TmdObject*            ext;
 
-    w                      = (Actor135600Work*)task->work;
-    w->walk.motion         = 1;
-    w->walk.motionStep     = 0;
-    w->walk.target.vx      = place->pos.vx;
-    w->walk.target.vy      = place->pos.vy;
-    w->walk.target.vz      = place->pos.vz;
-    w->walk.rotX           = place->rot.vx;
-    w->walk.rotY           = place->rot.vy;
-    w->walk.rotZ           = place->rot.vz;
-    preset.animBlock.index = 0;
+    w                   = (Actor135600Work*)task->work;
+    w->walk.motion      = 1;
+    w->walk.motionStep  = 0;
+    w->walk.target.vx   = place->pos.vx;
+    w->walk.target.vy   = place->pos.vy;
+    w->walk.target.vz   = place->pos.vz;
+    w->walk.rotX        = place->rot.vx;
+    w->walk.rotY        = place->rot.vy;
+    w->walk.rotZ        = place->rot.vz;
+    preset.source.index = 0;
     if (anim != NULL) {
-        preset.field_4      = anim->field_0;
+        preset.animationId  = anim->field_0;
         w->model.nextAnimId = anim->field_4;
     } else {
-        preset.field_4      = 0xD;
+        preset.animationId  = 0xD;
         w->model.nextAnimId = 1;
     }
-    preset.field_8  = 1;
-    preset.field_C  = 5;
-    preset.field_10 = 1;
+    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+    preset.blendFrames          = 5;
+    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
     work = (Actor135600Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank = msg->source.index;
         func_800B3F84(&work->rig.anim, D_actor_135600_8013B0C0[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
@@ -1252,13 +1252,13 @@ static void func_actor_135600_80132F28(Task* task)
 /// the root coordinate is rebuilt as the identity matrix rotated by `vec`.
 static void func_actor_135600_80132FA8(Task* arg0)
 {
-    Actor135600Work* work;
-    GpMtxWords*      words;
-    GfxCoord*        coord;
-    SVECTOR          vec;
-    GpAnimArg        preset;
-    s32              vy;
-    s16              diff;
+    Actor135600Work*     work;
+    GpMtxWords*          words;
+    GfxCoord*             coord;
+    SVECTOR              vec;
+    AnimationPlayRequest preset;
+    s32                  vy;
+    s16                  diff;
 
     coord = arg0->extra.tmd->coords;
     work  = (Actor135600Work*)arg0->work;
@@ -1273,12 +1273,12 @@ static void func_actor_135600_80132FA8(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                 = work->walk.rotY;
-        preset.animBlock.index = 0;
-        preset.field_4         = work->model.nextAnimId;
-        preset.field_8         = 1;
-        preset.field_C         = 5;
-        preset.field_10        = 0;
+        vec.vy                      = work->walk.rotY;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_135600_801330A8(arg0, 0x7D3, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
@@ -1299,7 +1299,7 @@ static void func_actor_135600_80132FA8(Task* arg0)
 /// preset's bank index changes, then stores the animation id and restarts or
 /// resets every slot with it and ticks them, latching `model.ticking`. The
 /// animation is reinstalled even when the id is unchanged. Returns 0.
-s32 func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
+s32 func_actor_135600_801330A8(Task* task, s32 msgId, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor135600Work* work;
     TmdObject*       ext;
@@ -1307,14 +1307,14 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
 
     work = (Actor135600Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank = msg->source.index;
         func_800B3F84(&work->rig.anim, D_actor_135600_8013B0C0[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

@@ -173,13 +173,13 @@ extern GpRoomCoordSet D_dryfield_main_street_80185588[1];
 
 extern TaskDesc D_8014D8A4;
 
-extern GpAnimArg  D_dryfield_main_street_801815AC;
-extern GpAnimArg  D_dryfield_main_street_801815C0;
-extern GpAnimArg  D_dryfield_main_street_801815D4;
-extern GpXformArg D_dryfield_main_street_801815E8;
-void              func_dryfield_main_street_8017E2F4(s32);
-void              func_dryfield_main_street_8017E320(void);
-void              func_dryfield_main_street_8017E354(s32);
+extern AnimationPlayRequest D_dryfield_main_street_801815AC;
+extern AnimationPlayRequest D_dryfield_main_street_801815C0;
+extern AnimationPlayRequest D_dryfield_main_street_801815D4;
+extern GpXformArg           D_dryfield_main_street_801815E8;
+void                        func_dryfield_main_street_8017E2F4(s32);
+void                        func_dryfield_main_street_8017E320(void);
+void                        func_dryfield_main_street_8017E354(s32);
 
 extern DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584;
 s32                                      func_dryfield_main_street_8017DA6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -261,13 +261,13 @@ TaskDesc D_dryfield_main_street_8018156C[2] = {
 
 DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584 = { .data = { { NULL, &D_dryfield_main_street_801811B0, &D_dryfield_main_street_80181544 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };
 
-GpAnimArg D_dryfield_main_street_80181598 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_main_street_801815AC = { { .index = 1 }, 48, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_main_street_801815AC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_main_street_801815C0 = { { .index = 1 }, 49, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_main_street_801815C0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_main_street_801815D4 = { { .index = 1 }, 9, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_main_street_801815D4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_main_street_801815E8 = { { -2237, 0, -2100, 0 }, { 0, 0, 0, 0 } };
 

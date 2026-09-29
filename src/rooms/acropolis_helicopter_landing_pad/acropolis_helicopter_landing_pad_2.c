@@ -820,8 +820,8 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D8, 0x28, &spawned);
             Gp_DispatchMsgPtr(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
-            D_acropolis_helicopter_landing_pad_80184E3C.field_4         = 9;
-            D_acropolis_helicopter_landing_pad_80184E3C.animBlock.index = Player_Status.weapon + 1;
+            D_acropolis_helicopter_landing_pad_80184E3C.animationId  = 9;
+            D_acropolis_helicopter_landing_pad_80184E3C.source.index = Player_Status.weapon + 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = spawned->extra.tmd->coords;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F5, coord, 0);

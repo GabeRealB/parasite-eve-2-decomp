@@ -127,13 +127,6 @@ STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
 extern s16              D_actor_403100_80155810;
 extern Actor403100Entry D_actor_403100_80155814[28];
 
-/// Eight animation-set pointers passed to slot 3 in message 0x3FF.
-/// Entry 4 is replaced by entry 7 of the selected player animation block.
-typedef struct Actor403100AnimTable {
-    /* 0x00 */ GpAnimSet* sets[8];
-} Actor403100AnimTable;
-STATIC_ASSERT_SIZEOF(Actor403100AnimTable, 0x20);
-
 /// The word at `Actor403100Work::field_664`, which the overlay reads both as a
 /// whole word and as four separate bytes: `func_actor_403100_8013D2A0` gates a
 /// new request on `word & 0xFFFF00` (the two bytes at 0x665 / 0x666) being
@@ -3119,7 +3112,8 @@ Actor403100MessageEntry D_actor_403100_801556EC[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-Actor403100AnimTable D_actor_403100_8015570C = { { NULL, &D_actor_403100_8014CD6C, &D_actor_403100_8014D994, &D_actor_403100_8014DACC, NULL, &D_actor_403100_8014EC10, &D_actor_403100_8014E060, &D_actor_403100_8014F70C } };
+/// Borrowed player animation table with a dynamically selected clip in entry four.
+static GpAnimSet* _gActor403100PlayerAnimationSets[8] = { NULL, &D_actor_403100_8014CD6C, &D_actor_403100_8014D994, &D_actor_403100_8014DACC, NULL, &D_actor_403100_8014EC10, &D_actor_403100_8014E060, &D_actor_403100_8014F70C };
 
 GpAnimSet* D_actor_403100_8015572C[26] = {
     NULL,
@@ -3201,8 +3195,6 @@ extern Actor403100MessageEntry D_actor_403100_801556EC[4];
 extern GpAnimSet* D_actor_403100_8015572C[26];
 
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
-
-extern Actor403100AnimTable D_actor_403100_8015570C;
 
 extern u8 D_80165FC0;
 
@@ -8021,18 +8013,18 @@ static void func_actor_403100_8013D11C(Task* arg0)
 }
 static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {
-    GpAnimArg msg;
+    AnimationPlayRequest msg;
 
-    msg.animBlock.ptr                  = &D_actor_403100_8015570C;
-    msg.field_4                        = (s32)arg0;
-    msg.field_8                        = 0;
-    msg.field_C                        = 0;
-    msg.field_10                       = 0;
+    msg.source.sets                    = _gActor403100PlayerAnimationSets;
+    msg.animationId                    = (s32)arg0;
+    msg.blend                          = ANIMATION_BLEND_RESET;
+    msg.blendFrames                    = 0;
+    msg.enableWorldCollision           = ANIMATION_WORLD_COLLISION_DISABLE;
     D_actor_403100_80155808->field_65D = (s8)arg0;
     if (arg1 == 0x3FF) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     } else if (arg1 == 0x3F4) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 static void func_actor_403100_8013D24C(void)
@@ -8391,16 +8383,16 @@ static void func_actor_403100_8013E174(void)
 }
 static void func_actor_403100_8013E1E4(void)
 {
-    GpAnimArg sp;
+    AnimationPlayRequest sp;
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        D_actor_403100_8015570C.sets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[7];
-        sp.animBlock.ptr                = &D_actor_403100_8015570C;
-        sp.field_8                      = 1;
-        sp.field_C                      = 3;
-        sp.field_10                     = 0;
-        sp.field_4                      = 4;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &sp, 0);
+        _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+        sp.source.sets                      = _gActor403100PlayerAnimationSets;
+        sp.blend                            = ANIMATION_BLEND_INTERPOLATE;
+        sp.blendFrames                      = 3;
+        sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
+        sp.animationId                      = 4;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
         D_actor_403100_80155808->field_5F2 = 3;
     }
 }

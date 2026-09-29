@@ -268,8 +268,8 @@ extern Actor560800PartPose D_actor_560800_80175614[];
 /// and read by the sub-task handlers.
 extern Task* D_actor_560800_8017578C;
 
-/// Animation block `func_actor_560800_80136378` points the `animBlock` of its
-/// `GpAnimArg` at when it sends message 0x3F4 - the same role
+/// Animation block `func_actor_560800_80136378` points the `source.sets` of its
+/// `AnimationPlayRequest` at when it sends message 0x3F4 - the same role
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern GpAnimSet* D_actor_560800_8016EA40[13];
 
@@ -4239,13 +4239,13 @@ void func_actor_560800_801321A0(Task* task)
 
 static s32 func_actor_560800_80132340(Task* arg0)
 {
-    Actor560800Work* work;
-    ActorAnimStep*   table;
-    ActorAnimStep*   entry;
-    ActorAnimStep*   entry2;
-    GpAnimArg        msg;
-    u16              anim;
-    u16              anim2;
+    Actor560800Work*     work;
+    ActorAnimStep*       table;
+    ActorAnimStep*       entry;
+    ActorAnimStep*       entry2;
+    AnimationPlayRequest msg;
+    u16                  anim;
+    u16                  anim2;
 
     work = (Actor560800Work*)arg0->work;
     if (work->field_0 == NULL) {
@@ -4258,14 +4258,14 @@ static s32 func_actor_560800_80132340(Task* arg0)
             if (entry->animId < 0) {
                 return 1;
             }
-            anim              = entry->animId;
-            msg.animBlock.ptr = D_actor_560800_8016EA40;
-            work->field_60    = anim;
-            msg.field_4       = anim;
-            msg.field_8       = 1;
-            msg.field_C       = 0xA;
-            msg.field_10      = 1;
-            Gp_DispatchMsgPtr(work->field_0, 0x3F4, &msg, 0);
+            anim                     = entry->animId;
+            msg.source.sets          = D_actor_560800_8016EA40;
+            work->field_60           = anim;
+            msg.animationId          = anim;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 0xA;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(work->field_0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             work->field_62 = 0;
         } else {
             work->field_62 += 1;
@@ -4280,14 +4280,14 @@ static s32 func_actor_560800_80132340(Task* arg0)
         }
         work = (Actor560800Work*)arg0->work;
         if (work->field_0 != NULL) {
-            anim2             = entry2->animId;
-            msg.animBlock.ptr = D_actor_560800_8016EA40;
-            work->field_60    = anim2;
-            msg.field_4       = anim2;
-            msg.field_8       = 1;
-            msg.field_C       = 0xA;
-            msg.field_10      = 1;
-            Gp_DispatchMsgPtr(work->field_0, 0x3F4, &msg, 0);
+            anim2                    = entry2->animId;
+            msg.source.sets          = D_actor_560800_8016EA40;
+            work->field_60           = anim2;
+            msg.animationId          = anim2;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 0xA;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(work->field_0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             work->field_62 = 0;
         }
     }
@@ -4942,36 +4942,36 @@ void func_actor_560800_80133750(s32 arg0)
 
 static inline void Actor560800_PlayAnim(Task* task, u16 anim)
 {
-    Actor560800Work* work;
-    GpAnimArg        msg;
+    Actor560800Work*     work;
+    AnimationPlayRequest msg;
 
     work = (Actor560800Work*)task->work;
     if (work->field_0 != NULL) {
-        msg.animBlock.ptr = D_actor_560800_8016EA40;
-        work->field_60    = anim;
-        msg.field_4       = anim;
-        msg.field_8       = 0;
-        msg.field_C       = 0;
-        msg.field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_0, 0x3F4, &msg, 0);
+        msg.source.sets          = D_actor_560800_8016EA40;
+        work->field_60           = anim;
+        msg.animationId          = anim;
+        msg.blend                = ANIMATION_BLEND_RESET;
+        msg.blendFrames          = 0;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         work->field_62 = 0;
     }
 }
 
 static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC)
 {
-    Actor560800Work* work;
-    GpAnimArg        msg;
+    Actor560800Work*     work;
+    AnimationPlayRequest msg;
 
     work = (Actor560800Work*)task->work;
     if (work->field_0 != NULL) {
-        msg.animBlock.ptr = D_actor_560800_8016EA40;
-        work->field_60    = anim;
-        msg.field_4       = anim;
-        msg.field_8       = 1;
-        msg.field_C       = argC;
-        msg.field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_0, 0x3F4, &msg, 0);
+        msg.source.sets          = D_actor_560800_8016EA40;
+        work->field_60           = anim;
+        msg.animationId          = anim;
+        msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+        msg.blendFrames          = argC;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         work->field_62 = 0;
     }
 }
@@ -4987,7 +4987,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     msg[2] = 0;
     msg[3] = 0;
     msg[4] = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
 }
 
 static inline void Actor560800_PlaySeB(s32 arg4)
@@ -5001,7 +5001,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     msg[2] = 1;
     msg[3] = 0xA;
     msg[4] = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
 }
 
 static inline void Actor560800_SpawnSparksA(Task* task)
@@ -5757,7 +5757,7 @@ void func_actor_560800_80135D54(Task* arg0)
                 msg[2] = 0;
                 msg[3] = 0;
                 msg[4] = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
                 Task_RequestKill(arg0, 0);
                 return;
             }
@@ -5946,20 +5946,20 @@ void func_actor_560800_80136358(s16 arg0)
 /// keeps the raw halfword argument, so the two uses do not share a register.
 void func_actor_560800_80136378(s16 arg0)
 {
-    Actor560800Work* work;
-    GpAnimArg        msg;
-    u16              anim;
+    Actor560800Work*     work;
+    AnimationPlayRequest msg;
+    u16                  anim;
 
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     if (work->field_0 != NULL) {
-        anim              = arg0;
-        msg.animBlock.ptr = D_actor_560800_8016EA40;
-        work->field_60    = arg0;
-        msg.field_4       = anim;
-        msg.field_8       = 1;
-        msg.field_C       = 0xA;
-        msg.field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_0, 0x3F4, &msg, 0);
+        anim                     = arg0;
+        msg.source.sets          = D_actor_560800_8016EA40;
+        work->field_60           = arg0;
+        msg.animationId          = anim;
+        msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+        msg.blendFrames          = 0xA;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         work->field_62 = 0;
     }
 }
@@ -6507,7 +6507,7 @@ void func_actor_560800_80137820(Task* arg0)
             id   = work->field_280;
             anim = (Actor560800ModelWork*)arg0->work;
             do {
-                anim->slots[i & 0xFFFF].rate = 0x10;
+                anim->slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
                 Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, id);
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);

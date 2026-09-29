@@ -24,8 +24,8 @@ STATIC_ASSERT_SIZEOF(Actor142600RetainedTaskSeed, 12);
 // animation arguments in their backing allocation, as the original copies do.
 typedef union {
     struct {
-        GpAnimSet* sets[7];
-        GpAnimArg  arguments[8];
+        GpAnimSet*           sets[7];
+        AnimationPlayRequest arguments[8];
     } data;
     s32 words[47];
 } Actor142600AnimationBankA;
@@ -33,8 +33,8 @@ STATIC_ASSERT_SIZEOF(Actor142600AnimationBankA, 188);
 
 typedef union {
     struct {
-        GpAnimSet* sets[13];
-        GpAnimArg  arguments[17];
+        GpAnimSet*           sets[13];
+        AnimationPlayRequest arguments[17];
     } data;
     s32 words[98];
 } Actor142600AnimationBankB;

@@ -67,7 +67,7 @@ static void func_actor_443500_80132594(Task* task);
 static void func_actor_443500_801326A0(Task* task);
 static void func_actor_443500_801327A4(Task* arg0);
 static void func_actor_443500_801327C4(Task* task);
-s32         func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32         func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
 s32         func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3);
 static void func_actor_443500_80132A68(s32 arg0);
 
@@ -86,7 +86,7 @@ static const TaskFuncTable3 D_actor_443500_80131E30 = {
 extern TaskDesc D_actor_443500_80140E38;
 
 /// Default animation arguments, 0x14 bytes: `{ NULL, 0x1C, 1, 4, 0 }`.
-extern GpAnimArg D_actor_443500_80158728;
+extern AnimationPlayRequest D_actor_443500_80158728;
 
 /// The actor's two-entry `TaskDesc` table; the spawn handler starts entry 1.
 extern TaskDesc D_actor_443500_8015873C[];
@@ -98,7 +98,7 @@ extern TaskDesc D_actor_443500_8015873C[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32, s32);
     } handler;
@@ -122,52 +122,52 @@ extern GpGridFace D_actor_443500_801587B4[2];
 extern SVECTOR    D_actor_443500_80158774[2];
 extern SVECTOR    D_actor_443500_80158784[6];
 
-extern GpAnimArg  D_actor_443500_80140E8C;
-extern GpAnimArg  D_actor_443500_80140EA0;
-extern GpAnimArg  D_actor_443500_80140EB4;
-extern GpAnimArg  D_actor_443500_80140EC8;
-extern GpAnimArg  D_actor_443500_80140EDC;
-extern GpAnimArg  D_actor_443500_80140EF0;
-extern GpAnimArg  D_actor_443500_80140F04;
-extern GpAnimArg  D_actor_443500_80140F18;
-extern GpAnimArg  D_actor_443500_80140F2C;
-extern GpAnimArg  D_actor_443500_80140F40;
-extern GpAnimArg  D_actor_443500_80141004;
-extern GpAnimArg  D_actor_443500_80141018;
-extern GpAnimArg  D_actor_443500_8014102C;
-extern GpAnimArg  D_actor_443500_80141040;
-extern GpAnimArg  D_actor_443500_80141054;
-extern GpAnimArg  D_actor_443500_80141068;
-extern GpAnimArg  D_actor_443500_80141090;
-extern GpAnimArg  D_actor_443500_801410A4;
-extern GpAnimArg  D_actor_443500_801410B8;
-extern GpAnimArg  D_actor_443500_801410CC;
-extern GpAnimArg  D_actor_443500_801410E0;
-extern GpAnimArg  D_actor_443500_801410F4;
-extern GpAnimArg  D_actor_443500_80141108;
-extern GpAnimArg  D_actor_443500_8014111C;
-extern GpAnimArg  D_actor_443500_80141130;
-extern GpAnimArg  D_actor_443500_80141144;
-extern GpAnimArg  D_actor_443500_80141158;
-extern GpAnimArg  D_actor_443500_8014116C;
-extern GpAnimArg  D_actor_443500_80141180;
-extern GpAnimArg  D_actor_443500_801411A8;
-extern GpAnimArg  D_actor_443500_801411BC;
-extern GpAnimArg  D_actor_443500_801411D0;
-extern GpCopyArg  D_actor_443500_80140E70;
-extern GpCopyArg  D_actor_443500_80140FE8;
-extern GpXformArg D_actor_443500_80140F54;
-extern GpXformArg D_actor_443500_80140F6C;
-extern GpXformArg D_actor_443500_801411E4;
-extern GpXformArg D_actor_443500_801411FC;
-void              func_actor_443500_80131E3C(s32);
-void              func_actor_443500_80131E84(s32);
-void              func_actor_443500_80131EE4(void);
-void              func_actor_443500_80131F18(void);
-void              func_actor_443500_80131F58(void);
-void              func_actor_443500_8013201C(s16);
-void              func_actor_443500_80132048(void);
-void              func_actor_443500_8013206C(s8);
+extern AnimationPlayRequest D_actor_443500_80140E8C;
+extern AnimationPlayRequest D_actor_443500_80140EA0;
+extern AnimationPlayRequest D_actor_443500_80140EB4;
+extern AnimationPlayRequest D_actor_443500_80140EC8;
+extern AnimationPlayRequest D_actor_443500_80140EDC;
+extern AnimationPlayRequest D_actor_443500_80140EF0;
+extern AnimationPlayRequest D_actor_443500_80140F04;
+extern AnimationPlayRequest D_actor_443500_80140F18;
+extern AnimationPlayRequest D_actor_443500_80140F2C;
+extern AnimationPlayRequest D_actor_443500_80140F40;
+extern AnimationPlayRequest D_actor_443500_80141004;
+extern AnimationPlayRequest D_actor_443500_80141018;
+extern AnimationPlayRequest D_actor_443500_8014102C;
+extern AnimationPlayRequest D_actor_443500_80141040;
+extern AnimationPlayRequest D_actor_443500_80141054;
+extern AnimationPlayRequest D_actor_443500_80141068;
+extern AnimationPlayRequest D_actor_443500_80141090;
+extern AnimationPlayRequest D_actor_443500_801410A4;
+extern AnimationPlayRequest D_actor_443500_801410B8;
+extern AnimationPlayRequest D_actor_443500_801410CC;
+extern AnimationPlayRequest D_actor_443500_801410E0;
+extern AnimationPlayRequest D_actor_443500_801410F4;
+extern AnimationPlayRequest D_actor_443500_80141108;
+extern AnimationPlayRequest D_actor_443500_8014111C;
+extern AnimationPlayRequest D_actor_443500_80141130;
+extern AnimationPlayRequest D_actor_443500_80141144;
+extern AnimationPlayRequest D_actor_443500_80141158;
+extern AnimationPlayRequest D_actor_443500_8014116C;
+extern AnimationPlayRequest D_actor_443500_80141180;
+extern AnimationPlayRequest D_actor_443500_801411A8;
+extern AnimationPlayRequest D_actor_443500_801411BC;
+extern AnimationPlayRequest D_actor_443500_801411D0;
+extern GpCopyArg            D_actor_443500_80140E70;
+extern GpCopyArg            D_actor_443500_80140FE8;
+extern GpXformArg           D_actor_443500_80140F54;
+extern GpXformArg           D_actor_443500_80140F6C;
+extern GpXformArg           D_actor_443500_801411E4;
+extern GpXformArg           D_actor_443500_801411FC;
+void                        func_actor_443500_80131E3C(s32);
+void                        func_actor_443500_80131E84(s32);
+void                        func_actor_443500_80131EE4(void);
+void                        func_actor_443500_80131F18(void);
+void                        func_actor_443500_80131F58(void);
+void                        func_actor_443500_8013201C(s16);
+void                        func_actor_443500_80132048(void);
+void                        func_actor_443500_8013206C(s8);
 
 extern GpAnimSet D_actor_443500_80132EF0;
 extern GpAnimSet D_actor_443500_8013451C;
@@ -940,27 +940,27 @@ GpAnimSet* D_actor_443500_80140E44[11] = {
 
 GpCopyArg D_actor_443500_80140E70 = { { .sets = D_actor_443500_80140E44 }, 11 };
 
-GpAnimArg D_actor_443500_80140E78 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80140E78 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140E8C = { { .index = 1 }, 48, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140E8C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140EA0 = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80140EA0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140EB4 = { { .index = 1 }, 50, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140EB4 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140EC8 = { { .index = 1 }, 51, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140EC8 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140EDC = { { .index = 1 }, 52, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140EDC = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140EF0 = { { .index = 1 }, 53, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140EF0 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140F04 = { { .index = 1 }, 54, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140F04 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140F18 = { { .index = 1 }, 55, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140F18 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140F2C = { { .index = 1 }, 56, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140F2C = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80140F40 = { { .index = 1 }, 57, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80140F40 = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_actor_443500_80140F54 = { { 0x3A98, -1000, 7600, 0 }, { 0, 512, 0, 0 } };
 
@@ -996,131 +996,131 @@ GpAnimSet* D_actor_443500_80140F84[25] = {
 
 GpCopyArg D_actor_443500_80140FE8 = { { .sets = D_actor_443500_80140F84 }, 25 };
 
-GpAnimArg D_actor_443500_80140FF0 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80140FF0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141004 = { { .index = 1 }, 48, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141004 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141018 = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80141018 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014102C = { { .index = 1 }, 50, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_8014102C = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141040 = { { .index = 1 }, 51, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_80141040 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141054 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80141054 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141068 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80141068 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014107C = { { .index = 1 }, 54, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_8014107C = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141090 = { { .index = 1 }, 55, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80141090 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801410A4 = { { .index = 1 }, 56, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801410A4 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801410B8 = { { .index = 1 }, 57, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_801410B8 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801410CC = { { .index = 1 }, 58, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_801410CC = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801410E0 = { { .index = 1 }, 59, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_801410E0 = { { .index = 1 }, 59, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801410F4 = { { .index = 1 }, 60, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801410F4 = { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141108 = { { .index = 1 }, 61, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141108 = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014111C = { { .index = 1 }, 62, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_8014111C = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141130 = { { .index = 1 }, 63, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141130 = { { .index = 1 }, 63, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141144 = { { .index = 1 }, 64, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141144 = { { .index = 1 }, 64, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141158 = { { .index = 1 }, 65, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141158 = { { .index = 1 }, 65, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014116C = { { .index = 1 }, 66, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_8014116C = { { .index = 1 }, 66, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141180 = { { .index = 1 }, 67, 1, 2, 1 };
+AnimationPlayRequest D_actor_443500_80141180 = { { .index = 1 }, 67, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141194 = { { .index = 1 }, 68, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141194 = { { .index = 1 }, 68, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801411A8 = { { .index = 1 }, 69, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_801411A8 = { { .index = 1 }, 69, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801411BC = { { .index = 1 }, 70, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801411BC = { { .index = 1 }, 70, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801411D0 = { { .index = 1 }, 71, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801411D0 = { { .index = 1 }, 71, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_actor_443500_801411E4 = { { 0x3F48, -1000, 8000, 0 }, { 0, 2047, 0, 0 } };
 
 GpXformArg D_actor_443500_801411FC = { { 0x3FAC, -1000, 6950, 0 }, { 0, 1365, 0, 0 } };
 
-GpAnimArg D_actor_443500_80141214 = { { .index = 0 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_80141214 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141228 = { { .index = 0 }, 1, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_80141228 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014123C = { { .index = 0 }, 2, 0, 0, 1 };
+AnimationPlayRequest D_actor_443500_8014123C = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141250 = { { .index = 0 }, 3, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80141250 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141264 = { { .index = 0 }, 4, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80141264 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141278 = { { .index = 0 }, 5, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_80141278 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014128C = { { .index = 0 }, 6, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_8014128C = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801412A0 = { { .index = 0 }, 7, 1, 4, 1 };
+AnimationPlayRequest D_actor_443500_801412A0 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801412B4 = { { .index = 0 }, 8, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801412B4 = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801412C8 = { { .index = 0 }, 9, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_801412C8 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801412DC = { { .index = 0 }, 10, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801412DC = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801412F0 = { { .index = 0 }, 11, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801412F0 = { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141304 = { { .index = 0 }, 12, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141304 = { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141318 = { { .index = 0 }, 13, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141318 = { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014132C = { { .index = 0 }, 14, 1, 8, 1 };
+AnimationPlayRequest D_actor_443500_8014132C = { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141340 = { { .index = 0 }, 15, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_80141340 = { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141354 = { { .index = 0 }, 16, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141354 = { { .index = 0 }, 16, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141368 = { { .index = 0 }, 17, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141368 = { { .index = 0 }, 17, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014137C = { { .index = 0 }, 18, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_8014137C = { { .index = 0 }, 18, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141390 = { { .index = 0 }, 19, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141390 = { { .index = 0 }, 19, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801413A4 = { { .index = 0 }, 20, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801413A4 = { { .index = 0 }, 20, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801413B8 = { { .index = 0 }, 21, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801413B8 = { { .index = 0 }, 21, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801413CC = { { .index = 0 }, 22, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801413CC = { { .index = 0 }, 22, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801413E0 = { { .index = 0 }, 23, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801413E0 = { { .index = 0 }, 23, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801413F4 = { { .index = 0 }, 24, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801413F4 = { { .index = 0 }, 24, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141408 = { { .index = 0 }, 25, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141408 = { { .index = 0 }, 25, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014141C = { { .index = 0 }, 26, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_8014141C = { { .index = 0 }, 26, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141430 = { { .index = 0 }, 27, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141430 = { { .index = 0 }, 27, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141444 = { { .index = 0 }, 28, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141444 = { { .index = 0 }, 28, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141458 = { { .index = 0 }, 29, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141458 = { { .index = 0 }, 29, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_8014146C = { { .index = 0 }, 30, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_8014146C = { { .index = 0 }, 30, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141480 = { { .index = 0 }, 31, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_80141480 = { { .index = 0 }, 31, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_80141494 = { { .index = 0 }, 32, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_80141494 = { { .index = 0 }, 32, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801414A8 = { { .index = 0 }, 33, 1, 20, 1 };
+AnimationPlayRequest D_actor_443500_801414A8 = { { .index = 0 }, 33, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801414BC = { { .index = 0 }, 34, 1, 2, 1 };
+AnimationPlayRequest D_actor_443500_801414BC = { { .index = 0 }, 34, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_443500_801414D0 = { { .index = 0 }, 35, 1, 10, 1 };
+AnimationPlayRequest D_actor_443500_801414D0 = { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_actor_443500_801414E4 = { { 0x3E80, -1000, 9000, 0 }, { 0, 2560, 0, 0 } };
 
@@ -2371,7 +2371,7 @@ GpAnimSet** D_actor_443500_80158724[1] = {
     D_actor_443500_80158694,
 };
 
-GpAnimArg D_actor_443500_80158728 = { { .ptr = NULL }, 28, 1, 4, 0 };
+AnimationPlayRequest D_actor_443500_80158728 = { { .sets = NULL }, 28, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
 void             func_actor_443500_8013253C(Task*);
 void             func_actor_443500_80132738(Task*);
@@ -2382,7 +2382,7 @@ TaskDesc D_actor_443500_8015873C[2] = {
     { 1, 192, func_actor_443500_8013253C, { .model = &D_actor_443500_80149978 } },
 };
 
-s32 func_actor_443500_801327E0(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_443500_80132900(Task*, s32, GpXformArg*);
 s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
 
@@ -2746,16 +2746,12 @@ static void func_actor_443500_801327C4(Task* task)
     ext->colorMtx = &work->model.color;
 }
 
-/// Animation preset handler of message 0x7D3: when the preset's bank index
-/// changes the slot array is re-seeded off bank table `D_actor_443500_80158724` through
-/// `func_800B3F84`, then the preset's `field_4` is latched into `model.animId` and
-/// every slot 1..0x13 is either started -- through `func_800B4114`, the path
-/// `field_8` selects and the only one that reads `field_C`, taken only once
-/// `model.ticking` has been raised -- or cleared through `Gp_AnimResetSlot`; either
-/// way all of them are advanced once by `Gp_AnimTickIndex`. The trailing store
-/// raises the `model.ticking` latch the start branch above reads and clears
-/// `field_4BA`.
-s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. The requested clip is applied to the slots.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
 {
     Actor443500Work* work;
     TmdObject*       ext;
@@ -2763,15 +2759,15 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor443500Work*)task->work;
     ext  = task->extra.tmd;
-    if (params->animBlock.index != work->model.bank) {
-        work->model.bank = params->animBlock.index;
+    if (params->source.index != work->model.bank) {
+        work->model.bank = params->source.index;
         func_800B3F84(&work->rig.anim, D_actor_443500_80158724[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->model.animId = params->field_4;
-    if (params->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = params->animationId;
+    if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

@@ -508,7 +508,7 @@ static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* re
 s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpXformArg* placement);
 
 /// Latch the requested animation and restart the animation state machine.
-s32 func_actor_403000_8013D464(Task* task, s32 arg1, GpAnimArg* msg);
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg);
 
 /// Report whether the work block's five-entry record run holds a live entry:
 /// the walk stops at the first empty `key` and answers 1 if any record it
@@ -550,7 +550,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, Actor403000Event*);
-        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -625,7 +625,7 @@ s32              func_actor_403000_801324EC(Task*, s32, Actor403000Event*);
 s32              func_actor_403000_8013D268(Task*, s32, s32);
 s32              func_actor_403000_8013D324(Task*);
 s32              func_actor_403000_8013D364(Task*, s32, GpXformArg*);
-s32              func_actor_403000_8013D464(Task*, s32, GpAnimArg*);
+s32              func_actor_403000_8013D464(Task*, s32, AnimationPlayRequest*);
 static void      func_actor_403000_8013D59C(Task*);
 void             func_actor_403000_8013D260(void);
 
@@ -5787,7 +5787,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         work->field_F98 = 0;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         dir = &scratch->target;
                         Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, dir);
                         VectorNormalSS(dir, dir);
@@ -5812,7 +5812,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         work->field_F98 = 0;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         dir = &scratch->target;
                         Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, dir);
                         VectorNormalSS(dir, dir);
@@ -6112,7 +6112,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             work->field_F98 = 0;
             work->field_F9C = 3;
             work->field_FA0 = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
             work->field_FC0 = 1;
         }
     }
@@ -6314,7 +6314,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->field_F98 = 0;
         work->field_F9C = 0;
         work->field_FA0 = 1;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
     }
     if (work->field_60.half & 1) {
         scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
@@ -7136,7 +7136,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
             work->field_F98 = 0;
             work->field_F9C = 0;
             work->field_FA0 = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
             work->field_FC0 = 1;
         }
     }
@@ -7586,21 +7586,21 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
                         work->field_F98 = 1;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         break;
                     case 3:
                         work->field_F94 = 4;
                         work->field_F98 = 1;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         break;
                     case 5:
                         work->field_F94 = 6;
                         work->field_F98 = 1;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         break;
                     case 2:
                     case 4:
@@ -7610,7 +7610,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_F90, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
                         break;
                 }
             } else {
@@ -7738,11 +7738,11 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpXformArg* placement)
     return 1;
 }
 
-s32 func_actor_403000_8013D464(Task* task, s32 arg1, GpAnimArg* msg)
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg)
 {
     Actor403000Work* work = (Actor403000Work*)task->work;
 
-    work->field_AC6 = msg->field_4;
+    work->field_AC6 = msg->animationId;
     work->field_0   = 1;
     work->field_2   = -1;
     return 0;

@@ -339,7 +339,7 @@ AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-GpAnimArg D_acropolis_security_room_80182604 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_acropolis_security_room_80182618[3] = {
     { 0, 32, func_acropolis_security_room_8017D77C, { .model = NULL } },

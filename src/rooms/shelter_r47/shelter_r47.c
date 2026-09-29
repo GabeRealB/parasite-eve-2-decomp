@@ -87,13 +87,13 @@ typedef struct {
     u8  h;
 } ShelterR47SpritePart;
 
-static TaskDesc       D_shelter_r47_80186F08[3];
-static GpMsgEntry     D_shelter_r47_80186F2C[6];
-static GpAnimArg      D_shelter_r47_80186F5C;
-static TaskDesc       D_shelter_r47_80186F70[3];
-static TaskDesc       D_shelter_r47_80186F94[2];
-static OverlayHotspot D_shelter_r47_80186FB4[9];
-static TaskDesc       D_shelter_r47_80187020;
+static TaskDesc             D_shelter_r47_80186F08[3];
+static GpMsgEntry           D_shelter_r47_80186F2C[6];
+static AnimationPlayRequest D_shelter_r47_80186F5C;
+static TaskDesc             D_shelter_r47_80186F70[3];
+static TaskDesc             D_shelter_r47_80186F94[2];
+static OverlayHotspot       D_shelter_r47_80186FB4[9];
+static TaskDesc             D_shelter_r47_80187020;
 /// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
 static ShelterR47SpritePart* D_shelter_r47_8018729C[];
 static TaskDesc              D_shelter_r47_801872F0;
@@ -134,7 +134,7 @@ static GpMsgEntry D_shelter_r47_80186F2C[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-static GpAnimArg D_shelter_r47_80186F5C = { { .index = 6 }, 1, 0, 0, 0 };
+static AnimationPlayRequest D_shelter_r47_80186F5C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 static TaskDesc D_shelter_r47_80186F70[3] = {
     { 0, 192, func_shelter_r47_80180714, { .model = NULL } },
@@ -718,8 +718,8 @@ static void func_shelter_r47_8017FB94(Task* task)
     player = gameGetPtrSlot(0xA);
     if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
         Gp_DispatchMsg(player, 0x3F3, 0, 0);
-        Gp_AllyAnimId(&D_shelter_r47_80186F5C.animBlock.index);
-        Gp_DispatchMsgPtr(player, 0x3E8, &D_shelter_r47_80186F5C, 0);
+        Gp_AllyAnimId(&D_shelter_r47_80186F5C.source.index);
+        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }
     D_shelter_r47_8018A690 = NULL;
     func_shelter_r47_80183210();

@@ -17,33 +17,33 @@
 
 #include "rooms/mist_shooting_gallery.h"
 
-extern GpAnimArg D_actor_215100_8014CF84;
-extern GpAnimArg D_actor_215100_8014CFAC;
-extern GpAnimArg D_actor_215100_8014D010;
-extern GpAnimArg D_actor_215100_8014D024;
-extern s32       D_actor_215100_8014D040;
+extern AnimationPlayRequest D_actor_215100_8014CF84;
+extern AnimationPlayRequest D_actor_215100_8014CFAC;
+extern AnimationPlayRequest D_actor_215100_8014D010;
+extern AnimationPlayRequest D_actor_215100_8014D024;
+extern s32                  D_actor_215100_8014D040;
 
 TaskDesc D_actor_215100_8014CF6C[2] = {
     { 0, 32, func_actor_215100_8014A5C0, { .model = NULL } },
     { 0, 32, func_actor_215100_8014A7C4, { .model = NULL } },
 };
 
-GpAnimArg D_actor_215100_8014CF84 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_actor_215100_8014CF84 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_215100_8014CF98 = { { .index = 1 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_actor_215100_8014CF98 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_215100_8014CFAC = { { .index = 1 }, 18, 0, 0, 0 };
+AnimationPlayRequest D_actor_215100_8014CFAC = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_215100_8014CFC0[4] = {
-    { { .index = 1 }, 19, 0, 0, 0 },
-    { { .index = 1 }, 20, 0, 0, 0 },
-    { { .index = 1 }, 21, 0, 0, 0 },
-    { { .index = 1 }, 22, 0, 0, 0 },
+AnimationPlayRequest D_actor_215100_8014CFC0[4] = {
+    { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 22, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_actor_215100_8014D010 = { { .index = 1 }, 23, 0, 0, 0 };
+AnimationPlayRequest D_actor_215100_8014D010 = { { .index = 1 }, 23, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_215100_8014D024 = { { .index = 1 }, 24, 0, 0, 0 };
+AnimationPlayRequest D_actor_215100_8014D024 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 s32 D_actor_215100_8014D038 = 0;
 
@@ -291,8 +291,8 @@ void func_actor_215100_80149F2C(Task* task)
             task->state = 0x1E;
             break;
         case 0x1E:
-            Gp_PlayerWeaponId(&D_actor_215100_8014CF84.animBlock.index);
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_actor_215100_8014CF84, 0);
+            Gp_PlayerWeaponId(&D_actor_215100_8014CF84.source.index);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
             Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;
             Gp_StartCapSlot(0xB, 0, 0);

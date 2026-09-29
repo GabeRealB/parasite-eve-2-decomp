@@ -206,7 +206,6 @@ typedef struct Actor400500Work {
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
-extern u8        D_actor_400500_80153CB0[];
 extern ActorZone D_actor_400500_80153D6C[];
 
 /// Still called by actor_206100, which includes this header; remove once that
@@ -1355,23 +1354,12 @@ Actor400500MessageEntry D_actor_400500_80153CA0[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-u8 D_actor_400500_80153CB0[16] = {
-    0,
-    0,
-    0,
-    0,
-    60,
-    50,
-    21,
-    128,
-    132,
-    58,
-    21,
-    128,
-    92,
-    60,
-    21,
-    128,
+/// Borrowed player animation table; entry zero is unused.
+static GpAnimSet* _gActor400500PlayerAnimationSets[4] = {
+    NULL,
+    &D_actor_400500_8015323C,
+    &D_actor_400500_80153A84,
+    &D_actor_400500_80153C5C,
 };
 
 u8 D_actor_400500_80153CC0[136] = {
@@ -3156,7 +3144,7 @@ static void func_actor_400500_80135770(Task* arg0)
     Task*                      slot;
     GfxCoord*                  part2;
     PlayerStatus*              cfg;
-    GpAnimArg                  msg;
+    AnimationPlayRequest       msg;
     Actor400500TaskFuncTable13 sp;
     OverlayMat                 rot;
     s8                         handshake;
@@ -3200,18 +3188,18 @@ static void func_actor_400500_80135770(Task* arg0)
             }
             break;
         case 2:
-            msg.animBlock.ptr = &D_actor_400500_80153CB0;
-            msg.field_8       = 0;
-            msg.field_C       = 0;
-            msg.field_10      = 0;
+            msg.source.sets          = _gActor400500PlayerAnimationSets;
+            msg.blend                = ANIMATION_BLEND_RESET;
+            msg.blendFrames          = 0;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             if (work->field_A4D != 0) {
-                msg.field_4     = 3;
+                msg.animationId = 3;
                 work->field_A48 = 4;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
             } else {
-                msg.field_4     = handshake;
+                msg.animationId = handshake;
                 work->field_A48 = 3;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
             break;
         case 3:
@@ -4461,14 +4449,14 @@ static void func_actor_400500_8013771C(Task* arg0)
     if ((s16)work->field_A04 == 7) {
         if (player->field_954 != 2) {
             if (_actor400500PlayerDistance(&arg0->extra.tmd->coords[8]) < 0x500) {
-                GpAnimArg msg;
+                AnimationPlayRequest msg;
 
-                msg.animBlock.ptr = D_actor_400500_80153CB0;
-                msg.field_4       = 1;
-                msg.field_8       = 0;
-                msg.field_C       = 0;
-                msg.field_10      = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+                msg.source.sets          = _gActor400500PlayerAnimationSets;
+                msg.animationId          = 1;
+                msg.blend                = ANIMATION_BLEND_RESET;
+                msg.blendFrames          = 0;
+                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
                 work->field_A48      = 1;
                 Gp_StateC08.field_6 |= 1;
                 work->field_A18      = 1;

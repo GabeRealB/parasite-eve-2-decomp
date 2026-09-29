@@ -66,7 +66,7 @@ extern TaskDesc D_actor_461800_80133EBC[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpCmdArg*, s32);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
@@ -114,12 +114,12 @@ static void func_actor_461800_80133770(void);
 static void func_actor_461800_8013380C(void);
 static void func_actor_461800_80133B98(Task* task);
 
-s32  func_actor_461800_80132D84(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80132E14(Task*, s32, s32);
 s32  func_actor_461800_80132EA4(Task*, s32, GpXformArg*);
 s32  func_actor_461800_80132F20(Task*, s32, GpCmdArg*, s32);
 s32  func_actor_461800_80132F44(Task*, s32, VECTOR*, s32);
-s32  func_actor_461800_80133898(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_461800_80133898(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80133928(Task*, s32, s32);
 s32  func_actor_461800_80133970(Task*, s32, GpXformArg*);
 s32  func_actor_461800_801339EC(Task*, s32, GpCmdArg*, s32);
@@ -169,17 +169,17 @@ GpXformArg D_actor_461800_80133ED4 = { { 7710, 980, 6290, 0 }, { 0, -1479, 0, 0 
 
 GpXformArg D_actor_461800_80133EEC = { { 7030, 980, 7530, 0 }, { 0, -1820, 0, 0 } };
 
-GpAnimArg D_actor_461800_80133F04 = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_actor_461800_80133F04 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_461800_80133F18 = { { .index = 1 }, 18, 0, 0, 0 };
+AnimationPlayRequest D_actor_461800_80133F18 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_461800_80133F2C = { { .index = 1 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_actor_461800_80133F2C = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_461800_80133F40 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_461800_80133F40 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_461800_80133F54 = { { .index = 1 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_actor_461800_80133F54 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_461800_80133F68 = { { .index = 1 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_actor_461800_80133F68 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* D_actor_461800_80133F7C[1] = {
     &D_actor_461800_80133E8C,
@@ -1315,13 +1315,13 @@ static void func_actor_461800_80132D04(void)
 /// taken from the preset or left at 2, then the whole slot array is re-seeded.
 /// Only the six known animation ids are accepted; anything else leaves the work
 /// block untouched and reports the failure.
-s32 func_actor_461800_80132D84(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3)
+s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
-    if (preset->field_4 < 6) {
-        D_actor_461800_80143894->st.animId = preset->field_4;
-        if (preset->field_8 != 0) {
+    if (preset->animationId < 6) {
+        D_actor_461800_80143894->st.animId = preset->animationId;
+        if (preset->blend != ANIMATION_BLEND_RESET) {
             D_actor_461800_80143894->st.state = 1;
-            D_actor_461800_80139F58           = preset->field_C;
+            D_actor_461800_80139F58           = preset->blendFrames;
         } else {
             D_actor_461800_80143894->st.state = 2;
         }
@@ -1640,13 +1640,13 @@ static void func_actor_461800_8013380C(void)
 /// animation is restarted through `func_actor_461800_801331E4`. Only the ids
 /// this variant owns are accepted; anything else leaves the work block
 /// untouched and reports the failure.
-s32 func_actor_461800_80133898(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3)
+s32 func_actor_461800_80133898(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
-    if (preset->field_4 < 0x23) {
-        D_actor_461800_801438A0->st.animId = preset->field_4;
-        if (preset->field_8 != 0) {
+    if (preset->animationId < 0x23) {
+        D_actor_461800_801438A0->st.animId = preset->animationId;
+        if (preset->blend != ANIMATION_BLEND_RESET) {
             D_actor_461800_801438A0->st.state = 1;
-            D_actor_461800_801437B8           = preset->field_C;
+            D_actor_461800_801437B8           = preset->blendFrames;
         } else {
             D_actor_461800_801438A0->st.state = 2;
         }

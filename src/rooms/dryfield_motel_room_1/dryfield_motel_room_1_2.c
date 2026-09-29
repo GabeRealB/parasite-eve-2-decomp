@@ -88,13 +88,13 @@ STATIC_ASSERT_SIZEOF(Dmr1Work, 0x38);
 
 /// The one scratch buffer `func_dryfield_motel_room_1_8017DD3C` builds both of
 /// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
-/// slot-3 record message 0x3E8 takes (`GpAnimArg`, `animBlock.index` the equipped weapon's
+/// slot-3 record message 0x3E8 takes (`AnimationPlayRequest`, `source.index` the equipped weapon's
 /// animation id, `field_4` / `field_8` 1, `field_C` 5, `field_10` 0) and `msg` the
 /// `GpCmdArg` the 0x7DA poke takes in states 1 and 2. Same shape as the
 /// breezeway's `DbwMsgBuf`.
 typedef union Dmr1MsgBuf {
-    /* 0x0 */ GpAnimArg rec;
-    /* 0x0 */ GpCmdArg  msg;
+    /* 0x0 */ AnimationPlayRequest rec;
+    /* 0x0 */ GpCmdArg             msg;
 } Dmr1MsgBuf;
 STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 
@@ -102,11 +102,11 @@ STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 /// `Dmr1MsgBuf`; the first step of action 6 builds its 0x3E8 record in
 /// `shifted.rec`, eight bytes further in, for no reason the code shows.
 typedef union Dmr1DriverBuf {
-    /* 0x0 */ GpAnimArg rec;
-    /* 0x0 */ GpCmdArg  msg;
+    /* 0x0 */ AnimationPlayRequest rec;
+    /* 0x0 */ GpCmdArg             msg;
     struct {
-        /* 0x0 */ s32       pad[2];
-        /* 0x8 */ GpAnimArg rec;
+        /* 0x0 */ s32                  pad[2];
+        /* 0x8 */ AnimationPlayRequest rec;
     } shifted;
 } Dmr1DriverBuf;
 STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
@@ -962,12 +962,12 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 /// ends here.
 static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 {
-    Dmr1Work*     work = (Dmr1Work*)arg0->work;
-    PlayerStatus* cfg;
-    s32           anim;
-    s32           weaponId;
-    Dmr1DriverBuf buf;
-    GpAnimArg*    rec;
+    Dmr1Work*             work = (Dmr1Work*)arg0->work;
+    PlayerStatus*         cfg;
+    s32                   anim;
+    s32                   weaponId;
+    Dmr1DriverBuf         buf;
+    AnimationPlayRequest* rec;
 
     switch (work->field_2C) {
         case 1:
@@ -1016,12 +1016,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim = weapon + 0x22;
                         }
-                        buf.shifted.rec.animBlock.index = anim;
-                        rec->field_4                    = 5;
-                        rec->field_8                    = 1;
-                        rec->field_C                    = 5;
-                        buf.shifted.rec.field_10        = 0;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.shifted.rec, 0);
+                        buf.shifted.rec.source.index         = anim;
+                        rec->animationId                     = 5;
+                        rec->blend                           = ANIMATION_BLEND_INTERPOLATE;
+                        rec->blendFrames                     = 5;
+                        buf.shifted.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 1;
                     } else {
@@ -1031,12 +1031,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim = weaponId + 0x22;
                         }
-                        buf.rec.animBlock.index = anim;
-                        buf.rec.field_4         = 6;
-                        buf.rec.field_8         = 1;
-                        buf.rec.field_C         = 5;
-                        buf.rec.field_10        = 0;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
+                        buf.rec.source.index         = anim;
+                        buf.rec.animationId          = 6;
+                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                        buf.rec.blendFrames          = 5;
+                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 2;
                     }
@@ -1051,12 +1051,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim += 0x22;
                         }
-                        buf.rec.animBlock.index = anim;
-                        buf.rec.field_4         = 1;
-                        buf.rec.field_8         = 1;
-                        buf.rec.field_C         = 3;
-                        buf.rec.field_10        = 0;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
+                        buf.rec.source.index         = anim;
+                        buf.rec.animationId          = 1;
+                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                        buf.rec.blendFrames          = 3;
+                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
                         return;
@@ -1073,12 +1073,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim += 0x22;
                         }
-                        buf.rec.animBlock.index = anim;
-                        buf.rec.field_4         = 1;
-                        buf.rec.field_8         = 1;
-                        buf.rec.field_C         = 3;
-                        buf.rec.field_10        = 0;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
+                        buf.rec.source.index         = anim;
+                        buf.rec.animationId          = 1;
+                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                        buf.rec.blendFrames          = 3;
+                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
                         return;
@@ -1094,12 +1094,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim += 0x22;
                         }
-                        buf.rec.animBlock.index = anim;
-                        buf.rec.field_4         = 9;
-                        buf.rec.field_8         = 1;
-                        buf.rec.field_C         = 10;
-                        buf.rec.field_10        = 0;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
+                        buf.rec.source.index         = anim;
+                        buf.rec.animationId          = 9;
+                        buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                        buf.rec.blendFrames          = 10;
+                        buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         work->field_2C = 0;
                     }
                     return;
@@ -1153,14 +1153,14 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
-                weaponId                = Player_Status.weapon;
-                anim                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                buf.rec.animBlock.index = anim;
-                buf.rec.field_4         = 1;
-                buf.rec.field_8         = 1;
-                buf.rec.field_C         = 5;
-                buf.rec.field_10        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
+                weaponId                     = Player_Status.weapon;
+                anim                         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                buf.rec.source.index         = anim;
+                buf.rec.animationId          = 1;
+                buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                buf.rec.blendFrames          = 5;
+                buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                 func_800E8634(D_dryfield_motel_room_1_8017E160, 0,
                               D_dryfield_motel_room_1_8017E340);
                 arg0->state = arg0->state + 1;
@@ -1215,21 +1215,21 @@ void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
 
 void func_dryfield_motel_room_1_8017DFD0(void)
 {
-    Dmr1Work*     work;
-    GpAnimArg     msg;
-    PlayerStatus* cfg;
-    s32           weaponId;
-    s32           anim;
+    Dmr1Work*            work;
+    AnimationPlayRequest msg;
+    PlayerStatus*        cfg;
+    s32                  weaponId;
+    s32                  anim;
 
-    work                = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
-    weaponId            = Player_Status.weapon;
-    anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.animBlock.index = anim;
-    msg.field_4         = 9;
-    msg.field_8         = 0;
-    msg.field_C         = 0;
-    msg.field_10        = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
+    work                     = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
+    weaponId                 = Player_Status.weapon;
+    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.source.index         = anim;
+    msg.animationId          = 9;
+    msg.blend                = ANIMATION_BLEND_RESET;
+    msg.blendFrames          = 0;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
     cfg            = &Player_Status;
     work->field_14 = cfg->coordMtx->t[0];
     work->field_18 = cfg->coordMtx->t[1];

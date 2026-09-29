@@ -59,7 +59,7 @@ s32 func_actor_510900_801391B8(Task*, s32, s32);
 
 s32 func_actor_510900_8013BD5C(Task*);
 
-s32 func_actor_510900_8013BD84(Task*, s32, GpAnimArg*);
+s32 func_actor_510900_8013BD84(Task*, s32, AnimationPlayRequest*);
 
 s32 func_actor_510900_8013BE00(Task*, s32, GpXformArg*);
 
@@ -148,14 +148,14 @@ typedef struct Actor510900ChildFxTickScratch {
 STATIC_ASSERT_SIZEOF(Actor510900ChildFxTickScratch, 0x28);
 
 /// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_510900_8013A310`:
-/// the 0x3F8 query buffer followed by the `GpAnimArg` it sends as message 0x3FF.
+/// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
 typedef struct Actor510900HitScratch {
-    /* 0x00 */ GpDelayArg query;
-    /* 0x18 */ GpAnimArg  anim;
+    /* 0x00 */ GpDelayArg           query;
+    /* 0x18 */ AnimationPlayRequest anim;
 } Actor510900HitScratch;
 STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
 
-/// Animation-set table handed to the player as the 0x3FF payload's `animBlock`.
+/// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
 extern GpAnimSet* D_actor_510900_80167B2C[];
 
 /// Spawn position of the child, indexed by its `Task::spawnArg1`.
@@ -3078,12 +3078,12 @@ static void func_actor_510900_8013A310(Task* task)
                     break;
                 }
                 Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
-                scratch->anim.animBlock.ptr = D_actor_510900_80167B2C;
-                scratch->anim.field_4       = 1;
-                scratch->anim.field_8       = 0;
-                scratch->anim.field_C       = 0;
-                scratch->anim.field_10      = 1;
-                Gp_DispatchMsgPtr(player, 0x3FF, &scratch->anim, 0);
+                scratch->anim.source.sets          = D_actor_510900_80167B2C;
+                scratch->anim.animationId          = 1;
+                scratch->anim.blend                = ANIMATION_BLEND_RESET;
+                scratch->anim.blendFrames          = 0;
+                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
                 work->field_CC = 1;
                 work->field_CE = 0;
                 obj            = player->extra.tmd->coords;
@@ -3098,13 +3098,13 @@ static void func_actor_510900_8013A310(Task* task)
             if ((s16)tick < 0x3D && parent->field_5BC != 1 && parent->field_592 != 0) {
                 break;
             }
-            parent->field_5BC           = 0;
-            scratch->anim.animBlock.ptr = D_actor_510900_80167B2C;
-            scratch->anim.field_4       = 2;
-            scratch->anim.field_8       = 0;
-            scratch->anim.field_C       = 0;
-            scratch->anim.field_10      = 1;
-            Gp_DispatchMsgPtr(player, 0x3FF, &scratch->anim, 0);
+            parent->field_5BC                  = 0;
+            scratch->anim.source.sets          = D_actor_510900_80167B2C;
+            scratch->anim.animationId          = 2;
+            scratch->anim.blend                = ANIMATION_BLEND_RESET;
+            scratch->anim.blendFrames          = 0;
+            scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
             work->field_CC = 2;
             work->field_CE = 0;
             break;
@@ -4026,15 +4026,15 @@ s32 func_actor_510900_8013BD5C(Task* arg0)
     return 0;
 }
 
-s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor510900Work* work;
     s32              blend;
     s32              i;
 
-    blend           = (arg2->field_8 != 0) * 8;
+    blend           = (arg2->blend != ANIMATION_BLEND_RESET) * 8;
     work            = arg0->work;
-    work->field_586 = arg2->field_4 + 0x1B;
+    work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
         func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
     }

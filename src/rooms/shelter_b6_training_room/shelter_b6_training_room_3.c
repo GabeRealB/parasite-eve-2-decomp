@@ -206,40 +206,40 @@ GpAnimSet* D_shelter_b6_training_room_801839B4[5] = {
 
 GpCopyArg D_shelter_b6_training_room_801839C8 = { { .sets = D_shelter_b6_training_room_801839B4 }, 5 };
 
-GpAnimArg D_shelter_b6_training_room_801839D0 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_801839D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_training_room_801839E4 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_801839E4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_training_room_801839F8 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_801839F8 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183A0C = { { .index = 1 }, 50, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_80183A0C = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183A20 = { { .index = 1 }, 51, 1, 2, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_80183A20 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_shelter_b6_training_room_80183A34 = { { 2300, 0, 8900, 0 }, { 0, 910, 0, 0 } };
 
 GpXformArg D_shelter_b6_training_room_80183A4C = { { 2300, 0, 9000, 0 }, { 0, 1707, 0, 0 } };
 
-GpAnimArg D_shelter_b6_training_room_80183A64 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_80183A64 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183A78 = { { .index = 0 }, 1, 1, 20, 0 };
+AnimationPlayRequest D_shelter_b6_training_room_80183A78 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183A8C = { { .index = 0 }, 2, 1, 20, 1 };
+AnimationPlayRequest D_shelter_b6_training_room_80183A8C = { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183AA0 = { { .index = 0 }, 3, 1, 8, 1 };
+AnimationPlayRequest D_shelter_b6_training_room_80183AA0 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183AB4 = { { .index = 0 }, 4, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b6_training_room_80183AB4 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b6_training_room_80183AC8 = { { .index = 0 }, 5, 1, 4, 1 };
+AnimationPlayRequest D_shelter_b6_training_room_80183AC8 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_shelter_b6_training_room_80183ADC = { { 2850, 0, 8050, 0 }, { 0, -228, 0, 0 } };
 
-GpAnimArg D_shelter_b6_training_room_80183AF4[5] = {
-    { { .index = 0 }, 1, 0, 0, 0 },
-    { { .index = 0 }, 1, 1, 10, 0 },
-    { { .index = 0 }, 2, 1, 8, 0 },
-    { { .index = 0 }, 3, 1, 8, 0 },
-    { { .index = 0 }, 4, 1, 8, 0 },
+AnimationPlayRequest D_shelter_b6_training_room_80183AF4[5] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 GpXformArg D_shelter_b6_training_room_80183B58 = { { 3250, 0, 9500, 0 }, { 0, -1024, 0, 0 } };

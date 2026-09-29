@@ -246,7 +246,7 @@ GpMsgEntry D_acropolis_square_801837C4[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimArg D_acropolis_square_801837F4 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_square_801837F4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_acropolis_square_80183808[3] = {
     { 0, 32, func_acropolis_square_80181AEC, { .model = NULL } },

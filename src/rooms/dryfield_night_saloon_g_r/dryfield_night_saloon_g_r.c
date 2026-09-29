@@ -181,57 +181,57 @@ extern GpSprtElem D_dryfield_night_saloon_g_r_80186AB8[91];
 extern GpSprtElem D_dryfield_night_saloon_g_r_801871FC[23];
 extern GpSprtElem D_dryfield_night_saloon_g_r_80187400[13];
 
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183968;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_8018397C;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183990;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_801839B8;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_801839CC;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_801839F4;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A08;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A1C;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A6C;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183A94;
-extern GpAnimArg     D_dryfield_night_saloon_g_r_80183AA8;
-extern GpCopyArg     D_dryfield_night_saloon_g_r_8018394C;
-extern GpOverrideArg D_dryfield_night_saloon_g_r_80183B34;
-extern GpXformArg    D_dryfield_night_saloon_g_r_80183ABC;
-extern GpXformArg    D_dryfield_night_saloon_g_r_80183AD4;
-extern GpXformArg    D_dryfield_night_saloon_g_r_80183AEC;
-extern GpXformArg    D_dryfield_night_saloon_g_r_80183B04;
-extern GpXformArg    D_dryfield_night_saloon_g_r_80183B1C;
-extern const char    D_dryfield_night_saloon_g_r_8017D600[22];
-extern const char    D_dryfield_night_saloon_g_r_8017D618[19];
-extern const char    D_dryfield_night_saloon_g_r_8017D62C[14];
-extern const char    D_dryfield_night_saloon_g_r_8017D63C[26];
-extern const char    D_dryfield_night_saloon_g_r_8017D658[24];
-extern const char    D_dryfield_night_saloon_g_r_8017D670[17];
-extern const char    D_dryfield_night_saloon_g_r_8017D684[23];
-extern const char    D_dryfield_night_saloon_g_r_8017D69C[17];
-extern const char    D_dryfield_night_saloon_g_r_8017D6B0[16];
-extern const char    D_dryfield_night_saloon_g_r_8017D6C0[15];
-extern const char    D_dryfield_night_saloon_g_r_8017D6D0[24];
-extern const char    D_dryfield_night_saloon_g_r_8017D6E8[11];
-extern const char    D_dryfield_night_saloon_g_r_8017D6F4[27];
-extern const char    D_dryfield_night_saloon_g_r_8017D710[11];
-extern const char    D_dryfield_night_saloon_g_r_8017D71C[17];
-extern const char    D_dryfield_night_saloon_g_r_8017D730[14];
-extern const char    D_dryfield_night_saloon_g_r_8017D740[11];
-extern const char    D_dryfield_night_saloon_g_r_8017D74C[13];
-extern const char    D_dryfield_night_saloon_g_r_8017D75C[23];
-extern const char    D_dryfield_night_saloon_g_r_8017D774[13];
-extern const char    D_dryfield_night_saloon_g_r_8017D784[17];
-extern const char    D_dryfield_night_saloon_g_r_8017D798[16];
-extern const char    D_dryfield_night_saloon_g_r_8017D7A8[12];
-extern const char    D_dryfield_night_saloon_g_r_8017D7B4[20];
-extern const char    D_dryfield_night_saloon_g_r_8017D7C8[17];
-extern const char    D_dryfield_night_saloon_g_r_8017D7DC[19];
-extern const char    D_dryfield_night_saloon_g_r_8017D7F0[24];
-extern const char    D_dryfield_night_saloon_g_r_8017D808[19];
-extern const char    D_dryfield_night_saloon_g_r_8017D81C[27];
-extern const char    D_dryfield_night_saloon_g_r_8017D838[18];
-extern const char    D_dryfield_night_saloon_g_r_8017D84C[16];
-extern const char    D_dryfield_night_saloon_g_r_8017D85C[20];
-void                 func_dryfield_night_saloon_g_r_8017E0A8(u8);
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183968;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183990;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_801839B8;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_801839CC;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_801839F4;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A08;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A1C;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A6C;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A94;
+extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183AA8;
+extern GpCopyArg            D_dryfield_night_saloon_g_r_8018394C;
+extern GpOverrideArg        D_dryfield_night_saloon_g_r_80183B34;
+extern GpXformArg           D_dryfield_night_saloon_g_r_80183ABC;
+extern GpXformArg           D_dryfield_night_saloon_g_r_80183AD4;
+extern GpXformArg           D_dryfield_night_saloon_g_r_80183AEC;
+extern GpXformArg           D_dryfield_night_saloon_g_r_80183B04;
+extern GpXformArg           D_dryfield_night_saloon_g_r_80183B1C;
+extern const char           D_dryfield_night_saloon_g_r_8017D600[22];
+extern const char           D_dryfield_night_saloon_g_r_8017D618[19];
+extern const char           D_dryfield_night_saloon_g_r_8017D62C[14];
+extern const char           D_dryfield_night_saloon_g_r_8017D63C[26];
+extern const char           D_dryfield_night_saloon_g_r_8017D658[24];
+extern const char           D_dryfield_night_saloon_g_r_8017D670[17];
+extern const char           D_dryfield_night_saloon_g_r_8017D684[23];
+extern const char           D_dryfield_night_saloon_g_r_8017D69C[17];
+extern const char           D_dryfield_night_saloon_g_r_8017D6B0[16];
+extern const char           D_dryfield_night_saloon_g_r_8017D6C0[15];
+extern const char           D_dryfield_night_saloon_g_r_8017D6D0[24];
+extern const char           D_dryfield_night_saloon_g_r_8017D6E8[11];
+extern const char           D_dryfield_night_saloon_g_r_8017D6F4[27];
+extern const char           D_dryfield_night_saloon_g_r_8017D710[11];
+extern const char           D_dryfield_night_saloon_g_r_8017D71C[17];
+extern const char           D_dryfield_night_saloon_g_r_8017D730[14];
+extern const char           D_dryfield_night_saloon_g_r_8017D740[11];
+extern const char           D_dryfield_night_saloon_g_r_8017D74C[13];
+extern const char           D_dryfield_night_saloon_g_r_8017D75C[23];
+extern const char           D_dryfield_night_saloon_g_r_8017D774[13];
+extern const char           D_dryfield_night_saloon_g_r_8017D784[17];
+extern const char           D_dryfield_night_saloon_g_r_8017D798[16];
+extern const char           D_dryfield_night_saloon_g_r_8017D7A8[12];
+extern const char           D_dryfield_night_saloon_g_r_8017D7B4[20];
+extern const char           D_dryfield_night_saloon_g_r_8017D7C8[17];
+extern const char           D_dryfield_night_saloon_g_r_8017D7DC[19];
+extern const char           D_dryfield_night_saloon_g_r_8017D7F0[24];
+extern const char           D_dryfield_night_saloon_g_r_8017D808[19];
+extern const char           D_dryfield_night_saloon_g_r_8017D81C[27];
+extern const char           D_dryfield_night_saloon_g_r_8017D838[18];
+extern const char           D_dryfield_night_saloon_g_r_8017D84C[16];
+extern const char           D_dryfield_night_saloon_g_r_8017D85C[20];
+void                        func_dryfield_night_saloon_g_r_8017E0A8(u8);
 
 s32  func_dryfield_night_saloon_g_r_8017DCA4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, GpMessageArg, GpMessageArg);
@@ -651,41 +651,41 @@ GpAnimSet* D_dryfield_night_saloon_g_r_80183904[18] = {
 
 GpCopyArg D_dryfield_night_saloon_g_r_8018394C = { { .sets = D_dryfield_night_saloon_g_r_80183904 }, 18 };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183954 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183954 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183968 = { { .index = 1 }, 48, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183968 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_8018397C = { { .index = 1 }, 49, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183990 = { { .index = 1 }, 50, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183990 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_801839A4 = { { .index = 1 }, 51, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_801839A4 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_801839B8 = { { .index = 1 }, 52, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_801839B8 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_801839CC = { { .index = 1 }, 53, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_801839CC = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_801839E0 = { { .index = 1 }, 54, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_801839E0 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_801839F4 = { { .index = 1 }, 55, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_801839F4 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183A08 = { { .index = 1 }, 56, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A08 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183A1C = { { .index = 1 }, 57, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A1C = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183A30[3] = {
-    { { .index = 1 }, 58, 1, 15, 0 },
-    { { .index = 1 }, 59, 1, 15, 0 },
-    { { .index = 1 }, 60, 1, 15, 0 },
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A30[3] = {
+    { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183A6C = { { .index = 1 }, 61, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A6C = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183A80 = { { .index = 1 }, 62, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A80 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183A94 = { { .index = 1 }, 63, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A94 = { { .index = 1 }, 63, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183AA8 = { { .index = 1 }, 64, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183AA8 = { { .index = 1 }, 64, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_night_saloon_g_r_80183ABC = { { 950, 0, -180, 0 }, { 0, 530, 0, 0 } };
 
@@ -699,39 +699,39 @@ GpXformArg D_dryfield_night_saloon_g_r_80183B1C = { { 4110, 0, 1730, 0 }, { 0, -
 
 GpOverrideArg D_dryfield_night_saloon_g_r_80183B34 = { 62, 48 };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183B3C[2] = {
-    { { .index = 0 }, 1, 0, 0, 0 },
-    { { .index = 0 }, 1, 1, 15, 0 },
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B3C[2] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183B64 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B64 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183B78 = { { .index = 0 }, 3, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B78 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183B8C = { { .index = 0 }, 4, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B8C = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183BA0 = { { .index = 0 }, 5, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BA0 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183BB4 = { { .index = 0 }, 6, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BB4 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183BC8 = { { .index = 0 }, 7, 1, 25, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BC8 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 25, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183BDC = { { .index = 0 }, 8, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BDC = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_night_saloon_g_r_80183BF0 = { { .index = 0 }, 9, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BF0 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183C04 = { { .index = 0 }, 10, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C04 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183C18 = { { .index = 0 }, 11, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C18 = { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183C2C = { { .index = 0 }, 12, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C2C = { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183C40 = { { .index = 0 }, 13, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C40 = { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183C54 = { { .index = 0 }, 14, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C54 = { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_saloon_g_r_80183C68 = { { .index = 0 }, 15, 1, 15, 0 };
+AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C68 = { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_night_saloon_g_r_80183C7C = { { 2670, 0, 1520, 0 }, { 0, 1024, 0, 0 } };
 

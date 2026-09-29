@@ -51,79 +51,79 @@ extern GpGridParams   D_neo_ark_r26_8017E19C[1];
 extern GpRoomBoundVec D_neo_ark_r26_8017E9EC[5];
 extern GpRoomCoordSet D_neo_ark_r26_8017E928[1];
 
-extern GpAnimArg D_neo_ark_r26_8017D780;
-extern GpAnimArg D_neo_ark_r26_8017D7C4;
-extern GpAnimArg D_neo_ark_r26_8017D7D8;
-extern GpAnimArg D_neo_ark_r26_8017D864;
-extern GpAnimArg D_neo_ark_r26_8017D904;
-extern GpAnimArg D_neo_ark_r26_8017D918;
-extern GpAnimArg D_neo_ark_r26_8017D9CC;
-extern GpCmdArg  D_neo_ark_r26_8017D798;
-void             func_neo_ark_r26_8017D5D0(void);
+extern AnimationPlayRequest D_neo_ark_r26_8017D780;
+extern AnimationPlayRequest D_neo_ark_r26_8017D7C4;
+extern AnimationPlayRequest D_neo_ark_r26_8017D7D8;
+extern AnimationPlayRequest D_neo_ark_r26_8017D864;
+extern AnimationPlayRequest D_neo_ark_r26_8017D904;
+extern AnimationPlayRequest D_neo_ark_r26_8017D918;
+extern AnimationPlayRequest D_neo_ark_r26_8017D9CC;
+extern GpCmdArg             D_neo_ark_r26_8017D798;
+void                        func_neo_ark_r26_8017D5D0(void);
 
-GpAnimArg D_neo_ark_r26_8017D780 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D780 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCmdArg D_neo_ark_r26_8017D794 = { { .loc = { 4, 36 } }, 0 };
 
 GpCmdArg D_neo_ark_r26_8017D798 = { { .loc = { 4, 36 } }, 1 };
 
-GpAnimArg D_neo_ark_r26_8017D79C[2] = {
-    { { .index = 1 }, 1, 1, 10, 0 },
-    { { .index = 1 }, 2, 1, 10, 0 },
+AnimationPlayRequest D_neo_ark_r26_8017D79C[2] = {
+    { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_neo_ark_r26_8017D7C4 = { { .index = 1 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D7C4 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017D7D8 = { { .index = 1 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D7D8 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017D7EC[6] = {
-    { { .index = 1 }, 5, 0, 0, 0 },
-    { { .index = 1 }, 6, 0, 0, 0 },
-    { { .index = 1 }, 7, 0, 0, 0 },
-    { { .index = 1 }, 8, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
+AnimationPlayRequest D_neo_ark_r26_8017D7EC[6] = {
+    { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_neo_ark_r26_8017D864 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D864 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017D878[7] = {
-    { { .index = 1 }, 10, 0, 0, 0 },
-    { { .index = 1 }, 11, 0, 0, 0 },
-    { { .index = 1 }, 12, 0, 0, 0 },
-    { { .index = 1 }, 13, 0, 0, 0 },
-    { { .index = 1 }, 14, 0, 0, 0 },
-    { { .index = 1 }, 15, 0, 0, 0 },
-    { { .index = 1 }, 16, 0, 0, 0 },
+AnimationPlayRequest D_neo_ark_r26_8017D878[7] = {
+    { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_neo_ark_r26_8017D904 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D904 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017D918 = { { .index = 1 }, 10, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D918 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017D92C[8] = {
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
+AnimationPlayRequest D_neo_ark_r26_8017D92C[8] = {
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_neo_ark_r26_8017D9CC = { { .index = 1 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D9CC = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_neo_ark_r26_8017D9E0 = { { .index = 1 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D9E0 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017D9F4 = { { .index = 1 }, 7, 1, 8, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017D9F4 = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017DA08 = { { .index = 1 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017DA08 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017DA1C = { { .index = 1 }, 17, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017DA1C = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_r26_8017DA30 = { { .index = 1 }, 18, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_r26_8017DA30 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_neo_ark_r26_8017DA44 = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
 

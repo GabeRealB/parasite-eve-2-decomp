@@ -103,12 +103,12 @@ extern s32                          D_shelter_b6_corridor_801851B8;
 static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-extern GpAnimArg D_shelter_b6_corridor_8017F27C;
-extern GpCmdArg  D_shelter_b6_corridor_8017F34C;
-extern GpCmdArg  D_shelter_b6_corridor_8017F350;
-extern GpCopyArg D_shelter_b6_corridor_8017F260;
-void             func_shelter_b6_corridor_8017E19C(s32);
-void             func_shelter_b6_corridor_8017E204(void);
+extern AnimationPlayRequest D_shelter_b6_corridor_8017F27C;
+extern GpCmdArg             D_shelter_b6_corridor_8017F34C;
+extern GpCmdArg             D_shelter_b6_corridor_8017F350;
+extern GpCopyArg            D_shelter_b6_corridor_8017F260;
+void                        func_shelter_b6_corridor_8017E19C(s32);
+void                        func_shelter_b6_corridor_8017E204(void);
 
 void func_shelter_b6_corridor_8017E19C(s32);
 void func_shelter_b6_corridor_8017E204(void);
@@ -165,16 +165,16 @@ GpAnimSet* D_shelter_b6_corridor_8017F258[2] = {
 
 GpCopyArg D_shelter_b6_corridor_8017F260 = { { .sets = D_shelter_b6_corridor_8017F258 }, 2 };
 
-GpAnimArg D_shelter_b6_corridor_8017F268 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b6_corridor_8017F268 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_corridor_8017F27C = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_shelter_b6_corridor_8017F27C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b6_corridor_8017F290[5] = {
-    { { .index = 0 }, 1, 0, 0, 0 },
-    { { .index = 0 }, 1, 1, 10, 0 },
-    { { .index = 0 }, 2, 1, 8, 0 },
-    { { .index = 0 }, 3, 0, 0, 0 },
-    { { .index = 0 }, 4, 1, 4, 0 },
+AnimationPlayRequest D_shelter_b6_corridor_8017F290[5] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 GpXformArg D_shelter_b6_corridor_8017F2F4 = { { 7000, 0, 0, 0 }, { 0, -1024, 0, 0 } };
@@ -595,7 +595,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_shelter_b6_corridor_80180568->blend == 0) {
+                        if (D_shelter_b6_corridor_80180568->blend == ANIMATION_BLEND_RESET) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);

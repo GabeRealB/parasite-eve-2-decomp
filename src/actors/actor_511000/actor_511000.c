@@ -221,8 +221,8 @@ extern TaskDesc D_actor_511000_801472E8[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
-        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
+        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, GpCmdArg*);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, s32);
@@ -281,7 +281,7 @@ extern GpAnimSet*              D_actor_511000_801550C0[4];
 extern TmdSource D_actor_511000_80142554;
 extern TmdSource D_actor_511000_80142AAC;
 extern TmdSource D_actor_511000_80142C90;
-s32              func_actor_511000_80132604(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_511000_80132604(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_511000_80132724(Task*, s32, GpXformArg*);
 s32              func_actor_511000_801327A0(Task*, s32, s32);
 s32              func_actor_511000_8013287C(Task*, s32, GpCmdArg*);
@@ -299,7 +299,7 @@ extern Actor511000Palette D_actor_511000_80147E84;
 s32  func_actor_511000_801334B8(Task*);
 s32  func_actor_511000_801334C4(Task*, s32, GpXformArg*, s32);
 s32  func_actor_511000_80133554(Task*, s32, s32);
-s32  func_actor_511000_80133DEC(Task*, s32, GpAnimArg*);
+s32  func_actor_511000_80133DEC(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_511000_80133E48(Task*, s32, GpXformArg*);
 s32  func_actor_511000_80133EAC(Task*, s32, s32);
 void func_actor_511000_80133D90(Task*);
@@ -2383,7 +2383,7 @@ static void func_actor_511000_801325A4(Task* task)
 /// animation id changes, restarts slots 1..19 on it, blended when the
 /// payload's third word is set, steps them once and turns on the tick state's
 /// per-frame stepping.
-s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor511000Work2* work;
     s32               i;
@@ -2391,15 +2391,15 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor511000Work2*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->field_47C) {
-        work->field_47C = msg->animBlock.index;
+    if (msg->source.index != work->field_47C) {
+        work->field_47C = msg->source.index;
         work->field_478 = -1;
         func_800B3F84(&work->rig.anim, D_actor_511000_801472E4[work->field_47C], ext, work->rig.poses,
                       work->rig.slots);
     }
-    if (msg->field_4 != work->field_478) {
-        work->field_478 = msg->field_4;
-        if (msg->field_8 != 0) {
+    if (msg->animationId != work->field_478) {
+        work->field_478 = msg->animationId;
+        if (msg->blend != ANIMATION_BLEND_RESET) {
             for (i = 1; i < 0x14; i++) {
                 func_800B4114(&work->rig.anim, i, work->field_478, 0, 6);
             }
@@ -3270,13 +3270,13 @@ void func_actor_511000_80133D90(Task* task)
 /// Copies the animation id from `preset` into the work block parked in
 /// `task->work`, reseeds slots 1..0x12 through `Gp_AnimResetSlot`, and
 /// clears `field_480`'s halfword.
-s32 func_actor_511000_80133DEC(Task* task, s32 arg1, GpAnimArg* preset)
+s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* preset)
 {
     Actor511000Work2* work;
     s32               i;
 
     work            = (Actor511000Work2*)task->work;
-    work->field_47C = preset->field_4;
+    work->field_47C = preset->animationId;
     i               = 1;
     do {
         Gp_AnimResetSlot(&work->rig.anim, i, work->field_47C);

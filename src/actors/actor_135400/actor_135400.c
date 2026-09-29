@@ -46,10 +46,10 @@
 /// state's matrices and fills them from the three `D_actor_135400_8013F904`
 /// lights. `params` holds the `D_actor_135400_80131EA0` defaults.
 typedef struct Actor135400Work {
-    ActorAnimRig19  rig;
-    ActorModelState model;
-    GpAnimArg       params;
-    s32             field_494;
+    ActorAnimRig19       rig;
+    ActorModelState      model;
+    AnimationPlayRequest params;
+    s32                  field_494;
 } Actor135400Work;
 STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 
@@ -94,7 +94,19 @@ extern TaskDesc D_actor_135400_8013A4AC[];
 
 /// The handler table `func_actor_135400_80132064` parks in `Task::msgTable`:
 /// the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB handlers of the main task.
-extern GpMsgEntry D_actor_135400_8013A4D0[5];
+/// Message entries with the payload signature selected by each message id.
+typedef struct {
+    s32 id; // Message id; 0x7FFFFFFF terminates the table
+    union {
+        s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
+        s32 (*placement)(Task*, s32, GpXformArg*, s32);
+        s32 (*mode)(Task*, s32, s32, s32);
+        s32 (*command)(Task*, s32, GpCmdArg*, s32);
+    } handler; // Callback with the argument views required by that message
+} _Actor135400MessageEntry;
+STATIC_ASSERT_SIZEOF(_Actor135400MessageEntry, 8);
+
+extern _Actor135400MessageEntry D_actor_135400_8013A4D0[5];
 
 /// The three flat lights `func_actor_135400_80132CB0` loads into the model's
 /// light / colour matrices: an axis-aligned light on X, Y and Z (`vy` / `vx` /
@@ -104,7 +116,7 @@ extern GsF_LIGHT D_actor_135400_8013F904[3];
 /// The second task's message table: `(message id, handler)` pairs for 0x7D3 /
 /// 0x7D4 / 0x7D5, ended by `0x7FFFFFFF`. `func_actor_135400_80132B60` parks
 /// its address in `Task::msgTable`.
-extern GpMsgEntry D_actor_135400_8013F8E4[4];
+extern _Actor135400MessageEntry D_actor_135400_8013F8E4[4];
 
 /// Per-step frame counts of the second task's 0x7D3 animation: eight `s16`
 /// entries indexed by `Actor135400Work::params.field_4`.
@@ -136,13 +148,13 @@ static void func_actor_135400_801324CC(Task* task);
 static void func_actor_135400_8013252C(Task* task);
 static void func_actor_135400_80132614(Task* arg0);
 static void func_actor_135400_80132634(Task* task);
-s32         func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32         func_actor_135400_80132650(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
 s32         func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3);
 s32         func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 static void func_actor_135400_80132B60(Task* arg0);
 static void func_actor_135400_80132C90(Task* arg0);
 static void func_actor_135400_80132CB0(Task* task);
-s32         func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32         func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
 s32         func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
 
 /// State table of the first part task: state 0 reparents it
@@ -180,12 +192,12 @@ static const Actor135400Places D_actor_135400_80131E48 = {
 };
 
 extern TmdSource D_actor_135400_8013E250;
-s32              func_actor_135400_80132D24(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_135400_80132D24(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_135400_80132E40(Task*, s32, GpXformArg*, s32);
 s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
 void             func_actor_135400_80132AF4(Task*);
 
-s32  func_actor_135400_80132650(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_135400_80132650(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_135400_8013276C(Task*, s32, GpXformArg*, s32);
 s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
 s32  func_actor_135400_801328DC(Task*, s32, GpCmdArg*, s32);
@@ -391,12 +403,12 @@ TaskDesc D_actor_135400_8013A4AC[3] = {
     { 1, 192, func_actor_135400_801324D4, { .model = &D_actor_135400_80139174 } },
 };
 
-GpMsgEntry D_actor_135400_8013A4D0[5] = {
-    { 2003, func_actor_135400_80132650 },
-    { 2004, func_actor_135400_8013276C },
-    { 2005, func_actor_135400_801327E8 },
-    { 2011, func_actor_135400_801328DC },
-    { 0x7FFFFFFF, NULL },
+_Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
+    { 2003, { .animation = func_actor_135400_80132650 } },
+    { 2004, { .placement = func_actor_135400_8013276C } },
+    { 2005, { .mode = func_actor_135400_801327E8 } },
+    { 2011, { .command = func_actor_135400_801328DC } },
+    { 0x7FFFFFFF, { .animation = NULL } },
 };
 
 TmdBone D_actor_135400_8013A4F8[19] = {
@@ -568,11 +580,11 @@ GpAnimSet** D_actor_135400_8013F8D4[1] = {
 
 TaskDesc D_actor_135400_8013F8D8 = { 257, 192, func_actor_135400_80132AF4, { .model = &D_actor_135400_8013E250 } };
 
-GpMsgEntry D_actor_135400_8013F8E4[4] = {
-    { 2003, func_actor_135400_80132D24 },
-    { 2004, func_actor_135400_80132E40 },
-    { 2005, func_actor_135400_80132EBC },
-    { 0x7FFFFFFF, NULL },
+_Actor135400MessageEntry D_actor_135400_8013F8E4[4] = {
+    { 2003, { .animation = func_actor_135400_80132D24 } },
+    { 2004, { .placement = func_actor_135400_80132E40 } },
+    { 2005, { .mode = func_actor_135400_80132EBC } },
+    { 0x7FFFFFFF, { .animation = NULL } },
 };
 
 GsF_LIGHT D_actor_135400_8013F904[3] = {
@@ -644,14 +656,14 @@ static void func_actor_135400_80132064(Task* arg0)
 {
     Actor135400MainWork* work;
     Actor135400Places    places;
-    GpAnimArg            anim[2];
+    AnimationPlayRequest anim[2];
     Task*                spawned;
 
     places = D_actor_135400_80131E48;
     memset(anim, 0, sizeof(anim));
-    anim[0].field_4 = 1;
-    anim[1].field_4 = 4;
-    work            = (Actor135400MainWork*)memCalloc(0x4C8, 0);
+    anim[0].animationId = 1;
+    anim[1].animationId = 4;
+    work                = (Actor135400MainWork*)memCalloc(0x4C8, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;
@@ -839,13 +851,12 @@ static void func_actor_135400_80132634(Task* task)
     ext->colorMtx = &work->model.color;
 }
 
-/// The main task's 0x7D3 handler: when the request names a different bank
-/// than the one latched in `model.bank`, re-seeds the twenty slots from
-/// `D_actor_135400_8013A4A8`; then, with `field_8` set and the slots already
-/// live, starts animation `field_4` on every slot through `func_800B4114`
-/// (passing `field_C`), otherwise resets every slot to it, and ticks them all
-/// once.
-s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. The requested clip is applied to the slots.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_135400_80132650(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
 {
     Actor135400MainWork* work;
     TmdObject*           ext;
@@ -853,14 +864,14 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor135400MainWork*)task->work;
     ext  = task->extra.tmd;
-    if (params->animBlock.index != work->model.bank) {
-        work->model.bank = params->animBlock.index;
+    if (params->source.index != work->model.bank) {
+        work->model.bank = params->source.index;
         func_800B3F84(&work->rig.anim, D_actor_135400_8013A4A8[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    work->model.animId = params->field_4;
-    if (params->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = params->animationId;
+    if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
@@ -1012,10 +1023,10 @@ static void func_actor_135400_801329B0(Task* task)
     }
     count               = task->killCountdown + 1;
     task->killCountdown = count;
-    if (D_actor_135400_8013F8C4[work->params.field_4] < (s16)count) {
-        work->params.field_4 = work->params.field_4 + 1;
-        if (work->params.field_4 >= 7) {
-            work->params.field_4 = 1;
+    if (D_actor_135400_8013F8C4[work->params.animationId] < (s16)count) {
+        work->params.animationId = work->params.animationId + 1;
+        if (work->params.animationId >= 7) {
+            work->params.animationId = 1;
         }
         func_actor_135400_80132D24(task, 0x7D3, &work->params, 0);
         task->killCountdown = 0;
@@ -1054,7 +1065,7 @@ void func_actor_135400_80132AF4(Task* task)
 
 /// The animation arguments `func_actor_135400_80132B60` copies into
 /// `Actor135400Work::params` when the second task is created.
-static const GpAnimArg D_actor_135400_80131EA0 = { 0, 2, 1, 10, 0 };
+static const AnimationPlayRequest D_actor_135400_80131EA0 = { 0, 2, 1, 10, 0 };
 
 /// Spawn state of the second task: exits at once when game flag 0x6C is set or
 /// the 0x498-byte work block cannot be allocated. Otherwise it seeds the
@@ -1063,13 +1074,13 @@ static const GpAnimArg D_actor_135400_80131EA0 = { 0, 2, 1, 10, 0 };
 /// lights, and installs the message table and exit callback.
 static void func_actor_135400_80132B60(Task* arg0)
 {
-    Actor135400Work* work;
-    GpAnimArg        params;
-    GpAnimArg        spawn;
+    Actor135400Work*     work;
+    AnimationPlayRequest params;
+    AnimationPlayRequest spawn;
 
     memset(&params, 0, sizeof(params));
-    params.field_4 = 1;
-    spawn          = D_actor_135400_80131EA0;
+    params.animationId = 1;
+    spawn              = D_actor_135400_80131EA0;
     if ((GameFlag_GetNibble(0x6C) > 0) || ((work = memCalloc(0x498, 0)) == NULL)) {
         Gp_EnemyTaskExit(arg0);
         return;
@@ -1109,13 +1120,12 @@ static void func_actor_135400_80132CB0(Task* task)
     }
 }
 
-/// The 0x7D3 handler of the task `func_actor_135400_80132B60` sets up: when
-/// the request names a different bank than the one latched in `model.bank`,
-/// re-seeds the nineteen slots from `D_actor_135400_8013F8D4`; then, with
-/// `field_8` set and the slots already live, starts animation `field_4` on
-/// every slot through `func_800B4114` (passing `field_C`), otherwise resets
-/// every slot to it, and ticks them all once.
-s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. The requested clip is applied to the slots.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
 {
     Actor135400Work* work;
     TmdObject*       ext;
@@ -1123,14 +1133,14 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor135400Work*)task->work;
     ext  = task->extra.tmd;
-    if (params->animBlock.index != work->model.bank) {
-        work->model.bank = params->animBlock.index;
+    if (params->source.index != work->model.bank) {
+        work->model.bank = params->source.index;
         func_800B3F84(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    work->model.animId = params->field_4;
-    if (params->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = params->animationId;
+    if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
         }
     } else {
         for (i = 1; i < 0x13; i++) {

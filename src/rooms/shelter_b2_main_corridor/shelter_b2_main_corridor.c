@@ -229,9 +229,9 @@ GpAnimSet* D_shelter_b2_main_corridor_80182C5C[1] = {
 
 GpCopyArg D_shelter_b2_main_corridor_80182C60 = { { .sets = D_shelter_b2_main_corridor_80182C5C }, 1 };
 
-GpAnimArg D_shelter_b2_main_corridor_80182C68 = { { .index = 1 }, 1, 1, 20, 1 };
+AnimationPlayRequest D_shelter_b2_main_corridor_80182C68 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b2_main_corridor_80182C7C = { { .index = 1 }, 47, 1, 10, 1 };
+AnimationPlayRequest D_shelter_b2_main_corridor_80182C7C = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_shelter_b2_main_corridor_80182C90 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 

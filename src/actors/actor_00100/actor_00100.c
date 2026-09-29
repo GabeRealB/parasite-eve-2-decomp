@@ -5414,7 +5414,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                 if (command == &Actor00100_D1B9D0) {
                     if ((config->hp > 0) && ((s16)work->field_C28 >= 0x17)) {
                         message          = &work->field_BF8;
-                        command->sets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.sets[7];
+                        command->sets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->table.sets[7];
                         work->field_BFC  = 4;
                         work->field_C00  = 1;
                         work->field_C04  = 3;
@@ -5423,7 +5423,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                     }
                 } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
                     message                   = &work->field_BF8;
-                    Actor00100_D1B9AC.sets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.sets[7];
+                    Actor00100_D1B9AC.sets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->table.sets[7];
                     work->field_BFC           = 4;
                     work->field_C00           = 1;
                     work->field_C04           = 3;
@@ -5469,9 +5469,9 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                         work->field_BFC = 5;
                         command2        = work->field_BF8;
                         if (command2 == &Actor00100_D1B9D0) {
-                            command2->sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.sets[9];
+                            command2->sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->table.sets[9];
                         } else {
-                            Actor00100_D1B9AC.sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.sets[9];
+                            Actor00100_D1B9AC.sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->table.sets[9];
                         }
                         nextMessage = &work->field_BF8;
                         Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);

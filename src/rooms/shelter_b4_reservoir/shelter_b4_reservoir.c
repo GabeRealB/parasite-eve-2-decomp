@@ -282,7 +282,7 @@ Task* D_shelter_b4_reservoir_8018492C = 0;
 
 Task* D_shelter_b4_reservoir_80184930 = NULL;
 
-GpAnimArg D_shelter_b4_reservoir_80184934 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b4_reservoir_80184934 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpEvsCmd D_shelter_b4_reservoir_80184948[48] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
@@ -1086,7 +1086,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_shelter_b4_reservoir_80187504->blend == 0) {
+                    if (D_shelter_b4_reservoir_80187504->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
@@ -1401,7 +1401,7 @@ void func_shelter_b4_reservoir_8017E610(s32 arg0)
         D_shelter_b4_reservoir_80187624.span  = 1;
         D_shelter_b4_reservoir_80187624.scale = 0x60;
         D_shelter_b4_reservoir_80187624.r     = 0x40;
-        D_shelter_b4_reservoir_80187624.blend = 1;
+        D_shelter_b4_reservoir_80187624.blend = ANIMATION_BLEND_INTERPOLATE;
         D_shelter_b4_reservoir_80187624.g     = 0x80;
         D_shelter_b4_reservoir_80187624.b     = 0x80;
         Task_SpawnFromTable(D_shelter_b4_reservoir_80184724, 0, 0, &D_shelter_b4_reservoir_80187624);

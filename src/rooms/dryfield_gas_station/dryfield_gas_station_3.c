@@ -580,12 +580,12 @@ static void func_dryfield_gas_station_801803C0(Task* task)
     DgsWork* eff;
     Task*    shared;
     union {
-        GpAnimArg rec;
-        GpMoveArg move;
+        AnimationPlayRequest rec;
+        GpMoveArg            move;
     } msg;
-    GpAnimArg  script;
-    GpAnimArg* rec;
-    u16        step;
+    AnimationPlayRequest  script;
+    AnimationPlayRequest* rec;
+    u16                   step;
 
     work = (DgsWork*)task->work;
     switch (work->field_4) {
@@ -599,12 +599,12 @@ static void func_dryfield_gas_station_801803C0(Task* task)
         case 2:
             cur = (DgsWork*)task->work;
             if (cur->owner != NULL) {
-                msg.rec.animBlock.ptr = D_dryfield_gas_station_80182E30;
-                msg.rec.field_4       = 1;
-                msg.rec.field_8       = 0;
-                msg.rec.field_C       = 0;
-                msg.rec.field_10      = 0;
-                Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
+                msg.rec.animationId          = 1;
+                msg.rec.blend                = ANIMATION_BLEND_RESET;
+                msg.rec.blendFrames          = 0;
+                msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
             break;
@@ -613,12 +613,12 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E5C, 0);
             cur = (DgsWork*)task->work;
             if (cur->owner != NULL) {
-                msg.rec.animBlock.ptr = D_dryfield_gas_station_80182E30;
-                msg.rec.field_4       = 2;
-                msg.rec.field_8       = 1;
-                msg.rec.field_C       = 0x1E;
-                msg.rec.field_10      = 0;
-                Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
+                msg.rec.animationId          = 2;
+                msg.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                msg.rec.blendFrames          = 0x1E;
+                msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             break;
         case 4:
@@ -627,12 +627,12 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 case 0:
                     cur = (DgsWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.animBlock.ptr = D_dryfield_gas_station_80182E30;
-                        msg.rec.field_4       = 3;
-                        msg.rec.field_8       = 0;
-                        msg.rec.field_C       = 0;
-                        msg.rec.field_10      = 0;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                        msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
+                        msg.rec.animationId          = 3;
+                        msg.rec.blend                = ANIMATION_BLEND_RESET;
+                        msg.rec.blendFrames          = 0;
+                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
                     Gp_DispatchMsg((Task*)work->owner, 0x3FC, 0, 0);
@@ -655,12 +655,12 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                     rec = &script;
                     cur = (DgsWork*)task->work;
                     if (cur->owner != NULL) {
-                        script.animBlock.ptr = D_dryfield_gas_station_80182E30;
-                        script.field_4       = 0;
-                        rec->field_8         = step;
-                        rec->field_C         = 0xF;
-                        script.field_10      = 0;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, rec, 0);
+                        script.source.sets          = D_dryfield_gas_station_80182E30;
+                        script.animationId          = 0;
+                        rec->blend                  = step;
+                        rec->blendFrames            = 0xF;
+                        script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, rec, 0);
                     }
                     break;
                 default:
@@ -678,12 +678,12 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             Gp_DispatchMsgPtr((Task*)eff->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
             cur = (DgsWork*)shared->work;
             if (cur->owner != NULL) {
-                msg.rec.animBlock.ptr = D_dryfield_gas_station_80182E30;
-                msg.rec.field_4       = 0;
-                msg.rec.field_8       = 0;
-                msg.rec.field_C       = 0;
-                msg.rec.field_10      = 0;
-                Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
+                msg.rec.animationId          = 0;
+                msg.rec.blend                = ANIMATION_BLEND_RESET;
+                msg.rec.blendFrames          = 0;
+                msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             SndEvt_EnqueueType7(0x52010011, 0x3C);
             SetDispMask(1);
@@ -716,9 +716,9 @@ static void func_dryfield_gas_station_801803C0(Task* task)
 /// reloaded `work` is dereferenced unconditionally.
 void func_dryfield_gas_station_801807E0(Task* task)
 {
-    DgsWork*  work;
-    DgsWork*  work2;
-    GpAnimArg script;
+    DgsWork*             work;
+    DgsWork*             work2;
+    AnimationPlayRequest script;
 
     switch (task->state) {
         case 0:
@@ -734,12 +734,12 @@ void func_dryfield_gas_station_801807E0(Task* task)
                 }
                 work2 = (DgsWork*)task->work;
                 if (work2->owner != 0) {
-                    script.animBlock.ptr = D_dryfield_gas_station_80182E30;
-                    script.field_4       = 0;
-                    script.field_8       = 0;
-                    script.field_C       = 0;
-                    script.field_10      = 0;
-                    Gp_DispatchMsgPtr((Task*)work2->owner, 0x3F4, &script, 0);
+                    script.source.sets          = D_dryfield_gas_station_80182E30;
+                    script.animationId          = 0;
+                    script.blend                = ANIMATION_BLEND_RESET;
+                    script.blendFrames          = 0;
+                    script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                    Gp_DispatchMsgPtr((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
                 }
                 func_800E3FAC(0xA2, 9);
                 func_800E8634(D_dryfield_gas_station_80182E8C, 0,
@@ -811,14 +811,14 @@ void func_dryfield_gas_station_80180984(Task* arg0)
 /// player may still be carrying (flag at `DgsWork::playerEffActive`), echoes the
 /// equipped weapon back with msg 0x3E9 and, once the cutscene task has an owner,
 /// hands that owner the `D_dryfield_gas_station_80182E30` script record as msg
-/// 0x3F4. The record is a `GpAnimArg` built on the stack, only its first field
+/// 0x3F4. The record is a `AnimationPlayRequest` built on the stack, only its first field
 /// (the script pointer) set.
 void func_dryfield_gas_station_80180A60(void)
 {
-    Task*     task;
-    DgsWork*  work;
-    DgsWork*  work2;
-    GpAnimArg script;
+    Task*                task;
+    DgsWork*             work;
+    DgsWork*             work2;
+    AnimationPlayRequest script;
 
     task = D_dryfield_gas_station_80184BD4;
     work = (DgsWork*)task->work;
@@ -830,12 +830,12 @@ void func_dryfield_gas_station_80180A60(void)
     Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
     work2 = (DgsWork*)task->work;
     if (work2->owner != 0) {
-        script.animBlock.ptr = D_dryfield_gas_station_80182E30;
-        script.field_4       = 0;
-        script.field_8       = 0;
-        script.field_C       = 0;
-        script.field_10      = 0;
-        Gp_DispatchMsgPtr((Task*)work2->owner, 0x3F4, &script, 0);
+        script.source.sets          = D_dryfield_gas_station_80182E30;
+        script.animationId          = 0;
+        script.blend                = ANIMATION_BLEND_RESET;
+        script.blendFrames          = 0;
+        script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        Gp_DispatchMsgPtr((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
     }
     SndEvt_EnqueueType7(0x52010011, 0x3C);
     SetDispMask(1);

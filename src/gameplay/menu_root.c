@@ -103,7 +103,7 @@ extern u8 Gp_StrExplosion[];
 
 extern TaskDesc D_8010E7E8;
 
-extern GpAnimArg D_8010E7F4;
+extern AnimationPlayRequest D_8010E7F4;
 
 extern UiListItemFunc Gp_MainMenuCmds[6];
 
@@ -235,7 +235,7 @@ u8* D_8010E7C0[]       = {
 
 TaskDesc D_8010E7E8 = { 0, 32, Gp_MenuExitCallback, { NULL } };
 
-GpAnimArg D_8010E7F4 = { { 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, 0, 0, 0 };
 
 UiListItemFunc Gp_MainMenuCmds[6] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd, Gp_DrawPeEnergyCmd, Gp_DrawMapCmd, Gp_DrawOptionCmd, Gp_DrawExitCmd };
 
@@ -589,8 +589,8 @@ void Gp_MenuRootTask(Task* arg0)
                     func_8010870C(gameGetPtrSlot(3), 5);
                 }
                 if (arg0->spawnArg1.value == 0x44) {
-                    Gp_PlayerWeaponId(&D_8010E7F4.animBlock.index);
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_8010E7F4, 0);
+                    Gp_PlayerWeaponId(&D_8010E7F4.source.index);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 *flag = 0;
                 Task_SetActiveList(prev);

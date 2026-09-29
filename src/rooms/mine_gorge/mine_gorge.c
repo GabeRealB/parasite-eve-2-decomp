@@ -57,10 +57,10 @@ void func_mine_gorge_8017D8BC(u8);
 
 extern GpAnimSet D_mine_gorge_8017E258;
 
-extern GpAnimArg D_mine_gorge_8017E2DC;
-extern GpAnimArg D_mine_gorge_8017E5E8;
-extern GpCopyArg D_mine_gorge_8017E5E0;
-void             func_mine_gorge_8017D8C8(s32);
+extern AnimationPlayRequest D_mine_gorge_8017E2DC;
+extern AnimationPlayRequest D_mine_gorge_8017E5E8;
+extern GpCopyArg            D_mine_gorge_8017E5E0;
+void                        func_mine_gorge_8017D8C8(s32);
 
 AnimationPackedPose D_mine_gorge_8017DE10[10] = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
@@ -99,9 +99,9 @@ TaskDesc D_mine_gorge_8017E2B0[2] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimArg D_mine_gorge_8017E2C8 = { { .index = 1 }, 24, 0, 0, 0 };
+AnimationPlayRequest D_mine_gorge_8017E2C8 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_gorge_8017E2DC = { { .index = 1 }, 1, 1, 10, 0 };
+AnimationPlayRequest D_mine_gorge_8017E2DC = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_mine_gorge_8017E2F0[22] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
@@ -147,10 +147,10 @@ GpAnimSet* D_mine_gorge_8017E5D8[2] = {
 
 GpCopyArg D_mine_gorge_8017E5E0 = { { .sets = D_mine_gorge_8017E5D8 }, 2 };
 
-GpAnimArg D_mine_gorge_8017E5E8 = { { .index = 1 }, 47, 1, 7, 1 };
+AnimationPlayRequest D_mine_gorge_8017E5E8 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_mine_gorge_8017E5FC = { { .index = 1 }, 48, 1, 7, 1 };
+AnimationPlayRequest D_mine_gorge_8017E5FC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpEvsCmd D_mine_gorge_8017E610[14] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },

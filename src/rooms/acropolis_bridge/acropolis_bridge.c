@@ -430,7 +430,7 @@ TaskDesc D_acropolis_bridge_80188E7C[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimArg D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverlayIds D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
 

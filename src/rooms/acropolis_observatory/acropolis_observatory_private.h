@@ -12,7 +12,8 @@ extern TaskDesc D_acropolis_observatory_8017E7DC[4];
 
 extern GpAnimSet D_acropolis_observatory_8017FE38;
 
-extern s32 D_acropolis_observatory_8017FE60;
+/// Borrowed player animation table with the observatory clip in entry one.
+extern GpAnimSet* gAcropolisObservatoryPlayerAnimationSets[2];
 
 extern TaskDesc D_acropolis_observatory_8017FE6C;
 

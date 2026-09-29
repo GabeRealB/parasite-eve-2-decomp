@@ -28,11 +28,11 @@ GpCmdReply D_801155A0;
 
 extern TaskDesc Gp_EvtSpawnTable[3];
 
-extern GpAnimArg D_8010FB10;
+extern AnimationPlayRequest D_8010FB10;
 
-extern GpAnimArg D_8010FB24;
+extern AnimationPlayRequest D_8010FB24;
 
-extern GpAnimArg Gp_WeaponMsgRec;
+extern AnimationPlayRequest Gp_WeaponMsgRec;
 
 static const TaskFuncTable3 D_800974C8;
 
@@ -46,11 +46,11 @@ TaskDesc Gp_EvtSpawnTable[3] = {
     { 0xFFFF, 0, NULL, { NULL } },
 };
 
-GpAnimArg D_8010FB10 = { { 1 }, 32, 1, 5, 0 };
+AnimationPlayRequest D_8010FB10 = { { 1 }, 32, 1, 5, 0 };
 
-GpAnimArg D_8010FB24 = { { 1 }, 33, 0, 0, 0 };
+AnimationPlayRequest D_8010FB24 = { { 1 }, 33, 0, 0, 0 };
 
-GpAnimArg Gp_WeaponMsgRec = { { 1 }, 1, 1, 8, 0 };
+AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, 1, 8, 0 };
 
 TaskDesc D_8010FB4C[3] = {
     { 0, 32, func_800E6EF4, { NULL } },
@@ -145,23 +145,23 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
 
 void Gp_EvtCapWeaponTask(Task* arg0)
 {
-    s32        flags;
-    GameActor* actor;
-    s32        mode;
-    GpAnimArg  recB;
-    GpAnimArg  recA;
+    s32                  flags;
+    GameActor*           actor;
+    s32                  mode;
+    AnimationPlayRequest recB;
+    AnimationPlayRequest recA;
 
     flags = arg0->spawnArg2.value;
     actor = gameGetPtrSlot(3)->work;
     switch (arg0->state) {
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
-                recA                 = Gp_WeaponMsgRec;
-                recA.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &recA, 0);
+                recA              = Gp_WeaponMsgRec;
+                recA.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &recA, 0);
             }
-            recB                 = D_8010FB10;
-            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+            recB              = D_8010FB10;
+            recB.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
@@ -207,8 +207,8 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             if (D_80115598 != 0) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
-            recB                 = D_8010FB24;
-            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+            recB              = D_8010FB24;
+            recB.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;
@@ -261,12 +261,12 @@ void Gp_MsgPlayer3F3(s32 arg0)
 
 void Gp_MsgPlayerWeapon(s32 arg0)
 {
-    GpAnimArg sp;
+    AnimationPlayRequest sp;
 
     if (arg0 == 0) {
-        sp                 = Gp_WeaponMsgRec;
-        sp.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &sp, 0);
+        sp              = Gp_WeaponMsgRec;
+        sp.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &sp, 0);
     } else {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
     }
@@ -353,15 +353,15 @@ void Gp_MsgAlly3F3(s32 arg0)
 
 void Gp_MsgAllyWeapon(s32 arg0)
 {
-    Task*     slot;
-    GpAnimArg sp;
+    Task*                slot;
+    AnimationPlayRequest sp;
 
     slot = gameGetPtrSlot(0xA);
     if (slot != NULL) {
         if (arg0 == 0) {
-            sp                 = Gp_WeaponMsgRec;
-            sp.animBlock.index = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
-            Gp_DispatchMsgPtr(slot, 0x3E8, &sp, 0);
+            sp              = Gp_WeaponMsgRec;
+            sp.source.index = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+            Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &sp, 0);
         } else {
             Gp_DispatchMsg(slot, 0x3F1, 0, 0);
         }

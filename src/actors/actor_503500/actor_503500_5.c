@@ -155,7 +155,7 @@ static void func_actor_503500_80146508(Task* arg0);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -210,7 +210,7 @@ static const TaskFuncTable3 D_actor_503500_801321F4 = {
 extern GpAnimSet D_actor_503500_80176314;
 extern GpAnimSet D_actor_503500_801764EC;
 extern TmdSource D_actor_503500_80175DC8;
-s32              func_actor_503500_8014652C(Task*, s32, GpAnimArg*);
+s32              func_actor_503500_8014652C(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_503500_80146664(Task*, s32, GpXformArg*);
 s32              func_actor_503500_801466E0(Task*, s32, s32);
 s32              func_actor_503500_801467C0(Task*, s32, GpCmdArg*);
@@ -265,31 +265,31 @@ GpAnimSet** D_actor_503500_8016EAB8[2] = {
     D_actor_503500_8016EAA4,
 };
 
-GpAnimArg D_actor_503500_8016EAC0[1] = {
-    { { .index = 0 }, 1, 0, 0, 0 },
+AnimationPlayRequest D_actor_503500_8016EAC0[1] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_actor_503500_8016EAD4 = { { .index = 0 }, 1, 1, 20, 0 };
+AnimationPlayRequest D_actor_503500_8016EAD4 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_503500_8016EAE8[18] = {
-    { { .index = 0 }, 2, 1, 10, 0 },
-    { { .index = 0 }, 3, 1, 10, 0 },
-    { { .index = 0 }, 4, 1, 10, 0 },
-    { { .index = 0 }, 5, 0, 0, 0 },
-    { { .index = 0 }, 6, 0, 0, 0 },
-    { { .index = 0 }, 7, 0, 0, 0 },
-    { { .index = 0 }, 8, 0, 0, 0 },
-    { { .index = 0 }, 9, 1, 5, 0 },
-    { { .index = 0 }, 10, 0, 0, 0 },
-    { { .index = 0 }, 11, 1, 10, 0 },
-    { { .index = 0 }, 12, 1, 10, 0 },
-    { { .index = 0 }, 13, 0, 0, 0 },
-    { { .index = 0 }, 14, 1, 10, 0 },
-    { { .index = 0 }, 15, 1, 10, 0 },
-    { { .index = 0 }, 16, 0, 0, 0 },
-    { { .index = 0 }, 17, 1, 10, 0 },
-    { { .index = 0 }, 18, 1, 10, 0 },
-    { { .index = 0 }, 19, 0, 0, 0 },
+AnimationPlayRequest D_actor_503500_8016EAE8[18] = {
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 17, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 18, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 SVECTOR D_actor_503500_8016EC50 = { 0, -500, 1600, 0 };
@@ -976,17 +976,17 @@ GpAnimSet* D_actor_503500_801714C8[5] = {
 
 s32 D_actor_503500_801714DC = 0;
 
-GpAnimArg D_actor_503500_801714E0[2] = {
-    { { .ptr = D_actor_503500_801714C8 }, 1, 0, 0, 1 },
-    { { .ptr = D_actor_503500_801714C8 }, 2, 0, 0, 1 },
+AnimationPlayRequest D_actor_503500_801714E0[2] = {
+    { { .sets = D_actor_503500_801714C8 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = D_actor_503500_801714C8 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_actor_503500_80171508[2] = {
-    { { .ptr = D_actor_503500_801714C8 }, 3, 1, 3, 1 },
-    { { .ptr = D_actor_503500_801714C8 }, 4, 1, 3, 1 },
+AnimationPlayRequest D_actor_503500_80171508[2] = {
+    { { .sets = D_actor_503500_801714C8 }, 3, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = D_actor_503500_801714C8 }, 4, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_actor_503500_80171530 = { { .ptr = D_actor_503500_801714C8 }, 5, 1, 3, 1 };
+AnimationPlayRequest D_actor_503500_80171530 = { { .sets = D_actor_503500_801714C8 }, 5, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpDelayArg D_actor_503500_80171544 = { 0 };
 
@@ -1891,7 +1891,7 @@ static void func_actor_503500_80146524(Task* arg0)
 {
 }
 
-s32 func_actor_503500_8014652C(Task* task, s32 arg1, GpAnimArg* msg)
+s32 func_actor_503500_8014652C(Task* task, s32 arg1, AnimationPlayRequest* msg)
 {
     Actor503500Effect4CC* work;
     TmdObject*            ext;
@@ -1899,17 +1899,17 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor503500Effect4CC*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank   = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank   = msg->source.index;
         work->model.animId = -1;
         func_800B3F84(&work->rig.anim, D_actor_503500_80176520[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    if (msg->field_4 != work->model.animId) {
-        work->model.animId = msg->field_4;
-        if (msg->field_8 != 0 && work->model.ticking != 0) {
+    if (msg->animationId != work->model.animId) {
+        work->model.animId = msg->animationId;
+        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {

@@ -112,7 +112,7 @@ TaskDesc D_dryfield_night_motel_loft_8017EB4C[1] = {
     { 0, 32, func_dryfield_night_motel_loft_8017D6F8, { .model = NULL } },
 };
 
-GpAnimArg D_dryfield_night_motel_loft_8017EB58 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_motel_loft_8017EB58 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCmdArg D_dryfield_night_motel_loft_8017EB6C = { { .loc = { 3, 31 } }, 0 };
 

@@ -237,8 +237,8 @@ typedef struct AcropolisPlazaCutWork {
 /// the shared buffer, which is what makes that buffer 0x1C rather than 0x18
 /// bytes long.
 typedef struct AcropolisPlazaWeaponMsg {
-    /* 0x00 */ byte      pad_0[0x8];
-    /* 0x08 */ GpAnimArg rec;
+    /* 0x00 */ byte                 pad_0[0x8];
+    /* 0x08 */ AnimationPlayRequest rec;
 } AcropolisPlazaWeaponMsg;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
 
@@ -341,34 +341,34 @@ extern GpRoomCoordSet D_acropolis_plaza_80199EE8[1];
 extern SVECTOR D_acropolis_plaza_80198AA0[30];
 extern SVECTOR D_acropolis_plaza_80198B90[80];
 
-GpAnimArg D_acropolis_plaza_8018261C = { { .index = 0 }, 1, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_8018261C = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182630 = { { .index = 2 }, 24, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182630 = { { .index = 2 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182644 = { { .index = 2 }, 2, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182644 = { { .index = 2 }, 2, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_acropolis_plaza_80182658 = { { .index = 2 }, 3, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182658 = { { .index = 2 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_8018266C = { { .index = 2 }, 4, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_8018266C = { { .index = 2 }, 4, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182680 = { { .index = 0 }, 3, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182680 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182694 = { { .index = 0 }, 5, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182694 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_801826A8 = { { .index = 2 }, 6, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_801826A8 = { { .index = 2 }, 6, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_801826BC = { { .index = 2 }, 7, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_801826BC = { { .index = 2 }, 7, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_801826D0 = { { .index = 2 }, 8, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_801826D0 = { { .index = 2 }, 8, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_801826E4 = { { .index = 0 }, 6, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_801826E4 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_801826F8 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_801826F8 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_8018270C = { 0 };
+AnimationPlayRequest D_acropolis_plaza_8018270C = { 0 };
 
-GpAnimArg D_acropolis_plaza_80182720 = { { .index = 0 }, 0, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182720 = { { .index = 0 }, 0, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_acropolis_plaza_80182734[32] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -427,27 +427,27 @@ GpEvsCmd D_acropolis_plaza_80182B24[6] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_acropolis_plaza_80182BB4 = { { .index = 0 }, 9, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182BB4 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182BC8 = { { .index = 1 }, 2, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182BC8 = { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182BDC = { { .index = 1 }, 5, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182BDC = { { .index = 1 }, 5, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182BF0 = { { .index = 0 }, 8, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182BF0 = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182C04 = { { .index = 1 }, 6, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C04 = { { .index = 1 }, 6, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182C18 = { { .index = 0 }, 7, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C18 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182C2C = { 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C2C = { 0 };
 
-GpAnimArg D_acropolis_plaza_80182C40 = { { .index = 1 }, 3, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C40 = { { .index = 1 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182C54 = { { .index = 0 }, 0, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C54 = { { .index = 0 }, 0, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182C68 = { { .index = 0 }, 1, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C68 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182C7C = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182C7C = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_acropolis_plaza_80182C90[27] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -488,31 +488,31 @@ GpEvsCmd D_acropolis_plaza_80182F18[6] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_acropolis_plaza_80182FA8 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182FA8 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182FBC = { { .index = 1 }, 10, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182FBC = { { .index = 1 }, 10, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182FD0 = { { .index = 1 }, 13, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182FD0 = { { .index = 1 }, 13, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182FE4 = { { .index = 1 }, 12, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182FE4 = { { .index = 1 }, 12, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80182FF8 = { { .index = 1 }, 14, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80182FF8 = { { .index = 1 }, 14, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_8018300C = { { .index = 2 }, 14, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_8018300C = { { .index = 2 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183020 = { { .index = 2 }, 15, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183020 = { { .index = 2 }, 15, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183034 = { { .index = 2 }, 16, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183034 = { { .index = 2 }, 16, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183048 = { { .index = 2 }, 17, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183048 = { { .index = 2 }, 17, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_8018305C = { { .index = 2 }, 23, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_8018305C = { { .index = 2 }, 23, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183070 = { { .index = 2 }, 19, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183070 = { { .index = 2 }, 19, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183084 = { { .index = 2 }, 21, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183084 = { { .index = 2 }, 21, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183098 = { { .index = 2 }, 22, 1, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183098 = { { .index = 2 }, 22, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_acropolis_plaza_801830AC = { { 0x489E, 0, 4040, 0 }, { 0, 2048, 0, 0 } };
 
@@ -570,9 +570,9 @@ GpEvsCmd D_acropolis_plaza_801834B4[5] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_acropolis_plaza_8018352C = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_8018352C = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_plaza_80183540 = { { .index = 1 }, 10, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_plaza_80183540 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_acropolis_plaza_80183554[11] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3521,9 +3521,9 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 {
     GpXformArg              place;
     GpXformArg              warp;
-    GpAnimArg               script;
+    AnimationPlayRequest    script;
     AcropolisPlazaTailMsg   buf;
-    GpAnimArg*              rec;
+    AnimationPlayRequest*   rec;
     CdCmdQueue*             q    = &CdCmd_Queue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
@@ -3559,12 +3559,12 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
-            script.animBlock.ptr = D_actor_310100_801797FC;
-            script.field_4       = 0xB;
-            script.field_8       = 0;
-            script.field_C       = 0;
-            script.field_10      = 1;
-            Gp_DispatchMsgPtr(work->slot3, 0x3F4, &script, 0);
+            script.source.sets          = D_actor_310100_801797FC;
+            script.animationId          = 0xB;
+            script.blend                = ANIMATION_BLEND_RESET;
+            script.blendFrames          = 0;
+            script.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(work->slot3, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
             task->state = task->state + 1;
             return;
         case 3:
@@ -3592,15 +3592,15 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             return;
         case 5:
             if (q->field_1EA >= 0x60) {
-                rec                            = &buf.weapon.rec;
-                weaponId                       = Player_Status.weapon;
-                id                             = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                buf.weapon.rec.animBlock.index = id;
-                rec->field_4                   = 1;
-                buf.weapon.rec.field_8         = 0;
-                rec->field_C                   = 0xA;
-                buf.weapon.rec.field_10        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.weapon.rec, 0);
+                rec                                 = &buf.weapon.rec;
+                weaponId                            = Player_Status.weapon;
+                id                                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                buf.weapon.rec.source.index         = id;
+                rec->animationId                    = 1;
+                buf.weapon.rec.blend                = ANIMATION_BLEND_RESET;
+                rec->blendFrames                    = 0xA;
+                buf.weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.weapon.rec, 0);
 
                 coord            = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
                 buf.place.pos.vx = coord->coord.t[0];
@@ -3658,7 +3658,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     GpXformArg                 warp;
     u8                         slot[4];
     GpXformArg                 placeBack;
-    GpAnimArg                  roomRec;
+    AnimationPlayRequest       roomRec;
     AcropolisPlazaOpeningBuf   buf;
     CdCmdQueue*                q    = &CdCmd_Queue;
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
@@ -3749,19 +3749,19 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             placeBack.pos.vz = 0x439E;
             Gp_DispatchMsgPtr(
                 ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &placeBack, 0);
-            roomRec.animBlock.index = 1;
-            roomRec.field_4         = 8;
-            roomRec.field_8         = 0;
-            roomRec.field_C         = 0xA;
-            roomRec.field_10        = 0;
-            sessionKey              = &gGameSession->at4.loc;
-            buf.key.stage           = sessionKey->stage;
-            buf.key.area            = sessionKey->area;
-            buf.key.room            = gGameSession->sprtVariant;
-            buf.key.view            = gGameSession->at4.loc.view;
-            buf.key.variant         = sessionKey->variant;
-            entry                   = Gp_GetNestedAreaRec(&buf.key)->field_0;
-            idx                     = 0;
+            roomRec.source.index         = 1;
+            roomRec.animationId          = 8;
+            roomRec.blend                = ANIMATION_BLEND_RESET;
+            roomRec.blendFrames          = 0xA;
+            roomRec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            sessionKey                   = &gGameSession->at4.loc;
+            buf.key.stage                = sessionKey->stage;
+            buf.key.area                 = sessionKey->area;
+            buf.key.room                 = gGameSession->sprtVariant;
+            buf.key.view                 = gGameSession->at4.loc.view;
+            buf.key.variant                = sessionKey->variant;
+            entry                        = Gp_GetNestedAreaRec(&buf.key)->field_0;
+            idx                          = 0;
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
                first exit test into the loop preheader and the walk stops
                matching. */
@@ -3917,23 +3917,23 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 /// session is out of its transition.
 void func_acropolis_plaza_8017F48C(Task* task)
 {
-    GpAnimArg   rec;
-    CdCmdQueue* q = &CdCmd_Queue;
-    s32         state;
-    s32         weaponId;
-    s32         id;
+    AnimationPlayRequest rec;
+    CdCmdQueue*          q = &CdCmd_Queue;
+    s32                  state;
+    s32                  weaponId;
+    s32                  id;
 
     state = task->state;
     switch (state) {
         case 0:
-            weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animBlock.index = id;
-            rec.field_4         = 1;
-            rec.field_8         = 0;
-            rec.field_C         = 0xA;
-            rec.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+            weaponId                 = Player_Status.weapon;
+            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index         = id;
+            rec.animationId          = 1;
+            rec.blend                = ANIMATION_BLEND_RESET;
+            rec.blendFrames          = 0xA;
+            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -3969,21 +3969,21 @@ void func_acropolis_plaza_8017F48C(Task* task)
 /// slot 3 (msg 0x3F1) and kills itself.
 void func_acropolis_plaza_8017F620(Task* task)
 {
-    GpAnimArg   rec;
-    CdCmdQueue* q = &CdCmd_Queue;
-    s32         weaponId;
-    s32         id;
+    AnimationPlayRequest rec;
+    CdCmdQueue*          q = &CdCmd_Queue;
+    s32                  weaponId;
+    s32                  id;
 
     switch (task->state) {
         case 0:
-            weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animBlock.index = id;
-            rec.field_4         = 1;
-            rec.field_8         = 0;
-            rec.field_C         = 0xA;
-            rec.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+            weaponId                 = Player_Status.weapon;
+            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index         = id;
+            rec.animationId          = 1;
+            rec.blend                = ANIMATION_BLEND_RESET;
+            rec.blendFrames          = 0xA;
+            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:

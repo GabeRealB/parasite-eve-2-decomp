@@ -52,9 +52,19 @@ STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 /// phase tick back from phase 2: `Gp_StateC08.field_A` while it equals 1, `gDisplayState.pendingMode`
 /// while it is non-zero.
 
-extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
-extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
-/// Per-camera-view visibility table indexed by `gGameSession->at4.loc.view`:
+/// Message entries with the payload signature selected by each message id.
+typedef struct {
+    s32 id; // Message id; 0x7FFFFFFF terminates the table
+    union {
+        s32 (*animation)(Task*, s32, AnimationPlayRequest*, GpMessageArg);
+        s32 (*placement)(Task*, s32, GpXformArg*, s32);
+    } handler; // Callback with the argument views required by that message
+} _AcropolisHelicopterLandingPadMessageEntry;
+STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadMessageEntry, 8);
+
+extern _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[];
+extern GsF_LIGHT                                  D_acropolis_helicopter_landing_pad_80182340[3];
+/// Per-camera-view visibility table indexed by `(u8)gGameSession->at4.loc.view`:
 /// a non-zero byte keeps the enemy model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
@@ -64,13 +74,13 @@ extern GpXformArg D_acropolis_helicopter_landing_pad_801823AC;
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
 
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, GpAnimArg*, GpMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, GpMessageArg);
 s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task*, s32, GpXformArg*, s32);
 
-GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
-    { 2003, func_acropolis_helicopter_landing_pad_8017D824 },
-    { 2004, func_acropolis_helicopter_landing_pad_8017D8E8 },
-    { 0x7FFFFFFF, NULL },
+_AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
+    { 2003, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
+    { 2004, { .placement = func_acropolis_helicopter_landing_pad_8017D8E8 } },
+    { 0x7FFFFFFF, { .animation = NULL } },
 };
 
 GsF_LIGHT D_acropolis_helicopter_landing_pad_80182340[3] = {
@@ -226,15 +236,15 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
     }
 }
 
-/// Msg 0x7D3 handler: repositions the model by `msg->field_4`. Phases 0 and 1
-/// take the first / second placement, arm the 0x78 countdown and reset the
-/// work block's first three words with the step set to -0x19 / +0x19; phase 2
+/// Selects one of three scripted model-placement phases from the animation id.
+///
+/// The two opening phases arm a countdown and movement step; the last
 /// returns to the first placement and clears the countdown.
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnimArg* msg, GpMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AnimationPlayRequest* msg, GpMessageArg arg3)
 {
     AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
 
-    switch (msg->field_4) {
+    switch (msg->animationId) {
         case 0:
             func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
             work->field_50 = 0x78;

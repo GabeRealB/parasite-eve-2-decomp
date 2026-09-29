@@ -61,7 +61,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, Actor104000Event*);
-        s32 (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
         s32 (*call4)(Task*, s32, void*);
@@ -185,7 +185,7 @@ s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*);
 s32 Actor04000_Fn06590(Task*, s32, s32);
 s32 Actor04000_Fn06634(Task*, s32, GpXformArg*);
 s32 Actor04000_Fn06704(Task*, s32, void*);
-s32 Actor04000_Fn06728(Task*, s32, GpAnimArg*, s32);
+s32 Actor04000_Fn06728(Task*, s32, AnimationPlayRequest*, s32);
 
 GpU16Pair Actor04000_D07078[3] = {
     { 1, 7 },
@@ -737,7 +737,7 @@ GpAnimSet* Actor04000_D0C520[4] = {
     NULL,
 };
 
-GpAnimArg Actor04000_D0C530 = { { .ptr = Actor04000_D0C520 }, 1, 0, 3, 0 };
+AnimationPlayRequest Actor04000_D0C530 = { { .sets = Actor04000_D0C520 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 u8 Actor04000_D0C544[364] = {
     0,
@@ -1138,7 +1138,7 @@ extern GpAnimSet* Actor04000_D0C4C4[19];
 
 extern Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6];
 
-extern GpAnimArg Actor04000_D0C530;
+extern AnimationPlayRequest Actor04000_D0C530;
 
 extern GpScriptCmd Actor04000_D07094[3];
 
@@ -1772,12 +1772,12 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = actorWrapAngle(angle);
                     if (sc->angle < 0) {
-                        Actor04000_D0C530.animBlock.ptr = Actor04000_D0C510;
+                        Actor04000_D0C530.source.sets = Actor04000_D0C510;
                     } else {
-                        Actor04000_D0C530.animBlock.ptr = Actor04000_D0C520;
+                        Actor04000_D0C530.source.sets = Actor04000_D0C520;
                     }
-                    Actor04000_D0C530.field_4 = 1;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &Actor04000_D0C530, 0);
+                    Actor04000_D0C530.animationId = 1;
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
                     work->field_0   = 0xB;
                     work->field_496 = 1;
                     Gfx_MatrixCol0(&player->extra.tmd->coords->coord, &sc->d);
@@ -1876,14 +1876,14 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
         work->field_170          = 1;
         work->field_178          = 0;
         Actor04000_Fn00E6C(arg1);
-        work->obj3C0.pos.vx       = arg1->extra.tmd->coords->coord.t[0];
-        work->obj3C0.pos.vy       = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
-        work->obj3C0.pos.vz       = arg1->extra.tmd->coords->coord.t[2];
-        work->obj388.pos.vx       = arg1->extra.tmd->coords->coord.t[0];
-        work->obj388.pos.vy       = arg1->extra.tmd->coords->coord.t[1];
-        work->obj388.pos.vz       = arg1->extra.tmd->coords->coord.t[2];
-        Actor04000_D0C530.field_4 = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &Actor04000_D0C530, 0);
+        work->obj3C0.pos.vx           = arg1->extra.tmd->coords->coord.t[0];
+        work->obj3C0.pos.vy           = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
+        work->obj3C0.pos.vz           = arg1->extra.tmd->coords->coord.t[2];
+        work->obj388.pos.vx           = arg1->extra.tmd->coords->coord.t[0];
+        work->obj388.pos.vy           = arg1->extra.tmd->coords->coord.t[1];
+        work->obj388.pos.vz           = arg1->extra.tmd->coords->coord.t[2];
+        Actor04000_D0C530.animationId = 2;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
         work->field_6 = 0;
     }
     if ((s16)work->field_6 < 0x13) {
@@ -3188,12 +3188,12 @@ s32 Actor04000_Fn06704(Task* arg0, s32 arg1, void* arg2)
 
 /// Handler for message 0x7D3: latches the animation id the sender asks for and
 /// picks motion state 2 when its flag is clear, 1 otherwise. Always answers 1.
-s32 Actor04000_Fn06728(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+s32 Actor04000_Fn06728(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor104000Work* work = (Actor104000Work*)task->work;
 
-    work->field_174 = msg->field_4;
-    if (msg->field_8 == 0) {
+    work->field_174 = msg->animationId;
+    if (msg->blend == ANIMATION_BLEND_RESET) {
         work->field_170 = 2;
     } else {
         work->field_170 = 1;

@@ -59,11 +59,13 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint);
 void func_8010C980(void* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 // Message handlers addressed by the companion overlays' dispatch tables.
-s32  func_8010C4F0(Task*, s32, GpAnimArg*);
-s32  func_8010C688(Task*, s32, GpXformArg*, s32);
-s32  func_8010C30C(Task*);
-s32  func_8010C6C8(Task*, s32, GpXformArg*, GpOverrideArg*);
-s32  func_8010C648(Task*, s32, GpAnimArg*);
+/// Plays an indexed companion animation and applies its world collision choice.
+s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request);
+s32 func_8010C688(Task*, s32, GpXformArg*, s32);
+s32 func_8010C30C(Task*);
+s32 func_8010C6C8(Task*, s32, GpXformArg*, GpOverrideArg*);
+/// Installs a borrowed companion animation-set table while preserving player state.
+s32  func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
 s32  Gp_CopyAllyAnim(Task*, s32, GpCopyArg*);
 s32  func_8010C75C(Task*, s32, GpDelayArg*);
 void Gp_MoveActorByKeep(Task*, s32, GpMoveArg*);

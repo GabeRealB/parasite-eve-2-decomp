@@ -334,7 +334,7 @@ STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -402,9 +402,9 @@ extern GpXformArg D_actor_503500_8017655C;
 
 extern GpAnimSet** D_actor_503500_8016EAB8[2];
 
-extern GpAnimArg D_actor_503500_8016EAC0[1];
+extern AnimationPlayRequest D_actor_503500_8016EAC0[1];
 
-extern GpAnimArg D_actor_503500_8016EAD4;
+extern AnimationPlayRequest D_actor_503500_8016EAD4;
 
 extern SVECTOR D_actor_503500_8016EC50;
 
@@ -514,11 +514,11 @@ extern s8 D_actor_503500_80171490[56];
 
 extern s32 D_actor_503500_801714DC;
 
-extern GpAnimArg D_actor_503500_801714E0[2];
+extern AnimationPlayRequest D_actor_503500_801714E0[2];
 
-extern GpAnimArg D_actor_503500_80171508[2];
+extern AnimationPlayRequest D_actor_503500_80171508[2];
 
-extern GpAnimArg D_actor_503500_80171530;
+extern AnimationPlayRequest D_actor_503500_80171530;
 
 extern GpDelayArg D_actor_503500_80171544;
 
@@ -647,7 +647,7 @@ void func_actor_503500_8013AD0C(Task*);
 void func_actor_503500_80143AC0(Task*);
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_actor_503500_80135950(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_503500_80135950(Task*, s32, AnimationPlayRequest*, s32);
 
 s32 func_actor_503500_80135B74(Task*, s32, GpCmdArg*);
 

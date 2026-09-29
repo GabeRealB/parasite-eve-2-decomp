@@ -675,7 +675,7 @@ GpAnimSet* D_actor_356100_80173228[7] = {
     NULL,
 };
 
-GpAnimArg D_actor_356100_80173244 = { { .ptr = D_actor_356100_80173228 }, 1, 0, 3, 0 };
+AnimationPlayRequest D_actor_356100_80173244 = { { .sets = D_actor_356100_80173228 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 Actor356100MessageEntry D_actor_356100_80173258[7] = {
     { 2003, { .call0 = func_actor_356100_80169E5C } },
@@ -896,7 +896,7 @@ static void func_actor_356100_8016A3D4(Task* arg0);
 /// Message 0x3FF payload `func_actor_356100_8016A468` sends the slot-3 task.
 /// `field_0` points at `D_actor_356100_80173228`; the function overwrites
 /// `field_4` with 2 before the dispatch.
-extern GpAnimArg D_actor_356100_80173244;
+extern AnimationPlayRequest D_actor_356100_80173244;
 
 /// When the work block's `field_4` flag is set, writes the 0x978..0x982
 /// animation slots, sends message 0x3FF then 0x3F9 at slot 3, and snapshots
@@ -1033,9 +1033,6 @@ static __inline__ void Actor356100_PositionDelta(GfxCoord* coord, SVECTOR* pos)
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
-
-/// `s8` selector for those two blocks; same slot and role as
-/// `Actor403100AnimTable`'s base index.
 
 /// Event-handler table `func_actor_356100_8016382C` hands the task as
 /// `Task::msgTable`. Same shape and role as `Actor01900_D1728C`.
@@ -1958,16 +1955,16 @@ static void func_actor_356100_80166018(Task* arg0)
         angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             if (Mc_SaveData[0].state.characterId == 1) {
-                D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173228[2];
+                D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[2];
             } else {
-                D_actor_356100_80173244.animBlock.ptr = D_actor_356100_80173228;
+                D_actor_356100_80173244.source.sets = D_actor_356100_80173228;
             }
             D_actor_356100_801732D0.field_14 = 8;
             if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_356100_801732D0, 0) == 0) {
-                work->field_0                   = 0xC;
-                work->field_B68                 = 1;
-                D_actor_356100_80173244.field_4 = 1;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_356100_80173244, 0);
+                work->field_0                       = 0xC;
+                work->field_B68                     = 1;
+                D_actor_356100_80173244.animationId = 1;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
             }
         }
     }
@@ -2073,9 +2070,9 @@ static void func_actor_356100_801668FC(Task* actor)
         work->field_97E = 7;
         work->field_978 = 2;
         func_actor_356100_80163508(actor);
-        D_actor_356100_80173244.field_4 = 3;
+        D_actor_356100_80173244.animationId = 3;
         if (playerStatus->hp > 0) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_356100_80173244, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
         }
         work->field_6 = 0;
     } else if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 &&
@@ -3318,20 +3315,20 @@ static void func_actor_356100_8016A3D4(Task* arg0)
 
 static void func_actor_356100_8016A468(Task* arg0)
 {
-    Actor356100Work* work;
-    GpEnemy*         enemy;
-    GpAnimArg*       msg;
-    void*            player;
+    Actor356100Work*      work;
+    GpEnemy*              enemy;
+    AnimationPlayRequest* msg;
+    void*                 player;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->field_982 = 0x10;
-        work->field_97E = 6;
-        work->field_978 = 2;
-        msg             = &D_actor_356100_80173244;
-        msg->field_4    = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, msg, 0);
+        work->field_982  = 0x10;
+        work->field_97E  = 6;
+        work->field_978  = 2;
+        msg              = &D_actor_356100_80173244;
+        msg->animationId = 2;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
     }

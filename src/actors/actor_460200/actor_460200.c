@@ -45,9 +45,9 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[15];
-        GpCopyArg  copy;
-        GpAnimArg  arguments[3];
+        GpAnimSet*           sets[15];
+        GpCopyArg            copy;
+        AnimationPlayRequest arguments[3];
     } data;
     s32 words[32];
 } Actor460200AnimStorage5E30;
@@ -57,9 +57,9 @@ extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
 
 static void func_actor_460200_801325FC(Task* task);
 
-s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args);
+s32 func_actor_460200_80132B2C(Task* task, s32 arg1, AnimationPlayRequest* args);
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
 
@@ -68,7 +68,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
         s32 (*call2)(Task*, s32, GpCmdArg*);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, s32);
@@ -81,17 +81,17 @@ extern GpAnimSet*              D_actor_460200_8013FC8C[16];
 
 extern u8 D_actor_460200_8013FCCC[];
 
-extern GpAnimArg  D_actor_460200_80135F14;
-extern GpAnimArg  D_actor_460200_8013607C;
-extern GpXformArg D_actor_460200_80136234;
-extern GpEvsCmd   D_actor_460200_80137AA0[];
-extern GpEvsCmd   D_actor_460200_80137BA8[];
-extern GpEvsCmd   D_actor_460200_80137CB0[];
-extern GpEvsCmd   D_actor_460200_80137DA0[];
-extern GpEvsCmd   D_actor_460200_80137F98[];
-extern GpEvsCmd   D_actor_460200_80137FE0[];
-extern GpEvsCmd   D_actor_460200_80138028[];
-extern GpEvsCmd   D_actor_460200_80138070[];
+extern AnimationPlayRequest D_actor_460200_80135F14;
+extern AnimationPlayRequest D_actor_460200_8013607C;
+extern GpXformArg           D_actor_460200_80136234;
+extern GpEvsCmd             D_actor_460200_80137AA0[];
+extern GpEvsCmd             D_actor_460200_80137BA8[];
+extern GpEvsCmd             D_actor_460200_80137CB0[];
+extern GpEvsCmd             D_actor_460200_80137DA0[];
+extern GpEvsCmd             D_actor_460200_80137F98[];
+extern GpEvsCmd             D_actor_460200_80137FE0[];
+extern GpEvsCmd             D_actor_460200_80138028[];
+extern GpEvsCmd             D_actor_460200_80138070[];
 
 extern RECT D_actor_460200_80135E0C;
 extern RECT D_actor_460200_80135E14;
@@ -131,71 +131,71 @@ extern TmdSource D_actor_460200_80145E28;
 void             func_actor_460200_801330C8(Task*);
 void             func_actor_460200_8013364C(Task*);
 
-s32 func_actor_460200_80133408(Task*, s32, GpAnimArg*);
+s32 func_actor_460200_80133408(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_460200_80133474(Task*, s32, s32);
 s32 func_actor_460200_801334F0(Task*, s32, GpXformArg*);
 s32 func_actor_460200_80133568(Task*, s32, GpCmdArg*);
 s32 func_actor_460200_80133580(Task*, s32, GpXformArg*);
 
 extern TmdSource D_actor_460200_8014DB94;
-s32              func_actor_460200_80133C64(Task*, s32, GpAnimArg*);
+s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_460200_80133CD0(Task*, s32, s32);
 s32              func_actor_460200_80133D4C(Task*, s32, GpXformArg*);
 s32              func_actor_460200_80133DC4(void);
 s32              func_actor_460200_80133DCC(Task*, s32, GpXformArg*);
 void             func_actor_460200_8013386C(Task*);
 
-extern GpAnimArg D_actor_460200_80135E1C;
-extern GpAnimArg D_actor_460200_80135F28;
-extern GpAnimArg D_actor_460200_80135F3C;
-extern GpAnimArg D_actor_460200_80135F50;
-extern GpAnimArg D_actor_460200_80136090;
-extern GpAnimArg D_actor_460200_801360A4;
-extern GpAnimArg D_actor_460200_801360B8;
-extern GpAnimArg D_actor_460200_801360CC;
-s32              func_actor_460200_80132B2C(Task*, s32, GpAnimArg*);
-s32              func_actor_460200_80132B98(Task*, s32, s32);
-s32              func_actor_460200_80132C14(Task*, s32, GpXformArg*);
-s32              func_actor_460200_80132C8C(Task*, s32, GpCmdArg*);
-s32              func_actor_460200_80132CAC(Task*, s32, GpXformArg*);
-void             func_actor_460200_801327B4(Task*);
+extern AnimationPlayRequest D_actor_460200_80135E1C;
+extern AnimationPlayRequest D_actor_460200_80135F28;
+extern AnimationPlayRequest D_actor_460200_80135F3C;
+extern AnimationPlayRequest D_actor_460200_80135F50;
+extern AnimationPlayRequest D_actor_460200_80136090;
+extern AnimationPlayRequest D_actor_460200_801360A4;
+extern AnimationPlayRequest D_actor_460200_801360B8;
+extern AnimationPlayRequest D_actor_460200_801360CC;
+s32                         func_actor_460200_80132B2C(Task*, s32, AnimationPlayRequest*);
+s32                         func_actor_460200_80132B98(Task*, s32, s32);
+s32                         func_actor_460200_80132C14(Task*, s32, GpXformArg*);
+s32                         func_actor_460200_80132C8C(Task*, s32, GpCmdArg*);
+s32                         func_actor_460200_80132CAC(Task*, s32, GpXformArg*);
+void                        func_actor_460200_801327B4(Task*);
 
-extern GpAnimArg  D_actor_460200_80135EB0;
-extern GpAnimArg  D_actor_460200_80135EC4;
-extern GpAnimArg  D_actor_460200_80135ED8;
-extern GpAnimArg  D_actor_460200_80135EEC;
-extern GpAnimArg  D_actor_460200_80135F00;
-extern GpAnimArg  D_actor_460200_80135F78;
-extern GpAnimArg  D_actor_460200_80135F8C;
-extern GpAnimArg  D_actor_460200_80135FA0;
-extern GpAnimArg  D_actor_460200_80135FB4;
-extern GpAnimArg  D_actor_460200_80135FC8;
-extern GpAnimArg  D_actor_460200_80135FDC;
-extern GpAnimArg  D_actor_460200_80135FF0;
-extern GpAnimArg  D_actor_460200_80136004;
-extern GpAnimArg  D_actor_460200_80136018;
-extern GpAnimArg  D_actor_460200_8013602C;
-extern GpAnimArg  D_actor_460200_80136040;
-extern GpAnimArg  D_actor_460200_801360E0;
-extern GpAnimArg  D_actor_460200_801360F4;
-extern GpAnimArg  D_actor_460200_80136108;
-extern GpAnimArg  D_actor_460200_8013611C;
-extern GpAnimArg  D_actor_460200_80136130;
-extern GpAnimArg  D_actor_460200_80136144;
-extern GpAnimArg  D_actor_460200_80136158;
-extern GpAnimArg  D_actor_460200_8013616C;
-extern GpAnimArg  D_actor_460200_80136180;
-extern GpAnimArg  D_actor_460200_80136194;
-extern GpAnimArg  D_actor_460200_801361A8;
-extern GpXformArg D_actor_460200_801361BC;
-extern GpXformArg D_actor_460200_801361D4;
-extern GpXformArg D_actor_460200_801361EC;
-extern GpXformArg D_actor_460200_80136204;
-extern GpXformArg D_actor_460200_8013621C;
-void              func_actor_460200_80132090(Task*);
-void              func_actor_460200_801320E0(s32);
-void              func_actor_460200_80132124(void);
-void              func_actor_460200_80132204(s8);
+extern AnimationPlayRequest D_actor_460200_80135EB0;
+extern AnimationPlayRequest D_actor_460200_80135EC4;
+extern AnimationPlayRequest D_actor_460200_80135ED8;
+extern AnimationPlayRequest D_actor_460200_80135EEC;
+extern AnimationPlayRequest D_actor_460200_80135F00;
+extern AnimationPlayRequest D_actor_460200_80135F78;
+extern AnimationPlayRequest D_actor_460200_80135F8C;
+extern AnimationPlayRequest D_actor_460200_80135FA0;
+extern AnimationPlayRequest D_actor_460200_80135FB4;
+extern AnimationPlayRequest D_actor_460200_80135FC8;
+extern AnimationPlayRequest D_actor_460200_80135FDC;
+extern AnimationPlayRequest D_actor_460200_80135FF0;
+extern AnimationPlayRequest D_actor_460200_80136004;
+extern AnimationPlayRequest D_actor_460200_80136018;
+extern AnimationPlayRequest D_actor_460200_8013602C;
+extern AnimationPlayRequest D_actor_460200_80136040;
+extern AnimationPlayRequest D_actor_460200_801360E0;
+extern AnimationPlayRequest D_actor_460200_801360F4;
+extern AnimationPlayRequest D_actor_460200_80136108;
+extern AnimationPlayRequest D_actor_460200_8013611C;
+extern AnimationPlayRequest D_actor_460200_80136130;
+extern AnimationPlayRequest D_actor_460200_80136144;
+extern AnimationPlayRequest D_actor_460200_80136158;
+extern AnimationPlayRequest D_actor_460200_8013616C;
+extern AnimationPlayRequest D_actor_460200_80136180;
+extern AnimationPlayRequest D_actor_460200_80136194;
+extern AnimationPlayRequest D_actor_460200_801361A8;
+extern GpXformArg           D_actor_460200_801361BC;
+extern GpXformArg           D_actor_460200_801361D4;
+extern GpXformArg           D_actor_460200_801361EC;
+extern GpXformArg           D_actor_460200_80136204;
+extern GpXformArg           D_actor_460200_8013621C;
+void                        func_actor_460200_80132090(Task*);
+void                        func_actor_460200_801320E0(s32);
+void                        func_actor_460200_80132124(void);
+void                        func_actor_460200_80132204(s8);
 
 extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
 void                              func_actor_460200_80131E24(Task*);
@@ -491,88 +491,88 @@ RECT D_actor_460200_80135E0C = { 0, 0, 320, 240 };
 
 RECT D_actor_460200_80135E14 = { 0, 0, 16, 240 };
 
-GpAnimArg D_actor_460200_80135E1C = { { .index = 1 }, 1, 1, 8, 0 };
+AnimationPlayRequest D_actor_460200_80135E1C = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 Actor460200AnimStorage5E30 D_actor_460200_80135E30 = { .data = { { &D_actor_460200_801340D4, &D_actor_460200_80134340, &D_actor_460200_801344E0, &D_actor_460200_80134800, &D_actor_460200_801349AC, &D_actor_460200_80134C00, &D_actor_460200_80134E40, &D_actor_460200_80134FF0, &D_actor_460200_801351D8, &D_actor_460200_801353A4, &D_actor_460200_80135A14, NULL, NULL, NULL, &D_actor_460200_80135DCC }, { { .words = D_actor_460200_80135E30.words }, 32 }, { { { .index = 1 }, 1, 0, 0, 0 }, { { .index = 1 }, 4, 0, 0, 0 }, { { .index = 1 }, 5, 0, 0, 0 } } } };
 
-GpAnimArg D_actor_460200_80135EB0 = { { .index = 1 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135EB0 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135EC4 = { { .index = 1 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135EC4 = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135ED8 = { { .index = 1 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135ED8 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135EEC = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135EEC = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F00 = { { .index = 1 }, 10, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F00 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F14 = { { .index = 1 }, 13, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F14 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F28 = { { .index = 1 }, 14, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F28 = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F3C = { { .index = 1 }, 15, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F3C = { { .index = 1 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F50 = { { .index = 1 }, 61, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F50 = { { .index = 1 }, 61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F64 = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F64 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F78 = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F78 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135F8C = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135F8C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135FA0 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135FA0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135FB4 = { { .index = 1 }, 50, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135FB4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135FC8 = { { .index = 1 }, 51, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135FC8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135FDC = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135FDC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80135FF0 = { { .index = 1 }, 53, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80135FF0 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136004 = { { .index = 1 }, 54, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136004 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136018 = { { .index = 1 }, 55, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136018 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_8013602C = { { .index = 1 }, 56, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_8013602C = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136040 = { { .index = 1 }, 57, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136040 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136054[2] = {
-    { { .index = 1 }, 0, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
+AnimationPlayRequest D_actor_460200_80136054[2] = {
+    { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_actor_460200_8013607C = { { .index = 1 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_8013607C = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136090 = { { .index = 1 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136090 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_801360A4 = { { .index = 1 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_801360A4 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_801360B8 = { { .index = 1 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_801360B8 = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_801360CC = { { .index = 1 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_801360CC = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_801360E0 = { { .index = 1 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_801360E0 = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_801360F4 = { { .index = 1 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_801360F4 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136108 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136108 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_8013611C = { { .index = 1 }, 10, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_8013611C = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136130 = { { .index = 1 }, 11, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136130 = { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136144 = { { .index = 1 }, 12, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136144 = { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136158 = { { .index = 1 }, 13, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136158 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_8013616C = { { .index = 1 }, 14, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_8013616C = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136180 = { { .index = 1 }, 15, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136180 = { { .index = 1 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_80136194 = { { .index = 1 }, 16, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_80136194 = { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_460200_801361A8 = { { .index = 1 }, 17, 0, 0, 0 };
+AnimationPlayRequest D_actor_460200_801361A8 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_460200_801361BC = { { -910, 0, 5650, 0 }, { 0, -1592, 0, 0 } };
 
@@ -2625,21 +2625,20 @@ static void func_actor_460200_80132AC8(Task* task)
     work->st.appliedAnimId = work->st.animId;
 }
 
-/// Script opcode: start animation `args->field_4` on this actor.
+/// Starts the actor's scripted animation selected by the request.
 ///
-/// `withArg` selects between the two start paths `func_actor_460200_801325FC`
-/// dispatches on, and only the first carries `animArg`. Returns -1, without
-/// touching the work block, when the clip id is out of range.
-s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args)
+/// Rejects ids 0x10 and above before changing playback state.
+/// The blend path carries the requested duration in whole frames.
+s32 func_actor_460200_80132B2C(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Actor160600Work* work;
 
     work = (Actor160600Work*)task->work;
-    if (args->field_4 < 0x10) {
-        work->st.animId = args->field_4;
-        if (args->field_8 != 0) {
+    if (args->animationId < 0x10) {
+        work->st.animId = args->animationId;
+        if (args->blend != ANIMATION_BLEND_RESET) {
             work->st.state = 1;
-            work->animArg  = args->field_C;
+            work->animArg  = args->blendFrames;
         } else {
             work->st.state = 2;
         }
@@ -2946,19 +2945,20 @@ static void func_actor_460200_801333A4(Task* task)
     work->st.appliedAnimId = work->st.animId;
 }
 
-/// Script opcode: start animation `args->field_4` on this actor, rejecting ids
-/// of 0xC and above. State 1 (via `func_actor_460200_801333A4`) carries
-/// `args->field_C`; state 2 (via `func_actor_460200_8013332C`) does not.
-s32 func_actor_460200_80133408(Task* task, s32 arg1, GpAnimArg* args)
+/// Starts the actor's scripted animation selected by the request.
+///
+/// Rejects ids 0xC and above before changing playback state.
+/// The blend path carries the requested duration in whole frames.
+s32 func_actor_460200_80133408(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Actor161500Work* work;
 
     work = (Actor161500Work*)task->work;
-    if (args->field_4 < 0xC) {
-        work->st.animId = args->field_4;
-        if (args->field_8 != 0) {
+    if (args->animationId < 0xC) {
+        work->st.animId = args->animationId;
+        if (args->blend != ANIMATION_BLEND_RESET) {
             work->st.state = 1;
-            work->animArg  = args->field_C;
+            work->animArg  = args->blendFrames;
         } else {
             work->st.state = 2;
         }
@@ -3264,16 +3264,16 @@ static void func_actor_460200_80133C00(Task* task)
     work->st.appliedAnimId = work->st.animId;
 }
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args)
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Actor160600Work* work;
 
     work = (Actor160600Work*)task->work;
-    if (args->field_4 < 0x12) {
-        work->st.animId = args->field_4;
-        if (args->field_8 != 0) {
+    if (args->animationId < 0x12) {
+        work->st.animId = args->animationId;
+        if (args->blend != ANIMATION_BLEND_RESET) {
             work->st.state = 1;
-            work->animArg  = args->field_C;
+            work->animArg  = args->blendFrames;
         } else {
             work->st.state = 2;
         }

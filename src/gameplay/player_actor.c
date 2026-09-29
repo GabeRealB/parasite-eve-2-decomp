@@ -276,7 +276,7 @@ extern GpAimRot D_801131B4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*transform)(Task*, s32, GpXformArg*, s32);
         s32 (*call2)(Task*, s32, s32, s32);
@@ -285,7 +285,7 @@ typedef struct {
         s32 (*call5)(Task*, s32, s32);
         s32 (*coord)(Task*, s32, GfxCoord*);
         s32 (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
-        s32 (*call7)(Task*, s32, GpAnimArg*);
+        s32 (*call7)(Task*, s32, AnimationPlayRequest*);
         s32 (*call8)(Task*, s32, GpCountArg*);
         s32 (*call9)(Task*, s32, GpCopyArg*);
         s32 (*call10)(Task*, s32, GpDelayArg*);
@@ -326,9 +326,11 @@ static const TaskFuncTable4 Gp_PlayerMode1States;
 /// `field_956` dispatcher copied by `Gp_TickPlayerMode2`.
 static const TaskFuncTable12 Gp_PlayerMode2States;
 
-/// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
-/// slot of the `field_93A` load is `move a3, a1`.
-s32 func_80104508(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
+/// Enters scripted player playback using a receiver-valid animation-bank index.
+///
+/// The request also selects blending and world collision; returns zero.
+/// `msgId` and `unusedArg3` are unused, including for direct initialization.
+s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedArg3);
 
 s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -426,7 +428,8 @@ static void func_80104A4C(Task* arg0);
 
 static void func_80104AAC(Task* arg0);
 
-s32 func_80104CAC(Task* arg0, s32 arg1, GpAnimArg* arg2);
+/// Replaces player animation playback without clearing the current scripted state.
+s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request);
 
 /// Puts the player in `field_954` mode 2 (`Gp_TickPlayerMode2`): clears the
 /// movement state and the HUD flag, re-applies the equipped weapon, and during
@@ -934,7 +937,7 @@ s32      D_80112C7C[3] = {
 };
 
 GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
-    { 1000, { .call0 = func_80104508 } },
+    { ANIMATION_MESSAGE_PLAY, { .call0 = func_80104508 } },
     { 1001, { .call1 = func_80104D68 } },
     { 1002, { .call0 = func_80104508 } },
     { 1003, { .call0 = func_80104508 } },
@@ -946,7 +949,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { 1009, { .call2 = Gp_EnterActorMode2 } },
     { 1010, { .call6 = Gp_SetActorDest } },
     { 1011, { .call5 = func_80104684 } },
-    { 1012, { .call7 = func_80104B54 } },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, { .call7 = func_80104B54 } },
     { 1013, { .coord = func_80105A60 } },
     { 1014, { .call8 = func_801052B8 } },
     { 1015, { .call9 = Gp_CopyPlayerAnim } },
@@ -957,7 +960,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { 1020, { .call5 = func_80105A8C } },
     { 1021, { .call5 = func_801058BC } },
     { 1022, { .call11 = Gp_MoveActorBy } },
-    { 1023, { .call7 = func_80104CAC } },
+    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, { .call7 = func_80104CAC } },
     { 1024, { .call2 = func_801055D4 } },
     { 1025, { .call5 = func_80105AB0 } },
     { 1026, { .call4 = func_80105754 } },
@@ -4474,15 +4477,15 @@ static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoor
 
 static void Gp_InitPlayerWork(Task* arg0)
 {
-    GameActor*             actor;
-    TmdObject*             extra;
-    GfxCoord*               coord;
-    GpObj*                 obj;
-    WorldCollisionContact* recs;
-    s32                    kind;
-    s32                    anim;
-    GpAnimArg              sp;
-    Task*                  task;
+    GameActor*           actor;
+    TmdObject*           extra;
+    GfxCoord*             coord;
+    GpObj*               obj;
+    WorldCollisionContact*             recs;
+    s32                  kind;
+    s32                  anim;
+    AnimationPlayRequest sp;
+    Task*                task;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;
@@ -4528,11 +4531,11 @@ static void Gp_InitPlayerWork(Task* arg0)
         Gp_SpawnWeaponEff();
     }
     if (kind == 2) {
-        sp.field_C         = 0;
-        sp.animBlock.index = actor->field_93A;
-        sp.field_8         = 0;
-        sp.field_4         = anim;
-        sp.field_10        = 0;
+        sp.blendFrames          = 0;
+        sp.source.index         = actor->field_93A;
+        sp.blend                = ANIMATION_BLEND_RESET;
+        sp.animationId          = anim;
+        sp.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_80104508(arg0, 0, &sp, 0);
         actor->field_984 = 0x38;
     }
@@ -4863,7 +4866,7 @@ void Gp_TickActorAnimState(Task* arg0)
             if (i < actor->field_938) {
                 do {
                     Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, anim, 0, 0, extra,
-                                    actor->field_928);
+                                    actor->animationSets);
                     actor->field_438[i].rate = actor->field_985;
                     i++;
                 } while (i < actor->field_938);
@@ -5529,12 +5532,12 @@ do_call:
 
 join_4C:
 join_50:
-    actor->field_98F = 0;
-    inner            = work->work;
-    anim             = work->extra.tmd;
-    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
-    inner->field_928 = Gp_PlayerAnimBlkTbl[inner->field_93A];
-    func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
+    actor->field_98F     = 0;
+    inner                = work->work;
+    anim                 = work->extra.tmd;
+    inner->field_93A     = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+    inner->animationSets = Gp_PlayerAnimBlkTbl[inner->field_93A]->table.sets;
+    func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, anim, &inner->field_7A8,
                   inner->field_438);
     func_801066DC(work, 1);
     actor->field_983                  = 7;
@@ -5603,11 +5606,11 @@ static void Gp_BindActorAnim(Task* arg0)
     GameActor* actor;
     TmdObject* extra;
 
-    actor            = arg0->work;
-    extra            = arg0->extra.tmd;
-    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
-    actor->field_928 = Gp_PlayerAnimBlkTbl[actor->field_93A];
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    actor                = arg0->work;
+    extra                = arg0->extra.tmd;
+    actor->field_93A     = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+    actor->animationSets = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
 }
 
@@ -5636,7 +5639,7 @@ void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->field_928);
+            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->animationSets);
             actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
@@ -5652,7 +5655,7 @@ void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->field_928);
+            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->animationSets);
             actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
@@ -6022,51 +6025,52 @@ Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return task;
 }
 
-s32 func_80104508(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
+s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedArg3)
 {
     GameActor*    actor;
     TmdObject*    extra;
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
 
-    actor             = arg0->work;
-    extra             = arg0->extra.tmd;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, p->weapon, 0);
+    actor                  = task->work;
+    extra                  = task->extra.tmd;
+    playerStatus           = &Player_Status;
+    actor->field_954       = 2;
+    actor->field_95E       = 0;
+    actor->field_973       = 0;
+    actor->field_975       = 0;
+    playerStatus->field_24 = 0;
+    actor->field_97E       = 0;
+    actor->field_60        = 0;
+    actor->field_58        = 0;
+    actor->field_64        = 0;
+    actor->field_5C        = 0;
+    actor->field_6A        = 0;
+    actor->field_68        = 0;
+    actor->field_70        = 0;
+    actor->field_96C       = 0;
+    actor->field_12A      &= 0x3FFF;
+    func_80106350(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
+    // Select the animation table before resetting or blending its slots.
     actor->field_956 = 1;
-    if (actor->field_928 != Gp_PlayerAnimBlkTbl[arg2->animBlock.index]) {
-        actor->field_928 = Gp_PlayerAnimBlkTbl[arg2->animBlock.index];
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    if (actor->animationSets != Gp_PlayerAnimBlkTbl[request->source.index]->table.sets) {
+        actor->animationSets = Gp_PlayerAnimBlkTbl[request->source.index]->table.sets;
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
-        actor->field_93A = (u16)arg2->animBlock.index;
+        actor->field_93A = (u16)request->source.index;
     }
-    actor->field_985 = 0x10;
-    if (arg2->field_8 == 0) {
-        Gp_AnimResetChildSlots(arg0, arg2->field_4);
+    actor->field_985 = ANIMATION_RATE_ONE;
+    if (request->blend == ANIMATION_BLEND_RESET) {
+        Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 0, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(task, request->animationId, 0, request->blendFrames);
     }
-    if (arg2->field_10 == 0) {
-        actor->field_983 = 0x38;
+    if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
+        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     } else {
-        actor->field_983 = 7;
+        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
     }
     return 0;
 }
@@ -6172,12 +6176,12 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
     actor->field_14                   = coord->coord.t[1];
     actor->field_18                   = coord->coord.t[2];
     actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
-    actor->field_928                  = Gp_PlayerAnimBlkTbl[actor->field_93A];
+    actor->animationSets              = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
     actor->field_985                  = 0x10;
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         if (arg2 == mode) {
             Gp_ResetActorAnimState(arg0, 0);
@@ -6191,7 +6195,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
         return 0;
     }
     if (arg2 == 1) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         func_801066DC(arg0, 1);
     } else {
@@ -6247,78 +6251,80 @@ static void func_80104AAC(Task* arg0)
     }
 }
 
-s32 func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
 {
     GameActor*    actor;
     TmdObject*    extra;
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
 
-    actor             = arg0->work;
-    extra             = arg0->extra.tmd;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, p->weapon, 0);
+    actor                  = task->work;
+    extra                  = task->extra.tmd;
+    playerStatus           = &Player_Status;
+    actor->field_954       = 2;
+    actor->field_95E       = 0;
+    actor->field_973       = 0;
+    actor->field_975       = 0;
+    playerStatus->field_24 = 0;
+    actor->field_97E       = 0;
+    actor->field_60        = 0;
+    actor->field_58        = 0;
+    actor->field_64        = 0;
+    actor->field_5C        = 0;
+    actor->field_6A        = 0;
+    actor->field_68        = 0;
+    actor->field_70        = 0;
+    actor->field_96C       = 0;
+    actor->field_12A      &= 0x3FFF;
+    func_80106350(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
-    actor->field_956 = 1;
-    actor->field_928 = arg2->animBlock.ptr;
-    actor->field_93A = 0x7FFF;
-    actor->field_985 = 0x10;
-    if (arg2->field_8 == 0) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    // Select the animation table before resetting or blending its slots.
+    actor->field_956     = 1;
+    actor->animationSets = request->source.sets;
+    actor->field_93A     = PLAYER_ACTOR_DIRECT_ANIMATION_BANK;
+    actor->field_985     = ANIMATION_RATE_ONE;
+    if (request->blend == ANIMATION_BLEND_RESET) {
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
-        Gp_AnimResetChildSlots(arg0, arg2->field_4);
+        Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 0, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(task, request->animationId, 0, request->blendFrames);
     }
-    if (arg2->field_10 == 0) {
-        actor->field_983 = 0x38;
+    if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
+        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     } else {
-        actor->field_983 = 7;
+        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
     }
     return 0;
 }
 
-s32 func_80104CAC(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request)
 {
     GameActor* actor;
     TmdObject* extra;
-    s32        flag;
+    s32        collisionUpdateMask;
 
-    actor            = arg0->work;
-    extra            = arg0->extra.tmd;
-    actor->field_928 = arg2->animBlock.ptr;
-    actor->field_93A = 0x7FFF;
-    actor->field_985 = 0x10;
-    if (arg2->field_8 == 0) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+    actor = task->work;
+    extra = task->extra.tmd;
+    // Replace playback without clearing the player's scripted state.
+    actor->animationSets = request->source.sets;
+    actor->field_93A     = PLAYER_ACTOR_DIRECT_ANIMATION_BANK;
+    actor->field_985     = ANIMATION_RATE_ONE;
+    if (request->blend == ANIMATION_BLEND_RESET) {
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
-        Gp_AnimResetChildSlots(arg0, arg2->field_4);
+        Gp_AnimResetChildSlots(task, request->animationId);
     } else {
-        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 0, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(task, request->animationId, 0, request->blendFrames);
     }
-    flag = arg2->field_10;
-    if (flag == 0) {
-        flag = 0x38;
+    collisionUpdateMask = request->enableWorldCollision;
+    if (collisionUpdateMask == ANIMATION_WORLD_COLLISION_DISABLE) {
+        collisionUpdateMask = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     } else {
-        flag = 7;
+        collisionUpdateMask = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
     }
-    actor->field_983 = flag;
+    actor->field_983 = collisionUpdateMask;
     return 0;
 }
 
@@ -6803,10 +6809,10 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon];
     src        = arg2->source.words;
     count      = arg2->count;
-    if (count >= 0x21) {
+    if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
-    dest.words = dest.block->field_BC;
+    dest.words = &dest.block->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
     for (i = 0; i < arg2->count; i++) {
         dest.words[i] = src[i];
     }

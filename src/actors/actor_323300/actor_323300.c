@@ -97,7 +97,19 @@ STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 /// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `func_actor_323300_801628B8`,
 /// `func_actor_323300_801629F0`, `func_actor_323300_80162208` and
 /// `func_actor_323300_80162360`; the 0x7FFFFFFF terminator ends the walk.
-extern GpMsgEntry D_actor_323300_80172574[];
+/// Message entries with the payload signature selected by each message id.
+typedef struct {
+    s32 id; // Message id; 0x7FFFFFFF terminates the table
+    union {
+        s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
+        s32 (*placement)(Task*, s32, GpXformArg*, s32);
+        s32 (*mode)(Task*, s32, s32, s32);
+        s32 (*command)(Task*, s32, GpCmdArg*, GpXformArg*);
+    } handler; // Callback with the argument views required by that message
+} _Actor323300MessageEntry;
+STATIC_ASSERT_SIZEOF(_Actor323300MessageEntry, 8);
+
+extern _Actor323300MessageEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
 /// `func_actor_323300_801628B8` index by the 0x504 block's bank byte.
@@ -113,18 +125,18 @@ extern GpXformArg D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
 /// hand `func_actor_323300_801628B8`.
-extern GpAnimArg D_actor_323300_801725B4;
-extern GpAnimArg D_actor_323300_801725C8;
-extern GpAnimArg D_actor_323300_801725DC;
+extern AnimationPlayRequest D_actor_323300_801725B4;
+extern AnimationPlayRequest D_actor_323300_801725C8;
+extern AnimationPlayRequest D_actor_323300_801725DC;
 
 /// Animation source table `func_actor_323300_80163718` indexes by the 0x6B0
 /// block's bank index, one `void*` per bank. `func_actor_323300_80162BE4`
 /// applies the preset `D_actor_323300_80174A74` through it and places the
 /// actor at `D_actor_323300_80174AB0`.
-extern GpAnimSet*  D_actor_323300_80174A60[4];
-extern GpAnimSet** D_actor_323300_80174A70[1];
-extern GpAnimArg   D_actor_323300_80174A74;
-extern GpXformArg  D_actor_323300_80174AB0;
+extern GpAnimSet*           D_actor_323300_80174A60[4];
+extern GpAnimSet**          D_actor_323300_80174A70[1];
+extern AnimationPlayRequest D_actor_323300_80174A74;
+extern GpXformArg           D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -140,13 +152,13 @@ static void func_actor_323300_801626EC(Task* arg0);
 static void func_actor_323300_801626F4(Task* arg0);
 static void func_actor_323300_80162748(Task* arg0);
 static void func_actor_323300_801627B4(Task* arg0);
-s32         func_actor_323300_801628B8(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
+s32         func_actor_323300_801628B8(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 s32         func_actor_323300_801629F0(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
 static void func_actor_323300_801634B0(Task* arg0);
 static void func_actor_323300_80163510(Task* arg0);
 static void func_actor_323300_8016359C(Task* arg0, s16 arg1);
 static s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
-static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
+static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
 /// by `Task::state`: spawn, per-frame runner and exit of the 0x504 block.
@@ -158,7 +170,7 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
 
 s32 func_actor_323300_80162208(Task*, s32, s32, s32);
 s32 func_actor_323300_80162360(Task*, s32, GpCmdArg*, GpXformArg*);
-s32 func_actor_323300_801628B8(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_323300_801628B8(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_323300_801629F0(Task*, s32, GpXformArg*, s32);
 
 extern TmdSource D_actor_323300_80169200;
@@ -318,21 +330,21 @@ TaskDesc D_actor_323300_8017255C[2] = {
     { 1, 192, func_actor_323300_80163840, { .model = &D_actor_323300_8017128C } },
 };
 
-GpMsgEntry D_actor_323300_80172574[5] = {
-    { 2003, func_actor_323300_801628B8 },
-    { 2004, func_actor_323300_801629F0 },
-    { 2005, func_actor_323300_80162208 },
-    { 2011, func_actor_323300_80162360 },
-    { 0x7FFFFFFF, NULL },
+_Actor323300MessageEntry D_actor_323300_80172574[5] = {
+    { 2003, { .animation = func_actor_323300_801628B8 } },
+    { 2004, { .placement = func_actor_323300_801629F0 } },
+    { 2005, { .mode = func_actor_323300_80162208 } },
+    { 2011, { .command = func_actor_323300_80162360 } },
+    { 0x7FFFFFFF, { .animation = NULL } },
 };
 
 GpXformArg D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };
 
-GpAnimArg D_actor_323300_801725B4 = { { .ptr = NULL }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_323300_801725B4 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_323300_801725C8 = { { .ptr = NULL }, 2, 1, 10, 0 };
+AnimationPlayRequest D_actor_323300_801725C8 = { { .sets = NULL }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_323300_801725DC = { { .ptr = NULL }, 3, 1, 10, 0 };
+AnimationPlayRequest D_actor_323300_801725DC = { { .sets = NULL }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPackedPose D_actor_323300_801725F0[58] = {
 #include "assets/actor_323300_animation_11FC4_bank1.inc"
@@ -411,11 +423,11 @@ GpAnimSet** D_actor_323300_80174A70[1] = {
     D_actor_323300_80174A60,
 };
 
-GpAnimArg D_actor_323300_80174A74 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_323300_80174A74 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_323300_80174A88[2] = {
-    { { .index = 0 }, 2, 1, 20, 0 },
-    { { .index = 0 }, 3, 1, 20, 0 },
+AnimationPlayRequest D_actor_323300_80174A88[2] = {
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 GpXformArg D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
@@ -606,15 +618,15 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
 s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* place)
 {
-    Actor323300Work* w;
-    Actor323300Work* work;
-    GpAnimArg*       preset;
-    TmdObject*       extra;
-    Task*            spawned;
-    GfxCoord*        src;
-    GfxCoord*        dst;
-    SVECTOR          vec;
-    s32              i;
+    Actor323300Work*      w;
+    Actor323300Work*      work;
+    AnimationPlayRequest* preset;
+    TmdObject*            extra;
+    Task*                 spawned;
+    GfxCoord*              src;
+    GfxCoord*              dst;
+    SVECTOR               vec;
+    s32                   i;
 
     w = (Actor323300Work*)arg0->work;
     switch (msg->command) {
@@ -652,17 +664,17 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* 
             preset = &D_actor_323300_801725C8;
             work   = (Actor323300Work*)arg0->work;
             extra  = arg0->extra.tmd;
-            if (preset->animBlock.index != work->model.bank) {
-                work->model.bank   = preset->animBlock.index;
+            if (preset->source.index != work->model.bank) {
+                work->model.bank   = preset->source.index;
                 work->model.animId = -1;
                 func_800B3F84(&work->rig.anim, D_actor_323300_80172558[work->model.bank], extra,
                               work->rig.poses, work->rig.slots);
             }
-            if (preset->field_4 != work->model.animId) {
-                work->model.animId = preset->field_4;
-                if (preset->field_8 != 0 && work->model.ticking != 0) {
+            if (preset->animationId != work->model.animId) {
+                work->model.animId = preset->animationId;
+                if (preset->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
                     for (i = 1; i < 0x13; i++) {
-                        func_800B4114(&work->rig.anim, i, work->model.animId, 0, preset->field_C);
+                        func_800B4114(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
                     }
                 } else {
                     for (i = 1; i < 0x13; i++) {
@@ -801,16 +813,12 @@ static void func_actor_323300_801627B4(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Message-0x7D3 handler, also called directly by the spawn handler and the
-/// two states of `func_actor_323300_801626F4` with a preset of their own. A
-/// changed bank index re-seeds the whole animation slot array through
-/// `func_800B3F84` from `D_actor_323300_80172558` and forgets the current
-/// animation id. A changed animation id is then stored and installed on every
-/// slot 1..0x12 - through `func_800B4114` when the preset's `field_8` is set
-/// and the slots have already been started, through `Gp_AnimResetSlot`
-/// otherwise - after which every slot is ticked once and `model.ticking` latches.
-/// An unchanged id skips all of that. Returns 0.
-s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. An unchanged clip skips playback setup.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_323300_801628B8(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor323300Work* work;
     TmdObject*       ext;
@@ -818,16 +826,16 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor323300Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank   = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank   = msg->source.index;
         work->model.animId = -1;
         func_800B3F84(&work->rig.anim, D_actor_323300_80172558[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    if (msg->field_4 != work->model.animId) {
-        work->model.animId = msg->field_4;
-        if (msg->field_8 != 0 && work->model.ticking != 0) {
+    if (msg->animationId != work->model.animId) {
+        work->model.animId = msg->animationId;
+        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
@@ -1222,7 +1230,7 @@ static s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s
 /// `func_800B4114` when the preset asks for it and the block has been started
 /// before, through `Gp_AnimResetSlot` otherwise -- ticks them once and latches
 /// `field_43C` so the next preset takes the first branch.
-static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
+static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     Actor323300MtxWork* work;
     TmdObject*          ext;
@@ -1230,17 +1238,17 @@ static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32
 
     work = (Actor323300MtxWork*)arg0->work;
     ext  = arg0->extra.tmd;
-    if (arg2->animBlock.index != work->field_440) {
-        work->field_440 = arg2->animBlock.index;
+    if (arg2->source.index != work->field_440) {
+        work->field_440 = arg2->source.index;
         work->field_444 = -1;
         func_800B3F84(&work->rig.anim, D_actor_323300_80174A70[work->field_440], ext,
                       work->rig.poses, work->rig.slots);
     }
-    if (arg2->field_4 != work->field_444) {
-        work->field_444 = arg2->field_4;
-        if (arg2->field_8 != 0 && work->field_43C != 0) {
+    if (arg2->animationId != work->field_444) {
+        work->field_444 = arg2->animationId;
+        if (arg2->blend != ANIMATION_BLEND_RESET && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_444, 0, arg2->field_C);
+                func_800B4114(&work->rig.anim, i, work->field_444, 0, arg2->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {

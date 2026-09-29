@@ -54,97 +54,97 @@ s32 func_shelter_r36_8017D8D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_r36_8017D914(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_shelter_r36_8017D91C(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpAnimArg D_shelter_r36_8017DC10;
-extern GpAnimArg D_shelter_r36_8017DC54;
-extern GpAnimArg D_shelter_r36_8017DC7C;
-extern GpAnimArg D_shelter_r36_8017DC90;
-extern GpAnimArg D_shelter_r36_8017DCA4;
-extern GpAnimArg D_shelter_r36_8017DCB8;
-extern GpAnimArg D_shelter_r36_8017DCF4;
-extern GpAnimArg D_shelter_r36_8017DD1C;
-extern GpAnimArg D_shelter_r36_8017DD30;
-extern GpAnimArg D_shelter_r36_8017DD44;
-extern GpAnimArg D_shelter_r36_8017DD6C;
-extern GpAnimArg D_shelter_r36_8017DD80;
-extern GpAnimArg D_shelter_r36_8017DD94;
-extern GpAnimArg D_shelter_r36_8017DDD0;
-extern GpCmdArg  D_shelter_r36_8017DC24;
-extern GpCmdArg  D_shelter_r36_8017DC28;
-void             func_shelter_r36_8017D5E8(Task*);
-void             func_shelter_r36_8017D738(void);
-void             func_shelter_r36_8017D7B4(Task*);
-void             func_shelter_r36_8017D870(s32);
+extern AnimationPlayRequest D_shelter_r36_8017DC10;
+extern AnimationPlayRequest D_shelter_r36_8017DC54;
+extern AnimationPlayRequest D_shelter_r36_8017DC7C;
+extern AnimationPlayRequest D_shelter_r36_8017DC90;
+extern AnimationPlayRequest D_shelter_r36_8017DCA4;
+extern AnimationPlayRequest D_shelter_r36_8017DCB8;
+extern AnimationPlayRequest D_shelter_r36_8017DCF4;
+extern AnimationPlayRequest D_shelter_r36_8017DD1C;
+extern AnimationPlayRequest D_shelter_r36_8017DD30;
+extern AnimationPlayRequest D_shelter_r36_8017DD44;
+extern AnimationPlayRequest D_shelter_r36_8017DD6C;
+extern AnimationPlayRequest D_shelter_r36_8017DD80;
+extern AnimationPlayRequest D_shelter_r36_8017DD94;
+extern AnimationPlayRequest D_shelter_r36_8017DDD0;
+extern GpCmdArg             D_shelter_r36_8017DC24;
+extern GpCmdArg             D_shelter_r36_8017DC28;
+void                        func_shelter_r36_8017D5E8(Task*);
+void                        func_shelter_r36_8017D738(void);
+void                        func_shelter_r36_8017D7B4(Task*);
+void                        func_shelter_r36_8017D870(s32);
 
-GpAnimArg D_shelter_r36_8017DC10 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DC10 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCmdArg D_shelter_r36_8017DC24 = { { .loc = { 4, 36 } }, 0 };
 
 GpCmdArg D_shelter_r36_8017DC28 = { { .loc = { 4, 36 } }, 1 };
 
-GpAnimArg D_shelter_r36_8017DC2C[2] = {
-    { { .index = 1 }, 1, 1, 10, 0 },
-    { { .index = 1 }, 2, 1, 10, 0 },
+AnimationPlayRequest D_shelter_r36_8017DC2C[2] = {
+    { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_shelter_r36_8017DC54 = { { .index = 1 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DC54 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DC68 = { { .index = 1 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DC68 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DC7C = { { .index = 1 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DC7C = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DC90 = { { .index = 1 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DC90 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DCA4 = { { .index = 1 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DCA4 = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DCB8 = { { .index = 1 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DCB8 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DCCC[2] = {
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
+AnimationPlayRequest D_shelter_r36_8017DCCC[2] = {
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_shelter_r36_8017DCF4 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DCF4 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD08 = { { .index = 1 }, 10, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD08 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD1C = { { .index = 1 }, 11, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD1C = { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD30 = { { .index = 1 }, 12, 1, 10, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD30 = { { .index = 1 }, 12, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD44 = { { .index = 1 }, 13, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD44 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD58 = { { .index = 1 }, 14, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD58 = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD6C = { { .index = 1 }, 15, 1, 8, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD6C = { { .index = 1 }, 15, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD80 = { { .index = 1 }, 16, 1, 8, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD80 = { { .index = 1 }, 16, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DD94 = { { .index = 1 }, 19, 1, 8, 0 };
+AnimationPlayRequest D_shelter_r36_8017DD94 = { { .index = 1 }, 19, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DDA8[2] = {
-    { { .index = 1 }, 20, 1, 8, 0 },
-    { { .index = 1 }, 9, 0, 0, 0 },
+AnimationPlayRequest D_shelter_r36_8017DDA8[2] = {
+    { { .index = 1 }, 20, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_shelter_r36_8017DDD0 = { { .index = 1 }, 10, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DDD0 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_r36_8017DDE4[13] = {
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 5, 0, 0, 0 },
-    { { .index = 1 }, 6, 0, 0, 0 },
-    { { .index = 1 }, 7, 0, 0, 0 },
-    { { .index = 1 }, 8, 0, 0, 0 },
-    { { .index = 1 }, 17, 1, 8, 0 },
+AnimationPlayRequest D_shelter_r36_8017DDE4[13] = {
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 17, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_shelter_r36_8017DEE8 = { { .index = 1 }, 18, 0, 0, 0 };
+AnimationPlayRequest D_shelter_r36_8017DEE8 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_shelter_r36_8017DEFC = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
 

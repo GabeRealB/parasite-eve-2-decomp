@@ -209,58 +209,58 @@ void func_mine_mesa_8017DE38(Task*);
 void func_mine_mesa_8017DFC4(Task*);
 void func_mine_mesa_8017E024(Task*);
 
-extern GpAnimArg   D_mine_mesa_80184360;
-extern GpAnimArg   D_mine_mesa_80184374;
-extern GpAnimArg   D_mine_mesa_8018439C;
-extern GpAnimArg   D_mine_mesa_801844B4;
-extern GpAnimArg   D_mine_mesa_801844C8;
-extern GpAnimArg   D_mine_mesa_801844DC;
-extern GpAnimArg   D_mine_mesa_801844F0;
-extern GpAnimArg   D_mine_mesa_80184504;
-extern GpAnimArg   D_mine_mesa_8018452C;
-extern GpAnimArg   D_mine_mesa_80184540;
-extern GpAnimArg   D_mine_mesa_80184554;
-extern GpCmdArg    D_mine_mesa_80184650;
-extern GpCmdArg    D_mine_mesa_80184654;
-extern GpCopyArg   D_mine_mesa_80184344;
-extern GpCopyArg   D_mine_mesa_80184484;
-extern GpScriptCmd D_mine_mesa_80189A80[4];
-extern GpScriptRec D_mine_mesa_80189A90[3];
-extern GpXformArg  D_mine_mesa_801843C4;
-extern GpXformArg  D_mine_mesa_801843DC;
-extern GpXformArg  D_mine_mesa_80184590;
-extern GpXformArg  D_mine_mesa_801845A8;
-extern GpXformArg  D_mine_mesa_801845C0;
-void               func_mine_mesa_8017DDF0(void);
-void               func_mine_mesa_8017E5A0(void);
-void               func_mine_mesa_8017E5C0(void);
-void               func_mine_mesa_8017E5E0(void);
-void               func_mine_mesa_8017E620(void);
-void               func_mine_mesa_8017E650(void);
-void               func_mine_mesa_8017E684(s32);
-void               func_mine_mesa_8017E6D8(void);
-void               func_mine_mesa_8017E70C(s32);
-void               func_mine_mesa_8017E760(void);
-void               func_mine_mesa_8017E91C(void);
-void               func_mine_mesa_8017E93C(u8);
-void               func_mine_mesa_8017E948(void);
-void               func_mine_mesa_8017EA24(void);
-void               func_mine_mesa_8017EA78(void);
-void               func_mine_mesa_8017EAAC(void);
-void               func_mine_mesa_8017EB54(s32);
+extern AnimationPlayRequest D_mine_mesa_80184360;
+extern AnimationPlayRequest D_mine_mesa_80184374;
+extern AnimationPlayRequest D_mine_mesa_8018439C;
+extern AnimationPlayRequest D_mine_mesa_801844B4;
+extern AnimationPlayRequest D_mine_mesa_801844C8;
+extern AnimationPlayRequest D_mine_mesa_801844DC;
+extern AnimationPlayRequest D_mine_mesa_801844F0;
+extern AnimationPlayRequest D_mine_mesa_80184504;
+extern AnimationPlayRequest D_mine_mesa_8018452C;
+extern AnimationPlayRequest D_mine_mesa_80184540;
+extern AnimationPlayRequest D_mine_mesa_80184554;
+extern GpCmdArg             D_mine_mesa_80184650;
+extern GpCmdArg             D_mine_mesa_80184654;
+extern GpCopyArg            D_mine_mesa_80184344;
+extern GpCopyArg            D_mine_mesa_80184484;
+extern GpScriptCmd          D_mine_mesa_80189A80[4];
+extern GpScriptRec          D_mine_mesa_80189A90[3];
+extern GpXformArg           D_mine_mesa_801843C4;
+extern GpXformArg           D_mine_mesa_801843DC;
+extern GpXformArg           D_mine_mesa_80184590;
+extern GpXformArg           D_mine_mesa_801845A8;
+extern GpXformArg           D_mine_mesa_801845C0;
+void                        func_mine_mesa_8017DDF0(void);
+void                        func_mine_mesa_8017E5A0(void);
+void                        func_mine_mesa_8017E5C0(void);
+void                        func_mine_mesa_8017E5E0(void);
+void                        func_mine_mesa_8017E620(void);
+void                        func_mine_mesa_8017E650(void);
+void                        func_mine_mesa_8017E684(s32);
+void                        func_mine_mesa_8017E6D8(void);
+void                        func_mine_mesa_8017E70C(s32);
+void                        func_mine_mesa_8017E760(void);
+void                        func_mine_mesa_8017E91C(void);
+void                        func_mine_mesa_8017E93C(u8);
+void                        func_mine_mesa_8017E948(void);
+void                        func_mine_mesa_8017EA24(void);
+void                        func_mine_mesa_8017EA78(void);
+void                        func_mine_mesa_8017EAAC(void);
+void                        func_mine_mesa_8017EB54(s32);
 
-extern GpAnimArg D_mine_mesa_80184360;
-extern GpAnimArg D_mine_mesa_801843B0;
-extern GpAnimArg D_mine_mesa_801844A0;
-extern GpAnimArg D_mine_mesa_80184518;
-extern GpAnimArg D_mine_mesa_8018452C;
-extern GpAnimArg D_mine_mesa_80184540;
-extern GpAnimArg D_mine_mesa_80184568;
-extern GpAnimArg D_mine_mesa_8018457C;
-extern GpCmdArg  D_mine_mesa_80184650;
-extern GpCopyArg D_mine_mesa_80184344;
-extern GpCopyArg D_mine_mesa_80184484;
-extern GpEvsCmd  D_mine_mesa_8018515C[17];
+extern AnimationPlayRequest D_mine_mesa_80184360;
+extern AnimationPlayRequest D_mine_mesa_801843B0;
+extern AnimationPlayRequest D_mine_mesa_801844A0;
+extern AnimationPlayRequest D_mine_mesa_80184518;
+extern AnimationPlayRequest D_mine_mesa_8018452C;
+extern AnimationPlayRequest D_mine_mesa_80184540;
+extern AnimationPlayRequest D_mine_mesa_80184568;
+extern AnimationPlayRequest D_mine_mesa_8018457C;
+extern GpCmdArg             D_mine_mesa_80184650;
+extern GpCopyArg            D_mine_mesa_80184344;
+extern GpCopyArg            D_mine_mesa_80184484;
+extern GpEvsCmd             D_mine_mesa_8018515C[17];
 
 extern GpObj3A        D_mine_mesa_801899B4[2];
 extern GpObj4C        D_mine_mesa_80188E40[8];
@@ -627,18 +627,18 @@ GpAnimSet* D_mine_mesa_8018433C[2] = {
 GpCopyArg D_mine_mesa_80184344 = { { .sets = D_mine_mesa_8018433C }, 2 };
 
 // Retained data: Same five-field layout as the following animation arguments; retained unreferenced entry.
-GpAnimArg D_mine_mesa_8018434C = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_8018434C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_80184360 = { { .index = 1 }, 48, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_80184360 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_80184374 = { { .index = 1 }, 9, 1, 20, 1 };
+AnimationPlayRequest D_mine_mesa_80184374 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_mine_mesa_80184388 = { { .index = 1 }, 3, 1, 20, 1 };
+AnimationPlayRequest D_mine_mesa_80184388 = { { .index = 1 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_8018439C = { { .index = 1 }, 13, 1, 20, 1 };
+AnimationPlayRequest D_mine_mesa_8018439C = { { .index = 1 }, 13, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_801843B0 = { { .index = 1 }, 9, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_801843B0 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_mine_mesa_801843C4 = { { 8780, 0, 2700, 0 }, { 0, 785, 0, 0 } };
 
@@ -670,31 +670,31 @@ GpAnimSet* D_mine_mesa_80184454[12] = {
 
 GpCopyArg D_mine_mesa_80184484 = { { .sets = D_mine_mesa_80184454 }, 12 };
 
-GpAnimArg D_mine_mesa_8018448C = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_8018448C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_801844A0 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_mine_mesa_801844A0 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_mesa_801844B4 = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_801844B4 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_801844C8 = { { .index = 1 }, 50, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_801844C8 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_801844DC = { { .index = 1 }, 51, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_801844DC = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_801844F0 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_801844F0 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_80184504 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_80184504 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_80184518 = { { .index = 1 }, 9, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_80184518 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_8018452C = { { .index = 1 }, 55, 1, 20, 0 };
+AnimationPlayRequest D_mine_mesa_8018452C = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_mesa_80184540 = { { .index = 1 }, 56, 1, 20, 0 };
+AnimationPlayRequest D_mine_mesa_80184540 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_mesa_80184554 = { { .index = 1 }, 57, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_80184554 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_mesa_80184568 = { { .index = 1 }, 58, 0, 0, 0 };
+AnimationPlayRequest D_mine_mesa_80184568 = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_mesa_8018457C = { { .index = 1 }, 10, 0, 0, 1 };
+AnimationPlayRequest D_mine_mesa_8018457C = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_mine_mesa_80184590 = { { 6320, 0, 1770, 0 }, { 0, 0, 0, 0 } };
 

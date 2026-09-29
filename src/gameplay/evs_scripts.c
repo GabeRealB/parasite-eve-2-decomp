@@ -163,16 +163,16 @@ static const char Gp_StrDemoPause[] = "Demo Pause";
 
 static void Gp_ScriptTaskState1(Task* arg0)
 {
-    GpEvsAddress      continuation;
-    GpEvsState*       st;
-    GpEvsState*       st2;
-    GpAnimArg         rec;
-    SVECTOR           vec;
-    TextDrawReq       req;
-    Task*             slot;
-    StageMusicParams* pair;
-    s32               mode;
-    GpEvsCmd*         cmd;
+    GpEvsAddress         continuation;
+    GpEvsState*          st;
+    GpEvsState*          st2;
+    AnimationPlayRequest rec;
+    SVECTOR              vec;
+    TextDrawReq          req;
+    Task*                slot;
+    StageMusicParams*    pair;
+    s32                  mode;
+    GpEvsCmd*            cmd;
 
     st = (GpEvsState*)arg0->work;
     if (D_801156F9 != 0) {
@@ -327,9 +327,9 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 slot = gameGetPtrSlot(st->pc->arg0.value);
                 rec  = *st->pc->arg3.animation;
                 if (st->pc->arg0.value == 3) {
-                    Gp_PlayerWeaponId(&rec.animBlock.index);
+                    Gp_PlayerWeaponId(&rec.source.index);
                 } else {
-                    Gp_AllyAnimId(&rec.animBlock.index);
+                    Gp_AllyAnimId(&rec.source.index);
                 }
                 if (slot != NULL) {
                     Gp_DispatchMsgPtr(slot, st->pc->arg2.value, &rec, st->pc->arg4.value);

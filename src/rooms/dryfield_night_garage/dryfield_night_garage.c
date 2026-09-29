@@ -167,7 +167,7 @@ extern GpMsgEntry D_dryfield_night_garage_80181C38[];
 
 /// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
 /// payload of the 0x3E8 message.
-extern GpAnimArg D_dryfield_night_garage_80181C68;
+extern AnimationPlayRequest D_dryfield_night_garage_80181C68;
 
 /// Script blob passed to `func_800E8614` when game flag 0x8E is already set.
 extern GpEvsCmd D_dryfield_night_garage_80181C7C[];
@@ -205,7 +205,7 @@ GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimArg D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_dryfield_night_garage_80181C7C[4] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -374,8 +374,8 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     player                                            = gameGetPtrSlot(0xA);
     if (gGameSession->at4.loc.variant == 3 && player != NULL) {
         Gp_DispatchMsgPtr(player, 0x3E9, &D_8013B570, 0);
-        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.animBlock.index);
-        Gp_DispatchMsgPtr(player, 0x3E8, &D_dryfield_night_garage_80181C68, 0);
+        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.source.index);
+        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
         Gp_EndPlayerActorTask(player);
         if (GameFlag_GetNibble(0x8E) == 0) {

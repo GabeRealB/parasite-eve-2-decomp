@@ -88,7 +88,7 @@ extern TaskDesc D_actor_310600_801796A4[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32  (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32  (*call1)(Task*, s32, GpXformArg*);
         s32  (*call2)(Task*, s32, s32, s32);
         void (*call3)(Task*, s32, VECTOR*);
@@ -114,7 +114,7 @@ extern s8          D_actor_310600_80179644[];  // extra ticks owed to the animat
 static void func_actor_310600_80161E64(Task* task);
 static void func_actor_310600_80161FA0(Task* task);
 static void func_actor_310600_8016231C(Task* arg0);
-s32         func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3);
+s32         func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3);
 s32         func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
 static void func_actor_310600_801627A4(Task* task);
 static void func_actor_310600_801628B0(Task* task);
@@ -168,7 +168,7 @@ extern TmdSource D_actor_310600_8016CD50;
 void             func_actor_310600_8016274C(Task*);
 void             func_actor_310600_801629CC(Task*);
 
-s32  func_actor_310600_8016246C(Task*, s32, GpAnimArg*, s32);
+s32  func_actor_310600_8016246C(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_310600_801625F0(Task*, s32, s32, s32);
 s32  func_actor_310600_80162C18(Task*, s32, GpXformArg*);
 void func_actor_310600_80162C94(Task*, s32, VECTOR*);
@@ -573,12 +573,12 @@ static void func_actor_310600_80161FA0(Task* task)
 /// fails to shrink it is the one that fires.
 static void func_actor_310600_8016231C(Task* arg0)
 {
-    Actor310600Work* work;
-    GfxCoord*        coord;
-    SVECTOR          d;
-    s32              dx;
-    s32              dz;
-    GpAnimArg        cmd;
+    Actor310600Work*     work;
+    GfxCoord*             coord;
+    SVECTOR              d;
+    s32                  dx;
+    s32                  dz;
+    AnimationPlayRequest cmd;
 
     work  = (Actor310600Work*)arg0->work;
     coord = (arg0->extra.tmd)->coords;
@@ -596,11 +596,11 @@ static void func_actor_310600_8016231C(Task* arg0)
     d.vz = dz;
     if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
         if (work->field_475 == 0xC) {
-            cmd.animBlock.index = 0;
-            cmd.field_4         = 0xD;
-            cmd.field_8         = 1;
-            cmd.field_C         = 0xA;
-            cmd.field_10        = 0;
+            cmd.source.index         = 0;
+            cmd.animationId          = 0xD;
+            cmd.blend                = ANIMATION_BLEND_INTERPOLATE;
+            cmd.blendFrames          = 0xA;
+            cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
         }
         work->step.vx   = 0;
@@ -624,8 +624,8 @@ static void func_actor_310600_8016231C(Task* arg0)
 /// The two byte stores must stay in this order. The second one is a QImode
 /// store to a varying address, so cse treats it as aliasing everything and
 /// drops the equivalence the first one recorded; that is what keeps
-/// `work->field_476` a reload instead of the register `cmd->animBlock.index` arrived in.
-s32 func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3)
+/// `work->field_476` a reload instead of the register `cmd->source.index` arrived in.
+s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3)
 {
     Actor310600Work* work;
     TmdObject*       ext;
@@ -634,17 +634,17 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3)
 
     work = (Actor310600Work*)task->work;
     ext  = task->extra.tmd;
-    if (cmd->animBlock.index != work->field_476) {
-        work->field_476 = cmd->animBlock.index;
+    if (cmd->source.index != work->field_476) {
+        work->field_476 = cmd->source.index;
         work->field_475 = -1;
         func_800B3F84(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, work->rig.poses,
                       work->rig.slots);
     }
-    if (cmd->field_4 != work->field_475) {
-        work->field_475 = cmd->field_4;
-        if (cmd->field_8 != 0) {
+    if (cmd->animationId != work->field_475) {
+        work->field_475 = cmd->animationId;
+        if (cmd->blend != ANIMATION_BLEND_RESET) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_475, 0, cmd->field_C);
+                func_800B4114(&work->rig.anim, i, work->field_475, 0, cmd->blendFrames);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
@@ -975,8 +975,8 @@ s32 func_actor_310600_80162C18(Task* task, s32 arg1, GpXformArg* args)
 /// of bank 0 through `func_actor_310600_8016246C`. `arg1` is unused.
 void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
 {
-    Actor310600Work* work;
-    GpAnimArg        cmd;
+    Actor310600Work*     work;
+    AnimationPlayRequest cmd;
 
     work = (Actor310600Work*)arg0->work;
 
@@ -985,11 +985,11 @@ void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
     work->field_4FC = arg2->vy;
     work->field_500 = arg2->vz;
 
-    cmd.animBlock.index = 0;
-    cmd.field_4         = 0xC;
-    cmd.field_8         = 0;
-    cmd.field_C         = 0;
-    cmd.field_10        = 0;
+    cmd.source.index         = 0;
+    cmd.animationId          = 0xC;
+    cmd.blend                = ANIMATION_BLEND_RESET;
+    cmd.blendFrames          = 0;
+    cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
     func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
 }

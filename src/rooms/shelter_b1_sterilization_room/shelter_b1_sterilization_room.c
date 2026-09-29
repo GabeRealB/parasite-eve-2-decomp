@@ -147,7 +147,7 @@ extern s32                                    D_shelter_b1_sterilization_room_80
 extern s16                                    D_shelter_b1_sterilization_room_80184E80[3];
 extern GpGridParams                           D_shelter_b1_sterilization_room_80184F28;
 
-extern GpAnimArg                       D_shelter_b1_sterilization_room_80188624;
+extern AnimationPlayRequest            D_shelter_b1_sterilization_room_80188624;
 extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[];
 
@@ -452,21 +452,21 @@ GpAnimSet* D_shelter_b1_sterilization_room_80188570[8] = {
 
 GpCopyArg D_shelter_b1_sterilization_room_80188590 = { { .sets = D_shelter_b1_sterilization_room_80188570 }, 8 };
 
-GpAnimArg D_shelter_b1_sterilization_room_80188598 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_80188598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_801885AC = { { .index = 1 }, 48, 1, 30, 1 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_801885AC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_801885C0 = { { .index = 1 }, 49, 1, 5, 1 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_801885C0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_801885D4 = { { .index = 1 }, 50, 1, 5, 1 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_801885D4 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_801885E8 = { { .index = 1 }, 51, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_801885E8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_801885FC = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_801885FC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_80188610 = { { .index = 1 }, 53, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_80188610 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_sterilization_room_80188624 = { { .index = 1 }, 54, 1, 10, 0 };
+AnimationPlayRequest D_shelter_b1_sterilization_room_80188624 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_shelter_b1_sterilization_room_80188638 = { { 5540, 0, 8600, 0 }, { 0, 2047, 0, 0 } };
 
@@ -1298,9 +1298,9 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     } else if (task->killCountdown >= 0x79) {
                         if (Player_Status.hp > 0) {
                             coord = player->extra.tmd->coords;
-                            Gp_DispatchMsgPtr(player, 0x3F7, &D_shelter_b1_sterilization_room_80188590, 0);
-                            Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.animBlock.index);
-                            Gp_DispatchMsgPtr(player, 0x3E8, &D_shelter_b1_sterilization_room_80188624, 0);
+                            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_shelter_b1_sterilization_room_80188590, 0);
+                            Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);
+                            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)Gp_GetObjPan(coord);
                             SndEvt_EnqueueType6(0x54100011, pan, (s8)gpGetObjDepth(coord));
                             task->killCountdown = 0;

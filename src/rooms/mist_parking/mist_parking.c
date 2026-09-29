@@ -215,9 +215,9 @@ GpAnimSet* D_mist_parking_80186C28[1] = {
 
 GpCopyArg D_mist_parking_80186C2C = { { .sets = D_mist_parking_80186C28 }, 1 };
 
-GpAnimArg D_mist_parking_80186C34 = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_mist_parking_80186C34 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_parking_80186C48 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_parking_80186C48 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_mist_parking_80186C5C[15] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C48 }, { .value = 0 } },

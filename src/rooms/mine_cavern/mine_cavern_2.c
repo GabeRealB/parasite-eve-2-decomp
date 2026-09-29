@@ -643,41 +643,41 @@ GpAnimSet* D_mine_cavern_80187980[17] = {
 
 GpCopyArg D_mine_cavern_801879C4 = { { .sets = D_mine_cavern_80187980 }, 17 };
 
-GpAnimArg D_mine_cavern_801879CC = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mine_cavern_801879CC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_801879E0 = { { .index = 1 }, 48, 1, 30, 0 };
+AnimationPlayRequest D_mine_cavern_801879E0 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_801879F4 = { { .index = 1 }, 49, 1, 30, 0 };
+AnimationPlayRequest D_mine_cavern_801879F4 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A08 = { { .index = 1 }, 50, 1, 5, 0 };
+AnimationPlayRequest D_mine_cavern_80187A08 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A1C = { { .index = 1 }, 51, 1, 5, 0 };
+AnimationPlayRequest D_mine_cavern_80187A1C = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A30 = { { .index = 1 }, 52, 1, 5, 0 };
+AnimationPlayRequest D_mine_cavern_80187A30 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A44 = { { .index = 1 }, 53, 1, 20, 0 };
+AnimationPlayRequest D_mine_cavern_80187A44 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A58 = { { .index = 1 }, 54, 1, 20, 0 };
+AnimationPlayRequest D_mine_cavern_80187A58 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A6C = { { .index = 1 }, 55, 1, 30, 0 };
+AnimationPlayRequest D_mine_cavern_80187A6C = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A80 = { { .index = 1 }, 56, 1, 5, 0 };
+AnimationPlayRequest D_mine_cavern_80187A80 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187A94 = { { .index = 1 }, 57, 1, 5, 0 };
+AnimationPlayRequest D_mine_cavern_80187A94 = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187AA8 = { { .index = 1 }, 58, 1, 5, 0 };
+AnimationPlayRequest D_mine_cavern_80187AA8 = { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187ABC[3] = {
-    { { .index = 1 }, 59, 1, 5, 0 },
-    { { .index = 1 }, 60, 1, 2, 0 },
-    { { .index = 1 }, 61, 0, 0, 0 },
+AnimationPlayRequest D_mine_cavern_80187ABC[3] = {
+    { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_mine_cavern_80187AF8 = { { .index = 1 }, 62, 0, 0, 0 };
+AnimationPlayRequest D_mine_cavern_80187AF8 = { { .index = 1 }, 62, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187B0C = { { .index = 1 }, 63, 0, 0, 0 };
+AnimationPlayRequest D_mine_cavern_80187B0C = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_cavern_80187B20 = { { .index = 1 }, 9, 1, 30, 1 };
+AnimationPlayRequest D_mine_cavern_80187B20 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_mine_cavern_80187B34 = { { 0x4402, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
 

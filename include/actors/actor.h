@@ -342,10 +342,10 @@ STATIC_ASSERT_SIZEOF(ActorWallPushFrame, 0x30);
 /// animation argument sent with message 0x3F4, the placement sent with
 /// message 0x3E9, and the offset to the player with its normalised direction.
 typedef struct ActorAttackScratch {
-    GpAnimArg  anim;
-    GpXformArg place;
-    VECTOR     delta;
-    SVECTOR    dir;
+    AnimationPlayRequest anim;
+    GpXformArg           place;
+    VECTOR               delta;
+    SVECTOR              dir;
 } ActorAttackScratch;
 STATIC_ASSERT_SIZEOF(ActorAttackScratch, 0x44);
 
@@ -1262,11 +1262,11 @@ STATIC_ASSERT_SIZEOF(Actor402200TrailScratch, 0x3C);
 /// and the offset `in` rotated through the actor's root into `out`; `in` is
 /// also the rotation the grab's matrix is built from.
 typedef struct Actor402200GrabScratch {
-    GpDelayArg query;
-    GpAnimArg  anim;
-    GpXformArg place;
-    VECTOR     out;
-    SVECTOR    in;
+    GpDelayArg           query;
+    AnimationPlayRequest anim;
+    GpXformArg           place;
+    VECTOR               out;
+    SVECTOR              in;
 } Actor402200GrabScratch;
 STATIC_ASSERT_SIZEOF(Actor402200GrabScratch, 0x5C);
 
@@ -1468,7 +1468,7 @@ typedef struct Actor403200GrabWork {
     MATRIX lightMtx;
     byte   pad_190[0x4];
     /// Message 0x3FF payload the hold states send the player, by address.
-    GpAnimArg anim;
+    AnimationPlayRequest anim;
     /// Armed to 1 by the spawn state `func_actor_403200_8013509C` once the
     /// model has been stood up on its escort's part 1; the states that follow
     /// re-arm the step counter and the first display node on the tick they see
@@ -1703,7 +1703,7 @@ typedef struct Actor403200Work {
     /* 0xEAE */ u8 field_EAE;
     /* 0xEAF */ s8 field_EAF;
     /// Message 0x3FF payload the launch state sends the player.
-    /* 0xEB0 */ GpAnimArg anim;
+    /* 0xEB0 */ AnimationPlayRequest anim;
     /// First three bytes of the last 0x7DB payload received.
     /* 0xEC4 */ u8   field_EC4;
     /* 0xEC5 */ u8   field_EC5;

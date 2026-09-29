@@ -149,26 +149,26 @@ void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E778(Task*);
 
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182D8C;
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DA0;
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DB4;
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DC8;
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DDC;
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182DF0;
-extern GpAnimArg  D_shelter_b1_pod_access_tunnel_80182E04;
-extern GpCopyArg  D_shelter_b1_pod_access_tunnel_80182D70;
-extern GpXformArg D_shelter_b1_pod_access_tunnel_80182E18;
-extern GpXformArg D_shelter_b1_pod_access_tunnel_80182E30;
-extern GpXformArg D_shelter_b1_pod_access_tunnel_80182E48;
-void              func_shelter_b1_pod_access_tunnel_8017E39C(void);
-void              func_shelter_b1_pod_access_tunnel_8017E3BC(void);
-void              func_shelter_b1_pod_access_tunnel_8017E3DC(void);
-void              func_shelter_b1_pod_access_tunnel_8017E3FC(void);
-void              func_shelter_b1_pod_access_tunnel_8017E41C(s32);
-void              func_shelter_b1_pod_access_tunnel_8017E52C(s32);
-void              func_shelter_b1_pod_access_tunnel_8017E704(void);
-void              func_shelter_b1_pod_access_tunnel_8017E734(s32);
-void              func_shelter_b1_pod_access_tunnel_8017E7B4(void);
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D8C;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DA0;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DB4;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DC8;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DDC;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E04;
+extern GpCopyArg            D_shelter_b1_pod_access_tunnel_80182D70;
+extern GpXformArg           D_shelter_b1_pod_access_tunnel_80182E18;
+extern GpXformArg           D_shelter_b1_pod_access_tunnel_80182E30;
+extern GpXformArg           D_shelter_b1_pod_access_tunnel_80182E48;
+void                        func_shelter_b1_pod_access_tunnel_8017E39C(void);
+void                        func_shelter_b1_pod_access_tunnel_8017E3BC(void);
+void                        func_shelter_b1_pod_access_tunnel_8017E3DC(void);
+void                        func_shelter_b1_pod_access_tunnel_8017E3FC(void);
+void                        func_shelter_b1_pod_access_tunnel_8017E41C(s32);
+void                        func_shelter_b1_pod_access_tunnel_8017E52C(s32);
+void                        func_shelter_b1_pod_access_tunnel_8017E704(void);
+void                        func_shelter_b1_pod_access_tunnel_8017E734(s32);
+void                        func_shelter_b1_pod_access_tunnel_8017E7B4(void);
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { 0, 32, func_shelter_b1_pod_access_tunnel_8017D61C, { .model = NULL } };
 
@@ -371,21 +371,21 @@ GpAnimSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
 
 GpCopyArg D_shelter_b1_pod_access_tunnel_80182D70 = { { .sets = D_shelter_b1_pod_access_tunnel_80182D50 }, 8 };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182D78 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D78 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182D8C = { { .index = 1 }, 48, 1, 20, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D8C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182DA0 = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DA0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182DB4 = { { .index = 1 }, 50, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DB4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182DC8 = { { .index = 1 }, 51, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DC8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182DDC = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DDC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182DF0 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182E04 = { { .index = 1 }, 54, 1, 10, 1 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E04 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_shelter_b1_pod_access_tunnel_80182E18 = { { 1740, 0, -5620, 0 }, { 0, 0, 0, 0 } };
 
@@ -393,27 +393,27 @@ GpXformArg D_shelter_b1_pod_access_tunnel_80182E30 = { { 1690, 0, -6060, 0 }, { 
 
 GpXformArg D_shelter_b1_pod_access_tunnel_80182E48 = { { 2350, 0, -4800, 0 }, { 0, 0, 0, 0 } };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182E60[4] = {
-    { { .index = 0 }, 0, 0, 0, 0 },
-    { { .index = 0 }, 1, 1, 20, 0 },
-    { { .index = 0 }, 2, 1, 20, 0 },
-    { { .index = 0 }, 3, 1, 10, 0 },
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E60[4] = {
+    { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182EB0 = { { .index = 0 }, 4, 1, 5, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182EB0 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182EC4 = { { .index = 0 }, 5, 1, 5, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182EC4 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182ED8 = { { .index = 0 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182ED8 = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182EEC = { { .index = 0 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182EEC = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182F00 = { { .index = 0 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182F00 = { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182F14 = { { .index = 0 }, 9, 1, 20, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182F14 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_shelter_b1_pod_access_tunnel_80182F28 = { { .index = 0 }, 10, 1, 20, 0 };
+AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182F28 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_shelter_b1_pod_access_tunnel_80182F3C = { { 1760, 0, -5100, 0 }, { 0, 0, 0, 0 } };
 
@@ -1280,28 +1280,28 @@ void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 }
 
 /// Two-state task: state 0, unless blocked by `Gp_StateC08.field_A` or `gDisplayState.pendingMode`,
-/// sends the slot-3 task a `GpAnimArg` built from `Player_Status.weapon` (msg 0x3E8) and runs
+/// sends the slot-3 task a `AnimationPlayRequest` built from `Player_Status.weapon` (msg 0x3E8) and runs
 /// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
 /// sets `Mc_SaveData[0].state.sceneEvent` to 0x1D and kills this task once the session is idle.
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
 {
-    GpAnimArg rec;
-    s32       state;
-    s32       weaponId;
-    s32       id;
+    AnimationPlayRequest rec;
+    s32                  state;
+    s32                  weaponId;
+    s32                  id;
 
     state = task->state;
     switch (state) {
         case 0:
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                weaponId            = Player_Status.weapon;
-                id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                rec.animBlock.index = id;
-                rec.field_4         = 1;
-                rec.field_8         = 0;
-                rec.field_C         = 0;
-                rec.field_10        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+                weaponId                 = Player_Status.weapon;
+                id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                rec.source.index         = id;
+                rec.animationId          = 1;
+                rec.blend                = ANIMATION_BLEND_RESET;
+                rec.blendFrames          = 0;
+                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
                 func_800E8614(D_shelter_b1_pod_access_tunnel_80181120, 0);
                 task->state = task->state + 1;
             }

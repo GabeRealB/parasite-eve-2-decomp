@@ -70,8 +70,8 @@ extern GpObj4C        D_neo_ark_power_plant_1_8018155C[10];
 extern GpObj4C        D_neo_ark_power_plant_1_80181854[7];
 extern GpRoomCoordSet D_neo_ark_power_plant_1_8017FB80[1];
 
-extern GpAnimArg D_neo_ark_power_plant_1_8017EB40;
-extern GpAnimArg D_neo_ark_power_plant_1_8017EEAC;
+extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
+extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
 
 extern GpAnimSet                        D_neo_ark_power_plant_1_8017EAF0;
 extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
@@ -106,7 +106,7 @@ GpMsgEntry D_neo_ark_power_plant_1_8017EB18[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimArg D_neo_ark_power_plant_1_8017EB40 = { { .index = 1 }, 1, 1, 20, 1 };
+AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCmdArg D_neo_ark_power_plant_1_8017EB54 = { { .loc = { 5, 16 } }, 1 };
 
@@ -167,7 +167,7 @@ GpEvsCmd D_neo_ark_power_plant_1_8017EDBC[10] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, 1, 8, 1 };
+AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
 NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &D_neo_ark_power_plant_1_8017EAF0 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
 

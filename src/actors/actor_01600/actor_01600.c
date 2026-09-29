@@ -263,8 +263,8 @@ static s32 Actor01600_Fn052C4(Task* arg0);
 
 // The retained animation header precedes the delay count read by message 0x3F8.
 typedef struct {
-    GpAnimArg animation;
-    s32       frames;
+    AnimationPlayRequest animation;
+    s32                  frames;
 } Actor01600DelayArg;
 STATIC_ASSERT_SIZEOF(Actor01600DelayArg, 24);
 
@@ -314,7 +314,7 @@ STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
 
 static void Actor01600_Fn03A60(Task* actor);
 
-extern GpAnimArg Actor01600_D127D8;
+extern AnimationPlayRequest Actor01600_D127D8;
 
 static s32  Actor01600_Fn047A0(Task* actor);
 static s32  Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags);
@@ -1304,7 +1304,7 @@ GpAnimSet* Actor01600_D127C8[4] = {
     &Actor01600_D1277C,
 };
 
-GpAnimArg Actor01600_D127D8 = { { .ptr = Actor01600_D127C8 }, 0, 0, 0, 0 };
+AnimationPlayRequest Actor01600_D127D8 = { { .sets = Actor01600_D127C8 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* Actor01600_D127EC[31] = {
     NULL,
@@ -1346,7 +1346,7 @@ s32 Actor01600_D12870 = 0;
 
 s32 Actor01600_D12874 = 0;
 
-Actor01600DelayArg Actor01600_D12878 = { { { .ptr = Actor01600_D127C8 }, 0, 0, 0, 0 }, 1 };
+Actor01600DelayArg Actor01600_D12878 = { { { .sets = Actor01600_D127C8 }, 0, 0, 0, 0 }, 1 };
 
 GpXformArg Actor01600_D12890;
 
@@ -2879,14 +2879,14 @@ static void Actor01600_Fn020F8(Task* actor)
                             pan23           = (s8)Gp_GetObjPan(coord);
                             SndEvt_EnqueueType6(id, (s32)pan23, (s8)gpGetObjDepth(coord));
                             if (work->field_53E != 0) {
-                                Actor01600_D127D8.field_4 = 1;
-                                Gp_DispatchMsgPtr(work->field_4D4, 0x3F4, &Actor01600_D127D8, 0);
+                                Actor01600_D127D8.animationId = 1;
+                                Gp_DispatchMsgPtr(work->field_4D4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &Actor01600_D127D8, 0);
                                 id    = (((u16)((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x4065000A;
                                 pan24 = (s8)Gp_GetObjPan(coord);
                                 SndEvt_EnqueueType6(id, (s32)pan24, (s8)gpGetObjDepth(coord));
                             } else {
-                                Actor01600_D127D8.field_4 = 2;
-                                Gp_DispatchMsgPtr(work->field_4D4, 0x3FF, &Actor01600_D127D8, 0);
+                                Actor01600_D127D8.animationId = 2;
+                                Gp_DispatchMsgPtr(work->field_4D4, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
                                 id           = (((u16)((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                                 pan_msg_zero = (s8)Gp_GetObjPan(coord);
                                 SndEvt_EnqueueType6(id, (s32)pan_msg_zero, (s8)gpGetObjDepth(coord));
@@ -2926,15 +2926,15 @@ static void Actor01600_Fn020F8(Task* actor)
                         }
                         if (config->hp <= 0) {
                             if (work->field_53E == 0) {
-                                work->field_506           = 9;
-                                work->field_50E           = 0;
-                                work->field_50A           = 0;
-                                reset_y                   = coord->coord.t[1];
-                                work->field_534           = 0;
-                                work->field_4E4           = reset_y;
-                                Actor01600_D127D8.field_4 = 0;
-                                Actor01600_D127D8.field_8 = 0;
-                                Actor01600_D127D8.field_C = 0;
+                                work->field_506               = 9;
+                                work->field_50E               = 0;
+                                work->field_50A               = 0;
+                                reset_y                       = coord->coord.t[1];
+                                work->field_534               = 0;
+                                work->field_4E4               = reset_y;
+                                Actor01600_D127D8.animationId = 0;
+                                Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
+                                Actor01600_D127D8.blendFrames = 0;
                                 Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
                                 return;
                             }
@@ -2946,10 +2946,10 @@ static void Actor01600_Fn020F8(Task* actor)
                     if (work->field_53E == 0) {
                         if (work->field_50A >= 0x31) {
                             if (work->field_554 >= 5) {
-                                Actor01600_D127D8.field_4 = 3;
-                                Actor01600_D127D8.field_8 = 1;
-                                Actor01600_D127D8.field_C = 1;
-                                Gp_DispatchMsgPtr(work->field_4D4, 0x3FF, &Actor01600_D127D8, 0);
+                                Actor01600_D127D8.animationId = 3;
+                                Actor01600_D127D8.blend       = ANIMATION_BLEND_INTERPOLATE;
+                                Actor01600_D127D8.blendFrames = 1;
+                                Gp_DispatchMsgPtr(work->field_4D4, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
                                 work->field_508 = 0;
                                 work->field_50A = 0;
                                 work->field_506 = 0x1E;
@@ -2962,15 +2962,15 @@ static void Actor01600_Fn020F8(Task* actor)
                     } else {
                     block_156:
                         if (Mc_SaveData[0].state.companionHp <= 0) {
-                            work->field_506           = 9;
-                            work->field_50E           = 0;
-                            work->field_50A           = 0;
-                            reset_y2                  = coord->coord.t[1];
-                            work->field_534           = 0;
-                            work->field_4E4           = reset_y2;
-                            Actor01600_D127D8.field_4 = 0;
-                            Actor01600_D127D8.field_8 = 0;
-                            Actor01600_D127D8.field_C = 0;
+                            work->field_506               = 9;
+                            work->field_50E               = 0;
+                            work->field_50A               = 0;
+                            reset_y2                      = coord->coord.t[1];
+                            work->field_534               = 0;
+                            work->field_4E4               = reset_y2;
+                            Actor01600_D127D8.animationId = 0;
+                            Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
+                            Actor01600_D127D8.blendFrames = 0;
                             Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
                             return;
                         }
@@ -2999,10 +2999,10 @@ static void Actor01600_Fn020F8(Task* actor)
                         coord->coord.t[2] = attachedCoord2->coord.t[2] + attachedOffset2->coord.t[2];
                     }
                     if (work->field_50A >= 0x2D) {
-                        work->field_534           = 0;
-                        Actor01600_D127D8.field_4 = 0;
-                        Actor01600_D127D8.field_8 = 0;
-                        Actor01600_D127D8.field_C = 0;
+                        work->field_534               = 0;
+                        Actor01600_D127D8.animationId = 0;
+                        Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
+                        Actor01600_D127D8.blendFrames = 0;
                         Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
                     }
                     if (work->field_50A >= 0x38) {
@@ -3575,9 +3575,9 @@ static s32 Actor01600_Fn047A0(Task* arg0)
                 if (distance < 0x3E8) {
                     Actor01600_D12878.frames = 5;
                     if (work->field_53E != 0) {
-                        Actor01600_D12878.animation.field_4 = 1;
+                        Actor01600_D12878.animation.animationId = 1;
                     } else {
-                        Actor01600_D12878.animation.field_4 = 2;
+                        Actor01600_D12878.animation.animationId = 2;
                     }
                     if (Gp_DispatchMsgPtr(task, 0x3F8, &Actor01600_D12878, 0) == 0) {
                         other->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4890,13 +4890,13 @@ static void Actor01600_Fn06F10(Task* arg0)
     work = arg0->work;
     if (work->field_534 != 0) {
         Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
-        Actor01600_D127D8.field_4 = 0;
-        work->field_534           = 0;
-        Actor01600_D12870         = 0;
-        work->field_50E           = 0;
-        work->field_516           = 0;
-        work->field_50A           = 0;
-        work->field_526           = 0;
+        Actor01600_D127D8.animationId = 0;
+        work->field_534               = 0;
+        Actor01600_D12870             = 0;
+        work->field_50E               = 0;
+        work->field_516               = 0;
+        work->field_50A               = 0;
+        work->field_526               = 0;
     }
 }
 

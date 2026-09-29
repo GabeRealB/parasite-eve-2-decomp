@@ -104,13 +104,13 @@ void func_acropolis_forked_road_8017DD60(Task*);
 void func_acropolis_forked_road_8017E1C0(Task*);
 void func_acropolis_forked_road_8017E220(Task*);
 
-extern GpAnimArg      D_acropolis_forked_road_8018207C;
-extern GpCopyArg      D_acropolis_forked_road_80182060;
-extern GpGridParams   D_acropolis_forked_road_80182BF0[1];
-extern GpObj4C        D_acropolis_forked_road_80182C14[6];
-extern GpObj4C        D_acropolis_forked_road_80182DDC[7];
-extern GpRoomCoordSet D_acropolis_forked_road_80184E70[1];
-void                  func_acropolis_forked_road_8017E288(void);
+extern AnimationPlayRequest D_acropolis_forked_road_8018207C;
+extern GpCopyArg            D_acropolis_forked_road_80182060;
+extern GpGridParams         D_acropolis_forked_road_80182BF0[1];
+extern GpObj4C              D_acropolis_forked_road_80182C14[6];
+extern GpObj4C              D_acropolis_forked_road_80182DDC[7];
+extern GpRoomCoordSet       D_acropolis_forked_road_80184E70[1];
+void                        func_acropolis_forked_road_8017E288(void);
 
 extern GpSprtCmd  D_acropolis_forked_road_80183284[2];
 extern GpSprtCmd  D_acropolis_forked_road_80183938[12];
@@ -492,13 +492,13 @@ GpAnimSet* D_acropolis_forked_road_80182054[3] = {
 
 GpCopyArg D_acropolis_forked_road_80182060 = { { .sets = D_acropolis_forked_road_80182054 }, 3 };
 
-GpAnimArg D_acropolis_forked_road_80182068 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_forked_road_80182068 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_forked_road_8018207C = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_acropolis_forked_road_8018207C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_forked_road_80182090[2] = {
-    { { .index = 1 }, 49, 1, 20, 0 },
-    { { .index = 1 }, 9, 1, 10, 0 },
+AnimationPlayRequest D_acropolis_forked_road_80182090[2] = {
+    { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 GpEvsCmd D_acropolis_forked_road_801820B8[8] = {
@@ -1322,13 +1322,13 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// view and the session's ride flag and kills this task.
 void func_acropolis_forked_road_8017DD60(Task* task)
 {
-    GpAnimArg       rec;
-    GpXformArg      place;
-    s32             sp40;
-    RoomStreamWork* work;
-    RoomStreamWork* blk;
-    CdCmdQueue*     queue;
-    s32             weaponId;
+    AnimationPlayRequest rec;
+    GpXformArg           place;
+    s32                  sp40;
+    RoomStreamWork*      work;
+    RoomStreamWork*      blk;
+    CdCmdQueue*          queue;
+    s32                  weaponId;
 
     queue = &CdCmd_Queue;
     work  = (RoomStreamWork*)task->work;
@@ -1343,13 +1343,13 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            weaponId            = Player_Status.weapon;
-            rec.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_4         = 1;
-            rec.field_8         = 0;
-            rec.field_C         = 0;
-            rec.field_10        = 0;
-            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E8, &rec, 0);
+            weaponId                 = Player_Status.weapon;
+            rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animationId          = 1;
+            rec.blend                = ANIMATION_BLEND_RESET;
+            rec.blendFrames          = 0;
+            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 2;
             task->state        = task->state + 1;

@@ -61,10 +61,10 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[1];
-        GpCopyArg  copy;
-        GpAnimArg  arguments[1];
-        GpEvsCmd   commands[8];
+        GpAnimSet*           sets[1];
+        GpCopyArg            copy;
+        AnimationPlayRequest arguments[1];
+        GpEvsCmd             commands[8];
     } data;
     s32 words[56];
 } NeoArkObservatoryAnimStorage11E0;

@@ -183,7 +183,7 @@ typedef struct {
     union {
         s32  (*call0)(void);
         s32  (*call1)(Task*);
-        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         s32  (*call5)(Task*, s32, u16*);
@@ -213,7 +213,7 @@ static s32  Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 coun
 static void Actor01900_Fn08724(Task* arg0);
 static void Actor01900_Fn0A7C0(Task* arg0);
 static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord);
-s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 s32         Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2);
 s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
 
@@ -222,7 +222,7 @@ s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
  * each `G_SCRATCH_HEAD` access out of a register CSE would share. */
 
 extern TmdSource Actor01900_D102C8;
-s32              Actor01900_Fn0A31C(Task*, s32, GpAnimArg*);
+s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*);
 s32              Actor01900_Fn0A38C(Task*, s32, s32);
 s32              Actor01900_Fn0A44C(Task*);
 s32              Actor01900_Fn0A49C(Task*, s32, GpXformArg*);
@@ -3477,11 +3477,11 @@ static const GpEnemyTaskFuncTable4 Actor01900_D0023C = { {
     Gp_DestroyEnemy,
 } };
 
-s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor01900Work* work = arg0->work;
 
-    switch (arg2->field_4) {
+    switch (arg2->animationId) {
         case 0:
             work->field_89E = 0x22;
             break;

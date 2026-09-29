@@ -61,12 +61,12 @@ extern void func_80724608(void*, s32, s32, void*);
 /// indexed by `Task::spawnArg1`.
 static u8 Reflection_Data_8017FC8C[];
 
-extern GpAnimArg  D_acropolis_east_elevator_hall_80185C8C;
-extern GpEvsCmd   D_acropolis_east_elevator_hall_80185D54[];
-extern GpEvsCmd   D_acropolis_east_elevator_hall_801860B4[];
-extern GpEvsCmd   D_acropolis_east_elevator_hall_8018621C[];
-extern GpMsgEntry D_acropolis_east_elevator_hall_801862F4[];
-extern s32        D_acropolis_east_elevator_hall_8018631C;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C;
+extern GpEvsCmd             D_acropolis_east_elevator_hall_80185D54[];
+extern GpEvsCmd             D_acropolis_east_elevator_hall_801860B4[];
+extern GpEvsCmd             D_acropolis_east_elevator_hall_8018621C[];
+extern GpMsgEntry           D_acropolis_east_elevator_hall_801862F4[];
+extern s32                  D_acropolis_east_elevator_hall_8018631C;
 
 /// Name word handed to `func_80724608`: `"Player"`, followed by one
 /// retained nonzero byte, preserved in the C initializer.
@@ -94,25 +94,25 @@ extern GpAnimSet D_acropolis_east_elevator_hall_80180478;
 extern GpAnimSet D_acropolis_east_elevator_hall_80184DE4;
 extern GpAnimSet D_acropolis_east_elevator_hall_80185BC0;
 
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C00;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C14;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C28;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C3C;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C50;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C64;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C78;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185C8C;
-extern GpAnimArg      D_acropolis_east_elevator_hall_80185CA0;
-extern GpGridParams   D_acropolis_east_elevator_hall_80186838[1];
-extern GpObj4C        D_acropolis_east_elevator_hall_8018685C[6];
-extern GpObj4C        D_acropolis_east_elevator_hall_80186A24[7];
-extern GpOverlayIds   D_acropolis_east_elevator_hall_80185CB4;
-extern GpRoomCoordSet D_acropolis_east_elevator_hall_80187A44[1];
-s32                   func_acropolis_east_elevator_hall_8017F348(Task*, s32, GpSaveLoc*, GpSaveLoc*);
-s32                   func_acropolis_east_elevator_hall_8017F370(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_acropolis_east_elevator_hall_8017F378(Task*, s32, GpMsg13EF*, s32);
-s32                   func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, GpMessageArg);
-void                  func_acropolis_east_elevator_hall_8017F450(void);
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C00;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C14;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C28;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C3C;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C50;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C64;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C78;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C;
+extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0;
+extern GpGridParams         D_acropolis_east_elevator_hall_80186838[1];
+extern GpObj4C              D_acropolis_east_elevator_hall_8018685C[6];
+extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
+extern GpOverlayIds         D_acropolis_east_elevator_hall_80185CB4;
+extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
+s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, GpMessageArg, GpMessageArg);
+s32                         func_acropolis_east_elevator_hall_8017F378(Task*, s32, GpMsg13EF*, s32);
+s32                         func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, GpMessageArg);
+void                        func_acropolis_east_elevator_hall_8017F450(void);
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -207,23 +207,23 @@ GpAnimSet* D_acropolis_east_elevator_hall_80185BF8[2] = {
     &D_acropolis_east_elevator_hall_80185BC0,
 };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C00 = { { .ptr = D_acropolis_east_elevator_hall_80185BE8 }, 1, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C00 = { { .sets = D_acropolis_east_elevator_hall_80185BE8 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C14 = { { .ptr = D_acropolis_east_elevator_hall_80185BF0 }, 1, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C14 = { { .sets = D_acropolis_east_elevator_hall_80185BF0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C28 = { { .ptr = D_acropolis_east_elevator_hall_80185BF8 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C28 = { { .sets = D_acropolis_east_elevator_hall_80185BF8 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C3C = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C3C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C50 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C50 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C64 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C64 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C78 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C78 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185C8C = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_east_elevator_hall_80185CA0 = { { .index = 0 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverlayIds D_acropolis_east_elevator_hall_80185CB4 = { 1, 3, 11 };
 

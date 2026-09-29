@@ -565,15 +565,15 @@ static void func_actor_205200_8014C0C0(Task* arg0)
     switch (work->field_58A) {
         case 0:
             if (((GameActor*)player->work)->field_954 != 2) {
-                scratch->delta.vx           = target->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vy           = 0;
-                scratch->delta.vz           = target->coord.t[2] - coord->coord.t[2];
-                work->field_58E             = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
-                scratch->anim.animBlock.ptr = D_actor_205200_80156800;
-                scratch->anim.field_4       = work->field_58E + 1;
-                scratch->anim.field_8       = 0;
-                scratch->anim.field_C       = 0;
-                scratch->anim.field_10      = 1;
+                scratch->delta.vx                  = target->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vy                  = 0;
+                scratch->delta.vz                  = target->coord.t[2] - coord->coord.t[2];
+                work->field_58E                    = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
+                scratch->anim.source.sets          = D_actor_205200_80156800;
+                scratch->anim.animationId          = work->field_58E + 1;
+                scratch->anim.blend                = 0;
+                scratch->anim.blendFrames          = 0;
+                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_58A = 1;
                 work->field_58C = 0;
@@ -621,11 +621,11 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             }
             count = (s16)++work->field_58C;
             if ((work->field_58E != 0 && count >= 0x1E) || (work->field_58E == 0 && count >= 0x20)) {
-                scratch->anim.animBlock.ptr = D_actor_205200_80156800;
-                scratch->anim.field_4       = work->field_58E + 3;
-                scratch->anim.field_8       = 0;
-                scratch->anim.field_C       = 0;
-                scratch->anim.field_10      = 1;
+                scratch->anim.source.sets          = D_actor_205200_80156800;
+                scratch->anim.animationId          = work->field_58E + 3;
+                scratch->anim.blend                = 0;
+                scratch->anim.blendFrames          = 0;
+                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_58A = 2;
                 work->field_58C = 0;

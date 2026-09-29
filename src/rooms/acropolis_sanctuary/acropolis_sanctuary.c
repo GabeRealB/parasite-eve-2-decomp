@@ -95,8 +95,8 @@ STATIC_ASSERT_SIZEOF(AcsCutsceneWork, 0xC);
 /// flight, and the union is what makes the 0x18-byte frame slot the two share
 /// explicit.
 typedef union AcsMsgArg {
-    /* 0x0 */ GpAnimArg  rec;
-    /* 0x0 */ GpXformArg place;
+    /* 0x0 */ AnimationPlayRequest rec;
+    /* 0x0 */ GpXformArg           place;
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
@@ -194,26 +194,26 @@ typedef struct AcsSpriteLevels {
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
 
-extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
-extern GpXformArg     D_acropolis_sanctuary_801808BC;
-extern GpAnimArg      D_acropolis_sanctuary_801809F8;
-extern GpAnimArg      D_acropolis_sanctuary_80180A0C;
-extern GpAnimArg      D_acropolis_sanctuary_80180AE8;
-extern GpEvsCmd       D_acropolis_sanctuary_80180B0C[];
-extern GpEvsCmd       D_acropolis_sanctuary_80181664[];
-extern GpEvsCmd       D_acropolis_sanctuary_80181814[];
-extern TaskDesc       D_acropolis_sanctuary_80182240;
-extern GpGridParams   D_acropolis_sanctuary_801822EC;
-extern GpMsgEntry     D_acropolis_sanctuary_80182310[];
-extern AcsTile        D_acropolis_sanctuary_80182320[];
-extern AcsQuad        D_acropolis_sanctuary_80182710[];
-extern s16            D_acropolis_sanctuary_80182750[];
-extern s32            D_acropolis_sanctuary_80182770;
-extern SVECTOR        D_acropolis_sanctuary_80182774[];
-extern u16            D_acropolis_sanctuary_801827D4[];
-extern GpGridParams   D_acropolis_sanctuary_80183568;
-extern GpAreaApplyRec D_acropolis_sanctuary_80186418[];
-extern Task*          D_acropolis_sanctuary_80186C90;
+extern GpMsgEntry           D_acropolis_sanctuary_8018081C[];
+extern GpXformArg           D_acropolis_sanctuary_801808BC;
+extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A0C;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180AE8;
+extern GpEvsCmd             D_acropolis_sanctuary_80180B0C[];
+extern GpEvsCmd             D_acropolis_sanctuary_80181664[];
+extern GpEvsCmd             D_acropolis_sanctuary_80181814[];
+extern TaskDesc             D_acropolis_sanctuary_80182240;
+extern GpGridParams         D_acropolis_sanctuary_801822EC;
+extern GpMsgEntry           D_acropolis_sanctuary_80182310[];
+extern AcsTile              D_acropolis_sanctuary_80182320[];
+extern AcsQuad              D_acropolis_sanctuary_80182710[];
+extern s16                  D_acropolis_sanctuary_80182750[];
+extern s32                  D_acropolis_sanctuary_80182770;
+extern SVECTOR              D_acropolis_sanctuary_80182774[];
+extern u16                  D_acropolis_sanctuary_801827D4[];
+extern GpGridParams         D_acropolis_sanctuary_80183568;
+extern GpAreaApplyRec       D_acropolis_sanctuary_80186418[];
+extern Task*                D_acropolis_sanctuary_80186C90;
 
 /// Whole-unit X/Y/Z displacement left by the last call of
 /// `func_acropolis_sanctuary_8017F974`.
@@ -257,36 +257,36 @@ extern GpGridParams   D_acropolis_sanctuary_80183568;
 extern GpObj4C        D_acropolis_sanctuary_8018358C[18];
 extern GpRoomCoordSet D_acropolis_sanctuary_801843EC[1];
 
-extern GpAnimArg    D_acropolis_sanctuary_80180904;
-extern GpAnimArg    D_acropolis_sanctuary_80180944;
-extern GpAnimArg    D_acropolis_sanctuary_80180958;
-extern GpAnimArg    D_acropolis_sanctuary_8018096C;
-extern GpAnimArg    D_acropolis_sanctuary_80180980;
-extern GpAnimArg    D_acropolis_sanctuary_80180994;
-extern GpAnimArg    D_acropolis_sanctuary_801809A8;
-extern GpAnimArg    D_acropolis_sanctuary_801809BC;
-extern GpAnimArg    D_acropolis_sanctuary_801809D0;
-extern GpAnimArg    D_acropolis_sanctuary_801809E4;
-extern GpAnimArg    D_acropolis_sanctuary_80180A20;
-extern GpAnimArg    D_acropolis_sanctuary_80180A34;
-extern GpAnimArg    D_acropolis_sanctuary_80180A48;
-extern GpAnimArg    D_acropolis_sanctuary_80180A5C;
-extern GpAnimArg    D_acropolis_sanctuary_80180A70;
-extern GpAnimArg    D_acropolis_sanctuary_80180A84;
-extern GpAnimArg    D_acropolis_sanctuary_80180A98;
-extern GpAnimArg    D_acropolis_sanctuary_80180AAC;
-extern GpAnimArg    D_acropolis_sanctuary_80180AC0;
-extern GpAnimArg    D_acropolis_sanctuary_80180AD4;
-extern GpCopyArg    D_acropolis_sanctuary_8018093C;
-extern GpOverlayIds D_acropolis_sanctuary_80180AFC;
-extern GpXformArg   D_acropolis_sanctuary_80180844;
-extern GpXformArg   D_acropolis_sanctuary_8018085C;
-extern GpXformArg   D_acropolis_sanctuary_8018088C;
-extern GpXformArg   D_acropolis_sanctuary_801808A4;
-extern GpXformArg   D_acropolis_sanctuary_801808D4;
-extern GpXformArg   D_acropolis_sanctuary_801808EC;
-void                func_acropolis_sanctuary_8017D8A0(u32);
-void                func_acropolis_sanctuary_8017D8CC(void);
+extern AnimationPlayRequest D_acropolis_sanctuary_80180904;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180944;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180958;
+extern AnimationPlayRequest D_acropolis_sanctuary_8018096C;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180980;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180994;
+extern AnimationPlayRequest D_acropolis_sanctuary_801809A8;
+extern AnimationPlayRequest D_acropolis_sanctuary_801809BC;
+extern AnimationPlayRequest D_acropolis_sanctuary_801809D0;
+extern AnimationPlayRequest D_acropolis_sanctuary_801809E4;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A20;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A34;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A48;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A5C;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A70;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A84;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180A98;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180AAC;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180AC0;
+extern AnimationPlayRequest D_acropolis_sanctuary_80180AD4;
+extern GpCopyArg            D_acropolis_sanctuary_8018093C;
+extern GpOverlayIds         D_acropolis_sanctuary_80180AFC;
+extern GpXformArg           D_acropolis_sanctuary_80180844;
+extern GpXformArg           D_acropolis_sanctuary_8018085C;
+extern GpXformArg           D_acropolis_sanctuary_8018088C;
+extern GpXformArg           D_acropolis_sanctuary_801808A4;
+extern GpXformArg           D_acropolis_sanctuary_801808D4;
+extern GpXformArg           D_acropolis_sanctuary_801808EC;
+void                        func_acropolis_sanctuary_8017D8A0(u32);
+void                        func_acropolis_sanctuary_8017D8CC(void);
 
 s32 func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_acropolis_sanctuary_8017D808(Task*, s32, GpMessageArg, GpMessageArg);
@@ -339,7 +339,7 @@ GpXformArg D_acropolis_sanctuary_801808D4 = { { 0, 0, -900, 0 }, { 0, 0, 0, 0 } 
 
 GpXformArg D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024, 0, 0 } };
 
-GpAnimArg D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* D_acropolis_sanctuary_80180918[9] = {
     &D_actor_210700_8014BC4C,
@@ -355,49 +355,49 @@ GpAnimSet* D_acropolis_sanctuary_80180918[9] = {
 
 GpCopyArg D_acropolis_sanctuary_8018093C = { { .sets = D_acropolis_sanctuary_80180918 }, 9 };
 
-GpAnimArg D_acropolis_sanctuary_80180944 = { { .index = 1 }, 47, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180944 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180958 = { { .index = 1 }, 48, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180958 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_8018096C = { { .index = 1 }, 49, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_8018096C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180980 = { { .index = 1 }, 50, 1, 5, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180980 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180994 = { { .index = 1 }, 51, 1, 5, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180994 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_801809A8 = { { .index = 1 }, 52, 1, 5, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_801809A8 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_801809BC = { { .index = 1 }, 52, 1, 15, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_801809BC = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_801809D0 = { { .index = 1 }, 53, 1, 5, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_801809D0 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_801809E4 = { { .index = 1 }, 54, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_801809E4 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_801809F8 = { { .index = 1 }, 55, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_801809F8 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A0C = { { .index = 1 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A0C = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A20 = { { .index = 0 }, 1, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A20 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A34 = { { .index = 0 }, 2, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A34 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A48 = { { .index = 0 }, 3, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A48 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A5C = { { .index = 0 }, 4, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A5C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A70 = { { .index = 0 }, 1, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A70 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A84 = { { .index = 0 }, 2, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A84 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180A98 = { { .index = 0 }, 3, 1, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180A98 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180AAC = { { .index = 0 }, 4, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180AAC = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180AC0 = { { .index = 0 }, 5, 1, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180AC0 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180AD4 = { { .index = 0 }, 6, 1, 1, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180AD4 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_sanctuary_80180AE8 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_sanctuary_80180AE8 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverlayIds D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
 
@@ -1708,11 +1708,11 @@ void func_acropolis_sanctuary_8017D8A0(u32 arg0)
 void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (Player_Status.weapon == 2) {
-        Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.animBlock.index);
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_sanctuary_801809F8, 0);
+        Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.source.index);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
     } else {
-        Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.animBlock.index);
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_sanctuary_80180A0C, 0);
+        Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.source.index);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_80180A0C, 0);
     }
 }
 
@@ -1792,12 +1792,12 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 weaponId = Player_Status.weapon;
                 idx      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
-                weapon.rec.animBlock.index = idx;
-                weapon.rec.field_4         = 1;
-                weapon.rec.field_8         = 1;
-                weapon.rec.field_C         = 0xF;
-                weapon.rec.field_10        = 0;
-                Gp_DispatchMsgPtr(slot->target, 0x3E8, &weapon, 0);
+                weapon.rec.source.index         = idx;
+                weapon.rec.animationId          = 1;
+                weapon.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                weapon.rec.blendFrames          = 0xF;
+                weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(slot->target, ANIMATION_MESSAGE_PLAY, &weapon, 0);
                 SndEvt_EnqueueType6(0x510C0007, 0, 0);
                 func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
@@ -1827,12 +1827,12 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         Gp_KillPlayerEffs();
                         target = (AcsCutsceneWork*)arg0->work;
                         if (target->target != NULL) {
-                            rec.rec.animBlock.ptr = D_acropolis_sanctuary_801820E4;
-                            rec.rec.field_4       = 0;
-                            rec.rec.field_8       = 0;
-                            msg->rec.field_C      = 0xF;
-                            msg->rec.field_10     = 1;
-                            Gp_DispatchMsgPtr(target->target, 0x3F4, msg, 0);
+                            rec.rec.source.sets           = D_acropolis_sanctuary_801820E4;
+                            rec.rec.animationId           = 0;
+                            rec.rec.blend                 = ANIMATION_BLEND_RESET;
+                            msg->rec.blendFrames          = 0xF;
+                            msg->rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                            Gp_DispatchMsgPtr(target->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
                         }
                         rec.place.pos.vx  = -0x1DB0;
                         rec.place.pos.vy  = 0;

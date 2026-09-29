@@ -304,7 +304,7 @@ typedef struct _GameActor {
     /* 0x91C */ struct Task*          field_91C;
     /* 0x920 */ struct Task*          field_920;
     /* 0x924 */ struct Task*          field_924;
-    /* 0x928 */ void*                 field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
+    struct GpAnimSet**             animationSets; // Borrowed set table used by the player's or companion's animation slots
     /* 0x92C */ struct AnimationRecord*     field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
     /* 0x930 */ s32                   field_930; // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0
     /* 0x934 */ s32                   field_934;

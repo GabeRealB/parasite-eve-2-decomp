@@ -85,7 +85,7 @@ extern s16 D_actor_143900_801413B8;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
@@ -147,7 +147,7 @@ static void func_actor_143900_80133144(void);
 extern TmdSource D_actor_143900_80146F40;
 extern TmdSource D_actor_143900_801493AC;
 extern TmdSource D_actor_143900_8014960C;
-s32              func_actor_143900_801331C4(Task*, s32, GpAnimArg*);
+s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_143900_80133254(Task*, s32, s32);
 s32              func_actor_143900_801332E4(Task*, s32, GpXformArg*);
 s32              func_actor_143900_80133360(Task*, s32, GpCmdArg*);
@@ -155,7 +155,7 @@ s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
 void             func_actor_143900_80132DEC(Task*);
 void             func_actor_143900_80132FB0(Task*);
 
-s32  func_actor_143900_80132624(Task*, s32, GpAnimArg*);
+s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_143900_801326B4(Task*, s32, s32);
 s32  func_actor_143900_801326FC(Task*, s32, GpXformArg*);
 s32  func_actor_143900_80132778(Task*, s32, GpCmdArg*);
@@ -166,15 +166,15 @@ void func_actor_143900_80131E24(void);
 
 void func_actor_143900_80131E24(void);
 
-GpAnimArg D_actor_143900_801334FC = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_143900_801334FC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_143900_80133510 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_143900_80133510 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_143900_80133524 = { { .index = 1 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_actor_143900_80133524 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_143900_80133538 = { { .index = 1 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_actor_143900_80133538 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_143900_8013354C = { { .index = 1 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_actor_143900_8013354C = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_actor_143900_80133560[32] = {
     { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1418,13 +1418,13 @@ static void func_actor_143900_801325A4(void)
 /// argument the reseed uses, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
-s32 func_actor_143900_80132624(Task* task, s32 arg1, GpAnimArg* preset)
+s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset)
 {
-    if (preset->field_4 < 0x14) {
-        D_actor_143900_801496B8->st.animId = preset->field_4;
-        if (preset->field_8 != 0) {
+    if (preset->animationId < 0x14) {
+        D_actor_143900_801496B8->st.animId = preset->animationId;
+        if (preset->blend != ANIMATION_BLEND_RESET) {
             D_actor_143900_801496B8->st.state = 1;
-            D_actor_143900_801413B8           = preset->field_C;
+            D_actor_143900_801413B8           = preset->blendFrames;
         } else {
             D_actor_143900_801496B8->st.state = 2;
         }
@@ -1777,13 +1777,13 @@ static void func_actor_143900_80133144(void)
 /// argument the reseed uses, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
-s32 func_actor_143900_801331C4(Task* task, s32 arg1, GpAnimArg* preset)
+s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* preset)
 {
-    if (preset->field_4 < 0xC) {
-        D_actor_143900_801496C4->st.animId = preset->field_4;
-        if (preset->field_8 != 0) {
+    if (preset->animationId < 0xC) {
+        D_actor_143900_801496C4->st.animId = preset->animationId;
+        if (preset->blend != ANIMATION_BLEND_RESET) {
             D_actor_143900_801496C4->st.state = 1;
-            D_actor_143900_80149630           = preset->field_C;
+            D_actor_143900_80149630           = preset->blendFrames;
         } else {
             D_actor_143900_801496C4->st.state = 2;
         }

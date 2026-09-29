@@ -121,17 +121,17 @@ extern GpAnimSet D_mist_parking_801907FC;
 
 extern GpCopyArg D_mist_parking_80190870;
 
-extern GpAnimArg D_mist_parking_8019088C;
+extern AnimationPlayRequest D_mist_parking_8019088C;
 
-extern GpAnimArg D_mist_parking_80190BC0;
+extern AnimationPlayRequest D_mist_parking_80190BC0;
 
-extern GpAnimArg D_mist_parking_80190C10;
+extern AnimationPlayRequest D_mist_parking_80190C10;
 
-extern GpAnimArg D_mist_parking_80190C38;
+extern AnimationPlayRequest D_mist_parking_80190C38;
 
-extern GpAnimArg D_mist_parking_80190C4C;
+extern AnimationPlayRequest D_mist_parking_80190C4C;
 
-extern GpAnimArg D_mist_parking_80190C60;
+extern AnimationPlayRequest D_mist_parking_80190C60;
 
 extern GpEvsCmd D_mist_parking_80191154[8];
 

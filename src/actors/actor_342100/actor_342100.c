@@ -461,7 +461,7 @@ void func_actor_342100_80161E70(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_actor_342100_80164BB4->blend == 0) {
+                        if (D_actor_342100_80164BB4->blend == ANIMATION_BLEND_RESET) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);
@@ -681,17 +681,17 @@ void func_actor_342100_80162748(Task* arg0)
 /// queried with 0x3ED and a non-zero answer stops the chain with 0; `field_3C`
 /// is range-checked against 0x2F (the first anim id the table can name) and the
 /// table's entry shifted up by 0x2F, a negative entry ending it with 1 as well.
-/// The step that survives re-sends `GpAnimArg {setId, anim, 1, 0xA, 0}` as
+/// The step that survives re-sends `AnimationPlayRequest {setId, anim, 1, 0xA, 0}` as
 /// message 0x3E8 -- `func_actor_342100_8016334C`'s tail with `field_C` = 0xA --
 /// to the same target, and reports 1.
 static s32 func_actor_342100_801629B8(Task* arg0)
 {
-    Actor342100Work* work;
-    Actor342100Work* w;
-    GpAnimArg        msg;
-    s16              anim;
-    s32              weaponId;
-    s32              setId;
+    Actor342100Work*     work;
+    Actor342100Work*     w;
+    AnimationPlayRequest msg;
+    s16                  anim;
+    s32                  weaponId;
+    s32                  setId;
 
     work = (Actor342100Work*)arg0->work;
     if (work->field_2C == NULL) {
@@ -707,17 +707,17 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
         goto ret1;
     }
-    anim                = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
-    w                   = (Actor342100Work*)arg0->work;
-    weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.animBlock.index = setId;
-    w->field_3C         = anim;
-    msg.field_4         = anim;
-    msg.field_8         = 1;
-    msg.field_C         = 0xA;
-    msg.field_10        = 0;
-    Gp_DispatchMsgPtr(w->field_2C, 0x3E8, &msg, 0);
+    anim                     = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
+    w                        = (Actor342100Work*)arg0->work;
+    weaponId                 = Player_Status.weapon;
+    setId                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.source.index         = setId;
+    w->field_3C              = anim;
+    msg.animationId          = anim;
+    msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+    msg.blendFrames          = 0xA;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(w->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
@@ -943,7 +943,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             }
             msg.source.sets = &D_actor_342100_80164900[0];
             msg.count       = n & 0xFFFF;
-            Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
+            Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_actor_342100_801649C8, 0);
@@ -1062,23 +1062,23 @@ void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2)
 /// same halfword the block keeps, `field_8` is 1 and `field_C` 0xF.
 void func_actor_342100_8016334C(s32 arg0)
 {
-    Actor342100Work* work;
-    GpAnimArg        msg;
-    s16              anim;
-    s32              weaponId;
-    s32              setId;
+    Actor342100Work*     work;
+    AnimationPlayRequest msg;
+    s16                  anim;
+    s32                  weaponId;
+    s32                  setId;
 
-    work                = (Actor342100Work*)D_actor_342100_80164BB8->work;
-    anim                = arg0 + 0x2F;
-    weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.animBlock.index = setId;
-    work->field_3C      = anim;
-    msg.field_4         = anim;
-    msg.field_8         = 1;
-    msg.field_C         = 0xF;
-    msg.field_10        = 0;
-    Gp_DispatchMsgPtr(work->field_2C, 0x3E8, &msg, 0);
+    work                     = (Actor342100Work*)D_actor_342100_80164BB8->work;
+    anim                     = arg0 + 0x2F;
+    weaponId                 = Player_Status.weapon;
+    setId                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.source.index         = setId;
+    work->field_3C           = anim;
+    msg.animationId          = anim;
+    msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+    msg.blendFrames          = 0xF;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_actor_342100_801633D0(s32 arg0)

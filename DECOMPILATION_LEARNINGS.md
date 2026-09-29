@@ -1263,7 +1263,7 @@ Restoring the arity is the entire fix - 100.000% on the first build, every
 penalty zero:
 
 ```c
-s32 func_actor_143900_80132624(Task* task, s32 arg1, GpAnimArg* preset)
+s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset)
 ```
 
 The register identity is what drives the schedule, not the other way round. With
@@ -7709,7 +7709,7 @@ actor = arg0->actor;
 /* taskKill(actor->field_91C); actor->field_91C = NULL; */
 inner            = arg0->actor;
 inner->field_93A = table[idx] + addend;
-inner->field_928 = ptrs[inner->field_93A];
+inner->animationSets = ptrs[inner->field_93A]->table.sets;
 func_800B3F84(..., &inner->field_7A8, ...);
 Gp_AnimResetChildSlots(arg0, 1);
 next            = arg0->actor;
@@ -21103,7 +21103,7 @@ s32 func_actor_215100_8014CD4C(Task* task, s32 flags)            /*  98.6%  */
 `value` is dead either way; only the incoming argument register the flag lands in
 changes. So read the **neighbouring** function in the same TU before trusting
 m2c's arity — `func_actor_215100_8014CCE0` next door is
-`(Task*, s32, GpAnimArg*)` with its middle argument unused too, and
+`(Task*, s32, AnimationPlayRequest*)` with its middle argument unused too, and
 that is the family's convention rather than a quirk of one body. Being a leaf
 with no calls and no data references makes the body promotable once matched;
 `overlay_dup_index.py promote` then shares it with `actor_160700`, which carries
@@ -27692,7 +27692,7 @@ count = arg2->field_4;
 if (count >= 0x21) {
     return 1;
 }
-dest = ((Blk*)dest)->field_BC;
+dest = &((GpAnimBlk*)dest)->table.addresses[ANIMATION_BANK_BASE_SET_COUNT];
 for (i = 0; i < arg2->field_4; i++) {
     dest[i] = src[i];
 }
@@ -30611,8 +30611,8 @@ is scheduled before it.
 Write the lookup twice:
 
 ```c
-if (actor->field_928 != Gp_AnimBlkTbl[idx]) {
-    actor->field_928 = Gp_AnimBlkTbl[idx];
+if (actor->animationSets != Gp_AnimBlkTbl[idx]->table.sets) {
+    actor->animationSets = Gp_AnimBlkTbl[idx]->table.sets;
 }
 ```
 
@@ -48948,7 +48948,7 @@ the separate count r98 to v0. Preprocessed SHA-256:
 occupies `sp+0x0..0x0F` and the first declared local lands at `sp+0x10`; each
 later one follows at the next offset, and the local area is then rounded up to
 8 before the saved-register block. So when the target's *later* local sits
-higher than the frame needs — `func_actor_136100_80133690` passes a `GpAnimArg`
+higher than the frame needs — `func_actor_136100_80133690` passes an `AnimationPlayRequest`
 at `sp+0x18` where the same record in `func_actor_136100_8013467C` is at
 `sp+0x10` — the missing 8 bytes are a local declared *before* it, not padding:
 an unused `SVECTOR unused;` ahead of the record reproduces `sw $v0,0x18($sp)`
@@ -54946,7 +54946,7 @@ grep -rn "field_1EA\|field_1FA" src/     # -> acropolis_observatory_2.c
 
 `func_acropolis_observatory_8017D9A8` turned out to be the same task with a
 different path table and one fewer state, already matched and already carrying
-the `AobStreamWork` struct, the `GpAnimArg` 0x3E8 record and the `GpXformArg`
+the `AobStreamWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `GpXformArg`
 0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
 every remaining difference a symbol *name* (`Mc_SaveData+0x22` vs
 `D_8007218A`), i.e. already a match.
@@ -60290,7 +60290,7 @@ never freed — so a target where two payload buffers overlap cannot be written
 as two locals, however disjoint their scopes are.
 
 `func_acropolis_plaza_8017E9A8` sends three payloads from the same frame
-region: a three-byte CD slot triple at `sp+0x58`, a `GpAnimArg` at `sp+0x60`, and
+region: a three-byte CD slot triple at `sp+0x58`, an `AnimationPlayRequest` at `sp+0x60`, and
 a `GpXformArg` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
 locals in three nested blocks scores 98.4% with `stack=0` but a 0xA0 frame
 instead of 0x88: each one got its own slot (`0x58`, `0x60`, `0x78`). The fix is
@@ -60300,7 +60300,7 @@ start at offset 0:
 ```c
 typedef struct AcropolisPlazaWeaponMsg {
     /* 0x00 */ byte    pad_0[0x8];
-    /* 0x08 */ GpAnimArg rec;
+    /* 0x08 */ AnimationPlayRequest rec;
 } AcropolisPlazaWeaponMsg;          // 0x1C
 
 typedef union AcropolisPlazaTailMsg {
@@ -60321,7 +60321,7 @@ where the two views do share offset 0 and no wrapper struct is needed.
 ## Take the address expression, not the pointer variable, for the last use
 
 The observatory/plaza tails write a stack record through a mix of direct and
-pointer accesses (`rec.field_0 = id; p->field_4 = 1; …`), which is what makes
+pointer accesses (`rec.source.index = id; p->animationId = 1; …`), which is what makes
 the compiler materialise `addiu $a1, $sp, 0x60` early — in the delay slot of
 the preceding `bne`, in the plaza's case. Whether that pointer lives in `$a1`
 or in a callee-saved register is decided by the *call* that follows: passing
@@ -69076,7 +69076,7 @@ in the file's prelude:
 
 ```c
 void func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
-                                GpAnimArg* arg2, s32 arg3);
+                                AnimationPlayRequest* arg2, s32 arg3);
 ```
 
 The first line has no `;`, so `FUNC_START` accepts it as a definition and reads
@@ -70713,7 +70713,7 @@ A pure reordering is the whole fix even when the frame size already agrees and
 every instruction matches: `func_actor_113100_8013301C` sat at 98.725% with
 `regs=13` and *only* displacements differing (`sw $v0,0x10($sp)` where the
 target has `0x28`, and so on down the body). Its three locals were declared
-`VECTOR delta; SVECTOR dir; GpAnimArg preset;`, but the target puts
+`VECTOR delta; SVECTOR dir; AnimationPlayRequest preset;`, but the target puts
 the preset at `0x10`, `delta` at `0x28` and `dir` at `0x38` -- so the preset was
 declared first in the original, even though the source *writes* it last. The
 4-byte hole the target leaves at `0x24` is not a missing local: a 16-byte
@@ -74896,11 +74896,11 @@ passed straight to the call — collapses both into `move a1,s0` and matches
 exactly:
 
 ```c
-s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
-    blend           = (arg2->field_8 != 0) * 8;
+    blend           = (arg2->blend != 0) * 8;
     work            = arg0->field_1C;
-    work->field_586 = arg2->field_4 + 0x1B;
+    work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
         func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
     }
@@ -75583,7 +75583,7 @@ copy into:
     if (work->field_0 != NULL) {
         anim           = arg0;   /* the copy: then-block's first insn */
         work->field_60 = arg0;   /* sh a0 — still the parameter's pseudo */
-        msg.field_4    = anim;   /* andi v0,v1,0xffff — on the copy */
+        msg.animationId = anim;   /* andi v0,v1,0xffff — on the copy */
 ```
 
 100%, all penalties zero. The copy is the then-block's first instruction, so
@@ -75648,8 +75648,8 @@ payload as five stack locals (`sp10`, `sp14`, `sp18`, `sp1C`, `sp20`), assigned
 four assignments are dead stores and disappear — taking the `andi` and the three
 `li`s that fed them with them.
 
-**Fix.** Use the payload's real type: message `0x3F4` takes a `GpAnimArg`
-(0x14 bytes, `include/gameplay/3FB8.h`), so one `GpAnimArg msg` with a single
+**Fix.** Use the payload's real type: message `0x3F4` takes an `AnimationPlayRequest`
+(0x14 bytes, `include/gameplay/3FB8.h`), so one `AnimationPlayRequest msg` with a single
 `&msg` makes every field store observable and lands the frame at `0x30` as retail
 has it. Four other overlays send this message (`actor_400600`, `actor_405800`,
 `actor_403100`, …) and name its fields. Grep the message id in `src/` before
@@ -75663,7 +75663,7 @@ the candidate emitted one `sh` where retail has three, all storing the same
 constant to `0x10($sp)`, `0x12($sp)` and `0x14($sp)` before a
 `Gp_SetOverrideVec(&vec)` call.
 
-**Cause.** The same mechanism as the `GpAnimArg` payload above: m2c declared the
+**Cause.** The same mechanism as the `AnimationPlayRequest` payload above: m2c declared the
 argument as three scalars, `s16 sp10; s16 sp12; s16 sp14;`, and only `&sp10`
 escapes, so `sp12`/`sp14` are write-only. `.rtl` shows them as bare
 `(set (reg/v:HI 82) (const_int 1440))` with no store at all, and the two stores
@@ -77343,7 +77343,7 @@ Preprocessed SHA256 of the matching input: `base_1.i`
 ## An argument m2c dropped is still part of the match: the wrong `$a0` user delays a call's setup
 
 `func_actor_461800_80132D84` is a four-argument handler
-`(Task*, s32, GpAnimArg*, s32)` whose m2c seed read only the third
+`(Task*, s32, AnimationPlayRequest*, s32)` whose m2c seed read only the third
 one, so m2c emitted `s32 f(void* arg2)`. GCC then placed the pointer in `$a0`,
 and the function's tail calls `func_actor_461800_80132660(D_actor_461800_80143898)`
 — whose own first argument also wants `$a0`. The false write-after-read
@@ -80687,7 +80687,7 @@ Inputs: `base_2.i`
 
 ## A shared global in both ternary arms is loaded once only if you load it first
 
-`GpAnimArg`-style payload builders compute an id from one global and a mode byte
+`AnimationPlayRequest`-style payload builders compute an id from one global and a mode byte
 from a second: `id = (D_8007218A == 1) ? D_80073BA9 + 1 : D_80073BA9 + 0x22;`.
 m2c renders each arm with its own copy of the global read, and GCC 2.8.1 keeps
 them: the object does a `lui`/`lbu` inside each arm and joins the two.
@@ -80716,7 +80716,7 @@ The duplicated-read form is not rescued by CSE, because the two arms are
 different basic blocks at the join — the load is only common if the source
 hoists it. Two builds apart: `47.679%` (regs=13 insert=6 delete=8) -> `100.000%`
 (all-zero). Same lesson as m2c's split scalars: the payload is the real struct
-(`GpAnimArg`), so the frame is `0x30` rather than the `0x20` the separate locals
+(`AnimationPlayRequest`), so the frame is `0x30` rather than the `0x20` the separate locals
 produce. `func_actor_136100_8013467C` is the worked example; the same ternary
 appears inlined in `func_acropolis_plaza_8017F48C` (state 0).
 
@@ -82928,10 +82928,10 @@ stores come out `lbu`/`sb`. Reading the field back for value (`lb` when it is
 an array index or a compare operand) is a separate access and sign-extends
 normally.
 
-**Fix.** Leave the source field 4 bytes wide. Retyping `field_0` / `field_4` to
+**Fix.** Leave the source field 4 bytes wide. Retyping `field_0` / `animationId` to
 `u8` to "explain" the `lbu` trades one mismatch for another: the compare loses
 its `lw`, and the byte loads that were already correct stay correct. The
-message type here is `GpAnimArg` — the
+message type here is `AnimationPlayRequest` — the
 `calls 1.00` sibling `func_actor_503500_8014652C` reads its payload the same
 way, `s32` fields and all, and its C could be copied across with the two
 guards that differ removed.
@@ -83974,7 +83974,7 @@ next door in the same TU is written that way. The field-width question in the
 entry above decides only the fixed-address case, where `all` is the sole
 disjunct that can fire.
 
-## The `0x3E8` weapon-republish record is `GpAnimArg`, and its sender calls the slot first
+## The `0x3E8` weapon-republish record is `AnimationPlayRequest`, and its sender calls the slot first
 
 An actor or room function that republishes the equipped weapon to pointer slot 3
 reads like this in the m2c seed:
@@ -83985,16 +83985,16 @@ Gp_PlayerWeaponId(&D_actor_335800_80164E7C);
 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, &D_actor_335800_80164E7C, 0);
 ```
 
-The payload is not an `s32`: it is the five-word `GpAnimArg`
-(`include/gameplay/message.h`, size 0x14) — `animBlock.index` receives the weapon model id
-from `Gp_PlayerWeaponId`, `field_4` is the animation id the handler plays, and
-`field_8`/`field_C`/`field_10` are zero. `src/rooms/acropolis_sanctuary/
+The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
+(`include/gameplay/message.h`, size 0x14) — `source.index` receives the weapon model id
+from `Gp_PlayerWeaponId`, `animationId` is the animation id the handler plays, and
+`blend`/`blendFrames`/`enableWorldCollision` are zero. `src/rooms/acropolis_sanctuary/
 acropolis_sanctuary_2.c` carries the identical pattern already matched as
-`extern GpAnimArg D_acropolis_sanctuary_801809F8;`, and the splat data extent
+`extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;`, and the splat data extent
 corroborates it (`actor_335800`: words `1, 0x33, 0, 0, 0` from `0x305C` to
 `0x3068`, next `dlabel` at `0x3070`). Treat the extent as corroboration only —
 see "A data symbol's `dlabel` extent is not the array's length" above. Because
-`animBlock` sits at offset 0, `&rec.animBlock.index` and `(s32*)&rec` are the
+`source` sits at offset 0, `&rec.source.index` and `(s32*)&rec` are the
 same address; the typed form costs nothing.
 
 Two things the seed gets wrong beyond the type:
@@ -85888,16 +85888,16 @@ for the compare and `(set (reg:HI 89) (mem/s:HI ... 4))` for the store — so it
 a front-end conversion, not a `combine` or peephole fold.
 
 ```c
-    /* GpAnimArg          */ s32 field_4;  /* 0x4 */
+    /* AnimationPlayRequest          */ s32 animationId;  /* 0x4 */
     /* Actor202900Work    */ u16 animId;   /* 0x480 */
     ...
-    if (args->field_4 < 5) {
-        ActorsShared80131f9cWork->animId = args->field_4;  /* lw compare, lhu store */
+    if (args->animationId < 5) {
+        ActorsShared80131f9cWork->animId = args->animationId;  /* lw compare, lhu store */
 ```
 
 Pick the width from the *store* and leave the load alone: declaring the source
 `u16` kills the `lw`/`slti` pair, and declaring the destination `s32` kills the
-`lhu`. `actor_110300`'s handler reads `GpAnimArg` into `Actor110300Work` the
+`lhu`. `actor_110300`'s handler reads `AnimationPlayRequest` into `Actor110300Work` the
 same way, one animation id apart.
 
 Inputs: `base_1.i` (100.000%)
@@ -94655,17 +94655,17 @@ are only address shifts and a prologue that is short by `4*N` bytes, suspect a
 record the source never made into an aggregate.
 
 **Fix.** One aggregate whose address is taken, which is what the original
-surely had -- here the room's `GpAnimArg`, the same record the sibling
+surely had -- here the room's `AnimationPlayRequest`, the same record the sibling
 `func_dryfield_gas_station_80180A60` passes:
 
 ```c
-GpAnimArg script;
+AnimationPlayRequest script;
 ...
-script.animBlock.ptr = &D_dryfield_gas_station_80182E30;
-script.field_4  = 0;
-script.field_8  = 0;
-script.field_C  = 0;
-script.field_10 = 0;
+script.source.sets = &D_dryfield_gas_station_80182E30;
+script.animationId  = 0;
+script.blend  = 0;
+script.blendFrames  = 0;
+script.enableWorldCollision = 0;
 Gp_DispatchMsg((Task*) work2->owner, 0x3F4, (s32) &script, 0);
 ```
 
@@ -97243,14 +97243,14 @@ the `+4` a store displacement, which is what the target does (96.47%, then the
 block below to 100%):
 
 ```c
-GpAnimArg* msg = &D_actor_401000_80154F1C;
-msg->field_4   = 2;
+AnimationPlayRequest* msg = &D_actor_401000_80154F1C;
+msg->animationId   = 2;
 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
 ```
 
 The fix came from the matched sibling `func_actor_356100_8016A468`
 (`src/actors/actor_356100/actor_356100_2.c`), whose object is the same 5-word
-`GpAnimArg` and whose asm block is instruction-for-instruction this one. Neither
+`AnimationPlayRequest` and whose asm block is instruction-for-instruction this one. Neither
 `overlay_dup_index.py find` (reporting the body as its own only copy) nor
 BRIEF's "similar matched bodies" list (none above 0.80) surfaces such a sibling,
 because both compare splat's disassembly *text* and these actors carry the idiom
@@ -98220,7 +98220,7 @@ worth reading before rewriting one by hand.
 
 Two further points about this function, both already covered elsewhere: the
 0x40 frame against the target's 0x48 is the unused-`SVECTOR` slot (`An unused
-local still costs frame space`), and the `GpAnimArg` it fills is the same record
+local still costs frame space`), and the `AnimationPlayRequest` it fills is the same record
 `func_actor_136100_8013379C` fills. The work block is 0x4E4 bytes, which
 `Mem_Malloc` in `func_actor_120300_80132004` states outright — read that before
 inferring a block size from its last accessed field.
@@ -99133,13 +99133,13 @@ nothing in the function reads and whose address never escapes is dead. Passing
 is taken to reach only the slot it names.
 
 Give the block a *type* and take the address of the whole thing. The sibling
-overlays' `GpAnimArg` (0x14 bytes - five words) is exactly this shape, and
+overlays' `AnimationPlayRequest` (0x14 bytes - five words) is exactly this shape, and
 `func_actor_341900_801635A4` is the worked example to copy:
 
 ```c
-GpAnimArg msg;
-msg.animBlock.index = anim;   /* all five stores survive, in order */
-msg.field_4 = 1;
+AnimationPlayRequest msg;
+msg.source.index = anim;   /* all five stores survive, in order */
+msg.animationId = 1;
 ...
 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
 ```
@@ -100017,8 +100017,8 @@ call that clobbers memory, so the round trip survives by construction. Give the
 table a record type, declare the local with it, and assign wholesale:
 
 ```c
-extern const GpAnimArg D_actor_135400_80131EA0;   /* rodata, 5 words */
-GpAnimArg spawn;
+extern const AnimationPlayRequest D_actor_135400_80131EA0;   /* rodata, 5 words */
+AnimationPlayRequest spawn;
 
 spawn = D_actor_135400_80131EA0;   /* lw t0/t1/t2, sw..., lw t0/t1, sw... */
 ...
@@ -101443,7 +101443,7 @@ Naming it in a local collapses them into one and deletes the rest:
     /* 75.250% */
     ScratchWork* work = (ScratchWork*)ActorsShared80131f9cWork;
 
-    work->field_4B8 = preset->field_4;
+    work->field_4B8 = preset->animationId;
     ...
 ```
 
@@ -101467,7 +101467,7 @@ Inputs (source sha256): `base_1.c`
 `base_2.c` `d5180be30dd9fe65c903a5c31ca0a532d7a9c37b813e1d48c330b6bfd30892b5`
 (100.000%). The 100% body names no pointer local, and the only other change
 between the two is the parameter list: `(void* arg2)` in the m2c seed versus
-`(Task* task, s32 value, GpAnimArg* preset)`.
+`(Task* task, s32 value, AnimationPlayRequest* preset)`.
 ## An address-taken local reused across a call ranks above the task pointer and takes `$s0`; reloading it in the source fixes both the reload and the swap
 
 `func_actor_113000_80131F90` is a spawn handler whose shape is the matched
@@ -102291,7 +102291,7 @@ decided, and no amount of rewriting inside a single arm will move it.
 Example: `func_actor_323400_80164C4C` (`base_1.c` 99.75% → `base_2.c` 100%).
 ## `lw` then `lhu` from one offset is a truncating store, not two field types
 
-An actor `if (preset->field_4 < K)` guard that then copies the same field into
+An actor `if (preset->animationId < K)` guard that then copies the same field into
 a halfword work slot comes out as **two loads of the same address at different
 widths**:
 
@@ -102306,7 +102306,7 @@ sh   v0, 0x480(v1)
 ```
 
 The `lhu` is not evidence of a union or of a second `u16` member: it is what
-GCC 2.8.1 emits for `s16 work->slot = preset->field_4;` once the `lui` in the
+GCC 2.8.1 emits for `s16 work->slot = preset->animationId;` once the `lui` in the
 branch delay slot has clobbered the register holding the `lw`, so CSE reloads
 the truncated value as a narrower memory reference. The struct stays a plain
 `s32` preset field and a plain `s16` work field, and the shape reproduces
@@ -118848,7 +118848,7 @@ find` reports the body as its own only copy.
 
 ## The ternary's `j` over the else arm is also a cse1 EBB boundary: two `force_reg` constants stay in two registers (func_dryfield_warehouse_8017E090, 2026-09-17)
 
-`func_dryfield_warehouse_8017E090` builds the same 0x3E8 `GpAnimArg` payload as its
+`func_dryfield_warehouse_8017E090` builds the same 0x3E8 `AnimationPlayRequest` payload as its
 sibling `func_dryfield_warehouse_8017DA58` (section 29 above), and retail keeps
 the conditional's `1` and the record's `1` in *different* registers:
 
@@ -118912,7 +118912,7 @@ second `li`.
 
 The two `force_reg`s themselves are not source-controllable: `movsi`'s
 `define_expand` (`config/mips/mips.md`) forces a nonzero constant into a register
-whenever the destination is not one at expansion time, so `rec.field_4 = 1`
+whenever the destination is not one at expansion time, so `rec.animationId = 1`
 always costs a pseudo. What the source chooses is only whether the *jump* sits
 between that pseudo's definition and its use.
 
@@ -118934,7 +118934,7 @@ Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017E090-vacuum/`,
 against `(insn 96)` / `(insn 112)` in `base_1.i.cse`. No pins, no permuter, no
 tracer. A second seed defect in the same family: m2c's five separate `s32`
 scalars for the payload let GCC delete the four stores whose address never
-escapes (`base.c` 89.31%, frame 0x28); `GpAnimArg rec;` with `&rec` escaping
+escapes (`base.c` 89.31%, frame 0x28); `AnimationPlayRequest rec;` with `&rec` escaping
 restores them and the 0x38 frame. `overlay_dup_index.py find` reports the body
 as its own only copy.
 
@@ -119548,7 +119548,7 @@ made the block connections differ). Scratch
 ## A two-value default written as a ternary becomes a skip block cse follows; an if/else into a stack field ends the path (func_actor_141000_801336DC, 2026-09-17)
 
 **Symptom.** `w->field_4C0 = 1;` at the top, then in the `anim == NULL` arm
-`preset.field_4 = w->field_4C8 == 0 ? 0xA : 2; w->field_43F = 1;`. Everything
+`preset.animationId = w->field_4C8 == 0 ? 0xA : 2; w->field_43F = 1;`. Everything
 matched except the `field_43F` store: ours reused the first `li 1` register
 (`sb t0,0x43f`), the target reloads `li v0,1`.
 
@@ -119563,9 +119563,9 @@ the temp all leave that path intact.
 
 ```c
 if (w->field_4C8 != 0) {
-    preset.field_4 = 2;
+    preset.animationId = 2;
 } else {
-    preset.field_4 = 0xA;
+    preset.animationId = 0xA;
 }
 w->field_43F = 1;
 ```
@@ -119729,7 +119729,7 @@ and a frame shorter than the target's, is this.
 The same seed also demonstrates the already-documented scalar-locals cause:
 m2c declared the 5-word msg payload as `s32 sp10 … sp20`, only `&sp10` is
 passed to `Gp_DispatchMsg`, so the other four stores were never generated at
-all. `GpAnimArg buf;` with `buf.field_4 = 1; …` brings them back. See "m2c's
+all. `AnimationPlayRequest buf;` with `buf.animationId = 1; …` brings them back. See "m2c's
 scalar stack locals for an address-taken struct lose their dead stores".
 
 ## A transposed pair of prologue loads is the written order of the two assignments (func_dryfield_breezeway_8017E65C, 2026-09-17)
@@ -125278,9 +125278,9 @@ branch longer:
 ```c
 } else {
     if (w->field_4C8 != 0) {   /* absent in 113100 */
-        preset.field_4 = 2;
+        preset.animationId = 2;
     } else {
-        preset.field_4 = 0xA;
+        preset.animationId = 0xA;
     }
     w->field_477 = 1;
 }
@@ -126680,7 +126680,7 @@ Inputs: scratch `nonmatchings/func_actor_135400_801327E8-vacuum`, `base.c`
 
 ## m2c splits a load that feeds both an index and a later `+1`, and the split makes the load die in the shift (func_actor_135400_801329B0, 2026-09-17)
 
-The actor tick reads `GpAnimArg::field_4` twice: once as the index of the
+The actor tick reads `AnimationPlayRequest::animationId` twice: once as the index of the
 per-step frame table and once to advance the step by one. Retail shares the
 load, and its last use is the `+1`:
 
@@ -126701,10 +126701,10 @@ m2c renders the same bytes as two temps with the arithmetic hoisted above the
 branch, which moves the load's death into the shift:
 
 ```c
-    temp_a1 = temp_s1->params.field_4;
+    temp_a1 = temp_s1->params.animationId;
     temp_v0 = temp_a1 + 1;                                  /* before the if */
     if (D_actor_135400_8013F8C4[temp_a1] < (s16) temp_v1) {
-        temp_s1->params.field_4 = temp_v0;
+        temp_s1->params.animationId = temp_v0;
 ```
 
 `temp_a1` then dies producing the `sll`, so per `CODEGEN_MODEL.md` §10.3 the
@@ -126720,10 +126720,10 @@ Reading the two uses back as two reads of the same lvalue is the whole fix -
 `cse` folds them into one load whose last use is the `addiu`:
 
 ```c
-    if (D_actor_135400_8013F8C4[work->params.field_4] < (s16) count) {
-        work->params.field_4 = work->params.field_4 + 1;
-        if (work->params.field_4 >= 7) {
-            work->params.field_4 = 1;
+    if (D_actor_135400_8013F8C4[work->params.animationId] < (s16) count) {
+        work->params.animationId = work->params.animationId + 1;
+        if (work->params.animationId >= 7) {
+            work->params.animationId = 1;
         }
 ```
 
@@ -127580,7 +127580,7 @@ takes `$s0`; `dbr` then puts the copy in the `beqz` delay slot, where it is safe
 on both paths because the load it feeds is after the loop either way.
 
 Two further notes from the same function. The double read is not gratuitous —
-it is the sibling idiom: actor_136100's `func_actor_136100_SendTable` macro
+it is the sibling idiom: actor_136100's `ACTOR_136100_COPY_PLAYER_ANIMATION_SETS` macro
 re-derives `(task)->idMap` into its own `msgWork` for this same message 0x3F7,
 and its matched `func_actor_136100_80134A18` loads its dispatch target through
 `$a3` the same way, so the sibling's *source* hands over this detail along with
@@ -128453,7 +128453,7 @@ behind labels with `goto`s, in the order the target has them.
 
 ## Two payloads that never overlap share one stack slot: write them as a union (func_actor_120500_8013241C, 2026-09-17)
 
-State 0 fills a 0x14-byte `GpAnimArg` for message 0x3E8 and the epilogue fills a
+State 0 fills a 0x14-byte `AnimationPlayRequest` for message 0x3E8 and the epilogue fills a
 0x10-byte `VECTOR` for `func_800D7A9C`; GCC never reuses a stack slot between two
 distinct locals (`assign_stack_local` always allocates), and the target's frame
 has one 0x14 slot carrying both. `Actor310100Vec` already records the idiom, so
@@ -128461,7 +128461,7 @@ declare the pair as a union and address the two members:
 
 ```c
 typedef union Actor120500Args {
-    /* 0x0 */ GpAnimArg msg; // message 0x3E8 payload
+    /* 0x0 */ AnimationPlayRequest msg; // message 0x3E8 payload
     /* 0x0 */ VECTOR    pos; // model part-1 translation
 } Actor120500Args;
 ```
@@ -130223,7 +130223,7 @@ mid-`.rodata` and GCC padded it with `.align 3`, making the object's `.rodata`
 ## "Default then override" vs `if`/`else`: a later constant store merges with the compare constant
 
 **Problem.** `func_actor_120500_80132028` picks an animation index from a byte
-and then fills a `GpAnimArg` whose `field_4` is `1`:
+and then fills an `AnimationPlayRequest` whose `animationId` is `1`:
 
 ```
 bne   $v0, $v1, .L258     # $v1 = 1
@@ -141711,12 +141711,12 @@ by cse's jump following and reads the original. Passing a named local instead
 substitutes it directly and the copy disappears.
 ## More stack slots than message locals: a block-scope aggregate claims the inline temp it lands on (func_actor_120300_80132338, 2026-09-26)
 
-A request switch sends the same `GpAnimArg` payload from twenty places, and the
+A request switch sends the same `AnimationPlayRequest` payload from twenty places, and the
 target frame has three 0x18-byte slots: 0x10 for the early cases, 0x28 from
 case 14 on, 0x40 for case 19 alone. The tree reproduced that with three
 function-scope unions, gotos into a shared dispatch and six `SCHED_BARRIER`s.
-It is one `static inline` helper with its own `GpAnimArg` (all its expansions
-share a temp, as the entries above describe) plus two block-scoped `GpAnimArg`
+It is one `static inline` helper with its own `AnimationPlayRequest` (all its expansions
+share a temp, as the entries above describe) plus two block-scoped `AnimationPlayRequest`
 locals for the weapon records in cases 13 and 18 (here a block macro). Each
 block local takes the released temp it lands on, and later expansions do not
 get that slot back, so every block local makes the frame grow by one slot. The

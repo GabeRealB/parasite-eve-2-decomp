@@ -932,13 +932,13 @@ GpAnimSet* D_mine_forked_tunnel_8018311C[4] = {
 
 GpCopyArg D_mine_forked_tunnel_8018312C = { { .sets = D_mine_forked_tunnel_8018311C }, 4 };
 
-GpAnimArg D_mine_forked_tunnel_80183134 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_mine_forked_tunnel_80183134 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mine_forked_tunnel_80183148 = { { .index = 1 }, 48, 1, 30, 0 };
+AnimationPlayRequest D_mine_forked_tunnel_80183148 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_forked_tunnel_8018315C = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_mine_forked_tunnel_8018315C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mine_forked_tunnel_80183170 = { { .index = 1 }, 50, 0, 0, 0 };
+AnimationPlayRequest D_mine_forked_tunnel_80183170 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_mine_forked_tunnel_80183184 = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
 

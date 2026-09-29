@@ -57,7 +57,7 @@ typedef struct {
     union {
         s16 (*call0)(Task*);
         s32 (*call1)(Task*);
-        s32 (*call2)(Task*, s32, GpAnimArg*);
+        s32 (*call2)(Task*, s32, AnimationPlayRequest*);
         s32 (*call3)(Task*, s32, GpCmdArg*);
         s32 (*call4)(Task*, s32, GpXformArg*);
         s32 (*call5)(Task*, s32, s32);
@@ -69,16 +69,16 @@ extern Actor521100MessageEntry D_actor_521100_8015F6FC[8];
 
 s32 func_actor_521100_80135BEC(Task*);
 
-s32 func_actor_521100_80135C14(Task*, s32, GpAnimArg*);
+s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*);
 
 s32 func_actor_521100_80135CAC(Task*, s32, GpXformArg*);
 
 typedef struct Actor521100FireScratch {
-    /* 0x00 */ VECTOR     pos;
-    /* 0x10 */ VECTOR     delta;
-    /* 0x20 */ SVECTOR    vec;
-    /* 0x28 */ GpAnimArg  msg;
-    /* 0x3C */ GpXformArg aim;
+    /* 0x00 */ VECTOR               pos;
+    /* 0x10 */ VECTOR               delta;
+    /* 0x20 */ SVECTOR              vec;
+    /* 0x28 */ AnimationPlayRequest msg;
+    /* 0x3C */ GpXformArg           aim;
 } Actor521100FireScratch;
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
@@ -2598,25 +2598,25 @@ static void func_actor_521100_801339B0(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             } else if ((s16)work->field_68A == 0xC) {
-                flag                  = (Player_Status.coordMtx->m[0][2] * coord->coord.m[0][2] + Player_Status.coordMtx->m[1][2] * coord->coord.m[1][2] + Player_Status.coordMtx->m[2][2] * coord->coord.m[2][2]);
-                work->field_6A4       = (u32)flag >> 31;
-                sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                sc->msg.field_4       = work->field_6A4 ? 2 : 6;
-                sc->msg.field_8       = 0;
-                sc->msg.field_C       = 0;
-                sc->msg.field_10      = 1;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                flag                         = (Player_Status.coordMtx->m[0][2] * coord->coord.m[0][2] + Player_Status.coordMtx->m[1][2] * coord->coord.m[1][2] + Player_Status.coordMtx->m[2][2] * coord->coord.m[2][2]);
+                work->field_6A4              = (u32)flag >> 31;
+                sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                sc->msg.animationId          = work->field_6A4 ? 2 : 6;
+                sc->msg.blend                = ANIMATION_BLEND_RESET;
+                sc->msg.blendFrames          = 0;
+                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
             } else if ((s16)work->field_68A >= 0x2B) {
-                work->field_6A0       = 1;
-                work->field_686       = 0xB;
-                work->field_68E       = 0;
-                work->field_690       = 0;
-                sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                sc->msg.field_4       = work->field_6A4 ? 3 : 7;
-                sc->msg.field_8       = 0;
-                sc->msg.field_C       = 0;
-                sc->msg.field_10      = 1;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                work->field_6A0              = 1;
+                work->field_686              = 0xB;
+                work->field_68E              = 0;
+                work->field_690              = 0;
+                sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                sc->msg.animationId          = work->field_6A4 ? 3 : 7;
+                sc->msg.blend                = ANIMATION_BLEND_RESET;
+                sc->msg.blendFrames          = 0;
+                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
             }
             if ((u16)(work->field_68A - 4) < 9) {
                 sc->vec.vz = 0x4E2;
@@ -2681,14 +2681,14 @@ static void func_actor_521100_801339B0(Task* arg0)
             work->field_68E = timer;
             if ((s16)timer <= 0) {
                 if (Player_Status.hp <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
-                    work->field_686       = 0x14;
-                    work->field_6A0       = 5;
-                    sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                    sc->msg.field_4       = work->field_6A4 ? 0xC : 0xD;
-                    sc->msg.field_8       = 0;
-                    sc->msg.field_C       = 0;
-                    sc->msg.field_10      = 1;
-                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                    work->field_686              = 0x14;
+                    work->field_6A0              = 5;
+                    sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                    sc->msg.animationId          = work->field_6A4 ? 0xC : 0xD;
+                    sc->msg.blend                = ANIMATION_BLEND_RESET;
+                    sc->msg.blendFrames          = 0;
+                    sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
                     flag = 1;
                 } else {
                     work->field_68E = 0x20;
@@ -2701,15 +2701,15 @@ static void func_actor_521100_801339B0(Task* arg0)
                     flag = work->field_6A4 == 1;
                 }
                 if (flag != 0) {
-                    work->field_6A0       = 3;
-                    work->field_6A8       = 0;
-                    work->field_68A       = 0;
-                    sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                    sc->msg.field_4       = 5;
-                    sc->msg.field_8       = 0;
-                    sc->msg.field_C       = 0;
-                    sc->msg.field_10      = 1;
-                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                    work->field_6A0              = 3;
+                    work->field_6A8              = 0;
+                    work->field_68A              = 0;
+                    sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                    sc->msg.animationId          = 5;
+                    sc->msg.blend                = ANIMATION_BLEND_RESET;
+                    sc->msg.blendFrames          = 0;
+                    sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
                 } else {
                     if (work->field_6A8 == 0) {
                         timer           = work->field_690 + 1;
@@ -2718,15 +2718,15 @@ static void func_actor_521100_801339B0(Task* arg0)
                             break;
                         }
                     }
-                    work->field_6A0       = 2;
-                    work->field_686       = 0x13;
-                    work->field_6A8       = 0;
-                    sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                    sc->msg.field_4       = work->field_6A4 ? 9 : 0xA;
-                    sc->msg.field_8       = 0;
-                    sc->msg.field_C       = 0;
-                    sc->msg.field_10      = 1;
-                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                    work->field_6A0              = 2;
+                    work->field_686              = 0x13;
+                    work->field_6A8              = 0;
+                    sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                    sc->msg.animationId          = work->field_6A4 ? 9 : 0xA;
+                    sc->msg.blend                = ANIMATION_BLEND_RESET;
+                    sc->msg.blendFrames          = 0;
+                    sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
                 }
             }
             break;
@@ -2767,12 +2767,12 @@ static void func_actor_521100_801339B0(Task* arg0)
                 Gp_SpawnEff(0x60054, player->extra.tmd->coords + 3, 0x80003400, NULL);
             }
             if ((s16)work->field_68A == 0x45) {
-                sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                sc->msg.field_4       = 0xB;
-                sc->msg.field_8       = 0;
-                sc->msg.field_C       = 0;
-                sc->msg.field_10      = 1;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                sc->msg.animationId          = 0xB;
+                sc->msg.blend                = ANIMATION_BLEND_RESET;
+                sc->msg.blendFrames          = 0;
+                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
             }
             turn = 0;
             if ((s16)work->field_68A < 0x5F) {
@@ -2808,14 +2808,14 @@ static void func_actor_521100_801339B0(Task* arg0)
                 snd = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x401C000E;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
-                work->field_6A0       = 4;
-                work->field_686       = 0xD;
-                sc->msg.animBlock.ptr = (void*)D_actor_521100_8015F7CC;
-                sc->msg.field_4       = 4;
-                sc->msg.field_8       = 0;
-                sc->msg.field_C       = 0;
-                sc->msg.field_10      = 1;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
+                work->field_6A0              = 4;
+                work->field_686              = 0xD;
+                sc->msg.source.sets          = D_actor_521100_8015F7CC;
+                sc->msg.animationId          = 4;
+                sc->msg.blend                = ANIMATION_BLEND_RESET;
+                sc->msg.blendFrames          = 0;
+                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
             }
             break;
         case 4:
@@ -3738,7 +3738,7 @@ s32 func_actor_521100_80135BEC(Task* arg0)
     return 0;
 }
 
-s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, GpAnimArg* args)
+s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args)
 {
     Actor521100Work* work;
     s32              i;
@@ -3749,14 +3749,14 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, GpAnimArg* args)
     frames = 0;
     work   = arg0->work;
     base   = 0x1D;
-    if (args->animBlock.index == 0) {
+    if (args->source.index == 0) {
         base = 0x14;
     }
-    clip            = args->field_4 + base;
+    clip            = args->animationId + base;
     work->field_686 = clip;
     work->field_688 = clip;
-    if (args->field_8 != 0) {
-        frames = args->field_C;
+    if (args->blend != ANIMATION_BLEND_RESET) {
+        frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
         func_800B4114((GpAnimCtx*)work, i, work->field_686, 0, frames);

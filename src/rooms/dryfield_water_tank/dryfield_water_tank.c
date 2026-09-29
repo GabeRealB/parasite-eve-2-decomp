@@ -152,45 +152,45 @@ extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
 
 DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960 = { .data = { { NULL, &D_dryfield_water_tank_80180A7C, &D_dryfield_water_tank_80180D3C, &D_dryfield_water_tank_80181020, &D_dryfield_water_tank_80181274, &D_dryfield_water_tank_80181D7C, &D_dryfield_water_tank_80182258, &D_dryfield_water_tank_801825AC, &D_dryfield_water_tank_801827A4, &D_dryfield_water_tank_80182CC4, &D_dryfield_water_tank_80182FA4, &D_dryfield_water_tank_80183378, &D_dryfield_water_tank_80183768, &D_dryfield_water_tank_80183AD4, &D_dryfield_water_tank_80183E00, &D_dryfield_water_tank_801815C0, &D_dryfield_water_tank_80182060, &D_dryfield_water_tank_80184508, &D_dryfield_water_tank_80184228 }, { { .words = D_dryfield_water_tank_80184960.words }, 20 } } };
 
-GpAnimArg D_dryfield_water_tank_801849B4 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_water_tank_801849B4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_801849C8 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_801849C8 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_801849DC = { { .index = 1 }, 49, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_801849DC = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_801849F0 = { { .index = 1 }, 50, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_801849F0 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184A04 = { { .index = 1 }, 51, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184A04 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184A18 = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184A18 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184A2C[2] = {
-    { { .index = 1 }, 53, 1, 20, 0 },
-    { { .index = 1 }, 54, 1, 20, 0 },
+AnimationPlayRequest D_dryfield_water_tank_80184A2C[2] = {
+    { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_water_tank_80184A54 = { { .index = 1 }, 55, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184A54 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184A68 = { { .index = 1 }, 56, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184A68 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184A7C = { { .index = 1 }, 57, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184A7C = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184A90 = { { .index = 1 }, 58, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184A90 = { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184AA4[2] = {
-    { { .index = 1 }, 59, 1, 20, 0 },
-    { { .index = 1 }, 60, 1, 20, 0 },
+AnimationPlayRequest D_dryfield_water_tank_80184AA4[2] = {
+    { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_water_tank_80184ACC = { { .index = 1 }, 61, 1, 3, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184ACC = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184AE0 = { { .index = 1 }, 62, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184AE0 = { { .index = 1 }, 62, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184AF4 = { { .index = 1 }, 63, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184AF4 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184B08 = { { .index = 1 }, 64, 1, 3, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184B08 = { { .index = 1 }, 64, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_water_tank_80184B1C = { { .index = 1 }, 65, 1, 3, 0 };
+AnimationPlayRequest D_dryfield_water_tank_80184B1C = { { .index = 1 }, 65, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_water_tank_80184B30 = { { 2530, -0x2EE0, 610, 0 }, { 0, -2047, 0, 0 } };
 
@@ -201,58 +201,58 @@ s32 D_dryfield_water_tank_80184B60[2] = {
     63,
 };
 
-GpAnimArg D_dryfield_water_tank_80184B68[3] = {
-    { { .index = 0 }, 1, 0, 0, 0 },
-    { { .index = 0 }, 1, 1, 20, 0 },
-    { { .index = 0 }, 2, 1, 20, 1 },
+AnimationPlayRequest D_dryfield_water_tank_80184B68[3] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_dryfield_water_tank_80184BA4 = { { .index = 0 }, 3, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184BA4 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184BB8 = { { .index = 0 }, 4, 1, 8, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184BB8 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184BCC = { { .index = 0 }, 5, 1, 8, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184BCC = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184BE0 = { { .index = 0 }, 6, 1, 20, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184BE0 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184BF4 = { { .index = 0 }, 7, 1, 20, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184BF4 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184C08 = { { .index = 0 }, 8, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184C08 = { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184C1C[8] = {
-    { { .index = 0 }, 9, 1, 20, 1 },
-    { { .index = 0 }, 10, 1, 20, 1 },
-    { { .index = 0 }, 11, 1, 20, 1 },
-    { { .index = 0 }, 12, 1, 20, 1 },
-    { { .index = 0 }, 13, 1, 20, 1 },
-    { { .index = 0 }, 14, 1, 20, 1 },
-    { { .index = 0 }, 15, 1, 20, 1 },
-    { { .index = 0 }, 16, 1, 20, 1 },
+AnimationPlayRequest D_dryfield_water_tank_80184C1C[8] = {
+    { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 16, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_dryfield_water_tank_80184CBC = { { .index = 0 }, 17, 1, 20, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184CBC = { { .index = 0 }, 17, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184CD0 = { { .index = 0 }, 18, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184CD0 = { { .index = 0 }, 18, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184CE4 = { { .index = 0 }, 19, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184CE4 = { { .index = 0 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184CF8 = { { .index = 0 }, 20, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184CF8 = { { .index = 0 }, 20, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D0C = { { .index = 0 }, 21, 1, 20, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D0C = { { .index = 0 }, 21, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D20 = { { .index = 0 }, 22, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D20 = { { .index = 0 }, 22, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D34 = { { .index = 0 }, 23, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D34 = { { .index = 0 }, 23, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D48 = { { .index = 0 }, 24, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D48 = { { .index = 0 }, 24, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D5C = { { .index = 0 }, 25, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D5C = { { .index = 0 }, 25, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D70 = { { .index = 0 }, 26, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D70 = { { .index = 0 }, 26, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D84 = { { .index = 0 }, 27, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D84 = { { .index = 0 }, 27, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_water_tank_80184D98 = { { .index = 0 }, 28, 1, 2, 1 };
+AnimationPlayRequest D_dryfield_water_tank_80184D98 = { { .index = 0 }, 28, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_dryfield_water_tank_80184DAC = { { 2530, -0x2EE0, -640, 0 }, { 0, 1024, 0, 0 } };
 

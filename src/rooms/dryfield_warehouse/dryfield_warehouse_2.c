@@ -57,7 +57,7 @@
 /// `field_E` are per-step frame counters; `playerEffActive` records that the
 /// script has hidden the player's effects and they are to be restored.
 typedef struct DwhWork {
-    /* 0x00 */ void* owner;
+    /* 0x00 */ Task* owner;
     /* 0x04 */ u16   field_4;
     /* 0x06 */ u16   field_6;
     /* 0x08 */ u16   field_8;
@@ -451,9 +451,8 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
 /// turns the display back on and, while `DwhWork::playerEffActive` is up, ends
 /// the weapon effect and re-sends the player-weapon record. The owner is then
-/// handed that same 0x3E8 record -- `GpAnimArg::animBlock.index` is the equipped weapon's
-/// animation id, `Player_Status.weapon` plus 1 or 0x22 depending on `Mc_SaveData[0].state.characterId`, with 1
-/// and 0 padding it out -- followed by the room's placement as msg 0x3E9.
+/// handed an equipped-weapon bank request with animation 1, blending disabled
+/// and world collision enabled, followed by the room's placement message.
 ///
 /// The session's weapon id is synced to 2 once, and `D_dryfield_warehouse_801821C4`
 /// records whether this handler did that: message 1 mirrors the session's view
@@ -461,10 +460,10 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 /// flag is one callee-saved value because both outlive the dispatches.
 void func_dryfield_warehouse_8017DA58(s32 arg0)
 {
-    DwhWork*  work;
-    GpAnimArg rec;
-    s32       weaponId;
-    s32       anim;
+    DwhWork*             work;
+    AnimationPlayRequest rec;
+    s32                  weaponId;
+    s32                  anim;
 
     switch (arg0) {
         case 0:
@@ -478,15 +477,15 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 work->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animBlock.index = anim;
-            rec.field_4         = 1;
-            rec.field_8         = 0;
-            rec.field_C         = 0;
-            rec.field_10        = 1;
-            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E8, &rec, 0);
-            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            weaponId                 = Player_Status.weapon;
+            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index         = anim;
+            rec.animationId          = 1;
+            rec.blend                = ANIMATION_BLEND_RESET;
+            rec.blendFrames          = 0;
+            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(work->owner, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             if (Mc_SaveData[0].state.at4.loc.room != 2) {
                 Mc_SaveData[0].state.at4.loc.room = 2;
                 gGameSession->at4.loc.room        = 2;
@@ -517,9 +516,10 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
     DwhWork* shared;
     DwhWork* cur;
     union {
-        GpAnimArg rec;
-        SVECTOR   pos;
+        AnimationPlayRequest rec;
+        SVECTOR              pos;
     } msg;
+
     s32 weaponId;
     s32 anim;
 
@@ -536,14 +536,14 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     work->playerEffActive = 1;
                     cur                   = (DwhWork*)arg0->work;
                     if (cur->owner != NULL) {
-                        msg.rec.animBlock.ptr = D_dryfield_warehouse_8017F848;
-                        msg.rec.field_4       = 1;
-                        msg.rec.field_8       = 0;
-                        msg.rec.field_C       = 0;
-                        msg.rec.field_10      = 0;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                        msg.rec.source.sets          = D_dryfield_warehouse_8017F848;
+                        msg.rec.animationId          = 1;
+                        msg.rec.blend                = ANIMATION_BLEND_RESET;
+                        msg.rec.blendFrames          = 0;
+                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr(cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
+                    Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
                     work->field_8 = 0;
                     work->field_6++;
                     break;
@@ -565,16 +565,17 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 shared->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId                = Player_Status.weapon;
-            anim                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.rec.animBlock.index = anim;
-            msg.rec.field_4         = 1;
-            msg.rec.field_8         = 0;
-            msg.rec.field_C         = 0;
-            msg.rec.field_10        = 1;
-            /* The message ABI carries this object address in one 32-bit word. */
-            Gp_DispatchMsg((Task*)shared->owner, 0x3E8, (s32)&msg.rec, 0);
-            Gp_DispatchMsgPtr((Task*)shared->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            weaponId                     = Player_Status.weapon;
+            anim                         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.rec.source.index         = anim;
+            msg.rec.animationId          = 1;
+            msg.rec.blend                = ANIMATION_BLEND_RESET;
+            msg.rec.blendFrames          = 0;
+            msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+
+            // The message ABI carries this request address in a signed word.
+            Gp_DispatchMsg(shared->owner, ANIMATION_MESSAGE_PLAY, (s32)&msg.rec, 0);
+            Gp_DispatchMsgPtr(shared->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             switch (work->field_6) {
                 case 0:
                     Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
@@ -663,20 +664,18 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
 /// fills `owner` from pointer slot 3 and republishes this task as
 /// `D_dryfield_warehouse_801821BC` so the room's script helpers reach that block.
 ///
-/// The 0x3E8 record is rebuilt here rather than taken from its owner: `GpAnimArg`
-/// field 0 is the equipped weapon's animation id, `Player_Status.weapon` plus 1 or 0x22
-/// depending on `Mc_SaveData[0].state.characterId`, and 1 and 0 pad it out. It is dispatched to a
-/// freshly fetched slot 3, not to the work block's owner.
+/// The initial equipped-weapon request selects animation 1 without blending
+/// or world collision. It is sent synchronously to a freshly fetched slot 3.
 ///
 /// State 0 then falls into state 1, which only steps the machine, so a task
 /// entering at 1 runs the step alone. State 2 kills the task once the session
 /// has torn down (`gGameSession->eventState`), otherwise runs the script.
 void func_dryfield_warehouse_8017E090(Task* arg0)
 {
-    DwhWork*  work;
-    GpAnimArg rec;
-    s32       weaponId;
-    s32       anim;
+    DwhWork*             work;
+    AnimationPlayRequest rec;
+    s32                  weaponId;
+    s32                  anim;
 
     switch (arg0->state) {
         case 0:
@@ -690,14 +689,14 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     work->owner                   = gameGetPtrSlot(3);
                     D_dryfield_warehouse_801821BC = arg0;
                 }
-                weaponId            = Player_Status.weapon;
-                anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                rec.animBlock.index = anim;
-                rec.field_4         = 1;
-                rec.field_8         = 0;
-                rec.field_C         = 0;
-                rec.field_10        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+                weaponId                 = Player_Status.weapon;
+                anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                rec.source.index         = anim;
+                rec.animationId          = 1;
+                rec.blend                = ANIMATION_BLEND_RESET;
+                rec.blendFrames          = 0;
+                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
                 D_dryfield_warehouse_801821C0 = NULL;
                 D_80115768                    = 1;
                 arg0->state                   = arg0->state + 1;

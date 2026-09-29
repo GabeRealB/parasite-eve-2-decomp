@@ -31,10 +31,10 @@ s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, GpMessageArg, GpMessageAr
 s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, GpMessageArg);
 
-extern GpAnimArg D_dryfield_night_junk_yard_80180584;
-extern GpCmdArg  D_dryfield_night_junk_yard_80180598;
-extern GpCmdArg  D_dryfield_night_junk_yard_8018059C;
-void             func_dryfield_night_junk_yard_8017D894(u8);
+extern AnimationPlayRequest D_dryfield_night_junk_yard_80180584;
+extern GpCmdArg             D_dryfield_night_junk_yard_80180598;
+extern GpCmdArg             D_dryfield_night_junk_yard_8018059C;
+void                        func_dryfield_night_junk_yard_8017D894(u8);
 
 GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { 5102, func_dryfield_night_junk_yard_8017D6AC },
@@ -44,7 +44,7 @@ GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimArg D_dryfield_night_junk_yard_80180584 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_junk_yard_80180584 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCmdArg D_dryfield_night_junk_yard_80180598 = { { .loc = { 3, 26 } }, 0 };
 

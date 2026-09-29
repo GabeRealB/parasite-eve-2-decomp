@@ -11,6 +11,9 @@
 
 struct GpAnimSet;
 
+/// One playback frame per tick in the slots' sixteenths-of-a-frame units.
+enum { ANIMATION_RATE_ONE = 0x10 };
+
 /// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
 /// GPF/GPL-blended (`Gp_AnimWritePoseBlend`) or copied (`Gp_AnimWritePoseCopy`) into
 /// `GfxCoord.coord.t` when `GpAnimSlot.poseKind == 1`; rotation is
@@ -166,14 +169,24 @@ typedef struct _GpHeadAim {
 } GpHeadAim;
 STATIC_ASSERT_SIZEOF(GpHeadAim, 0xC);
 
-/// The fixed set table and the writable 32-word extension are present in each
-/// selected weapon/companion resource. Messages transport set addresses as words.
-typedef struct _GpAnimBlk {
-    /* 0x00 */ union {
-        struct GpAnimSet* sets[47];
-        s32               addresses[47];
-    } prefix;
-    /* 0xBC */ s32 field_BC[32];
+/// Bounds of the base animation sets and the script-writable extension.
+enum {
+    ANIMATION_BANK_BASE_SET_COUNT     = 47,
+    ANIMATION_BANK_EXTENSION_CAPACITY = 32,
+    ANIMATION_BANK_SET_CAPACITY       = ANIMATION_BANK_BASE_SET_COUNT + ANIMATION_BANK_EXTENSION_CAPACITY,
+};
+
+/// Animation-set storage borrowed from a selected weapon or companion resource.
+///
+/// Base clips occupy the first 47 entries; scripts can copy up to 32 set
+/// addresses into the following entries and play them by their extended ids.
+/// The word view preserves the message ABI's address representation. Both
+/// views cover the complete established storage span without a subarray boundary.
+typedef struct {
+    union {
+        struct GpAnimSet* sets[ANIMATION_BANK_SET_CAPACITY];      // Borrowed set pointers, including script-installed clips
+        s32               addresses[ANIMATION_BANK_SET_CAPACITY]; // The same set addresses for word-copy messages
+    } table;
 } GpAnimBlk;
 STATIC_ASSERT_SIZEOF(GpAnimBlk, 0x13C);
 

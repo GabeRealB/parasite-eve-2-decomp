@@ -1220,8 +1220,8 @@ id = 294
 objects = [
   { kind = "packageId" },
   { unit = "acropolis_observatory/acropolis_observatory", rodata = "0x4", text = "0x58", data = "0x11F8", bss = "0x1218" },
-  { unit = "acropolis_observatory/acropolis_observatory_2", rodata = "0x10", text = "0x3E8", data = "0x121C", bss = "0x28A0" },
-  { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x3C", text = "0xBDC", data = "0x28A4" },
+  { unit = "acropolis_observatory/acropolis_observatory_2", rodata = "0x10", text = "0x3E8", data = "0x121C" },
+  { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x3C", text = "0xBDC", data = "0x28A8" },
   { kind = "animation", at = "0x250C", sets = ["0x2878"], in_c = true },
   { kind = "collision", at = "0x2A2C", in_c = true },
   { kind = "collisionSource", at = "0x3490", in_c = true },

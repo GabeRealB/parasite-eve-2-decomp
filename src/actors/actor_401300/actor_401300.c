@@ -150,14 +150,14 @@ typedef struct Actor401300Work {
     /* 0xCA6 */ byte    pad_CA6[2];
     /// Copy of the first three bytes of the last event
     /// `func_actor_401300_80132554` handled.
-    /* 0xCA8 */ u8        field_CA8[3];
-    /* 0xCAB */ byte      pad_CAB;
-    /* 0xCAC */ GpAnimArg field_CAC;
-    /* 0xCC0 */ s32       field_CC0[3];
-    /* 0xCCC */ byte      pad_CCC[4];
-    /* 0xCD0 */ s16       field_CD0;
-    /* 0xCD2 */ u8        field_CD2;
-    /* 0xCD3 */ byte      pad_CD3;
+    /* 0xCA8 */ u8                   field_CA8[3];
+    /* 0xCAB */ byte                 pad_CAB;
+    /* 0xCAC */ AnimationPlayRequest field_CAC;
+    /* 0xCC0 */ s32                  field_CC0[3];
+    /* 0xCCC */ byte                 pad_CCC[4];
+    /* 0xCD0 */ s16                  field_CD0;
+    /* 0xCD2 */ u8                   field_CD2;
+    /* 0xCD3 */ byte                 pad_CD3;
     /// Player position and facing sent with message 0x3E9 by
     /// `func_actor_401300_80138800`.
     /* 0xCD4 */ VECTOR  field_CD4;
@@ -246,15 +246,15 @@ extern GpPairSrcE D_actor_401300_80141FA0;
 extern SVECTOR    D_actor_401300_80141FB0[3];
 extern GpAnimSet* D_actor_401300_80158838[46];
 /// The animation block the 0x3FF payload in `field_CAC` hands the player.
-extern GpAnimSet* D_actor_401300_801588F0[9];
-extern GpAnimArg  D_actor_401300_80158914;
+extern GpAnimSet*           D_actor_401300_801588F0[9];
+extern AnimationPlayRequest D_actor_401300_80158914;
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, Actor401300Event*);
-        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -331,7 +331,7 @@ extern GpAnimSet D_actor_401300_80157810;
 extern GpAnimSet D_actor_401300_80158024;
 extern TmdSource D_actor_401300_80147290;
 s32              func_actor_401300_80132554(Task*, s32, Actor401300Event*);
-s32              func_actor_401300_80141494(Task*, s32, GpAnimArg*);
+s32              func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_401300_80141504(Task*, s32, s32);
 s32              func_actor_401300_801415C4(Task*);
 s32              func_actor_401300_80141614(Task*, s32, GpXformArg*);
@@ -1217,7 +1217,7 @@ GpAnimSet* D_actor_401300_801588F0[9] = {
     NULL,
 };
 
-GpAnimArg D_actor_401300_80158914 = { { .ptr = D_actor_401300_801588F0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_401300_80158914 = { { .sets = D_actor_401300_801588F0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 SVECTOR D_actor_401300_80158928[12] = {
     { 60, -12, 30, 2 },
@@ -3566,13 +3566,13 @@ static void func_actor_401300_80138160(Task* arg0)
     if ((work->field_5E & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
-            work->field_CAC.animBlock.ptr = D_actor_401300_801588F0;
-            work->field_D00               = 8;
+            work->field_CAC.source.sets = D_actor_401300_801588F0;
+            work->field_D00             = 8;
             if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
-                work->field_0           = 0xC;
-                work->field_D20         = 1;
-                work->field_CAC.field_4 = 1;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                work->field_0               = 0xC;
+                work->field_D20             = 1;
+                work->field_CAC.animationId = 1;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                 work->field_CC0[2] = 0;
                 work->field_CC0[1] = 0;
                 work->field_CC0[0] = 0;
@@ -3673,8 +3673,8 @@ static void func_actor_401300_80138B24(Task* arg0)
         if ((s16)Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 0), 0) == 1) {
             ((GameActor*)player->work)->field_956 = 0xA;
         }
-        work->field_CAC.field_4 = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+        work->field_CAC.animationId = 2;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
         work->field_D22 = 0;
     }
     if (work->field_6C & 2) {
@@ -4948,27 +4948,27 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->field_D00 = 0x7F;
                 if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
-                    work->field_D20               = 1;
-                    work->field_CAC.animBlock.ptr = D_actor_401300_801588F0;
-                    work->field_CC0[2]            = 0;
-                    work->field_CC0[1]            = 0;
-                    work->field_CC0[0]            = 0;
-                    work->field_CD0               = 7;
-                    work->field_CD2               = 1;
-                    aim->delta.vx                 = -aim->delta.vx;
-                    aim->delta.vy                 = -aim->delta.vy;
-                    aim->delta.vz                 = -aim->delta.vz;
-                    aim->turn                     = actorYawTo(task->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+                    work->field_D20             = 1;
+                    work->field_CAC.source.sets = D_actor_401300_801588F0;
+                    work->field_CC0[2]          = 0;
+                    work->field_CC0[1]          = 0;
+                    work->field_CC0[0]          = 0;
+                    work->field_CD0             = 7;
+                    work->field_CD2             = 1;
+                    aim->delta.vx               = -aim->delta.vx;
+                    aim->delta.vy               = -aim->delta.vy;
+                    aim->delta.vz               = -aim->delta.vz;
+                    aim->turn                   = actorYawTo(task->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
                     if (abs(aim->turn) < 0x400) {
-                        amount                  = -0x64;
-                        work->field_CAC.field_4 = 4;
-                        work->field_CE4.vy      = aim->turn + Actor401300_Yaw(task->extra.tmd->coords);
-                        ret                     = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 4), 0);
+                        amount                      = -0x64;
+                        work->field_CAC.animationId = 4;
+                        work->field_CE4.vy          = aim->turn + Actor401300_Yaw(task->extra.tmd->coords);
+                        ret                         = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 4), 0);
                     } else {
-                        amount                  = 0x64;
-                        work->field_CAC.field_4 = 5;
-                        work->field_CE4.vy      = aim->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
-                        ret                     = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 5), 0);
+                        amount                      = 0x64;
+                        work->field_CAC.animationId = 5;
+                        work->field_CE4.vy          = aim->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
+                        ret                         = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 5), 0);
                     }
                     if (ret == 1) {
                         player->field_956 = 0xA;
@@ -4979,7 +4979,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->field_CE4.vx = 0;
                     work->field_CE4.vz = 0;
                     Gp_DispatchMsgPtr(task, 0x3E9, &work->field_CD4, 0);
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                     work->field_D22 = 0;
                     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &aim->delta);
                     aim->delta.vy = 0;
@@ -5172,22 +5172,22 @@ static void func_actor_401300_8013E930(Task* arg0)
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     SndEvt_EnqueueType6(6, (s8)Gp_GetObjPan(task->extra.tmd->coords),
                                         (s8)gpGetObjDepth(task->extra.tmd->coords));
-                    work->field_D20               = 1;
-                    work->field_CAC.animBlock.ptr = D_actor_401300_801588F0;
-                    blk->delta.vx                 = work->field_D04 - task->extra.tmd->coords->coord.t[0];
-                    blk->delta.vy                 = work->field_D06 - task->extra.tmd->coords->coord.t[1];
-                    blk->delta.vz                 = work->field_D08 - task->extra.tmd->coords->coord.t[2];
-                    blk->angle                    = actorYawTo(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
+                    work->field_D20             = 1;
+                    work->field_CAC.source.sets = D_actor_401300_801588F0;
+                    blk->delta.vx               = work->field_D04 - task->extra.tmd->coords->coord.t[0];
+                    blk->delta.vy               = work->field_D06 - task->extra.tmd->coords->coord.t[1];
+                    blk->delta.vz               = work->field_D08 - task->extra.tmd->coords->coord.t[2];
+                    blk->angle                  = actorYawTo(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
                     if (abs(blk->angle) < 0x400) {
-                        amount                  = -0x46;
-                        work->field_CAC.field_4 = 4;
-                        work->field_CE4.vy      = blk->angle + Actor401300_Yaw(task->extra.tmd->coords);
-                        ret                     = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
+                        amount                      = -0x46;
+                        work->field_CAC.animationId = 4;
+                        work->field_CE4.vy          = blk->angle + Actor401300_Yaw(task->extra.tmd->coords);
+                        ret                         = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
                     } else {
-                        amount                  = 0x46;
-                        work->field_CAC.field_4 = 5;
-                        work->field_CE4.vy      = blk->angle + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
-                        ret                     = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+                        amount                      = 0x46;
+                        work->field_CAC.animationId = 5;
+                        work->field_CE4.vy          = blk->angle + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
+                        ret                         = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                     }
                     if (ret == 1) {
                         player->field_956 = 0xA;
@@ -5198,7 +5198,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                     work->field_CE4.vx = 0;
                     work->field_CE4.vz = 0;
                     Gp_DispatchMsgPtr(task, 0x3E9, &work->field_CD4, 0);
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                     work->field_D22 = 0;
                     vec             = &blk->delta;
                     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, vec);
@@ -5748,7 +5748,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
         if ((state != 0x15) && (state != 3) && (state != 0) && (state != 0x24) && (state != 0x1D) && (state != 0x28)) {
             Actor401300_SnapPlayerHeight(actor);
         }
-        action          = work->field_CAC.field_4;
+        action          = work->field_CAC.animationId;
         work->field_D22 = (u16)(work->field_D22 + 1);
         switch (action) {
             case 0:
@@ -5809,34 +5809,34 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
                 break;
         }
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-            switch (work->field_CAC.field_4) {
+            switch (work->field_CAC.animationId) {
                 case 0:
                     break;
                 case 1:
                     if (config->hp > 0) {
-                        work->field_CAC.field_4 = 2;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                        work->field_CAC.animationId = 2;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 2:
                     if (config->hp > 0) {
-                        work->field_CAC.field_4 = 3;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                        work->field_CAC.animationId = 3;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 4:
                     if (config->hp > 0) {
-                        work->field_CAC.field_4 = 6;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                        work->field_CAC.animationId = 6;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 5:
                     if (config->hp > 0) {
-                        work->field_CAC.field_4 = 7;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
+                        work->field_CAC.animationId = 7;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
@@ -5897,11 +5897,11 @@ static const GpEnemyTaskFuncTable3 D_actor_401300_8013201C = { {
     Gp_DestroyEnemy,
 } };
 
-s32 func_actor_401300_80141494(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor401300Work* work = arg0->work;
 
-    switch (arg2->field_4) {
+    switch (arg2->animationId) {
         case 0:
             work->field_8A2 = 0x22;
             break;

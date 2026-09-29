@@ -32,8 +32,8 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[3];
-        GpAnimArg  arguments[6];
+        GpAnimSet*           sets[3];
+        AnimationPlayRequest arguments[6];
     } data;
     s32 words[33];
 } Actor151000AnimStorage336C;
@@ -75,7 +75,7 @@ extern TaskDesc D_actor_151000_80133360;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
@@ -99,15 +99,15 @@ static void func_actor_151000_80132A38(Task* task);
 extern TmdSource D_actor_151000_80139270;
 void             func_actor_151000_801323F4(Task*);
 
-s32 func_actor_151000_80132738(Task*, s32, GpAnimArg*, s32);
+s32 func_actor_151000_80132738(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_151000_801327C8(Task*, s32, s32);
 s32 func_actor_151000_80132810(Task*, s32, GpXformArg*);
 s32 func_actor_151000_8013288C(Task*, s32, GpCmdArg*);
 s32 func_actor_151000_801328DC(Task*, s32, VECTOR*, s32);
 
-extern GpAnimArg D_actor_151000_801333F0;
-extern GpAnimArg D_actor_151000_80133404;
-void             func_actor_151000_80131EE0(s32);
+extern AnimationPlayRequest D_actor_151000_801333F0;
+extern AnimationPlayRequest D_actor_151000_80133404;
+void                        func_actor_151000_80131EE0(s32);
 
 void func_actor_151000_80131E24(Task*);
 
@@ -181,18 +181,18 @@ TaskDesc D_actor_151000_80133360 = { 0, 192, func_actor_151000_80131E24, { .mode
 
 Actor151000AnimStorage336C D_actor_151000_8013336C = { .data = { { &D_actor_151000_80132CF8, &D_actor_151000_801330C0, &D_actor_151000_80133338 }, { { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 48, 0, 0, 0 }, { { .index = 1 }, 49, 0, 0, 0 }, { { .index = 1 }, 0, 0, 0, 0 }, { { .index = 1 }, 16, 0, 0, 0 } } } };
 
-GpAnimArg D_actor_151000_801333F0 = { { .index = 1 }, 17, 0, 0, 0 };
+AnimationPlayRequest D_actor_151000_801333F0 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_151000_80133404 = { { .index = 1 }, 19, 1, 8, 0 };
+AnimationPlayRequest D_actor_151000_80133404 = { { .index = 1 }, 19, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_151000_80133418[2] = {
-    { { .index = 0 }, 13, 0, 0, 0 },
-    { { .index = 0 }, 14, 0, 0, 0 },
+AnimationPlayRequest D_actor_151000_80133418[2] = {
+    { { .index = 0 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_actor_151000_80133440 = { { .index = 0 }, 15, 0, 0, 0 };
+AnimationPlayRequest D_actor_151000_80133440 = { { .index = 0 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_151000_80133454 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_151000_80133454 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCmdArg D_actor_151000_80133468 = { { .loc = { 5, 15 } }, 1 };
 
@@ -1089,13 +1089,13 @@ static void func_actor_151000_801326AC(void)
 /// `animArg`, which it leaves in `D_actor_151000_8013D2AC`. The runner is then
 /// run once on the task published in `D_actor_151000_8013D380`. Returns -1,
 /// without touching the work block, when the clip id is 0x23 or more.
-s32 func_actor_151000_80132738(Task* task, s32 arg1, GpAnimArg* args, s32 arg3)
+s32 func_actor_151000_80132738(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    if (args->field_4 < 0x23) {
-        D_actor_151000_8013D37C->st.animId = args->field_4;
-        if (args->field_8 != 0) {
+    if (args->animationId < 0x23) {
+        D_actor_151000_8013D37C->st.animId = args->animationId;
+        if (args->blend != ANIMATION_BLEND_RESET) {
             D_actor_151000_8013D37C->st.state = 1;
-            D_actor_151000_8013D2AC           = args->field_C;
+            D_actor_151000_8013D2AC           = args->blendFrames;
         } else {
             D_actor_151000_8013D37C->st.state = 2;
         }

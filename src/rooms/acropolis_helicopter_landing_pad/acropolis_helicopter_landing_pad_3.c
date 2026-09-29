@@ -165,23 +165,23 @@ s32 D_acropolis_helicopter_landing_pad_801837E0[18] = {
 
 GpXformArg D_acropolis_helicopter_landing_pad_80183828 = { { -2176, 0, -6845, 0 }, { 0, 1024, 0, 0 } };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183840 = { { .index = 0 }, 1, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183840 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183854 = { { .index = 0 }, 2, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183854 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183868 = { { .index = 0 }, 3, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183868 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_8018387C = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018387C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183890 = { { .index = 0 }, 5, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183890 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801838A4 = { { .index = 0 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838A4 = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801838B8 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838B8 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801838CC = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838CC = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
     NULL,
@@ -191,17 +191,17 @@ GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
 
 GpCopyArg D_acropolis_helicopter_landing_pad_80183900 = { { .sets = D_acropolis_helicopter_landing_pad_801838F4 }, 3 };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183908 = { { .index = 1 }, 47, 1, 5, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183908 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_8018391C = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018391C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183930 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183930 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183944 = { { .index = 1 }, 1, 1, 7, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183944 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183958 = { { .index = 1 }, 9, 1, 6, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183958 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverlayIds D_acropolis_helicopter_landing_pad_80183980 = { 1, 9, 11 };
 
@@ -209,19 +209,19 @@ GpOverlayIds D_acropolis_helicopter_landing_pad_80183988 = { 1, 9, 21 };
 
 GpOverlayIds D_acropolis_helicopter_landing_pad_80183990 = { 1, 10, 11 };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80183998 = { { .index = 0 }, 1, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183998 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801839AC = { { .index = 0 }, 2, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839AC = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801839C0 = { { .index = 0 }, 3, 0, 1, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839C0 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCmdArg D_acropolis_helicopter_landing_pad_801839D4 = { { .loc = { 1, 16 } }, 0 };
 
 GpCmdArg D_acropolis_helicopter_landing_pad_801839D8 = { { .loc = { 1, 16 } }, 1 };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801839DC = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839DC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_801839F0 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839F0 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_acropolis_helicopter_landing_pad_80183A04[2] = {
     { 15, { .value = 0x51100005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -478,9 +478,9 @@ s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
     0,
 };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80184E28 = { 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E28 = { 0 };
 
-GpAnimArg D_acropolis_helicopter_landing_pad_80184E3C = { { .index = 1 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_acropolis_helicopter_landing_pad_80184E50 = { { -6801, 0, -1998, 0 }, { 0, 1024, 0, 0 } };
 

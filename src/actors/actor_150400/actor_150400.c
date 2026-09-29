@@ -47,7 +47,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpAnimArg*);
+        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -71,7 +71,7 @@ extern TmdSource D_actor_150400_8013C8A0;
 void             func_actor_150400_801323E0(Task*);
 void             func_actor_150400_801328BC(Task*);
 
-s32 func_actor_150400_801326A4(Task*, s32, GpAnimArg*);
+s32 func_actor_150400_801326A4(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_150400_80132710(Task*, s32, s32);
 s32 func_actor_150400_80132774(Task*, s32, GpXformArg*);
 s32 func_actor_150400_801327EC(void);
@@ -118,11 +118,11 @@ TmdSource D_actor_150400_80132CCC = {
 
 TaskDesc D_actor_150400_80132CF0 = { 257, 32, func_actor_150400_80131E24, { .model = &D_actor_150400_80132CCC } };
 
-GpAnimArg D_actor_150400_80132CFC = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_150400_80132CFC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_150400_80132D10 = { { .index = 0 }, 4, 1, 10, 0 };
+AnimationPlayRequest D_actor_150400_80132D10 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_150400_80132D24 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_150400_80132D24 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024, 0, 0 } };
 
@@ -650,21 +650,20 @@ static void func_actor_150400_80132640(Task* task)
     work->st.appliedAnimId = work->st.animId;
 }
 
-/// Script opcode: start animation `args->field_4` on this actor.
+/// Starts the actor's scripted animation selected by the request.
 ///
-/// `withArg` selects between the two start paths `func_actor_150400_80132228`
-/// dispatches on, and only the first carries `animArg`. Returns -1, without
-/// touching the work block, when the clip id is out of range.
-s32 func_actor_150400_801326A4(Task* task, s32 arg1, GpAnimArg* args)
+/// Rejects ids 6 and above before changing playback state.
+/// The blend path carries the requested duration in whole frames.
+s32 func_actor_150400_801326A4(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Actor150400Work* work;
 
     work = (Actor150400Work*)task->work;
-    if (args->field_4 < 6) {
-        work->st.animId = args->field_4;
-        if (args->field_8 != 0) {
+    if (args->animationId < 6) {
+        work->st.animId = args->animationId;
+        if (args->blend != ANIMATION_BLEND_RESET) {
             work->st.state = 1;
-            work->animArg  = args->field_C;
+            work->animArg  = args->blendFrames;
         } else {
             work->st.state = 2;
         }

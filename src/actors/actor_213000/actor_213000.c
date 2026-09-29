@@ -61,7 +61,7 @@ extern TaskDesc D_actor_213000_80157DE0[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -87,7 +87,7 @@ extern TmdSource D_actor_213000_80150C04;
 extern TmdSource D_actor_213000_80150F88;
 extern TmdSource D_actor_213000_80151254;
 extern TmdSource D_actor_213000_8015144C;
-s32              func_actor_213000_8014A70C(Task*, s32, GpAnimArg*);
+s32              func_actor_213000_8014A70C(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_213000_8014A828(Task*, s32, GpXformArg*);
 s32              func_actor_213000_8014A8A4(Task*, s32, s32);
 s32              func_actor_213000_8014A980(Task*, s32, GpCmdArg*);
@@ -897,13 +897,11 @@ static void func_actor_213000_8014A6AC(Task* task)
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
-/// Message-0x7D3 handler: a changed bank index re-seeds the whole animation
-/// slot array through `func_800B3F84` from the bank table and forgets the
-/// current animation id. The preset's id is then stored and installed on every
-/// slot - through `func_800B4114` with a blend length of 6 when the preset's
-/// `field_8` is set, through `Gp_AnimResetSlot` otherwise - after which every
-/// slot is ticked once and `field_474` latches. Returns 0.
-s32 func_actor_213000_8014A70C(Task* task, s32 arg1, GpAnimArg* msg)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. The requested clip is applied to the slots.
+/// Requested blending uses 6 frames; otherwise the slots reset.
+s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
 {
     Actor213000Work* work;
     TmdObject*       ext;
@@ -911,14 +909,14 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor213000Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->field_476) {
-        work->field_476 = msg->animBlock.index;
+    if (msg->source.index != work->field_476) {
+        work->field_476 = msg->source.index;
         work->field_475 = -1;
         func_800B3F84(&work->rig.anim, D_actor_213000_80157DDC[work->field_476], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->field_475 = msg->field_4;
-    if (msg->field_8 != 0) {
+    work->field_475 = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET) {
         for (i = 1; i < 0x14; i++) {
             func_800B4114(&work->rig.anim, i, work->field_475, 0, 6);
         }

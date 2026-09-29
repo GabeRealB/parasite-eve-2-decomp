@@ -69,7 +69,7 @@ extern TaskDesc D_actor_213100_801521A8[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -87,11 +87,11 @@ static void func_actor_213100_8014A0B8(Task* task);
 static void func_actor_213100_8014A118(Task* arg0);
 static void func_actor_213100_8014A21C(Task* arg0);
 static void func_actor_213100_8014A23C(Task* arg0);
-s32         func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+s32         func_actor_213100_8014A258(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 extern TmdSource D_actor_213100_801501E4;
 extern TmdSource D_actor_213100_801503DC;
-s32              func_actor_213100_8014A258(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_213100_8014A258(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_213100_8014A390(Task*, s32, GpXformArg*);
 s32              func_actor_213100_8014A40C(Task*, s32, s32);
 void             func_actor_213100_80149FE4(Task*);
@@ -542,10 +542,10 @@ void func_actor_213100_8014A0C0(Task* task)
 /// installs its message table and exit callback and advances to the tick.
 static void func_actor_213100_8014A118(Task* arg0)
 {
-    Actor213100Work* work;
-    GpAnimArg        preset;
-    TmdObject*       ext;
-    Task*            child;
+    Actor213100Work*     work;
+    AnimationPlayRequest preset;
+    TmdObject*           ext;
+    Task*                child;
 
     work = (Actor213100Work*)memCalloc(0x488, 0);
     if (work == NULL) {
@@ -563,15 +563,15 @@ static void func_actor_213100_8014A118(Task* arg0)
         return;
     }
     func_actor_213100_8014A23C(arg0);
-    ext                    = arg0->extra.tmd;
-    ext->flags            |= 0x80;
-    ext                    = work->field_480->extra.tmd;
-    ext->flags            |= 0x80;
-    preset.animBlock.index = 0;
-    preset.field_4         = 5;
-    preset.field_8         = 0;
-    preset.field_C         = 0;
-    preset.field_10        = 0;
+    ext                         = arg0->extra.tmd;
+    ext->flags                 |= 0x80;
+    ext                         = work->field_480->extra.tmd;
+    ext->flags                 |= 0x80;
+    preset.source.index         = 0;
+    preset.animationId          = 5;
+    preset.blend                = ANIMATION_BLEND_RESET;
+    preset.blendFrames          = 0;
+    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     func_actor_213100_8014A258(arg0, 0, &preset, 0);
     arg0->msgTable     = D_actor_213100_801521C0;
     arg0->exitCallback = func_actor_213100_8014A21C;
@@ -597,15 +597,12 @@ static void func_actor_213100_8014A23C(Task* arg0)
     ext->colorMtx = &work->color;
 }
 
-/// Message-0x7D3 handler, also called directly by the spawn state with the
-/// initial preset. A changed bank index re-seeds the whole animation slot
-/// array through `func_800B3F84` from the bank table and forgets the current
-/// animation id. A changed animation id is then stored and installed on every
-/// slot - through `func_800B4114` when the preset's `field_8` is set and the
-/// slots have already been started, through `Gp_AnimResetSlot` otherwise -
-/// after which every slot is ticked once and `field_43C` latches. An
-/// unchanged id skips all of that. Returns 0.
-s32 func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. An unchanged clip skips playback setup.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_213100_8014A258(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor213100Work* work;
     TmdObject*       ext;
@@ -613,17 +610,17 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor213100Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
+    if (msg->source.index != work->field_43E) {
+        work->field_43E = msg->source.index;
         work->field_43D = -1;
         func_800B3F84(&work->rig.anim, D_actor_213100_801521A4[work->field_43E], ext, work->rig.poses,
                       work->rig.slots);
     }
-    if (msg->field_4 != work->field_43D) {
-        work->field_43D = msg->field_4;
-        if (msg->field_8 != 0 && work->field_43C != 0) {
+    if (msg->animationId != work->field_43D) {
+        work->field_43D = msg->animationId;
+        if (msg->blend != ANIMATION_BLEND_RESET && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->field_43D, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {

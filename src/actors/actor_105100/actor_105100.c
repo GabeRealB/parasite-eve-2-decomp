@@ -269,9 +269,6 @@ extern GpPairSrcE D_actor_105100_80141398;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
 
-/// Animation block the attack body hands the player with message 0x3F4.
-extern void* D_actor_105100_801414B4;
-
 /// The approach points the `field_40 == 1` reaction walks the model through,
 /// indexed by `Actor105100Rec::field_44`. Only the x and z halves are read: the
 /// reaction subtracts the model's current position and walks the resulting
@@ -788,9 +785,9 @@ u8 D_actor_105100_80141488[44] = {
     128,
 };
 
-void* D_actor_105100_801414B4 = NULL;
-
-GpAnimSet* D_actor_105100_801414B8[4] = {
+/// Borrowed player clips for the scripted attack; entry zero is unused.
+static GpAnimSet* _gActor105100PlayerAnimationSets[5] = {
+    NULL,
     &D_actor_105100_8013FB9C,
     &D_actor_105100_80140338,
     &D_actor_105100_80140B44,
@@ -1829,15 +1826,15 @@ static void func_actor_105100_80133CE4(Task* arg0)
     switch (work->field_5A4) {
         case 0:
             if (((GameActor*)player->work)->field_954 != 2) {
-                scratch->delta.vx           = target->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vy           = 0;
-                scratch->delta.vz           = target->coord.t[2] - coord->coord.t[2];
-                work->field_5A0             = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
-                scratch->anim.animBlock.ptr = &D_actor_105100_801414B4;
-                scratch->anim.field_4       = work->field_5A0 + 1;
-                scratch->anim.field_8       = 0;
-                scratch->anim.field_C       = 0;
-                scratch->anim.field_10      = 1;
+                scratch->delta.vx                  = target->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vy                  = 0;
+                scratch->delta.vz                  = target->coord.t[2] - coord->coord.t[2];
+                work->field_5A0                    = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
+                scratch->anim.source.sets          = _gActor105100PlayerAnimationSets;
+                scratch->anim.animationId          = work->field_5A0 + 1;
+                scratch->anim.blend                = 0;
+                scratch->anim.blendFrames          = 0;
+                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_5A4 = 1;
                 work->field_5A6 = 0;
@@ -1876,11 +1873,11 @@ static void func_actor_105100_80133CE4(Task* arg0)
             }
             count = (s16)++work->field_5A6;
             if ((work->field_5A0 != 0 && count >= 0x1E) || (work->field_5A0 == 0 && count >= 0x20)) {
-                scratch->anim.animBlock.ptr = &D_actor_105100_801414B4;
-                scratch->anim.field_4       = work->field_5A0 + 3;
-                scratch->anim.field_8       = 0;
-                scratch->anim.field_C       = 0;
-                scratch->anim.field_10      = 1;
+                scratch->anim.source.sets          = _gActor105100PlayerAnimationSets;
+                scratch->anim.animationId          = work->field_5A0 + 3;
+                scratch->anim.blend                = 0;
+                scratch->anim.blendFrames          = 0;
+                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_5A4 = 2;
                 work->field_5A6 = 0;

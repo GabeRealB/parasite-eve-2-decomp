@@ -146,12 +146,12 @@ extern GpMsgEntry D_dryfield_breezeway_80182DCC[];
 
 /// The one scratch buffer `func_dryfield_breezeway_8017E390` builds both of its
 /// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
-/// slot-3 weapon record msg 0x3E8 takes (the `GpAnimArg` `Gp_MsgPlayerWeapon`
+/// slot-3 weapon record msg 0x3E8 takes (the `AnimationPlayRequest` `Gp_MsgPlayerWeapon`
 /// also sends, with `field_4` set to this room's 9 and `field_C`/`field_10`
 /// zeroed), and `msg` the `GpCmdArg` the 0x7DA prompt takes right after it.
 typedef union DbwMsgBuf {
-    /* 0x0 */ GpAnimArg rec;
-    /* 0x0 */ GpCmdArg  msg;
+    /* 0x0 */ AnimationPlayRequest rec;
+    /* 0x0 */ GpCmdArg             msg;
 } DbwMsgBuf;
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
@@ -487,12 +487,12 @@ static void func_dryfield_breezeway_8017F538(Task* task);
 /// allocation the original compiler reached.
 static void func_dryfield_breezeway_8017DEC0(Task* arg0)
 {
-    GpCmdArg   msg;
-    DbwMsgBuf  buf;
-    GpAnimArg* rec;
-    DbwWork*   work;
-    s32        state;
-    s32        id;
+    GpCmdArg              msg;
+    DbwMsgBuf             buf;
+    AnimationPlayRequest* rec;
+    DbwWork*              work;
+    s32                   state;
+    s32                   id;
 
     work  = (DbwWork*)arg0->work;
     state = work->field_C;
@@ -514,14 +514,14 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(4);
             break;
         case 2:
-            rec                     = &buf.rec;
-            id                      = Player_Status.weapon;
-            buf.rec.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
-            rec->field_4            = 9;
-            rec->field_8            = 1;
-            rec->field_C            = 0xA;
-            buf.rec.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf, 0);
+            rec                          = &buf.rec;
+            id                           = Player_Status.weapon;
+            buf.rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
+            rec->animationId             = 9;
+            rec->blend                   = ANIMATION_BLEND_INTERPOLATE;
+            rec->blendFrames             = 0xA;
+            buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf, 0);
             break;
     }
     work->field_C = 0;
@@ -565,7 +565,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 /// otherwise it returns having done nothing, which retires the task on the
 /// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
-/// slot-3 msg 0x3E8 (`GpAnimArg`, the record `Gp_MsgPlayerWeapon` also builds:
+/// slot-3 msg 0x3E8 (`AnimationPlayRequest`, the record `Gp_MsgPlayerWeapon` also builds:
 /// `field_0` off the equipped-weapon index in `Player_Status.weapon`, `field_4` and
 /// `field_8` both 1, `field_C` 0xA and `field_10` zero) and starts the room's
 /// opening cutscene through `func_800E8634`, which is what raises
@@ -576,9 +576,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 /// state goes straight to the sequencer.
 void func_dryfield_breezeway_8017E114(Task* arg0)
 {
-    GpAnimArg buf;
-    DbwWork*  work;
-    s32       id;
+    AnimationPlayRequest buf;
+    DbwWork*             work;
+    s32                  id;
 
     switch (arg0->state) {
         case 0:
@@ -598,13 +598,13 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
                 work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
-            id                  = Player_Status.weapon;
-            buf.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
-            buf.field_4         = 1;
-            buf.field_8         = 1;
-            buf.field_C         = 0xA;
-            buf.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf, 0);
+            id                       = Player_Status.weapon;
+            buf.source.index         = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
+            buf.animationId          = 1;
+            buf.blend                = ANIMATION_BLEND_INTERPOLATE;
+            buf.blendFrames          = 0xA;
+            buf.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf, 0);
             func_800E8634(D_dryfield_breezeway_80181E70, 0, D_dryfield_breezeway_80181F90);
             arg0->state += 1;
             break;
@@ -651,14 +651,14 @@ void func_dryfield_breezeway_8017E390(void)
     DbwWork*  work;
     s32       id;
 
-    id                      = Player_Status.weapon;
-    buf.rec.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
-    buf.rec.field_4         = 9;
-    buf.rec.field_8         = 0;
-    buf.rec.field_C         = 0;
-    buf.rec.field_10        = 0;
+    id                           = Player_Status.weapon;
+    buf.rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
+    buf.rec.animationId          = 9;
+    buf.rec.blend                = ANIMATION_BLEND_RESET;
+    buf.rec.blendFrames          = 0;
+    buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     /* The message ABI carries this object address in one 32-bit word. */
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)&buf, 0);
 
     work                   = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     buf.msg.from.loc.stage = gGameSession->at4.loc.stage;

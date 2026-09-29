@@ -104,7 +104,7 @@ GpAnimSet* D_dryfield_night_parking_lot_8017EC90[2] = {
 
 GpCopyArg D_dryfield_night_parking_lot_8017EC98 = { { .sets = D_dryfield_night_parking_lot_8017EC90 }, 2 };
 
-GpAnimArg D_dryfield_night_parking_lot_8017ECA0 = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_parking_lot_8017ECA0 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },

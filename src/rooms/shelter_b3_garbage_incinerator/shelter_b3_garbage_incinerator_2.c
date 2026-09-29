@@ -696,7 +696,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     msg[2] = 0;
                     msg[3] = 0;
                     msg[4] = 0;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
                 } else {
                     p = msg;
                     w = Player_Status.weapon;
@@ -710,7 +710,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     p[2]   = 1;
                     p[3]   = 10;
                     msg[4] = 0;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
                 }
                 arg0->killCountdown = 0;
                 arg0->state++;
@@ -1071,7 +1071,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_shelter_b3_garbage_incinerator_8018FC38->blend == 0) {
+                        if (D_shelter_b3_garbage_incinerator_8018FC38->blend == ANIMATION_BLEND_RESET) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);
@@ -1297,7 +1297,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 {
     GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
     GarbageIncineratorWork* msgWork;
-    GpAnimArg               msg;
+    AnimationPlayRequest    msg;
     s16                     anim;
     s32                     weaponId;
     s32                     setId;
@@ -1315,17 +1315,17 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     if (D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] < 0) {
         goto ret1;
     }
-    anim                = D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
-    msgWork             = (GarbageIncineratorWork*)arg0->work;
-    weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.animBlock.index = setId;
-    msgWork->field_38   = anim;
-    msg.field_4         = anim;
-    msg.field_8         = 1;
-    msg.field_C         = 0xA;
-    msg.field_10        = 0;
-    Gp_DispatchMsgPtr(msgWork->field_2C, 0x3E8, &msg, 0);
+    anim                     = D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
+    msgWork                  = (GarbageIncineratorWork*)arg0->work;
+    weaponId                 = Player_Status.weapon;
+    setId                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.source.index         = setId;
+    msgWork->field_38        = anim;
+    msg.animationId          = anim;
+    msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+    msg.blendFrames          = 0xA;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
@@ -1396,7 +1396,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             }
             msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
             msg.count       = n & 0xFFFF;
-            Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
+            Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
@@ -1488,22 +1488,22 @@ void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 {
     GarbageIncineratorWork* work;
-    GpAnimArg               msg;
+    AnimationPlayRequest    msg;
     s16                     anim;
     s32                     weaponId;
     s32                     setId;
 
-    work                = D_shelter_b3_garbage_incinerator_8018FC3C->work;
-    anim                = arg0 + 0x2F;
-    weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.animBlock.index = setId;
-    work->field_38      = anim;
-    msg.field_4         = anim;
-    msg.field_8         = 1;
-    msg.field_C         = 0xF;
-    msg.field_10        = 0;
-    Gp_DispatchMsgPtr(work->field_2C, 0x3E8, &msg, 0);
+    work                     = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    anim                     = arg0 + 0x2F;
+    weaponId                 = Player_Status.weapon;
+    setId                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.source.index         = setId;
+    work->field_38           = anim;
+    msg.animationId          = anim;
+    msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+    msg.blendFrames          = 0xF;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)

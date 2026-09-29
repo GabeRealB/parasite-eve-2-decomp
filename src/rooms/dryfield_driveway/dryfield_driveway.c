@@ -68,22 +68,22 @@ extern RoomFadeStorage  D_dryfield_driveway_80180680;
 extern RoomEventMsg     D_dryfield_driveway_80180688;
 extern RoomLatchedEvent D_dryfield_driveway_80180694;
 
-extern GpAnimArg      D_dryfield_driveway_8017E330;
-extern GpAnimArg      D_dryfield_driveway_8017E358;
-extern GpCopyArg      D_dryfield_driveway_8017E328;
-extern GpGridParams   D_dryfield_driveway_8017ED74[1];
-extern GpObj4C        D_dryfield_driveway_8017FC98[6];
-extern GpObj4C        D_dryfield_driveway_801802F8[11];
-extern GpRoomCoordSet D_dryfield_driveway_801802E0[1];
-extern TaskDesc       D_8014D8A4;
-s32                   func_dryfield_driveway_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_driveway_8017DC70(Task*, s32, s32, s32);
-s32                   func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
-s32                   func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
-s32                   func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
-void                  func_dryfield_driveway_8017DC48(s32);
-void                  func_dryfield_driveway_8017DC54(s16);
-void                  func_dryfield_driveway_8017DC64(u8);
+extern AnimationPlayRequest D_dryfield_driveway_8017E330;
+extern AnimationPlayRequest D_dryfield_driveway_8017E358;
+extern GpCopyArg            D_dryfield_driveway_8017E328;
+extern GpGridParams         D_dryfield_driveway_8017ED74[1];
+extern GpObj4C              D_dryfield_driveway_8017FC98[6];
+extern GpObj4C              D_dryfield_driveway_801802F8[11];
+extern GpRoomCoordSet       D_dryfield_driveway_801802E0[1];
+extern TaskDesc             D_8014D8A4;
+s32                         func_dryfield_driveway_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_dryfield_driveway_8017DC70(Task*, s32, s32, s32);
+s32                         func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
+s32                         func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
+s32                         func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
+void                        func_dryfield_driveway_8017DC48(s32);
+void                        func_dryfield_driveway_8017DC54(s16);
+void                        func_dryfield_driveway_8017DC64(u8);
 
 void func_dryfield_driveway_8017D5E4(Task*);
 void func_dryfield_driveway_8017DAD0(Task*);
@@ -126,11 +126,11 @@ GpAnimSet* D_dryfield_driveway_8017E320[2] = {
 
 GpCopyArg D_dryfield_driveway_8017E328 = { { .sets = D_dryfield_driveway_8017E320 }, 2 };
 
-GpAnimArg D_dryfield_driveway_8017E330 = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_driveway_8017E330 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_driveway_8017E344 = { { .index = 1 }, 48, 1, 7, 1 };
+AnimationPlayRequest D_dryfield_driveway_8017E344 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_driveway_8017E358 = { { .index = 1 }, 32, 1, 5, 0 };
+AnimationPlayRequest D_dryfield_driveway_8017E358 = { { .index = 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_driveway_8017E36C = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
 
@@ -151,9 +151,9 @@ GpEvsCmd D_dryfield_driveway_8017E384[14] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_dryfield_driveway_8017E4D4 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_driveway_8017E4D4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_driveway_8017E4E8 = { { .index = 1 }, 24, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_driveway_8017E4E8 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_dryfield_driveway_8017E4FC[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },

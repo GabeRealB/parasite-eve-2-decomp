@@ -104,7 +104,7 @@ GpXformArg D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 
 
 GpXformArg D_dryfield_night_water_tank_8017DDAC = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
 
-GpAnimArg D_dryfield_night_water_tank_8017DDC4 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_water_tank_8017DDC4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_dryfield_night_water_tank_8017DDD8[11] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_tank_8017DDC4 }, { .value = 0 } },

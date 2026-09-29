@@ -83,47 +83,47 @@ extern GpAnimSet D_actor_503500_8014B174;
 extern GpAnimSet D_actor_503500_8014B3C4;
 extern GpAnimSet D_actor_503500_8014B930;
 
-extern GpAnimArg   D_actor_503500_8014B9E8;
-extern GpAnimArg   D_actor_503500_8014B9FC[10];
-extern GpAnimArg   D_actor_503500_8014BAC4;
-extern GpCmdArg    D_actor_503500_8014BC14;
-extern GpCmdArg    D_actor_503500_8014BC18[2];
-extern GpCmdArg    D_actor_503500_8014BC20;
-extern GpCmdArg    D_actor_503500_8014BC24;
-extern GpCmdArg    D_actor_503500_8014BC28;
-extern GpCopyArg   D_actor_503500_8014B9CC;
-extern GpScriptCmd D_actor_503500_8014D2F0[2];
-extern GpScriptCmd D_actor_503500_8014D300[3];
-extern GpScriptRec D_actor_503500_8014D2F8[2];
-extern GpScriptRec D_actor_503500_8014D30C[3];
-extern GpXformArg  D_actor_503500_8014BAD8;
-extern GpXformArg  D_actor_503500_8014BAF0;
-extern GpXformArg  D_actor_503500_8014BB08;
-extern GpXformArg  D_actor_503500_8014BB20;
-extern GpXformArg  D_actor_503500_8014BB38;
-extern GpXformArg  D_actor_503500_8014BBB4[2];
-extern GpXformArg  D_actor_503500_8014BBE4;
-extern GpXformArg  D_actor_503500_8014BBFC;
-void               func_actor_503500_80132B78(void);
-void               func_actor_503500_80132B98(void);
-void               func_actor_503500_80132BB8(void);
-void               func_actor_503500_80132BD8(void);
-void               func_actor_503500_80132BF8(void);
-void               func_actor_503500_80132C40(s32);
-void               func_actor_503500_80132C70(s32);
-void               func_actor_503500_80132CA4(void);
-void               func_actor_503500_80132CC4(s8);
-void               func_actor_503500_80132D00(s32);
-void               func_actor_503500_80132D60(void);
-void               func_actor_503500_80132D7C(void);
-void               func_actor_503500_80132D90(s32);
-void               func_actor_503500_80132DB4(s32);
-void               func_actor_503500_80132DD4(void);
-void               func_actor_503500_80132DEC(void);
-void               func_actor_503500_80132E7C(void);
-void               func_actor_503500_80132EE8(u8);
-void               func_actor_503500_80132EF4(void);
-void               func_actor_503500_80132F28(void);
+extern AnimationPlayRequest D_actor_503500_8014B9E8;
+extern AnimationPlayRequest D_actor_503500_8014B9FC[10];
+extern AnimationPlayRequest D_actor_503500_8014BAC4;
+extern GpCmdArg             D_actor_503500_8014BC14;
+extern GpCmdArg             D_actor_503500_8014BC18[2];
+extern GpCmdArg             D_actor_503500_8014BC20;
+extern GpCmdArg             D_actor_503500_8014BC24;
+extern GpCmdArg             D_actor_503500_8014BC28;
+extern GpCopyArg            D_actor_503500_8014B9CC;
+extern GpScriptCmd          D_actor_503500_8014D2F0[2];
+extern GpScriptCmd          D_actor_503500_8014D300[3];
+extern GpScriptRec          D_actor_503500_8014D2F8[2];
+extern GpScriptRec          D_actor_503500_8014D30C[3];
+extern GpXformArg           D_actor_503500_8014BAD8;
+extern GpXformArg           D_actor_503500_8014BAF0;
+extern GpXformArg           D_actor_503500_8014BB08;
+extern GpXformArg           D_actor_503500_8014BB20;
+extern GpXformArg           D_actor_503500_8014BB38;
+extern GpXformArg           D_actor_503500_8014BBB4[2];
+extern GpXformArg           D_actor_503500_8014BBE4;
+extern GpXformArg           D_actor_503500_8014BBFC;
+void                        func_actor_503500_80132B78(void);
+void                        func_actor_503500_80132B98(void);
+void                        func_actor_503500_80132BB8(void);
+void                        func_actor_503500_80132BD8(void);
+void                        func_actor_503500_80132BF8(void);
+void                        func_actor_503500_80132C40(s32);
+void                        func_actor_503500_80132C70(s32);
+void                        func_actor_503500_80132CA4(void);
+void                        func_actor_503500_80132CC4(s8);
+void                        func_actor_503500_80132D00(s32);
+void                        func_actor_503500_80132D60(void);
+void                        func_actor_503500_80132D7C(void);
+void                        func_actor_503500_80132D90(s32);
+void                        func_actor_503500_80132DB4(s32);
+void                        func_actor_503500_80132DD4(void);
+void                        func_actor_503500_80132DEC(void);
+void                        func_actor_503500_80132E7C(void);
+void                        func_actor_503500_80132EE8(u8);
+void                        func_actor_503500_80132EF4(void);
+void                        func_actor_503500_80132F28(void);
 
 extern TmdSource D_actor_503500_80154624;
 extern TmdSource D_actor_503500_80154C38;
@@ -409,24 +409,24 @@ GpAnimSet* D_actor_503500_8014B99C[12] = {
 
 GpCopyArg D_actor_503500_8014B9CC = { { .sets = D_actor_503500_8014B99C }, 12 };
 
-GpAnimArg D_actor_503500_8014B9D4 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_503500_8014B9D4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_503500_8014B9E8 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_actor_503500_8014B9E8 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_503500_8014B9FC[10] = {
-    { { .index = 1 }, 49, 0, 0, 0 },
-    { { .index = 1 }, 50, 1, 10, 0 },
-    { { .index = 1 }, 51, 0, 0, 0 },
-    { { .index = 1 }, 52, 1, 4, 0 },
-    { { .index = 1 }, 53, 0, 0, 0 },
-    { { .index = 1 }, 54, 0, 0, 0 },
-    { { .index = 1 }, 55, 0, 0, 0 },
-    { { .index = 1 }, 56, 0, 0, 0 },
-    { { .index = 1 }, 57, 0, 0, 0 },
-    { { .index = 1 }, 58, 0, 0, 0 },
+AnimationPlayRequest D_actor_503500_8014B9FC[10] = {
+    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_actor_503500_8014BAC4 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_actor_503500_8014BAC4 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_503500_8014BAD8 = { { 2500, -2000, 6900, 0 }, { 0, 1024, 0, 0 } };
 
@@ -438,12 +438,12 @@ GpXformArg D_actor_503500_8014BB20 = { { 2240, -2000, 6770, 0 }, { 0, 910, 0, 0 
 
 GpXformArg D_actor_503500_8014BB38 = { { 2000, 0, 1000, 0 }, { 0, 0, 0, 0 } };
 
-GpAnimArg D_actor_503500_8014BB50[5] = {
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 1, 0, 0, 0 },
-    { { .index = 1 }, 2, 0, 0, 0 },
-    { { .index = 0 }, 14, 0, 0, 0 },
-    { { .index = 1 }, 4, 1, 40, 0 },
+AnimationPlayRequest D_actor_503500_8014BB50[5] = {
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 4, ANIMATION_BLEND_INTERPOLATE, 40, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 GpXformArg D_actor_503500_8014BBB4[2] = {
@@ -468,11 +468,11 @@ GpCmdArg D_actor_503500_8014BC24 = { { .loc = { 4, 48 } }, 4 };
 
 GpCmdArg D_actor_503500_8014BC28 = { { .loc = { 4, 48 } }, 5 };
 
-GpAnimArg D_actor_503500_8014BC2C = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_503500_8014BC2C = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_503500_8014BC40 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_503500_8014BC40 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_503500_8014BC54 = { { .index = 0 }, 2, 1, 4, 0 };
+AnimationPlayRequest D_actor_503500_8014BC54 = { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_503500_8014BC68 = { { 5190, 3920, 7820, 0 }, { 0, 1024, 0, 0 } };
 

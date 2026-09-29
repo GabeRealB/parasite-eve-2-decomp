@@ -43,8 +43,8 @@ s32 D_actor_143000_80135C1C;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[5];
-        GpAnimArg  arguments[6];
+        GpAnimSet*           sets[5];
+        AnimationPlayRequest arguments[6];
     } data;
     s32 words[35];
 } Actor143000AnimStorage50D4;
@@ -78,7 +78,7 @@ TaskDesc D_actor_143000_801350C8 = { 0, 32, func_actor_143000_80133CF0, { .model
 
 Actor143000AnimStorage50D4 D_actor_143000_801350D4 = { .data = { { &D_actor_143000_80134840, &D_actor_143000_80134AEC, &D_actor_143000_80134D08, &D_actor_143000_80134EB0, &D_actor_143000_80135068 }, { { { .index = 1 }, 1, 0, 0, 0 }, { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 48, 0, 0, 0 }, { { .index = 1 }, 49, 0, 0, 0 }, { { .index = 1 }, 50, 1, 10, 0 } } } };
 
-GpAnimArg D_actor_143000_80135160 = { { .index = 1 }, 51, 1, 10, 0 };
+AnimationPlayRequest D_actor_143000_80135160 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCopyArg D_actor_143000_80135174 = { { .words = D_actor_143000_801350D4.words }, 32 };
 
@@ -391,14 +391,14 @@ void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active)
     if (y < 0x59) {
         if (active != 0) {
             if ((codes[index] & 0xF000) == 0x3000) {
-                Gp_PlayerWeaponId(&D_actor_143000_801350D4.data.arguments[3].animBlock.index);
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_actor_143000_801350D4.data.arguments[3].animBlock.index, 0);
+                Gp_PlayerWeaponId(&D_actor_143000_801350D4.data.arguments[3].source.index);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_actor_143000_801350D4.data.arguments[3].source.index, 0);
                 D_actor_143000_801351AC = 1;
             }
             if (codes[index] == 0xFFFE && D_actor_143000_801351AC == 1) {
                 D_actor_143000_801351AC = 0;
-                Gp_PlayerWeaponId(&D_actor_143000_801350D4.data.arguments[5].animBlock.index);
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_actor_143000_801350D4.data.arguments[5].animBlock.index, 0);
+                Gp_PlayerWeaponId(&D_actor_143000_801350D4.data.arguments[5].source.index);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_actor_143000_801350D4.data.arguments[5].source.index, 0);
             }
         }
         prim           = (POLY_F4*)gGpuPrimCursor;

@@ -90,13 +90,13 @@ extern DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C;
 
 DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C = { .data = { { NULL, &D_dryfield_toilet_80180614, &D_dryfield_toilet_80180B64 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
 
-GpAnimArg D_dryfield_toilet_80180BA0 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_toilet_80180BA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_toilet_80180BB4 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_toilet_80180BB4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_toilet_80180BC8 = { { .index = 1 }, 49, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_toilet_80180BC8 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_toilet_80180BDC = { { .index = 1 }, 9, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_toilet_80180BDC = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_toilet_80180BF0 = { { -1664, 0, 135, 0 }, { 0, -2047, 0, 0 } };
 

@@ -210,7 +210,7 @@ extern GpEvsCmd D_actor_444000_8014431C[];
 extern GpEvsCmd D_actor_444000_801444E4[];
 
 /// Animation-set table this overlay hands the player task as message 0x3F4's
-/// `GpAnimArg::animBlock`, the counterpart of `D_actor_403100_8015570C`. The first
+/// `AnimationPlayRequest::source`, the counterpart of `_gActor403100PlayerAnimationSets`. The first
 /// entry is a `GpAnimSet` in the overlay's own data; the other three point at
 /// its work areas.
 extern GpAnimSet* D_actor_444000_8014430C[4];
@@ -2766,7 +2766,7 @@ static void func_actor_444000_80132054(Task* task)
     Actor444000EventWork* work = (Actor444000EventWork*)task->work;
     Actor444000EventWork* other;
     Actor444000EventWork* target;
-    GpAnimArg             msg;
+    AnimationPlayRequest  msg;
     s32                   anim;
 
     switch (work->field_2C) {
@@ -2780,21 +2780,21 @@ static void func_actor_444000_80132054(Task* task)
             } else {
                 anim += 0x22;
             }
-            msg.animBlock.index = anim;
-            msg.field_4         = 1;
-            msg.field_8         = 1;
-            msg.field_C         = 0xA;
-            msg.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
+            msg.source.index         = anim;
+            msg.animationId          = 1;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 0xA;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         case 2:
             if (work->field_20 != NULL) {
-                msg.animBlock.ptr = D_actor_444000_8014430C;
-                msg.field_4       = 3;
-                msg.field_8       = 0;
-                msg.field_C       = 0;
-                msg.field_10      = 0;
-                Gp_DispatchMsgPtr(work->field_20, 0x3F4, &msg, 0);
+                msg.source.sets          = D_actor_444000_8014430C;
+                msg.animationId          = 3;
+                msg.blend                = ANIMATION_BLEND_RESET;
+                msg.blendFrames          = 0;
+                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(work->field_20, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
             /* Same one-shot cue as func_actor_444000_80132608. */
             other = (Actor444000EventWork*)D_actor_444000_80161860->work;
@@ -2808,12 +2808,12 @@ static void func_actor_444000_80132054(Task* task)
             Gp_StateC08.field_6 |= 1;
             target               = (Actor444000EventWork*)task->work;
             if (target->field_20 != NULL) {
-                msg.animBlock.ptr = D_actor_444000_8014430C;
-                msg.field_4       = 0;
-                msg.field_8       = 1;
-                msg.field_C       = 0xA;
-                msg.field_10      = 0;
-                Gp_DispatchMsgPtr(target->field_20, 0x3F4, &msg, 0);
+                msg.source.sets          = D_actor_444000_8014430C;
+                msg.animationId          = 0;
+                msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+                msg.blendFrames          = 0xA;
+                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(target->field_20, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
             break;
     }
@@ -4962,12 +4962,12 @@ static void func_actor_444000_80138490(GpEnemy* enemy, Task* task)
             cfg->hp > 0) {
             D_actor_444000_80161898.value.field_14 = 0x28;
             if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_444000_80161898.value, 0) == 0) {
-                D_actor_444000_80144A6C  = 1;
-                work->anim.animBlock.ptr = D_actor_444000_80161694;
-                work->anim.field_4       = 1;
-                work->anim.field_8       = 0;
-                work->anim.field_C       = 3;
-                Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+                D_actor_444000_80144A6C = 1;
+                work->anim.source.sets  = D_actor_444000_80161694;
+                work->anim.animationId  = 1;
+                work->anim.blend        = ANIMATION_BLEND_RESET;
+                work->anim.blendFrames  = 3;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
                 work->field_1B2 = 1;
             }
         }
@@ -5024,12 +5024,12 @@ static void func_actor_444000_801389EC(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_444000_80161694[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[9];
-        work->anim.animBlock.ptr = D_actor_444000_80161694;
-        work->anim.field_4       = 2;
-        work->anim.field_8       = armed;
-        work->anim.field_C       = 9;
-        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+        work->anim.source.sets = D_actor_444000_80161694;
+        work->anim.animationId = 2;
+        work->anim.blend       = armed;
+        work->anim.blendFrames = 9;
+        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         task->extra.tmd->flags = 0x80;
     }
 
@@ -6215,15 +6215,15 @@ static void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
     gte_gpf12();
     gte_stsv(gteDir);
 
-    work->anim.animBlock.ptr = NULL;
-    work->anim.field_4       = 1;
-    work->anim.field_8       = 0;
-    work->anim.field_C       = 3;
-    work->anim.field_10      = 1;
-    work->field_F12          = 0;
-    task->msgTable           = D_actor_444000_80161818;
-    coord->parent            = &gGfxViewCoord;
-    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    work->anim.source.sets          = NULL;
+    work->anim.animationId          = 1;
+    work->anim.blend                = ANIMATION_BLEND_RESET;
+    work->anim.blendFrames          = 3;
+    work->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    work->field_F12                 = 0;
+    task->msgTable                  = D_actor_444000_80161818;
+    coord->parent                      = &gGfxViewCoord;
+    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     D_actor_444000_80161880.coord      = task->extra.tmd->coords;
@@ -7661,9 +7661,9 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor403200Work*
         } else {
             sc->angle = yaw + 0x800;
         }
-        work->anim.animBlock.ptr = (D_actor_444000_80161670 + 4);
+        work->anim.source.sets = (D_actor_444000_80161670 + 4);
     } else {
-        work->anim.animBlock.ptr = D_actor_444000_80161670;
+        work->anim.source.sets = D_actor_444000_80161670;
     }
     coord      = player->extra.tmd->coords;
     sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -7882,11 +7882,11 @@ static void func_actor_444000_8013EC84(Task* arg0)
         if (work->field_6 == 0x17) {
             SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
             Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
-            work->anim.field_4 = 1;
-            work->anim.field_8 = 0;
-            work->anim.field_C = 0;
-            work->field_F02    = 1;
-            Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+            work->anim.animationId = 1;
+            work->anim.blend       = ANIMATION_BLEND_RESET;
+            work->anim.blendFrames = 0;
+            work->field_F02        = 1;
+            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
     }
 
@@ -8100,12 +8100,12 @@ scanned:
         if (work->field_ECA == 1) {
             ((GameActor*)player->work)->field_956 = 0xA;
         }
-        work->anim.animBlock.ptr = D_actor_444000_80161670;
-        work->field_EC8          = 1;
-        work->anim.field_4       = 2;
-        work->anim.field_8       = 0;
-        work->anim.field_C       = 0;
-        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+        work->anim.source.sets = D_actor_444000_80161670;
+        work->field_EC8        = 1;
+        work->anim.animationId = 2;
+        work->anim.blend       = ANIMATION_BLEND_RESET;
+        work->anim.blendFrames = 0;
+        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -8114,32 +8114,32 @@ scanned:
         count           = work->field_7CA + 1;
         work->field_7CA = count;
         if (work->field_ECA == mode) {
-            if (work->anim.field_4 == 2) {
-                work->anim.animBlock.ptr = D_actor_444000_80161670;
-                work->anim.field_8       = 0;
-                work->anim.field_C       = 0;
-                Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+            if (work->anim.animationId == 2) {
+                work->anim.source.sets = D_actor_444000_80161670;
+                work->anim.blend       = ANIMATION_BLEND_RESET;
+                work->anim.blendFrames = 0;
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
                 work->field_7CA = 0;
             }
-        } else if (work->anim.field_4 == 2 && (s16)count < 0x28) {
-            work->anim.animBlock.ptr = D_actor_444000_80161670;
-            work->anim.field_8       = 0;
-            work->anim.field_C       = 0;
-            Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+        } else if (work->anim.animationId == 2 && (s16)count < 0x28) {
+            work->anim.source.sets = D_actor_444000_80161670;
+            work->anim.blend       = ANIMATION_BLEND_RESET;
+            work->anim.blendFrames = 0;
+            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
 
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-            switch (work->anim.field_4) {
+            switch (work->anim.animationId) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
-                        work->anim.animBlock.ptr   = D_actor_444000_80161670;
+                        work->anim.source.sets     = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = (Gp_PlayerAnimBlkTbl
                                                           [Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])
-                                                         ->prefix.sets[7];
-                        work->anim.field_4 = 4;
-                        work->anim.field_8 = 1;
-                        work->anim.field_C = 3;
-                        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+                                                         ->table.sets[7];
+                        work->anim.animationId = 4;
+                        work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;
+                        work->anim.blendFrames = 3;
+                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
                         work->field_7CA = 0;
                     }
                     break;

@@ -108,25 +108,25 @@ extern GpObj4C        D_acropolis_roof_garden_801854C8[6];
 extern GpObj4C        D_acropolis_roof_garden_80185690[7];
 extern GpRoomCoordSet D_acropolis_roof_garden_80186BDC[1];
 
-extern GpAnimArg D_acropolis_roof_garden_80184ACC;
-extern GpAnimArg D_acropolis_roof_garden_80184AE0;
-extern GpCopyArg D_acropolis_roof_garden_80184AB0;
-void             func_acropolis_roof_garden_8017DCCC(void);
+extern AnimationPlayRequest D_acropolis_roof_garden_80184ACC;
+extern AnimationPlayRequest D_acropolis_roof_garden_80184AE0;
+extern GpCopyArg            D_acropolis_roof_garden_80184AB0;
+void                        func_acropolis_roof_garden_8017DCCC(void);
 
-extern GpAnimArg  D_acropolis_roof_garden_80183C44;
-extern GpAnimArg  D_acropolis_roof_garden_80183CCC;
-extern GpAnimArg  D_acropolis_roof_garden_80183CE0;
-extern GpAnimArg  D_acropolis_roof_garden_80183CF4;
-extern GpAnimArg  D_acropolis_roof_garden_80183D08;
-extern GpAnimArg  D_acropolis_roof_garden_80183D1C;
-extern GpAnimArg  D_acropolis_roof_garden_80183D30;
-extern GpAnimArg  D_acropolis_roof_garden_80183D44;
-extern GpAnimArg  D_acropolis_roof_garden_80183D58;
-extern GpCopyArg  D_acropolis_roof_garden_80183CC4;
-extern GpXformArg D_acropolis_roof_garden_80183C58;
-extern GpXformArg D_acropolis_roof_garden_80183C70;
-extern GpXformArg D_acropolis_roof_garden_80183CA0;
-void              func_acropolis_roof_garden_8017DAD4(s32);
+extern AnimationPlayRequest D_acropolis_roof_garden_80183C44;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183CCC;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183CE0;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183CF4;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183D08;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183D1C;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183D30;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183D44;
+extern AnimationPlayRequest D_acropolis_roof_garden_80183D58;
+extern GpCopyArg            D_acropolis_roof_garden_80183CC4;
+extern GpXformArg           D_acropolis_roof_garden_80183C58;
+extern GpXformArg           D_acropolis_roof_garden_80183C70;
+extern GpXformArg           D_acropolis_roof_garden_80183CA0;
+void                        func_acropolis_roof_garden_8017DAD4(s32);
 
 extern GpAnimSet D_acropolis_roof_garden_80181724;
 extern GpAnimSet D_acropolis_roof_garden_801836BC;
@@ -227,7 +227,7 @@ TaskDesc D_acropolis_roof_garden_80183C10[4] = {
 
 GpCmdArg D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
 
-GpAnimArg D_acropolis_roof_garden_80183C44 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183C44 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_acropolis_roof_garden_80183C58 = { 0 };
 
@@ -245,21 +245,21 @@ GpAnimSet* D_acropolis_roof_garden_80183CB8[3] = {
 
 GpCopyArg D_acropolis_roof_garden_80183CC4 = { { .sets = D_acropolis_roof_garden_80183CB8 }, 3 };
 
-GpAnimArg D_acropolis_roof_garden_80183CCC = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183CCC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183CE0 = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183CE0 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183CF4 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183CF4 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183D08 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183D08 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183D1C = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183D1C = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183D30 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183D30 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183D44 = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183D44 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80183D58 = { { .index = 0 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80183D58 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverlayIds D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
@@ -384,14 +384,14 @@ GpAnimSet* D_acropolis_roof_garden_80184AA4[3] = {
 
 GpCopyArg D_acropolis_roof_garden_80184AB0 = { { .sets = D_acropolis_roof_garden_80184AA4 }, 3 };
 
-GpAnimArg D_acropolis_roof_garden_80184AB8 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80184AB8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80184ACC = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80184ACC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_roof_garden_80184AE0 = { { .index = 1 }, 49, 1, 20, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80184AE0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, 1, 10, 0 };
+AnimationPlayRequest D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_acropolis_roof_garden_80184B08[10] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_roof_garden_80184AB0 }, { .value = 0 } },

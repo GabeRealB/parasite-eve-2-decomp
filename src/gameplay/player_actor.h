@@ -11,6 +11,15 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+/// Pending world-collision updates for the player's body and held-object nodes.
+enum {
+    PLAYER_ACTOR_WORLD_COLLISION_ENABLE  = 7,
+    PLAYER_ACTOR_WORLD_COLLISION_DISABLE = 0x38,
+};
+
+/// Bank sentinel for a directly installed animation-set table.
+enum { PLAYER_ACTOR_DIRECT_ANIMATION_BANK = 0x7FFF };
+
 /// u8 table indexed by `Mc_SaveData[0].state.companionVariant`. Non-zero selects
 /// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
@@ -71,7 +80,8 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 
 void func_801061F0(void);
 
-s32 func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
+/// Installs a borrowed set table and enters scripted player animation playback.
+s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request);
 
 void func_8010870C(Task* arg0, s32 arg1);
 

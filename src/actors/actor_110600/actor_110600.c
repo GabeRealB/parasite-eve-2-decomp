@@ -326,7 +326,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2);
 
 /// The `0x7D3` display handler: parks the actor in state 0x11 with
 /// `field_892` set from the requested state.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a
@@ -450,7 +450,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, Actor110600Event*);
-        s32  (*call2)(Task*, s32, GpAnimArg*);
+        s32  (*call2)(Task*, s32, AnimationPlayRequest*);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -460,7 +460,7 @@ STATIC_ASSERT_SIZEOF(Actor110600MessageEntry, 8);
 
 s32  func_actor_110600_80133E48(Task*, s32, GpXformArg*);
 s32  func_actor_110600_80134040(Task*, s32, Actor110600Event*);
-s32  func_actor_110600_8013839C(Task*, s32, GpAnimArg*);
+s32  func_actor_110600_8013839C(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_110600_80138448(Task*, s32, s32);
 s32  func_actor_110600_80138538(Task*);
 s32  func_actor_110600_801387C0(Task*);
@@ -2236,7 +2236,7 @@ static void func_actor_110600_80134728(Task* arg0)
         warmWork  = work;
         warmIndex = 1;
         do {
-            work->slots[warmIndex].rate = 0x10;
+            work->slots[warmIndex].rate = ANIMATION_RATE_ONE;
             Gp_AnimResetSlot(&warmWork->anim, warmIndex, (s32)warmWork->field_892);
             warmIndex += 1;
         } while (warmIndex < 0x13);
@@ -4093,13 +4093,13 @@ static const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
 /// `rodata_head`: it lands at 0x18C, 8-aligned only if this unit's `.rodata`
 /// starts at 0x4 rather than 0x0 — the package id ahead of it is prepended, not
 /// compiled — and behind the id it picks up `.align 3`'s 4-byte pad instead.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
     s32              state;
 
-    state = arg2->field_4;
+    state = arg2->animationId;
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     switch (state) {

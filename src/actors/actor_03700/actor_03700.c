@@ -90,10 +90,10 @@ typedef struct Actor103700Work {
 } Actor103700Work;
 
 /// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn03130`:
-/// the 0x3F8 query buffer followed by the `GpAnimArg` it sends as message 0x3FF.
+/// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
 typedef struct Actor103700HoldScratch {
-    /* 0x00 */ GpDelayArg query;
-    /* 0x18 */ GpAnimArg  anim;
+    /* 0x00 */ GpDelayArg           query;
+    /* 0x18 */ AnimationPlayRequest anim;
 } Actor103700HoldScratch;
 STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 
@@ -148,7 +148,7 @@ STATIC_ASSERT_SIZEOF(Actor03700RecoveredMsgEntry, 8);
 
 extern Actor03700RecoveredMsgEntry Actor03700_D08108[2];
 
-/// Animation-set table handed to the player as the 0x3FF payload's `animBlock`.
+/// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
 extern GpAnimSet* Actor03700_D080FC[];
 
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
@@ -1383,19 +1383,19 @@ static void Actor03700_Fn011B4(Task* task)
 
 static void Actor03700_Fn01550(Task* task)
 {
-    Actor103700Work* work;
-    GfxCoord*        obj;
-    Task*            player;
-    void*            head;
-    GpAnimArg*       arg;
-    s32              sound;
+    Actor103700Work*      work;
+    GfxCoord*              obj;
+    Task*                 player;
+    void*                 head;
+    AnimationPlayRequest* arg;
+    s32                   sound;
 
     work               = (Actor103700Work*)task->work;
     obj                = task->extra.tmd->coords;
     player             = gameGetPtrSlot(3);
     head               = SCRATCH_HEAD(void);
     SCRATCH_HEAD(void) = (u8*)head - 0x1C;
-    arg                = (GpAnimArg*)SCRATCH_HEAD(void);
+    arg                = SCRATCH_HEAD(AnimationPlayRequest);
 
     switch (work->field_250) {
         case 0:
@@ -1431,12 +1431,12 @@ static void Actor03700_Fn01550(Task* task)
             }
             break;
         case 3:
-            arg->animBlock.ptr = Actor03700_D080FC;
-            arg->field_4       = 2;
-            arg->field_8       = 0;
-            arg->field_C       = 0;
-            arg->field_10      = 1;
-            Gp_DispatchMsgPtr(player, 0x3F4, arg, 0);
+            arg->source.sets          = Actor03700_D080FC;
+            arg->animationId          = 2;
+            arg->blend                = ANIMATION_BLEND_RESET;
+            arg->blendFrames          = 0;
+            arg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
             sound = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 6;
             SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             work->field_250 = 4;
@@ -1539,29 +1539,29 @@ static void Actor03700_Fn018C8(Task* task)
 
 static void Actor03700_Fn01C94(Task* task)
 {
-    Actor103700Work* work;
-    GfxCoord*        obj;
-    Task*            player;
-    void*            head;
-    GpAnimArg*       arg;
-    s32              sound;
-    s32              pan;
+    Actor103700Work*      work;
+    GfxCoord*              obj;
+    Task*                 player;
+    void*                 head;
+    AnimationPlayRequest* arg;
+    s32                   sound;
+    s32                   pan;
 
     work               = (Actor103700Work*)task->work;
     obj                = task->extra.tmd->coords;
     player             = gameGetPtrSlot(3);
     head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(GpAnimArg);
-    arg                = (GpAnimArg*)SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - sizeof(AnimationPlayRequest);
+    arg                = SCRATCH_HEAD(AnimationPlayRequest);
 
     switch (work->field_250) {
         case 0:
-            arg->animBlock.ptr = Actor03700_D080FC;
-            arg->field_4       = 2;
-            arg->field_8       = 0;
-            arg->field_C       = 0;
-            arg->field_10      = 1;
-            Gp_DispatchMsgPtr(player, 0x3F4, arg, 0);
+            arg->source.sets          = Actor03700_D080FC;
+            arg->animationId          = 2;
+            arg->blend                = ANIMATION_BLEND_RESET;
+            arg->blendFrames          = 0;
+            arg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
             sound = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 6;
             pan   = (s8)Gp_GetObjPan(obj);
             SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
@@ -1576,7 +1576,7 @@ static void Actor03700_Fn01C94(Task* task)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(GpAnimArg));
+    SCRATCH_POP_BYTES(sizeof(AnimationPlayRequest));
 }
 
 /// Tests whether the actor has noticed the player: true when the player is
@@ -1765,13 +1765,13 @@ static inline void _actor03700SpawnRemains(Task* task)
 /// count 60 frames and destroy the enemy.
 static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
 {
-    TmdObject*       model;
-    GfxCoord*        obj;
-    Actor103700Work* work;
-    Task*            player;
-    GpAnimArg        arg;
-    s32              sound;
-    s32              sound2;
+    TmdObject*           model;
+    GfxCoord*             obj;
+    Actor103700Work*     work;
+    Task*                player;
+    AnimationPlayRequest arg;
+    s32                  sound;
+    s32                  sound2;
 
     work   = (Actor103700Work*)task->work;
     obj    = task->extra.tmd->coords;
@@ -1800,12 +1800,12 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                     sound        = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     if (work->field_262 != 0) {
-                        arg.animBlock.ptr = Actor03700_D080FC;
-                        arg.field_4       = 2;
-                        arg.field_8       = 0;
-                        arg.field_C       = 0;
-                        arg.field_10      = 1;
-                        Gp_DispatchMsgPtr(player, 0x3F4, &arg, 0);
+                        arg.source.sets          = Actor03700_D080FC;
+                        arg.animationId          = 2;
+                        arg.blend                = ANIMATION_BLEND_RESET;
+                        arg.blendFrames          = 0;
+                        arg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
                         sound2 = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 6;
                         SndEvt_EnqueueType6(sound2, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     }
@@ -2147,12 +2147,12 @@ static s32 Actor03700_Fn03130(Task* task)
     if (((GameActor*)player->work)->field_954 != 2) {
         scratch->query.field_14 = 8;
         if (Gp_DispatchMsgPtr(player, 0x3F8, scratch, 0) == 0) {
-            scratch->anim.animBlock.ptr = Actor03700_D080FC;
-            scratch->anim.field_4       = 1;
-            scratch->anim.field_8       = 0;
-            scratch->anim.field_C       = 0;
-            scratch->anim.field_10      = 1;
-            Gp_DispatchMsgPtr(player, 0x3FF, &scratch->anim, 0);
+            scratch->anim.source.sets          = Actor03700_D080FC;
+            scratch->anim.animationId          = 1;
+            scratch->anim.blend                = ANIMATION_BLEND_RESET;
+            scratch->anim.blendFrames          = 0;
+            scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
             work->field_262 = 1;
             ret             = 1;
         }

@@ -104,30 +104,30 @@ GpAnimSet* D_dryfield_night_garage_80182CB0[5] = {
 
 GpCopyArg D_dryfield_night_garage_80182CC4 = { { .sets = D_dryfield_night_garage_80182CB0 }, 5 };
 
-GpAnimArg D_dryfield_night_garage_80182CCC = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182CCC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182CE0 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182CE0 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182CF4 = { { .index = 1 }, 49, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182CF4 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182D08 = { { .index = 1 }, 50, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182D08 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182D1C = { { .index = 1 }, 51, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182D1C = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_night_garage_80182D30 = { { 5500, 0, 4500, 0 }, { 0, -1024, 0, 0 } };
 
-GpAnimArg D_dryfield_night_garage_80182D48[2] = {
-    { { .index = 0 }, 0, 0, 0, 0 },
-    { { .index = 0 }, 1, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_night_garage_80182D48[2] = {
+    { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_garage_80182D70 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182D70 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182D84 = { { .index = 0 }, 3, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182D84 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182D98 = { { .index = 0 }, 4, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182D98 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_garage_80182DAC = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_garage_80182DAC = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_night_garage_80182DC0 = { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } };
 

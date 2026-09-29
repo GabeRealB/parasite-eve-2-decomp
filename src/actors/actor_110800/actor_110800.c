@@ -48,7 +48,7 @@ extern u8 D_actor_110800_80139EF4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor110800MsgEntry;
@@ -67,7 +67,7 @@ extern TmdSource D_actor_110800_80138048;
 void             func_actor_110800_801322A0(Task*);
 void             func_actor_110800_801322FC(Task*);
 
-s32 func_actor_110800_80132524(Task*, s32, GpAnimArg*);
+s32 func_actor_110800_80132524(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_110800_80132584(Task*, s32, s32);
 
 TmdBone D_actor_110800_801325F0[20] = {
@@ -527,19 +527,15 @@ static void func_actor_110800_801324AC(void)
     D_actor_110800_80139F10->st.appliedAnimId = D_actor_110800_80139F10->st.animId;
 }
 
-/// Message 0x7D3 handler: starts animation `args->field_4`, rejecting anything
-/// from 6 up, and leaves the actor in step 2 with `st.field_6` cleared before
-/// running the animation step driver.
+/// Starts the actor's scripted animation selected by the request.
 ///
-/// The actor is read into a local between the first two stores: that puts the
-/// global's `lui`/`lw` ahead of the `li 2` and leaves the `st.field_6` clear
-/// for the call's delay slot.
-s32 func_actor_110800_80132524(Task* task, s32 arg1, GpAnimArg* args)
+/// Rejects ids 6 and above before changing playback state.
+s32 func_actor_110800_80132524(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Task* actor;
 
-    if (args->field_4 < 6) {
-        D_actor_110800_80139F10->st.animId  = args->field_4;
+    if (args->animationId < 6) {
+        D_actor_110800_80139F10->st.animId  = args->animationId;
         actor                               = D_actor_110800_80139F14;
         D_actor_110800_80139F10->st.state   = 2;
         D_actor_110800_80139F10->st.field_6 = 0;

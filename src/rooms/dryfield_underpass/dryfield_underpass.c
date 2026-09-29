@@ -58,13 +58,13 @@ extern GpObj4C        D_dryfield_underpass_801808E0[6];
 extern GpRoomCoordSet D_dryfield_underpass_80180EBC[1];
 extern GpRoomCoordSet D_dryfield_underpass_80181114[1];
 
-extern GpAnimArg D_dryfield_underpass_8017E870;
-extern GpAnimArg D_dryfield_underpass_8017E884;
-extern GpCmdArg  D_dryfield_underpass_8017E8A0;
-extern GpCmdArg  D_dryfield_underpass_8017E8A4;
-extern GpCmdArg  D_dryfield_underpass_8017E8A8;
-extern GpCopyArg D_dryfield_underpass_8017E868;
-void             func_dryfield_underpass_8017DA08(void);
+extern AnimationPlayRequest D_dryfield_underpass_8017E870;
+extern AnimationPlayRequest D_dryfield_underpass_8017E884;
+extern GpCmdArg             D_dryfield_underpass_8017E8A0;
+extern GpCmdArg             D_dryfield_underpass_8017E8A4;
+extern GpCmdArg             D_dryfield_underpass_8017E8A8;
+extern GpCopyArg            D_dryfield_underpass_8017E868;
+void                        func_dryfield_underpass_8017DA08(void);
 
 s32  func_dryfield_underpass_8017D788(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_underpass_8017D868(Task*, s32, s32, GpMessageArg);
@@ -138,9 +138,9 @@ GpAnimSet* D_dryfield_underpass_8017E860[2] = {
 
 GpCopyArg D_dryfield_underpass_8017E868 = { { .sets = D_dryfield_underpass_8017E860 }, 2 };
 
-GpAnimArg D_dryfield_underpass_8017E870 = { { .index = 1 }, 47, 1, 8, 1 };
+AnimationPlayRequest D_dryfield_underpass_8017E870 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_underpass_8017E884 = { { .index = 1 }, 48, 1, 8, 1 };
+AnimationPlayRequest D_dryfield_underpass_8017E884 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCmdArg D_dryfield_underpass_8017E898 = { { .loc = { 5, 11 } }, 0 };
 
@@ -152,7 +152,7 @@ GpCmdArg D_dryfield_underpass_8017E8A4 = { { .loc = { 5, 11 } }, 3 };
 
 GpCmdArg D_dryfield_underpass_8017E8A8 = { { .loc = { 5, 11 } }, 4 };
 
-GpAnimArg D_dryfield_underpass_8017E8AC = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_underpass_8017E8AC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_dryfield_underpass_8017E8C0 = { { 0x3EE0, -1000, -3624, 0 }, { 0, -2048, 0, 0 } };
 

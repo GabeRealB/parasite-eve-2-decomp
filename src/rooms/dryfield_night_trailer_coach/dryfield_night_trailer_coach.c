@@ -158,18 +158,18 @@ void func_dryfield_night_trailer_coach_80181DB0(Task*);
 void func_dryfield_night_trailer_coach_8018243C(Task*);
 void func_dryfield_night_trailer_coach_80182610(Task*);
 
-extern GpAnimArg D_dryfield_night_trailer_coach_80187A20;
-extern GpAnimSet D_dryfield_night_trailer_coach_80185398;
-extern GpAnimSet D_dryfield_night_trailer_coach_80185590;
-extern GpAnimSet D_dryfield_night_trailer_coach_801858E4;
-extern GpAnimSet D_dryfield_night_trailer_coach_80185ADC;
-extern GpAnimSet D_dryfield_night_trailer_coach_80185DE0;
-extern GpAnimSet D_dryfield_night_trailer_coach_80186208;
-extern GpAnimSet D_dryfield_night_trailer_coach_80186844;
-extern GpAnimSet D_dryfield_night_trailer_coach_80186B5C;
-extern GpAnimSet D_dryfield_night_trailer_coach_80186E88;
-extern GpAnimSet D_dryfield_night_trailer_coach_801873D0;
-extern GpAnimSet D_dryfield_night_trailer_coach_80187924;
+extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187A20;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80185398;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80185590;
+extern GpAnimSet            D_dryfield_night_trailer_coach_801858E4;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80185ADC;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80185DE0;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80186208;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80186844;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80186B5C;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80186E88;
+extern GpAnimSet            D_dryfield_night_trailer_coach_801873D0;
+extern GpAnimSet            D_dryfield_night_trailer_coach_80187924;
 
 void func_dryfield_night_trailer_coach_8018283C(void);
 void func_dryfield_night_trailer_coach_80182864(void);
@@ -479,80 +479,80 @@ GpXformArg D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 
 
 GpXformArg D_dryfield_night_trailer_coach_801879B8 = { { 4400, 0, -2400, 0 }, { 0, 512, 0, 0 } };
 
-GpAnimArg D_dryfield_night_trailer_coach_801879D0 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_801879D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_801879E4 = { { .index = 1 }, 47, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_801879E4 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_801879F8 = { { .index = 1 }, 47, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_801879F8 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187A0C = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187A0C = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187A20 = { { .index = 1 }, 48, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187A20 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187A34 = { { .index = 1 }, 53, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187A34 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187A48[4] = {
-    { { .index = 1 }, 49, 0, 0, 0 },
-    { { .index = 1 }, 50, 0, 0, 0 },
-    { { .index = 1 }, 51, 0, 0, 0 },
-    { { .index = 1 }, 55, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187A48[4] = {
+    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187A98 = { { .index = 1 }, 56, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187A98 = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187AAC = { { .index = 1 }, 57, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187AAC = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187AC0 = { { .index = 0 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187AC0 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187AD4 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187AD4 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187AE8[2] = {
-    { { .index = 0 }, 2, 0, 0, 0 },
-    { { .index = 0 }, 3, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187AE8[2] = {
+    { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B10 = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B10 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B24 = { { .index = 0 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B24 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B38 = { { .index = 0 }, 6, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B38 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B4C = { { .index = 0 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B4C = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B60 = { { .index = 0 }, 8, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B60 = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B74 = { { .index = 0 }, 9, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B74 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B88 = { { .index = 0 }, 10, 1, 8, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B88 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187B9C[2] = {
-    { { .index = 0 }, 8, 1, 0, 0 },
-    { { .index = 1 }, 0, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187B9C[2] = {
+    { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187BC4 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187BC4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187BD8 = { { .index = 1 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187BD8 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187BEC = { { .index = 1 }, 3, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187BEC = { { .index = 1 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187C00[3] = {
-    { { .index = 1 }, 4, 1, 0, 0 },
-    { { .index = 1 }, 5, 0, 0, 0 },
-    { { .index = 1 }, 6, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187C00[3] = {
+    { { .index = 1 }, 4, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187C3C = { { .index = 1 }, 7, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187C3C = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187C50 = { { .index = 1 }, 2, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187C50 = { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187C64 = { { .index = 2 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187C64 = { { .index = 2 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187C78 = { { .index = 2 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187C78 = { { .index = 2 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187C8C = { { .index = 2 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187C8C = { { .index = 2 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187CA0 = { { .index = 2 }, 3, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0 = { { .index = 2 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* D_dryfield_night_trailer_coach_80187CB4[12] = {
     &D_dryfield_night_trailer_coach_801873D0,
@@ -571,7 +571,7 @@ GpAnimSet* D_dryfield_night_trailer_coach_80187CB4[12] = {
 
 GpCopyArg D_dryfield_night_trailer_coach_80187CE4 = { { .sets = D_dryfield_night_trailer_coach_80187CB4 }, 11 };
 
-GpAnimArg D_dryfield_night_trailer_coach_80187CEC = { { .index = 6 }, 34, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187CEC = { { .index = 6 }, 34, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_dryfield_night_trailer_coach_80187D00[25] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
@@ -825,7 +825,7 @@ extern DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018
 
 extern GpXformArg D_dryfield_night_trailer_coach_801879B8;
 
-extern GpAnimArg D_dryfield_night_trailer_coach_80187CEC;
+extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CEC;
 
 extern GpEvsCmd D_dryfield_night_trailer_coach_80187D00[];
 
@@ -1085,7 +1085,7 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
     Game_SetPtrSlot(task, 7);
     if (gameGetPtrSlot(0xA) != NULL) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_trailer_coach_801879B8, 0);
-        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_night_trailer_coach_80187CEC, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_trailer_coach_80187CEC, 0);
     }
     if (Mc_SaveData[0].state.at4.loc.warp == 2) {
         func_800E8634(D_dryfield_night_trailer_coach_80187D00, 0, D_dryfield_night_trailer_coach_80187F58);

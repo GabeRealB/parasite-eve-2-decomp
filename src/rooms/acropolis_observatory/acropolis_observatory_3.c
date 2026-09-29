@@ -111,8 +111,6 @@ extern GpSprtCmd  D_acropolis_observatory_80182074[22];
 extern GpSprtElem D_acropolis_observatory_801817A4[49];
 extern GpSprtElem D_acropolis_observatory_80181BB0[61];
 
-GpAnimSet* D_acropolis_observatory_8017FE64 = &D_acropolis_observatory_8017FE38;
-
 s16 D_acropolis_observatory_8017FE68[2] = {
     -1,
     1,
@@ -886,7 +884,7 @@ GpRoomParamRec* D_acropolis_observatory_801834DC[8] = {
 
 /// The observatory's scene task. State 0 allocates the `AobSceneWork` block,
 /// captures slot 3 in it and cues the scene with the 0x3F4 record at
-/// `D_acropolis_observatory_8017FE60`; it does nothing at all while the
+/// `gAcropolisObservatoryPlayerAnimationSets`; it does nothing at all while the
 /// cutscene flag `Gp_StateC08.field_A` or `gDisplayState.pendingMode` is set. States 1, 2 and 4 just
 /// tick, state 3 waits for the shared field-actor byte to reach 2 and arms
 /// `Gp_ArmStateF0`, state 5 republishes the player's weapon to slot 3 and puts
@@ -898,18 +896,18 @@ GpRoomParamRec* D_acropolis_observatory_801834DC[8] = {
 /// as a second 0x3F4 record, unless that entry is negative.
 void func_acropolis_observatory_8017E19C(Task* task)
 {
-    GpAnimArg     rec;
-    GpAnimArg     arg;
-    GpAnimArg*    msg;
-    AobSceneWork* work;
-    AobSceneWork* tail;
-    AobSceneWork* dest;
-    AobSceneWork* blk;
-    s16*          p;
-    u16           entry;
-    s32           temp;
-    s32           weaponId;
-    s32           id;
+    AnimationPlayRequest  rec;
+    AnimationPlayRequest  arg;
+    AnimationPlayRequest* msg;
+    AobSceneWork*         work;
+    AobSceneWork*         tail;
+    AobSceneWork*         dest;
+    AobSceneWork*         blk;
+    s16*                  p;
+    u16                   entry;
+    s32                   temp;
+    s32                   weaponId;
+    s32                   id;
 
     work = (AobSceneWork*)task->work;
     switch (task->state) {
@@ -928,12 +926,12 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             work = (AobSceneWork*)task->work;
             if (work->target != NULL) {
-                rec.animBlock.ptr = &D_acropolis_observatory_8017FE60;
-                rec.field_4       = 1;
-                rec.field_8       = 0;
-                rec.field_C       = 0;
-                rec.field_10      = 1;
-                Gp_DispatchMsgPtr(work->target, 0x3F4, &rec, 0);
+                rec.source.sets          = gAcropolisObservatoryPlayerAnimationSets;
+                rec.animationId          = 1;
+                rec.blend                = ANIMATION_BLEND_RESET;
+                rec.blendFrames          = 0;
+                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &rec, 0);
             }
             Gp_StateF0.field_1A = 0;
             /* fallthrough */
@@ -949,14 +947,14 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             break;
         case 5:
-            weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animBlock.index = id;
-            rec.field_4         = 1;
-            rec.field_8         = 0;
-            rec.field_C         = 0;
-            rec.field_10        = 0;
-            Gp_DispatchMsgPtr(work->target, 0x3E8, &rec, 0);
+            weaponId                 = Player_Status.weapon;
+            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index         = id;
+            rec.animationId          = 1;
+            rec.blend                = ANIMATION_BLEND_RESET;
+            rec.blendFrames          = 0;
+            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             Mc_SaveData[0].state.at4.loc.room = 1;
             gGameSession->at4.loc.room        = 1;
             gGameSession->roomObjsDirty       = 1;
@@ -978,12 +976,12 @@ void func_acropolis_observatory_8017E19C(Task* task)
         if (temp >= 0) {
             dest = (AobSceneWork*)task->work;
             if (dest->target != NULL) {
-                arg.animBlock.ptr = &D_acropolis_observatory_8017FE60;
-                arg.field_4       = entry;
-                msg->field_8      = 1;
-                msg->field_C      = 0xA;
-                msg->field_10     = 1;
-                Gp_DispatchMsgPtr(dest->target, 0x3F4, msg, 0);
+                arg.source.sets           = gAcropolisObservatoryPlayerAnimationSets;
+                arg.animationId           = entry;
+                msg->blend                = ANIMATION_BLEND_INTERPOLATE;
+                msg->blendFrames          = 0xA;
+                msg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(dest->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
             }
         }
     }

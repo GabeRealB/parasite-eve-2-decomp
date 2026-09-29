@@ -181,38 +181,38 @@ void func_dryfield_trailer_coach_801824E8(Task*);
 void func_dryfield_trailer_coach_801827F8(Task*);
 
 extern DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185038;
-extern GpAnimArg                           D_dryfield_trailer_coach_8018504C;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185060;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185088;
-extern GpAnimArg                           D_dryfield_trailer_coach_8018509C;
-extern GpAnimArg                           D_dryfield_trailer_coach_801850B0;
-extern GpAnimArg                           D_dryfield_trailer_coach_801850C4;
-extern GpAnimArg                           D_dryfield_trailer_coach_801850EC;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185100;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185114;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185128;
-extern GpAnimArg                           D_dryfield_trailer_coach_8018513C;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185150;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185178;
-extern GpAnimArg                           D_dryfield_trailer_coach_801851B0;
-extern GpAnimArg                           D_dryfield_trailer_coach_801851EC;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185200;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185214;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185228;
-extern GpAnimArg                           D_dryfield_trailer_coach_8018523C;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185250;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185264;
-extern GpAnimArg                           D_dryfield_trailer_coach_801852A0;
-extern GpAnimArg                           D_dryfield_trailer_coach_801852B4;
-extern GpAnimArg                           D_dryfield_trailer_coach_801852C8;
-extern GpAnimArg                           D_dryfield_trailer_coach_801852DC;
-extern GpAnimArg                           D_dryfield_trailer_coach_801852F0;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185304;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185318;
-extern GpAnimArg                           D_dryfield_trailer_coach_8018532C;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185340;
-extern GpAnimArg                           D_dryfield_trailer_coach_80185354;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185038;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_8018504C;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185060;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185088;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_8018509C;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801850B0;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801850C4;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801850EC;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185100;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185114;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185128;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_8018513C;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185150;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185178;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801851B0;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801851EC;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185200;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185214;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185228;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_8018523C;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185250;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185264;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801852A0;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801852B4;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801852C8;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801852DC;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_801852F0;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185304;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185318;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_8018532C;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185340;
+extern AnimationPlayRequest                D_dryfield_trailer_coach_80185354;
 extern GpAnimSet                           D_dryfield_trailer_coach_80184C28;
 extern GpAnimSet                           D_dryfield_trailer_coach_80184F54;
 extern GpCmdArg                            D_dryfield_trailer_coach_8018518C;
@@ -340,42 +340,42 @@ GpXformArg D_dryfield_trailer_coach_80185008 = { { 4870, 0, -900, 0 }, { 0, 2560
 // Retained parameter record; layout follows the adjacent script arguments.
 GpXformArg D_dryfield_trailer_coach_80185020 = { { 4400, 128, -2400, 0 }, { 0, 512, 0, 0 } };
 
-GpAnimArg D_dryfield_trailer_coach_80185038 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185038 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_trailer_coach_8018504C = { { .index = 6 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_8018504C = { { .index = 6 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185060 = { { .index = 1 }, 1, 0, 0, 0 };
-
-// Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_80185074 = { { .index = 1 }, 47, 0, 0, 1 };
-
-GpAnimArg D_dryfield_trailer_coach_80185088 = { { .index = 1 }, 58, 0, 0, 1 };
-
-GpAnimArg D_dryfield_trailer_coach_8018509C = { { .index = 1 }, 59, 0, 0, 1 };
-
-GpAnimArg D_dryfield_trailer_coach_801850B0 = { { .index = 1 }, 60, 0, 0, 1 };
-
-GpAnimArg D_dryfield_trailer_coach_801850C4 = { { .index = 1 }, 61, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185060 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_801850D8 = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185074 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_trailer_coach_801850EC = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185088 = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185100 = { { .index = 1 }, 48, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_8018509C = { { .index = 1 }, 59, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185114 = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_801850B0 = { { .index = 1 }, 60, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185128 = { { .index = 1 }, 50, 0, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_8018513C = { { .index = 1 }, 51, 0, 0, 1 };
-
-GpAnimArg D_dryfield_trailer_coach_80185150 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_801850C4 = { { .index = 1 }, 61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_80185164 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_trailer_coach_801850D8 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185178 = { { .index = 1 }, 54, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801850EC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185100 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185114 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185128 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_8018513C = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185150 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+AnimationPlayRequest D_dryfield_trailer_coach_80185164 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185178 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCmdArg D_dryfield_trailer_coach_8018518C = { { .loc = { 2, 27 } }, 0 };
 
@@ -385,55 +385,55 @@ GpCmdArg D_dryfield_trailer_coach_80185194 = { { .loc = { 2, 27 } }, 2 };
 
 GpCmdArg D_dryfield_trailer_coach_80185198 = { { .loc = { 2, 27 } }, 3 };
 
-GpAnimArg D_dryfield_trailer_coach_8018519C = { 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_8018519C = { 0 };
 
-GpAnimArg D_dryfield_trailer_coach_801851B0 = { { .index = 0 }, 1, 0, 0, 0 };
-
-// Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_801851C4 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801851B0 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_801851D8 = { { .index = 0 }, 3, 0, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_801851EC = { { .index = 0 }, 4, 0, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_80185200 = { { .index = 0 }, 5, 0, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_80185214 = { { .index = 0 }, 6, 1, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_80185228 = { { .index = 0 }, 7, 0, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_8018523C = { { .index = 0 }, 8, 0, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_80185250 = { { .index = 0 }, 9, 1, 0, 0 };
-
-GpAnimArg D_dryfield_trailer_coach_80185264 = { { .index = 0 }, 10, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801851C4 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_80185278 = { { .index = 0 }, 8, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801851D8 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_801851EC = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185200 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185214 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185228 = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_8018523C = { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185250 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185264 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_trailer_coach_8018528C = { { .index = 1 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185278 = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_801852A0 = { { .index = 1 }, 1, 0, 0, 0 };
+// Retained parameter record; layout follows the adjacent script arguments.
+AnimationPlayRequest D_dryfield_trailer_coach_8018528C = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_801852B4 = { { .index = 1 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801852A0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_801852C8 = { { .index = 1 }, 3, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801852B4 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_801852DC = { { .index = 1 }, 4, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801852C8 = { { .index = 1 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_801852F0 = { { .index = 1 }, 5, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801852DC = { { .index = 1 }, 4, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185304 = { { .index = 1 }, 6, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_801852F0 = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185318 = { { .index = 1 }, 7, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185304 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_8018532C = { { .index = 1 }, 2, 1, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185318 = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185340 = { { .index = 1 }, 62, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_8018532C = { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_trailer_coach_80185354 = { { .index = 1 }, 63, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_trailer_coach_80185340 = { { .index = 1 }, 62, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_dryfield_trailer_coach_80185354 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368 = { .data = { { &D_actor_420700_80133A7C, &D_actor_420700_80133CDC, &D_actor_420700_80134148, &D_actor_420700_80134D38, &D_actor_420700_80134F8C, &D_actor_420700_80135224, &D_actor_420700_801353F4, &D_actor_420700_80135BF8, NULL, NULL, NULL, &D_actor_420700_80132C00, &D_actor_420700_801331C8, &D_actor_420700_8013346C, &D_actor_420700_80133698, &D_dryfield_trailer_coach_80184F54, &D_dryfield_trailer_coach_80184C28 }, { { .words = D_dryfield_trailer_coach_80185368.words }, 32 }, { 143, 101, 138, 237, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0, 0, 0 }, { 131, 86, 131, 70, 131, 139, 131, 94, 129, 91, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0 }, { 145, 188, 130, 201, 137, 189, 130, 169, 129, 72, 0, 0 }, { D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text1, D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text2 } } };
 

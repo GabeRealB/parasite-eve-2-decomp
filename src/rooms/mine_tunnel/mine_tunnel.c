@@ -35,9 +35,9 @@ s32 func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
 
 extern GpAnimSet D_mine_tunnel_8017DF9C;
 
-extern GpAnimArg D_mine_tunnel_8017DFFC;
-extern GpCopyArg D_mine_tunnel_8017DFF4;
-void             func_mine_tunnel_8017D6E0(s32);
+extern AnimationPlayRequest D_mine_tunnel_8017DFFC;
+extern GpCopyArg            D_mine_tunnel_8017DFF4;
+void                        func_mine_tunnel_8017D6E0(s32);
 
 AnimationPackedPose D_mine_tunnel_8017DB54[10] = {
 #include "assets/mine_tunnel_animation_009DC_bank1.inc"
@@ -76,10 +76,10 @@ GpAnimSet* D_mine_tunnel_8017DFEC[2] = {
 
 GpCopyArg D_mine_tunnel_8017DFF4 = { { .sets = D_mine_tunnel_8017DFEC }, 2 };
 
-GpAnimArg D_mine_tunnel_8017DFFC = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_mine_tunnel_8017DFFC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_mine_tunnel_8017E010 = { { .index = 1 }, 7, 1, 10, 0 };
+AnimationPlayRequest D_mine_tunnel_8017E010 = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_mine_tunnel_8017E024[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

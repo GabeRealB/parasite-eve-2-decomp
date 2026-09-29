@@ -193,9 +193,9 @@ GpAnimSet* D_neo_ark_forest_zone_80181DF8[2] = {
 
 GpCopyArg D_neo_ark_forest_zone_80181E00 = { { .sets = D_neo_ark_forest_zone_80181DF8 }, 2 };
 
-GpAnimArg D_neo_ark_forest_zone_80181E08 = { { .index = 1 }, 47, 1, 8, 1 };
+AnimationPlayRequest D_neo_ark_forest_zone_80181E08 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_neo_ark_forest_zone_80181E1C = { { .index = 1 }, 48, 1, 8, 1 };
+AnimationPlayRequest D_neo_ark_forest_zone_80181E1C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
 s32 D_neo_ark_forest_zone_80181E30 = 2821;
 
@@ -203,7 +203,7 @@ GpCmdArg D_neo_ark_forest_zone_80181E34 = { { .loc = { 5, 11 } }, 1 };
 
 s32 D_neo_ark_forest_zone_80181E38 = 0x20B05;
 
-GpAnimArg D_neo_ark_forest_zone_80181E3C = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_neo_ark_forest_zone_80181E3C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpXformArg D_neo_ark_forest_zone_80181E50 = { { 2888, 128, -95, 0 }, { 0, -1024, 0, 0 } };
 

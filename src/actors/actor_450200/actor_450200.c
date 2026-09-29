@@ -32,8 +32,8 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[4];
-        GpAnimArg  arguments[6];
+        GpAnimSet*           sets[4];
+        AnimationPlayRequest arguments[6];
     } data;
     s32 words[34];
 } Actor450200AnimStorageFB4C;
@@ -45,8 +45,8 @@ extern Actor450200AnimStorageFB4C D_actor_450200_8013FB4C;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[5];
-        GpAnimArg  arguments[6];
+        GpAnimSet*           sets[5];
+        AnimationPlayRequest arguments[6];
     } data;
     s32 words[35];
 } Actor450200AnimStorageC66C;
@@ -58,9 +58,9 @@ extern Actor450200AnimStorageC66C D_actor_450200_8013C66C;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[8];
-        GpCopyArg  copy;
-        GpAnimArg  arguments[5];
+        GpAnimSet*           sets[8];
+        GpCopyArg            copy;
+        AnimationPlayRequest arguments[5];
     } data;
     s32 words[35];
 } Actor450200AnimStorage7A84;
@@ -72,9 +72,9 @@ extern Actor450200AnimStorage7A84 D_actor_450200_80137A84;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[8];
-        GpCopyArg  copy;
-        GpAnimArg  arguments[5];
+        GpAnimSet*           sets[8];
+        GpCopyArg            copy;
+        AnimationPlayRequest arguments[5];
     } data;
     s32 words[35];
 } Actor450200AnimStorage7BD8;
@@ -107,10 +107,10 @@ void func_actor_450200_80132880(s32);
 void func_actor_450200_801328A0(u8);
 
 extern Actor450200AnimStorage7BD8 D_actor_450200_80137BD8;
-extern GpAnimArg                  D_actor_450200_80137B38;
-extern GpAnimArg                  D_actor_450200_80137B4C;
-extern GpAnimArg                  D_actor_450200_80137B60;
-extern GpAnimArg                  D_actor_450200_80137B74;
+extern AnimationPlayRequest       D_actor_450200_80137B38;
+extern AnimationPlayRequest       D_actor_450200_80137B4C;
+extern AnimationPlayRequest       D_actor_450200_80137B60;
+extern AnimationPlayRequest       D_actor_450200_80137B74;
 extern GpAnimSet                  D_actor_450200_8013389C;
 extern GpAnimSet                  D_actor_450200_80134BEC;
 extern GpAnimSet                  D_actor_450200_80134FC8;
@@ -489,40 +489,40 @@ TaskDesc D_actor_450200_80137A60[3] = {
 
 Actor450200AnimStorage7A84 D_actor_450200_80137A84 = { .data = { { &D_actor_450200_80135F88, &D_actor_450200_80136210, &D_actor_450200_801366B0, &D_actor_450200_80136BD0, &D_actor_450200_80136EA8, &D_actor_450200_80137170, &D_actor_450200_80137690, &D_actor_450200_80137A38 }, { { .words = D_actor_450200_80137A84.words }, 32 }, { { { .index = 1 }, 47, 1, 5, 1 }, { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 47, 0, 0, 1 } } } };
 
-GpAnimArg D_actor_450200_80137B10[2] = {
-    { { .index = 1 }, 47, 0, 0, 1 },
-    { { .index = 1 }, 47, 0, 0, 1 },
+AnimationPlayRequest D_actor_450200_80137B10[2] = {
+    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_actor_450200_80137B38 = { { .index = 1 }, 48, 1, 8, 1 };
+AnimationPlayRequest D_actor_450200_80137B38 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137B4C = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137B4C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137B60 = { { .index = 1 }, 50, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137B60 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137B74 = { { .index = 1 }, 51, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137B74 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137B88 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137B88 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137B9C = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137B9C = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137BB0 = { { .index = 1 }, 54, 1, 8, 1 };
+AnimationPlayRequest D_actor_450200_80137BB0 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137BC4 = { { .index = 1 }, 52, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137BC4 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 Actor450200AnimStorage7BD8 D_actor_450200_80137BD8 = { .data = { { &D_actor_450200_8013389C, &D_actor_450200_80134BEC, &D_actor_450200_80134FC8, &D_actor_450200_801351FC, &D_actor_450200_80135638, &D_actor_450200_801357D8, &D_actor_450200_80135A50, &D_actor_450200_80135C24 }, { { .words = D_actor_450200_80137BD8.words }, 32 }, { { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 48, 1, 8, 0 }, { { .index = 1 }, 49, 0, 0, 0 }, { { .index = 1 }, 50, 0, 0, 0 }, { { .index = 1 }, 51, 0, 0, 0 } } } };
 
-GpAnimArg D_actor_450200_80137C64 = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_actor_450200_80137C64 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450200_80137C78 = { { .index = 1 }, 53, 0, 0, 0 };
+AnimationPlayRequest D_actor_450200_80137C78 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450200_80137C8C = { { .index = 1 }, 54, 0, 0, 0 };
+AnimationPlayRequest D_actor_450200_80137C8C = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450200_80137CA0 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_450200_80137CA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137CB4 = { { .index = 1 }, 32, 1, 4, 1 };
+AnimationPlayRequest D_actor_450200_80137CB4 = { { .index = 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450200_80137CC8 = { { .index = 1 }, 33, 1, 4, 1 };
+AnimationPlayRequest D_actor_450200_80137CC8 = { { .index = 1 }, 33, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpScriptCmd D_actor_450200_80137CDC[2] = {
     { 257, 1 },
@@ -917,7 +917,7 @@ GpAnimSet D_actor_450200_8013C644 = {
 
 Actor450200AnimStorageC66C D_actor_450200_8013C66C = { .data = { { &D_actor_450200_8013A47C, &D_actor_450200_8013A9A8, &D_actor_450200_8013ACB4, &D_actor_450200_8013BC90, &D_actor_450200_8013C644 }, { { { .index = 1 }, 1, 0, 0, 0 }, { { .index = 1 }, 1, 1, 15, 0 }, { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 48, 0, 0, 0 }, { { .index = 1 }, 49, 1, 10, 0 }, { { .index = 1 }, 50, 1, 10, 0 } } } };
 
-GpAnimArg D_actor_450200_8013C6F8 = { { .index = 1 }, 51, 1, 10, 0 };
+AnimationPlayRequest D_actor_450200_8013C6F8 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCopyArg D_actor_450200_8013C70C = { { .words = D_actor_450200_8013C66C.words }, 32 };
 
@@ -1073,7 +1073,7 @@ TaskDesc D_actor_450200_8013FB40 = { 0, 32, func_actor_450200_80132538, { .model
 
 Actor450200AnimStorageFB4C D_actor_450200_8013FB4C = { .data = { { &D_actor_450200_8013CFB0, &D_actor_450200_8013F498, &D_actor_450200_8013F800, &D_actor_450200_8013FB18 }, { { { .index = 1 }, 1, 0, 0, 0 }, { { .index = 1 }, 1, 1, 15, 0 }, { { .index = 1 }, 1, 1, 30, 0 }, { { .index = 1 }, 47, 1, 15, 0 }, { { .index = 1 }, 48, 0, 0, 0 }, { { .index = 1 }, 49, 1, 8, 0 } } } };
 
-GpAnimArg D_actor_450200_8013FBD4 = { { .index = 1 }, 50, 1, 8, 0 };
+AnimationPlayRequest D_actor_450200_8013FBD4 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCopyArg D_actor_450200_8013FBE8 = { { .words = D_actor_450200_8013FB4C.words }, 32 };
 

@@ -50,12 +50,12 @@ void func_mist_parking_801842DC(Task*);
 void func_mist_parking_8018451C(Task*);
 void func_mist_parking_80184668(Task*);
 
-extern GpAnimArg D_mist_parking_801908A0;
-extern GpAnimArg D_mist_parking_801908B4;
-extern GpAnimArg D_mist_parking_80190944;
-extern GpAnimArg D_mist_parking_801909F8;
-extern GpCmdArg  D_mist_parking_80190BA4;
-extern GpCmdArg  D_mist_parking_80190BA8;
+extern AnimationPlayRequest D_mist_parking_801908A0;
+extern AnimationPlayRequest D_mist_parking_801908B4;
+extern AnimationPlayRequest D_mist_parking_80190944;
+extern AnimationPlayRequest D_mist_parking_801909F8;
+extern GpCmdArg             D_mist_parking_80190BA4;
+extern GpCmdArg             D_mist_parking_80190BA8;
 
 void func_mist_parking_80184408(s32);
 void func_mist_parking_80184428(s32);
@@ -83,13 +83,13 @@ GpAnimSet* D_mist_parking_80190860[4] = {
 
 GpCopyArg D_mist_parking_80190870 = { { .sets = D_mist_parking_80190860 }, 4 };
 
-GpAnimArg D_mist_parking_80190878 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_parking_80190878 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_parking_8019088C = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_mist_parking_8019088C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_parking_801908A0 = { { .index = 1 }, 49, 1, 6, 0 };
+AnimationPlayRequest D_mist_parking_801908A0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_parking_801908B4 = { { .index = 1 }, 50, 1, 6, 0 };
+AnimationPlayRequest D_mist_parking_801908B4 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
 s8 D_mist_parking_801908C8[124] = {
     0,
@@ -218,42 +218,42 @@ s8 D_mist_parking_801908C8[124] = {
     0,
 };
 
-GpAnimArg D_mist_parking_80190944 = { { .ptr = NULL }, 6, 1, 20, 1 };
+AnimationPlayRequest D_mist_parking_80190944 = { { .sets = NULL }, 6, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190958[8] = {
-    { { .index = 0 }, 7, 1, 20, 1 },
-    { { .index = 0 }, 8, 1, 20, 1 },
-    { { .index = 0 }, 9, 1, 20, 1 },
-    { { .index = 0 }, 10, 1, 20, 1 },
-    { { .index = 0 }, 11, 1, 20, 1 },
-    { { .index = 0 }, 12, 1, 20, 1 },
-    { { .index = 0 }, 13, 1, 20, 1 },
-    { { .index = 0 }, 14, 1, 20, 1 },
+AnimationPlayRequest D_mist_parking_80190958[8] = {
+    { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_mist_parking_801909F8 = { { .index = 0 }, 15, 1, 20, 1 };
+AnimationPlayRequest D_mist_parking_801909F8 = { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190A0C[20] = {
-    { { .index = 0 }, 16, 1, 20, 1 },
-    { { .index = 0 }, 17, 1, 20, 1 },
-    { { .index = 0 }, 18, 1, 20, 1 },
-    { { .index = 0 }, 19, 1, 20, 1 },
-    { { .index = 0 }, 20, 1, 20, 1 },
-    { { .index = 0 }, 21, 1, 20, 1 },
-    { { .index = 0 }, 22, 1, 20, 1 },
-    { { .index = 0 }, 23, 1, 20, 1 },
-    { { .index = 0 }, 24, 1, 20, 1 },
-    { { .index = 0 }, 25, 1, 20, 1 },
-    { { .index = 0 }, 26, 1, 20, 1 },
-    { { .index = 0 }, 27, 1, 20, 1 },
-    { { .index = 0 }, 28, 1, 20, 1 },
-    { { .index = 0 }, 29, 1, 20, 1 },
-    { { .index = 0 }, 30, 1, 20, 1 },
-    { { .index = 0 }, 31, 1, 20, 1 },
-    { { .index = 0 }, 32, 1, 20, 1 },
-    { { .index = 0 }, 33, 1, 20, 1 },
-    { { .index = 0 }, 34, 1, 20, 1 },
-    { { .index = 0 }, 35, 1, 20, 1 },
+AnimationPlayRequest D_mist_parking_80190A0C[20] = {
+    { { .index = 0 }, 16, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 17, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 18, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 19, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 20, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 21, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 22, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 23, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 24, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 25, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 26, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 27, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 28, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 29, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 30, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 31, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 32, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 33, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 34, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 GpOverrideArg D_mist_parking_80190B9C = { 0, 0x10000 };
@@ -262,25 +262,25 @@ GpCmdArg D_mist_parking_80190BA4 = { { .loc = { 0, 0 } }, 2 };
 
 GpCmdArg D_mist_parking_80190BA8 = { { .loc = { 0, 0 } }, 3 };
 
-GpAnimArg D_mist_parking_80190BAC = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_mist_parking_80190BAC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_mist_parking_80190BC0 = { { .index = 0 }, 1, 1, 20, 1 };
+AnimationPlayRequest D_mist_parking_80190BC0 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190BD4[3] = {
-    { { .index = 0 }, 2, 1, 20, 1 },
-    { { .index = 0 }, 3, 0, 0, 1 },
-    { { .index = 0 }, 4, 1, 10, 1 },
+AnimationPlayRequest D_mist_parking_80190BD4[3] = {
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_mist_parking_80190C10 = { { .index = 0 }, 5, 1, 20, 1 };
+AnimationPlayRequest D_mist_parking_80190C10 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190C24 = { { .index = 0 }, 6, 0, 0, 1 };
+AnimationPlayRequest D_mist_parking_80190C24 = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190C38 = { { .index = 0 }, 7, 0, 0, 1 };
+AnimationPlayRequest D_mist_parking_80190C38 = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190C4C = { { .index = 0 }, 8, 1, 20, 1 };
+AnimationPlayRequest D_mist_parking_80190C4C = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_mist_parking_80190C60 = { { .index = 0 }, 9, 1, 15, 1 };
+AnimationPlayRequest D_mist_parking_80190C60 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpEvsCmd D_mist_parking_80190C74[10] = {
     { 13, { .callbackNoArg = func_mist_parking_8018459C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

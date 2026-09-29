@@ -68,7 +68,7 @@ static void func_actor_420700_801325C8(void);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -88,7 +88,7 @@ void             func_actor_420700_80132340(Task*);
 void             func_actor_420700_801323D8(Task*);
 void             func_actor_420700_801327EC(Task*);
 
-s32 func_actor_420700_80132644(Task*, s32, GpAnimArg*);
+s32 func_actor_420700_80132644(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_420700_801326F4(Task*, s32, s32);
 s32 func_actor_420700_80132784(Task*, s32, GpCmdArg*);
 
@@ -1258,18 +1258,18 @@ static void func_actor_420700_801325C8(void)
     D_actor_420700_8013EFE0->st.appliedAnimId = D_actor_420700_8013EFE0->st.animId;
 }
 
-/// Message 0x7D3 handler: selects animation `field_4` (below 0x15) of the bank
-/// `field_0` picks -- ids from 0 for bank 0, 0xA for bank 1, 0x11 for bank 2 --
-/// and sets the actor step to 1 (reseed through `func_800B4114`) when `field_8`
-/// is non-zero or 2 (plain slot reset) otherwise, then runs the step at once on
-/// the actor's own task. Returns 0, or -1 for an index out of range.
-s32 func_actor_420700_80132644(Task* task, s32 arg1, GpAnimArg* args)
+/// Starts the requested local clip, translating its bank selector to a clip offset.
+///
+/// Selectors 1 and 2 add 10 and 17 respectively; other selectors add zero.
+/// Rejects clip ids 21 and above. A nonzero blend request selects an
+/// eight-frame transition; the requested duration is unused.
+s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     s32              offset;
     Actor420700Work* work;
 
-    if (args->field_4 < 0x15) {
-        switch (args->animBlock.index) {
+    if (args->animationId < 0x15) {
+        switch (args->source.index) {
             case 1:
                 offset = 0xA;
                 break;
@@ -1281,8 +1281,8 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, GpAnimArg* args)
                 break;
         }
         work            = D_actor_420700_8013EFE0;
-        work->st.animId = (u16)args->field_4 + offset;
-        if (args->field_8 != 0) {
+        work->st.animId = (u16)args->animationId + offset;
+        if (args->blend != ANIMATION_BLEND_RESET) {
             work->st.state = 1;
         } else {
             work->st.state = 2;

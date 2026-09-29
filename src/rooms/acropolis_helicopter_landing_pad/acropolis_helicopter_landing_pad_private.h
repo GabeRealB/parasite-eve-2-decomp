@@ -68,9 +68,9 @@ extern GpEvsCmd D_acropolis_helicopter_landing_pad_80184CF4[7];
 
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9];
 
-extern GpAnimArg D_acropolis_helicopter_landing_pad_80184E28;
+extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E28;
 
-extern GpAnimArg D_acropolis_helicopter_landing_pad_80184E3C;
+extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C;
 
 extern GpXformArg D_acropolis_helicopter_landing_pad_80184E50;
 

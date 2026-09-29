@@ -129,15 +129,15 @@ TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimArg D_acropolis_cafeteria_80182B08 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182B08 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182B1C = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182B1C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182B30 = { { .index = 1 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182B30 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182B44 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182B44 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182B58 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182B58 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_acropolis_cafeteria_80182B6C = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 
@@ -155,7 +155,7 @@ GpXformArg D_acropolis_cafeteria_80182BFC = { { -3000, -300, -600, 0 }, { 0, 230
 
 GpXformArg D_acropolis_cafeteria_80182C14 = { { -2800, -300, -892, 0 }, { 0, 2048, 0, 0 } };
 
-GpAnimArg D_acropolis_cafeteria_80182C2C = { { .index = 0 }, 0, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182C2C = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* D_acropolis_cafeteria_80182C40[1] = {
     &D_actor_202900_8014FEB8,
@@ -163,7 +163,7 @@ GpAnimSet* D_acropolis_cafeteria_80182C40[1] = {
 
 GpCopyArg D_acropolis_cafeteria_80182C44 = { { .sets = D_acropolis_cafeteria_80182C40 }, 1 };
 
-GpAnimArg D_acropolis_cafeteria_80182C4C = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182C4C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpAnimSet* D_acropolis_cafeteria_80182C60[4] = {
     &D_actor_310600_801668FC,
@@ -174,13 +174,13 @@ GpAnimSet* D_acropolis_cafeteria_80182C60[4] = {
 
 GpCopyArg D_acropolis_cafeteria_80182C70 = { { .sets = D_acropolis_cafeteria_80182C60 }, 4 };
 
-GpAnimArg D_acropolis_cafeteria_80182C78 = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182C78 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182C8C = { { .index = 1 }, 48, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182C8C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182CA0 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182CA0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182CB4 = { { .index = 1 }, 50, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182CB4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_acropolis_cafeteria_80182CC8 = { { -3106, -300, -2056, 0 }, { 0, 0, 0, 0 } };
 
@@ -224,13 +224,13 @@ GpXformArg D_acropolis_cafeteria_80182DDC = { { -3850, -299, -900, 0 }, { 0, 204
 
 GpXformArg D_acropolis_cafeteria_80182DF4 = { { -4400, -299, -1400, 0 }, { 0, 2048, 0, 0 } };
 
-GpAnimArg D_acropolis_cafeteria_80182E0C = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182E0C = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182E20 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182E20 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182E34 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182E34 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_acropolis_cafeteria_80182E48 = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_cafeteria_80182E48 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverlayIds D_acropolis_cafeteria_80182E5C = { 1, 4, 11 };
 

@@ -35,9 +35,9 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[16];
-        GpCopyArg  copies[2];
-        GpAnimArg  arguments[5];
+        GpAnimSet*           sets[16];
+        GpCopyArg            copies[2];
+        AnimationPlayRequest arguments[5];
     } data;
     s32 words[45];
 } Actor450900AnimStorage5EC0;
@@ -48,20 +48,20 @@ extern Actor450900AnimStorage5EC0 D_actor_450900_80135EC0;
 
 // This record has an independently materialized address in the caller.
 // The symbol view shares the union backing; it allocates no extra storage.
-extern GpAnimArg Actor450900AllyAnim __asm__("D_actor_450900_80135EC0+100");
+extern AnimationPlayRequest Actor450900AllyAnim __asm__("D_actor_450900_80135EC0+100");
 
-extern s32        D_8017A99C;
-extern s8         D_actor_450900_80135E70;
-extern s32        D_actor_450900_80135E74;
-extern GpAnimArg  D_actor_450900_80135FEC;
-extern GpAnimArg  D_actor_450900_801360B4;
-extern GpXformArg D_actor_450900_80136458;
-extern GpEvsCmd   D_actor_450900_80136470[];
-extern GpEvsCmd   D_actor_450900_80136680[];
-extern GpEvsCmd   D_actor_450900_80136890[];
-extern GpEvsCmd   D_actor_450900_80136B00[];
-extern GpEvsCmd   D_actor_450900_80136BD8[];
-extern s32        D_actor_450900_80136C98;
+extern s32                  D_8017A99C;
+extern s8                   D_actor_450900_80135E70;
+extern s32                  D_actor_450900_80135E74;
+extern AnimationPlayRequest D_actor_450900_80135FEC;
+extern AnimationPlayRequest D_actor_450900_801360B4;
+extern GpXformArg           D_actor_450900_80136458;
+extern GpEvsCmd             D_actor_450900_80136470[];
+extern GpEvsCmd             D_actor_450900_80136680[];
+extern GpEvsCmd             D_actor_450900_80136890[];
+extern GpEvsCmd             D_actor_450900_80136B00[];
+extern GpEvsCmd             D_actor_450900_80136BD8[];
+extern s32                  D_actor_450900_80136C98;
 
 /// The save-point capture task spawned by `func_actor_450900_80131E38`, kept
 /// alive until `func_actor_450900_80132548` kills it. Script opcode 0xD reaches
@@ -96,13 +96,13 @@ extern GpAnimSet                  D_actor_450900_80135A90;
 extern GpAnimSet                  D_actor_450900_80135E48;
 
 extern Actor450900AnimStorage5EC0 D_actor_450900_80135EC0;
-extern GpAnimArg                  D_actor_450900_80135F74;
-extern GpAnimArg                  D_actor_450900_80136014;
-extern GpAnimArg                  D_actor_450900_80136028;
-extern GpAnimArg                  D_actor_450900_8013603C;
-extern GpAnimArg                  D_actor_450900_80136050;
-extern GpAnimArg                  D_actor_450900_80136064;
-extern GpAnimArg                  D_actor_450900_80136078;
+extern AnimationPlayRequest       D_actor_450900_80135F74;
+extern AnimationPlayRequest       D_actor_450900_80136014;
+extern AnimationPlayRequest       D_actor_450900_80136028;
+extern AnimationPlayRequest       D_actor_450900_8013603C;
+extern AnimationPlayRequest       D_actor_450900_80136050;
+extern AnimationPlayRequest       D_actor_450900_80136064;
+extern AnimationPlayRequest       D_actor_450900_80136078;
 void                              func_actor_450900_80132518(s32);
 void                              func_actor_450900_80132678(u8);
 void                              func_actor_450900_80132684(s32);
@@ -481,37 +481,37 @@ TaskDesc D_actor_450900_80135E78[6] = {
 
 Actor450900AnimStorage5EC0 D_actor_450900_80135EC0 = { .data = { { &D_actor_450900_80133F0C, &D_actor_450900_80134248, &D_actor_450900_80134410, &D_actor_450900_80134850, &D_actor_450900_80134F14, &D_actor_450900_80135E48, &D_actor_450900_80135158, &D_actor_450900_80135558, &D_actor_450900_80135754, &D_actor_450900_80135A90, &D_actor_450900_80132DA0, &D_actor_450900_801330F8, &D_actor_450900_8013358C, &D_actor_450900_80133754, &D_actor_450900_80133970, &D_actor_450900_80133B24 }, { { { .words = &D_actor_450900_80135EC0.words[10] }, 32 }, { { .words = D_actor_450900_80135EC0.words }, 32 } }, { { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 48, 1, 10, 0 }, { { .index = 1 }, 49, 0, 0, 0 }, { { .index = 1 }, 50, 0, 0, 0 } } } };
 
-GpAnimArg D_actor_450900_80135F74 = { { .index = 1 }, 51, 1, 10, 0 };
+AnimationPlayRequest D_actor_450900_80135F74 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_80135F88[5] = {
-    { { .index = 1 }, 47, 0, 0, 0 },
-    { { .index = 1 }, 47, 0, 0, 1 },
-    { { .index = 1 }, 48, 0, 0, 1 },
-    { { .index = 1 }, 49, 0, 0, 1 },
-    { { .index = 1 }, 50, 0, 0, 1 },
+AnimationPlayRequest D_actor_450900_80135F88[5] = {
+    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GpAnimArg D_actor_450900_80135FEC = { { .index = 1 }, 51, 1, 12, 1 };
+AnimationPlayRequest D_actor_450900_80135FEC = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 12, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450900_80136000 = { { .index = 1 }, 52, 1, 10, 0 };
+AnimationPlayRequest D_actor_450900_80136000 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_80136014 = { { .index = 1 }, 53, 0, 0, 1 };
+AnimationPlayRequest D_actor_450900_80136014 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450900_80136028 = { { .index = 1 }, 54, 1, 8, 0 };
+AnimationPlayRequest D_actor_450900_80136028 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_8013603C = { { .index = 1 }, 55, 0, 0, 0 };
+AnimationPlayRequest D_actor_450900_8013603C = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_80136050 = { { .index = 1 }, 56, 0, 0, 0 };
+AnimationPlayRequest D_actor_450900_80136050 = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_80136064 = { { .index = 1 }, 52, 1, 10, 0 };
+AnimationPlayRequest D_actor_450900_80136064 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_80136078 = { { .index = 1 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_450900_80136078 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450900_8013608C = { { .index = 1 }, 1, 1, 10, 1 };
+AnimationPlayRequest D_actor_450900_8013608C = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_actor_450900_801360A0 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_450900_801360A0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_450900_801360B4 = { { .index = 1 }, 1, 1, 10, 0 };
+AnimationPlayRequest D_actor_450900_801360B4 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_450900_801360C8 = { { 3450, 0, 6378, 0 }, { 0, 1024, 0, 0 } };
 
@@ -721,13 +721,13 @@ void func_actor_450900_80131E38(Task* task)
                     } else {
                         SndEvt_EnqueueType6(0x55170006, pan, depth);
                     }
-                    Gp_AllyAnimId(&Actor450900AllyAnim.animBlock.index);
-                    Gp_DispatchMsgPtr(slot, 0x3F7, &D_actor_450900_80135EC0.data.copies[0], 0);
-                    Gp_DispatchMsgPtr(slot, 0x3E8, &Actor450900AllyAnim, 0);
+                    Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
+                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
+                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
                     Gp_DispatchMsg(slot, 0x3F9, 0x40010, 0);
                 } else if (t % 210 == 0x3C) {
-                    Gp_AllyAnimId(&D_actor_450900_801360B4.animBlock.index);
-                    Gp_DispatchMsgPtr(slot, 0x3E8, &D_actor_450900_801360B4, 0);
+                    Gp_AllyAnimId(&D_actor_450900_801360B4.source.index);
+                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
                 }
             }
             break;
@@ -760,9 +760,9 @@ void func_actor_450900_8013207C(Task* task)
                     } else {
                         SndEvt_EnqueueType6(0x55170004, pan, depth);
                     }
-                    Gp_DispatchMsgPtr(slot, 0x3F7, &D_actor_450900_80135EC0.data.copies[1], 0);
-                    Gp_PlayerWeaponId(&D_actor_450900_80135FEC.animBlock.index);
-                    Gp_DispatchMsgPtr(slot, 0x3E8, &D_actor_450900_80135FEC, 0);
+                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[1], 0);
+                    Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
+                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
                 } else if ((D_8017A99C - 0x456) % 210 == 0x46) {
                     value = D_actor_450900_80136C98;
                     value++;

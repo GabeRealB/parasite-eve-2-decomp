@@ -84,11 +84,11 @@ extern GpAnimSet D_neo_ark_submarine_tunnel_80181A0C;
 void func_neo_ark_submarine_tunnel_8017D634(Task*);
 void func_neo_ark_submarine_tunnel_8017E288(Task*);
 
-extern GpAnimArg D_neo_ark_submarine_tunnel_80181A88;
-extern GpAnimArg D_neo_ark_submarine_tunnel_80181A9C;
-extern GpCopyArg D_neo_ark_submarine_tunnel_80181A80;
-void             func_neo_ark_submarine_tunnel_8017F318(s32);
-void             func_neo_ark_submarine_tunnel_8017F398(s32);
+extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88;
+extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C;
+extern GpCopyArg            D_neo_ark_submarine_tunnel_80181A80;
+void                        func_neo_ark_submarine_tunnel_8017F318(s32);
+void                        func_neo_ark_submarine_tunnel_8017F398(s32);
 
 TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { 0, 192, func_neo_ark_submarine_tunnel_8017D634, { .model = NULL } };
 
@@ -160,9 +160,9 @@ GpAnimSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
 
 GpCopyArg D_neo_ark_submarine_tunnel_80181A80 = { { .sets = D_neo_ark_submarine_tunnel_80181A78 }, 2 };
 
-GpAnimArg D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47, 1, 8, 0 };
+AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_neo_ark_submarine_tunnel_80181A9C = { { .index = 1 }, 48, 1, 8, 0 };
+AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpCmdArg D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { 5, 12 } }, 0 };
 
@@ -170,7 +170,7 @@ GpCmdArg D_neo_ark_submarine_tunnel_80181AB4 = { { .loc = { 5, 12 } }, 1 };
 
 GpCmdArg D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
 
-GpAnimArg D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_neo_ark_submarine_tunnel_80181AD0 = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
 
@@ -1009,7 +1009,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_neo_ark_submarine_tunnel_8018790C->blend == 0) {
+                    if (D_neo_ark_submarine_tunnel_8018790C->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
@@ -1166,7 +1166,7 @@ void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
         D_neo_ark_submarine_tunnel_80187A20.span  = 1;
         D_neo_ark_submarine_tunnel_80187A20.scale = 0x60;
         D_neo_ark_submarine_tunnel_80187A20.r     = 0x40;
-        D_neo_ark_submarine_tunnel_80187A20.blend = 1;
+        D_neo_ark_submarine_tunnel_80187A20.blend = ANIMATION_BLEND_INTERPOLATE;
         D_neo_ark_submarine_tunnel_80187A20.g     = 0x80;
         D_neo_ark_submarine_tunnel_80187A20.b     = 0x80;
         Task_SpawnFromTable(D_neo_ark_submarine_tunnel_80181A34, 0, 0, &D_neo_ark_submarine_tunnel_80187A20);

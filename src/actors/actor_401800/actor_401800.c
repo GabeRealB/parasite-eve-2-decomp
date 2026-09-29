@@ -284,9 +284,9 @@ STATIC_ASSERT_SIZEOF(Actor401800StateTable, 0x88);
 static const Actor401800StateTable D_actor_401800_80131FDC;
 
 /// Payload of the `0x3FF` message `func_actor_401800_80138F5C` sends: the same
-/// 0x14-byte animation record other actors keep as `GpAnimArg` data
+/// 0x14-byte animation record other actors keep as `AnimationPlayRequest` data
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
-extern GpAnimArg D_actor_401800_80155A0C;
+extern AnimationPlayRequest D_actor_401800_80155A0C;
 
 extern GpAnimSet* D_actor_401800_801559F8[];
 extern GpAnimSet* D_actor_401800_801559F0[];
@@ -320,7 +320,7 @@ typedef struct {
     s32 id;
     union {
         s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, GpAnimArg*);
+        s32  (*call1)(Task*, s32, AnimationPlayRequest*);
         s32  (*call2)(Task*, s32, GpXformArg*);
         s32  (*call3)(Task*, s32, s32);
         s32  (*call4)(Task*, s32, u16*);
@@ -370,7 +370,7 @@ static s32  func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, 
 static s32  func_actor_401800_80133558(GfxCoord* coord, s16 arg1, s16 arg2);
 static s32  func_actor_401800_80133918(Task* arg0);
 static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2);
-s32         func_actor_401800_8013DCBC(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32         func_actor_401800_8013DCBC(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 static void func_actor_401800_80133EB8(Task* arg0);
 
 static void func_actor_401800_801337EC(Task* arg0);
@@ -407,7 +407,7 @@ extern GpAnimSet D_actor_401800_80151C0C;
 extern GpAnimSet D_actor_401800_8015256C;
 
 extern TmdSource D_actor_401800_80143918;
-s32              func_actor_401800_8013DCBC(Task*, s32, GpAnimArg*);
+s32              func_actor_401800_8013DCBC(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_401800_8013DD2C(Task*, s32, s32);
 s32              func_actor_401800_8013DDEC(Task*);
 s32              func_actor_401800_8013DE3C(Task*, s32, GpXformArg*);
@@ -1325,7 +1325,7 @@ GpAnimSet* D_actor_401800_801559F8[5] = {
     NULL,
 };
 
-GpAnimArg D_actor_401800_80155A0C = { { .ptr = D_actor_401800_801559F0 }, 1, 0, 3, 0 };
+AnimationPlayRequest D_actor_401800_80155A0C = { { .sets = D_actor_401800_801559F0 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 SVECTOR D_actor_401800_80155A20[12] = {
     { 60, -12, 30, 2 },
@@ -3154,9 +3154,9 @@ static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECT
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
     if (Mc_SaveData[0].state.characterId == 1) {
-        D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F8;
+        D_actor_401800_80155A0C.source.sets = D_actor_401800_801559F8;
     } else {
-        D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F0;
+        D_actor_401800_80155A0C.source.sets = D_actor_401800_801559F0;
     }
 }
 
@@ -3230,10 +3230,10 @@ static void func_actor_401800_801381E4(Task* arg0)
                 D_actor_401800_80155AF8.field_14 = 8;
                 do {
                     if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_401800_80155AF8, 0) == 0) {
-                        work->field_0                   = 0xC;
-                        work->field_C20                 = 1;
-                        D_actor_401800_80155A0C.field_4 = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_401800_80155A0C, 0);
+                        work->field_0                       = 0xC;
+                        work->field_C20                     = 1;
+                        D_actor_401800_80155A0C.animationId = 1;
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
                     }
                 } while (0);
             }
@@ -3333,20 +3333,20 @@ static void func_actor_401800_80138C28(Task* arg0)
 /// rebuilds the four coordinate parts the actor draws from.
 static void func_actor_401800_80138F5C(Task* arg0)
 {
-    Actor401800Work* work;
-    GpEnemy*         enemy;
-    GpAnimArg*       msg;
-    void*            player;
+    Actor401800Work*      work;
+    GpEnemy*              enemy;
+    AnimationPlayRequest* msg;
+    void*                 player;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->field_8A2 = 0x10;
-        work->field_89E = 6;
-        work->field_898 = 2;
-        msg             = &D_actor_401800_80155A0C;
-        msg->field_4    = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, msg, 0);
+        work->field_8A2  = 0x10;
+        work->field_89E  = 6;
+        work->field_898  = 2;
+        msg              = &D_actor_401800_80155A0C;
+        msg->animationId = 2;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
@@ -3393,9 +3393,9 @@ static void func_actor_401800_80139118(Task* arg0)
         work->field_89E = 7;
         work->field_898 = 2;
         func_actor_401800_80133EB8(arg0);
-        D_actor_401800_80155A0C.field_4 = 3;
+        D_actor_401800_80155A0C.animationId = 3;
         if (config->hp > 0) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_401800_80155A0C, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
         }
         work->field_C04        = -0x78;
         work->field_6          = 0;
@@ -4625,11 +4625,11 @@ static const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
 /// The `0x7D3` handler of the `D_actor_401800_80155A80` table: maps the
 /// requested state onto the work block's `field_89E` animation slot (5 selects
 /// nothing), then resets the actor to state `0x11` with `field_2` cleared.
-s32 func_actor_401800_8013DCBC(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_actor_401800_8013DCBC(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor401800Work* work = arg0->work;
 
-    switch (arg2->field_4) {
+    switch (arg2->animationId) {
         case 0:
             work->field_89E = 0x22;
             break;

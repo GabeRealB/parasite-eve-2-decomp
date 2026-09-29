@@ -80,13 +80,13 @@ extern GpEvsCmd   D_dryfield_general_store_8017E568[];
 static void func_dryfield_general_store_8017DEAC(Task* arg0);
 static void func_dryfield_general_store_8017DF4C(Task* task);
 
-extern GpAnimArg     D_dryfield_general_store_8017E4FC;
-extern GpCopyArg     D_dryfield_general_store_8017E4E0;
-extern GpOverrideArg D_dryfield_general_store_8017E554;
-extern GpXformArg    D_dryfield_general_store_8017E524;
-extern GpXformArg    D_dryfield_general_store_8017E53C;
-extern s32           D_dryfield_general_store_8017E560;
-void                 func_dryfield_general_store_8017E130(s32);
+extern AnimationPlayRequest D_dryfield_general_store_8017E4FC;
+extern GpCopyArg            D_dryfield_general_store_8017E4E0;
+extern GpOverrideArg        D_dryfield_general_store_8017E554;
+extern GpXformArg           D_dryfield_general_store_8017E524;
+extern GpXformArg           D_dryfield_general_store_8017E53C;
+extern s32                  D_dryfield_general_store_8017E560;
+void                        func_dryfield_general_store_8017E130(s32);
 
 extern GpGridParams   D_dryfield_general_store_8017F238[1];
 extern GpObj3A        D_dryfield_general_store_80184F78[4];
@@ -158,12 +158,12 @@ GpAnimSet* D_dryfield_general_store_8017E4D8[2] = {
 
 GpCopyArg D_dryfield_general_store_8017E4E0 = { { .sets = D_dryfield_general_store_8017E4D8 }, 2 };
 
-GpAnimArg D_dryfield_general_store_8017E4E8 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_general_store_8017E4E8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_general_store_8017E4FC = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_dryfield_general_store_8017E4FC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpAnimArg D_dryfield_general_store_8017E510 = { { .index = 1 }, 9, 1, 10, 0 };
+AnimationPlayRequest D_dryfield_general_store_8017E510 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_general_store_8017E524 = { { 1735, 0, 6800, 0 }, { 0, -2047, 0, 0 } };
 

@@ -69,7 +69,7 @@ STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*, s32);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
         s32 (*call3)(Task*, s32, s32, s32);
@@ -100,7 +100,7 @@ extern GpAnimSet D_actor_113000_801396D8;
 extern GpAnimSet D_actor_113000_80139C8C;
 extern GpAnimSet D_actor_113000_80139F04;
 extern TmdSource D_actor_113000_801378E0;
-s32              func_actor_113000_80132208(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_113000_80132208(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_113000_8013231C(Task*, s32, GpXformArg*);
 s32              func_actor_113000_80132398(Task*, s32, s32, s32);
 s32              func_actor_113000_80132474(Task*, s32, s32);
@@ -1289,7 +1289,7 @@ static void func_actor_113000_801321A8(Task* task)
 /// animation id is then latched, every slot 1..0x13 restarted -- through
 /// `func_800B4114` when the preset asks for it, through `Gp_AnimResetSlot`
 /// otherwise -- ticked once, and `field_474` raised.
-s32 func_actor_113000_80132208(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
+s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor113000Work* work;
     TmdObject*       ext;
@@ -1297,14 +1297,14 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
 
     work = (Actor113000Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->field_47C) {
-        work->field_47C = msg->animBlock.index;
+    if (msg->source.index != work->field_47C) {
+        work->field_47C = msg->source.index;
         work->field_478 = -1;
         func_800B3F84(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->field_478 = msg->field_4;
-    if (msg->field_8 != 0) {
+    work->field_478 = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET) {
         for (i = 1; i < 0x14; i++) {
             func_800B4114(&work->rig.anim, i, work->field_478, 0, 6);
         }

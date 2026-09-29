@@ -234,7 +234,7 @@ extern TaskDesc D_80162E98;
 extern Task* D_actor_403600_801606B4;
 
 extern TaskDesc             D_8016E468;
-extern GpAnimArg            D_actor_403600_80160568;
+extern AnimationPlayRequest D_actor_403600_80160568;
 extern GpAnimSet*           D_actor_403600_8016057C[22];
 extern Actor403600Point     D_actor_403600_801605F4[];
 extern GpU16Pair            D_actor_403600_801606A4;
@@ -322,7 +322,7 @@ GpAnimSet* D_actor_403600_80160538[12] = {
     &D_actor_303600_80169C7C,
 };
 
-GpAnimArg D_actor_403600_80160568 = { { .ptr = D_actor_403600_80160538 }, 1, 0, 0, 1 };
+AnimationPlayRequest D_actor_403600_80160568 = { { .sets = D_actor_403600_80160538 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpAnimSet* D_actor_403600_8016057C[22] = {
     NULL,
@@ -675,7 +675,7 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     temp_v0->field_7A0      = 0;
     temp_v0->field_7AE      = 0;
     func_actor_403600_8014174C(task);
-    D_actor_403600_80160568.field_4        = 0;
+    D_actor_403600_80160568.animationId    = 0;
     D_actor_403600_801606B8.fields.field_2 = 0;
     D_actor_403600_801606B8.fields.field_0 = 0;
     task->msgTable                         = D_actor_403600_80160504;
@@ -1314,123 +1314,123 @@ block_116:
 
 static void func_actor_403600_8013A444(Task* arg0)
 {
-    u32              sp10;
-    s32              sp14;
-    s32              adjusted_y0;
-    s32              adjusted_y1;
-    s32              adjusted_y2;
-    s32              var_a1;
-    s16              temp_a0;
-    s16              temp_a0_2;
-    s32              temp_a2;
-    s32              temp_s1;
-    s16              temp_v0_11;
-    s16              temp_v0_16;
-    s16              temp_v0_25;
-    s16              temp_v0_3;
-    s16              temp_v1;
-    s16              temp_v1_10;
-    s16              temp_v1_11;
-    s32              temp_v1_12;
-    s16              temp_v1_4;
-    s16              temp_v1_8;
-    s16              temp_v1_9;
-    s32              var_v0_10;
-    s32              var_v0_13;
-    s32              var_v0_3;
-    s32              var_v0_8;
-    s32              temp_lo;
-    s32              temp_lo_2;
-    s32              temp_lo_3;
-    s32              temp_lo_4;
-    s32              temp_s4;
-    s32              temp_v0_26;
-    s32              temp_v0_27;
-    s32              temp_v0_28;
-    s32              temp_v1_3;
-    s32              temp_v1_5;
-    s32              temp_v1_6;
-    s32              temp_v1_7;
-    s32              var_s2;
-    s32              var_v0_12;
-    s32              var_v0_14;
-    s32              temp_s0_11;
-    s32              temp_s0_12;
-    s32              temp_s0_14;
-    s32              temp_s0_16;
-    s32              temp_s0_17;
-    s32              temp_s0_19;
-    s32              temp_s0_21;
-    s32              temp_s0_22;
-    s32              temp_s0_23;
-    s32              temp_s0_25;
-    s32              temp_s0_26;
-    s32              temp_s0_28;
-    s32              temp_s0_2;
-    s32              temp_s0_30;
-    s32              temp_s0_32;
-    s32              temp_pan_28;
-    s32              temp_s0_4;
-    s32              temp_s0_6;
-    s32              temp_s0_7;
-    s32              temp_s0_9;
-    u16              temp_a3;
-    u16              temp_v0_32;
-    u16              temp_v0_34;
-    u16              temp_v0_35;
-    u16              temp_v0_9;
-    u16              var_v0_6;
-    u32              temp_v0;
-    u32              temp_v0_12;
-    u32              temp_v0_13;
-    u32              temp_v0_14;
-    u32              temp_v0_15;
-    u32              temp_v0_17;
-    u32              temp_v0_18;
-    u32              temp_v0_19;
-    u32              temp_v0_21;
-    u32              temp_v0_22;
-    u32              temp_v0_23;
-    u32              temp_v0_24;
-    u32              temp_v0_30;
-    u32              temp_v0_31;
-    u32              temp_v0_33;
-    u32              temp_v0_36;
-    u32              temp_v0_37;
-    u32              temp_v0_5;
-    u32              temp_v0_6;
-    u32              temp_v0_7;
-    u32              temp_v0_8;
-    u32              temp_depth_28;
-    GfxCoord*        temp_s0;
-    GfxCoord*        temp_s0_10;
-    GfxCoord*        temp_s0_13;
-    GfxCoord*        temp_s0_15;
-    GfxCoord*        temp_s0_18;
-    GfxCoord*        temp_s0_20;
-    GfxCoord*        temp_s0_24;
-    GfxCoord*        temp_s0_27;
-    GfxCoord*        temp_s0_29;
-    GfxCoord*        temp_s0_31;
-    GfxCoord*        temp_s0_3;
-    GfxCoord*        temp_s0_5;
-    GfxCoord*        temp_s0_8;
-    GfxCoord*        temp_sound_28;
-    GpAnimArg*       temp_s0_msg;
-    GpAnimArg*       temp_s1_3;
-    Actor403600Work* temp_s3;
-    GfxCoord*        temp_s4_4;
-    GfxCoord*        temp_s6;
-    GpEnemy*         temp_s7;
-    Actor403600Work* temp_v0_10;
-    Actor403600Work* temp_v0_20;
-    Actor403600Work* temp_v0_2;
-    Actor403600Work* temp_reset_30;
-    Actor403600Work* temp_v0_4;
-    GameActor*       temp_v1_2;
-    GfxCoord*        var_a0;
-    GfxCoord*        var_s0;
-    PlayerStatus*    temp_wip;
+    u32                   sp10;
+    s32                   sp14;
+    s32                   adjusted_y0;
+    s32                   adjusted_y1;
+    s32                   adjusted_y2;
+    s32                   var_a1;
+    s16                   temp_a0;
+    s16                   temp_a0_2;
+    s32                   temp_a2;
+    s32                   temp_s1;
+    s16                   temp_v0_11;
+    s16                   temp_v0_16;
+    s16                   temp_v0_25;
+    s16                   temp_v0_3;
+    s16                   temp_v1;
+    s16                   temp_v1_10;
+    s16                   temp_v1_11;
+    s32                   temp_v1_12;
+    s16                   temp_v1_4;
+    s16                   temp_v1_8;
+    s16                   temp_v1_9;
+    s32                   var_v0_10;
+    s32                   var_v0_13;
+    s32                   var_v0_3;
+    s32                   var_v0_8;
+    s32                   temp_lo;
+    s32                   temp_lo_2;
+    s32                   temp_lo_3;
+    s32                   temp_lo_4;
+    s32                   temp_s4;
+    s32                   temp_v0_26;
+    s32                   temp_v0_27;
+    s32                   temp_v0_28;
+    s32                   temp_v1_3;
+    s32                   temp_v1_5;
+    s32                   temp_v1_6;
+    s32                   temp_v1_7;
+    s32                   var_s2;
+    s32                   var_v0_12;
+    s32                   var_v0_14;
+    s32                   temp_s0_11;
+    s32                   temp_s0_12;
+    s32                   temp_s0_14;
+    s32                   temp_s0_16;
+    s32                   temp_s0_17;
+    s32                   temp_s0_19;
+    s32                   temp_s0_21;
+    s32                   temp_s0_22;
+    s32                   temp_s0_23;
+    s32                   temp_s0_25;
+    s32                   temp_s0_26;
+    s32                   temp_s0_28;
+    s32                   temp_s0_2;
+    s32                   temp_s0_30;
+    s32                   temp_s0_32;
+    s32                   temp_pan_28;
+    s32                   temp_s0_4;
+    s32                   temp_s0_6;
+    s32                   temp_s0_7;
+    s32                   temp_s0_9;
+    u16                   temp_a3;
+    u16                   temp_v0_32;
+    u16                   temp_v0_34;
+    u16                   temp_v0_35;
+    u16                   temp_v0_9;
+    u16                   var_v0_6;
+    u32                   temp_v0;
+    u32                   temp_v0_12;
+    u32                   temp_v0_13;
+    u32                   temp_v0_14;
+    u32                   temp_v0_15;
+    u32                   temp_v0_17;
+    u32                   temp_v0_18;
+    u32                   temp_v0_19;
+    u32                   temp_v0_21;
+    u32                   temp_v0_22;
+    u32                   temp_v0_23;
+    u32                   temp_v0_24;
+    u32                   temp_v0_30;
+    u32                   temp_v0_31;
+    u32                   temp_v0_33;
+    u32                   temp_v0_36;
+    u32                   temp_v0_37;
+    u32                   temp_v0_5;
+    u32                   temp_v0_6;
+    u32                   temp_v0_7;
+    u32                   temp_v0_8;
+    u32                   temp_depth_28;
+    GfxCoord*              temp_s0;
+    GfxCoord*              temp_s0_10;
+    GfxCoord*              temp_s0_13;
+    GfxCoord*              temp_s0_15;
+    GfxCoord*              temp_s0_18;
+    GfxCoord*              temp_s0_20;
+    GfxCoord*              temp_s0_24;
+    GfxCoord*              temp_s0_27;
+    GfxCoord*              temp_s0_29;
+    GfxCoord*              temp_s0_31;
+    GfxCoord*              temp_s0_3;
+    GfxCoord*              temp_s0_5;
+    GfxCoord*              temp_s0_8;
+    GfxCoord*              temp_sound_28;
+    AnimationPlayRequest* temp_s0_msg;
+    AnimationPlayRequest* temp_s1_3;
+    Actor403600Work*      temp_s3;
+    GfxCoord*              temp_s4_4;
+    GfxCoord*              temp_s6;
+    GpEnemy*              temp_s7;
+    Actor403600Work*      temp_v0_10;
+    Actor403600Work*      temp_v0_20;
+    Actor403600Work*      temp_v0_2;
+    Actor403600Work*      temp_reset_30;
+    Actor403600Work*      temp_v0_4;
+    GameActor*            temp_v1_2;
+    GfxCoord*              var_a0;
+    GfxCoord*              var_s0;
+    PlayerStatus*         temp_wip;
 
     temp_wip = &Player_Status;
     temp_s3  = (Actor403600Work*)arg0->work;
@@ -1633,23 +1633,23 @@ static void func_actor_403600_8013A444(Task* arg0)
                                         var_v0_3 = -var_v0_3;
                                     }
                                     if (var_v0_3 >= 0x401) {
-                                        D_actor_403600_80160568.field_4 = 4;
+                                        D_actor_403600_80160568.animationId = 4;
                                         func_actor_403600_8013E7D4(arg0, 0);
                                         temp_s3->field_762 = 0x64;
                                     } else {
-                                        D_actor_403600_80160568.field_4 = 3;
+                                        D_actor_403600_80160568.animationId = 3;
                                         func_actor_403600_8013E7D4(arg0, 1);
                                         temp_s3->field_762 = -0x64;
                                     }
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                                     var_s2             = 2;
                                     temp_s3->field_760 = 0;
                                 } else if (sp10 < 0x9C4U) {
-                                    D_actor_403600_801606A4.field_2 = 0;
-                                    D_actor_403600_80160568.field_4 = 1;
+                                    D_actor_403600_801606A4.field_2     = 0;
+                                    D_actor_403600_80160568.animationId = 1;
                                     func_actor_403600_8013E7D4(arg0, 1);
                                     temp_s3->field_762 = -0x190;
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                                     var_s2             = 3;
                                     temp_s3->field_760 = 0;
                                 }
@@ -1944,7 +1944,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     sp10               = temp_v0_18;
                     if (temp_v0_18 < 0x76DU) {
                         temp_s0_msg = &D_actor_403600_80160568;
-                        if (temp_s0_msg->field_4 == 0) {
+                        if (temp_s0_msg->animationId == 0) {
                             Gp_SpawnPadLerp(0x14, 0xFF, 0x50);
                             temp_s3->field_760 = 0;
                             var_v0_8           = (s16)func_actor_403600_8013E66C(&temp_s3->field_4B8);
@@ -1952,13 +1952,13 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 var_v0_8 = -var_v0_8;
                             }
                             if (var_v0_8 >= 0x401) {
-                                temp_s3->field_762   = 0x28;
-                                temp_s0_msg->field_4 = 4;
-                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
+                                temp_s3->field_762       = 0x28;
+                                temp_s0_msg->animationId = 4;
+                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s0_msg, 0);
                             } else {
-                                temp_s3->field_762   = -0x28;
-                                temp_s0_msg->field_4 = 3;
-                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
+                                temp_s3->field_762       = -0x28;
+                                temp_s0_msg->animationId = 3;
+                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s0_msg, 0);
                             }
                             temp_s4    = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                             temp_s0_17 = (s8)Gp_GetObjPan(temp_s6);
@@ -2108,15 +2108,15 @@ static void func_actor_403600_8013A444(Task* arg0)
                     func_actor_403600_8013E470(temp_s0_20, &sp10, &sp14);
                     if (sp10 < 0x5DDU) {
                         temp_s1_3 = &D_actor_403600_80160568;
-                        if (temp_s1_3->field_4 == 0) {
+                        if (temp_s1_3->animationId == 0) {
                             if (temp_s3->field_734 == 0xFF) {
                                 Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
                                 D_actor_403600_801606A4.field_2 = 0xA;
-                                temp_s1_3->field_4              = 1;
+                                temp_s1_3->animationId          = 1;
                                 D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EAC;
                                 func_actor_403600_8013E7D4(arg0, 1);
                                 temp_s3->field_762 = -0x190;
-                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 temp_s3->field_760 = 0;
                                 temp_s4            = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                                 temp_s0_21         = (s8)Gp_GetObjPan(temp_s6);
@@ -2131,13 +2131,13 @@ static void func_actor_403600_8013A444(Task* arg0)
                                     var_v0_10 = -var_v0_10;
                                 }
                                 if (var_v0_10 >= 0x401) {
-                                    temp_s3->field_762 = 0x28;
-                                    temp_s1_3->field_4 = 4;
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                    temp_s3->field_762     = 0x28;
+                                    temp_s1_3->animationId = 4;
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 } else {
-                                    temp_s3->field_762 = -0x28;
-                                    temp_s1_3->field_4 = 3;
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                    temp_s3->field_762     = -0x28;
+                                    temp_s1_3->animationId = 3;
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 }
                                 temp_s4    = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                                 temp_s0_22 = (s8)Gp_GetObjPan(temp_s6);
@@ -2363,8 +2363,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_v0_31         = gpGetObjDepth(temp_s6);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_26, (s32)(((temp_v0_31 >> 0x1F) + temp_v0_31) << 0x17) >> 0x18);
                         Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
-                        D_actor_403600_80160568.field_4 = 4;
-                        Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                        D_actor_403600_80160568.animationId = 4;
+                        Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                         temp_v0_32   = temp_wip->mp - 0xFB;
                         temp_wip->mp = temp_v0_32;
                         if ((temp_v0_32 << 0x10) <= 0) {
@@ -2985,8 +2985,8 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         }
         temp_s1->field_588.flags &= 0x7FFF;
         Gp_PulseState1C80();
-        gGameSession->eventState        = 1;
-        D_actor_403600_80160568.field_4 = 0;
+        gGameSession->eventState            = 1;
+        D_actor_403600_80160568.animationId = 0;
         Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
         temp_v0_3            = arg0->work;
         temp_v0_3->field_756 = 8;
@@ -3669,7 +3669,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
 
     temp_s4 = Gp_ActorSlots[0]->extra.tmd->coords;
     temp_s3 = arg0->work;
-    switch (D_actor_403600_80160568.field_4) {
+    switch (D_actor_403600_80160568.animationId) {
         case 1:
             temp_s3->field_760++;
             temp_a1 = arg0->work;
@@ -3685,9 +3685,9 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 } else {
                     Mc_SaveData[0].state.at4.loc.view = 3;
                 }
-                D_actor_403600_80160568.field_4 = 2;
-                Gp_StateC08.field_6            |= 1;
-                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                D_actor_403600_80160568.animationId = 2;
+                Gp_StateC08.field_6                |= 1;
+                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
             break;
@@ -3712,8 +3712,8 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                                Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
             if ((s16)temp_s3->field_760 >= 0x66) {
-                temp_s3->field_760              = 0;
-                D_actor_403600_80160568.field_4 = 0;
+                temp_s3->field_760                  = 0;
+                D_actor_403600_80160568.animationId = 0;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
             }
             break;
@@ -3741,10 +3741,10 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                                     (s8)gpGetObjDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
-                Gp_StateC08.field_6            |= 1;
-                temp_s3->field_760              = 0;
-                D_actor_403600_80160568.field_4 = 5;
-                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                Gp_StateC08.field_6                |= 1;
+                temp_s3->field_760                  = 0;
+                D_actor_403600_80160568.animationId = 5;
+                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
             break;
@@ -3772,10 +3772,10 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                                     (s8)gpGetObjDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
-                Gp_StateC08.field_6            |= 1;
-                temp_s3->field_760              = 0;
-                D_actor_403600_80160568.field_4 = 6;
-                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                Gp_StateC08.field_6                |= 1;
+                temp_s3->field_760                  = 0;
+                D_actor_403600_80160568.animationId = 6;
+                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
             break;
@@ -3785,8 +3785,8 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             temp_v0_2          = temp_s3->field_760 + 1;
             temp_s3->field_760 = temp_v0_2;
             if ((s16)temp_v0_2 >= 0x28) {
-                temp_s3->field_760              = 0;
-                D_actor_403600_80160568.field_4 = 0;
+                temp_s3->field_760                  = 0;
+                D_actor_403600_80160568.animationId = 0;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
             }
             break;
@@ -4382,14 +4382,14 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             D_actor_403600_801606E0.value.pos.vy = -0xF9F;
             D_actor_403600_801606E0.value.pos.vz = 0x1AC6;
             Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
-            D_actor_403600_80160568.field_4 = 9;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+            D_actor_403600_80160568.animationId = 9;
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             break;
         case 2:
-            work->field_736                 = 0x15;
-            work->field_738                 = 0;
-            D_actor_403600_80160568.field_4 = 0xA;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+            work->field_736                     = 0x15;
+            work->field_738                     = 0;
+            D_actor_403600_80160568.animationId = 0xA;
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             break;
         case 3:
             work->field_77A = 0x3E8;
@@ -4410,8 +4410,8 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             D_actor_403600_801606E0.value.pos.vy = 0;
             D_actor_403600_801606E0.value.pos.vz = 0;
             Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
-            D_actor_403600_80160568.field_4 = 0xB;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+            D_actor_403600_80160568.animationId = 0xB;
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             childWork               = work->field_4B4->task->work;
             childObject             = work->field_4B4->task->extra.tmd;
             childWork->field_730    = 0xD;

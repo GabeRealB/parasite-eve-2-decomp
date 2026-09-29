@@ -357,7 +357,7 @@ extern TaskDesc D_dryfield_water_tower_8018277C[];
 /// move both that opcode and case 4 send with 0x3E9.
 extern GpXformArg D_dryfield_water_tower_801823A8;
 
-/// The `GpAnimArg` (0x14-byte) run the 0x7D3 animation messages send: `field_4`
+/// The `AnimationPlayRequest` (0x14-byte) run the 0x7D3 animation messages send: `field_4`
 /// carries the animation index -- 0x0D / 0x0E / 0x0F for the three records --
 /// and every other field, `field_8` included, is zero. Element 1 and element 2
 /// are also named by address, and the code below uses both spellings: element 1
@@ -689,10 +689,10 @@ GpXformArg D_dryfield_water_tower_801823C0[4] = {
 
 // Retained parameter record; layout follows the adjacent script arguments.
 
-GpAnimArg D_dryfield_water_tower_80182420[3] = {
-    { { .index = 0 }, 13, 0, 0, 0 },
-    { { .index = 0 }, 14, 0, 0, 0 },
-    { { .index = 0 }, 15, 0, 0, 0 },
+AnimationPlayRequest D_dryfield_water_tower_80182420[3] = {
+    { { .index = 0 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 GpOverlayIds D_dryfield_water_tower_8018245C = { 2, 16, 11 };
@@ -2752,20 +2752,20 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 /// the halfword itself.
 void func_dryfield_water_tower_8017F700(s32 arg0)
 {
-    GpAnimArg rec;
-    s32       weaponId;
-    s32       id;
-    s32       value;
+    AnimationPlayRequest rec;
+    s32                  weaponId;
+    s32                  id;
+    s32                  value;
 
-    weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    value               = arg0 & 0xFFFF;
-    rec.animBlock.index = id;
-    rec.field_4         = 1;
-    rec.field_8         = value != 0;
-    rec.field_C         = value;
-    rec.field_10        = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+    weaponId                 = Player_Status.weapon;
+    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    value                    = arg0 & 0xFFFF;
+    rec.source.index         = id;
+    rec.animationId          = 1;
+    rec.blend                = value != 0;
+    rec.blendFrames          = value;
+    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// The room's handler for message 0x7D4: copies `placement` onto the task's
@@ -3024,11 +3024,11 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 /// per-frame body `func_dryfield_water_tower_8017FBE8`.
 void func_dryfield_water_tower_8017FD64(Task* task)
 {
-    GpAnimArg msg;
-    DwtwWork* work;
-    s32       id;
-    s32       weaponId;
-    s32       anim;
+    AnimationPlayRequest msg;
+    DwtwWork*            work;
+    s32                  id;
+    s32                  weaponId;
+    s32                  anim;
 
     if (gGameSession->field_65 != 0) {
         return;
@@ -3041,14 +3041,14 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.animBlock.index = anim;
-            msg.field_4         = 1;
-            msg.field_8         = 1;
-            msg.field_C         = 0xA;
-            msg.field_10        = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
+            weaponId                 = Player_Status.weapon;
+            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.source.index         = anim;
+            msg.animationId          = 1;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 0xA;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
             work       = (DwtwWork*)Mem_Malloc(0x18, 0);
             task->work = (TaskIdMap*)work;
             if (work == NULL) {

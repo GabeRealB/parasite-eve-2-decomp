@@ -704,14 +704,14 @@ static s32 func_actor_310100_80161E24(Task* task)
 
 static void func_actor_310100_80161F80(Task* task)
 {
-    GpAnimArg        arg;
-    Actor310100Work* work;
-    Actor310100Work* anim;
-    Actor310100Work* msg;
-    Task*            player;
-    u16              seed;
-    u16              ok;
-    s32              i;
+    AnimationPlayRequest arg;
+    Actor310100Work*     work;
+    Actor310100Work*     anim;
+    Actor310100Work*     msg;
+    Task*                player;
+    u16                  seed;
+    u16                  ok;
+    s32                  i;
 
     work = (Actor310100Work*)task->work;
     if (func_actor_310100_80161E24(task) & 0xFFFF) {
@@ -737,12 +737,12 @@ static void func_actor_310100_80161F80(Task* task)
         if (D_actor_310100_8017989C[0][work->field_4F6] >= 0) {
             msg = (Actor310100Work*)task->work;
             if (msg->field_4E8 != NULL) {
-                arg.animBlock.ptr = D_actor_310100_801797FC;
-                arg.field_4       = seed;
-                arg.field_8       = 1;
-                arg.field_C       = 0xA;
-                arg.field_10      = 1;
-                Gp_DispatchMsgPtr(msg->field_4E8, 0x3F4, &arg, 0);
+                arg.source.sets          = D_actor_310100_801797FC;
+                arg.animationId          = seed;
+                arg.blend                = ANIMATION_BLEND_INTERPOLATE;
+                arg.blendFrames          = 0xA;
+                arg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(msg->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
             }
             work->field_4F6 = seed;
         }
@@ -921,7 +921,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     active = task->spawnArg1.value;
     work2  = (Actor310100Work*)task->work;
     do {
-        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
@@ -982,7 +982,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     active          = work->field_504;
     work2           = (Actor310100Work*)task->work;
     do {
-        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
@@ -1188,23 +1188,23 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 /// Message 0x7DD handler, and the display task's placement command: marks the
 /// display work block dirty, then either forwards the payload to the animation
 /// task (`pos.vx` zero — the seed carries the yaw into `field_4F6` and message
-/// 0x3F4 gets `pos.vy` / `pos.vz` as a `GpAnimArg`) or reseeds the nineteen
+/// 0x3F4 gets `pos.vy` / `pos.vz` as a `AnimationPlayRequest`) or reseeds the nineteen
 /// animation slots (`pos.vz` zero resets them through `Gp_AnimResetSlot`,
 /// otherwise `func_800B4114` blends them) and records the new base in
 /// `field_4F8` / `field_4FA`.
 void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
 {
-    GpAnimArg        arg;
-    Actor310100Work* work;
-    Actor310100Work* disp;
-    Actor310100Work* msgDisp;
-    Actor310100Work* resetDisp;
-    Task*            display;
-    u16              vy;
-    u16              vz;
-    u16              blend;
-    u16              active;
-    s32              i;
+    AnimationPlayRequest request;
+    Actor310100Work*     work;
+    Actor310100Work*     disp;
+    Actor310100Work*     msgDisp;
+    Actor310100Work*     resetDisp;
+    Task*                display;
+    u16                  animationId;
+    u16                  blendRequested;
+    u16                  blend;
+    u16                  active;
+    s32                  i;
 
     work            = (Actor310100Work*)task->work;
     display         = work->field_4E4;
@@ -1213,15 +1213,15 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
     if (placement->pos.vx == 0) {
         disp->field_4F6 = placement->pos.vy;
         msgDisp         = (Actor310100Work*)display->work;
-        vy              = placement->pos.vy;
-        vz              = placement->pos.vz;
+        animationId     = placement->pos.vy;
+        blendRequested  = placement->pos.vz;
         if (msgDisp->field_4E8 != NULL) {
-            arg.animBlock.ptr = D_actor_310100_801797FC;
-            arg.field_4       = vy;
-            arg.field_8       = vz;
-            arg.field_C       = 0xA;
-            arg.field_10      = 1;
-            Gp_DispatchMsgPtr(msgDisp->field_4E8, 0x3F4, &arg, 0);
+            request.source.sets          = D_actor_310100_801797FC;
+            request.animationId          = animationId;
+            request.blend                = blendRequested;
+            request.blendFrames          = 0xA;
+            request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(msgDisp->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
         }
     } else {
         active    = placement->pos.vy;
@@ -1230,7 +1230,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
         i         = 1;
         if (blend == 0) {
             do {
-                resetDisp->rig.slots[i & 0xFFFF].rate = 0x10;
+                resetDisp->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
                 Gp_AnimResetSlot(&resetDisp->rig.anim, i & 0xFFFF, active);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);

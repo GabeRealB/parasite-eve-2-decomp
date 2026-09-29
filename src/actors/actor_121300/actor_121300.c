@@ -118,9 +118,9 @@ extern Actor121300Waypoint D_actor_121300_8013CC20[];
 /// reaching the tail -- so the three share one stack slot and the frame stays
 /// 0x38 bytes.
 typedef union Actor121300Scratch {
-    /* 0x0 */ GpAnimArg msg;  // state 0: slot-3 weapon record, message 0x3E8
-    /* 0x0 */ RECT      rect; // state 3: the area ClearImage blanks
-    /* 0x0 */ VECTOR    vec;  // tail: model part-1 translation for func_800D7A9C
+    /* 0x0 */ AnimationPlayRequest msg;  // state 0: slot-3 weapon record, message 0x3E8
+    /* 0x0 */ RECT                 rect; // state 3: the area ClearImage blanks
+    /* 0x0 */ VECTOR               vec;  // tail: model part-1 translation for func_800D7A9C
 } Actor121300Scratch;
 
 /// Frame counter `func_actor_121300_80133D98` bumps once a frame and the
@@ -1814,7 +1814,7 @@ void func_actor_121300_80131EB0(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_actor_121300_8013D414->blend == 0) {
+                    if (D_actor_121300_8013D414->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
@@ -2440,7 +2440,7 @@ static void func_actor_121300_80133854(Task* arg0)
                 slotsWork            = (Actor121300Work*)arg0->work;
                 slotsWork->field_4A0 = 1;
                 for (i = 1; (u16)i < 0x13U; i++) {
-                    slotsWork->rig.slots[(u16)i].rate = 0x10;
+                    slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
                     Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                 }
             }
@@ -2481,7 +2481,7 @@ static void func_actor_121300_80133854(Task* arg0)
                     slotsWork            = (Actor121300Work*)arg0->work;
                     slotsWork->field_4A0 = 1;
                     for (i = 1; (u16)i < 0x13U; i++) {
-                        slotsWork->rig.slots[(u16)i].rate = 0x10;
+                        slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
                         Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                     }
                 }
@@ -2588,7 +2588,7 @@ static void func_actor_121300_80133BFC(Task* arg0)
     slotsWork->field_4A0 = 1;
     i                    = 1;
     do {
-        slotsWork->rig.slots[(u16)i].rate = 0x10;
+        slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x13U);
@@ -2623,14 +2623,14 @@ void func_actor_121300_80133D98(Task* arg0)
     switch (state) {
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                weaponId                    = Player_Status.weapon;
-                anim                        = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                scratch.msg.animBlock.index = anim;
-                scratch.msg.field_4         = 1;
-                scratch.msg.field_8         = 0;
-                scratch.msg.field_C         = 0;
-                scratch.msg.field_10        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &scratch.msg, 0);
+                weaponId                         = Player_Status.weapon;
+                anim                             = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                scratch.msg.source.index         = anim;
+                scratch.msg.animationId          = 1;
+                scratch.msg.blend                = ANIMATION_BLEND_RESET;
+                scratch.msg.blendFrames          = 0;
+                scratch.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &scratch.msg, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;
                 break;

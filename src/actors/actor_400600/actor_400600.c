@@ -2512,14 +2512,14 @@ static void func_actor_400600_80133E38(Task* arg0)
 
 static void func_actor_400600_80133FC0(Task* arg0)
 {
-    GpAnimArg        msg;
-    GpDelayArg       query;
-    Actor400600Work* work;
-    Actor400600Work* work2;
-    Actor400600Work* work3;
-    s32              base;
-    s32              sound;
-    s32              pan;
+    AnimationPlayRequest msg;
+    GpDelayArg           query;
+    Actor400600Work*     work;
+    Actor400600Work*     work2;
+    Actor400600Work*     work3;
+    s32                  base;
+    s32                  sound;
+    s32                  pan;
 
     work = (Actor400600Work*)arg0->work;
     if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
@@ -2546,16 +2546,16 @@ static void func_actor_400600_80133FC0(Task* arg0)
     }
     work->field_73E = work->field_92;
     func_actor_400600_80138B40(arg0);
-    work->field_768      = 0;
-    Gp_StateC08.field_6 |= 1;
-    work->field_767      = 1;
-    work->field_9A       = work->field_92;
-    msg.animBlock.ptr    = D_actor_400600_80151A48;
-    msg.field_8          = 0;
-    msg.field_C          = 0;
-    msg.field_10         = 0;
-    msg.field_4          = 1;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
+    work->field_768          = 0;
+    Gp_StateC08.field_6     |= 1;
+    work->field_767          = 1;
+    work->field_9A           = work->field_92;
+    msg.source.sets          = D_actor_400600_80151A48;
+    msg.blend                = ANIMATION_BLEND_RESET;
+    msg.blendFrames          = 0;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    msg.animationId          = 1;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     work->obj_4B4.flags &= 0x3FFF;
     work2                = (Actor400600Work*)arg0->work;
     work2->field_720     = 4;
@@ -2577,21 +2577,21 @@ static void func_actor_400600_80133FC0(Task* arg0)
 
 static void func_actor_400600_80134218(Task* arg0)
 {
-    GpAnimArg        msg;
-    SVECTOR          vec;
-    Actor400600Work* work;
-    Actor400600Work* work2;
-    GpEnemy*         enemy;
-    GfxCoord*        coord;
-    GfxCoord*        player;
-    GfxCoord*        root;
-    s32              id;
-    s32              sound;
-    s32              pan;
-    s32              sound2;
-    s32              pan2;
-    s32              y;
-    s32              ty;
+    AnimationPlayRequest msg;
+    SVECTOR              vec;
+    Actor400600Work*     work;
+    Actor400600Work*     work2;
+    GpEnemy*             enemy;
+    GfxCoord*             coord;
+    GfxCoord*             player;
+    GfxCoord*             root;
+    s32                  id;
+    s32                  sound;
+    s32                  pan;
+    s32                  sound2;
+    s32                  pan2;
+    s32                  y;
+    s32                  ty;
 
     work               = (Actor400600Work*)arg0->work;
     coord              = arg0->extra.tmd->coords;
@@ -2612,12 +2612,12 @@ static void func_actor_400600_80134218(Task* arg0)
     if (work->field_763 == 1 || work->field_764 == 1 || enemy->hp <= 0 || work->field_75C.b.field_75C >= 3) {
         work->field_763 = 0;
         if (work->field_764 == 0) {
-            msg.animBlock.ptr = D_actor_400600_80151A48;
-            msg.field_8       = 1;
-            msg.field_C       = 8;
-            msg.field_10      = 0;
-            msg.field_4       = 2;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+            msg.source.sets          = D_actor_400600_80151A48;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 8;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            msg.animationId          = 2;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         }
         work2                = (Actor400600Work*)arg0->work;
         work2->field_720     = 8;

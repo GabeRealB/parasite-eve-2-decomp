@@ -107,7 +107,7 @@ GpXformArg D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 256
 
 GpXformArg D_dryfield_water_tank_8017F0E8 = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
 
-GpAnimArg D_dryfield_water_tank_8017F100 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_water_tank_8017F100 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_dryfield_water_tank_8017F114[11] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_8017F100 }, { .value = 0 } },
@@ -1012,14 +1012,14 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
     DwtWork* work;
     DwtWork* cur;
     union {
-        GpAnimArg  rec;
-        GpXformArg warp;
+        AnimationPlayRequest rec;
+        GpXformArg           warp;
     } msg;
-    GpAnimArg  script;
-    GpAnimArg* rec;
-    u16        step;
-    s32        weaponId;
-    s32        idx;
+    AnimationPlayRequest  script;
+    AnimationPlayRequest* rec;
+    u16                   step;
+    s32                   weaponId;
+    s32                   idx;
 
     work = (DwtWork*)task->work;
     switch ((u16)work->field_4) {
@@ -1032,24 +1032,24 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                 case 0:
                     cur = (DwtWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.animBlock.ptr = D_dryfield_water_tank_801804EC;
-                        msg.rec.field_4       = 0;
-                        msg.rec.field_8       = 0;
-                        msg.rec.field_C       = 0;
-                        msg.rec.field_10      = 0;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                        msg.rec.source.sets          = D_dryfield_water_tank_801804EC;
+                        msg.rec.animationId          = 0;
+                        msg.rec.blend                = ANIMATION_BLEND_RESET;
+                        msg.rec.blendFrames          = 0;
+                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     work->field_6++;
                     return;
                 case 1:
                     cur = (DwtWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.animBlock.ptr = D_dryfield_water_tank_801804EC;
-                        msg.rec.field_4       = step;
-                        msg.rec.field_8       = step;
-                        msg.rec.field_C       = 0xF;
-                        msg.rec.field_10      = 0;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
+                        msg.rec.source.sets          = D_dryfield_water_tank_801804EC;
+                        msg.rec.animationId          = step;
+                        msg.rec.blend                = step;
+                        msg.rec.blendFrames          = 0xF;
+                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
                     break;
@@ -1079,14 +1079,14 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_water_tank_801804F4, 0);
                     // Taken before the record is filled, the address sits in
                     // $a1 and `field_4` is stored through it.
-                    rec                    = &script;
-                    weaponId               = Player_Status.weapon;
-                    script.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                    rec->field_4           = 1;
-                    script.field_8         = 0;
-                    script.field_C         = 0;
-                    script.field_10        = 0;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &script, 0);
+                    rec                         = &script;
+                    weaponId                    = Player_Status.weapon;
+                    script.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                    rec->animationId            = 1;
+                    script.blend                = ANIMATION_BLEND_RESET;
+                    script.blendFrames          = 0;
+                    script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &script, 0);
                     gGameSession->viewDirty = 1;
                     break;
                 default:
@@ -1110,10 +1110,10 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
 /// state 5 asks to be killed.
 void func_dryfield_water_tank_8017E9F8(Task* task)
 {
-    DwtWork*  work;
-    GpAnimArg script;
-    s32       weaponId;
-    s32       anim;
+    DwtWork*             work;
+    AnimationPlayRequest script;
+    s32                  weaponId;
+    s32                  anim;
 
     switch (task->state) {
         case 0:
@@ -1142,14 +1142,14 @@ L_case0:
             work->owner                    = gameGetPtrSlot(3);
             D_dryfield_water_tank_80188D50 = task;
         }
-        weaponId               = Player_Status.weapon;
-        anim                   = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-        script.animBlock.index = anim;
-        script.field_4         = 1;
-        script.field_8         = 1;
-        script.field_C         = 0xA;
-        script.field_10        = 0;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &script, 0);
+        weaponId                    = Player_Status.weapon;
+        anim                        = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        script.source.index         = anim;
+        script.animationId          = 1;
+        script.blend                = ANIMATION_BLEND_INTERPOLATE;
+        script.blendFrames          = 0xA;
+        script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &script, 0);
         func_800E8634(D_dryfield_water_tank_8018050C, 0,
                       D_dryfield_water_tank_8018068C);
         goto advance;
@@ -1185,20 +1185,20 @@ void func_dryfield_water_tank_8017EB80(s16 arg0)
 
 void func_dryfield_water_tank_8017EBA0(void)
 {
-    GpAnimArg rec;
-    s32       weaponId;
-    s32       anim;
+    AnimationPlayRequest rec;
+    s32                  weaponId;
+    s32                  anim;
 
     Gp_DispatchMsgPtr(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                       &D_dryfield_water_tank_801804F4, 0);
-    weaponId            = Player_Status.weapon;
-    anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.animBlock.index = anim;
-    rec.field_4         = 1;
-    rec.field_8         = 0;
-    rec.field_C         = 0;
-    rec.field_10        = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+    weaponId                 = Player_Status.weapon;
+    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.source.index         = anim;
+    rec.animationId          = 1;
+    rec.blend                = ANIMATION_BLEND_RESET;
+    rec.blendFrames          = 0;
+    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
     SetDispMask(1);
 }
 

@@ -41,7 +41,7 @@ STATIC_ASSERT_SIZEOF(Actor202900Work, 0x564);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor202900MessageEntry;
@@ -77,7 +77,7 @@ extern TmdSource D_actor_202900_80155B48;
 void             func_actor_202900_8014A02C(Task*);
 void             func_actor_202900_8014A088(Task*);
 
-s32 func_actor_202900_8014A3E0(Task*, s32, GpAnimArg*);
+s32 func_actor_202900_8014A3E0(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_202900_8014A440(Task*, s32, s32);
 
 AnimationPackedPose D_actor_202900_8014A4AC[158] = {
@@ -468,12 +468,12 @@ static s32 func_actor_202900_8014A394(void)
 /// is where the original evaluates it, and it is what puts the global's
 /// `lui`/`lw` ahead of the `li 2` and leaves the `st.field_6` clear for the
 /// call's delay slot.
-s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, GpAnimArg* args)
+s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Task* actor;
 
-    if (args->field_4 < 5) {
-        D_actor_202900_80156E54->st.animId  = args->field_4;
+    if (args->animationId < 5) {
+        D_actor_202900_80156E54->st.animId  = args->animationId;
         actor                               = D_actor_202900_80156E58;
         D_actor_202900_80156E54->st.state   = 2;
         D_actor_202900_80156E54->st.field_6 = 0;

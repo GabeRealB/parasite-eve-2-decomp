@@ -132,10 +132,10 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, GpSaveLoc*, GpSaveLoc
 s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpAnimArg  D_acropolis_west_elevator_hall_80184598;
-extern GpCopyArg  D_acropolis_west_elevator_hall_80184590;
-extern GpXformArg D_acropolis_west_elevator_hall_801845AC;
-extern GpXformArg D_acropolis_west_elevator_hall_801845C4;
+extern AnimationPlayRequest D_acropolis_west_elevator_hall_80184598;
+extern GpCopyArg            D_acropolis_west_elevator_hall_80184590;
+extern GpXformArg           D_acropolis_west_elevator_hall_801845AC;
+extern GpXformArg           D_acropolis_west_elevator_hall_801845C4;
 
 extern GpAnimSet D_acropolis_west_elevator_hall_80184540;
 extern TmdSource D_acropolis_west_elevator_hall_8018050C;
@@ -250,7 +250,7 @@ GpAnimSet* D_acropolis_west_elevator_hall_8018458C[1] = {
 
 GpCopyArg D_acropolis_west_elevator_hall_80184590 = { { .sets = D_acropolis_west_elevator_hall_8018458C }, 1 };
 
-GpAnimArg D_acropolis_west_elevator_hall_80184598 = { { .index = 1 }, 47, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_west_elevator_hall_80184598 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_acropolis_west_elevator_hall_801845AC = { { 0x2710, 0, 2527, 0 }, { 0, 2048, 0, 0 } };
 
@@ -261,7 +261,7 @@ GpXformArg D_acropolis_west_elevator_hall_801845DC = { { 220, 0, 2650, 0 }, { 0,
 
 GpXformArg D_acropolis_west_elevator_hall_801845F4 = { { -1388, 0, 922, 0 }, { 0, 2048, 0, 0 } };
 
-GpAnimArg D_acropolis_west_elevator_hall_8018460C = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_acropolis_west_elevator_hall_8018460C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_acropolis_west_elevator_hall_80184620[26] = {
     { 32, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },

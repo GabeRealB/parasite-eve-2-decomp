@@ -35,7 +35,7 @@ STATIC_ASSERT_SIZEOF(Actor110700Work, 0x480);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -51,7 +51,7 @@ static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task);
 static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
 
 extern TmdSource D_actor_110700_801377C8;
-s32              func_actor_110700_8013201C(Task*, s32, GpAnimArg*);
+s32              func_actor_110700_8013201C(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_110700_80132074(Task*, s32, GpXformArg*);
 s32              func_actor_110700_801320D8(Task*, s32, s32);
 void             func_actor_110700_80131E24(Task*);
@@ -304,13 +304,13 @@ static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
 
 /// Message 0x7D3 handler: starts the animation the payload names, storing its
 /// id in the work block and reseeding slots 1..0x12 with it.
-s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
+s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args)
 {
     Actor110700Work* work;
     s32              i;
 
     work         = (Actor110700Work*)task->work;
-    work->animId = args->field_4;
+    work->animId = args->animationId;
     i            = 1;
     do {
         Gp_AnimResetSlot(&work->rig.anim, i, work->animId);

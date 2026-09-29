@@ -64,8 +64,8 @@ extern u8 D_dryfield_night_driveway_80182120_value __asm__("D_dryfield_night_dri
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[4];
-        GpAnimArg  arguments[2];
+        GpAnimSet*           sets[4];
+        AnimationPlayRequest arguments[2];
     } data;
     s32 words[14];
 } DryfieldNightDrivewayAnimStorageF8C4;
@@ -114,20 +114,20 @@ extern GpObj4C        D_dryfield_night_driveway_80181DC8[4];
 extern GpRoomBoundVec D_dryfield_night_driveway_80182074[11];
 extern GpRoomCoordSet D_dryfield_night_driveway_80181DB0[1];
 
-extern GpAnimArg D_dryfield_night_driveway_8017F380;
-extern GpAnimArg D_dryfield_night_driveway_8017F3A8;
-extern GpAnimSet D_dryfield_night_driveway_8017EE30;
-extern GpAnimSet D_dryfield_night_driveway_8017F044;
-extern GpAnimSet D_dryfield_night_driveway_8017F324;
-extern GpCopyArg D_dryfield_night_driveway_8017F378;
-s32              func_dryfield_night_driveway_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32              func_dryfield_night_driveway_8017DC94(Task*, s32, s32, GpMessageArg);
-s32              func_dryfield_night_driveway_8017DCE4(Task*, s32, GpMessageArg, GpMessageArg);
-s32              func_dryfield_night_driveway_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
-s32              func_dryfield_night_driveway_8017DCF4(Task*, s32, GpMessageArg, GpMessageArg);
-void             func_dryfield_night_driveway_8017DC6C(s32);
-void             func_dryfield_night_driveway_8017DC78(s16);
-void             func_dryfield_night_driveway_8017DC88(u8);
+extern AnimationPlayRequest D_dryfield_night_driveway_8017F380;
+extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
+extern GpAnimSet            D_dryfield_night_driveway_8017EE30;
+extern GpAnimSet            D_dryfield_night_driveway_8017F044;
+extern GpAnimSet            D_dryfield_night_driveway_8017F324;
+extern GpCopyArg            D_dryfield_night_driveway_8017F378;
+s32                         func_dryfield_night_driveway_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_dryfield_night_driveway_8017DC94(Task*, s32, s32, GpMessageArg);
+s32                         func_dryfield_night_driveway_8017DCE4(Task*, s32, GpMessageArg, GpMessageArg);
+s32                         func_dryfield_night_driveway_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
+s32                         func_dryfield_night_driveway_8017DCF4(Task*, s32, GpMessageArg, GpMessageArg);
+void                        func_dryfield_night_driveway_8017DC6C(s32);
+void                        func_dryfield_night_driveway_8017DC78(s16);
+void                        func_dryfield_night_driveway_8017DC88(u8);
 
 void func_dryfield_night_driveway_8017D608(Task*);
 void func_dryfield_night_driveway_8017DAF4(Task*);
@@ -236,11 +236,11 @@ GpAnimSet* D_dryfield_night_driveway_8017F370[2] = {
 
 GpCopyArg D_dryfield_night_driveway_8017F378 = { { .sets = D_dryfield_night_driveway_8017F370 }, 2 };
 
-GpAnimArg D_dryfield_night_driveway_8017F380 = { { .index = 1 }, 47, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F380 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F394 = { { .index = 1 }, 48, 1, 7, 1 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F394 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F3A8 = { { .index = 1 }, 32, 1, 5, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F3A8 = { { .index = 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_dryfield_night_driveway_8017F3BC = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
 
@@ -261,9 +261,9 @@ GpEvsCmd D_dryfield_night_driveway_8017F3D4[14] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_dryfield_night_driveway_8017F524 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F524 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F538 = { { .index = 1 }, 24, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F538 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_dryfield_night_driveway_8017F54C[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -327,21 +327,21 @@ GpXformArg D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3
 
 DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &D_dryfield_night_driveway_8017EE30, &D_dryfield_night_driveway_8017F044, &D_dryfield_night_driveway_8017F324, NULL }, { { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 47, 0, 0, 1 } } } };
 
-GpAnimArg D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F910 = { { .index = 1 }, 49, 0, 0, 1 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F910 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GpCopyArg D_dryfield_night_driveway_8017F924 = { { .words = D_dryfield_night_driveway_8017F8C4.words }, 10 };
 
-GpAnimArg D_dryfield_night_driveway_8017F92C = { { .index = 6 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F92C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F940 = { { .index = 6 }, 38, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F940 = { { .index = 6 }, 38, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F954 = { { .index = 6 }, 7, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F954 = { { .index = 6 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F968 = { { .index = 6 }, 8, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F968 = { { .index = 6 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_dryfield_night_driveway_8017F97C = { { .index = 6 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_dryfield_night_driveway_8017F97C = { { .index = 6 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpOverrideArg D_dryfield_night_driveway_8017F990 = { 4, 9 };
 

@@ -4833,11 +4833,11 @@ static void func_actor_403200_80135F98(GpEnemy* enemy, Task* task)
             cfg->hp > 0) {
             D_actor_403200_8015F900.value.field_14 = 0x28;
             if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_403200_8015F900.value, 0) == 0) {
-                D_actor_403200_80141C54  = 1;
-                work->anim.animBlock.ptr = D_actor_403200_8015E710;
-                work->anim.field_4       = 1;
-                work->anim.field_8       = 0;
-                work->anim.field_C       = 3;
+                D_actor_403200_80141C54 = 1;
+                work->anim.source.sets  = D_actor_403200_8015E710;
+                work->anim.animationId  = 1;
+                work->anim.blend        = 0;
+                work->anim.blendFrames  = 3;
                 Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                 work->field_1B2 = 1;
             }
@@ -4895,11 +4895,11 @@ static void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_403200_8015E710[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[9];
-        work->anim.animBlock.ptr = D_actor_403200_8015E710;
-        work->anim.field_4       = 2;
-        work->anim.field_8       = armed;
-        work->anim.field_C       = 9;
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+        work->anim.source.sets = D_actor_403200_8015E710;
+        work->anim.animationId = 2;
+        work->anim.blend       = armed;
+        work->anim.blendFrames = 9;
         Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
         task->extra.tmd->flags = 0x80;
     }
@@ -6011,15 +6011,15 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     gte_gpf12();
     gte_stsv(gteDir);
 
-    work->anim.animBlock.ptr = NULL;
-    work->anim.field_4       = 1;
-    work->anim.field_8       = 0;
-    work->anim.field_C       = 3;
-    work->anim.field_10      = 1;
-    work->field_F12          = 0;
-    task->msgTable           = D_actor_403200_8015F770;
-    coord->parent            = &gGfxViewCoord;
-    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    work->anim.source.sets          = NULL;
+    work->anim.animationId          = 1;
+    work->anim.blend                = 0;
+    work->anim.blendFrames          = 3;
+    work->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    work->field_F12                 = 0;
+    task->msgTable                  = D_actor_403200_8015F770;
+    coord->parent                      = &gGfxViewCoord;
+    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     work->field_2 = -1;
@@ -7491,19 +7491,19 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             sc->angle = ext;
             if (abs(ext) < 0x400) {
                 D_actor_403200_8015F9C0.value.rot.vy = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
-                work->anim.animBlock.ptr             = D_actor_403200_8015E6AC;
+                work->anim.source.sets               = D_actor_403200_8015E6AC;
             } else {
                 D_actor_403200_8015F9C0.value.rot.vy = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
-                work->anim.animBlock.ptr             = D_actor_403200_8015E6CC;
+                work->anim.source.sets               = D_actor_403200_8015E6CC;
             }
         }
         if (cfg->hp > 0) {
             Gp_DispatchMsgPtr(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
         }
-        work->anim.field_4 = 1;
-        work->anim.field_8 = 0;
-        work->anim.field_C = 0;
-        work->field_F02    = 1;
+        work->anim.animationId = 1;
+        work->anim.blend       = 0;
+        work->anim.blendFrames = 0;
+        work->field_F02        = 1;
         Gp_DispatchMsgPtr(task, 0x3F4, &work->anim, 0);
         work->field_7CA = 0;
     }
@@ -7937,11 +7937,11 @@ scanned:
         if (reply == 1) {
             ((GameActor*)task->work)->field_956 = 0xA;
         }
-        work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
-        work->field_EC8          = 1;
-        work->anim.field_4       = 2;
-        work->anim.field_8       = 0;
-        work->anim.field_C       = 0;
+        work->anim.source.sets = D_actor_403200_8015E6AC;
+        work->field_EC8        = 1;
+        work->anim.animationId = 2;
+        work->anim.blend       = 0;
+        work->anim.blendFrames = 0;
         Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
         work->field_7CA = 0;
     }
@@ -9359,32 +9359,32 @@ after_mode:
         count           = work->field_7CA + 1;
         work->field_7CA = count;
         if (work->field_ECA == mode) {
-            if (work->anim.field_4 == 2) {
-                work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
-                work->anim.field_8       = 0;
-                work->anim.field_C       = 0;
+            if (work->anim.animationId == 2) {
+                work->anim.source.sets = D_actor_403200_8015E6AC;
+                work->anim.blend       = 0;
+                work->anim.blendFrames = 0;
                 Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                 work->field_7CA = 0;
             }
-        } else if (work->anim.field_4 == 2 && (s16)count < 0x28) {
-            work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
-            work->anim.field_8       = 0;
-            work->anim.field_C       = 0;
+        } else if (work->anim.animationId == 2 && (s16)count < 0x28) {
+            work->anim.source.sets = D_actor_403200_8015E6AC;
+            work->anim.blend       = 0;
+            work->anim.blendFrames = 0;
             Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
         }
 
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-            switch (work->anim.field_4) {
+            switch (work->anim.animationId) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
-                        work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
+                        work->anim.source.sets = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             (Gp_PlayerAnimBlkTbl
                                  [Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])
-                                ->prefix.sets[7];
-                        work->anim.field_4 = 4;
-                        work->anim.field_8 = 1;
-                        work->anim.field_C = 3;
+                                ->table.sets[7];
+                        work->anim.animationId = 4;
+                        work->anim.blend       = 1;
+                        work->anim.blendFrames = 3;
                         Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                         work->field_7CA = 0;
                     }

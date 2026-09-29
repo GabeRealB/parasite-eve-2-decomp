@@ -68,7 +68,7 @@ typedef struct {
     s32 id;
     union {
         s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32  (*call2)(Task*, s32, GpCmdArg*, s32);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
@@ -126,7 +126,7 @@ s32              func_actor_323400_80164764(Task*, s32, s32);
 s32              func_actor_323400_80164824(Task*);
 s32              func_actor_323400_80164874(Task*, s32, GpXformArg*);
 s32              func_actor_323400_80164974(Task*, s32, GpCmdArg*, s32);
-s32              func_actor_323400_80164A50(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_323400_80164A50(Task*, s32, AnimationPlayRequest*, s32);
 void             func_actor_323400_8016475C(void);
 void             func_actor_323400_80164CEC(Task*);
 
@@ -3864,11 +3864,11 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 
 /// Handler for message 0x7D3: latches the requested animation id into
 /// `field_82E` and restarts the state machine at state 1.
-s32 func_actor_323400_80164A50(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+s32 func_actor_323400_80164A50(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor323000Work* work = (Actor323000Work*)task->work;
 
-    work->field_82E = msg->field_4;
+    work->field_82E = msg->animationId;
     work->field_0   = 1;
     work->field_2   = -1;
     return 0;

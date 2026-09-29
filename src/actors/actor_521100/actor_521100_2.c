@@ -88,7 +88,7 @@ STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -121,7 +121,7 @@ static void func_actor_521100_8013677C(void);
 static void func_actor_521100_80136820(void);
 static void func_actor_521100_801368B0(Task* task);
 
-s32  func_actor_521100_801369B8(Task*, s32, GpAnimArg*);
+s32  func_actor_521100_801369B8(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_521100_80136A1C(Task*, s32, s32);
 s32  func_actor_521100_80136A64(Task*, s32, GpXformArg*);
 s32  func_actor_521100_80136AE0(Task*, s32, GpCmdArg*);
@@ -817,21 +817,13 @@ static void func_actor_521100_801368B0(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_BYTES(0x30);
 }
-/// Animation-start handler: seeds the work block's `animId` with
-/// `args->field_4 + 1`, rejecting anything whose incremented id is 0xB or up,
-/// and leaves the actor in step 2 with `field_482` cleared before running the
-/// step dispatcher.
-///
-/// The published task is read into a local between the first two stores on
-/// purpose: that is where the original evaluates it, and it is what puts the
-/// global's `lui`/`lw` ahead of the `li 2` and leaves the `field_482` clear
-/// for the call's delay slot.
-s32 func_actor_521100_801369B8(Task* task, s32 arg1, GpAnimArg* args)
+/// Starts the actor's scripted animation selected by the request.
+s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
     Task* dispatcher;
 
-    if (args->field_4 + 1 < 0xB) {
-        D_actor_521100_8016A3D8->animId    = (u16)args->field_4 + 1;
+    if (args->animationId + 1 < 0xB) {
+        D_actor_521100_8016A3D8->animId    = (u16)args->animationId + 1;
         dispatcher                         = D_actor_521100_8016A3DC;
         D_actor_521100_8016A3D8->field_47C = 2;
         D_actor_521100_8016A3D8->field_482 = 0;

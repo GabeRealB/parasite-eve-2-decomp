@@ -474,7 +474,7 @@ GpEvsCmd D_shelter_b1_underground_parking_801872D8[10] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimArg D_shelter_b1_underground_parking_801873C8 = { { .index = 1 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_shelter_b1_underground_parking_801873C8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpEvsCmd D_shelter_b1_underground_parking_801873DC[15] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },

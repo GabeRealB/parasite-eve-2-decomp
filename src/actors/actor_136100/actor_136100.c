@@ -1222,14 +1222,14 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec);
 
 static s32 func_actor_136100_80131EC4(Task* arg0)
 {
-    Actor136100Work* work;
-    Actor136100Work* msgWork;
-    GpAnimArg        rec;
-    s16*             sel;
-    s32              i;
-    u16              idx;
-    s32              weaponId;
-    s32              id;
+    Actor136100Work*     work;
+    Actor136100Work*     msgWork;
+    AnimationPlayRequest rec;
+    s16*                 sel;
+    s32                  i;
+    u16                  idx;
+    s32                  weaponId;
+    s32                  id;
 
     work = (Actor136100Work*)arg0->work;
     if (work->field_4B4 == NULL) {
@@ -1251,16 +1251,16 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     }
     idx = (u16)*sel + 0x2FU;
 
-    msgWork             = (Actor136100Work*)arg0->work;
-    weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.animBlock.index = id;
-    msgWork->field_4DE  = idx;
-    rec.field_4         = idx;
-    rec.field_8         = 1;
-    rec.field_C         = 0xA;
-    rec.field_10        = 0;
-    Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);
+    msgWork                  = (Actor136100Work*)arg0->work;
+    weaponId                 = Player_Status.weapon;
+    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.source.index         = id;
+    msgWork->field_4DE       = idx;
+    rec.animationId          = idx;
+    rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+    rec.blendFrames          = 0xA;
+    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
     goto ret1;
 }
 
@@ -1407,28 +1407,29 @@ void func_actor_136100_80132284(Task* arg0)
     }
 }
 
-/// Build the 0x3E8 weapon record (`GpAnimArg`) for `anim` from the equip-slot
-/// addend (`Player_Status.weapon`), arm `field_4DE` with it and send it to slot 3.
+/// Builds and sends the player's equipped-weapon animation request.
 ///
-/// A macro rather than an inline: the record must be one frame slot shared by
-/// every expansion, while the work pointer and the id stay per-expansion
-/// pseudos -- shared, they globalise into one register across the switch.
-#define func_actor_136100_SendWeaponRec(task, anim, a, b)                                               \
-    {                                                                                                   \
-        Actor136100Work* msgWork;                                                                       \
-        s32              weaponId;                                                                      \
-        s32              id;                                                                            \
-                                                                                                        \
-        msgWork             = (Actor136100Work*)(task)->work;                                           \
-        weaponId            = Player_Status.weapon;                                                     \
-        id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        rec.animBlock.index = id;                                                                       \
-        msgWork->field_4DE  = anim;                                                                     \
-        rec.field_4         = anim;                                                                     \
-        rec.field_8         = a;                                                                        \
-        rec.field_C         = b;                                                                        \
-        rec.field_10        = 0;                                                                        \
-        Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);                                          \
+/// `record` is accessed repeatedly and must be a side-effect-free request
+/// lvalue. `anim` is evaluated twice and must be side-effect-free; `task` is
+/// evaluated once. Dispatch consumes the request synchronously.
+/// The bank selector depends on the current weapon and save character.
+/// Per-expansion work pointers preserve the original call scheduling.
+#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, anim, blendChoice, frames, record)                        \
+    {                                                                                                             \
+        Actor136100Work* msgWork;                                                                                 \
+        s32              weaponId;                                                                                \
+        s32              id;                                                                                      \
+                                                                                                                  \
+        msgWork                       = (Actor136100Work*)(task)->work;                                           \
+        weaponId                      = Player_Status.weapon;                                                     \
+        id                            = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        (record).source.index         = id;                                                                       \
+        msgWork->field_4DE            = anim;                                                                     \
+        (record).animationId          = anim;                                                                     \
+        (record).blend                = (blendChoice);                                                            \
+        (record).blendFrames          = (frames);                                                                 \
+        (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
+        Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &(record), 0);                              \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -1438,8 +1439,8 @@ void func_actor_136100_80132284(Task* arg0)
 /// cleared.
 static void func_actor_136100_801323F8(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpAnimArg        rec;
+    Actor136100Work*     work = (Actor136100Work*)arg0->work;
+    AnimationPlayRequest rec;
 
     if (gGameSession->eventState != 0) {
         func_actor_136100_80131EC4(arg0);
@@ -1464,45 +1465,52 @@ static void func_actor_136100_801323F8(Task* arg0)
                     if (++work->field_4C8 < 6) {
                         return;
                     }
-                    func_actor_136100_SendWeaponRec(arg0, 0x2F, 1, 5);
+                    ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 1, 5, rec);
                     break;
                 default:
                     return;
             }
             break;
         case 2:
-            func_actor_136100_SendWeaponRec(arg0, 0x32, 1, 0xA);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x32, 1, 0xA, rec);
             break;
         case 3:
-            func_actor_136100_SendWeaponRec(arg0, 0x34, 1, 0xA);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x34, 1, 0xA, rec);
             break;
         case 4:
             Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F37C, 0);
-            func_actor_136100_SendWeaponRec(arg0, 0x2F, 0, 0);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 0, 0, rec);
             break;
         case 5:
-            func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, rec);
             break;
         case 6:
-            func_actor_136100_SendWeaponRec(arg0, 1, 0, 0);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
     }
     work->field_4C4 = 0;
 }
 
-#define func_actor_136100_PlayAnimRec(task, anim, blend, speed)     \
-    {                                                               \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work; \
-                                                                    \
-        if (animWork->field_4C0 != NULL) {                          \
-            rec.animBlock.ptr   = D_actor_136100_8013F1D4;          \
-            animWork->field_4E2 = anim;                             \
-            rec.field_4         = anim;                             \
-            rec.field_8         = blend;                            \
-            rec.field_C         = speed;                            \
-            rec.field_10        = 0;                                \
-            Gp_DispatchMsgPtr(animWork->field_4C0, 0x3F4, &rec, 0); \
-        }                                                           \
+/// Installs the linked actor's animation table and requests a blended clip.
+///
+/// `record` is accessed repeatedly and must be a side-effect-free request
+/// lvalue. `anim` is evaluated twice and must be side-effect-free; `task` is
+/// evaluated once. Dispatch consumes the request synchronously.
+/// A null linked task suppresses evaluation of the clip and record arguments.
+/// Per-expansion work pointers preserve the original call scheduling.
+#define ACTOR_136100_PLAY_LINKED_ANIMATION(task, anim, blendChoice, frames, record)                   \
+    {                                                                                                 \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                   \
+                                                                                                      \
+        if (animWork->field_4C0 != NULL) {                                                            \
+            (record).source.sets          = D_actor_136100_8013F1D4;                                  \
+            animWork->field_4E2           = anim;                                                     \
+            (record).animationId          = anim;                                                     \
+            (record).blend                = (blendChoice);                                            \
+            (record).blendFrames          = (frames);                                                 \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                        \
+            Gp_DispatchMsgPtr(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                             \
     }
 
 /// Record `id` as the work block's current animation (`field_4E0`).
@@ -1533,7 +1541,7 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
     work->field_4E0 = count;
     i               = 1;
     do {
-        work->rig.slots[(u16)i].rate = 0x10;
+        work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work->rig.anim, (u16)i, count);
         i++;
     } while ((u16)i < 0x14U);
@@ -1541,8 +1549,8 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 
 static void func_actor_136100_80132748(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpAnimArg        rec;
+    Actor136100Work*     work = (Actor136100Work*)arg0->work;
+    AnimationPlayRequest rec;
 
     func_actor_136100_80131FBC(arg0);
     switch ((u16)work->field_4CC) {
@@ -1559,7 +1567,7 @@ static void func_actor_136100_80132748(Task* arg0)
                     if (++work->field_4D0 < 0x3D) {
                         return;
                     }
-                    func_actor_136100_PlayAnimRec(arg0, 3, 1, 0xA);
+                    ACTOR_136100_PLAY_LINKED_ANIMATION(arg0, 3, 1, 0xA, rec);
                     break;
                 default:
                     return;
@@ -1584,21 +1592,20 @@ static void func_actor_136100_80132748(Task* arg0)
                         s32              weaponId;
                         s32              id;
 
-                        msgWork             = arg0->work;
-                        weaponId            = Player_Status.weapon;
-                        id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                        rec.animBlock.index = id;
-                        msgWork->field_4DE  = 0x30;
-                        rec.field_4         = 0x30;
-                        rec.field_8         = 1;
-                        rec.field_C         = 0xA;
-                        rec.field_10        = 0;
-                        /* Matching exception: passing this stack record through the
-                         * typed helper keeps its address in a saved register across
-                         * calls and adds three instructions. Other sites use it. */
-                        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
+                        msgWork                  = arg0->work;
+                        weaponId                 = Player_Status.weapon;
+                        id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        rec.source.index         = id;
+                        msgWork->field_4DE       = 0x30;
+                        rec.animationId          = 0x30;
+                        rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                        rec.blendFrames          = 0xA;
+                        rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+
+                        // The message ABI carries this request address in a signed word.
+                        Gp_DispatchMsg(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, (s32)&rec, 0);
                     }
-                    func_actor_136100_PlayAnimRec(arg0, 4, 1, 0xA);
+                    ACTOR_136100_PLAY_LINKED_ANIMATION(arg0, 4, 1, 0xA, rec);
                     break;
                 default:
                     return;
@@ -1633,7 +1640,7 @@ static void func_actor_136100_80132748(Task* arg0)
 
             animWork->field_4E0 = 1;
             for (i = 1; (u16)i < 0x14U; i++) {
-                animWork->rig.slots[(u16)i].rate = 0x10;
+                animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
                 Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
             }
         } break;
@@ -1645,17 +1652,17 @@ static void func_actor_136100_80132748(Task* arg0)
 /// current `field_4E2` chain entry; does nothing while that task is unset.
 static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s32 speed)
 {
-    Actor136100Work* work = (Actor136100Work*)task->work;
-    GpAnimArg        msg;
+    Actor136100Work*     work = (Actor136100Work*)task->work;
+    AnimationPlayRequest msg;
 
     if (work->field_4C0 != NULL) {
-        msg.animBlock.ptr = D_actor_136100_8013F1D4;
-        work->field_4E2   = anim;
-        msg.field_4       = anim;
-        msg.field_8       = blend;
-        msg.field_C       = speed;
-        msg.field_10      = 0;
-        Gp_DispatchMsgPtr(work->field_4C0, 0x3F4, &msg, 0);
+        msg.source.sets          = D_actor_136100_8013F1D4;
+        work->field_4E2          = anim;
+        msg.animationId          = anim;
+        msg.blend                = blend;
+        msg.blendFrames          = speed;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        Gp_DispatchMsgPtr(work->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
@@ -1721,8 +1728,8 @@ static void func_actor_136100_80132BC0(Task* arg0)
 /// request is cleared.
 static void func_actor_136100_80132E78(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpAnimArg        rec;
+    Actor136100Work*     work = (Actor136100Work*)arg0->work;
+    AnimationPlayRequest rec;
 
     if (gGameSession->eventState != 0) {
         func_actor_136100_80131EC4(arg0);
@@ -1732,7 +1739,7 @@ static void func_actor_136100_80132E78(Task* arg0)
             break;
         case 1:
             Gp_DispatchMsg(work->field_4B4, 0x3F3, 0, 0);
-            func_actor_136100_SendWeaponRec(arg0, 1, 0, 0);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 2:
             switch ((u16)work->field_4C6) {
@@ -1752,27 +1759,27 @@ static void func_actor_136100_80132E78(Task* arg0)
                     if (++work->field_4C8 < 6) {
                         return;
                     }
-                    func_actor_136100_SendWeaponRec(arg0, 0x2F, 1, 5);
+                    ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 1, 5, rec);
                     break;
                 default:
                     return;
             }
             break;
         case 3:
-            func_actor_136100_SendWeaponRec(arg0, 0x31, 1, 0xA);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x31, 1, 0xA, rec);
             break;
         case 4:
-            func_actor_136100_SendWeaponRec(arg0, 0x35, 1, 0xA);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x35, 1, 0xA, rec);
             break;
         case 5:
             Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F364, 0);
-            func_actor_136100_SendWeaponRec(arg0, 1, 0, 0);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 6:
-            func_actor_136100_SendWeaponRec(arg0, 0x2F, 0, 0);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 0, 0, rec);
             break;
         case 7:
-            func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, rec);
             break;
     }
     work->field_4C4 = 0;
@@ -1854,10 +1861,10 @@ static void func_actor_136100_80133238(Task* arg0)
 /// placement selected by `field_4D4` (1..3) and clears the request.
 static void func_actor_136100_80133558(Task* arg0)
 {
-    Actor136100Work* work;
-    Actor136100Work* msgWork;
-    GpAnimArg        msg;
-    u16              anim;
+    Actor136100Work*     work;
+    Actor136100Work*     msgWork;
+    AnimationPlayRequest msg;
+    u16                  anim;
 
     work = (Actor136100Work*)arg0->work;
     if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
@@ -1865,13 +1872,13 @@ static void func_actor_136100_80133558(Task* arg0)
         if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
             msgWork = (Actor136100Work*)arg0->work;
             if (msgWork->field_4C0 != NULL) {
-                msg.animBlock.ptr  = D_actor_136100_8013F1D4;
-                msgWork->field_4E2 = anim;
-                msg.field_4        = anim;
-                msg.field_8        = 1;
-                msg.field_C        = 0xA;
-                msg.field_10       = 0;
-                Gp_DispatchMsgPtr(msgWork->field_4C0, 0x3F4, &msg, 0);
+                msg.source.sets          = D_actor_136100_8013F1D4;
+                msgWork->field_4E2       = anim;
+                msg.animationId          = anim;
+                msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+                msg.blendFrames          = 0xA;
+                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                Gp_DispatchMsgPtr(msgWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
         }
     }
@@ -1896,7 +1903,7 @@ static void func_actor_136100_80133558(Task* arg0)
 /// Clears the first two value/countdown pairs, re-arms all nineteen animation
 /// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
-/// (`GpAnimArg`) built from the equip-slot addend (`Player_Status.weapon`), the pair
+/// (`AnimationPlayRequest`) built from the equip-slot addend (`Player_Status.weapon`), the pair
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
 /// way past.
 ///
@@ -1907,15 +1914,15 @@ static void func_actor_136100_80133558(Task* arg0)
 /// the outgoing-arg area and `rec` (see `func_actor_136100_801347B8`).
 void func_actor_136100_80133690(void)
 {
-    Task*            task;
-    Actor136100Work* work;
-    Actor136100Work* animWork;
-    Actor136100Work* msgWork;
-    SVECTOR          unused;
-    GpAnimArg        rec;
-    s32              i;
-    s32              weaponId;
-    s32              id;
+    Task*                task;
+    Actor136100Work*     work;
+    Actor136100Work*     animWork;
+    Actor136100Work*     msgWork;
+    SVECTOR              unused;
+    AnimationPlayRequest rec;
+    s32                  i;
+    s32                  weaponId;
+    s32                  id;
 
     task            = D_actor_136100_8014078C;
     work            = (Actor136100Work*)task->work;
@@ -1926,29 +1933,29 @@ void func_actor_136100_80133690(void)
     animWork->field_4E0 = 1;
     i                   = 1;
     do {
-        animWork->rig.slots[(u16)i].rate = 0x10;
+        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
 
     Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[1], 0);
 
-    msgWork             = (Actor136100Work*)task->work;
-    weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.animBlock.index = id;
-    msgWork->field_4DE  = 1;
-    rec.field_4         = 1;
-    rec.field_8         = 0;
-    rec.field_C         = 0;
-    rec.field_10        = 0;
-    Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);
+    msgWork                  = (Actor136100Work*)task->work;
+    weaponId                 = Player_Status.weapon;
+    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.source.index         = id;
+    msgWork->field_4DE       = 1;
+    rec.animationId          = 1;
+    rec.blend                = ANIMATION_BLEND_RESET;
+    rec.blendFrames          = 0;
+    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// Second half of the cutscene actor's re-arm: clears the first two
 /// value/countdown pairs, sends the 0x7D4 cue to the host task, re-arms all
 /// nineteen animation slots with the work block's slot count at 3, then re-sends
-/// the two placement cues and the 0x3E8 weapon record (`GpAnimArg`) built from the
+/// the two placement cues and the 0x3E8 weapon record (`AnimationPlayRequest`) built from the
 /// equip-slot addend (`Player_Status.weapon`).  `arg0 == 1` additionally resets the
 /// fourth bone's rotation to zero.
 ///
@@ -1959,15 +1966,15 @@ void func_actor_136100_80133690(void)
 /// `rec` (see `func_actor_136100_80133690`).
 void func_actor_136100_8013379C(s32 arg0)
 {
-    Task*            task;
-    Actor136100Work* work;
-    Actor136100Work* animWork;
-    Actor136100Work* msgWork;
-    SVECTOR          unused;
-    GpAnimArg        rec;
-    s32              i;
-    s32              weaponId;
-    s32              id;
+    Task*                task;
+    Actor136100Work*     work;
+    Actor136100Work*     animWork;
+    Actor136100Work*     msgWork;
+    SVECTOR              unused;
+    AnimationPlayRequest rec;
+    s32                  i;
+    s32                  weaponId;
+    s32                  id;
 
     task            = D_actor_136100_8014078C;
     work            = (Actor136100Work*)task->work;
@@ -1980,23 +1987,23 @@ void func_actor_136100_8013379C(s32 arg0)
     animWork->field_4E0 = 3;
     i                   = 1;
     do {
-        animWork->rig.slots[(u16)i].rate = 0x10;
+        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 3);
         i++;
     } while ((u16)i < 0x14U);
 
     Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, D_actor_136100_8013F334, 0);
 
-    msgWork             = (Actor136100Work*)task->work;
-    weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.animBlock.index = id;
-    msgWork->field_4DE  = 1;
-    rec.field_4         = 1;
-    rec.field_8         = 0;
-    rec.field_C         = 0;
-    rec.field_10        = 0;
-    Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);
+    msgWork                  = (Actor136100Work*)task->work;
+    weaponId                 = Player_Status.weapon;
+    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.source.index         = id;
+    msgWork->field_4DE       = 1;
+    rec.animationId          = 1;
+    rec.blend                = ANIMATION_BLEND_RESET;
+    rec.blendFrames          = 0;
+    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
 
     Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
 
@@ -2123,38 +2130,45 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
     return 0;
 }
 
-/// Send the 0x3F4 animation record for `anim` to the `field_4C0` task, if any.
-/// A macro: `anim` must stay a literal per expansion, or both constant loads
-/// share one register and the two branches cross-jump earlier.
-#define func_actor_136100_SendAnimRec(task, anim)                   \
-    {                                                               \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work; \
-                                                                    \
-        if (animWork->field_4C0 != NULL) {                          \
-            rec.animBlock.ptr   = D_actor_136100_8013F1D4;          \
-            animWork->field_4E2 = anim;                             \
-            rec.field_4         = anim;                             \
-            rec.field_8         = 0;                                \
-            rec.field_C         = 0;                                \
-            rec.field_10        = 0;                                \
-            Gp_DispatchMsgPtr(animWork->field_4C0, 0x3F4, &rec, 0); \
-        }                                                           \
+/// Installs the linked actor's animation table and resets to a clip.
+///
+/// `record` is accessed repeatedly and must be a side-effect-free request
+/// lvalue. `anim` is evaluated twice and must be side-effect-free; `task` is
+/// evaluated once. Dispatch consumes the request synchronously.
+/// A null linked task suppresses evaluation of the clip and record arguments.
+/// Per-expansion work pointers preserve the original call scheduling.
+#define ACTOR_136100_RESET_LINKED_ANIMATION(task, anim, record)                                       \
+    {                                                                                                 \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                   \
+                                                                                                      \
+        if (animWork->field_4C0 != NULL) {                                                            \
+            (record).source.sets          = D_actor_136100_8013F1D4;                                  \
+            animWork->field_4E2           = anim;                                                     \
+            (record).animationId          = anim;                                                     \
+            (record).blend                = ANIMATION_BLEND_RESET;                                    \
+            (record).blendFrames          = 0;                                                        \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                        \
+            Gp_DispatchMsgPtr(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                             \
     }
 
-/// `func_actor_136100_80134A18`'s body over the shared `rec` slot: count the
-/// live entries of `D_actor_136100_8013F180` and send them with message 0x3F7.
-#define func_actor_136100_SendTable(task)                          \
-    {                                                              \
-        Actor136100Work* msgWork = (Actor136100Work*)(task)->work; \
-        s32              n;                                        \
-                                                                   \
-        n = 0;                                                     \
-        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {         \
-            n += 1;                                                \
-        }                                                          \
-        rec.animBlock.ptr = &D_actor_136100_8013F180[0];           \
-        rec.field_4       = n & 0xFFFF;                            \
-        Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3F7, &rec, 0);     \
+/// Copies seven set addresses into the player's writable animation-bank extension.
+///
+/// `record` must be a side-effect-free `GpCopyArg` lvalue. The table is
+/// null-terminated; the receiver copies only the preceding entries.
+/// Per-expansion work pointers preserve the original call scheduling.
+#define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                       \
+    {                                                                                               \
+        Actor136100Work* msgWork = (Actor136100Work*)(task)->work;                                  \
+        s32              n;                                                                         \
+                                                                                                    \
+        n = 0;                                                                                      \
+        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {                                          \
+            n += 1;                                                                                 \
+        }                                                                                           \
+        (record).source.sets = &D_actor_136100_8013F180[0];                                         \
+        (record).count       = n & 0xFFFF;                                                          \
+        Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
 /// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.
@@ -2178,21 +2192,25 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 /// wait on `gGameSession->eventState` and `func_actor_136100_80133904`.  Every
 /// state then runs the phase's three per-frame handlers and redraws the shadow.
 ///
-/// Every message record, the shadow `VECTOR` and the floor-quad `SVECTOR` share
-/// the one `rec` frame slot; the dead `SVECTOR` reserves the 8-byte local below
-/// it (see `func_actor_136100_80133690`).
+/// Animation, table-copy and geometry values use separate views of the same
+/// temporary storage; each is consumed before the next view is written.
 void func_actor_136100_80133BC8(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     SVECTOR          unused;
-    GpAnimArg        rec;
-    s32              cue;
-    u16              evtId;
-    u8               evtKind;
-    u8               evtSub;
-    u16              evtId2;
-    u8               evtKind2;
-    u8               evtSub2;
+    union {
+        AnimationPlayRequest animation;
+        GpCopyArg            copy;
+        VECTOR               shadowPosition;
+        SVECTOR              floorOffset;
+    } message;
+    s32 cue;
+    u16 evtId;
+    u8  evtKind;
+    u8  evtSub;
+    u16 evtId2;
+    u8  evtKind2;
+    u8  evtSub2;
 
     switch (arg0->state) {
         case 0:
@@ -2231,7 +2249,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 }
                 Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F394, 0);
                 func_actor_136100_ResetSlots(arg0, 1);
-                func_actor_136100_SendAnimRec(arg0, 1);
+                ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 1, message.animation);
             } else {
                 func_800E3FAC(0xA2, 0x1A);
                 Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
@@ -2242,7 +2260,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 }
                 Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
                 func_actor_136100_ResetSlots(arg0, 3);
-                func_actor_136100_SendAnimRec(arg0, 5);
+                ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 5, message.animation);
             }
             arg0->state++;
             break;
@@ -2255,10 +2273,10 @@ void func_actor_136100_80133BC8(Task* arg0)
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                     return;
                 }
-                func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+                ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, message.animation);
                 func_800E8634(D_actor_136100_8013F46C, 0, D_actor_136100_8013F784);
                 Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[8]);
-                func_actor_136100_SendTable(arg0);
+                ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
                 GameFlag_SetNibble(0x7C, 1);
                 arg0->state++;
                 break;
@@ -2270,10 +2288,10 @@ void func_actor_136100_80133BC8(Task* arg0)
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                     return;
                 }
-                func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+                ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, message.animation);
                 func_800E8634(D_actor_136100_8013FD84, 0, D_actor_136100_80140114);
                 Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[9]);
-                func_actor_136100_SendTable(arg0);
+                ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
                 GameFlag_SetNibble(0x7C, 1);
                 arg0->state++;
             }
@@ -2303,11 +2321,11 @@ void func_actor_136100_80133BC8(Task* arg0)
         func_actor_136100_80133238(arg0);
         func_actor_136100_80133558(arg0);
     }
-    func_actor_136100_UpdateShadow(arg0, (VECTOR*)&rec);
-    ((SVECTOR*)&rec)->vx = 0;
-    ((SVECTOR*)&rec)->vy = 0x380;
-    ((SVECTOR*)&rec)->vz = 0;
-    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, (SVECTOR*)&rec);
+    func_actor_136100_UpdateShadow(arg0, &message.shadowPosition);
+    message.floorOffset.vx = 0;
+    message.floorOffset.vy = 0x380;
+    message.floorOffset.vz = 0;
+    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &message.floorOffset);
 }
 
 /// Fade-in task, entry 4 of the actor's task table: on its first tick it
@@ -2392,18 +2410,18 @@ void func_actor_136100_80134588(Task* arg0)
 
 void func_actor_136100_8013467C(void)
 {
-    GpAnimArg rec;
-    s32       weaponId;
-    s32       id;
+    AnimationPlayRequest rec;
+    s32                  weaponId;
+    s32                  id;
 
-    weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.animBlock.index = id;
-    rec.field_4         = 1;
-    rec.field_8         = 0;
-    rec.field_C         = 0;
-    rec.field_10        = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
+    weaponId                 = Player_Status.weapon;
+    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.source.index         = id;
+    rec.animationId          = 1;
+    rec.blend                = ANIMATION_BLEND_RESET;
+    rec.blendFrames          = 0;
+    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
@@ -2449,7 +2467,7 @@ void func_actor_136100_801347B8(void)
     work->field_4E0 = 1;
     i               = 1;
     do {
-        work->rig.slots[(u16)i].rate = 0x10;
+        work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
@@ -2544,5 +2562,5 @@ static void func_actor_136100_80134A18(Task* arg0)
     }
     msg.source.sets = &D_actor_136100_8013F180[0];
     msg.count       = n & 0xFFFF;
-    Gp_DispatchMsgPtr(work->field_4B4, 0x3F7, &msg, 0);
+    Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
 }

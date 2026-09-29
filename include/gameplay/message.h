@@ -31,25 +31,26 @@ typedef struct _RoomEventMsg {
 STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 
 struct GpXformArg;
-struct GpAnimArg;
+struct AnimationPlayRequest;
 struct GpCmdArg;
+struct GpAnimSet;
 
 struct _GpMsg13EF;
 
 /// One payload word in the PS1 message ABI. A message id determines whether
 /// the recipient interprets the word as an integer or as an object address.
 typedef union GpMessageArg {
-    s32                value;
-    const void*        pointer;
-    void*              storage;
-    u8*                bytes;
-    VECTOR*            vector;
-    struct GpXformArg* transform;
-    struct GpAnimArg*  animation;
-    struct GpCmdArg*   command;
-    RoomEventMsg*      location;
-    struct _GpMsg13EF* direction;
-    RoomEventMsg*      roomEvent;
+    s32                          value;
+    const void*                  pointer;
+    void*                        storage;
+    u8*                          bytes;
+    VECTOR*                      vector;
+    struct GpXformArg*           transform;
+    struct AnimationPlayRequest* animation;
+    struct GpCmdArg*             command;
+    RoomEventMsg*                location;
+    struct _GpMsg13EF*           direction;
+    RoomEventMsg*                roomEvent;
 } GpMessageArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
 
@@ -87,34 +88,49 @@ typedef struct GpXformArg {
 } GpXformArg;
 STATIC_ASSERT_SIZEOF(GpXformArg, 0x18);
 
-/// The payload of the messages that start an animation. `animBlock` picks the
-/// animation block to play from: the player's and the actors' plain play
-/// messages take an `index` into the receiver's own table of blocks and
-/// reinstall the block only when it changes, while the player's messages that
-/// install a block directly take the block itself as `ptr`. Event scripts that
-/// address the player or the companion have the index rewritten to the one for
-/// the equipped weapon or the current companion before the message is sent.
-/// `field_4` is the animation within the block. With `field_8` zero the
-/// animation slots are reset to it; otherwise it is blended in, and `field_C`
-/// is handed to the blend. The player's direct-install messages also read
-/// `field_10`, which selects between two display modes.
-typedef struct GpAnimArg {
+/// Playback choices stored as signed words in an animation request.
+enum {
+    ANIMATION_BLEND_RESET             = 0,
+    ANIMATION_BLEND_INTERPOLATE       = 1,
+    ANIMATION_WORLD_COLLISION_DISABLE = 0,
+    ANIMATION_WORLD_COLLISION_ENABLE  = 1,
+};
+
+/// Animation message ids for playback, borrowed tables and writable bank extensions.
+enum {
+    ANIMATION_MESSAGE_PLAY                = 0x3E8,
+    ANIMATION_MESSAGE_INSTALL_AND_PLAY    = 0x3F4,
+    ANIMATION_MESSAGE_COPY_BANK_EXTENSION = 0x3F7,
+    ANIMATION_MESSAGE_REPLACE_AND_PLAY    = 0x3FF,
+};
+
+/// Requests animation playback on a player, companion or scripted actor.
+///
+/// The message id selects the interpretation of `source`: indexed playback
+/// uses a receiver-specific bank selector; the player's install and replace
+/// messages use an animation-set table. Bank and animation ids must be valid
+/// for that receiver, which may translate them to local clip ids. Some actors
+/// use a fixed blend duration or reset a newly selected bank despite `blend`.
+///
+/// Dispatch consumes the request synchronously. The table and clip data are
+/// borrowed and must remain live while the receiver's playback references them.
+/// Event scripts resolve indexed player/companion requests against the equipped
+/// weapon or companion before dispatch.
+typedef struct AnimationPlayRequest {
     union {
-        s32   index;
-        void* ptr;
-    } animBlock;
-    s32 field_4;
-    s32 field_8;
-    s32 field_C;
-    s32 field_10;
-} GpAnimArg;
-STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
+        s32                index; // Receiver-specific animation bank selector
+        struct GpAnimSet** sets;  // Borrowed animation-set table for install/replace messages
+    } source;
+    s32 animationId;              // Receiver-specific animation id within the selected bank
+    s32 blend;                    // Transition choice (0 reset, nonzero interpolate when supported)
+    s32 blendFrames;              // Requested transition duration in frames; ignored on reset
+    s32 enableWorldCollision;     // Player/companion world collision and ground following (0 disable, nonzero enable)
+} AnimationPlayRequest;
+STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 
 /// The payload of the message that copies animation parameters onto a
 /// task's current animation block: `count` words, at most 0x20. The source
 /// is usually an array of animation-set pointers; the receiver copies words.
-struct GpAnimSet;
-
 typedef struct GpCopyArg {
     union {
         s32*               words;

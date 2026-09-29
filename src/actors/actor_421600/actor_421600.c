@@ -373,7 +373,7 @@ typedef struct {
     s32 id;
     union {
         s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, GpAnimArg*, s32);
+        s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32  (*call2)(Task*, s32, GpCmdArg*);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
@@ -501,7 +501,7 @@ s32              func_actor_421600_80132A00(Task*, s32, GpCmdArg*);
 s32              func_actor_421600_8013E42C(Task*, s32, s32);
 s32              func_actor_421600_8013E4EC(Task*);
 s32              func_actor_421600_8013E52C(Task*, s32, GpXformArg*);
-s32              func_actor_421600_8013E62C(Task*, s32, GpAnimArg*, s32);
+s32              func_actor_421600_8013E62C(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_421600_8013E654(Task*);
 static void      func_actor_421600_8013EEC8(Task*);
 void             func_actor_421600_8013E424(void);
@@ -4657,7 +4657,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                             work->field_8B6          = 1;
                             work->field_E9C          = 1;
                             work->field_E90.bytes[3] = 0;
-                            Gp_DispatchMsgPtr(player, 0x3FF, &work->field_E7C, 0);
+                            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                         }
                         work->field_0 = 0x25;
                         Gp_SpawnPadLerp(3, 0xFF, 8);
@@ -4686,7 +4686,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                         work->field_8B6          = 1;
                         work->field_E9C          = 1;
                         work->field_E90.bytes[3] = 0;
-                        Gp_DispatchMsgPtr(player, 0x3FF, &work->field_E7C, 0);
+                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                         work->field_0 = 0x1E;
                         Gp_SpawnPadLerp(8, 0xFF, 8);
                     }
@@ -5815,7 +5815,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                     work->field_8B6          = 1;
                     work->field_E9C          = 1;
                     work->field_E90.bytes[3] = 0;
-                    Gp_DispatchMsgPtr(player, 0x3FF, &work->field_E7C, 0);
+                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                 }
                 nextState = 0x25;
             } else {
@@ -5841,7 +5841,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                 work->field_8B6          = 1;
                 work->field_E9C          = 1;
                 work->field_E90.bytes[3] = 0;
-                Gp_DispatchMsgPtr(player, 0x3FF, &work->field_E7C, 0);
+                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                 nextState = 0x1E;
             }
             work->field_0 = nextState;
@@ -7055,21 +7055,21 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                 if (command == &Actor421600RearAnim) {
                     if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
                         message           = &work->field_E7C;
-                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[7];
+                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
-                        Gp_DispatchMsgPtr(player, 0x3FF, message, 0);
+                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                         work->field_E90.bytes[3] = 0U;
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
                     message                       = &work->field_E7C;
-                    Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[7];
+                    Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
 
                     work->field_E80 = 4;
                     work->field_E84 = 1;
                     work->field_E88 = 3;
-                    Gp_DispatchMsgPtr(player, 0x3FF, message, 0);
+                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                     work->field_E90.bytes[3] = 0U;
                 }
                 break;
@@ -7101,7 +7101,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                         work->field_E88 = 0;
                         work->field_E80 = 2;
 
-                        Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
+                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
                         work->field_E90.bytes[3] = 0U;
                     }
                     break;
@@ -7112,12 +7112,12 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                         work->field_E80 = 5;
                         nextCommand     = work->field_E7C;
                         if (nextCommand == &Actor421600RearAnim) {
-                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[9];
+                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
                         } else {
-                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->prefix.sets[9];
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
                         }
                         nextMessage = &work->field_E7C;
-                        Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
+                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
                         work->field_E90.bytes[3] = 0U;
                     }
                     break;
@@ -7284,11 +7284,11 @@ s32 func_actor_421600_8013E52C(Task* task, s32 arg1, GpXformArg* placement)
 
 /// Handler for message 0x7D3: latch the requested animation id into
 /// `field_82E` and restart the state machine at state 1.
-s32 func_actor_421600_8013E62C(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
+s32 func_actor_421600_8013E62C(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor421600Work* work = (Actor421600Work*)task->work;
 
-    work->field_82E = msg->field_4;
+    work->field_82E = msg->animationId;
     work->field_0   = 1;
     work->field_2   = -1;
     return 0;

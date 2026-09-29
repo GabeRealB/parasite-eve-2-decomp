@@ -293,7 +293,7 @@ typedef struct {
     s32 id;
     union {
         s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, GpAnimArg*);
+        s32  (*call1)(Task*, s32, AnimationPlayRequest*);
         s32  (*call2)(Task*, s32, GpXformArg*);
         s32  (*call3)(Task*, s32, s32);
         s32  (*call4)(Task*, s32, u16*);
@@ -311,7 +311,7 @@ extern GpAnimSet D_actor_401000_80154634;
 /// Message 0x3FF payload of `func_actor_401000_801383F0` and
 /// `func_actor_401000_801385B0`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
-extern GpAnimArg D_actor_401000_80154F1C;
+extern AnimationPlayRequest D_actor_401000_80154F1C;
 
 /// Animation blocks selected for the grab by the player-character flag.
 extern GpAnimSet* D_actor_401000_80154F00[7];
@@ -1260,7 +1260,7 @@ GpAnimSet* D_actor_401000_80154F00[7] = {
     NULL,
 };
 
-GpAnimArg D_actor_401000_80154F1C = { { .ptr = D_actor_401000_80154F00 }, 1, 0, 3, 0 };
+AnimationPlayRequest D_actor_401000_80154F1C = { { .sets = D_actor_401000_80154F00 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 SVECTOR D_actor_401000_80154F30[12] = {
     { 60, -12, 30, 2 },
@@ -1278,7 +1278,7 @@ SVECTOR D_actor_401000_80154F30[12] = {
 };
 
 void func_actor_401000_8013D68C(void);
-s32  func_actor_401000_8013D694(Task*, s32, GpAnimArg*);
+s32  func_actor_401000_8013D694(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_401000_8013D704(Task*, s32, s32);
 s32  func_actor_401000_8013D7C4(Task*);
 s32  func_actor_401000_8013D814(Task*, s32, GpXformArg*);
@@ -3313,16 +3313,16 @@ static void func_actor_401000_801378DC(Task* arg0)
         angle = actorMatrixPositionYaw(arg0, &delta, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
             if (Mc_SaveData[0].state.characterId == 1) {
-                D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F00[2];
+                D_actor_401000_80154F1C.source.sets = &D_actor_401000_80154F00[2];
             } else {
-                D_actor_401000_80154F1C.animBlock.ptr = D_actor_401000_80154F00;
+                D_actor_401000_80154F1C.source.sets = D_actor_401000_80154F00;
             }
             D_actor_401000_80155038.field_14 = 8;
             if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_401000_80155038, 0) == 0) {
-                work->field_0                   = 0xC;
-                work->field_C28                 = 1;
-                D_actor_401000_80154F1C.field_4 = 1;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_401000_80154F1C, 0);
+                work->field_0                       = 0xC;
+                work->field_C28                     = 1;
+                D_actor_401000_80154F1C.animationId = 1;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401000_80154F1C, 0);
             }
         }
     }
@@ -3414,20 +3414,20 @@ static void func_actor_401000_801380B8(Task* arg0)
 
 static void func_actor_401000_801383F0(Task* arg0)
 {
-    Actor401000Work* work;
-    GpAnimArg*       msg;
-    GpEnemy*         enemy;
-    Task*            player;
+    Actor401000Work*      work;
+    AnimationPlayRequest* msg;
+    GpEnemy*              enemy;
+    Task*                 player;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->field_8A2 = 0x10;
-        work->field_89E = 6;
-        work->field_898 = 2;
-        msg             = &D_actor_401000_80154F1C;
-        msg->field_4    = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, msg, 0);
+        work->field_8A2  = 0x10;
+        work->field_89E  = 6;
+        work->field_898  = 2;
+        msg              = &D_actor_401000_80154F1C;
+        msg->animationId = 2;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
@@ -3451,11 +3451,11 @@ static void func_actor_401000_801383F0(Task* arg0)
 
 static void func_actor_401000_801385B0(Task* arg0)
 {
-    Actor401000Work* work;
-    GpEnemy*         enemy;
-    GpAnimArg*       msg;
-    PlayerStatus*    cfg;
-    u8               kind;
+    Actor401000Work*      work;
+    GpEnemy*              enemy;
+    AnimationPlayRequest* msg;
+    PlayerStatus*         cfg;
+    u8                    kind;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3465,10 +3465,10 @@ static void func_actor_401000_801385B0(Task* arg0)
         work->field_89E = 7;
         work->field_898 = 2;
         func_actor_401000_80132EF0(arg0);
-        msg          = &D_actor_401000_80154F1C;
-        msg->field_4 = 3;
+        msg              = &D_actor_401000_80154F1C;
+        msg->animationId = 3;
         if (cfg->hp > 0) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, msg, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         }
         work->field_C0C        = -0x78;
         work->field_6          = 0;
@@ -4756,11 +4756,11 @@ static const GpEnemyTaskFuncTable3 D_actor_401000_8013207C = { {
     Gp_DestroyEnemy,
 } };
 
-s32 func_actor_401000_8013D694(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_actor_401000_8013D694(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor401000Work* work = arg0->work;
 
-    switch (arg2->field_4) {
+    switch (arg2->animationId) {
         case 0:
             work->field_89E = 0x22;
             break;

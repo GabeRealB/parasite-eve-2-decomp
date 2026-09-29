@@ -1607,11 +1607,12 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
     }
 }
 
-/// Applies preset `arg2`: re-seeds the slot array from bank `field_0` when it
-/// changes, then sets every slot 1..0x13 to clip `field_4` (blended over
-/// `field_C` frames by `func_800B4114` when `field_8` is set and the array was
-/// already seeded) and ticks it once, before re-applying the part scales.
-s32 func_actor_503500_80135950(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. The requested clip is applied to the slots.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
     Actor503500Work* work;
     Actor503500Work* work2;
@@ -1620,16 +1621,16 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 
     work = arg0->work;
     ext  = arg0->extra.tmd;
-    if (arg2->animBlock.index != work->field_7D6) {
-        work->field_7D6 = arg2->animBlock.index;
+    if (arg2->source.index != work->field_7D6) {
+        work->field_7D6 = arg2->source.index;
         func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
                       work->field_334, (GpAnimSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;
     }
-    work->field_7D5 = arg2->field_4;
-    if (arg2->field_8 != 0 && work->field_7D4 != 0) {
+    work->field_7D5 = arg2->animationId;
+    if (arg2->blend != ANIMATION_BLEND_RESET && work->field_7D4 != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_7D5, 0, arg2->field_C);
+            func_800B4114((GpAnimCtx*)work, i, work->field_7D5, 0, arg2->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {

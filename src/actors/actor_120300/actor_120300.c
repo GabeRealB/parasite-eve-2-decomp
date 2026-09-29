@@ -1489,17 +1489,17 @@ void func_actor_120300_801321C8(Task* arg0)
 /// nothing while that task is unset.
 static inline void _actor120300PlayAnim(Task* task, u16 anim)
 {
-    Actor120300Work* work = (Actor120300Work*)task->work;
-    GpAnimArg        msg;
+    Actor120300Work*     work = (Actor120300Work*)task->work;
+    AnimationPlayRequest msg;
 
     if (work->field_4B4 != NULL) {
-        msg.animBlock.ptr = D_actor_120300_801408CC;
-        work->field_4D2   = anim;
-        msg.field_4       = anim;
-        msg.field_8       = 1;
-        msg.field_C       = 0xA;
-        msg.field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_4B4, 0x3F4, &msg, 0);
+        msg.source.sets          = D_actor_120300_801408CC;
+        work->field_4D2          = anim;
+        msg.animationId          = anim;
+        msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+        msg.blendFrames          = 0xA;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
@@ -1507,35 +1507,37 @@ static inline void _actor120300PlayAnim(Task* task, u16 anim)
 /// its animation slots to `anim` instead of blending.
 static inline void _actor120300SetAnim(Task* task, u16 anim)
 {
-    Actor120300Work* work = (Actor120300Work*)task->work;
-    GpAnimArg        msg;
+    Actor120300Work*     work = (Actor120300Work*)task->work;
+    AnimationPlayRequest msg;
 
     if (work->field_4B4 != NULL) {
-        msg.animBlock.ptr = D_actor_120300_801408CC;
-        work->field_4D2   = anim;
-        msg.field_4       = anim;
-        msg.field_8       = 0;
-        msg.field_C       = 0;
-        msg.field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_4B4, 0x3F4, &msg, 0);
+        msg.source.sets          = D_actor_120300_801408CC;
+        work->field_4D2          = anim;
+        msg.animationId          = anim;
+        msg.blend                = ANIMATION_BLEND_RESET;
+        msg.blendFrames          = 0;
+        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
-/// Sends `target` message 0x3E8 for the player's equipped weapon: the block
-/// index is `Player_Status.weapon` plus 1 when `Mc_SaveData[0].state.characterId` is 1,
-/// plus 0x22 otherwise, and `blend`/`frames` go to `field_8`/`field_C`.
-#define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                                    \
-    {                                                                                                      \
-        GpAnimArg _msg;                                                                                    \
-        s32       _weaponId;                                                                               \
-                                                                                                           \
-        _weaponId            = Player_Status.weapon;                                                       \
-        _msg.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
-        _msg.field_4         = 1;                                                                          \
-        _msg.field_8         = (blend);                                                                    \
-        _msg.field_C         = (frames);                                                                   \
-        _msg.field_10        = 0;                                                                          \
-        Gp_DispatchMsgPtr((target), 0x3E8, &_msg, 0);                                                      \
+/// Sends an equipped-weapon playback request, with world collision disabled.
+///
+/// All arguments are evaluated once. The bank selector depends on the current
+/// weapon and save character; `frames` is a whole-frame blend duration.
+/// Dispatch consumes the block-local request synchronously.
+#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)                                   \
+    {                                                                                                            \
+        AnimationPlayRequest request;                                                                            \
+        s32                  weaponId;                                                                           \
+                                                                                                                 \
+        weaponId                     = Player_Status.weapon;                                                     \
+        request.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        request.animationId          = 1;                                                                        \
+        request.blend                = (blendChoice);                                                            \
+        request.blendFrames          = (frames);                                                                 \
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
+        Gp_DispatchMsgPtr((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                        \
     }
 
 /// Request handler for the code latched in `field_4C0`. While the session
@@ -1627,7 +1629,7 @@ static void func_actor_120300_80132338(Task* arg0)
             break;
         case 13:
             Gp_DispatchMsgPtr(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[5], 0);
-            _ACTOR120300_SEND_WEAPON(work->field_4B4, 0, 0);
+            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->field_4B4, 0, 0);
             break;
         case 14:
             _actor120300PlayAnim(arg0, 0xF);
@@ -1646,7 +1648,7 @@ static void func_actor_120300_80132338(Task* arg0)
             Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 18:
-            _ACTOR120300_SEND_WEAPON(work->field_4B4, 1, 0xA);
+            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->field_4B4, 1, 0xA);
             break;
         case 19:
             _actor120300PlayAnim(arg0, 0x10);
@@ -1735,7 +1737,7 @@ static inline void _actor120300ResetAll(Task* task, u16 anim)
 
     work->field_4D4 = anim;
     for (i = 1; i < 0x14; i++) {
-        work->rig.slots[i].rate = 0x10;
+        work->rig.slots[i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work->rig.anim, i, anim);
     }
 }
@@ -1851,20 +1853,20 @@ static void func_actor_120300_80132C60(Task* arg0)
 /// slots 1..19 to the 8 it first parks in `field_4D4`.
 /// `func_actor_120300_801337C4` calls it with 1 once flag nibble 0x2D is set; a
 /// zero argument additionally hands the task at 0x4B4 the player-weapon record
-/// (`GpAnimArg`, built from the equip-slot addend `Player_Status.weapon`), lifts
+/// (`AnimationPlayRequest`, built from the equip-slot addend `Player_Status.weapon`), lifts
 /// `field_4E0` to 0x1000 and drops the pending overlay replacement.  The
 /// request codes at 0x4C0 and 0x4C8 are cleared either way, so any phase
 /// counter armed alongside them restarts from the top.
 void func_actor_120300_80133330(s32 arg0)
 {
-    Task*            task;
-    Actor120300Work* work;
-    Actor120300Work* animWork;
-    SVECTOR          unused;
-    GpAnimArg        rec;
-    s32              i;
-    s32              weaponId;
-    s32              id;
+    Task*                task;
+    Actor120300Work*     work;
+    Actor120300Work*     animWork;
+    SVECTOR              unused;
+    AnimationPlayRequest rec;
+    s32                  i;
+    s32                  weaponId;
+    s32                  id;
 
     task                   = D_actor_120300_80141BA8;
     work                   = (Actor120300Work*)task->work;
@@ -1875,7 +1877,7 @@ void func_actor_120300_80133330(s32 arg0)
     animWork->field_4D4 = 8;
     i                   = 1;
     do {
-        animWork->rig.slots[(u16)i].rate = 0x10;
+        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
         i++;
     } while ((u16)i < 0x14U);
@@ -1884,14 +1886,14 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
     Gp_DispatchMsgPtr(work->field_4BC, 0x7D4, &D_actor_120300_80140A54[11], 0);
     if (arg0 == 0) {
-        weaponId            = Player_Status.weapon;
-        id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-        rec.animBlock.index = id;
-        rec.field_4         = 1;
-        rec.field_8         = 0;
-        rec.field_C         = 0;
-        rec.field_10        = 1;
-        Gp_DispatchMsgPtr(work->field_4B4, 0x3E8, &rec, 0);
+        weaponId                 = Player_Status.weapon;
+        id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        rec.source.index         = id;
+        rec.animationId          = 1;
+        rec.blend                = ANIMATION_BLEND_RESET;
+        rec.blendFrames          = 0;
+        rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
         Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_120300_80140A54[5], 0);
         work->field_4E0 = 0x1000;
         CdCmd_CancelReplaceAndActivate();
@@ -2007,7 +2009,7 @@ static void func_actor_120300_801335D8(Task* arg0)
     animWork->field_4D4 = 0xE;
     i                   = 1;
     do {
-        animWork->rig.slots[(u16)i].rate = 0x10;
+        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0xE);
         i++;
     } while ((u16)i < 0x14U);
@@ -2033,7 +2035,7 @@ void func_actor_120300_801337C4(Task* arg0)
             SVECTOR rot;
             VECTOR  vec;
         } draw;
-        GpAnimArg rec;
+        AnimationPlayRequest rec;
     } scratch;
     Actor120300Work* work;
     Actor120300Work* temp;
@@ -2068,12 +2070,12 @@ void func_actor_120300_801337C4(Task* arg0)
                     } else {
                         weaponId = weaponId + 0x22;
                     }
-                    scratch.rec.animBlock.index = weaponId;
-                    scratch.rec.field_4         = 1;
-                    scratch.rec.field_8         = 0;
-                    scratch.rec.field_C         = 0;
-                    scratch.rec.field_10        = 0;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &scratch.rec, 0);
+                    scratch.rec.source.index         = weaponId;
+                    scratch.rec.animationId          = 1;
+                    scratch.rec.blend                = ANIMATION_BLEND_RESET;
+                    scratch.rec.blendFrames          = 0;
+                    scratch.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &scratch.rec, 0);
                     GameFlag_SetNibble(0x2C, 1);
                     GameFlag_SetNibble(0x2D, 1);
                     func_800E3FAC(0xA2, 0xB);

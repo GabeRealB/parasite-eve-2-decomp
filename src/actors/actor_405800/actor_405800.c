@@ -2411,14 +2411,14 @@ static void func_actor_405800_80133F48(Task* arg0)
 
 static void func_actor_405800_801340E0(Task* arg0)
 {
-    GpAnimArg        msg;
-    GpDelayArg       query;
-    Actor405800Work* work;
-    Actor405800Work* work2;
-    Actor405800Work* work3;
-    s32              base;
-    s32              sound;
-    s32              pan;
+    AnimationPlayRequest msg;
+    GpDelayArg           query;
+    Actor405800Work*     work;
+    Actor405800Work*     work2;
+    Actor405800Work*     work3;
+    s32                  base;
+    s32                  sound;
+    s32                  pan;
 
     work = (Actor405800Work*)arg0->work;
     if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
@@ -2445,16 +2445,16 @@ static void func_actor_405800_801340E0(Task* arg0)
     }
     work->field_86A = work->field_92;
     func_actor_405800_801379F8(arg0);
-    work->field_890      = 0;
-    Gp_StateC08.field_6 |= 1;
-    work->field_88F      = 1;
-    work->field_9A       = work->field_92;
-    msg.animBlock.ptr    = D_actor_405800_801513F8;
-    msg.field_8          = 0;
-    msg.field_C          = 0;
-    msg.field_10         = 0;
-    msg.field_4          = 4;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
+    work->field_890          = 0;
+    Gp_StateC08.field_6     |= 1;
+    work->field_88F          = 1;
+    work->field_9A           = work->field_92;
+    msg.source.sets          = D_actor_405800_801513F8;
+    msg.blend                = ANIMATION_BLEND_RESET;
+    msg.blendFrames          = 0;
+    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    msg.animationId          = 4;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     work->obj_4B4.flags &= 0x7FFF;
     work->obj_594.flags &= 0xBFFF;
     work2                = (Actor405800Work*)arg0->work;
@@ -2477,20 +2477,20 @@ static void func_actor_405800_801340E0(Task* arg0)
 
 static void func_actor_405800_80134314(Task* arg0)
 {
-    GpAnimArg        msg;
-    SVECTOR          vec;
-    Actor405800Work* work;
-    Actor405800Work* work2;
-    GpEnemy*         enemy;
-    GfxCoord*        coord;
-    GfxCoord*        player;
-    GfxCoord*        root;
-    PlayerStatus*    cfg;
-    s32              id;
-    s32              sound;
-    s32              pan;
-    s32              sound2;
-    s32              pan2;
+    AnimationPlayRequest msg;
+    SVECTOR              vec;
+    Actor405800Work*     work;
+    Actor405800Work*     work2;
+    GpEnemy*             enemy;
+    GfxCoord*             coord;
+    GfxCoord*             player;
+    GfxCoord*             root;
+    PlayerStatus*        cfg;
+    s32                  id;
+    s32                  sound;
+    s32                  pan;
+    s32                  sound2;
+    s32                  pan2;
 
     work               = (Actor405800Work*)arg0->work;
     coord              = arg0->extra.tmd->coords;
@@ -2510,12 +2510,12 @@ static void func_actor_405800_80134314(Task* arg0)
     if ((u8)work->field_88B == 1 || work->field_88C == 1 || enemy->hp <= 0 || work->field_884 >= 4) {
         work->field_88B = 0;
         if (work->field_88C == 0) {
-            msg.animBlock.ptr = D_actor_405800_801513F8;
-            msg.field_8       = 1;
-            msg.field_C       = 8;
-            msg.field_10      = 0;
-            msg.field_4       = 5;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
+            msg.source.sets          = D_actor_405800_801513F8;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 8;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            msg.animationId          = 5;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         }
         work2            = (Actor405800Work*)arg0->work;
         work2->field_84A = 8;

@@ -97,7 +97,7 @@ extern GpAnimSet** D_actor_361100_8016BAE0[1];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -112,7 +112,7 @@ extern GpAnimSet**         D_actor_361100_80171BA8[1];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpAnimArg*);
+        s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, GpCmdArg*);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
@@ -157,66 +157,66 @@ extern GpAnimSet D_actor_361100_8016B55C;
 extern GpAnimSet D_actor_361100_8016B8C8;
 extern GpAnimSet D_actor_361100_8016BAA8;
 extern TmdSource D_actor_361100_8016B2B8;
-s32              func_actor_361100_80162E20(Task*, s32, GpAnimArg*);
+s32              func_actor_361100_80162E20(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_361100_80162F58(Task*, s32, GpXformArg*);
 s32              func_actor_361100_80162FF4(Task*, s32, s32);
 s32              func_actor_361100_801630D4(Task*, s32, GpCmdArg*);
-s32              func_actor_361100_801634D0(Task*, s32, GpAnimArg*);
+s32              func_actor_361100_801634D0(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_361100_801635F4(Task*, s32, GpXformArg*);
 s32              func_actor_361100_80163670(Task*, s32, s32);
 s32              func_actor_361100_80163750(Task*, s32, GpCmdArg*);
 void             func_actor_361100_80162CBC(Task*);
 void             func_actor_361100_801633A4(Task*);
 
-extern GpAnimArg  D_actor_361100_80165CA0;
-extern GpCmdArg   D_actor_361100_80165DD4;
-extern GpCmdArg   D_actor_361100_80165E84;
-extern GpCmdArg   D_actor_361100_80165F3C;
-extern GpXformArg D_actor_361100_80165D98;
-void              func_actor_361100_8016297C(void);
-void              func_actor_361100_801629D0(s32);
-void              func_actor_361100_80162AEC(s32);
+extern AnimationPlayRequest D_actor_361100_80165CA0;
+extern GpCmdArg             D_actor_361100_80165DD4;
+extern GpCmdArg             D_actor_361100_80165E84;
+extern GpCmdArg             D_actor_361100_80165F3C;
+extern GpXformArg           D_actor_361100_80165D98;
+void                        func_actor_361100_8016297C(void);
+void                        func_actor_361100_801629D0(s32);
+void                        func_actor_361100_80162AEC(s32);
 
-extern GpAnimArg     D_actor_361100_80165CB4;
-extern GpAnimArg     D_actor_361100_80165CC8;
-extern GpAnimArg     D_actor_361100_80165CDC;
-extern GpAnimArg     D_actor_361100_80165CF0;
-extern GpAnimArg     D_actor_361100_80165D04;
-extern GpAnimArg     D_actor_361100_80165D18;
-extern GpAnimArg     D_actor_361100_80165D40;
-extern GpAnimArg     D_actor_361100_80165D54;
-extern GpAnimArg     D_actor_361100_80165DF0;
-extern GpAnimArg     D_actor_361100_80165E04;
-extern GpAnimArg     D_actor_361100_80165E18;
-extern GpAnimArg     D_actor_361100_80165E9C;
-extern GpAnimArg     D_actor_361100_80165EB0;
-extern GpAnimArg     D_actor_361100_80165EC4;
-extern GpAnimArg     D_actor_361100_80165ED8;
-extern GpCmdArg      D_actor_361100_80165DD0;
-extern GpCmdArg      D_actor_361100_80165DD8;
-extern GpCmdArg      D_actor_361100_80165E78;
-extern GpCmdArg      D_actor_361100_80165E7C;
-extern GpCmdArg      D_actor_361100_80165E80;
-extern GpCopyArg     D_actor_361100_80165C98;
-extern GpOverrideArg D_actor_361100_80165DC8;
-extern GpScriptCmd   D_actor_361100_80166AB8[3];
-extern GpScriptRec   D_actor_361100_80166AC4[3];
-extern GpXformArg    D_actor_361100_80165D68;
-extern GpXformArg    D_actor_361100_80165D80;
-extern GpXformArg    D_actor_361100_80165DB0;
-extern GpXformArg    D_actor_361100_80165E2C;
-extern GpXformArg    D_actor_361100_80165E5C;
-extern GpXformArg    D_actor_361100_80165EEC;
-extern GpXformArg    D_actor_361100_80165F04;
-extern GpXformArg    D_actor_361100_80165F1C;
-void                 func_actor_361100_8016291C(void);
-void                 func_actor_361100_8016293C(void);
-void                 func_actor_361100_8016295C(void);
-void                 func_actor_361100_8016297C(void);
-void                 func_actor_361100_8016299C(void);
-void                 func_actor_361100_801629D0(s32);
-void                 func_actor_361100_80162A24(s32);
-void                 func_actor_361100_80162AEC(s32);
+extern AnimationPlayRequest D_actor_361100_80165CB4;
+extern AnimationPlayRequest D_actor_361100_80165CC8;
+extern AnimationPlayRequest D_actor_361100_80165CDC;
+extern AnimationPlayRequest D_actor_361100_80165CF0;
+extern AnimationPlayRequest D_actor_361100_80165D04;
+extern AnimationPlayRequest D_actor_361100_80165D18;
+extern AnimationPlayRequest D_actor_361100_80165D40;
+extern AnimationPlayRequest D_actor_361100_80165D54;
+extern AnimationPlayRequest D_actor_361100_80165DF0;
+extern AnimationPlayRequest D_actor_361100_80165E04;
+extern AnimationPlayRequest D_actor_361100_80165E18;
+extern AnimationPlayRequest D_actor_361100_80165E9C;
+extern AnimationPlayRequest D_actor_361100_80165EB0;
+extern AnimationPlayRequest D_actor_361100_80165EC4;
+extern AnimationPlayRequest D_actor_361100_80165ED8;
+extern GpCmdArg             D_actor_361100_80165DD0;
+extern GpCmdArg             D_actor_361100_80165DD8;
+extern GpCmdArg             D_actor_361100_80165E78;
+extern GpCmdArg             D_actor_361100_80165E7C;
+extern GpCmdArg             D_actor_361100_80165E80;
+extern GpCopyArg            D_actor_361100_80165C98;
+extern GpOverrideArg        D_actor_361100_80165DC8;
+extern GpScriptCmd          D_actor_361100_80166AB8[3];
+extern GpScriptRec          D_actor_361100_80166AC4[3];
+extern GpXformArg           D_actor_361100_80165D68;
+extern GpXformArg           D_actor_361100_80165D80;
+extern GpXformArg           D_actor_361100_80165DB0;
+extern GpXformArg           D_actor_361100_80165E2C;
+extern GpXformArg           D_actor_361100_80165E5C;
+extern GpXformArg           D_actor_361100_80165EEC;
+extern GpXformArg           D_actor_361100_80165F04;
+extern GpXformArg           D_actor_361100_80165F1C;
+void                        func_actor_361100_8016291C(void);
+void                        func_actor_361100_8016293C(void);
+void                        func_actor_361100_8016295C(void);
+void                        func_actor_361100_8016297C(void);
+void                        func_actor_361100_8016299C(void);
+void                        func_actor_361100_801629D0(s32);
+void                        func_actor_361100_80162A24(s32);
+void                        func_actor_361100_80162AEC(s32);
 
 void func_actor_361100_80161E3C(Task*);
 void func_actor_361100_801627D4(Task*);
@@ -442,25 +442,25 @@ GpAnimSet* D_actor_361100_80165C70[10] = {
 
 GpCopyArg D_actor_361100_80165C98 = { { .sets = D_actor_361100_80165C70 }, 10 };
 
-GpAnimArg D_actor_361100_80165CA0 = { { .index = 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165CA0 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165CB4 = { { .index = 1 }, 48, 1, 20, 0 };
+AnimationPlayRequest D_actor_361100_80165CB4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165CC8 = { { .index = 1 }, 49, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165CC8 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165CDC = { { .index = 1 }, 50, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165CDC = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165CF0 = { { .index = 1 }, 51, 1, 4, 0 };
+AnimationPlayRequest D_actor_361100_80165CF0 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165D04 = { { .index = 1 }, 52, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165D04 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165D18 = { { .index = 1 }, 53, 1, 8, 0 };
+AnimationPlayRequest D_actor_361100_80165D18 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165D2C = { { .index = 1 }, 54, 1, 4, 0 };
+AnimationPlayRequest D_actor_361100_80165D2C = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165D40 = { { .index = 1 }, 55, 1, 10, 0 };
+AnimationPlayRequest D_actor_361100_80165D40 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165D54 = { { .index = 1 }, 56, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165D54 = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_361100_80165D68 = { { 0x2D14, -4010, 3190, 0 }, { 0, -512, 0, 0 } };
 
@@ -478,13 +478,13 @@ GpCmdArg D_actor_361100_80165DD4 = { { .loc = { 4, 22 } }, 7 };
 
 GpCmdArg D_actor_361100_80165DD8 = { { .loc = { 4, 22 } }, 8 };
 
-GpAnimArg D_actor_361100_80165DDC = { 0 };
+AnimationPlayRequest D_actor_361100_80165DDC = { 0 };
 
-GpAnimArg D_actor_361100_80165DF0 = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165DF0 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165E04 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165E04 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165E18 = { { .index = 0 }, 3, 1, 4, 0 };
+AnimationPlayRequest D_actor_361100_80165E18 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_361100_80165E2C = { { 8200, 9270, 4060, 0 }, { 0, 1536, 0, 0 } };
 
@@ -502,15 +502,15 @@ GpCmdArg D_actor_361100_80165E80 = { { .loc = { 4, 22 } }, 3 };
 
 GpCmdArg D_actor_361100_80165E84 = { { .loc = { 4, 22 } }, 0xFFFF };
 
-GpAnimArg D_actor_361100_80165E88 = { 0 };
+AnimationPlayRequest D_actor_361100_80165E88 = { 0 };
 
-GpAnimArg D_actor_361100_80165E9C = { { .index = 0 }, 1, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165E9C = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165EB0 = { { .index = 0 }, 2, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165EB0 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165EC4 = { { .index = 0 }, 3, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165EC4 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimArg D_actor_361100_80165ED8 = { { .index = 0 }, 4, 0, 0, 0 };
+AnimationPlayRequest D_actor_361100_80165ED8 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 GpXformArg D_actor_361100_80165EEC = { { 4440, -0x3250, 6960, 0 }, { 0, 0, 0, 0 } };
 
@@ -1611,19 +1611,12 @@ static void func_actor_361100_80162E04(Task* arg0)
     ext->colorMtx = &work->model.color;
 }
 
-/// Message 0x7D3 handler, listed in `D_actor_361100_8016BAF0` -- the table
-/// `func_actor_361100_80162D28` installs at `Task::msgTable`, and the twin of
-/// `D_actor_361100_80171BB8` where `func_actor_361100_801634D0` serves the same
-/// id. Re-seeds the whole animation slot array through `func_800B3F84` -- off
-/// this variant's bank table, `D_actor_361100_8016BAE0` -- whenever the
-/// preset's bank index changes.
+/// Applies the requested animation bank and clip to this actor's rig.
 ///
-/// Where its twin stores the preset's animation id unconditionally, this one
-/// gates on it: an unchanged `field_4` skips the slot re-seed, the tick pass
-/// and the `model.ticking` latch alike. That gate is also the only reason this body
-/// differs from `func_actor_361100_801634D0` at all; the loops and the
-/// short-circuit on `field_8` / `model.ticking` are the same code.
-s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
+/// A changed bank installs its set table. An unchanged clip skips playback setup.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_361100_80162E20(Task* task, s32 arg1, AnimationPlayRequest* msg)
 {
     Actor361100Work* work;
     TmdObject*       ext;
@@ -1631,17 +1624,17 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor361100Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank   = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank   = msg->source.index;
         work->model.animId = -1;
         func_800B3F84(&work->rig.anim, D_actor_361100_8016BAE0[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    if (msg->field_4 != work->model.animId) {
-        work->model.animId = msg->field_4;
-        if (msg->field_8 != 0 && work->model.ticking != 0) {
+    if (msg->animationId != work->model.animId) {
+        work->model.animId = msg->animationId;
+        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
@@ -1868,14 +1861,12 @@ static void func_actor_361100_801634B4(Task* arg0)
     ext->colorMtx = &work->model.color;
 }
 
-/// Message 0x7D3 handler, listed in `D_actor_361100_80171BB8` next to the
-/// spawn states. Re-seeds the whole animation slot array through
-/// `func_800B3F84` whenever the preset's bank index changes, stores the
-/// preset's animation id, then either re-seeds every slot through
-/// `func_800B4114` (preset `field_8` set and the slots already started once)
-/// or resets them through `Gp_AnimResetSlot`, and finally ticks the whole
-/// array with `Gp_AnimTickIndex`.
-s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
+/// Applies the requested animation bank and clip to this actor's rig.
+///
+/// A changed bank installs its set table. The requested clip is applied to the slots.
+/// Blends an already ticking rig when requested, using a whole-frame duration;
+/// otherwise resets the slots before ticking them.
+s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg)
 {
     Actor361100Work* work;
     TmdObject*       ext;
@@ -1883,16 +1874,16 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor361100Work*)task->work;
     ext  = task->extra.tmd;
-    if (msg->animBlock.index != work->model.bank) {
-        work->model.bank   = msg->animBlock.index;
+    if (msg->source.index != work->model.bank) {
+        work->model.bank   = msg->source.index;
         work->model.animId = -1;
         func_800B3F84(&work->rig.anim, D_actor_361100_80171BA8[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
-    work->model.animId = msg->field_4;
-    if (msg->field_8 != 0 && work->model.ticking != 0) {
+    work->model.animId = msg->animationId;
+    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
         for (i = 1; i < 0x13; i++) {

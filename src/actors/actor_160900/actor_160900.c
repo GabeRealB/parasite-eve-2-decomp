@@ -126,7 +126,6 @@ extern TaskDesc D_actor_160900_8013FB50[];
 /// Animation script `func_actor_160900_801326EC` walks and the animation-set
 /// table it hands the player task as message 0x3F4's `field_0`.
 extern ActorAnimStep D_actor_160900_8013F1CC[];
-extern u8            D_actor_160900_8013F198[];
 
 extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
@@ -609,51 +608,19 @@ TaskDesc D_actor_160900_8013F17C[2] = {
 
 s32 D_actor_160900_8013F194 = 256;
 
-u8 D_actor_160900_8013F198[44] = {
-    48,
-    219,
-    19,
-    128,
-    88,
-    175,
-    19,
-    128,
-    92,
-    187,
-    19,
-    128,
-    124,
-    193,
-    19,
-    128,
-    16,
-    198,
-    19,
-    128,
-    200,
-    199,
-    19,
-    128,
-    44,
-    216,
-    19,
-    128,
-    56,
-    232,
-    19,
-    128,
-    148,
-    229,
-    19,
-    128,
-    72,
-    222,
-    19,
-    128,
-    160,
-    201,
-    19,
-    128,
+/// Borrowed player clips for the overlay's scripted animation requests.
+static GpAnimSet* _gActor160900PlayerAnimationSets[11] = {
+    &D_actor_160900_8013DB30,
+    &D_actor_160900_8013AF58,
+    &D_actor_160900_8013BB5C,
+    &D_actor_160900_8013C17C,
+    &D_actor_160900_8013C610,
+    &D_actor_160900_8013C7C8,
+    &D_actor_160900_8013D82C,
+    &D_actor_160900_8013E838,
+    &D_actor_160900_8013E594,
+    &D_actor_160900_8013DE48,
+    &D_actor_160900_8013C9A0,
 };
 
 u8 D_actor_160900_8013F1C4[8] = {
@@ -1086,7 +1053,7 @@ void func_actor_160900_80131EB0(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_actor_160900_8013FBB0->blend == 0) {
+                    if (D_actor_160900_8013FBB0->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
@@ -1161,13 +1128,13 @@ void func_actor_160900_80131EB0(Task* arg0)
 
 static s32 func_actor_160900_801326EC(Task* arg0)
 {
-    Actor160900Work* work;
-    ActorAnimStep*   table;
-    ActorAnimStep*   entry;
-    ActorAnimStep*   entry2;
-    GpAnimArg        msg;
-    u16              anim;
-    u16              anim2;
+    Actor160900Work*     work;
+    ActorAnimStep*       table;
+    ActorAnimStep*       entry;
+    ActorAnimStep*       entry2;
+    AnimationPlayRequest msg;
+    u16                  anim;
+    u16                  anim2;
 
     work = (Actor160900Work*)arg0->work;
     if (work->field_34 == NULL) {
@@ -1180,14 +1147,14 @@ static s32 func_actor_160900_801326EC(Task* arg0)
             if (entry->animId < 0) {
                 return 1;
             }
-            anim              = entry->animId;
-            msg.animBlock.ptr = D_actor_160900_8013F198;
-            work->field_64    = anim;
-            msg.field_4       = anim;
-            msg.field_8       = 1;
-            msg.field_C       = 0xA;
-            msg.field_10      = 1;
-            Gp_DispatchMsgPtr(work->field_34, 0x3F4, &msg, 0);
+            anim                     = entry->animId;
+            msg.source.sets          = _gActor160900PlayerAnimationSets;
+            work->field_64           = anim;
+            msg.animationId          = anim;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 0xA;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             work->field_66 = 0;
         } else {
             work->field_66 += 1;
@@ -1202,14 +1169,14 @@ static s32 func_actor_160900_801326EC(Task* arg0)
         }
         work = (Actor160900Work*)arg0->work;
         if (work->field_34 != NULL) {
-            anim2             = entry2->animId;
-            msg.animBlock.ptr = D_actor_160900_8013F198;
-            work->field_64    = anim2;
-            msg.field_4       = anim2;
-            msg.field_8       = 1;
-            msg.field_C       = 0xA;
-            msg.field_10      = 1;
-            Gp_DispatchMsgPtr(work->field_34, 0x3F4, &msg, 0);
+            anim2                    = entry2->animId;
+            msg.source.sets          = _gActor160900PlayerAnimationSets;
+            work->field_64           = anim2;
+            msg.animationId          = anim2;
+            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+            msg.blendFrames          = 0xA;
+            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            Gp_DispatchMsgPtr(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             work->field_66 = 0;
         }
     }
@@ -1350,7 +1317,7 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     work->field_4B8 = 0;
     work->field_4BA = 0;
     do {
-        work->rig.slots[(u16)i].rate = 0x10;
+        work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work->rig.anim, (u16)i, 0);
         i++;
     } while ((u16)i < 0x14U);
@@ -1555,40 +1522,40 @@ void func_actor_160900_80132E80(Task* task)
 
 static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
 {
-    Actor160900Work* work;
-    GpAnimArg        msg;
-    GpAnimArg*       p;
+    Actor160900Work*      work;
+    AnimationPlayRequest  msg;
+    AnimationPlayRequest* p;
 
     work = (Actor160900Work*)task->work;
     p    = &msg;
     if (work->field_34 != NULL) {
-        p->animBlock.ptr = D_actor_160900_8013F198;
-        work->field_64   = anim;
-        p->field_4       = anim;
-        p->field_8       = 1;
-        p->field_C       = 10;
-        p->field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_34, 0x3F4, p, 0);
+        p->source.sets          = _gActor160900PlayerAnimationSets;
+        work->field_64          = anim;
+        p->animationId          = anim;
+        p->blend                = ANIMATION_BLEND_INTERPOLATE;
+        p->blendFrames          = 10;
+        p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
         work->field_66 = 0;
     }
 }
 
 static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
 {
-    Actor160900Work* work;
-    GpAnimArg        msg;
-    GpAnimArg*       p;
+    Actor160900Work*      work;
+    AnimationPlayRequest  msg;
+    AnimationPlayRequest* p;
 
     work = (Actor160900Work*)task->work;
     p    = &msg;
     if (work->field_34 != NULL) {
-        p->animBlock.ptr = D_actor_160900_8013F198;
-        work->field_64   = anim;
-        p->field_4       = anim;
-        p->field_8       = 0;
-        p->field_C       = 0;
-        p->field_10      = 1;
-        Gp_DispatchMsgPtr(work->field_34, 0x3F4, p, 0);
+        p->source.sets          = _gActor160900PlayerAnimationSets;
+        work->field_64          = anim;
+        p->animationId          = anim;
+        p->blend                = ANIMATION_BLEND_RESET;
+        p->blendFrames          = 0;
+        p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        Gp_DispatchMsgPtr(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
         work->field_66 = 0;
     }
 }
@@ -1598,10 +1565,14 @@ static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
 static void func_actor_160900_80133238(Task* arg0)
 {
     Actor160900Work* work;
-    GpAnimArg        msg;
-    Actor160900Work* w;
-    s32              v;
-    s32              x;
+    union {
+        AnimationPlayRequest animation;
+        VECTOR3              destination;
+    } message;
+
+    Actor160900Work* messageWork;
+    s32              bankIndex;
+    s32              weaponId;
 
     work = (Actor160900Work*)arg0->work;
     func_actor_160900_801326EC(arg0);
@@ -1610,51 +1581,52 @@ static void func_actor_160900_80133238(Task* arg0)
             break;
         case 1:
             Gp_DispatchMsgPtr(work->field_34, 0x3E9, D_actor_160900_8013F210, 0);
-            w = (Actor160900Work*)arg0->work;
-            if (w->field_34 != NULL) {
-                msg.animBlock.ptr = D_actor_160900_8013F198;
-                w->field_64       = 10;
-                msg.field_4       = 10;
-                msg.field_8       = 0;
-                msg.field_C       = 0;
-                msg.field_10      = 1;
-                Gp_DispatchMsgPtr(w->field_34, 0x3F4, &msg, 0);
-                w->field_66 = 0;
+            messageWork = (Actor160900Work*)arg0->work;
+            if (messageWork->field_34 != NULL) {
+                message.animation.source.sets          = _gActor160900PlayerAnimationSets;
+                messageWork->field_64                  = 10;
+                message.animation.animationId          = 10;
+                message.animation.blend                = ANIMATION_BLEND_RESET;
+                message.animation.blendFrames          = 0;
+                message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(messageWork->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
+                messageWork->field_66 = 0;
             }
             break;
         case 2:
-            w = (Actor160900Work*)arg0->work;
-            if (w->field_34 != NULL) {
-                msg.animBlock.ptr = D_actor_160900_8013F198;
-                w->field_64       = 1;
-                msg.field_4       = 1;
-                msg.field_8       = 0;
-                msg.field_C       = 0;
-                msg.field_10      = 1;
-                Gp_DispatchMsgPtr(w->field_34, 0x3F4, &msg, 0);
-                w->field_66 = 0;
+            messageWork = (Actor160900Work*)arg0->work;
+            if (messageWork->field_34 != NULL) {
+                message.animation.source.sets          = _gActor160900PlayerAnimationSets;
+                messageWork->field_64                  = 1;
+                message.animation.animationId          = 1;
+                message.animation.blend                = ANIMATION_BLEND_RESET;
+                message.animation.blendFrames          = 0;
+                message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                Gp_DispatchMsgPtr(messageWork->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
+                messageWork->field_66 = 0;
             }
             break;
         case 3:
             if ((u16)work->field_4E == 0) {
-                x = Player_Status.weapon;
+                weaponId = Player_Status.weapon;
                 if (Mc_SaveData[0].state.characterId == 1) {
-                    v = x + 1;
+                    bankIndex = weaponId + 1;
                 } else {
-                    v = x + 0x22;
+                    bankIndex = weaponId + 0x22;
                 }
-                msg.animBlock.index = v;
-                msg.field_4         = 1;
-                msg.field_8         = 0;
-                msg.field_C         = 0;
-                msg.field_10        = 0;
-                /* The message ABI carries this object address in one 32-bit word. */
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+                message.animation.source.index         = bankIndex;
+                message.animation.animationId          = 1;
+                message.animation.blend                = ANIMATION_BLEND_RESET;
+                message.animation.blendFrames          = 0;
+                message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+
+                // The message ABI carries this request address in a signed word.
+                Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)&message.animation, 0);
                 Gp_DispatchMsgPtr(work->field_34, 0x3E9, D_actor_160900_8013F228, 0);
-                msg.animBlock.index = -0x7D0;
-                msg.field_4         = 0;
-                msg.field_8         = 0xC80;
-                Gp_DispatchMsgPtr(work->field_34, 0x3FB, &msg, 0);
+                message.destination.vx = -0x7D0;
+                message.destination.vy = 0;
+                message.destination.vz = 0xC80;
+                Gp_DispatchMsgPtr(work->field_34, 0x3FB, &message.destination, 0);
                 work->field_4E++;
             }
             return;

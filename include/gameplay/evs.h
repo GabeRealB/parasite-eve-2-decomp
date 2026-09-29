@@ -20,15 +20,15 @@ STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
 /// An event operand is either a value or an address, according to its opcode.
 typedef union GpEvsOperand {
-    s32                  value;
-    void*                storage;
-    struct _GpEvsCmd*    commands;
-    GpAnimArg*           animation;
-    GpOverlayIds*        overlays;
-    struct _GpScriptCmd* padCommands;
-    struct _GpScriptRec* padRecords;
-    GpMessageArg         message;
-    TaskSpawnArg         spawn;
+    s32                   value;
+    void*                 storage;
+    struct _GpEvsCmd*     commands;
+    AnimationPlayRequest* animation;
+    GpOverlayIds*         overlays;
+    struct _GpScriptCmd*  padCommands;
+    struct _GpScriptRec*  padRecords;
+    GpMessageArg          message;
+    TaskSpawnArg          spawn;
     // The exported callback address uses the word-register event ABI. Some
     // callbacks ignore that register or consume only its low byte/halfword;
     // these members retain their source declarations in script initializers.
