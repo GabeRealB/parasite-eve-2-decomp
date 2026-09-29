@@ -8,8 +8,36 @@ conventions; read it.
 the work. The job is to work out what the item is from the code that uses it,
 and then make the code say so — the name, the type, the shape of the
 declaration, implementation, and documentation together. Complete the cleanup
-justified by understanding this item and its consumers. Record unrelated
-discoveries for later instead of expanding each step into a whole-project pass.
+justified by understanding this item, within what the step owns (below).
+
+## What a step owns
+
+Other steps are running beside yours, each in its own worktree, and every one
+is replayed onto the same branch when the round ends. A symbol two steps both
+rewrite conflicts at that join, and resolving it throws away one of the two
+analyses. So a step changes only what it owns:
+
+- **The assigned items**, and everything declared inside them: fields, members,
+  enumerators, parameters and the locals of an item that is a function.
+- **The uses of those items**, as far as the item's change reaches: the access
+  paths, the casts it makes redundant, the locals and parameters that hold it,
+  the prose that describes it, and the retired spellings in the notes.
+- **Duplicates of the item's type and of its members' types**, merged as the
+  rule on duplicates below describes: a duplicate is the same type, so merging
+  it is part of establishing the item, not a second item.
+
+Everything else is another step's: functions, types, globals and macros the
+item's users also touch, the struct holding the item, the function it is passed
+to. Do not rename, retype, restructure or re-document them, even when your
+analysis makes the right answer obvious. That analysis is exactly what their
+own step needs, so put it in the review file as a `followup` issue - what the
+symbol is, the evidence, the change you would make. Spell the symbol's current
+name in it: that symbol's brief collects earlier follow-ups by searching for its
+name, so its step starts from your analysis rather than from the old name.
+
+The one exception is a change the item's own change cannot compile or match
+without, such as a parameter whose type is the item's type. Make the minimum
+such change, keep the other symbol's name, and list it in the report.
 
 ## Changing code is expected
 
@@ -474,5 +502,5 @@ the analysis behind it. Run the last things in the foreground, and if a job is
 genuinely too slow to wait for, abandon it and report that rather than signing
 off over it.
 
-Report what the item turned out to be, what you changed beyond the name, and
-anything you could not make match.
+Report what the item turned out to be, what you changed beyond the name, any
+other symbol you had to touch and why, and anything you could not make match.

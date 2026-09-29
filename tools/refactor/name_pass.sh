@@ -44,7 +44,9 @@
 # `after` column gives the last step each one depends on, and a round is
 # widened only while that stays behind the round's first step; the dependency
 # order is the premise of the pass, so an item is never worked while something
-# it uses is being worked beside it. How much parallelism that allows is a
+# it uses is being worked beside it. Nor do steps share a round when they are
+# declared in the same file or used mostly in the same files: their workers
+# would review and rewrite the same code. How much parallelism that allows is a
 # property of the graph, not of N: the front of this worklist is wide at first
 # and narrows, so beyond a handful of workers the extra ones mostly idle. Each
 # worker also owns a full copy of the generated trees and runs its own build, so
@@ -167,17 +169,25 @@ SKIP_NAMES=" "
 # The orders to work next, at most $WORKERS of them, one per line.
 #
 # The first is the lowest outstanding step, as it always was. Each further one
-# is taken only if everything it depends on comes before that first step, which
-# is what the `after` column says: dependencies always precede their users in
-# the worklist, so `after < first` means none of a step's dependencies is in the
-# round. Steps already in the round cannot depend on a later one for the same
-# reason, so the set is mutually independent in both directions.
+# is a candidate only if everything it depends on comes before that first step,
+# which is what the `after` column says: dependencies always precede their users
+# in the worklist, so `after < first` means none of a step's dependencies is in
+# the round. Steps already in the round cannot depend on a later one for the
+# same reason, so the set is mutually independent in both directions.
+#
+# Independence is not enough for steps to be worked side by side. Two steps
+# declared in one header, or used mostly in the same files, are reviewed through
+# the same code, and their workers rewrite it twice over and conflict at the
+# join. So the candidates go through `dep_graph.py round`, which keeps them in
+# order and holds back any that overlap a step already kept. If that check
+# cannot run, the round is the first step alone: slower, never unsafe.
 #
 # A barrier - an item still in assembly - ends the scan rather than being
 # skipped. The steps behind it are the ones that use it, so working them would
 # reason from a name that cannot be established yet.
 next_batch() {
-  local order name state after first="" last="" taken=0 scanned=0
+  local order name state after first="" last="" scanned=0 barrier=""
+  local -a cands=()
   while IFS=$'\t' read -r order _ name _ _ state _ _ after; do
     [[ "$order" == "order" ]] && continue
     (( order < FROM )) && continue
@@ -199,15 +209,25 @@ next_batch() {
       # is workable, whether or not this round found work in front of it. It
       # travels on stdout because this function is read through a pipe, which
       # puts it in a subshell whose variables the caller never sees.
-      printf 'barrier\t%s\t%s\n' "$order" "$name"
+      barrier="$(printf 'barrier\t%s\t%s' "$order" "$name")"
       break
     fi
-    echo "$order"
+    cands+=("$order")
     last="$order"
     [[ -n "$first" ]] || first="$order"
-    (( ++taken >= WORKERS )) && break
+    # Overlap discards many candidates, so gather several per worker.
+    (( ${#cands[@]} >= 8 * WORKERS )) && break
   done < <(rows)
-  (( taken > 0 ))
+  if (( ${#cands[@]} > 1 && WORKERS > 1 )); then
+    printf '%s\n' "${cands[@]}" \
+      | venv/bin/python3 tools/refactor/dep_graph.py round --workers "$WORKERS" \
+          --worklist "$WORKLIST" 2>>"$LOG" \
+      || echo "${cands[0]}"
+  elif (( ${#cands[@]} > 0 )); then
+    echo "${cands[0]}"
+  fi
+  [[ -z "$barrier" ]] || echo "$barrier"
+  (( ${#cands[@]} > 0 ))
 }
 
 build_brief() {

@@ -12,6 +12,9 @@ has been processed.
     dep_graph.py ready <spec>         is this item ready to work on?
     dep_graph.py next [<spec>]        the next leaf to process
     dep_graph.py stats                how much of the graph is processed
+    dep_graph.py round --worklist F --workers N < orders
+                                      which of these independent steps can
+                                      share a parallel round
 
 `<spec>` is the form the other refactor tools take, e.g.
 `src/main/stage.c/stageSetFadeRate`. With no argument, `next` considers the
@@ -709,17 +712,86 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
     return rows
 
 
+def footprints(nodes, edges, worklist_path: str, orders):
+    """For each step: the files declaring its items, and every file it reaches.
+
+    A step reaches its declaring files and every file holding one of its
+    referrers, since a rename or a change of shape is carried to all of them.
+    An item the graph does not know reaches only its declaring file.
+    """
+    want = set(orders)
+    by_key = collections.defaultdict(list)
+    for usr, meta in nodes.items():
+        by_key[(meta["name"], meta.get("file") or "")].append(usr)
+    decl = {o: set() for o in orders}
+    reach = {o: set() for o in orders}
+    step_of = {}
+    with open(worklist_path) as fh:
+        next(fh, None)
+        for line in fh:
+            f = line.rstrip("\n").split("\t")
+            if len(f) < 7 or f[0] not in want:
+                continue
+            name, where = f[2], ("" if f[6] == "-" else f[6])
+            if where:
+                decl[f[0]].add(where)
+                reach[f[0]].add(where)
+            for usr in by_key.get((name, where), ()):
+                step_of[usr] = f[0]
+    for usr, deps in edges.items():
+        where = nodes.get(usr, {}).get("file")
+        if not where:
+            continue
+        for d in deps:
+            o = step_of.get(d)
+            if o:
+                reach[o].add(where)
+    return decl, reach
+
+
+def pick_round(orders, decl, reach, workers: int):
+    """Greedily keep steps, in worklist order, that can be worked side by side.
+
+    The worklist's dependency test says two steps do not wait on each other; it
+    does not say their edits stay apart. Steps declared in the same file edit
+    one declaration block, and steps whose uses fall mostly in the same files
+    are reviewed through the same consumers - both are worked one after the
+    other instead. "Mostly" is half the files of the smaller step, so a small
+    item whose few uses sit inside a wide item's reach waits for it.
+    """
+    chosen, skipped = [], []
+    for o in orders:
+        if len(chosen) >= workers:
+            break
+        clash = None
+        for c in chosen:
+            shared = reach[o] & reach[c]
+            if decl[o] & decl[c]:
+                clash = (c, f"both declared in {sorted(decl[o] & decl[c])[0]}")
+            elif shared and 2 * len(shared) >= min(len(reach[o]), len(reach[c])):
+                clash = (c, f"{len(shared)} shared file(s)")
+            if clash:
+                break
+        if clash:
+            skipped.append((o, *clash))
+        else:
+            chosen.append(o)
+    return chosen, skipped
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", nargs="?", default="stats",
-                    choices=["ready", "next", "stats", "worklist"])
+                    choices=["ready", "next", "stats", "worklist", "round"])
     ap.add_argument("spec", nargs="?")
     ap.add_argument("--build", action="store_true", help="rebuild the cached graph")
     ap.add_argument("--graph", default=None)
     ap.add_argument("--version", default=cref.DEFAULT_VERSION)
     ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 8)
     ap.add_argument("-n", "--limit", type=int, default=10)
+    ap.add_argument("--worklist", default=os.path.join("local", "worklist.tsv"))
+    ap.add_argument("--workers", type=int, default=1)
     args = ap.parse_args()
 
     root = cref.repo_root()
@@ -732,6 +804,17 @@ def main() -> int:
         return 0
 
     nodes, edges, alias = load(path)
+
+    if args.command == "round":
+        orders = [l.strip() for l in sys.stdin if l.strip()]
+        wl = args.worklist if os.path.isabs(args.worklist) else os.path.join(root, args.worklist)
+        decl, reach = footprints(nodes, edges, wl, orders)
+        chosen, skipped = pick_round(orders, decl, reach, args.workers)
+        for o, c, why in skipped:
+            print(f"    step {o} waits: overlaps step {c} ({why})", file=sys.stderr)
+        print("\n".join(chosen))
+        return 0
+
     done = processed_set(root, nodes)
     comp = components(nodes, edges)
 
