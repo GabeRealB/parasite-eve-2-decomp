@@ -49,12 +49,6 @@ typedef struct M4a1GrenadeScratch {
 } M4a1GrenadeScratch;
 STATIC_ASSERT_SIZEOF(M4a1GrenadeScratch, 0x34);
 
-typedef void (*M4a1GrenadeStateFn)(Task* task);
-
-/// Equipped-weapon index; `Gp_GetItemSlot(Player_Status.weapon + 0x7F)` is the slot the
-/// player is holding, and its `attachId` is the attachment id the sound bank is
-/// keyed on. A main-executable global with no module header yet.
-
 static void func_m4a1_grenade_8011DE24(Task* task);
 
 static void func_m4a1_grenade_8011D1EC(Task* arg0);
@@ -229,7 +223,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     arg0->exitCallback = func_m4a1_grenade_8011DE24;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
@@ -412,16 +406,14 @@ static void func_m4a1_grenade_8011DE24(Task* task)
     taskKill(task);
 }
 
-/// Per-frame entry point: runs the weapon task's current state. The table is a
-/// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_m4a1_grenade_8011DE68(Task* arg0)
+void func_m4a1_grenade_8011DE68(Task* task)
 {
-    M4a1GrenadeStateFn states[4] = {
+    TaskFunc states[4] = {
         func_m4a1_grenade_8011D654,
         func_m4a1_grenade_8011D994,
         func_m4a1_grenade_8011DDF8,
         func_m4a1_grenade_8011DE24,
     };
 
-    states[arg0->state](arg0);
+    states[task->state](task);
 }

@@ -18,7 +18,13 @@
 
 #include "types.h"
 
-#include "shared/cap_caption_types.h"
+// Schedule states, the terminating upper bound, and the window-to-frame scale.
+enum {
+    CAP_CAPTION_SCHEDULE_INIT            = 0,
+    CAP_CAPTION_SCHEDULE_RUNNING         = 1,
+    CAP_CAPTION_SCHEDULE_END             = -1,
+    CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT = 30
+};
 
 static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2);
 static inline void CapCaption_LoadResource(s16 arg0, s16 arg1, s16 arg2);

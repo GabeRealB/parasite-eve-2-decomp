@@ -22,7 +22,7 @@ static OverlayCapWindow CapCaption_Data_80154514[13] = {
     { 2, 1, 17, 2 },
     { 1, 0, 17, 1 },
     { 0, -3, 17, 0 },
-    { -1, 0, 0, 0 },
+    { CAP_CAPTION_SCHEDULE_END, 0, 0, 0 },
 };
 
 static s32 CapCaption_Data_801545E4 = 8;

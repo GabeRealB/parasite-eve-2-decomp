@@ -1146,10 +1146,10 @@ GpEvsCmd D_actor_215100_801543E4[11] = {
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static void CapCaption_RunSchedule(Task* task, s32 arg1);
+static void CapCaption_RunSchedule(Task* task);
 
-static CapCaptionTaskTable D_actor_215100_801544F0 = {
-    .native = { { 0, 32, { .withArg = CapCaption_RunSchedule }, { .value = 0 } } }
+static TaskDesc D_actor_215100_801544F0[1] = {
+    { 0, 32, CapCaption_RunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"

@@ -18,15 +18,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-#include "shared/cap_caption_types.h"
-
 extern ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12];
 
 extern TmdSource D_shelter_b3_dumping_hole_80187550;
 
 extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[4];
 
-extern CapCaptionTaskTable D_shelter_b3_dumping_hole_8018B57C;
+extern TaskDesc D_shelter_b3_dumping_hole_8018B57C[1];
 
 extern GpAreaVariant D_shelter_b3_dumping_hole_8018EC3C[13];
 

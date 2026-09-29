@@ -15,16 +15,16 @@ typedef union TaskBody {
     struct GpDisp2d* disp2d; // spawnType 2
 } TaskBody;
 
-/// A function the task system calls with the task that owns the slot.
+/// A task handler taking its live task as the only argument and returning nothing.
 ///
-/// Both the per-frame step and the teardown are one of these (`Task::callback`
-/// and `Task::exitCallback`), as are the per-state handlers a dispatcher picks
-/// out by `Task::state`. The task is the only argument: whatever a body needs
-/// it reaches through that, in `Task::work`, `Task::extra` or `Task::spawnArg2`.
+/// Used for frame updates, teardown and task-state dispatch, including content
+/// handlers invoked by task-owned UI panels. The task supplies the handler's
+/// work, body and spawn arguments; there is no separate callback context or
+/// return status. The pointer must be live at entry; a teardown handler may
+/// release it before returning.
 typedef void (*TaskFunc)(struct Task* task);
 
-/// Fixed-size table of `TaskFunc` callbacks. Copied onto the stack by state
-/// dispatchers (e.g. `GameFlow_DispatchTable`) so the call uses a local jump table.
+/// Three task handlers stored as a value for whole-table copies.
 typedef struct {
     TaskFunc funcs[3];
 } TaskFuncTable3;

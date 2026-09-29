@@ -20,7 +20,7 @@
 #include "main/task_types.h"
 #include "main/text.h"
 
-static void CapCaption_RunSchedule(Task* task, s32 arg1);
+static void CapCaption_RunSchedule(Task* task);
 
 static void CapCaption_DrawCurrent(void);
 static s32  CapCaption_Relocate(GpCapFileAddress base);
@@ -37,14 +37,12 @@ static void CapCaption_TimedTask(Task* task);
 static void CapCaption_CancelableTask(Task* task);
 static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
 
-/// Drives the caption schedule while the actor waits to be talked to: state 0
-/// arms it, and state 1 scans `CapCaption_Data_80154514` for the window
-/// containing `gGameSession.sceneClock` - the first entry whose `upper * 30`
-/// has not dropped below the clock and whose `lower * 30` has - and, when it
-/// finds one, starts that entry's script at its own line key with the task's
-/// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
-/// caption system is busy or `Gp_StateF0.field_4` is up.
-static void CapCaption_RunSchedule(Task* task, s32 arg1)
+/// Plays scheduled captions as the scene clock counts down.
+///
+/// Schedule bounds use units of 30 scene-clock frames. The task's `spawnArg1`
+/// supplies the per-line delay in frames. The first containing window supplies
+/// both the script and its line key.
+static void CapCaption_RunSchedule(Task* task)
 {
     s32 i;
     s32 script;
@@ -52,16 +50,16 @@ static void CapCaption_RunSchedule(Task* task, s32 arg1)
     s32 time;
 
     switch (task->state) {
-        case 0:
-            task->state = 1;
+        case CAP_CAPTION_SCHEDULE_INIT:
+            task->state = CAP_CAPTION_SCHEDULE_RUNNING;
             break;
-        case 1:
+        case CAP_CAPTION_SCHEDULE_RUNNING:
             script = 0;
-            key    = arg1;
-            for (i = 0; CapCaption_Data_80154514[i].upper != -1; i++) {
+            // A selected window always supplies its key before script playback.
+            for (i = 0; CapCaption_Data_80154514[i].upper != CAP_CAPTION_SCHEDULE_END; i++) {
                 time = gGameSession->sceneClock;
-                if ((CapCaption_Data_80154514[i].upper * 30 >= time) &&
-                    (CapCaption_Data_80154514[i].lower * 30 < time)) {
+                if ((CapCaption_Data_80154514[i].upper * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT >= time) &&
+                    (CapCaption_Data_80154514[i].lower * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT < time)) {
                     script = CapCaption_Data_80154514[i].script;
                     key    = CapCaption_Data_80154514[i].key;
                     break;

@@ -63553,9 +63553,10 @@ mismatch is on.
 
 ## A `Gp_DispatchMsg` handler takes four arguments even when it reads two
 
-Overlay message handlers are reached through a `{ u32 msgId, TaskFunc }` table
-in the overlay's data (`D_actor_323000_801739D0`), and `Gp_DispatchMsg(Task*,
-s32 msgId, s32 payload, s32)` calls the entry with all four registers live. A
+Overlay message handlers are reached through a `{ s32 id, GpMsgHandler handler }`
+table in the overlay's data (`D_actor_323000_801739D0`), and
+`Gp_DispatchMsg(Task*, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)` calls
+the entry with all four registers live. A
 handler that only touches the task and the payload therefore reads `$a0` and
 `$a2` with nothing in between, and m2c — which names parameters by the
 registers it sees — emits a two-parameter function, putting the payload in

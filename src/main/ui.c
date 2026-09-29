@@ -1934,17 +1934,17 @@ static inline UiObject* _uiSpawnObject(UiObjectDesc* descriptor, s32 arg1, s32 a
     TaskDesc  desc;
     Task*     task;
     UiObject* obj;
-    s32       field_8;
+    s32       descriptorArg;
 
     obj            = NULL;
     desc.flags     = descriptor->field_10;
     desc.priority  = descriptor->field_12;
-    field_8        = descriptor->field_18;
+    descriptorArg  = descriptor->field_18;
     desc.callback  = Ui_DispatchObjectState;
-    desc.arg.value = field_8;
+    desc.arg.value = descriptorArg;
     task           = Task_SpawnFromTable(&desc, 0, arg1, obj);
     if (task != NULL) {
-        obj = (UiObject*)memCalloc(0x30, 0);
+        obj = memCalloc(sizeof(*obj), 0);
         if (obj != NULL) {
             task->spawnArg2.pointer          = obj;
             task->exitCallback               = Ui_FreeAndKill;
@@ -1956,7 +1956,7 @@ static inline UiObject* _uiSpawnObject(UiObjectDesc* descriptor, s32 arg1, s32 a
             obj->panel.bounds.unsignedRect.w = descriptor->field_8;
             obj->panel.bounds.unsignedRect.h = descriptor->field_A;
             obj->panel.field_14.s            = descriptor->field_C & 0xFFFC;
-            obj->panel.field_24              = descriptor->field_14;
+            obj->panel.contentCallback       = descriptor->contentCallback;
             obj->panel.field_16              = arg3;
             if (parent != NULL) {
                 Task_Reparent(parent->owner, task);
@@ -2599,7 +2599,7 @@ static void Ui_DrawAndCallback(UiPanel* panel, Task* task)
     temp_s2          = panel->field_0.w;
     panel->field_0.w = temp_s2 << 0x10;
     Ui_LayoutAndClip(panel);
-    panel->field_24(task);
+    panel->contentCallback(task);
     panel->field_16 -= gDisplayState.frameTicks;
     if (panel->field_16 <= 0) {
         panel->field_16 = 0;
@@ -2615,7 +2615,7 @@ static void Ui_DrawAndCallback(UiPanel* panel, Task* task)
 static void Ui_LayoutDrawAndCallback(UiPanel* panel, Task* task)
 {
     Ui_LayoutAndDraw(panel);
-    panel->field_24(task);
+    panel->contentCallback(task);
 }
 
 static void Ui_TickAnimCounter(UiPanel* panel, Task* task)
@@ -2630,7 +2630,7 @@ static void Ui_TickAnimCounter(UiPanel* panel, Task* task)
     }
     panel->field_0.w = 0;
     Ui_LayoutAndDrawAlt(panel);
-    panel->field_24(task);
+    panel->contentCallback(task);
 }
 
 static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
@@ -2649,7 +2649,7 @@ static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
     }
     panel->field_0.w <<= 0x10;
     Ui_LayoutAndDrawAlt(panel);
-    panel->field_24(task);
+    panel->contentCallback(task);
     if (panel->field_0.w == (temp_s1 << 0x10)) {
         panel->field_0.w = temp_s1;
     }
@@ -2666,7 +2666,7 @@ static void Ui_ClipAndCallback(UiPanel* panel, Task* task)
     temp_s0          = temp_s2 << 0x10;
     panel->field_0.w = temp_s0;
     Ui_SetupClip(panel);
-    panel->field_24(task);
+    panel->contentCallback(task);
     if (panel->field_0.w == temp_s0) {
         panel->field_0.w = temp_s2;
     }

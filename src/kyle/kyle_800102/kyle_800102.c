@@ -32,9 +32,6 @@
 
 #include "weapons/weapon.h"
 
-/// One entry of the task's state table; the dispatcher passes the task itself.
-typedef void (*Kyle800102StateFn)(Task* task);
-
 static void func_kyle_800102_80168270(Task* arg0);
 
 static void func_kyle_800102_80167A84(Task* arg0);
@@ -71,7 +68,7 @@ static void func_kyle_800102_80167A84(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     arg0->exitCallback = func_kyle_800102_80168270;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
@@ -256,16 +253,14 @@ static void func_kyle_800102_80168270(Task* arg0)
     Gp_UnlinkObj(&work->obj2);
     taskKill(arg0);
 }
-/// Per-frame entry point: runs the task's current state. The table is a local,
-/// so GCC copies it from `.rodata` onto the stack every frame.
-void func_kyle_800102_801682B4(Task* arg0)
+void func_kyle_800102_801682B4(Task* task)
 {
-    Kyle800102StateFn states[4] = {
+    TaskFunc states[4] = {
         func_kyle_800102_80167A84,
         func_kyle_800102_80167DE0,
         func_kyle_800102_80168244,
         func_kyle_800102_80168270,
     };
 
-    states[arg0->state](arg0);
+    states[task->state](task);
 }

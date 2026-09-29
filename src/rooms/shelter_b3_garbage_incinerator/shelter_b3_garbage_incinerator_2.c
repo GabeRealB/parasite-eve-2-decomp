@@ -385,10 +385,10 @@ TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static void CapCaption_RunSchedule(Task* task, s32 arg1);
+static void CapCaption_RunSchedule(Task* task);
 
-static CapCaptionTaskTable D_shelter_b3_garbage_incinerator_80187184 = {
-    .native = { { 0, 32, { .withArg = CapCaption_RunSchedule }, { .value = 0 } } }
+static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
+    { 0, 32, CapCaption_RunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
@@ -1446,7 +1446,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
                 work->field_2C                            = gameGetPtrSlot(3);
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }
-            Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184.tasks, 0, 0xD0, 0);
+            Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
             if (arg0->spawnArg1.value == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
             }

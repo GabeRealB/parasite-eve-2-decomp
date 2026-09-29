@@ -26,7 +26,7 @@ typedef union {
 
 /// Panel shared by standalone drawing helpers and the task-owned UiObject.
 /// Its signed rectangle and unsigned layout view occupy the same eight bytes.
-typedef struct _UiPanel {
+typedef struct {
     /* 0x00 */ union {
         s32 w;
         s16 h[2];
@@ -39,15 +39,15 @@ typedef struct _UiPanel {
             u16 x, y, w, h;
         } unsignedRect;
     } bounds;
-    /* 0x14 */ UiHalf   field_14;
-    /* 0x16 */ s16      field_16;
-    /* 0x18 */ UiHalf   field_18;
-    /* 0x1A */ UiHalf   field_1A;
-    /* 0x1C */ UiHalf   field_1C;
-    /* 0x1E */ UiHalf   field_1E;
-    /* 0x20 */ UiHalf   field_20;
-    /* 0x22 */ UiHalf   field_22;
-    /* 0x24 */ TaskFunc field_24;
+    /* 0x14 */ UiHalf field_14;
+    /* 0x16 */ s16    field_16;
+    /* 0x18 */ UiHalf field_18;
+    /* 0x1A */ UiHalf field_1A;
+    /* 0x1C */ UiHalf field_1C;
+    /* 0x1E */ UiHalf field_1E;
+    /* 0x20 */ UiHalf field_20;
+    /* 0x22 */ UiHalf field_22;
+    TaskFunc          contentCallback; // Panel content handler; receives the owning task after layout/clipping
 } UiPanel;
 STATIC_ASSERT_SIZEOF(UiPanel, 0x28);
 
@@ -64,18 +64,18 @@ STATIC_ASSERT_SIZEOF(UiObject, 0x30);
 STATIC_ASSERT(OFFSET_OF(UiObject, owner) == 0x28, ui_object_owner_offset);
 
 /// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
-typedef struct _UiObjectDesc {
-    /* 0x00 */ s32      field_0; // → UiObject.panel.field_4
-    /* 0x04 */ u16      field_4; // → layout
-    /* 0x06 */ u16      field_6;
-    /* 0x08 */ u16      field_8;
-    /* 0x0A */ u16      field_A;
-    /* 0x0C */ u16      field_C;
-    /* 0x0E */ u16      field_E;
-    /* 0x10 */ u16      field_10; // → TaskDesc seed
-    /* 0x12 */ u16      field_12; // → TaskDesc seed
-    /* 0x14 */ TaskFunc field_14; // → UiObject callback-ish
-    /* 0x18 */ s32      field_18; // → TaskDesc seed
+typedef struct {
+    /* 0x00 */ s32 field_0; // → UiObject.panel.field_4
+    /* 0x04 */ u16 field_4; // → layout
+    /* 0x06 */ u16 field_6;
+    /* 0x08 */ u16 field_8;
+    /* 0x0A */ u16 field_A;
+    /* 0x0C */ u16 field_C;
+    /* 0x0E */ u16 field_E;
+    /* 0x10 */ u16 field_10;        // → TaskDesc seed
+    /* 0x12 */ u16 field_12;        // → TaskDesc seed
+    TaskFunc       contentCallback; // Required content handler for the spawned panel's owning task
+    /* 0x18 */ s32 field_18;        // → TaskDesc seed
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 

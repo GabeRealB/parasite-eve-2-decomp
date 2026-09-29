@@ -1002,10 +1002,10 @@ GpEvsCmd D_shelter_b3_dumping_hole_8018B428[14] = {
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static void CapCaption_RunSchedule(Task* task, s32 arg1);
+static void CapCaption_RunSchedule(Task* task);
 
-CapCaptionTaskTable D_shelter_b3_dumping_hole_8018B57C = {
-    .native = { { 0, 32, { .withArg = CapCaption_RunSchedule }, { .value = 0 } } }
+TaskDesc D_shelter_b3_dumping_hole_8018B57C[1] = {
+    { 0, 32, CapCaption_RunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
