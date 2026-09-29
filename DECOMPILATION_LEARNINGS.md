@@ -21041,16 +21041,16 @@ register u16 cos_u asm("v0");
 register u16 sin_u asm("v1");
 register s16 neg_s asm("v0"); /* reuses v0 after cos is stored */
 register u16 cos2 asm("v1");  /* reuses v1 after sin is stored */
-volatile MATRIX* vmat = &block->mat;
+volatile MATRIX* vmat = &block->rotation;
 
-cos_u = block->cos_val;
-sin_u = block->sin_val;
+cos_u = block->angleCos;
+sin_u = block->angleSin;
 /* … zero the other entries … */
 vmat->m[1][1] = cos_u;
 neg_s = sin_u;
 __asm__ volatile("" : "+r"(neg_s) : "r"(sin_u)); /* keep sin_u live for sh v1 */
 vmat->m[1][2] = sin_u;
-cos2 = block->cos_val;
+cos2 = block->angleCos;
 vmat->m[2][1] = -neg_s;
 vmat->m[2][2] = cos2;
 ```
@@ -21278,15 +21278,15 @@ Force the split with an early alias used for the sin/cos stores and later GTE
 column 0:
 
 ```c
-block = (ScratchMat*)(head - 0x24);
-*(ScratchMat**)G_SCRATCH_HEAD = block;
+block = (_GfxAxisRotationScratch*)(head - 0x24);
+*(_GfxAxisRotationScratch**)G_SCRATCH_HEAD = block;
 p = block;                          /* early: dies into s0 after angle */
 
-p->sin_val = rsin(angle);
+p->angleSin = rsin(angle);
 cos        = rcos(angle);
-p->cos_val = cos;
+p->angleCos = cos;
 /* if-path / gte_ldclmv use p; else-path matrix build uses block */
-gte_MulMatrix0(arg0, p, arg0);   /* gtemac.h, real words via gte.h */
+gte_MulMatrix0(arg0, &p->rotation, arg0);   /* gtemac.h, real words via gte.h */
 ```
 
 `Gfx_RotMatrixY` is the pure example (Y-axis rotate; siblings X/Z match the same
@@ -21304,8 +21304,8 @@ serve the free path:
 
 ```c
 head = *(u8**)G_SCRATCH_HEAD;              /* address in v0 */
-block = (ScratchMat*)(head - 0x24);
-*(ScratchMat**)G_SCRATCH_HEAD = block;
+block = (_GfxAxisRotationScratch*)(head - 0x24);
+*(_GfxAxisRotationScratch**)G_SCRATCH_HEAD = block;
 
 /* … body … */
 
@@ -21331,7 +21331,7 @@ Writing `m[2][1] = 0` *before* starting the reload produces `sh` / `lhu` / `nop`
 / `negu` instead. Capture the reload first:
 
 ```c
-t = p->sin_val;
+t = p->angleSin;
 arg0->m[2][1] = 0;
 arg0->m[2][0] = -t;
 ```
@@ -21349,8 +21349,8 @@ does the same shape but with **cos** — the flag≠0 path ends with
 `m[2][2]=ONE` / `m[1][1]=cos` in the `j` delay, so:
 
 ```c
-arg0->m[1][0] = p->sin_val; /* own lhu + nop + sh before the pair */
-cos_u = p->cos_val;         /* register u16 cos_u asm("v1") */
+arg0->m[1][0] = p->angleSin; /* own lhu + nop + sh before the pair */
+cos_u = p->angleCos;         /* register u16 cos_u asm("v1") */
 arg0->m[1][2] = 0;
 arg0->m[2][0] = 0;
 arg0->m[2][1] = 0;
@@ -21358,19 +21358,19 @@ arg0->m[2][2] = ONE;
 arg0->m[1][1] = cos_u;
 ```
 
-Using `p->cos_val` only on the final store reloads cos *after* ONE and puts
+Using `p->angleCos` only on the final store reloads cos *after* ONE and puts
 the sin store into the `li`/zero schedule (wrong).
 
 Else path needs `m[2][2]=ONE` **before** reloading sin/cos from the scratch
 block. A volatile store alone does not stop GCC 2.8.1 from hoisting the
-non-volatile `block->sin_val` / `block->cos_val` loads above it — insert a
+non-volatile `block->angleSin` / `block->angleCos` loads above it — insert a
 compiler memory barrier:
 
 ```c
 vmat->m[2][2] = ONE;
 __asm__ volatile("" ::: "memory");
-sin_u = block->sin_val;
-cos2  = block->cos_val; /* asm("a0") */
+sin_u = block->angleSin;
+cos2  = block->angleCos; /* asm("a0") */
 ```
 
 Z-axis also inverts the Y-axis move/negu split: copy sin to `$v1`, negate the
@@ -21388,10 +21388,10 @@ vmat->m[1][1] = cos2;
 
 `Gfx_RotMatrixZ` is the pure example (Z-axis; X sibling is `Gfx_RotMatrixX`).
 
-## RotMatrixX: dual cos loads via `volatile ScratchMat*`
+## RotMatrixX: dual cos loads via `volatile _GfxAxisRotationScratch*`
 
 X-axis else path (flag==0) needs two back-to-back `lhu` of the same
-`cos_val` into `$v0` and `$a0` before storing `m[1][1]`:
+`angleCos` into `$v0` and `$a0` before storing `m[1][1]`:
 
 ```
 lhu  v0, cos(s2)
@@ -21399,14 +21399,14 @@ lhu  a0, cos(s2)
 sh   v0, m[1][1](s2)
 ```
 
-Plain `cos_u = block->cos_val; cos2 = block->cos_val;` CSEs the second load
+Plain `cos_u = block->angleCos; cos2 = block->angleCos;` CSEs the second load
 into `move a0,v0` (+nop) and breaks the match. Force both loads with a
 volatile view of the scratch block:
 
 ```c
-volatile ScratchMat* vblock = block;
-cos_u = vblock->cos_val; /* asm("v0") */
-cos2  = vblock->cos_val; /* asm("a0") */
+volatile _GfxAxisRotationScratch* vblock = block;
+cos_u = vblock->angleCos; /* asm("v0") */
+cos2  = vblock->angleCos; /* asm("a0") */
 vmat->m[1][1] = cos_u;
 /* zeros + m[2][2] = cos2; then sin move/negu as on Z-axis */
 ```
