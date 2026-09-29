@@ -1,3 +1,7 @@
 // Overlay-local symbols for dryfield_r04.
-D_dryfield_r04_8017D61C = 0x8017D61C; // size:0xBD8 defined:True
+D_dryfield_r04_8017D61C = 0x8017D61C; // size:0x8 defined:True
+D_dryfield_r04_8017D624 = 0x8017D624; // size:0x288 defined:True
+D_dryfield_r04_8017D8AC = 0x8017D8AC; // size:0x300 defined:True
+D_dryfield_r04_8017DBAC = 0x8017DBAC; // size:0x504 defined:True
+D_dryfield_r04_8017E0B0 = 0x8017E0B0; // size:0x144 defined:True
 D_dryfield_r04_8017E1F4 = 0x8017E1F4; // size:0x24 defined:True

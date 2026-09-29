@@ -11,24 +11,13 @@
 #include "gameplay/room.h"
 #include "gameplay/view.h"
 
-/// The location's collision grid header; the grid is an asset.
+/// The location's collision grid header, defined after the grid it points at.
 extern GpGridParams D_dryfield_r04_8017E1F4;
 
 /* Dryfield room 4 has no code. Its package holds only the room records the
- * stage tables point at: one location, whose collision grid is retained in this unit, two views with no sprites, an exit record and the
- * location's parameters.
+ * stage tables point at: one location with its collision grid, two views with
+ * no sprites, an exit record and the location's parameters.
  */
-
-// Native 9x9 collision grid. Every cell points into the bounded face-ID
-// pool and ends at -1; faces index the vertex and normal arrays below.
-typedef struct {
-    SVECTOR    normals[1];
-    SVECTOR    vertices[81];
-    GpGridFace faces[64];
-    s16        faceIds[642];
-    s16*       cells[81];
-} DryfieldR04CollisionGrid;
-STATIC_ASSERT_SIZEOF(DryfieldR04CollisionGrid, 3032);
 
 GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
     { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
@@ -46,32 +35,34 @@ GpWarpRec D_dryfield_r04_8017D5E4[1] = {
     { .field_34 = 2 },
 };
 
-DryfieldR04CollisionGrid D_dryfield_r04_8017D61C = {
-    {
+SVECTOR D_dryfield_r04_8017D61C[1] = {
 #include "assets/dryfield_r04_collision_00C34_normals.inc"
-    },
-    {
-#include "assets/dryfield_r04_collision_00C34_verts.inc"
-    },
-    {
-#include "assets/dryfield_r04_collision_00C34_faces.inc"
-    },
-    {
-#include "assets/dryfield_r04_collision_00C34_cells.inc"
-    },
-    {
-#define GRID_CELL(i) (&D_dryfield_r04_8017D61C.faceIds[i])
-#include "assets/dryfield_r04_collision_00C34_table.inc"
-#undef GRID_CELL
-    },
 };
+
+SVECTOR D_dryfield_r04_8017D624[81] = {
+#include "assets/dryfield_r04_collision_00C34_verts.inc"
+};
+
+GpGridFace D_dryfield_r04_8017D8AC[64] = {
+#include "assets/dryfield_r04_collision_00C34_faces.inc"
+};
+
+s16 D_dryfield_r04_8017DBAC[642] = {
+#include "assets/dryfield_r04_collision_00C34_cells.inc"
+};
+
+#define GRID_CELL(i) (&D_dryfield_r04_8017DBAC[i])
+s16* D_dryfield_r04_8017E0B0[81] = {
+#include "assets/dryfield_r04_collision_00C34_table.inc"
+};
+#undef GRID_CELL
 
 GpGridParams D_dryfield_r04_8017E1F4 = {
     NULL,
-    D_dryfield_r04_8017D61C.normals,
-    D_dryfield_r04_8017D61C.vertices,
-    D_dryfield_r04_8017D61C.faces,
-    D_dryfield_r04_8017D61C.cells,
+    D_dryfield_r04_8017D61C,
+    D_dryfield_r04_8017D624,
+    D_dryfield_r04_8017D8AC,
+    D_dryfield_r04_8017E0B0,
     0,
     0,
     9,
