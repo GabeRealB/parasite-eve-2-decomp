@@ -36,7 +36,7 @@ D_shelter_1f_parking_garage_80181978 = 0x80181978; // size:0x4 defined:True
 D_shelter_1f_parking_garage_8018197C = 0x8018197C; // size:0x8 defined:True
 D_8010CAF8 = 0x8010CAF8; // absolute:True
 D_map_neo_ark_8017AEC0 = 0x8017AEC0; // absolute:True
-D_shelter_1f_parking_garage_80180C54 = 0x80180C54; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80180C54; // size:0x10 defined:True
 D_shelter_1f_parking_garage_80181984 = 0x80181984; // size:0x4 defined:True
 D_shelter_1f_parking_garage_80181988 = 0x80181988; // size:0x10 defined:True
 D_shelter_1f_parking_garage_80181998 = 0x80181998; // size:0xC defined:True
@@ -53,3 +53,7 @@ func_shelter_1f_parking_garage_8017EC0C = 0x8017EC0C; // type:func
 func_shelter_1f_parking_garage_8017F670 = 0x8017F670; // type:func
 
 func_shelter_1f_parking_garage_8017FF58 = 0x8017FF58; // type:func
+RoomFx_DrawFlashRing = 0x8017EEB0; // type:func
+RoomFx_DrawFlashDisc = 0x8017F2DC; // type:func
+RoomFx_DrawTwinTrail = 0x8017FB60; // type:func
+RoomFx_DrawBurstStar = 0x801801E0; // type:func
