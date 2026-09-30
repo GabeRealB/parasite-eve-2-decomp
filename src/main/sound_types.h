@@ -270,10 +270,13 @@ STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 /// Command codes carried by `SndEvt::command`, in audio dispatch order.
 ///
 /// MIDI commands read `args.midi`; script commands 6..11 read `args.script`.
-/// The no-ops and commands 13..15 take no arguments. Duck acquire/release count
-/// requests to lower the script master level toward 48 and restore its saved
-/// level when the last request ends; scripts may opt out of that attenuation.
-/// Key off releases script voices in bank types 1 and 5 during stage changes.
+/// `SOUND_EVENT_NO_OP` and `SOUND_EVENT_RESERVED_NO_OP` perform no audio work
+/// and read no arguments. Reserving a slot stores `SOUND_EVENT_NO_OP` until
+/// the producer replaces `command`. Commands 13..15 take no arguments. Duck
+/// acquire/release count requests to lower the script master level toward 48
+/// and restore its saved level when the last request ends; scripts may opt out
+/// of that attenuation. Key off releases script voices in bank types 1 and 5
+/// during stage changes.
 enum {
     SOUND_EVENT_NO_OP                      = 0,
     SOUND_EVENT_MIDI_START                 = 1,

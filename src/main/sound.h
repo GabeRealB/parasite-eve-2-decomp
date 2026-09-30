@@ -110,8 +110,9 @@ void SndEvt_Process(void);
 ///
 /// The pool is fixed, so a request that finds nothing free fails instead of
 /// growing it: an enqueuer either reports that failure to its own caller or
-/// drops the command. The slot comes back with its command cleared and no
-/// arguments written, so the caller sets both before queueing it with
+/// drops the command. The slot comes back with `command` set to
+/// `SOUND_EVENT_NO_OP` and no arguments written. The caller replaces that
+/// command and writes every argument it reads before queueing the slot with
 /// `sndEvtEnqueue`.
 SndEvt* sndEvtAlloc(void);
 
