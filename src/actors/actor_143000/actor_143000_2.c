@@ -69,6 +69,8 @@ void func_actor_143000_80134538(void);
 
 void func_actor_143000_80133EE4(Task*);
 
+void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 active);
+
 TaskDesc D_actor_143000_801350B0[2] = {
     { 0, 192, taskKill, { .model = NULL } },
     { 0, 32, func_actor_143000_80133EE4, { .model = NULL } },
@@ -92,7 +94,7 @@ GpEvsCmd D_actor_143000_801351B0[72] = {
     { 13, { .callbackNoArg = func_actor_143000_801344D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { 13, { .callbackSetText = func_800E6E44 }, { .value = -0x7FECBD08 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackSetText = func_800E6E44 }, { .captionText = func_actor_143000_801342F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_143000_80135174 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -226,8 +228,6 @@ u8 D_actor_143000_80135C0C[4] = {
 char D_actor_143000_80135C20[24];
 
 u8 D_actor_143000_80135C38[8];
-
-void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active);
 
 void func_actor_143000_80133EE4(Task* arg0)
 {
@@ -384,7 +384,7 @@ void func_actor_143000_80133EE4(Task* arg0)
     }
 }
 
-void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active)
+void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 active)
 {
     POLY_F4* prim;
 

@@ -5,8 +5,17 @@
 
 #include "main/text.h"
 
-/// Text renderer installed by CAP event scripts.
-typedef void (*GpCapTextCb)(s16, s16, u16*, s16, s32);
+/// Callback for cursor effects and code cues during timed CAP text reveal.
+///
+/// Called after drawing and updating the reveal delay. `cursorX` / `cursorY`
+/// are pixels relative to the screen centre, with vertical shake removed from Y.
+/// `text` is the borrowed, 0xFFFF-terminated CAP code stream. `revealIndex` is a
+/// zero-based u16 element index after the delay update; `codeAdvanced` is 1 when
+/// that update advanced the index, otherwise 0. On the completion frame the
+/// index can be one element past the terminator, within the containing CAP file.
+/// The stream must remain live for the call, and the callback's overlay must
+/// remain loaded until it is cleared. Starting CAP playback clears the callback.
+typedef void (*CapTextUpdateCallback)(s32 cursorX, s32 cursorY, const u16* text, s32 revealIndex, s32 codeAdvanced);
 
 struct _GpCapCmd;
 

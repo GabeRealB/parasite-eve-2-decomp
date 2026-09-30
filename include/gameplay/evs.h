@@ -39,16 +39,16 @@ typedef union GpEvsOperand {
     // The exported callback address uses the word-register event ABI. Some
     // callbacks ignore that register or consume only its low byte/halfword;
     // these members retain their source declarations in script initializers.
-    void        (*callback)(s32);
-    void        (*callbackNoArg)(void);
-    void        (*callbackS8)(s8);
-    void        (*callbackU8)(u8);
-    void        (*callbackS16)(s16);
-    void        (*callbackU16)(u16);
-    void        (*callbackU32)(u32);
-    s32         (*callbackResult)(s32);
-    void        (*callbackSetText)(GpCapTextCb);
-    GpCapTextCb captionText;
+    void                  (*callback)(s32);
+    void                  (*callbackNoArg)(void);
+    void                  (*callbackS8)(s8);
+    void                  (*callbackU8)(u8);
+    void                  (*callbackS16)(s16);
+    void                  (*callbackU16)(u16);
+    void                  (*callbackU32)(u32);
+    s32                   (*callbackResult)(s32);
+    void                  (*callbackSetText)(CapTextUpdateCallback);
+    CapTextUpdateCallback captionText;
 } GpEvsOperand;
 STATIC_ASSERT_SIZEOF(GpEvsOperand, 4);
 

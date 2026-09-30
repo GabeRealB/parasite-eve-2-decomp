@@ -36,7 +36,7 @@ u8 D_8011565A;
 
 u16 D_8011565C;
 
-GpCapTextCb D_80115660;
+CapTextUpdateCallback D_80115660;
 
 s16 D_80115664;
 

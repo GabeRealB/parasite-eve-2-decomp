@@ -1189,9 +1189,9 @@ void Gp_ResetCap(void)
     D_8011569C = 0;
 }
 
-void func_800E6E44(GpCapTextCb arg0)
+void func_800E6E44(CapTextUpdateCallback callback)
 {
-    D_80115660 = arg0;
+    D_80115660 = callback;
 }
 
 void Gp_ApplyCapEvtFlags(void)

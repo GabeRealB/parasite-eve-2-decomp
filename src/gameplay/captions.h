@@ -76,7 +76,7 @@ extern u8 D_8011565A;
 
 extern u16 D_8011565C;
 
-extern GpCapTextCb D_80115660;
+extern CapTextUpdateCallback D_80115660;
 
 extern s16 D_80115664;
 
