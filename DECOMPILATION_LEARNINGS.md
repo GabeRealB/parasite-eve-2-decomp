@@ -11055,14 +11055,14 @@ nested member, where it has one — and access fields through that pointer.
 and `SndEvt_HandleVolumeRamp` shows both spellings:
 
 ```c
-SndEvtVoiceArgs* args = &arg0->args.voice; /* +4 base; the loads rebase to it */
-temp = SndVoice_FindById(args->id);        /* the field at arg0+0x8 */
+SndEvtScriptArgs* args = &arg0->args.voice; /* +4 base; the loads rebase to it */
+temp = SndVoice_FindById(args->soundId);   /* the field at arg0+0x8 */
 if (temp >= 0) {
-    SndVoice_SetVolumeRamp(temp, args->level.loudness); /* the field at arg0+0x5 */
+    SndVoice_SetVolumeRamp(temp, args->level.volumeScale); /* the field at arg0+0x5 */
 }
 ```
 
-Sibling helpers that only touch one field (`index->args.voice.id`) do not need
+Sibling helpers that only touch one field (`index->args.voice.soundId`) do not need
 this; use it when the target rebased the pointer and multiple fields are
 relative to that new base.
 
@@ -11077,8 +11077,8 @@ mixed spelling is only what a decompiler produced from this code, never what the
 source needed:
 
 ```c
-args->pan = arg1;            /* sb a1, 4(a0)     — same as evt->args.voice.pan */
-args->id  = SndBank_RemapId(arg0); /* sw v0, 4(s0) */
+args->panOffset = arg1;      /* sb a1, 4(a0)     — same as evt->args.voice.panOffset */
+args->soundId = SndBank_RemapId(arg0); /* sw v0, 4(s0) */
 ```
 
 The same reasoning makes a **union of named arms** the right declaration for a
@@ -11110,7 +11110,7 @@ picking one and casting at the other's call sites:
 ```c
 union {
     s8 attenuation; // the view the callees that subtract it from a level read
-    u8 loudness;    // the view the callee that inverts it reads
+    u8 volumeScale; // the view the callee that inverts it reads
 } level;
 ```
 
@@ -15458,11 +15458,11 @@ is a union inside its own arm" above) — then no call site casts:
 
 ```c
 /* callee: void SndVoice_SetPanRamp(s32, s32, s32); — body keeps $a1 as-is */
-SndVoice_SetPanRamp(idx, arg0->args.voice.pan, arg0->args.voice.level.attenuation); /* lb, not lbu */
-SndVoice_SetPanRamp(idx, args->pan, args->level.attenuation); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, arg0->args.voice.panOffset, arg0->args.voice.level.attenuation); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, args->panOffset, args->level.attenuation); /* lb, not lbu */
 ```
 
-Bare `args->voice.level.attenuation` with an `s8` formal also yields `lb`, but
+Bare `args->level.attenuation` with an `s8` formal also yields `lb`, but
 then the callee mismatches. Prefer `s32` formals + `(s8)` at the few call sites,
 or type each view of the field for its reader — the pan ramp's view is `s8`,
 while `SndVoice_SetVolumeRamp` reads the same byte through a `u8` one.

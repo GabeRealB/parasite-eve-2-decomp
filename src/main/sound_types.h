@@ -201,47 +201,59 @@ typedef struct {
 } SndEvtMidiArgs;
 STATIC_ASSERT_SIZEOF(SndEvtMidiArgs, 0x4);
 
-/// Arguments of the voice commands, which address a sound-bank entry and the
-/// voices playing from it: allocate a voice, ramp its pan or volume, and stop
-/// the voices a sound id matches.
+/// Deferred sound script playback, stop, mute and mix control arguments.
 ///
-/// Every command reads `id` and leaves the fields it does not read holding
-/// whatever the slot's previous occupant wrote: starting a voice reads `pan`,
-/// `level.attenuation`, `bank` and `params`, the pan ramp reads `pan` and
-/// `level.attenuation`, the volume ramp reads `level.loudness`, and the stop
-/// reads `stopFrames`.
+/// Each script instance can own several SPU voices. Start reads `soundId`,
+/// `panOffset`, `level.attenuation`, `bankSlot` and `entryControls`; stop reads
+/// `soundId` and `stopControl`; mute/unmute read only `soundId`. Pan/attenuation
+/// and volume updates change the first active instance whose id matches exactly.
+/// Unused fields retain the previous event's bytes and must not be read.
 ///
-/// `level` is one byte the commands read on two opposite scales. A command that
-/// places a source states how far it is from the listener, so 0 is the
-/// listener's own distance and the full level, and a source behind the listener
-/// is the negative of its distance. The volume ramp instead states the level to
-/// move to, on the scale where 0x7F is full. `stopFrames` is not a length alone
-/// either: 0 stops the matched voices at once, 1 does the same and raises a flag
-/// on the slot, and a larger value is the fade length in frames.
+/// The id's high half selects the bank, its low byte selects the script entry,
+/// and bits 8..15 distinguish instances. Stop also accepts 0xFF in bits 8..15
+/// to match all instances of an entry. A stop selector containing only the high
+/// nibble selects that bank type; 0x80000000 stops every type except 6.
+/// Mute/unmute match either the exact id or a high-nibble bank-type selector.
+///
+/// `panOffset` adds three SPU pan steps per unit to each voice's base pan.
+/// Attenuation scales each voice's volume-table index by (127 - magnitude) / 127
+/// for magnitudes 0..127; the sign can carry source depth. Volume updates instead
+/// request a scale 0..127; enqueuers map bytes with bit 7 set to 127. The signed
+/// value -128 is retained: start scales the index by 1/127, while a
+/// pan/attenuation update targets the unattenuated level.
+///
+/// Stop 0 requests SPU release rate 5; 1 keeps the existing release settings.
+/// For a running entry selected by id, values 2..65535 fade before release.
+/// The ramp advances by 65535 / stopControl per running audio update, including
+/// extra PAL timer updates; rounding can extend the fade. Bank-type stops ignore
+/// fade durations and request release rate 5 unless the control is 1.
+///
+/// Start borrows a stable bank slot and its image's oneC controls. The image and
+/// sample tables must remain loaded through queued playback and script execution.
 typedef struct {
-    s8 pan;                             // Stereo offset from the voice's own pan (0 centre)
+    s8 panOffset;                          // Signed mix-pan offset (0 unchanged, 3 SPU pan steps per unit)
     union {
-        s8 attenuation;                 // How far the source is from the listener, subtracted from its level
-        u8 loudness;                    // Level the volume ramp moves to (0x7F full, 0 silent)
+        s8 attenuation;                    // Signed source-depth attenuation (0 full; magnitude 127 silent)
+        u8 volumeScale;                    // Requested mix level scale (0 silent, 127 full)
     } level;
-    u16                     stopFrames; // How a matching stop acts on the voices
-    s32                     id;         // Bank-remapped id of the sound the event acts on
-    SndBankSlot*            bank;       // Bank the id was resolved in, held for the deferred start
-    SndScriptEntryControls* params;     // Bank entry the voice is started from
-} SndEvtVoiceArgs;
-STATIC_ASSERT_SIZEOF(SndEvtVoiceArgs, 0x10);
+    u16                     stopControl;   // 0 override release, 1 keep release, 2..65535 fade in audio updates
+    s32                     soundId;       // Bank-remapped script request id or command-specific selector
+    SndBankSlot*            bankSlot;      // Borrowed bank slot resolved when start is queued
+    SndScriptEntryControls* entryControls; // Borrowed oneC prefix of the script entry to start
+} SndEvtScriptArgs;
+STATIC_ASSERT_SIZEOF(SndEvtScriptArgs, 0x10);
 
 /// Arguments of a `SndEvt`, one arm per family of handlers.
 ///
 /// An event owns a single argument slot, and the two arms are the layouts its
 /// commands read it under: the sequence commands, which address a `MidiSong`,
-/// read `midi`, and the voice commands, which address a bank entry and the
-/// voices started from it, read `voice`. The slot is as large as the larger of
+/// read `midi`, and the script commands, which address a bank entry and the
+/// instances playing it, read `voice`. The slot is as large as the larger of
 /// the two, and a command fills in only the fields its own handler reads, so
 /// the rest of the slot still holds what its previous occupant left there.
 typedef union {
-    SndEvtMidiArgs  midi;
-    SndEvtVoiceArgs voice;
+    SndEvtMidiArgs   midi;
+    SndEvtScriptArgs voice;
 } SndEvtArgs;
 STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 

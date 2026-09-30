@@ -715,7 +715,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     u16                     offset;
     u32                     index;
     SndEvt*                 temp;
-    SndEvtVoiceArgs*        args;
+    SndEvtScriptArgs*       args;
 
     orig = arg0;
     if ((arg0 == 0) || (arg0 == 8)) {
@@ -758,41 +758,41 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     }
     temp->handlerIdx        = 6;
     args                    = &temp->args.voice;
-    args->id                = arg0;
-    args->pan               = arg1;
+    args->soundId           = arg0;
+    args->panOffset         = arg1;
     args->level.attenuation = arg2;
-    args->bank              = bankSlot;
-    args->params            = entry;
+    args->bankSlot          = bankSlot;
+    args->entryControls     = entry;
     sndEvtEnqueue(temp);
     return orig;
 }
 
 void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
 {
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    SndEvt*           temp;
+    SndEvtScriptArgs* args;
 
     temp = sndEvtAlloc();
     if (temp != NULL) {
-        temp->handlerIdx = 7;
-        args             = &temp->args.voice;
-        args->id         = SndBank_RemapId(arg0);
-        args->stopFrames = arg1;
+        temp->handlerIdx  = 7;
+        args              = &temp->args.voice;
+        args->soundId     = SndBank_RemapId(arg0);
+        args->stopControl = arg1;
         sndEvtEnqueue(temp);
     }
 }
 
 void SndEvt_EnqueueType8(s32 arg0)
 {
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    SndEvt*           temp;
+    SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx = 8;
             args             = &temp->args.voice;
-            args->id         = SndBank_RemapId(arg0);
+            args->soundId    = SndBank_RemapId(arg0);
             sndEvtEnqueue(temp);
         }
     }
@@ -800,15 +800,15 @@ void SndEvt_EnqueueType8(s32 arg0)
 
 void SndEvt_EnqueueType9(s32 arg0)
 {
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    SndEvt*           temp;
+    SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx = 9;
             args             = &temp->args.voice;
-            args->id         = SndBank_RemapId(arg0);
+            args->soundId    = SndBank_RemapId(arg0);
             sndEvtEnqueue(temp);
         }
     }
@@ -816,16 +816,16 @@ void SndEvt_EnqueueType9(s32 arg0)
 
 void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 {
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    SndEvt*           temp;
+    SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx        = 0xA;
             args                    = &temp->args.voice;
-            args->id                = SndBank_RemapId(arg0);
-            args->pan               = arg1;
+            args->soundId           = SndBank_RemapId(arg0);
+            args->panOffset         = arg1;
             args->level.attenuation = arg2;
             sndEvtEnqueue(temp);
         }
@@ -834,18 +834,18 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 
 void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 {
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    SndEvt*           temp;
+    SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = sndEvtAlloc();
         if (temp != NULL) {
-            temp->handlerIdx     = 0xB;
-            args                 = &temp->args.voice;
-            args->id             = SndBank_RemapId(arg0);
-            args->level.loudness = arg1;
+            temp->handlerIdx        = 0xB;
+            args                    = &temp->args.voice;
+            args->soundId           = SndBank_RemapId(arg0);
+            args->level.volumeScale = arg1;
             if ((s8)arg1 < 0) {
-                args->level.loudness = 0x7F;
+                args->level.volumeScale = SOUND_SCRIPT_VOLUME_UNITY;
             }
             sndEvtEnqueue(temp);
         }
@@ -854,8 +854,9 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 
 void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
 {
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    enum { SOUND_EVENT_STOP_KEEP_RELEASE = 1 };
+    SndEvt*           temp;
+    SndEvtScriptArgs* args;
 
     if (arg1 == 0x80000000) {
         for (arg1 = 0; arg1 < 0x10; arg1++) {
@@ -866,10 +867,10 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
         if (arg0 == 0 && (arg1 & 0xF0000000) == 0x40000000) {
             temp = sndEvtAlloc();
             if (temp != NULL) {
-                temp->handlerIdx = 7;
-                args             = &temp->args.voice;
-                args->id         = SndBank_RemapId(0x40000000);
-                args->stopFrames = 1;
+                temp->handlerIdx  = 7;
+                args              = &temp->args.voice;
+                args->soundId     = SndBank_RemapId(0x40000000);
+                args->stopControl = SOUND_EVENT_STOP_KEEP_RELEASE;
                 sndEvtEnqueue(temp);
             }
         }
