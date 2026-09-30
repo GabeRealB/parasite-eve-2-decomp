@@ -105,15 +105,16 @@ void Spu_DisableReverbVoice(u32 voiceIdx);
 
 void SndEvt_Process(void);
 
-/// Takes a free slot from the pool and marks it in use, or returns `NULL` when
-/// every slot is already taken.
+/// Reserves the first free sound-event slot, or returns `NULL` when every slot
+/// is already reserved.
 ///
 /// The pool is fixed, so a request that finds nothing free fails instead of
-/// growing it: an enqueuer either reports that failure to its own caller or
-/// drops the command. The slot comes back with `command` set to
-/// `SOUND_EVENT_NO_OP` and no arguments written. The caller replaces that
-/// command and writes every argument it reads before queueing the slot with
-/// `sndEvtEnqueue`.
+/// growing it. Producers either report that failure or drop the command. The
+/// slot is marked reserved and `command` is `SOUND_EVENT_NO_OP`; previous
+/// argument bytes stay. The caller replaces `command`, writes every argument
+/// that command reads, and passes the slot once to `sndEvtEnqueue`. A
+/// reservation that is never queued stays occupied until reset or invalid-command
+/// recovery clears the pool.
 SndEvt* sndEvtAlloc(void);
 
 s32 Midi_IsChannelFree(u8 arg0);

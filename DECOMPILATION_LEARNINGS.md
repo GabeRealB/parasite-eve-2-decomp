@@ -8526,9 +8526,9 @@ with a local:
 
 ```c
 /* Matches: li a1,1 then lui/addiu of _gSndEvtPool */
-i = 0;
+slotIndex = 0;
 allocated = SOUND_EVENT_SLOT_ALLOCATED;
-for (event = _gSndEvtPool; i < ARRAY_SIZE(_gSndEvtPool); i++, event++) {
+for (event = _gSndEvtPool; slotIndex < ARRAY_SIZE(_gSndEvtPool); slotIndex++, event++) {
     if (event->allocated == SOUND_EVENT_SLOT_FREE) {
         event->allocated = allocated;
         ...

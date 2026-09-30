@@ -543,14 +543,14 @@ void SndEvt_Reset(void)
 
 SndEvt* sndEvtAlloc(void)
 {
-    s32     i;
+    s32     slotIndex;
     s32     allocated;
     SndEvt* event;
 
-    // Load the occupied marker before the pool address.
-    i         = 0;
+    // Clear the slot index and materialize the occupied marker before the pool address.
+    slotIndex = 0;
     allocated = SOUND_EVENT_SLOT_ALLOCATED;
-    for (event = _gSndEvtPool; i < ARRAY_SIZE(_gSndEvtPool); i++, event++) {
+    for (event = _gSndEvtPool; slotIndex < ARRAY_SIZE(_gSndEvtPool); slotIndex++, event++) {
         if (event->allocated == SOUND_EVENT_SLOT_FREE) {
             event->allocated = allocated;
             event->command   = SOUND_EVENT_NO_OP;
