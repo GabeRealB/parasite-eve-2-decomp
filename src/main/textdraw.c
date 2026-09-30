@@ -33,6 +33,9 @@
 
 /// Byte encodings of the font's three pair-kerning classes.
 enum {
+    /// Glyph-edge class that preserves normal spacing with all three classes.
+    ///
+    /// Also represents the missing previous glyph when starting a string.
     FONT_KERNING_CLASS_NEUTRAL  = 0,
     FONT_KERNING_CLASS_POSITIVE = 1,
     FONT_KERNING_CLASS_NEGATIVE = 0xFF,
