@@ -90,28 +90,34 @@ typedef struct {
 } InventoryItemRange;
 STATIC_ASSERT_SIZEOF(InventoryItemRange, 0x4);
 
-/// One saved pose of a placed enemy: the position and rotation it had when it
-/// was taken out of the world, and the state it is to be resumed in.
-/// `Mc_SaveData[0].state.enemyPoses` holds a fixed run of these, filed by
-/// `Gp_SaveEnemyPose` and read back by `Gp_SpawnArea`, so an area the player
-/// returns to puts the enemy back where they left it - and an enemy the table
-/// holds no record for is not put back at all.
+/// Saved root transform and actor-specific resume state for an area placement.
 ///
-/// A record is keyed by `placeKey`, the same key the enemy itself carries, and
-/// `spawnState` doubles as the slot's occupancy marker, 0 meaning free. The
-/// rotation shares the record with the position, so each angle is kept as the
-/// high byte of the angle it was taken from, and shifted back up on restore.
+/// `McSaveState::enemyPoses` holds 32 records. In saved-pose restoration mode,
+/// only placements with a matching key are spawned. Saving an existing key
+/// keeps its first record; a full table evicts a record outside the saved
+/// location's stage/area, or its final record if none qualifies.
+///
+/// Positions retain the low 16 bits of the model root's translation in its
+/// parent's frame, restored with sign extension. Each Euler angle retains the
+/// high byte of a signed 16-bit angle (4096 units per turn), discarding its low
+/// eight bits; restoration shifts the byte left eight bits into a 16-bit angle.
+///
+/// `resumeState == 0` marks a free slot; occupied slots preserve the actor's
+/// nonzero spawn-state byte. Key lookups do not test occupancy. Area-layout
+/// resets remove the area's records and clear vacated keys to zero. Pointers
+/// borrow saved-state storage; insertion, resets and loading can replace the
+/// record at the same address.
 typedef struct {
-    u8  pitch;      // Rotation about X, kept as the angle's high byte
-    u8  yaw;        // Rotation about Y, likewise
-    u8  roll;       // Rotation about Z, likewise
-    s8  spawnState; // State the enemy is resumed in; 0 marks the slot free
-    s16 x;          // X of the enemy's coordinate, narrowed to 16 bits
-    s16 y;          // Y of the enemy's coordinate, likewise
-    s16 z;          // Z of the enemy's coordinate, likewise
-    u16 placeKey;   // Placement the enemy was spawned from, as `GpEnemy.placeKey`
-} McPosRec;
-STATIC_ASSERT_SIZEOF(McPosRec, 0xC);
+    u8  pitch;       // X Euler angle's high byte; one step is 256 angle units
+    u8  yaw;         // Y Euler angle's high byte; one step is 256 angle units
+    u8  roll;        // Z Euler angle's high byte; one step is 256 angle units
+    s8  resumeState; // Actor-defined spawn-state byte (0 free, nonzero occupied)
+    s16 x;           // Model-root X translation in signed game-coordinate units
+    s16 y;           // Model-root Y translation in signed game-coordinate units
+    s16 z;           // Model-root Z translation in signed game-coordinate units
+    u16 placeKey;    // Placement key: bits 12..15 index, 8..11 stage, 0..7 area; excludes layout variant
+} AreaSavedEnemyPose;
+STATIC_ASSERT_SIZEOF(AreaSavedEnemyPose, 0xC);
 
 /// The save data: everything a memory card save holds, resident in main's BSS
 /// and copied out as one image.
@@ -144,7 +150,7 @@ typedef struct {
     u8                  moveMode;          // Default movement (0 walk, 1 run)
     u8                  hpBonus;           // Addend to the player's maximum HP
     u8                  mpBonus;           // Addend to the player's maximum MP
-    McPosRec            enemyPoses[0x20];  // The placed enemies taken out of the world, filed by their placement key
+    AreaSavedEnemyPose  enemyPoses[0x20];  // The placed enemies taken out of the world, filed by their placement key
     s8                  buttonLayout;      // Button layout the pad is remapped through (0..2)
     s8                  soundMode;         // Sound output (0 stereo, 1 mono)
     s8                  musicVolume;       // Music volume (0..3, 3 is off)

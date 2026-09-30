@@ -103,6 +103,13 @@ enum {
     AREA_PLACEMENT_STAGE_AREA_MASK = 0xFFF
 };
 
+/// Empty saved-pose slot, fallback resume state and discarded Euler-angle bits.
+enum {
+    AREA_SAVED_ENEMY_POSE_FREE          = 0,
+    AREA_SAVED_ENEMY_POSE_DEFAULT_STATE = 1,
+    AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT   = 8
+};
+
 /// Encoded inputs and optional outputs of one animation slot's pose blend.
 ///
 /// The slot selects encoding 1 (translation and rotation) or 4 (rotation only).
@@ -2753,22 +2760,23 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 
 
 void Gp_SaveEnemyPose(GpEnemy* enemy)
 {
-    McPosRec*        savedPose;
-    GameLocationKey* savedLocation;
-    TmdObject*       model;
-    GfxCoord*        coord;
-    SVECTOR*         euler;
-    u16              placementKey;
-    s32              poseIndex;
+    AreaSavedEnemyPose* savedPose;
+    GameLocationKey*    savedLocation;
+    TmdObject*          model;
+    GfxCoord*           coord;
+    SVECTOR*            euler;
+    u16                 placementKey;
+    s32                 poseIndex;
 
     savedPose     = Mc_SaveData[0].state.enemyPoses;
     savedLocation = &Mc_SaveData[0].state.at4.loc;
     model         = enemy->task->extra.tmd;
     coord         = model->coords;
     if (enemy->spawnState == 0) {
-        enemy->spawnState = 1;
+        enemy->spawnState = AREA_SAVED_ENEMY_POSE_DEFAULT_STATE;
     }
     placementKey = enemy->placeKey;
+    // Keep the first saved transform and resume state for this placement.
     for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->placeKey == placementKey) {
             return;
@@ -2778,7 +2786,7 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
     euler     = SCRATCH_PUSH(SVECTOR);
     savedPose = Mc_SaveData[0].state.enemyPoses;
     for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
-        if (savedPose->spawnState == 0) {
+        if (savedPose->resumeState == AREA_SAVED_ENEMY_POSE_FREE) {
             break;
         }
     }
@@ -2797,17 +2805,18 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
             savedPose[0] = savedPose[1];
         }
     }
-    savedPose->spawnState = enemy->spawnState;
-    savedPose->placeKey   = enemy->placeKey;
-    savedPose->x          = coord->coord.t[0];
-    savedPose->y          = coord->coord.t[1];
-    savedPose->z          = coord->coord.t[2];
+    savedPose->resumeState = enemy->spawnState;
+    savedPose->placeKey    = enemy->placeKey;
+    savedPose->x           = coord->coord.t[0];
+    savedPose->y           = coord->coord.t[1];
+    savedPose->z           = coord->coord.t[2];
+    // Quantize the root's Euler angles to their high bytes.
     Gfx_MatrixToEuler(&coord->coord, euler);
-    euler->vx        = euler->vx >> 8;
+    euler->vx        = euler->vx >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
     savedPose->pitch = euler->vx;
-    euler->vy        = euler->vy >> 8;
+    euler->vy        = euler->vy >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
     savedPose->yaw   = euler->vy;
-    euler->vz        = euler->vz >> 8;
+    euler->vz        = euler->vz >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
     savedPose->roll  = euler->vz;
     SCRATCH_POP(SVECTOR);
 }
@@ -2854,9 +2863,9 @@ void Gp_SpawnArea(GameLocationKey* location)
             do {
                 if (resourceId == placement->entryId) {
                     if (areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES) {
-                        McPosRec* savedPose;
-                        s32       poseFound;
-                        s32       savedPoseIndex;
+                        const AreaSavedEnemyPose* savedPose;
+                        s32                       poseFound;
+                        s32                       savedPoseIndex;
 
                         savedPose = Mc_SaveData[0].state.enemyPoses;
                         poseFound = 0;
@@ -2898,21 +2907,22 @@ void Gp_SpawnArea(GameLocationKey* location)
                                 coord->param.rot.vy = placement->yaw;
                                 Gfx_RotMatrixY(&coord->coord, placement->yaw, 1);
                             } else {
-                                McPosRec* savedPose;
+                                const AreaSavedEnemyPose* savedPose;
 
                                 savedPose = Mc_SaveData[0].state.enemyPoses;
                                 poseIndex = 0;
                                 do {
                                     if (savedPose->placeKey == enemy->placeKey) {
+                                        // Restore the signed translations and expand the packed angles.
                                         coord->coord.t[0]   = savedPose->x;
                                         coord->coord.t[1]   = savedPose->y;
                                         coord->coord.t[2]   = savedPose->z;
-                                        coord->param.rot.vx = savedPose->pitch << 8;
-                                        coord->param.rot.vy = savedPose->yaw << 8;
-                                        coord->param.rot.vz = savedPose->roll << 8;
+                                        coord->param.rot.vx = savedPose->pitch << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+                                        coord->param.rot.vy = savedPose->yaw << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+                                        coord->param.rot.vz = savedPose->roll << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
                                         RotMatrix_gte(&coord->param.rot,
                                                       &coord->coord);
-                                        enemy->spawnState = savedPose->spawnState;
+                                        enemy->spawnState = savedPose->resumeState;
                                         break;
                                     }
                                     poseIndex++;
@@ -3316,9 +3326,9 @@ static GpAreaObj* Gp_GetAreaObj(GameLocationKey* key)
 /// Initializes the placement selector and applies a requested saved-pose reset.
 static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState)
 {
-    s32       shiftIndex;
-    s32       poseIndex;
-    McPosRec* savedPoses;
+    s32                 shiftIndex;
+    s32                 poseIndex;
+    AreaSavedEnemyPose* savedPoses;
 
     if (areaState->variant == 0) {
         areaState->variant     = AREA_DEFAULT_VARIANT;
@@ -3336,8 +3346,8 @@ static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState)
                         savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
                     }
                 }
-                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].spawnState = 0;
-                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey   = 0;
+                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
+                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey    = 0;
             }
             poseIndex--;
         } while (poseIndex >= 0);
