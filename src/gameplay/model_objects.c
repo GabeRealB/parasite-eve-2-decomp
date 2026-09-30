@@ -70,8 +70,16 @@ static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
                                                                  * for each input component.                          \
                                                                  * Read MAC1..3 = (RT * V0 + TR * 4096) >> 12.        \
                                                                  * Code reads MAC1..3, not saturated IR. */           \
-            GTE_ROT_TRANS_LV_MIDDLE_ROTATE = 0x4A40E012,        /* MVMVA(0, 0, 1, 3, 0): RT * V1 */                   \
-            GTE_ROT_TRANS_LV_HIGH_ROTATE   = 0x4A416012         /* Rotates signed high chunks without translation.    \
+            GTE_ROT_TRANS_LV_MIDDLE_ROTATE = 0x4A40E012,        /* Rotates signed middle chunks without translation.  \
+                                                                 *                                                    \
+                                                                 * gte_rtv1 operands with the fraction shift off.     \
+                                                                 * MVMVA(sf=0, mx=0, v=1, cv=3, lm=0).                \
+                                                                 * V1 = ((input >> 10) & 1023) - 1023 * (input < 0),  \
+                                                                 * for each input component.                          \
+                                                                 * Read MAC1..3 = RT * V1; IR1..3 saturate.           \
+                                                                 * Arithmetic MAC >> 2 restores the 2^10 weight       \
+                                                                 * against RT's 12 fractional bits. */                \
+            GTE_ROT_TRANS_LV_HIGH_ROTATE = 0x4A416012           /* Rotates signed high chunks without translation.    \
                                                                  *                                                    \
                                                                  * MVMVA(sf=0, mx=0, v=2, cv=3, lm=0).                \
                                                                  * V2 = (input >> 20) + (input < 0), componentwise.   \
