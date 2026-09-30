@@ -39,17 +39,16 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
+#include "../../shared/underpass_switches.h"
 
-extern TaskDesc   D_dryfield_night_underpass_8017DCD8[];
+extern TaskDesc   gUnderpassSwitchTaskDesc[];
 extern GpMsgEntry D_dryfield_night_underpass_8017DCF0[];
 extern SVECTOR    D_dryfield_night_underpass_8017DD20[8];
 extern s16        D_dryfield_night_underpass_8017DD60[8];
 
-void func_dryfield_night_underpass_8017D5D0(Task*);
-s32  func_dryfield_night_underpass_8017D868(Task*, s32, s32, TaskMessageArg);
-s32  func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
-s32  func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_night_underpass_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
+s32 func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_underpass_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_night_underpass_8017E6D4[1];
 extern GpObj3A        D_dryfield_night_underpass_8017FBE0[3];
@@ -58,8 +57,8 @@ extern GpObj4C        D_dryfield_night_underpass_8017FA18[6];
 extern GpRoomCoordSet D_dryfield_night_underpass_8017FFF4[1];
 extern GpRoomCoordSet D_dryfield_night_underpass_8018024C[1];
 
-TaskDesc D_dryfield_night_underpass_8017DCD8[2] = {
-    { 0, 32, func_dryfield_night_underpass_8017D5D0, { .model = NULL } },
+TaskDesc gUnderpassSwitchTaskDesc[2] = {
+    { 0, 32, underpassSwitchTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -67,7 +66,7 @@ GpMsgEntry D_dryfield_night_underpass_8017DCF0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
     { 5105, func_dryfield_night_underpass_8017D900 },
     { 5103, func_dryfield_night_underpass_8017D908 },
-    { 5104, func_dryfield_night_underpass_8017D868 },
+    { 5104, underpassSwitchMsg },
     { 5106, func_dryfield_night_underpass_8017D8CC },
     { 0x7FFFFFFF, NULL },
 };
@@ -702,99 +701,11 @@ GpRoomParamRec* D_dryfield_night_underpass_80180374[8] = {
 static void func_dryfield_night_underpass_8017D910(Task* task);
 static void func_dryfield_night_underpass_8017D954(Task* task);
 
-/// Switch task the room's 0x13F0 handler spawns: plays cap command `spawnArg2`,
-/// waits for it to finish, and once its event key reaches 0xA toggles game
-/// nibble `spawnArg1`. When that nibble is 0x51 it also picks the room variant
-/// to load next from nibbles 0xC9, 0x53 and 0x51 and writes it to both the
-/// session and the save data. The last state flags the view dirty when the
-/// chosen room is 5 or above, then kills the task.
-void func_dryfield_night_underpass_8017D5D0(Task* task)
-{
-    RoomEventMsg  src;
-    RoomEventMsg  dst;
-    RoomEventMsg* s;
-    RoomEventMsg* d;
-    GameSession*  session;
-    s32           flag;
-    s32           state;
-    s32           arg;
-    u8            room;
-
-    flag  = task->spawnArg1.value;
-    state = task->state;
-    arg   = task->spawnArg2.value;
-    switch (state) {
-        case 0:
-            Gp_RunCapCmd1(arg);
-            task->state = task->state + 1;
-            return;
-        case 1:
-            if (Gp_CapBusy() != 0) {
-                return;
-            }
-            task->state = task->state + 1;
-            return;
-        case 2:
-            if (Gp_GetCapEventKey() >= 0xA) {
-                GameFlag_SetNibble(flag, GameFlag_GetNibble(flag) == 0);
-                if (flag == 0x51) {
-                    d             = &dst;
-                    s             = &src;
-                    src.areaId    = 0x26;
-                    src.queryOnly = ROOM_EVENT_EXECUTE;
-                    if (s->queryOnly == ROOM_EVENT_EXECUTE) {
-                        if (GameFlag_GetNibble(0xC9) != 0) {
-                            if (GameFlag_GetNibble(0x53) != 0) {
-                                d->room = 2;
-                            } else {
-                                d->room = 1;
-                            }
-                            if (GameFlag_GetNibble(0x51) == 0) {
-                                dst.room = dst.room + 2;
-                            }
-                        } else {
-                            if (GameFlag_GetNibble(0x51) != 0) {
-                                d->room = 5;
-                            } else {
-                                d->room = 6;
-                            }
-                        }
-                    }
-                    session                                = gGameSession;
-                    room                                   = dst.room;
-                    session->location.loc.room             = room;
-                    Mc_SaveData[0].state.location.loc.room = room;
-                }
-            }
-            task->state = task->state + 1;
-            return;
-        case 3:
-            if (gGameSession->location.loc.room >= 5) {
-                gGameSession->viewDirty = 1;
-            }
-            taskKill(task);
-            return;
-    }
-}
+#include "../../shared/underpass_switches_task.inc.c"
 
 #include "../../shared/room_variants_underpass.inc.c"
 
-/// Handler for message 0x13F0: for `arg2` 1 or 2, spawns the room's switch
-/// task `func_dryfield_night_underpass_8017D5D0` from the task table, toggling
-/// nibble 0x51 with cap command 1 or nibble 0x52 with cap command 2. Any other
-/// value spawns nothing. Always returns 0.
-s32 func_dryfield_night_underpass_8017D868(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    switch (arg2) {
-        case 1:
-            Task_SpawnFromTable(D_dryfield_night_underpass_8017DCD8, 0, 0x51, 1);
-            break;
-        case 2:
-            Task_SpawnFromTable(D_dryfield_night_underpass_8017DCD8, 0, 0x52, 2);
-            break;
-    }
-    return 0;
-}
+#include "../../shared/underpass_switches_msg.inc.c"
 
 /// Handler for message 0x13F2: when `arg2` is 2, queues stage sound 0x52260002.
 /// Always returns 0.
