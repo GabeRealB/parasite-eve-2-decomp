@@ -493,7 +493,7 @@ void func_neo_ark_altar_8017DA40(Task* task)
 {
     u8          slotParam[4];
     GameLoc     key;
-    CdCmdQueue* queue = &CdCmd_Queue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
         case 0:

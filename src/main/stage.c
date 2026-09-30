@@ -131,7 +131,7 @@ static void Mdec_DecodeToVram(void);
 static void Mdec_StripCallback(void);
 
 // resolved decode base (Mdec_ResolveStreamBuffer)
-// matched CdCmd_Queue.sceneImageHeaders entry
+// matched gCdCmdQueue.sceneImageHeaders entry
 
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx            = &Stage_Context;
@@ -873,7 +873,7 @@ void Mdec_ResolveStreamBuffer(u8* arg0)
     CdCmdQueue* p;
     u8*         base;
 
-    p     = &CdCmd_Queue;
+    p     = &gCdCmdQueue;
     i     = 0;
     found = 0;
     key   = *arg0;
@@ -954,7 +954,7 @@ success:
 
 static __inline__ void mdecFinishDecode(void)
 {
-    CdCmdQueue* q = &CdCmd_Queue;
+    CdCmdQueue* q = &gCdCmdQueue;
 
     if (gDisplayState.keepGraphics == 0) {
         Tmd_AllocMissingBuffers();
@@ -977,7 +977,7 @@ static void Mdec_ProcessDecode(void)
     u16         i;
     s32         r;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     switch ((s16)p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
             Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
@@ -1076,7 +1076,7 @@ static void Mdec_DecodeToVram(void)
     CdCmdQueue*   q;
     DisplayState* d;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     switch ((s16)p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_START:
             Gpu_ResetGraphAndOt();
@@ -1121,7 +1121,7 @@ static void Mdec_DecodeToVram(void)
                     ClearImage(&rect, 0, 0, 0);
                 }
                 p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
-                q              = &CdCmd_Queue;
+                q              = &gCdCmdQueue;
                 if (gDisplayState.keepGraphics == 0) {
                     Tmd_AllocMissingBuffers();
                 }
@@ -1139,7 +1139,7 @@ void CdCmd_StepVlcRebuild(void)
 {
     CdCmdQueue* p;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     if (p->scenePayloadAvailable == 0) {
         if (p->rebuildImageVlcTable != 0) {
             DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + 0x8800));
@@ -1158,7 +1158,7 @@ void Mdec_BeginDecode(void* arg0)
     CdCmdQueue* p;
 
     D_8007A35C            = 0;
-    p                     = &CdCmd_Queue;
+    p                     = &gCdCmdQueue;
     p->imageDecodePending = 1;
     p->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
     p->imageDecodeStep    = CD_COMMAND_IMAGE_START;
@@ -1168,7 +1168,7 @@ void Mdec_BeginDecode(void* arg0)
 
 void CdCmd_RequestVlcRebuild(void)
 {
-    CdCmd_Queue.rebuildImageVlcTable = 1;
+    gCdCmdQueue.rebuildImageVlcTable = 1;
 }
 
 static void Mdec_StripCallback(void)
@@ -1177,7 +1177,7 @@ static void Mdec_StripCallback(void)
     CdCmdQueue* p;
 
     temp = 0x140 / (D_8007A35E * 16);
-    p    = &CdCmd_Queue;
+    p    = &gCdCmdQueue;
     if (D_8007A35C == temp - 1) {
         p->mdecOutputPending = 0;
         DecDCToutCallback(0);

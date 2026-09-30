@@ -2403,7 +2403,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
     CdCmdQueue* queue;
     s16         slot;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             SetDispMask(0);

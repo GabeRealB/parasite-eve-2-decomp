@@ -567,7 +567,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     s32 tpage1;
 
     head                                     = SCRATCH_STACK_CURSOR(OverlayWaveScratch);
-    CdCmd_Queue.imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     SCRATCH_STACK_CURSOR(OverlayWaveScratch) = head - 1;
     cols                                     = head[-1].cols;
     scratch                                  = head - 1;
@@ -823,7 +823,7 @@ static void func_shelter_b6_corridor_8017E12C(Task* task)
 {
     char pad[0x10];
 
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 }
 
 /// The room task's three states: set the room up, the per-frame state, end.

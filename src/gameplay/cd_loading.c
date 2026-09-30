@@ -730,7 +730,7 @@ void Gp_EnqueueViewCd(Task* task)
 
 static void Gp_LoadWaitCdBusy(Task* task)
 {
-    if (CdCmd_Queue.movieReady != 0) {
+    if (gCdCmdQueue.movieReady != 0) {
         task->killCountdown++;
     }
     if (task->killCountdown >= 3) {
@@ -749,7 +749,7 @@ static void Gp_LoadWaitIdle(Task* task)
 
 static void Gp_LoadWaitDone(Task* task)
 {
-    if (CdCmd_Queue.imageLoadStatus == CD_COMMAND_IMAGE_COMPLETE) {
+    if (gCdCmdQueue.imageLoadStatus == CD_COMMAND_IMAGE_COMPLETE) {
         task->state = -1;
         Gp_FinishLoadWait(task);
     }

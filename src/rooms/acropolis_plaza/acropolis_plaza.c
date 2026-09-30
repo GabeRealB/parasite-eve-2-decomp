@@ -112,7 +112,7 @@ typedef struct AcropolisPlazaBeamWork {
 } AcropolisPlazaBeamWork;
 
 /// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
-/// reads once in state 0: `view` seeds both `CdCmd_Queue.sceneFrame` and
+/// reads once in state 0: `view` seeds both `gCdCmdQueue.sceneFrame` and
 /// `movieFrame`, and a non-zero `noStream` skips the opening stream request
 /// altogether.
 typedef struct AcropolisPlazaSceneArg {
@@ -161,7 +161,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 /// 0x14..0x1D belong to `func_acropolis_plaza_8017FB50`, the scene stepper:
 /// `step` is its own state machine, `evtId`/`evtKind`/`evtSub` latch the
 /// pending `GpObj4C` event `Gp_TakePendingObj4C` hands it, `streamFrame`
-/// snapshots `CdCmd_Queue.sceneFrame` when the event arrives, and `variant`
+/// snapshots `gCdCmdQueue.sceneFrame` when the event arrives, and `variant`
 /// counts how many times the entry-6 scene has run (capped at 2) so each pass
 /// spawns it with the next `Task_SpawnFromTable` arg2.
 typedef struct AcropolisPlazaWork {
@@ -220,7 +220,7 @@ typedef struct AcropolisPlazaWarpWork {
 /// Work block the plaza's cutscene tasks reach through `Task::spawnArg2`.
 /// Every one of them (`func_acropolis_plaza_8017E7E4`, `..._8017E9A8`,
 /// `..._8017F48C`, `..._8017F620`) runs the same handoff once `CdCmd_IsIdle`
-/// reports the stream has finished: latch `CdCmd_Queue.sceneFrame` into
+/// reports the stream has finished: latch `gCdCmdQueue.sceneFrame` into
 /// `field_1A`, kill the task at `task`, and (in `..._8017F620`) run the
 /// capture command named by `capCmd`. Only those three fields are identified,
 /// so this declaration is deliberately partial.
@@ -305,7 +305,7 @@ extern GpEvsCmd D_acropolis_plaza_80183764[];
 
 /// The plaza's view tables, one per camera set. Each entry is a *pair* of
 /// `GpViewRec`s -- the two shots the stream alternates between -- indexed by
-/// `CdCmd_Queue.sceneFrame - 1`, so a table row is 0x48 bytes.
+/// `gCdCmdQueue.sceneFrame - 1`, so a table row is 0x48 bytes.
 extern GpViewRec D_acropolis_plaza_801838B8[][2];
 extern GpViewRec D_acropolis_plaza_8018A938[][2];
 extern GpViewRec D_acropolis_plaza_8018CAFC[][2];
@@ -313,7 +313,7 @@ extern GpViewRec D_acropolis_plaza_8018F530[][2];
 extern GpViewRec D_acropolis_plaza_8018F9B4[][2];
 
 /// The plaza's camera table: one world position per stream view, indexed by
-/// `CdCmd_Queue.sceneFrame - 1`.
+/// `gCdCmdQueue.sceneFrame - 1`.
 extern VECTOR3 D_acropolis_plaza_801907C4[];
 
 /// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
@@ -2795,7 +2795,7 @@ static u16             func_acropolis_plaza_8017FB50(Task* task);
 
 /// Per-frame service step for the plaza's streamed cutscene commands.
 ///
-/// Only runs while the slot `CdCmd_Queue.readIdx` selects holds one of the
+/// Only runs while the slot `gCdCmdQueue.readIdx` selects holds one of the
 /// stream opcodes 0x71..0x73; the entry packs the slot in `args.stream.slotIndex`
 /// and a signed sector offset in `args.stream.sectorOffsetHigh:sectorOffsetLow`.
 /// Step 0 waits for `CdCmd_PollStatus`: status
@@ -2811,7 +2811,7 @@ void func_acropolis_plaza_8017D6D4(void)
     s16         sectorOffset;
     s32         cmd;
 
-    q            = &CdCmd_Queue;
+    q            = &gCdCmdQueue;
     entry        = &q->entries[q->readIdx];
     cmd          = entry->cmd;
     slot         = entry->args.stream.slotIndex;
@@ -3003,7 +3003,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
     GameLoc     key;
     CdCmdQueue* queue;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             SetDispMask(0);
@@ -3111,7 +3111,7 @@ static void func_acropolis_plaza_8017DD90(Task* arg0)
 /// clamp the backwards walk at the start of the table.
 static void func_acropolis_plaza_8017DE24(s32 arg0)
 {
-    CdCmdQueue* q = &CdCmd_Queue;
+    CdCmdQueue* q = &gCdCmdQueue;
     GpViewRec(*tbl)[2];
     GpViewRec* view;
     s16        idx;
@@ -3173,7 +3173,7 @@ static void func_acropolis_plaza_8017DE24(s32 arg0)
 /// picks 1.
 static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
 {
-    CdCmdQueue* cq   = &CdCmd_Queue;
+    CdCmdQueue* cq   = &gCdCmdQueue;
     s32         dist = w->distX;
 
     w->fwd  = 0;
@@ -3198,7 +3198,7 @@ static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
 /// The plaza's scene task: it plays the room's pre-rendered camera stream and
 /// re-seeks it whenever the player walks past the end of the current shot.
 ///
-/// State 0 allocates the work block, seeds `CdCmd_Queue` from the spawn
+/// State 0 allocates the work block, seeds `gCdCmdQueue` from the spawn
 /// argument and (unless the argument suppresses it) asks for the opening
 /// stream; state 1 caches the slot-3 task once the CD is idle and turns the
 /// display on. State 2 is the running state: it refreshes the edge flags, and
@@ -3227,7 +3227,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     u16                      view;
     u16                      startView;
 
-    q    = &CdCmd_Queue;
+    q    = &gCdCmdQueue;
     work = (AcropolisPlazaSceneWork*)task->work;
 
     if (task->state != 0) {
@@ -3447,14 +3447,14 @@ L_tail:
 /// slot-3 task in it and places the player at (0x3804, 0, 0xFC8) with msg
 /// 0x3F2; states 1 and 2 wait for slot 3 to go idle (msg 0x3F0), state 1
 /// following up with the 0xD55 warp (msg 0x3EE). State 3 waits for the stream
-/// to finish, latches `CdCmd_Queue.sceneFrame` into the cutscene work block,
+/// to finish, latches `gCdCmdQueue.sceneFrame` into the cutscene work block,
 /// kills the task it names and runs `func_800E8634`; state 4 kills this task
 /// once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
 {
     ActorTransform          place;
     ActorTransform          warp;
-    CdCmdQueue*             q    = &CdCmd_Queue;
+    CdCmdQueue*             q    = &gCdCmdQueue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
 
@@ -3511,7 +3511,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
 /// (0xF6E, 0, 0x2328) with msg 0x3F2; states 1 and 2 wait for slot 3 to go idle
 /// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
 /// `D_actor_310100_801797FC` script (msg 0x3F4). State 3 waits for the CD queue, latches
-/// `CdCmd_Queue.sceneFrame` into the cutscene work block, kills the task it
+/// `gCdCmdQueue.sceneFrame` into the cutscene work block, kills the task it
 /// names and starts the scene's stream (`CdCmd_Enqueue(0x72, ...)`); state 4
 /// waits for the stream to report in and runs `D_acropolis_plaza_80182B24`.
 /// State 5 waits out 0x60 frames, republishes the player's weapon to slot 3
@@ -3526,7 +3526,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     AnimationPlayRequest    script;
     AcropolisPlazaTailMsg   buf;
     AnimationPlayRequest*   rec;
-    CdCmdQueue*             q    = &CdCmd_Queue;
+    CdCmdQueue*             q    = &gCdCmdQueue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
     GfxCoord*               coord;
@@ -3662,7 +3662,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     ActorTransform             placeBack;
     AnimationPlayRequest       roomRec;
     AcropolisPlazaOpeningBuf   buf;
-    CdCmdQueue*                q    = &CdCmd_Queue;
+    CdCmdQueue*                q    = &gCdCmdQueue;
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
     AcropolisPlazaOpeningWork* newWork;
     GameLocationKey*           sessionKey;
@@ -3914,13 +3914,13 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish -- latching
-/// `CdCmd_Queue.sceneFrame` into the work block, killing the block's task and
+/// `gCdCmdQueue.sceneFrame` into the work block, killing the block's task and
 /// running the block `spawnArg1` names -- and state 2 kills this task once the
 /// session is out of its transition.
 void func_acropolis_plaza_8017F48C(Task* task)
 {
     AnimationPlayRequest rec;
-    CdCmdQueue*          q = &CdCmd_Queue;
+    CdCmdQueue*          q = &gCdCmdQueue;
     s32                  state;
     s32                  weaponId;
     s32                  id;
@@ -3966,13 +3966,13 @@ void func_acropolis_plaza_8017F48C(Task* task)
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish and hands
-/// control back -- latching `CdCmd_Queue.sceneFrame` into the work block, killing
+/// control back -- latching `gCdCmdQueue.sceneFrame` into the work block, killing
 /// the block's task and running its capture command -- and state 2 releases
 /// slot 3 (msg 0x3F1) and kills itself.
 void func_acropolis_plaza_8017F620(Task* task)
 {
     AnimationPlayRequest rec;
-    CdCmdQueue*          q = &CdCmd_Queue;
+    CdCmdQueue*          q = &gCdCmdQueue;
     s32                  weaponId;
     s32                  id;
 
@@ -4016,11 +4016,11 @@ void func_acropolis_plaza_8017F620(Task* task)
     } while (0)
 
 /// Ambience voice driver: starts the voice named by `sndId` the first time
-/// `state` is clear, then tracks `CdCmd_Queue.sceneFrame` between `fadeIn` and
+/// `state` is clear, then tracks `gCdCmdQueue.sceneFrame` between `fadeIn` and
 /// `fadeOut` to ramp its volume.
 static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode)
 {
-    CdCmdQueue* q = &CdCmd_Queue;
+    CdCmdQueue* q = &gCdCmdQueue;
     u32         pos;
     u8          vol;
 
@@ -4056,7 +4056,7 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
 #undef _acropolisPlazaStartAmbience
 
 /// Ambience driver for the plaza's streamed scene, stepped by
-/// `CdCmd_Queue.plazaStreamSubId`. While the stream is at 0/1 it keeps the four
+/// `gCdCmdQueue.plazaStreamSubId`. While the stream is at 0/1 it keeps the four
 /// looping voices alive (`func_acropolis_plaza_8017F770` starts a voice the
 /// first time its slot flag is clear and ramps it afterwards); at 2 it fades
 /// the crowd loop out against the stream frame counter, holding full volume
@@ -4064,13 +4064,13 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
 /// distance to the nearer end outside that window.
 static void func_acropolis_plaza_8017F9EC(Task* task)
 {
-    CdCmdQueue*         q     = &CdCmd_Queue;
-    volatile u16*       frame = &CdCmd_Queue.sceneFrame;
+    CdCmdQueue*         q     = &gCdCmdQueue;
+    volatile u16*       frame = &gCdCmdQueue.sceneFrame;
     AcropolisPlazaWork* work  = (AcropolisPlazaWork*)task->work;
     s32                 pos;
     s32                 vol;
 
-    switch (CdCmd_Queue.plazaStreamSubId) {
+    switch (gCdCmdQueue.plazaStreamSubId) {
         case 0:
         case 1:
             func_acropolis_plaza_8017F770(1, 0x320, 1, &work->sfxState1E, 0x51050005, 0);
@@ -4104,7 +4104,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 /// `GpObj4A` and returns 1 when the latched kind is 2.
 static u16 func_acropolis_plaza_8017FB50(Task* task)
 {
-    CdCmdQueue*         q    = &CdCmd_Queue;
+    CdCmdQueue*         q    = &gCdCmdQueue;
     AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
     u16                 evtId;
     u8                  evtKind;
@@ -4275,13 +4275,13 @@ void func_acropolis_plaza_8017FF18(Task* task)
 /// `Gp_KillPlayerEffs`; states 1 and 2 idle. State 3 pins the camera override
 /// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
 /// stream watcher (entry 1) and the entry-8 actor, and arms
-/// `CdCmd_Queue.blockGamePause`. State 4 runs the ambience driver until
+/// `gCdCmdQueue.blockGamePause`. State 4 runs the ambience driver until
 /// `func_acropolis_plaza_8017FB50` reports the scene is over; state 5 records
 /// the next stage in the save block, disarms `blockGamePause` and hands off to the
 /// stage-load task.
 void func_acropolis_plaza_80180054(Task* task)
 {
-    CdCmdQueue*         q    = &CdCmd_Queue;
+    CdCmdQueue*         q    = &gCdCmdQueue;
     AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
     AcropolisPlazaWork* newWork;
     SVECTOR             vec;

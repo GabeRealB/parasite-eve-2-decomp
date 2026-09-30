@@ -2255,10 +2255,10 @@ extern s16       D_room_80187A24;   /* the branch-arm store */
 
 `func_neo_ark_submarine_tunnel_8017F318` is the worked example (0x80187A20 /
 0x80187A24, values 1, 0x60, arg0, 1, 0x40, 0x80, 0x80); `shelter_b4_reservoir`
-carries the same body. The same shape recurs in the pointer-to-`CdCmd_Queue`
+carries the same body. The same shape recurs in the pointer-to-`gCdCmdQueue`
 idiom: `queue->imageMdecMode = 2` through a local pointer emits `addiu $v1,$v0,%lo(...)`
-plus a `sh …,0x22A($v1)` displacement, where the direct `CdCmd_Queue.imageMdecMode`
-folds into a `%lo(CdCmd_Queue+0x22A)` operand. `func_neo_ark_eve_access_tunnel_8017DFC0`
+plus a `sh …,0x22A($v1)` displacement, where the direct `gCdCmdQueue.imageMdecMode`
+folds into a `%lo(gCdCmdQueue+0x22A)` operand. `func_neo_ark_eve_access_tunnel_8017DFC0`
 is the matched reference for that form.
 
 ## Duplicate the call for delay-slot `lui`; share the volatile-touch body
@@ -7855,13 +7855,13 @@ Assign the address to a local at the top, then store through it:
 ```c
 CdCmdQueue* queue;
 
-queue = &CdCmd_Queue;
+queue = &gCdCmdQueue;
 ...
 queue->imageMdecMode = D_8011565C;
 ```
 
 `Gp_CapExit` is the example. The direct
-`CdCmd_Queue.imageMdecMode = D_8011565C` stuck at 93.9% with only that
+`gCdCmdQueue.imageMdecMode = D_8011565C` stuck at 93.9% with only that
 address and the extra saved register different.
 
 ## Write a two-global fail tail through the globals, not hoisted pointers
@@ -8452,7 +8452,7 @@ Assign it to a local pointer first — the same trick `Task_ExecList` in
 ```c
 CdCmdQueue* state;
 
-state = &CdCmd_Queue;
+state = &gCdCmdQueue;
 switch (state->activeRequest.phase) { ... }
 ```
 
@@ -12129,7 +12129,7 @@ CdCmd_EntryIter = index + 1;
 CdCmd_EntryIter = CdCmd_EntryIter % 8;  /* not &= 7, not (index+1)&7 */
 ```
 
-`CdCmd_NextEntry` (8-entry queue walk of `CdCmd_Queue.entries`) is a pure example.
+`CdCmd_NextEntry` (8-entry queue walk of `gCdCmdQueue.entries`) is a pure example.
 The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
 nearby ring producers (e.g. `CdCmd_CommitReplace`).
 
@@ -14116,7 +14116,7 @@ divides that become shifts do not need this. Known TUs: `tmd.c`
 ## Keep the `- 1` outside the div assignment for schedule
 
 ```c
-/* BAD — value of counter is hoisted before the stack frame / CdCmd_Queue setup */
+/* BAD — value of counter is hoisted before the stack frame / gCdCmdQueue setup */
 temp = 0x140 / (scale * 16) - 1;
 if (counter == temp) { ... }
 
@@ -14126,7 +14126,7 @@ if (counter == temp - 1) { ... }
 ```
 
 Folding the `- 1` into `temp` changes register pressure enough that GCC loads
-the counter early (`lhu a0, counter` before `addiu sp`) and puts `&CdCmd_Queue`
+the counter early (`lhu a0, counter` before `addiu sp`) and puts `&gCdCmdQueue`
 only in the branch delay slot. Splitting keeps:
 
 ```
@@ -14134,8 +14134,8 @@ mflo   v1
 addiu  sp,sp,-0x18
 lui    a0,%hi(counter)
 sw     ra,...
-lui    v0,%hi(CdCmd_Queue)
-addiu  a1,v0,%lo(CdCmd_Queue)
+lui    v0,%hi(gCdCmdQueue)
+addiu  a1,v0,%lo(gCdCmdQueue)
 lhu    v0,%lo(counter)(a0)
 addiu  v1,v1,-1
 bne    v0,v1,else
@@ -17203,7 +17203,7 @@ return 0;
 A bare `if (p->sceneAudioMode != 0)` emits `lh` and often inverts branch polarity
 (`beqz` with the non-zero body as fall-through). Prefer the positive `!= 0`
 test first so GCC emits `bnez` with the zero-return as the fall-through
-epilogue. `CdCmd_ActivatePhase1` (`CdCmd_Queue.sceneAudioMode`).
+epilogue. `CdCmd_ActivatePhase1` (`gCdCmdQueue.sceneAudioMode`).
 
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
@@ -18253,7 +18253,7 @@ assign `pausePlayClock` (still before the if body so the store can fill the
 branch delay):
 
 ```c
-p = &CdCmd_Queue;
+p = &gCdCmdQueue;
 {
     s32 busy = p->busy;
     state->pausePlayClock = 1;
@@ -19397,9 +19397,9 @@ Force both copies to stay:
 
 1. End the first cleanup with `return` (not `break` into a shared epilogue
    path that the second arm also falls into).
-2. Use a *fresh* local for the first cleanup's base (`q = &CdCmd_Queue` after
+2. Use a *fresh* local for the first cleanup's base (`q = &gCdCmdQueue` after
    `Mem_Set`) while the second arm reassigns the original `p` /
-   `$s0` (`p = &CdCmd_Queue` at the cleanup label).
+   `$s0` (`p = &gCdCmdQueue` at the cleanup label).
 
 `CdCmd_ProcessPhase1` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
 `$s0`.
@@ -19893,7 +19893,7 @@ the original code. Writing `field != 0` emits `lhu`; cast to force the signed
 load:
 
 ```c
-if ((s16)CdCmd_Queue.blockGamePause != 0 && !(flags & 8)) { … }
+if ((s16)gCdCmdQueue.blockGamePause != 0 && !(flags & 8)) { … }
 ```
 
 ## OT addPrim offsets: elements, not bytes
@@ -21059,7 +21059,7 @@ case entry), initialize a typed local at the top of the function:
 void func(void* arg0, void* arg1)
 {
     CdCmdQueue* queue;
-    queue = &CdCmd_Queue; /* materialises into $a1 before the switch */
+    queue = &gCdCmdQueue; /* materialises into $a1 before the switch */
     …
     case 3:
         if (queue->holdBootImage != 0) /* lhu v0, 0x22e(a1) */
@@ -21069,7 +21069,7 @@ A queue local live across calls can instead be coloured into `$s0` and produce
 `lhu v0, 0x22e(s0)`. The typed local above matches `Fs_BootImageMachine` while
 leaving its second parameter unused. Absolute member access is still correct
 for stores that the target emits with
-`%hi(CdCmd_Queue+off)`.
+`%hi(gCdCmdQueue+off)`.
 
 ## An unused middle parameter is what puts the flag in `$a2` — arity decides argument registers
 
@@ -23375,7 +23375,7 @@ CdCmd_Enqueue(cmd, zero, p);
 
 Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
 insert `sll`/`sra` sign-extend. Same pattern for case-4 `CdCmd_Enqueue(0x21, …)`
-arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.preserveDisplayAfterDecode`).
+arg setup before `D_800691DE = 1` (absolute alias of `gCdCmdQueue.preserveDisplayAfterDecode`).
 `Title_DemoStreamTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
@@ -26862,10 +26862,10 @@ so `i` is not rematerialized. The scheduler then parks `li s1, 1` in the poll
 
 ## Assign `&global` at the top so the address lives in `$sN` from the prologue
 
-A single later store (`CdCmd_Queue.suppressMoviePresentation = 1`) rematerializes
+A single later store (`gCdCmdQueue.suppressMoviePresentation = 1`) rematerializes
 `lui v1,%hi; sh v0,%lo(global+off)` at the use, so `$s4` is never allocated
 and the stack frame shrinks (`sw ra,0x28` instead of `0x2C`). The target
-computes `&CdCmd_Queue` in the prologue — even on the early-return path that
+computes `&gCdCmdQueue` in the prologue — even on the early-return path that
 never uses it — because the address is live across every jal.
 
 Assign the pointer at the top of the function, before the first call:
@@ -26873,14 +26873,14 @@ Assign the pointer at the top of the function, before the first call:
 ```c
 CdCmdQueue* queue;
 
-queue = &CdCmd_Queue;
+queue = &gCdCmdQueue;
 Gp_StartAreaBgm(&arg0->killCountdown);
 ...
 queue->suppressMoviePresentation = 1;
 ```
 
 That forces `sw s4` / `addiu s4,%lo` in the prologue and `sh v0,0x20a(s4)`
-at the store. `Gp_RestartSessionTask` is the example. Bare `CdCmd_Queue.suppressMoviePresentation = 1`
+at the store. `Gp_RestartSessionTask` is the example. Bare `gCdCmdQueue.suppressMoviePresentation = 1`
 stuck at 95.6% with only the frame / `$s4` save-restore different.
 
 ## Two `&global`s: force `addiu v0, %lo` then `move dest` (not `addiu dest`)
@@ -32573,7 +32573,7 @@ is the example.
 D4 task states share this pair (`Gp_LoadWaitBoot` … `Gp_FadeGrayHold`).
 
 On the leaf overlay (`Gp_FadeGrayHold`) the target hoists `0x64` and both
-prim pointers before the `CdCmd_Queue.bootLoadActive` check. Keep that order
+prim pointers before the `gCdCmdQueue.bootLoadActive` check. Keep that order
 in C (`color = 0x64`, then `buf = ds->otBuffer`, then both `&arr[buf]`).
 
 An `s8 yoff = ds->vramYOffset` local after `x0` is what places
@@ -32596,19 +32596,19 @@ though the function is a leaf and both `addPrim`s already match.
 
 When the overlay is the first thing in the function and the only queue
 access is `bootLoadActive`, the target hoists `li a2,8` then
-`lui a1,%hi(CdCmd_Queue)` (no `addiu` of the queue base) and wants:
+`lui a1,%hi(gCdCmdQueue)` (no `addiu` of the queue base) and wants:
 
 ```
 addiu v0, v0, %lo(Gp_FadeTpages)
-lhu   a0, %lo(CdCmd_Queue+0x224)(a1)
+lhu   a0, %lo(gCdCmdQueue+0x224)(a1)
 nop
 bnez  a0, skip
  addu t2, v1, v0
 ```
 
-`if (CdCmd_Queue.bootLoadActive == 0)` rematerialises `%hi` at the use site
+`if (gCdCmdQueue.bootLoadActive == 0)` rematerialises `%hi` at the use site
 and parks `buf` in `$a0`. Pin color to `$a2`, emit the hi with
-non-volatile `asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi))`, then load
+non-volatile `asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi))`, then load
 through that register as a C halfword (not an `asm lhu`). An `asm lhu`
 is a scheduling barrier and leaves `addu t2` *before* the load. The C
 load participates in delay-slot filling:
@@ -32620,15 +32620,15 @@ register s32 queued asm("a0");
 
 color = 8;
 ds    = &gDisplayState;
-asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
+asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi));
 buf    = ds->otBuffer;
 tile   = &Gp_FadeTiles[buf];
 dr     = &Gp_FadeTpages[buf];
-queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(CdCmd_Queue+0x224) */
+queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(gCdCmdQueue+0x224) */
 if (queued == 0) {
 ```
 
-`0x91C4` is the signed 16-bit `%lo` of `CdCmd_Queue.bootLoadActive`
+`0x91C4` is the signed 16-bit `%lo` of `gCdCmdQueue.bootLoadActive`
 (`0x800691C4`). The object has an unpaired `R_MIPS_HI16` and a
 hardcoded `lhu` offset; GNU ld still produces the same linked
 instruction as `%hi/%lo`. `Gp_LoadWaitStage` is the example.
@@ -33752,7 +33752,7 @@ into a new `$v1` temp so `lui v1, 0x60` fills that `beqz` delay.
 
 ## D4 overlay: hold `lhu` until after `tile` when `$a1` is reused
 
-The fade-overlay `lui a1, %hi(CdCmd_Queue)` / C `lhu` pair from
+The fade-overlay `lui a1, %hi(gCdCmdQueue)` / C `lhu` pair from
 `Gp_LoadWaitStage` hoists the load past the TILE / `DR_TPAGE` address math
 when the next block also needs `$a1` (another `lui a1` for a BSS
 halfword). The C load then consumes `$a0` too early (`sll a1` instead
@@ -36797,7 +36797,7 @@ Mark those instruction VROMs in `configs/USA/rel.gameplay.txt` (same
 `rom:` / `reloc:` / `symbol:` form as `rel.main.txt`) as `MIPS_NONE` so
 expected objects also have the raw immediate. Overlay `rom:` is
 `VRAM - 0x80093800`. Do **not** `MIPS_NONE` a paired `lui %hi` that the
-C still emits as a real reloc (the D4 `CdCmd_Queue` `lhu` is only the
+C still emits as a real reloc (the D4 `gCdCmdQueue` `lhu` is only the
 `%lo`).
 
 `Gp_LoadWaitStage` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `Gp_CanMoveItems`
@@ -45576,22 +45576,22 @@ with a known type. Check `configs/USA/sym.main.txt` for the nearest preceding
 entry carrying a `size:` annotation and see whether the address falls inside it:
 
 ```
-CdCmd_Queue = 0x80068FA0; // type:CdCmdQueue size:0x254
+gCdCmdQueue = 0x80068FA0; // type:CdCmdQueue size:0x254
 ```
 
-`0x800691CA` is `CdCmd_Queue + 0x22A`, i.e. the already-named
+`0x800691CA` is `gCdCmdQueue + 0x22A`, i.e. the already-named
 `CdCmdQueue::imageMdecMode`, so `func_actor_121300_8013427C` matched by writing
 
 ```c
-CdCmd_Queue.imageMdecMode = 0;      /* not: extern s16 D_800691CA; D_800691CA = 0; */
+gCdCmdQueue.imageMdecMode = 0;      /* not: extern s16 D_800691CA; D_800691CA = 0; */
 ```
 
 which sets `MEM_IN_STRUCT_P` for the real reason. The scalar form scored
 75.9% with the store scheduled six instructions too early; the member form is
-100%. The `%hi`/`%lo` pair the assembler emits for `CdCmd_Queue` /
-`CdCmd_Queue+0x22a` relocates to the same two words as `%hi`/`%lo` of
+100%. The `%hi`/`%lo` pair the assembler emits for `gCdCmdQueue` /
+`gCdCmdQueue+0x22a` relocates to the same two words as `%hi`/`%lo` of
 `D_800691CA`, so nothing else has to change - the overlay's imports file
-already carries `CdCmd_Queue`. Prefer this over the array bound and over the
+already carries `gCdCmdQueue`. Prefer this over the array bound and over the
 barrier whenever the address resolves, because it is the only one of the three
 that is also a true statement about the program.
 
@@ -60129,7 +60129,7 @@ four bytes.
 
 ## A global re-read while still live in a register means `volatile` — but read the compare temp non-volatile
 
-`func_acropolis_plaza_8017F9EC` loads `CdCmd_Queue.sceneFrame` once, uses it for
+`func_acropolis_plaza_8017F9EC` loads `gCdCmdQueue.sceneFrame` once, uses it for
 two comparisons, and then **loads it again** in each arm of the inner
 `if`/`else`, even though the first load's register is untouched:
 
@@ -60169,8 +60169,8 @@ into a volatile MEM. The value uses inside the arms feed SImode arithmetic
 directly, so they stay a bare `lhu`. The shape that matched keeps both:
 
 ```c
-CdCmdQueue*   q     = &CdCmd_Queue;              /* plain, for the compare temp */
-volatile u16* frame = &CdCmd_Queue.sceneFrame;    /* volatile, for the arms */
+CdCmdQueue*   q     = &gCdCmdQueue;              /* plain, for the compare temp */
+volatile u16* frame = &gCdCmdQueue.sceneFrame;    /* volatile, for the arms */
 
 pos = q->sceneFrame;                              /* one lhu, no andi */
 if ((u32)(pos - 0x1F) < 0x36U) {
@@ -65126,7 +65126,7 @@ each immediately after its assignment matched. No hard-register pins were needed
 ## func_80042500: an early return chooses the shared state-machine tail
 
 The minimally repaired m2c seed scored 82.330%. A function-local
-`CdCmdQueue* queue = &CdCmd_Queue` reproduced the target's entry-time queue
+`CdCmdQueue* queue = &gCdCmdQueue` reproduced the target's entry-time queue
 address and its lifetime across case 0's calls. A structured polling loop,
 duplicated retry stores, and returns inside each arm of cases 3 and 4 reached
 97.150% (`branch=7 regs=0 reorder=3 insert=2 delete=2`). Sharing one return
@@ -65241,7 +65241,7 @@ order from the scheduled assembly.
 ## Cached frame comparisons with fresh arithmetic reads: barrier placement matters
 
 `func_acropolis_plaza_8017F770` uses one `u32 pos` loaded from
-`CdCmd_Queue.sceneFrame` for every comparison, then reloads the same field for
+`gCdCmdQueue.sceneFrame` for every comparison, then reloads the same field for
 volume arithmetic. An `u8 vol` local and complete division expressions in
 each arm reproduce the target's register allocation and the mode-1 shared
 division tail; the m2c numerator/denominator temporaries did not.
@@ -67710,19 +67710,19 @@ them adjacent, and the tempting fix is to fabricate the pair by hand:
 
 ```c
 s32 qhi;
-asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi) : "r"(color), "r"(ds));
 SOFT_USE_REG2(qhi, tile);
-queued = *(u16*)((s32)qhi + (s16)0x91C4);   /* 0x91C4 == %lo(CdCmd_Queue + 0x224) */
+queued = *(u16*)((s32)qhi + (s16)0x91C4);   /* 0x91C4 == %lo(gCdCmdQueue + 0x224) */
 ```
 
 **Symptom:** the checksum passes and `diff.py` says 100%, because the assembled
 words are identical - but the load now carries a bare displacement where the
-original carries `R_MIPS_LO16 CdCmd_Queue`. objdiff compares relocations, so it
+original carries `R_MIPS_LO16 gCdCmdQueue`. objdiff compares relocations, so it
 reports the function at 99.97% with everything else green. Nothing else can see
-it: the linker resolves `%lo(CdCmd_Queue)` to exactly the constant the hand-written
+it: the linker resolves `%lo(gCdCmdQueue)` to exactly the constant the hand-written
 offset already holds. `Gp_LoadState2` in `src/gameplay/D4.c` was the worked example.
 
-**Fix:** delete the asm and write the field access (`queued = CdCmd_Queue.bootLoadActive;`),
+**Fix:** delete the asm and write the field access (`queued = gCdCmdQueue.bootLoadActive;`),
 then recover the schedule by moving the *statement* earlier in the function. The
 list scheduler breaks priority ties on RTL order, so a read placed near the top of
 the block lets sched1 hoist the `lui` on its own and leave the dependent load down
@@ -67747,16 +67747,16 @@ both registers, and the scratch score still fell from 100.000% to 99.964% with
 
 ```
 -lhu    a0,-0x6e3c(a1)                    # target.s
-+lhu    a0,%lo(CdCmd_Queue+0x224)(a1)     # ours, R_MIPS_LO16 CdCmd_Queue, addend 0x224
++lhu    a0,%lo(gCdCmdQueue+0x224)(a1)     # ours, R_MIPS_LO16 gCdCmdQueue, addend 0x224
 ```
 
-splat named the `lui` (`%hi(CdCmd_Queue + 0x224)`) but printed the load's
+splat named the `lui` (`%hi(gCdCmdQueue + 0x224)`) but printed the load's
 displacement literally, so `target.o` has no `R_MIPS_LO16` for the scorer to
 compare against and the correct relocated form is charged as a register
 difference. This is not a property of the code: `Gp_LoadState2` and
 `Gp_LoadWaitStage` have byte-identical instruction windows here, and splat pairs
 the load in the first and not the second. Six functions in `src/gameplay/D4.c`
-read `CdCmd_Queue.bootLoadActive` this way and exactly one gets the paired render.
+read `gCdCmdQueue.bootLoadActive` this way and exactly one gets the paired render.
 
 **Fix:** treat it like the symbol-name artifact above - the scratch score cannot
 reach 100% on this shape, and only the linked checksum can. Confirm the object is
@@ -67937,15 +67937,15 @@ instruction gap it gives up and writes the raw displacement while still naming
 the `lui`, so `target.s` reads
 
 ```
-lui  $a1, %hi(CdCmd_Queue + 0x224)
+lui  $a1, %hi(gCdCmdQueue + 0x224)
 ...
 lhu  $a0, -0x6E3C($a1)
 ```
 
 **Symptom:** `target.o` therefore carries `R_MIPS_HI16` and no `R_MIPS_LO16`,
 which is exactly what the hand-built pair reproduces. So in the scratch env the
-hack scores 100.000% and the correct `queued = CdCmd_Queue.bootLoadActive;` scores
-99.950% with `regs: 1` - the scorer charges the `%lo(CdCmd_Queue+0x224)` operand
+hack scores 100.000% and the correct `queued = gCdCmdQueue.bootLoadActive;` scores
+99.950% with `regs: 1` - the scorer charges the `%lo(gCdCmdQueue+0x224)` operand
 against the constant. A loop that trusts the score alone will keep the hack.
 `Gp_LoadWaitStage` in `src/gameplay/D4.c` was the worked example.
 
@@ -88144,23 +88144,23 @@ Inputs: `base.i`
 **Same mechanism, different symptom: the store displacement.** The two forms
 do not have to differ in *where* the address is born to be visible in the
 object. `func_neo_ark_eve_access_tunnel_8017DFC0` stored through
-`CdCmd_Queue.imageMdecMode` (offset 0x22A) after two calls with no pointer local,
+`gCdCmdQueue.imageMdecMode` (offset 0x22A) after two calls with no pointer local,
 and scored 86.6% with `branch=2 regs=8 reorder=1 delete=3` - the missing insns
 were one `lui`, one `addiu` and one `sw $s1`, and the store itself read
-`sh $v0, %lo(CdCmd_Queue+0x22a)($v1)`: the `%lo` was folded into the memory
+`sh $v0, %lo(gCdCmdQueue+0x22a)($v1)`: the `%lo` was folded into the memory
 operand's relocation, so no address value ever existed. The target has
 
 ```asm
-lui   $v1, %hi(CdCmd_Queue)
+lui   $v1, %hi(gCdCmdQueue)
 sw    $s1, 0x14($sp)
 ...
 beqz  $v0, .L...
- addiu $s1, $v1, %lo(CdCmd_Queue)   # $s1 live across both calls, frame 0x20
+ addiu $s1, $v1, %lo(gCdCmdQueue)   # $s1 live across both calls, frame 0x20
 ...
 sh    $v0, 0x22A($s1)
 ```
 
-Declaring `CdCmdQueue* queue = &CdCmd_Queue;` as the function's first
+Declaring `CdCmdQueue* queue = &gCdCmdQueue;` as the function's first
 statement reproduced it exactly, 100.000% with every penalty zero: with the
 address a value, `expand` emits the `high`/`lo_sum` pair where the declaration
 is, the pseudo is live across the two calls, and the offset stays a plain
@@ -92041,12 +92041,12 @@ Inputs: `base.i` 67.000% (`branch=2 regs=5 insert=5 delete=1`)
 Compiler SHA256
 ## One single-use store through a global struct: the pointer local is what crosses the call (func_neo_ark_r31_8017D90C, 2026-09-16)
 
-**Problem.** m2c's seed `M2C_FIELD(&CdCmd_Queue, s16*, 0x22A) = 2;` scored 77.9%
+**Problem.** m2c's seed `M2C_FIELD(&gCdCmdQueue, s16*, 0x22A) = 2;` scored 77.9%
 with `regs=16 delete=4 insert=1` and a candidate *smaller* than the target (26
 insns vs 29, frame 0x18 vs 0x20, two saved registers vs three). The target holds
-`&CdCmd_Queue` in `$s0` across the `Game_SetPtrSlot` call and stores with a
+`&gCdCmdQueue` in `$s0` across the `Game_SetPtrSlot` call and stores with a
 displacement (`sh $v0, 0x22A($s0)`), while the candidate folds the whole address
-into one `lui $v1,%hi(CdCmd_Queue+554)` after the call.
+into one `lui $v1,%hi(gCdCmdQueue+554)` after the call.
 
 **Cause.** Same mechanism as "`lui %hi(sym)` + `addiu %lo(sym)` + `lh x,OFF(reg)`
 means a pointer local" above, but the consequence here is allocation, not just
@@ -92060,7 +92060,7 @@ is what pushes `index` to `$s1` and the frame to 0x20.
 ```c
 CdCmdQueue* queue;
 
-queue            = &CdCmd_Queue;      /* before the call: the range spans it */
+queue            = &gCdCmdQueue;      /* before the call: the range spans it */
 arg0->field_24   = D_neo_ark_r31_8017D9F4;
 Game_SetPtrSlot(arg0, 7);
 queue->imageMdecMode = 2;
@@ -92072,7 +92072,7 @@ arg0->state      = (s32)(arg0->state + 1);
 where the candidate instead has `%hi(sym+off)`. The ordinary single-use pointer
 loses that register and rematerialises into `$t0` at the use site (see the entry
 above); it only survives when its initialisation precedes an intervening call.
-This is the PE2 house idiom for `CdCmd_Queue` — `p = &CdCmd_Queue;` appears the
+This is the PE2 house idiom for `gCdCmdQueue` — `p = &gCdCmdQueue;` appears the
 same way in `src/gameplay/1BC.c` and `src/gameplay/3CD8.c`.
 
 Inputs: `base.c` 77.931% (`regs=16 delete=4 insert=1 reorder=1`), `base_1.c`
@@ -122993,7 +122993,7 @@ Inputs: scratch `nonmatchings/func_dryfield_saloon_g_r_8017DA70-vacuum`,
 ## A predicate repeated in two switch cases can be one function-level local, not an inline: the shared pseudo outranks the switch value (func_actor_310100_801627BC, 2026-09-17)
 
 Cases 1 and 2 of a `switch (task->state)` compute the same `u16` flag from
-`CdCmd_Queue` (`on = 1; if (..<2) on = ..>=0xE6; if (..==2 && ..) on = 0;`).
+`gCdCmdQueue` (`on = 1; if (..<2) on = ..>=0xE6; if (..==2 && ..) on = 0;`).
 Written as a `static inline u16` helper called from both cases, the build is
 99.58% with a `regs`-only residue: the switch value gets `$v1` and the case-2
 flag `$a0`, the target has them the other way round.
@@ -141108,7 +141108,7 @@ rewrite the goto-shaped loop as a structured one before steering anything.
 
 The same function showed two more causes a hack can hide: a missing inline
 helper (a finishing sequence shared with another function, whose own
-`q = &CdCmd_Queue` local made the target re-materialise the address), and a
+`q = &gCdCmdQueue` local made the target re-materialise the address), and a
 loop that must call the same function twice per iteration - GCC never
 duplicates a loop test containing a call, so both calls are in the source.
 
@@ -141174,8 +141174,8 @@ and register pins. None of them survived three source changes:
   split address the hacks built by hand. Going through a local `ds` pointer
   gives a different shape.
 - **A second pointer to the same object came from a helper's own local.** A
-  `move s0,s1` copy of `&CdCmd_Queue` is a helper that declared `q =
-  &CdCmd_Queue` itself.
+  `move s0,s1` copy of `&gCdCmdQueue` is a helper that declared `q =
+  &gCdCmdQueue` itself.
 
 Two smaller points:
 

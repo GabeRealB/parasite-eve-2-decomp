@@ -415,7 +415,7 @@ void Title_DemoStreamTask(Task* task)
     GameLoc     key;
     u8          param1[4];
     u8          param2[4];
-    CdCmdQueue* queue = &CdCmd_Queue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
         case 0:
@@ -453,7 +453,7 @@ void Title_DemoStreamTask(Task* task)
             break;
         case 4:
             if (CdCmd_IsIdle()) {
-                CdCmd_Queue.preserveDisplayAfterDecode = 1;
+                gCdCmdQueue.preserveDisplayAfterDecode = 1;
                 param1[3]                              = 0;
                 param1[2]                              = 0;
                 param1[0]                              = 2;

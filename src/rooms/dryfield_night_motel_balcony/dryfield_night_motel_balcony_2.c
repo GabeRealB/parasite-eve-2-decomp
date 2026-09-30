@@ -57,7 +57,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
     CdCmdQueue* queue;
     s16         slot;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             SetDispMask(0);

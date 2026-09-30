@@ -122,7 +122,7 @@ static s32  func_map_akropolis_8017A038(void);
 /// frame past the second decode buffer.
 static void func_map_akropolis_80179988(u8* arg0)
 {
-    CdCmdQueue* q = &CdCmd_Queue;
+    CdCmdQueue* q = &gCdCmdQueue;
     s16         one;
     s32         strideA;
     s32         strideB;

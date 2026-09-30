@@ -57,7 +57,7 @@ void Gp_ViewBeginLoad(Task* task)
     u8               param2[8];
 
     sess = &gGameSession->location.loc;
-    q    = &CdCmd_Queue;
+    q    = &gCdCmdQueue;
     if (task->spawnArg1.value != 0) {
         gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     }

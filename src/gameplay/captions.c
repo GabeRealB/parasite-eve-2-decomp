@@ -868,7 +868,7 @@ void Gp_CapExit(Task* arg0)
     CdCmdQueue* queue;
     char        buf[0x20];
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     if (D_80115666 == 2) {
         Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
     }

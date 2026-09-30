@@ -6,7 +6,12 @@
 #include "main/fs_types.h"
 #include "main/stream_types.h"
 
-extern CdCmdQueue CdCmd_Queue;
+/// The program's one resident CD-command queue.
+///
+/// Main and the overlays that load files, play movies or run scene audio share
+/// this object for the executable's lifetime. Callers borrow it, and a full
+/// clear zeroes it in place rather than allocating another.
+extern CdCmdQueue gCdCmdQueue;
 
 extern u8 Fs_CdOpStatus;
 

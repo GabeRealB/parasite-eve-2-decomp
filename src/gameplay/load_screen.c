@@ -189,7 +189,7 @@ void func_800AA548(s32 arg0)
     } else {
         gGameSession->areaSetupDone = 1;
     }
-    CdCmd_Queue.viewMovieSelected = 0;
+    gCdCmdQueue.viewMovieSelected = 0;
     gGameSession->freezeRoomObjs  = 0;
 }
 
@@ -199,7 +199,7 @@ void Gp_BeginSessionTask(Task* arg0)
     DisplayState* ds;
     u16           one;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     Game_ClearPtrSlots();
     ds               = &gDisplayState;
     ds->stopTaskWalk = 1;
@@ -241,7 +241,7 @@ void Gp_LoadWaitBoot(Task* task)
     s8            yoff;
 
     Pad_RemapState->field_3 = 1;
-    queue                   = &CdCmd_Queue;
+    queue                   = &gCdCmdQueue;
     if (CdCmd_IsIdle() & 0xFFFF) {
         if ((u8)LoadUi_PollDiskSwap()) {
             return;
@@ -266,7 +266,7 @@ void Gp_LoadWaitBoot(Task* task)
         task->state++;
     }
     color  = 8;
-    queued = CdCmd_Queue.bootLoadActive;
+    queued = gCdCmdQueue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -300,7 +300,7 @@ void Gp_LoadWaitStage(Task* task)
     s8            yoff;
 
     color  = 8;
-    queued = CdCmd_Queue.bootLoadActive;
+    queued = gCdCmdQueue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -344,7 +344,7 @@ void Gp_LoadState2(Task* task)
     GameLocationKey*  sess;
 
     color  = 8;
-    queued = CdCmd_Queue.bootLoadActive;
+    queued = gCdCmdQueue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -406,7 +406,7 @@ void Gp_LoadWaitCompanion(Task* task)
     u8            flag;
 
     color  = 8;
-    queued = CdCmd_Queue.bootLoadActive;
+    queued = gCdCmdQueue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -462,7 +462,7 @@ void Gp_LoadWaitSave(Task* task)
     GameSession*     sess;
 
     color  = 8;
-    queued = CdCmd_Queue.bootLoadActive;
+    queued = gCdCmdQueue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -527,7 +527,7 @@ void Gp_LoadWaitAreaCd(Task* task)
     s8            yoff;
 
     color  = 8;
-    queued = CdCmd_Queue.bootLoadActive;
+    queued = gCdCmdQueue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -572,7 +572,7 @@ void Gp_FadeGrayHold(Task* task)
     s32           buf;
     s8            yoff;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     ds    = &gDisplayState;
     color = 0x64;
     buf   = ds->otBuffer;

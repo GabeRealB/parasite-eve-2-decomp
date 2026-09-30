@@ -118,7 +118,7 @@ extern TaskDesc D_acropolis_promenade_80180EA4[];
 extern TaskDesc D_acropolis_promenade_80181148[];
 
 /// Per-frame path the promenade's streamed scene walks the player's matrix
-/// along, indexed backwards by `0x45 - CdCmd_Queue.movieFrame`, plus the script
+/// along, indexed backwards by `0x45 - gCdCmdQueue.movieFrame`, plus the script
 /// pair the scene runs.
 extern SVECTOR     D_acropolis_promenade_80181184[];
 extern GpScriptCmd D_acropolis_promenade_80186224[6];
@@ -1748,7 +1748,7 @@ static void func_acropolis_promenade_8017DB48(Task* task)
 /// block, cues the stream (slot-6 msg 0xFA4), captures slot 3 and the player's
 /// coordinate matrix in the block, and republishes the player's weapon to slot
 /// 3 with a 0x3E8 record. State 1 waits for the stream to come up
-/// (`CdCmd_Queue::movieReady`), then starts the script pair and reparents this
+/// (`gCdCmdQueue::movieReady`), then starts the script pair and reparents this
 /// task under it. State 2 drives the ride: every frame it moves the player's
 /// matrix to the path entry the stream's countdown selects, offers the pad
 /// prompt once (`Pad_CheckFlag800`, entry 3 of the room's task table) and, when
@@ -1768,7 +1768,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
     CdCmdQueue*          queue;
     s32                  weaponId;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:

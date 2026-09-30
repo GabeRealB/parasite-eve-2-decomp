@@ -633,7 +633,7 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             goto L_case0;

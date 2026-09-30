@@ -350,7 +350,7 @@ void func_actor_120500_80131E58(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             SetDispMask(0);

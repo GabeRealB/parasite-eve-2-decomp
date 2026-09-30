@@ -1747,7 +1747,7 @@ static void        func_actor_121300_80133BFC(Task* task);
 /// is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `CdCmd_Queue.imageMdecMode` store, which a member read lets GCC hoist above it.
+/// behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist above it.
 void func_actor_121300_80131EB0(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -1760,7 +1760,7 @@ void func_actor_121300_80131EB0(Task* arg0)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
             for (i = 0; i < 11; i++) {
@@ -2428,7 +2428,7 @@ static void func_actor_121300_80133854(Task* arg0)
     CdCmdQueue*      queue;
 
     work  = (Actor121300Work*)arg0->work;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     func_actor_121300_80132818(arg0);
     switch ((u16)work->field_498) {
         case 1:
@@ -2763,7 +2763,7 @@ void func_actor_121300_80134250(s16 arg0)
 
 void func_actor_121300_80134270(void)
 {
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
 }
 
 void func_actor_121300_8013427C(void)
@@ -2772,7 +2772,7 @@ void func_actor_121300_8013427C(void)
 
     D_actor_121300_8013D41C   = 0;
     work->wave.state          = 2;
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
     Gp_DispatchMsg(work->field_488, 0x3F3, 1, 0);
     CdCmd_CancelReplaceAndActivate();
 }

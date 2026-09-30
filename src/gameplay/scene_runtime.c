@@ -373,7 +373,7 @@ s32 func_800AF590(s32 unused0, s32 unused1)
     StreamSceneImageHeader header;
     CdCmdQueue*            p;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     switch (D_80114D14[0]) {
         case 0:
             // Read the serialized header before choosing or reusing its payload buffer.
@@ -444,12 +444,12 @@ s32 func_800AF590(s32 unused0, s32 unused1)
             }
             if (D_80114D18 == 0) {
                 D_80114D18 = (u16)D_80114D18 - 1;
-                if (CdCmd_Queue.sceneEnded == 0) {
-                    CdCmd_Queue.scenePayloadAvailable = 1;
+                if (gCdCmdQueue.sceneEnded == 0) {
+                    gCdCmdQueue.scenePayloadAvailable = 1;
                 }
-                CdCmd_Queue.scenePayloadLoading = 0;
+                gCdCmdQueue.scenePayloadLoading = 0;
                 if (D_80114D1C == 0) {
-                    CdCmd_Queue.scenePayloadReusable = 1;
+                    gCdCmdQueue.scenePayloadReusable = 1;
                 }
                 D_80114D14[0] = 0U;
             }
@@ -469,7 +469,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     u16         vlcTableMode;
     s32         seed;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     if (arg0 == 0) {
         slot  = Fs_Streams;
         count = ARRAY_SIZE(Fs_Streams);
@@ -526,7 +526,7 @@ void Gp_StepCdAudioCmd(void)
     s32         save23;
     s32         sector;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     {
         s32 cmd;
         cmd = p->entries[p->readIdx].cmd;
@@ -710,7 +710,7 @@ void Gp_StepCdAudioCmd(void)
             {
                 CdCmdQueue* q;
                 s32         ff;
-                q                        = &CdCmd_Queue;
+                q                        = &gCdCmdQueue;
                 seed                     = q->savedRandSeed;
                 ff                       = 0xFF;
                 p->blockGamePause        = 0;
@@ -751,7 +751,7 @@ void Gp_StepCdAudioCmd(void)
             {
                 CdCmdQueue* q;
                 s32         ff;
-                q                        = &CdCmd_Queue;
+                q                        = &gCdCmdQueue;
                 seed                     = q->savedRandSeed;
                 ff                       = 0xFF;
                 p->cdOperationPending    = 0;
@@ -818,7 +818,7 @@ void Gp_RestoreStreamRng(void)
 {
     CdCmdQueue* p;
 
-    p                        = &CdCmd_Queue;
+    p                        = &gCdCmdQueue;
     p->imageLoadStatus       = CD_COMMAND_IMAGE_COMPLETE;
     p->sceneEnded            = 1;
     p->scenePayloadAvailable = 0;
@@ -845,7 +845,7 @@ s32 func_800B0118(s32 arg0, s32 arg1)
 
 void Gp_SetStreamBuf(void* arg0)
 {
-    CdCmd_Queue.externalScenePayloadBuffer = arg0;
+    gCdCmdQueue.externalScenePayloadBuffer = arg0;
 }
 
 static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)

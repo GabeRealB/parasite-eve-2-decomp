@@ -1308,7 +1308,7 @@ void func_800CCDC8(Task* arg0)
 
     item        = Gp_PubItemLoc;
     obj         = arg0->spawnArg2.pointer;
-    queue       = &CdCmd_Queue;
+    queue       = &gCdCmdQueue;
     obj->result = USER_INTERFACE_RESULT_NONE;
     flags       = 0x10;
     if (arg0->state == 0) {

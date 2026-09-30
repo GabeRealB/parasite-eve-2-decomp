@@ -938,7 +938,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
     CdCmdQueue* queue;
     s16         slot;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             SetDispMask(0);

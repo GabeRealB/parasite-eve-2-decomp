@@ -2583,7 +2583,7 @@ Gpu_PrimHeapSize                  = 0x80068F90;
 GActiveAuxHeapSize          = 0x80068F94;
 Gpu_PrimHeapCanaryAddress                  = 0x80068F98; // size:0x4
 D_80068F9C                  = 0x80068F9C; // ignore:true
-CdCmd_Queue                 = 0x80068FA0; // type:CdCmdQueue size:0x254
+gCdCmdQueue                 = 0x80068FA0; // type:CdCmdQueue size:0x254
 Mem_AuxRegionBase                  = 0x800691F4;
 Mem_AuxRegionBytes                  = 0x800691F8;
 

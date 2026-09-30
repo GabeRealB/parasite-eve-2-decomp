@@ -4175,7 +4175,7 @@ void func_actor_560800_801321A0(Task* task)
 {
     u8          slotParam[4];
     GameLoc     key;
-    CdCmdQueue* queue = &CdCmd_Queue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
         case 0:

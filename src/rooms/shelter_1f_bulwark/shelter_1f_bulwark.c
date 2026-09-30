@@ -513,7 +513,7 @@ void func_shelter_1f_bulwark_8017DC78(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             goto L_case0;

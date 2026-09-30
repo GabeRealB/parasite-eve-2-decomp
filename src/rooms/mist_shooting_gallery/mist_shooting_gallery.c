@@ -2533,7 +2533,7 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             goto L_case0;

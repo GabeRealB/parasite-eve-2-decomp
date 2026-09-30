@@ -1069,7 +1069,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             SetDispMask(0);

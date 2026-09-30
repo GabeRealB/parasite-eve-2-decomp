@@ -3524,7 +3524,7 @@ void func_acropolis_security_room_80180368(Task* task)
     AsrAmbienceState* st;
     AsrAmbienceState* alloc;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     state = task->state;
     st    = (AsrAmbienceState*)task->work;
 
@@ -3581,7 +3581,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             goto L_case0;

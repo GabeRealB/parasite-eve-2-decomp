@@ -951,7 +951,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
     s32*            state;
 
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
        memory, which the scheduler lets rise above the store before it, and the
        original keeps the two in source order. */
@@ -1159,7 +1159,7 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
 /// written to the context's mode, where 1 ramps the running wave back down.
 void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
 {
-    CdCmdQueue* queue = &CdCmd_Queue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     if (arg0 <= 0) {
         queue->imageMdecMode                      = MDEC_IMAGE_MODE_RGB16_MASK_BIT;

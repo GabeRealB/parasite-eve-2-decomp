@@ -131,8 +131,8 @@ static void Mdec_SetupBuffers(u8* arg0)
 
     D_8006AC5C                   = 0;
     D_8006AC3C                   = 1;
-    CdCmd_Queue.field_24A        = 0;
-    CdCmd_Queue.movieVramStaging = 0;
+    gCdCmdQueue.field_24A        = 0;
+    gCdCmdQueue.movieVramStaging = 0;
     D_8006AC24                   = 0x20;
     D_8006AC38                   = Fs_ActorLoadBase0;
     D_8006AC60                   = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
@@ -187,7 +187,7 @@ static void Stream_InitFromSlot(u32 arg0)
     StreamSlot* slots;
     StreamSlot* slot;
 
-    CdCmd_Queue.suppressMoviePresentation = 0;
+    gCdCmdQueue.suppressMoviePresentation = 0;
     slots                                 = Stream_Slots;
     D_8006AC12                            = 0;
     slot                                  = &slots[arg0 & 0xFFFF];
@@ -314,7 +314,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
     u8           f6;
     u8           f74;
 
-    p     = &CdCmd_Queue;
+    p     = &gCdCmdQueue;
     state = D_8006AC28;
     if (state != 1) {
         if (state < 2) {
@@ -404,7 +404,7 @@ u32 Stream_InitializePlayback(u32 slotIndex)
     u32         slot;
 
     slot                     = slotIndex & 0xFFFF;
-    queue                    = &CdCmd_Queue;
+    queue                    = &gCdCmdQueue;
     queue->movieFrameSubstep = 0;
     queue->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
     queue->movieAtEnd        = 0;
@@ -442,7 +442,7 @@ s32 CdCmd_StopMdec(s32 arg0)
     CdCmdQueue* p;
 
     if (CdCmd_PausePoll() & 0xFFFF) {
-        p = &CdCmd_Queue;
+        p = &gCdCmdQueue;
         DecDCToutCallback(0);
         DecDCTReset(0);
         StClearRing();
@@ -503,7 +503,7 @@ static void Stream_StartDecoder(void)
     u_long*     data;
     u32         frameWidth;
 
-    queue     = &CdCmd_Queue;
+    queue     = &gCdCmdQueue;
     backFrame = StGetBackloc(&loc) - 1;
     frame     = backFrame;
     if (backFrame <= 0) {
@@ -640,7 +640,7 @@ static void Mdec_KickStrip(void)
     u16         ac6c;
     s32         temp;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     StFreeRing(D_8006AC68);
     DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_DISPLAY_TEXTURE : D_8006AC14);
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
@@ -670,7 +670,7 @@ static void Mdec_DecodeFrame(void)
     u_long*     headerWords;
     CdCmdQueue* p;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     if (D_8006AC1A != 0) {
         if (DecDCTvlc2(NULL, NULL, D_8006AC38) == 0) {
             Mdec_KickStrip();
@@ -721,7 +721,7 @@ static __inline__ void _streamStartDecode(void)
 {
     CdCmdQueue* queue;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     DecDCTReset(0);
     StSetStream(D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_DISPLAY_TEXTURE : D_8006AC14, 0, -1, NULL, NULL);
     StSetRing((u_long*)D_8006AC60, D_8006AC24);
@@ -756,7 +756,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
     s32         videoMode;
     s32         displayMode;
 
-    state = &CdCmd_Queue;
+    state = &gCdCmdQueue;
     switch (state->movieStep) {
         case CD_COMMAND_MOVIE_WAIT_READY:
             if (D_8006AC5C == 0) {
@@ -826,7 +826,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                 return 0;
             }
             state->cdOperationPending = 0;
-            stop                      = &CdCmd_Queue;
+            stop                      = &gCdCmdQueue;
             DecDCToutCallback(NULL);
             DecDCTReset(0);
             StClearRing();
@@ -946,7 +946,7 @@ void Stream_PresentFrame(void)
     s32         x;
     s32         y;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     if ((queue->suppressMoviePresentation == 0) && (queue->movieFrameAvailable != 0)) {
         if (queue->movieFrame == D_8006AC0C) {
             queue->movieFrameSubstep = 0;
@@ -986,7 +986,7 @@ void Mem_AllocAuxWithImages(s16 arg0)
     RECT        rect;
     CdCmdQueue* p;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     Gpu_ResetGraphAndOt();
     Mem_SetActiveAuxHeap(0);
     Mem_InitAux();

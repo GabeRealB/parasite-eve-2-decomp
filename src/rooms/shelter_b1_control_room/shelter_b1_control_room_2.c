@@ -97,7 +97,7 @@ void func_shelter_b1_control_room_8017EF24(Task* arg0)
     Task*       task;
 
     task  = arg0;
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             goto L_case0;

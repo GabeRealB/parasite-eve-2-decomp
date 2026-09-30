@@ -280,7 +280,7 @@ static inline s32 _gameMainPauseBlocked(void)
     s32 blocked;
 
     blocked = 0;
-    if (CdCmd_Queue.blockGamePause != 0 && !(GameMain_HaltFlags & 8)) {
+    if (gCdCmdQueue.blockGamePause != 0 && !(GameMain_HaltFlags & 8)) {
         blocked = 1;
     } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK && gDisplayState.control.flags.flipMode == DISPLAY_FLIP_HOLD) {
         blocked = 1;
@@ -348,7 +348,7 @@ static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed)
 {
     CdCmdQueue* q;
 
-    q = &CdCmd_Queue;
+    q = &gCdCmdQueue;
     if (q->paceToSceneTiming != 0) {
         if (elapsed + q->timingElapsedLines < *q->timingCursor) {
             while (((VSync(1) - start) & 0x7FFF) + q->timingElapsedLines < *q->timingCursor) {
@@ -421,7 +421,7 @@ static void GameMain_Loop(void)
 
         gameBuffer                = gDisplayState.otBuffer ^ 1;
         gDisplayState.pendingMode = DISPLAY_MODE_NONE;
-        cdQueue                   = &CdCmd_Queue;
+        cdQueue                   = &gCdCmdQueue;
         gDisplayState.otBuffer    = gameBuffer;
         gDisplayState.drawBuffer  = gDisplayState.otBuffer;
         gDisplayState.animFrame++;
@@ -521,7 +521,7 @@ void Display_LoadImageStrips(s32 bufferIndex)
     s8   offsetYByte;
 
     // Crop contiguous pixels at the top or bottom without extending the image workspace.
-    if (CdCmd_Queue.imageLayout == FILE_SYSTEM_IMAGE_CONTIGUOUS) {
+    if (gCdCmdQueue.imageLayout == FILE_SYSTEM_IMAGE_CONTIGUOUS) {
         if (gDisplayState.vramYOffset >= 0) {
             if (bufferIndex != 0) {
                 rect.y = gDisplayState.vramYOffset + DISPLAY_BACKGROUND_BUFFER_STRIDE;
@@ -548,7 +548,7 @@ void Display_LoadImageStrips(s32 bufferIndex)
     }
     sourceRowOffsetBytes = 0;
     // Strips are 16 pixels wide and occupy 7680 bytes each in loader order.
-    if (CdCmd_Queue.imageLayout == FILE_SYSTEM_IMAGE_STRIPS) {
+    if (gCdCmdQueue.imageLayout == FILE_SYSTEM_IMAGE_STRIPS) {
         bufferY *= DISPLAY_BACKGROUND_BUFFER_STRIDE;
         rect.w   = DISPLAY_BACKGROUND_STRIP_WIDTH;
         offsetY  = gDisplayState.vramYOffset;

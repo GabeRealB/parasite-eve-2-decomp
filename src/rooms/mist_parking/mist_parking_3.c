@@ -212,7 +212,7 @@ void func_mist_parking_801837B8(Task* task)
     CdCmdQueue* queue;
     s16         slot;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             Stage_RequestMidiFromMap(0xA);

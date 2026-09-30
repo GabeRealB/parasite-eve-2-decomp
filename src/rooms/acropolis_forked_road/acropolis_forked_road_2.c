@@ -70,7 +70,7 @@
 /// Set to 1 by the fade-out task once the scene has finished.
 
 /// Per-frame path the streamed scene walks `Player_Status.coordMtx` along, indexed by
-/// `CdCmd_Queue::movieFrame - 1` for the 0x78 frames the ride lasts.
+/// `gCdCmdQueue::movieFrame - 1` for the 0x78 frames the ride lasts.
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
 /// The script pair the streamed scene runs.
@@ -1204,7 +1204,7 @@ GpRoomParamRec* D_acropolis_forked_road_801850A4[8] = {
 /// block and warps slot 3 to the head of the path with a 0x3E9 placement.
 /// State 1 sends the same spot again as a 0x3F2. State 2 waits for slot 3 to
 /// go idle (msg 0x3F0) and then queues the stream's CD read. State 3 waits for
-/// the stream to come up (`CdCmd_Queue::movieReady`), starts the script pair and
+/// the stream to come up (`gCdCmdQueue::movieReady`), starts the script pair and
 /// reparents this task under it. State 4 drives the ride, moving the camera
 /// target to the `field_1EA`th path entry every frame until the pad interrupts
 /// it or the path runs out at frame 0x78. State 5 stops the scene, restores
@@ -1218,7 +1218,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
     RoomStreamWork* blk;
     CdCmdQueue*     queue;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:
@@ -1298,13 +1298,13 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
 /// The forked road's return ride: the same streamed scene played backwards
 /// along `D_acropolis_forked_road_80180F80`, whose entries this one walks from
-/// the far end (`0x3B - CdCmd_Queue::movieFrame`).
+/// the far end (`0x3B - gCdCmdQueue::movieFrame`).
 ///
 /// State 0 allocates the `RoomStreamWork` block, captures slot 3 and the
 /// player's coordinate matrix (`Player_Status.coordMtx`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
-/// (`CdCmd_Queue::movieReady`), moves the player to the head of the
+/// (`gCdCmdQueue::movieReady`), moves the player to the head of the
 /// path, starts the script pair, reparents this task under it and blanks the
 /// display. State 2 drives the ride: it un-blanks after two frames, walks the
 /// player along the path, and lets the pad spawn the skip task. Once
@@ -1323,7 +1323,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
     CdCmdQueue*          queue;
     s32                  weaponId;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:

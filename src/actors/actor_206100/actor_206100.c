@@ -1281,7 +1281,7 @@ static __inline__ s16       take_request(Task* task);
 /// modulated by the tint when `blend` is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `CdCmd_Queue.imageMdecMode` store, which a member read lets GCC hoist above it.
+/// behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist above it.
 void func_actor_206100_80149ED0(Task* task)
 {
     OverlayWaveCtx* ctx;
@@ -1294,9 +1294,9 @@ void func_actor_206100_80149ED0(Task* task)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* `Task::state` read as a scalar through a cast: that keeps the load
-       behind the `CdCmd_Queue.imageMdecMode` store, which a member read lets GCC hoist
+       behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist
        above it. */
     switch (*(s32*)((u8*)task + OFFSET_OF(Task, state))) {
         case 0:

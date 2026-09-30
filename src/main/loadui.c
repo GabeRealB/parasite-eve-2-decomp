@@ -118,7 +118,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 
 s32 LoadUi_PollDiskSwap(void)
 {
-    CdCmdQueue* queue = &CdCmd_Queue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (D_8007A394) {
         case 0:

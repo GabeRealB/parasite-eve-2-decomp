@@ -141,7 +141,7 @@ void GameFlow_StateByField34(Task* task)
     CdCmdQueue* p;
     s32         saved;
 
-    p = &CdCmd_Queue;
+    p = &gCdCmdQueue;
     if (task->spawnArg1.value == 2) {
         if (task->state == 0) {
             Pad_SetCooldown(0);
@@ -250,7 +250,7 @@ static void Game_ResetSessionAndBuffers(Task* task)
     s32         saved;
     CdCmdQueue* p;
 
-    p     = &CdCmd_Queue;
+    p     = &gCdCmdQueue;
     saved = Mc_SaveData[0].state.vibration;
     MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;

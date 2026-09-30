@@ -20,7 +20,7 @@ s32 CdCmd_SeekL(u8* loc, s32 unused)
     s32         one;
     u8          pad[8];
 
-    state = &CdCmd_Queue;
+    state = &gCdCmdQueue;
     one   = 1;
     switch (state->seekStep) {
         case CD_COMMAND_SEEK_SET_LOCATION:
@@ -74,7 +74,7 @@ s32 CdCmd_SeekL(u8* loc, s32 unused)
             }
             /* fallthrough */
         case CD_COMMAND_SEEK_ISSUE:
-            p = &CdCmd_Queue;
+            p = &gCdCmdQueue;
             switch (p->syncRecoveryStep) {
                 case 0:
                     status = CdSync(1, NULL);
@@ -124,7 +124,7 @@ s32 CdCmd_SeekL(u8* loc, s32 unused)
             }
             /* fallthrough */
         case CD_COMMAND_SEEK_WAIT:
-            p = &CdCmd_Queue;
+            p = &gCdCmdQueue;
             switch (p->syncRecoveryStep) {
                 case 0:
                     status = CdSync(1, NULL);
@@ -194,7 +194,7 @@ s32 CdCmd_PausePoll(void)
     s32         status;
     s32         one;
 
-    state = &CdCmd_Queue;
+    state = &gCdCmdQueue;
     switch (state->pauseStep) {
         case CD_COMMAND_PAUSE_ISSUE:
             switch (state->syncRecoveryStep) {
@@ -248,7 +248,7 @@ s32 CdCmd_PausePoll(void)
             }
             /* fallthrough */
         case CD_COMMAND_PAUSE_WAIT:
-            p = &CdCmd_Queue;
+            p = &gCdCmdQueue;
             switch (p->syncRecoveryStep) {
                 case 0:
                     status = CdSync(1, NULL);
@@ -329,7 +329,7 @@ s16 CdCmd_RecoverDisk(void)
     CdCmdQueue* state;
     s32         temp;
 
-    state = &CdCmd_Queue;
+    state = &gCdCmdQueue;
     switch (state->diskRecoveryStep) {
         case 0:
             temp = CdDiskReady(1);
@@ -379,7 +379,7 @@ s32 CdCmd_PollStatus(s32 arg0, s32 arg1)
     s32         status;
     u16         a1;
 
-    state = &CdCmd_Queue;
+    state = &gCdCmdQueue;
     switch (state->syncRecoveryStep) {
         case 0:
             status = CdSync(1, NULL);

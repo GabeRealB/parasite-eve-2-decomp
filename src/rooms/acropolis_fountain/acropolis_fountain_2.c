@@ -1492,7 +1492,7 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
     CdCmdQueue*               queue;
     u16                       frame;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     work  = (AcropolisFountainSndWork*)task->work;
     switch (work->state) {
         case 0:
@@ -1582,7 +1582,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
     u32         tpage;
 
     D_acropolis_fountain_80183BB4 = task;
-    queue                         = &CdCmd_Queue;
+    queue                         = &gCdCmdQueue;
     if (gGameSession->location.loc.room != 1) {
         return;
     }
@@ -1642,7 +1642,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                 case 2:
                 case 8:
                     if (gDisplayState.animFrame & 1) {
-                        queue2             = &CdCmd_Queue;
+                        queue2             = &gCdCmdQueue;
                         key2               = gGameSession->location;
                         key2.loc.view      = Gp_FindViewIndex(4);
                         loopStream         = Stream_GetSlot(Stream_FindSlot((u8*)&key2, 0, 1) & 0xFFFF);

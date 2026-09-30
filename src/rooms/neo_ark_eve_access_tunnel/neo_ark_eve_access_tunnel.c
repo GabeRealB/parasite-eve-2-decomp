@@ -823,7 +823,7 @@ static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 /// CD command queue's `field_22A` to 2.
 static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
 {
-    CdCmdQueue* queue = &CdCmd_Queue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     if (gGameSession->location.loc.variant < 4U) {
         func_neo_ark_eve_access_tunnel_8017E090(0, 0);

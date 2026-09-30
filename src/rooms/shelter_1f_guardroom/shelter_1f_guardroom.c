@@ -338,7 +338,7 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
     u8          slotParam[4];
     CdCmdQueue* queue;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (arg0->state) {
         case 0:
             func_shelter_1f_guardroom_8017D9CC(0);

@@ -1911,7 +1911,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
     s32         ret;
     s32         temp;
 
-    queue     = &CdCmd_Queue;
+    queue     = &gCdCmdQueue;
     secondary = NULL;
     switch ((s16)D5B498_8006AC9C) {
         case 0:
@@ -1979,7 +1979,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
         case 4:
             if ((Fade_StepIn(0x10) & 0xFFFF) != 0) {
                 Fs_BootLoadPhase           = 0;
-                CdCmd_Queue.bootLoadActive = 0;
+                gCdCmdQueue.bootLoadActive = 0;
             }
         draw:
             D_8006ACA4 = 1;

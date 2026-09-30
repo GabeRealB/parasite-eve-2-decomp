@@ -270,12 +270,12 @@ static s32 D_8005EBC0 = 0;
 static void Fs_ResetBootLoadState(void)
 {
     Fs_BootLoadPhase           = 0;
-    CdCmd_Queue.bootLoadActive = 0;
+    gCdCmdQueue.bootLoadActive = 0;
 }
 
 void Fs_BeginBootLoad(u8* arg0, s16 arg1)
 {
-    CdCmd_Queue.bootLoadActive = 1;
+    gCdCmdQueue.bootLoadActive = 1;
     Fs_LoadParams.field_3      = arg0[3];
     Fs_LoadParams.field_2      = arg0[2];
     D5B498_8006ACC0            = arg1;
@@ -320,7 +320,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
 
     sector                      = 0;
     D5B498_8006ADF4             = 0;
-    CdCmd_Queue.imageLoadStatus = CD_COMMAND_IMAGE_COMPLETE;
+    gCdCmdQueue.imageLoadStatus = CD_COMMAND_IMAGE_COMPLETE;
     modeU8                      = (u8)mode;
 
     if (req[3] == 0) {

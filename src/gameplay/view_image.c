@@ -66,7 +66,7 @@ void Gp_ViewLoadImage(Task* task)
     u8          i;
     u8          param;
 
-    q = &CdCmd_Queue;
+    q = &gCdCmdQueue;
     if (CdCmd_IsIdle() & 0xFFFF) {
         Mem_Set(&q->activeRequest, 0, sizeof(q->activeRequest));
         view = Gp_GetViewIndex();

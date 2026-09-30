@@ -102,7 +102,7 @@ void func_map_dryfield_80179954(u8* entry)
 {
     s32 size;
 
-    CdCmd_Queue.movieVramStaging = 0;
+    gCdCmdQueue.movieVramStaging = 0;
     if (entry[2] == 1) {
         size          = D_8006AC5A * D_8006AC6C;
         D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);

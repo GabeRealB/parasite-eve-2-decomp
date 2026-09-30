@@ -1402,7 +1402,7 @@ OverlayWaveCtx D_actor_136300_8013C99C = { 0 };
 /// of that amplitude, tinted when the context's tint flag is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `CdCmd_Queue.imageMdecMode` store, which a member read lets GCC hoist above it.
+/// behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist above it.
 void func_actor_136300_80131E40(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -1415,9 +1415,9 @@ void func_actor_136300_80131E40(Task* arg0)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* `Task::state` read as a scalar through a cast: that keeps the load
-       behind the `CdCmd_Queue.imageMdecMode` store, which a member read lets GCC hoist
+       behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist
        above it. */
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
@@ -1659,7 +1659,7 @@ void func_actor_136300_80132910(s32 arg0)
 {
     CdCmdQueue* queue;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     if (arg0 <= 0) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
         if (arg0 != -2) {

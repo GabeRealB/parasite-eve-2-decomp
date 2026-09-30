@@ -51,7 +51,7 @@ size_t GActiveAuxHeapSize;
 
 static u8* Gpu_PrimHeapCanaryAddress;
 
-CdCmdQueue CdCmd_Queue;
+CdCmdQueue gCdCmdQueue;
 
 u8* Mem_AuxRegionBase;
 
@@ -156,7 +156,7 @@ void Boot_LoadInitialFile(Task* task)
     u8          fade;
     CdCmdQueue* queue;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);

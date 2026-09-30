@@ -352,7 +352,7 @@ void func_800AC0F0(Task* task)
 
 void Gp_LoadFinishTask(Task* task)
 {
-    if (CdCmd_Queue.bootLoadActive == 0) {
+    if (gCdCmdQueue.bootLoadActive == 0) {
         Gpu_ClearOTag(0);
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
@@ -399,7 +399,7 @@ void Gp_FlashWhiteTask(Task* task)
     CdCmdQueue* queue;
     u8          fade;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
             task->killCountdown = 0;

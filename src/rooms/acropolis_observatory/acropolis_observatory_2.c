@@ -30,7 +30,7 @@
 #include "rooms/room.h"
 
 /// Per-frame paths the two streamed scenes walk the player's matrix along,
-/// indexed by `CdCmd_Queue.movieFrame + 0xA8`, each with the script pair its
+/// indexed by `gCdCmdQueue.movieFrame + 0xA8`, each with the script pair its
 /// scene runs.
 extern SVECTOR D_acropolis_observatory_8017E80C[];
 
@@ -684,7 +684,7 @@ AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &D_acropolis
 /// State 0 allocates the `RoomStreamWork` block, cues the stream (slot-6 msg
 /// 0xFA4), captures slot 3 and the player's coordinate matrix and republishes
 /// the player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the
-/// stream (`CdCmd_Queue::movieReady`), starts the script pair and reparents
+/// stream (`gCdCmdQueue::movieReady`), starts the script pair and reparents
 /// this task under it. State 2 drives the ride, letting the pad skip it once
 /// through the fade-out task and warping slot 3 when that task has finished
 /// or frame 0xE6 passes.
@@ -701,7 +701,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
     CdCmdQueue*          queue;
     s32                  weaponId;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:
@@ -790,7 +790,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 /// `RoomStreamWork` block, cues the stream (slot-6 msg 0xFA4), captures slot 3
 /// and the player's coordinate matrix in the block, and republishes the
 /// player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the stream
-/// to come up (`CdCmd_Queue::movieReady`), then starts the script pair and
+/// to come up (`gCdCmdQueue::movieReady`), then starts the script pair and
 /// reparents this task under it. State 2 drives the ride: every frame it moves
 /// the player's matrix to the `field_1EA`th entry of the path table; the first
 /// time `Pad_CheckFlag800` reports the pad it spawns the fade-out task (entry 2
@@ -811,7 +811,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
     CdCmdQueue*          queue;
     s32                  weaponId;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:

@@ -2720,7 +2720,7 @@ void Gp_RestartSessionTask(Task* arg0)
     CdCmdQueue*   queue;
     s32           flag;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     Gp_StartAreaBgm(&arg0->killCountdown);
     arg0->spawnArg1.value += 0xA;
     if (arg0->spawnArg1.value < 0x100) {

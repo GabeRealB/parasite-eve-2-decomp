@@ -388,7 +388,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     s32         lo;
     s32         i;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     if (arg0 == 0) {
         return;
     }

@@ -45,7 +45,7 @@ s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2)
     CdCmdQueue* queue;
     TaskDesc*   desc;
 
-    queue = &CdCmd_Queue;
+    queue = &gCdCmdQueue;
     if (arg0 == 0) {
         return 0;
     }
