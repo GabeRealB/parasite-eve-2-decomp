@@ -1,0 +1,33 @@
+/* Part of the factory lift library; see factory_lift.h. */
+
+/// Plays the cutscene sequence out: sets game flag 0x4E, waits 0x3C frames,
+/// runs the cap command in `Task::spawnArg1` and clears the flag again, waits
+/// 0x1E frames, then hands the player and the ally their weapons back and kills
+/// the task.
+void factoryHatchScene(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            GameFlag_SetNibble(0x4E, 1);
+            task->killCountdown = 0x3C;
+            task->state         = task->state + 1;
+            return;
+        case 2:
+            Gp_RunCapCmd1(task->spawnArg1.value);
+            GameFlag_SetNibble(0x4E, 0);
+            task->killCountdown = 0x1E;
+            task->state         = task->state + 1;
+            return;
+        case 1:
+        case 3:
+            if (--task->killCountdown < 0) {
+                task->state = task->state + 1;
+            }
+            return;
+        default:
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgAllyWeapon(1);
+            taskKill(task);
+            return;
+    }
+}

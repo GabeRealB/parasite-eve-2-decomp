@@ -41,7 +41,7 @@ s32 func_dryfield_factory_8017DB08(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 void func_dryfield_factory_8017DD00(Task*);
 
-s32 func_dryfield_factory_8017DDA0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 factoryIgnoreMessage(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 s32 func_dryfield_factory_8017DDA8(Task*, s32, s32, TaskMessageArg);
 
@@ -55,13 +55,13 @@ void func_dryfield_factory_8017FDDC(Task*);
 
 void func_dryfield_factory_8018001C(Task*);
 
-void func_dryfield_factory_8018072C(Task*);
+void factoryLiftRun(Task*);
 
-void func_dryfield_factory_80180784(Task*);
+void factoryHatchRun(Task*);
 
 void func_dryfield_factory_801807DC(Task*);
 
-void func_dryfield_factory_80180920(Task*);
+void factoryCapScene(Task*);
 
 void func_dryfield_factory_80180964(Task*);
 

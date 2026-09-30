@@ -1,0 +1,113 @@
+/* Part of the factory lift library; see factory_lift.h. */
+
+/// Runs cap step `step` of the room's script, picking the sound, the progress
+/// flags and the cap slot for the step.
+void factoryPanelRunStep(Task* task, s16 step)
+{
+    s32 id;
+    s32 state;
+
+    if (GameFlag_GetNibble(0x48) != 0) {
+        switch (step) {
+            case 0:
+                id = 0x53170000;
+                if (gGameSession->location.loc.stage == 2) {
+                    id = 0x52170000;
+                }
+                SndEvt_EnqueueType6(id | 9, 0, 0);
+                if (!(GameFlag_GetNibble(0x49) & 2)) {
+                    GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) | 2);
+                    if (GameFlag_GetNibble(0x47) == 0) {
+                        Mc_SaveData[0].state.location.loc.view = 0x12;
+                    } else {
+                        Mc_SaveData[0].state.location.loc.view = 0x13;
+                    }
+                    state = 6;
+                } else {
+                    Gp_StartCapSlot(8, 0, 0);
+                    state = 2;
+                }
+                task->state = state;
+                break;
+            case 1:
+                id = 0x53170000;
+                if (gGameSession->location.loc.stage == 2) {
+                    id = 0x52170000;
+                }
+                SndEvt_EnqueueType6(id | 9, 0, 0);
+                if (GameFlag_GetNibble(0x49) & 2) {
+                    GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) & ~2);
+                    if (GameFlag_GetNibble(0x47) == 0) {
+                        Mc_SaveData[0].state.location.loc.view = 0x12;
+                    } else {
+                        Mc_SaveData[0].state.location.loc.view = 0x13;
+                    }
+                    state = 6;
+                } else {
+                    Gp_StartCapSlot(9, 0, 0);
+                    state = 2;
+                }
+                task->state = state;
+                break;
+            case 2:
+                id = 0x53170000;
+                if (gGameSession->location.loc.stage == 2) {
+                    id = 0x52170000;
+                }
+                SndEvt_EnqueueType6(id | 9, 0, 0);
+                GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) ^ 1);
+                if (GameFlag_GetNibble(0x47) == 0) {
+                    Mc_SaveData[0].state.location.loc.view = 0x12;
+                } else {
+                    Mc_SaveData[0].state.location.loc.view = 0x13;
+                }
+                state       = 6;
+                task->state = state;
+                break;
+            case 3:
+                Gp_StartCapSlot(6, 0, 1);
+                state       = 2;
+                task->state = state;
+                break;
+            case 4:
+                Gp_StartCapSlot(7, 0, 0);
+                state       = 2;
+                task->state = state;
+                break;
+        }
+    } else {
+        switch (step) {
+            case 0:
+                id = 0x53170000;
+                if (gGameSession->location.loc.stage == 2) {
+                    id = 0x52170000;
+                }
+                SndEvt_EnqueueType6(id | 9, 0, 0);
+                Gp_StartCapSlot(8, 0, 0);
+                break;
+            case 1:
+                id = 0x53170000;
+                if (gGameSession->location.loc.stage == 2) {
+                    id = 0x52170000;
+                }
+                SndEvt_EnqueueType6(id | 9, 0, 0);
+                Gp_StartCapSlot(9, 0, 0);
+                break;
+            case 2:
+                id = 0x53170000;
+                if (gGameSession->location.loc.stage == 2) {
+                    id = 0x52170000;
+                }
+                SndEvt_EnqueueType6(id | 9, 0, 0);
+                Gp_StartCapSlot(0xA, 0, 0);
+                break;
+            case 3:
+                Gp_StartCapSlot(6, 0, 0);
+                break;
+            case 4:
+                Gp_StartCapSlot(7, 0, 0);
+                break;
+        }
+        task->state = 2;
+    }
+}

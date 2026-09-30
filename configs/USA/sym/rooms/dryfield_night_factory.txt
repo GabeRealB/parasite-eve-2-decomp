@@ -1,9 +1,9 @@
 // Overlay-local symbols for dryfield_night_factory.
 
 // Stage 2 uses the day factory's view-sprite routines.
-func_dryfield_factory_80181620 = 0x80181620; // type:func absolute:True
-func_dryfield_factory_80181B38 = 0x80181B38; // type:func absolute:True
-D_dryfield_night_factory_80186EBC = 0x80186EBC; // size:0x48 defined:True
+factoryDayShowView9Sprite = 0x80181620; // type:func absolute:True owner=dryfield_factory
+factoryDayShowView11Sprite = 0x80181B38; // type:func absolute:True owner=dryfield_factory
+gFactoryPanelHotspots = 0x80186EBC; // size:0x48 defined:True
 D_dryfield_night_factory_80186F04 = 0x80186F04; // size:0x8 defined:True
 D_dryfield_night_factory_80186F0C = 0x80186F0C; // size:0x8 defined:True
 D_dryfield_night_factory_8018A764 = 0x8018A764; // size:0xC defined:True
@@ -13,25 +13,25 @@ D_dryfield_night_factory_8018A784 = 0x8018A784; // size:0x8 defined:True
 D_dryfield_night_factory_8018A78C = 0x8018A78C; // size:0x8 defined:True
 D_dryfield_night_factory_8018A794 = 0x8018A794; // size:0x8 defined:True
 D_dryfield_night_factory_8018A79C = 0x8018A79C; // size:0x20 defined:True
-D_dryfield_night_factory_8018A7BC = 0x8018A7BC; // size:0xC defined:True
-D_dryfield_night_factory_8018A7C8 = 0x8018A7C8; // size:0xC defined:True
+gFactoryNightJoltCmds = 0x8018A7BC; // size:0xC defined:True
+gFactoryNightJoltRecs = 0x8018A7C8; // size:0xC defined:True
 gRoomEventMsg = 0x8018A7D4; // size:0x8 defined:True
 gRoomEventActive = 0x8018A7DC; // size:0x1 defined:True
-D_dryfield_night_factory_8018A7E0 = 0x8018A7E0; // size:0x4 defined:True
-D_dryfield_night_factory_8018A7E4 = 0x8018A7E4; // size:0x4 defined:True
-D_dryfield_night_factory_8018A7E8 = 0x8018A7E8; // size:0x4 defined:True
+gFactoryPanelDesc = 0x8018A7E0; // size:0x4 defined:True
+gFactorySpawnTable = 0x8018A7E4; // size:0x4 defined:True
+gFactoryPanelSlot = 0x8018A7E8; // size:0x4 defined:True
 gRoomEventReq = 0x8018A7EC; // size:0x14 defined:True
 D_dryfield_night_factory_80186F14 = 0x80186F14; // size:0x8 defined:True
 D_dryfield_night_factory_80186F1C = 0x80186F1C; // size:0x8 defined:True
 D_dryfield_night_factory_80186F24 = 0x80186F24; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80186E40; // size:0xC defined:True
-D_dryfield_night_factory_80186E4C = 0x80186E4C; // size:0x18 defined:True
-D_dryfield_night_factory_80186E64 = 0x80186E64; // size:0x30 defined:True
-D_dryfield_night_factory_80186E94 = 0x80186E94; // size:0xC defined:True
-D_dryfield_night_factory_80186EA0 = 0x80186EA0; // size:0xC defined:True
-D_dryfield_night_factory_80186EAC = 0x80186EAC; // size:0x10 defined:True
-D_dryfield_factory_8018A39C = 0x8018A39C; // absolute:True owner=dryfield_factory
-D_dryfield_factory_8018A3A8 = 0x8018A3A8; // absolute:True owner=dryfield_factory
+gFactoryPanelSessionDesc = 0x80186E4C; // size:0x18 defined:True
+gFactoryMsgTable = 0x80186E64; // size:0x30 defined:True
+gFactoryPromptDesc = 0x80186E94; // size:0xC defined:True
+gFactoryNightPanelDesc = 0x80186EA0; // size:0xC defined:True
+gFactoryPanelMsgTable = 0x80186EAC; // size:0x10 defined:True
+gFactoryDayJoltCmds = 0x8018A39C; // absolute:True owner=dryfield_factory
+gFactoryDayJoltRecs = 0x8018A3A8; // absolute:True owner=dryfield_factory
 D_dryfield_night_factory_80189A24 = 0x80189A24; // size:0xE4 defined:True
 D_dryfield_night_factory_80189B08 = 0x80189B08; // size:0x180 defined:True
 D_dryfield_night_factory_80189C88 = 0x80189C88; // size:0x18 defined:True
@@ -47,9 +47,10 @@ D_dryfield_night_factory_801870E0 = 0x801870E0; // size:0x550 defined:True
 D_dryfield_night_factory_80187630 = 0x80187630; // size:0x360 defined:True
 D_dryfield_night_factory_80187990 = 0x80187990; // size:0x58 defined:True
 D_dryfield_night_factory_80187BD0 = 0x80187BD0; // size:0x20 defined:True
-D_dryfield_factory_80186E28 = 0x80186E28; // absolute:True owner=dryfield_factory
-D_dryfield_factory_80187BF8 = 0x80187BF8; // absolute:True owner=dryfield_factory
-D_dryfield_night_factory_80187BF0 = 0x80187BF0; // size:0x24 defined:True
+gFactoryDaySpawnTable = 0x80186E28; // absolute:True owner=dryfield_factory
+gFactoryDayPanelDesc = 0x80186E94; // absolute:True owner=dryfield_factory
+gFactoryDayGrid = 0x80187BF8; // absolute:True owner=dryfield_factory
+gFactoryNightGrid = 0x80187BF0; // size:0x24 defined:True
 D_dryfield_night_factory_80187C14 = 0x80187C14; // size:0x2AC defined:True
 D_dryfield_night_factory_80187EC0 = 0x80187EC0; // size:0x10 defined:True
 D_dryfield_night_factory_80187ED0 = 0x80187ED0; // size:0x104 defined:True
@@ -97,20 +98,20 @@ D_dryfield_night_factory_80186BBC = 0x80186BBC; // size:0x40 defined:True
 D_dryfield_night_factory_80186BFC = 0x80186BFC; // size:0x18 defined:True
 D_dryfield_night_factory_80186C14 = 0x80186C14; // size:0x6 defined:True
 D_dryfield_night_factory_80186C1C = 0x80186C1C; // size:0x4 defined:True
-D_dryfield_night_factory_80186C20 = 0x80186C20; // size:0x24 defined:True
+gFactoryBarrierTemplate = 0x80186C20; // size:0x24 defined:True
 D_dryfield_night_factory_80186C44 = 0x80186C44; // size:0x20 defined:True
 D_dryfield_night_factory_80186C64 = 0x80186C64; // size:0x40 defined:True
 D_dryfield_night_factory_80186CA4 = 0x80186CA4; // size:0x30 defined:True
 D_dryfield_night_factory_80186CD4 = 0x80186CD4; // size:0xA defined:True
 D_dryfield_night_factory_80186CE8 = 0x80186CE8; // size:0x8 defined:True
-D_dryfield_night_factory_80186CF0 = 0x80186CF0; // size:0x24 defined:True
+gFactoryLiftTemplate = 0x80186CF0; // size:0x24 defined:True
 D_dryfield_night_factory_80186D14 = 0x80186D14; // size:0x20 defined:True
 D_dryfield_night_factory_80186D34 = 0x80186D34; // size:0x40 defined:True
 D_dryfield_night_factory_80186D74 = 0x80186D74; // size:0x30 defined:True
 D_dryfield_night_factory_80186DA4 = 0x80186DA4; // size:0x8 defined:True
 D_dryfield_night_factory_80186DB4 = 0x80186DB4; // size:0x8 defined:True
-D_dryfield_night_factory_80186DBC = 0x80186DBC; // size:0x24 defined:True
-D_dryfield_night_factory_80186DE0 = 0x80186DE0; // size:0x60 defined:True
+gFactoryLiftTurnedTemplate = 0x80186DBC; // size:0x24 defined:True
+gFactoryNightSpawnTable = 0x80186DE0; // size:0x60 defined:True
 
 func_dryfield_night_factory_801825F0 = 0x801825F0; // type:func
 actionPromptOutlineRect = 0x80180BA4; // type:func
@@ -121,3 +122,50 @@ actionPromptReset = 0x80181BB4; // type:func
 glowDrawTintedDisc = 0x80181C14; // type:func
 roomEventGate = 0x80180164; // type:func
 roomEventTask = 0x801802C8; // type:func
+factoryLiftInit = 0x8017D6F8; // type:func
+factoryLiftSyncCollision = 0x8017D858; // type:func
+factoryLiftTurnOut = 0x8017DA54; // type:func
+factoryLiftTurnBack = 0x8017DDD4; // type:func
+factoryLiftRaise = 0x8017E13C; // type:func
+factoryLiftLower = 0x8017E480; // type:func
+factoryLiftJamTurnOut = 0x8017E7A4; // type:func
+factoryLiftJamTurnBack = 0x8017EBD4; // type:func
+factoryHatchOpen = 0x8017F00C; // type:func
+factoryHatchClose = 0x8017F1DC; // type:func
+factoryPowerScene = 0x8017F330; // type:func
+factoryWhiteoutScene = 0x8017F4F4; // type:func
+factoryBarrierCollision = 0x8017F734; // type:func
+factoryLiftUpdate = 0x8017FA08; // type:func
+factoryLiftBindLighting = 0x8017FB68; // type:func
+factoryHatchInit = 0x8017FBF4; // type:func
+factoryHatchUpdate = 0x8017FD5C; // type:func
+factoryHatchWatch = 0x8017FDC8; // type:func
+factoryLampScene = 0x8017FEF4; // type:func
+factoryHatchScene = 0x8018007C; // type:func
+factoryRoomInit = 0x80180438; // type:func
+factoryResolveWarp = 0x80180574; // type:func
+factoryPanelSpawn = 0x8018076C; // type:func
+factoryCommand = 0x80180814; // type:func
+factorySoundCommand = 0x80180914; // type:func
+factoryRoomAction = 0x80180980; // type:func
+factoryPanelIdle = 0x80180A4C; // type:func
+factoryPanelRunStep = 0x80180DE8; // type:func
+factoryNightShowView9Sprite = 0x80181620; // type:func rom:0x4060
+factoryPanelInit = 0x8018182C; // type:func
+factoryPanelOpenPrompt = 0x8018196C; // type:func
+factoryPanelPrompt = 0x801819BC; // type:func
+factoryPanelExit = 0x80181A24; // type:func
+factoryPanelWaitMove = 0x80181AB8; // type:func
+factoryNightShowView11Sprite = 0x80181B38; // type:func rom:0x4578
+factoryLiftExit = 0x8017FB48; // type:func
+factoryLiftNotifyPanel = 0x8017FBC8; // type:func
+factoryCapScene = 0x80180038; // type:func
+factoryEntryIdle = 0x801809EC; // type:func
+factoryIgnoreMessage = 0x8018080C; // type:func
+factoryHatchRun = 0x8017FE9C; // type:func
+factoryLiftRun = 0x8017FE44; // type:func
+factoryNightEntryTask = 0x801809F4; // type:func
+factoryPromptTask = 0x80181718; // type:func
+factoryPanelTrigger = 0x80181768; // type:func
+factoryPanelRun = 0x8018169C; // type:func
+factoryPanelArmPrompt = 0x80181938; // type:func

@@ -1,0 +1,82 @@
+/* Part of the factory lift library; see factory_lift.h. */
+
+/// The room's second cutscene: states 0..2 silence both weapons, run the cap in
+/// `Task::spawnArg1` and wait for it to report event key 1; states 3 and 6 count
+/// `Task::killCountdown` up to and back down from 0x1E and tint the screen with
+/// the count scaled to 0xFF over 30 steps; states 4 and 5 publish the progress
+/// flags and tint it white, and anything past 6 restores the weapons and kills
+/// the task.
+///
+/// `fade` does two jobs on purpose: state 4 reads the session variant through
+/// it before testing it. That cross-block use is what makes the state-3/6 tint
+/// value a *global* pseudo, and `local-alloc` only folds the `(u8)fade`
+/// conversion into the division's quantity when that pseudo is local to one
+/// block -- global, the conversion keeps its own quantity and takes `$a0` from
+/// the argument move, while the division chain keeps `$v1`.
+void factoryWhiteoutScene(Task* task)
+{
+    u8 fade;
+
+    switch (task->state) {
+        case 0:
+            if (GameFlag_GetNibble(0x47) != 0) {
+                goto kill;
+            }
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgAllyWeapon(0);
+            Gp_RunCapCmd1(task->spawnArg1.value);
+            goto advance;
+        case 2:
+            if (Gp_GetCapEventKey() == 1) {
+                task->killCountdown = 0;
+                if (gGameSession->location.loc.stage == 2) {
+                    Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
+                }
+                goto advance;
+            }
+            task->state = -1;
+            return;
+        case 3:
+            task->killCountdown = task->killCountdown + 1;
+            if (task->killCountdown < 0x1E) {
+                goto draw;
+            }
+            goto bump;
+        case 4:
+            gGameSession->viewDirty = 1;
+            GameFlag_SetNibble(0x47, 1);
+            fade = gGameSession->location.loc.stage;
+            if (fade == 2) {
+                Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
+            }
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            goto advance;
+        case 5:
+            Mc_SaveData[0].state.location.loc.room = 2;
+            gGameSession->location.loc.room        = 2;
+            gGameSession->roomObjsDirty            = 1;
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            goto advance;
+        case 1:
+        advance:
+            task->state = task->state + 1;
+            return;
+        case 6:
+            task->killCountdown = task->killCountdown - 1;
+            if (task->killCountdown > 0) {
+                goto draw;
+            }
+        bump:
+            task->state = task->state + 1;
+        draw:
+            fade = (task->killCountdown * 255) / 30;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            return;
+        default:
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgAllyWeapon(1);
+        kill:
+            taskKill(task);
+            return;
+    }
+}

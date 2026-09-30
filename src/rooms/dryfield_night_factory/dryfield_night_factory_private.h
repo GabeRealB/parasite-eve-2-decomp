@@ -24,19 +24,7 @@ extern RoomEventMsg gRoomEventMsg;
 
 extern u8 gRoomEventActive;
 
-extern TaskDesc* D_dryfield_night_factory_8018A7E0;
-
-extern TaskDesc* D_dryfield_night_factory_8018A7E4;
-
-extern Task** D_dryfield_night_factory_8018A7E8;
-
 extern RoomEventReq gRoomEventReq;
-
-extern GpGridParams D_dryfield_night_factory_80186C20;
-
-extern GpGridParams D_dryfield_night_factory_80186CF0;
-
-extern GpGridParams D_dryfield_night_factory_80186DBC;
 
 extern SpriteBatch D_dryfield_night_factory_80187EC0[2];
 
@@ -95,20 +83,11 @@ extern SpriteSource D_dryfield_night_factory_80189890[17];
 extern SpriteBatch D_dryfield_night_factory_801899E4[6];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_night_factory_8017F330(Task*);
 
-void func_dryfield_night_factory_8017F4F4(Task*);
+void factoryLiftRun(Task*);
 
-void func_dryfield_night_factory_8017F734(Task*);
+void factoryHatchRun(Task*);
 
-void func_dryfield_night_factory_8017FE44(Task*);
-
-void func_dryfield_night_factory_8017FE9C(Task*);
-
-void func_dryfield_night_factory_8017FEF4(Task*);
-
-void func_dryfield_night_factory_80180038(Task*);
-
-void func_dryfield_night_factory_8018007C(Task*);
+void factoryCapScene(Task*);
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_FACTORY_DRYFIELD_NIGHT_FACTORY_PRIVATE_H

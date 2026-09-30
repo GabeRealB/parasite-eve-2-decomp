@@ -146199,3 +146199,28 @@ The room-event flag `gRoomEventActive` has the same shape in the day
 shared fragment's `gRoomEventActive != 0` compiled to an address test and the
 image came out 8 bytes short. Rooms that define `ROOM_EVENT_ACTIVE` as
 `gRoomEventActive[0]` are candidates for the same scalar split.
+
+## A room built per stage names the other build's objects, and two calls to one address are two names (dryfield_factory, 2026-09-30)
+
+The Dryfield factory's day (stage 2) and night packages are one source. Where
+the code depends on the stage it names both builds' objects:
+`if (stage == 2) table = dayTable; else table = nightTable;`. Each build
+defines its own and reaches the other's at a fixed address. Three things
+follow:
+
+- The two view-sprite routines sit at the same address in both packages, and
+  each package calls them in both arms of a stage test. Calling one symbol in
+  both arms lets GCC merge the arms (the image came out 144 bytes short). The
+  arms have to call two names, `factoryDayShowView9Sprite` and
+  `factoryNightShowView9Sprite`, one defined and one absolute in each package.
+  The fragment defines `factoryShowView9Sprite`, which the library header maps
+  to the build's own name under `FACTORY_NIGHT`.
+- An absolute address of the other build can coincide with an unrelated own
+  object. Night's reference to the day panel descriptor (0x80186E94) is the
+  address of night's own prompt descriptor, so splat printed one name for both
+  and the asm-level symbol pairing between the packages went ambiguous. Align
+  the two packages' C bodies instead, where the references keep distinct
+  names.
+- Two names at one address in a symbol map need `rom:` on the defined one, or
+  splat refuses the duplicate, and `owner=` on the absolute one, or
+  `check_symbols.py` reports the name as naming two things.

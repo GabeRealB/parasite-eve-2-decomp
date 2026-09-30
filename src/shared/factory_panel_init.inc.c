@@ -1,0 +1,34 @@
+/* Part of the factory lift library; see factory_lift.h. */
+
+/// Task callback of the descriptor at `gFactoryPromptDesc`:
+/// allocates the script work block, spawns the room's child task, picks the
+/// global mode byte from game flag 0x48, steps the task on one state and clears
+/// the room's hotspot list.
+void factoryPanelInit(Task* task)
+{
+    FactoryPanelWork* work;
+    OverlayHotspot*   hs;
+
+    work = memCalloc(0x10, 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->spawnArg2.pointer = Task_SpawnFromTable(gFactoryPromptDesc, 0, 1, 0);
+    task->work              = work;
+    task->msgTable          = gFactoryPanelMsgTable;
+    if (GameFlag_GetNibble(0x48) == 0) {
+        Mc_SaveData[0].state.location.loc.view = 0xC;
+    } else {
+        Mc_SaveData[0].state.location.loc.view = 5;
+    }
+    task->state++;
+    Display_AcquireRef();
+    for (hs = gFactoryPanelHotspots; hs->id != -1; hs++) {
+        hs->hit = 0;
+    }
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    gGameSession->eventState   = 1;
+    work->field_8              = 0;
+}

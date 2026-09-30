@@ -49,68 +49,45 @@
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+#include "../../shared/factory_lift.h"
 
-/// The room script task's work block as the prompt-spawning state reads it:
-/// `promptKind` is the display mode forwarded to `func_800D4E78`, read signed.
-typedef struct RoomUtil21Work {
-    /* 0x00 */ byte pad_0[0xE];
-    /* 0x0E */ s8   promptKind;
-} RoomUtil21Work;
-
-extern TaskDesc D_dryfield_factory_80186E88[];
-typedef struct {
-    s32  id;
-    void (*handler)(Task*);
-} FactoryControlMessageEntry;
-STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
-
-extern FactoryControlMessageEntry D_dryfield_factory_80186EA0[2];
-extern OverlayHotspot             D_dryfield_factory_80186EB0[];
-extern SVECTOR                    D_dryfield_factory_80186EF8;
-extern SVECTOR                    D_dryfield_factory_80186F00;
-extern SVECTOR                    D_dryfield_factory_80186F08;
-
-static void func_dryfield_factory_80180A4C(Task* task);
-static void func_dryfield_factory_8018182C(Task* task);
-static void func_dryfield_factory_80181938(Task* task);
-static void func_dryfield_factory_8018196C(Task* task);
-static void func_dryfield_factory_801819BC(Task* task);
-static void func_dryfield_factory_80181A24(Task* task);
-static void func_dryfield_factory_80181AB8(Task* task);
+extern SVECTOR D_dryfield_factory_80186EF8;
+extern SVECTOR D_dryfield_factory_80186F00;
+extern SVECTOR D_dryfield_factory_80186F08;
 
 /// State handlers of the room's script task, run by
-/// `func_dryfield_factory_8018169C`: set-up, prompt arming, the idle hotspot
+/// `factoryPanelRun`: set-up, prompt arming, the idle hotspot
 /// scan, prompt spawning, the prompt state, the exit and the wait for the
 /// message handler's trigger.
-static const TaskFuncTable7 D_dryfield_factory_8017D678 = {
+static const TaskFuncTable7 _gFactoryPanelStates = {
     {
-        func_dryfield_factory_8018182C,
-        func_dryfield_factory_80181938,
-        func_dryfield_factory_80180A4C,
-        func_dryfield_factory_8018196C,
-        func_dryfield_factory_801819BC,
-        func_dryfield_factory_80181A24,
-        func_dryfield_factory_80181AB8,
+        factoryPanelInit,
+        factoryPanelArmPrompt,
+        factoryPanelIdle,
+        factoryPanelOpenPrompt,
+        factoryPanelPrompt,
+        factoryPanelExit,
+        factoryPanelWaitMove,
     },
 };
 
-void func_dryfield_factory_8018169C(Task*);
-void func_dryfield_factory_80181718(Task*);
-void func_dryfield_factory_80181768(Task*);
+void factoryPanelRun(Task*);
+void factoryPromptTask(Task*);
+void factoryPanelTrigger(Task*);
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
-TaskDesc D_dryfield_factory_801826BC[2] = {
-    { 0, 32, func_dryfield_factory_8017DD00, { .model = NULL } },
+TaskDesc gFactoryPanelSessionDesc[2] = {
+    { 0, 32, factoryPanelSpawn, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_factory_801826D4[6] = {
-    { 5102, func_dryfield_factory_8017DB08 },
-    { 5105, func_dryfield_factory_8017DDA0 },
-    { 5104, func_dryfield_factory_8017DDA8 },
-    { 5106, func_dryfield_factory_8017DEA8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_factory_8017DF14 },
+GpMsgEntry gFactoryMsgTable[6] = {
+    { 5102, factoryResolveWarp },
+    { 5105, factoryIgnoreMessage },
+    { 5104, factoryCommand },
+    { 5106, factorySoundCommand },
+    { DIRECTION_MESSAGE_ROOM_ACTION, factoryRoomAction },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -200,7 +177,7 @@ s16* D_dryfield_factory_80186C64[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_factory_80186C68 = { NULL, D_dryfield_factory_80186BF4, D_dryfield_factory_80186C04, D_dryfield_factory_80186C44, D_dryfield_factory_80186C64, -4464, -3949, 1, 1, 4000, 2 };
+GpGridParams gFactoryBarrierTemplate = { NULL, D_dryfield_factory_80186BF4, D_dryfield_factory_80186C04, D_dryfield_factory_80186C44, D_dryfield_factory_80186C64, -4464, -3949, 1, 1, 4000, 2 };
 
 SVECTOR D_dryfield_factory_80186C8C[4] = {
 #include "assets/dryfield_factory_collision_09778_normals.inc"
@@ -224,7 +201,7 @@ s16* D_dryfield_factory_80186D30[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_factory_80186D38 = { NULL, D_dryfield_factory_80186C8C, D_dryfield_factory_80186CAC, D_dryfield_factory_80186CEC, D_dryfield_factory_80186D30, 750, 2191, 1, 2, 4000, 4 };
+GpGridParams gFactoryLiftTemplate = { NULL, D_dryfield_factory_80186C8C, D_dryfield_factory_80186CAC, D_dryfield_factory_80186CEC, D_dryfield_factory_80186D30, 750, 2191, 1, 2, 4000, 4 };
 
 SVECTOR D_dryfield_factory_80186D5C[4] = {
 #include "assets/dryfield_factory_collision_09844_normals.inc"
@@ -248,33 +225,33 @@ s16* D_dryfield_factory_80186DFC[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_factory_80186E04 = { NULL, D_dryfield_factory_80186D5C, D_dryfield_factory_80186D7C, D_dryfield_factory_80186DBC, D_dryfield_factory_80186DFC, 750, 1950, 1, 2, 4000, 4 };
+GpGridParams gFactoryLiftTurnedTemplate = { NULL, D_dryfield_factory_80186D5C, D_dryfield_factory_80186D7C, D_dryfield_factory_80186DBC, D_dryfield_factory_80186DFC, 750, 1950, 1, 2, 4000, 4 };
 
-TaskDesc D_dryfield_factory_80186E28[8] = {
-    { 0, 192, func_dryfield_factory_8017FC18, { .model = NULL } },
-    { 0, 192, func_dryfield_factory_801807DC, { .model = NULL } },
-    { 0, 192, func_dryfield_factory_80180920, { .model = NULL } },
-    { 0, 192, func_dryfield_factory_8017FDDC, { .model = NULL } },
-    { TASK_BODY_TMD, 192, func_dryfield_factory_8018072C, { .model = &D_dryfield_factory_801867B0 } },
-    { TASK_BODY_COORD, 192, func_dryfield_factory_8018001C, { .model = NULL } },
-    { 0, 192, func_dryfield_factory_80180964, { .model = NULL } },
-    { TASK_BODY_TMD, 192, func_dryfield_factory_80180784, { .model = &D_dryfield_factory_80186BD0 } },
+TaskDesc gFactoryDaySpawnTable[8] = {
+    { 0, 192, factoryPowerScene, { .model = NULL } },
+    { 0, 192, factoryLampScene, { .model = NULL } },
+    { 0, 192, factoryCapScene, { .model = NULL } },
+    { 0, 192, factoryWhiteoutScene, { .model = NULL } },
+    { TASK_BODY_TMD, 192, factoryLiftRun, { .model = &D_dryfield_factory_801867B0 } },
+    { TASK_BODY_COORD, 192, factoryBarrierCollision, { .model = NULL } },
+    { 0, 192, factoryHatchScene, { .model = NULL } },
+    { TASK_BODY_TMD, 192, factoryHatchRun, { .model = &D_dryfield_factory_80186BD0 } },
 };
 
-TaskDesc D_dryfield_factory_80186E88[1] = {
-    { 0, 192, func_dryfield_factory_80181718, { .model = NULL } },
+TaskDesc gFactoryPromptDesc[1] = {
+    { 0, 192, factoryPromptTask, { .model = NULL } },
 };
 
-TaskDesc D_dryfield_factory_80186E94[1] = {
-    { 0, 192, func_dryfield_factory_8018169C, { .model = NULL } },
+TaskDesc gFactoryDayPanelDesc[1] = {
+    { 0, 192, factoryPanelRun, { .model = NULL } },
 };
 
-FactoryControlMessageEntry D_dryfield_factory_80186EA0[2] = {
-    { 5107, func_dryfield_factory_80181768 },
+FactoryControlMessageEntry gFactoryPanelMsgTable[2] = {
+    { 5107, factoryPanelTrigger },
     { 0x7FFFFFFF, NULL },
 };
 
-OverlayHotspot D_dryfield_factory_80186EB0[6] = {
+OverlayHotspot gFactoryPanelHotspots[6] = {
     { -68, -63, 16, 16, 0, 1, 0 },
     { -27, -63, 16, 16, 1, 1, 0 },
     { 13, -63, 16, 16, 2, 1, 0 },
@@ -290,8 +267,8 @@ SVECTOR D_dryfield_factory_80186F00 = { 5910, -1308, 5649, 0 };
 SVECTOR D_dryfield_factory_80186F08 = { 5910, -1404, 5649, 0 };
 
 GpRoomObjRec D_dryfield_factory_80186F10[2] = {
-    { &D_dryfield_factory_80187BF8, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
-    { &D_dryfield_factory_80187BF8, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
+    { &gFactoryDayGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
+    { &gFactoryDayGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
 };
 
 u8 D_dryfield_factory_80186F30[20] = {
@@ -338,357 +315,39 @@ GpWarpRec D_dryfield_factory_80186F60[3] = {
     { { .words = { 3072, 5445, 0, 6866 } }, { 0, 0, 0, 0 }, { .words = { 2048, 5420, 0, 6000 } }, { 0, 0, 0, 0 }, 0x52170014, 0x52170006, 0, 6, 2, 473 },
 };
 
-static void func_dryfield_factory_80180DE8(Task* task, s16 step);
-
-/// Idle state of the room's script task. It counts down the delay the prompt
-/// state armed and, once that is spent and no cap is playing, hit-tests the
-/// room's hotspots under the cursor: a confirmed hit copies the hotspot's `id`
-/// and `promptKind` into the work block and advances to state 3, and the
-/// cancel button leaves for state 5.
-static void func_dryfield_factory_80180A4C(Task* task)
-{
-    RoomActionPrompt*       prompt = D_80114D28;
-    OverlayHotspot*         hs     = D_dryfield_factory_80186EB0;
-    NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->work;
-
-    gGameSession->hideHud    = 1;
-    gGameSession->eventState = 1;
-    if (st->field_8 != 0) {
-        st->field_8 = st->field_8 - 1;
-    }
-    if ((Gp_CapBusy() != 0) || (st->field_8 != 0)) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
-        return;
-    }
-    prompt->targetId = 0x80;
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
-        if (prompt->buttons.slots[0].state == 2) {
-            for (; hs->id != -1; hs++) {
-                if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    st->field_C      = hs->id;
-                    st->field_E      = hs->promptKind;
-                    task->state      = 3;
-                    return;
-                }
-            }
-        }
-    } else {
-        prompt->mode = 1;
-    }
-    if (prompt->buttons.slots[1].state == 2) {
-        task->state = 5;
-    }
-}
+#include "../../shared/factory_panel_idle.inc.c"
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-static void func_dryfield_factory_80180DE8(Task* task, s16 step)
-{
-    s32 id;
-    s32 state;
-
-    if (GameFlag_GetNibble(0x48) != 0) {
-        switch (step) {
-            case 0:
-                id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
-                    id = 0x52170000;
-                }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
-                if (!(GameFlag_GetNibble(0x49) & 2)) {
-                    GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) | 2);
-                    if (GameFlag_GetNibble(0x47) == 0) {
-                        Mc_SaveData[0].state.location.loc.view = 0x12;
-                    } else {
-                        Mc_SaveData[0].state.location.loc.view = 0x13;
-                    }
-                    state = 6;
-                } else {
-                    Gp_StartCapSlot(8, 0, 0);
-                    state = 2;
-                }
-                task->state = state;
-                break;
-            case 1:
-                id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
-                    id = 0x52170000;
-                }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
-                if (GameFlag_GetNibble(0x49) & 2) {
-                    GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) & ~2);
-                    if (GameFlag_GetNibble(0x47) == 0) {
-                        Mc_SaveData[0].state.location.loc.view = 0x12;
-                    } else {
-                        Mc_SaveData[0].state.location.loc.view = 0x13;
-                    }
-                    state = 6;
-                } else {
-                    Gp_StartCapSlot(9, 0, 0);
-                    state = 2;
-                }
-                task->state = state;
-                break;
-            case 2:
-                id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
-                    id = 0x52170000;
-                }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
-                GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) ^ 1);
-                if (GameFlag_GetNibble(0x47) == 0) {
-                    Mc_SaveData[0].state.location.loc.view = 0x12;
-                } else {
-                    Mc_SaveData[0].state.location.loc.view = 0x13;
-                }
-                state       = 6;
-                task->state = state;
-                break;
-            case 3:
-                Gp_StartCapSlot(6, 0, 1);
-                state       = 2;
-                task->state = state;
-                break;
-            case 4:
-                Gp_StartCapSlot(7, 0, 0);
-                state       = 2;
-                task->state = state;
-                break;
-        }
-    } else {
-        switch (step) {
-            case 0:
-                id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
-                    id = 0x52170000;
-                }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
-                Gp_StartCapSlot(8, 0, 0);
-                break;
-            case 1:
-                id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
-                    id = 0x52170000;
-                }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
-                Gp_StartCapSlot(9, 0, 0);
-                break;
-            case 2:
-                id = 0x53170000;
-                if (gGameSession->location.loc.stage == 2) {
-                    id = 0x52170000;
-                }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
-                Gp_StartCapSlot(0xA, 0, 0);
-                break;
-            case 3:
-                Gp_StartCapSlot(6, 0, 0);
-                break;
-            case 4:
-                Gp_StartCapSlot(7, 0, 0);
-                break;
-        }
-        task->state = 2;
-    }
-}
+#include "../../shared/factory_panel_run_step.inc.c"
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-/// Sets the skip-link byte on the second sprite command of view 9 for the
-/// current room. `arg0` zero skips OT-linking (`field_4` = 1); non-zero draws
-/// it. No-op unless `GameSession.location.loc.stage` is 2.
-void func_dryfield_factory_80181620(s32 arg0)
-{
-    GameSession*     g;
-    GameLocationKey* sess;
-    SpriteBatch*     batches;
+#include "../../shared/factory_show_view9_sprite.inc.c"
 
-    g    = gGameSession;
-    sess = &g->location.loc;
-    if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][8].field_4;
-        if (!(arg0 & 0xFF)) {
-            batches[1].hidden = 1;
-            return;
-        }
-        batches[1].hidden = 0;
-    }
-}
+#include "../../shared/factory_panel_run.inc.c"
 
-/// Runs the room script task's current state. The seven handlers are copied
-/// onto the stack first, so the call goes through a local table rather than
-/// through `.rodata`.
-void func_dryfield_factory_8018169C(Task* task)
-{
-    TaskFuncTable7 sp;
+#include "../../shared/factory_prompt_task.inc.c"
 
-    sp = D_dryfield_factory_8017D678;
-    sp.funcs[task->state](task);
-}
-
-void func_dryfield_factory_80181718(Task* task)
-{
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
-
-    states[task->state](task);
-}
-
-/// Message 0x13F3 handler of the room's script task: raises the one-shot
-/// trigger `field_A` in its work block, which the script's wait state consumes.
-void func_dryfield_factory_80181768(Task* task)
-{
-    ((NightFactoryScriptWork*)task->work)->field_A = 1;
-}
+#include "../../shared/factory_panel_trigger.inc.c"
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// State 0 of the room's script task: allocates its work block, spawns the
-/// child task, publishes the script's message table, picks the global mode
-/// byte from game flag 0x48, advances, and clears the hotspot hits while
-/// holding the HUD for the cutscene.
-static void func_dryfield_factory_8018182C(Task* task)
-{
-    NightFactoryScriptWork* work;
-    OverlayHotspot*         hs;
+#include "../../shared/factory_panel_init.inc.c"
 
-    work = memCalloc(0x10, 0);
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    task->spawnArg2.pointer = Task_SpawnFromTable(D_dryfield_factory_80186E88, 0, 1, 0);
-    task->work              = work;
-    task->msgTable          = D_dryfield_factory_80186EA0;
-    if (GameFlag_GetNibble(0x48) == 0) {
-        Mc_SaveData[0].state.location.loc.view = 0xC;
-    } else {
-        Mc_SaveData[0].state.location.loc.view = 5;
-    }
-    task->state++;
-    Display_AcquireRef();
-    for (hs = D_dryfield_factory_80186EB0; hs->id != -1; hs++) {
-        hs->hit = 0;
-    }
-    gGameSession->cutsceneHold = 1;
-    gGameSession->hideHud      = 1;
-    gGameSession->eventState   = 1;
-    work->field_8              = 0;
-}
+#include "../../shared/factory_panel_arm_prompt.inc.c"
 
-/// Arms the action prompt for a hotspot and steps the caller's script on one
-/// state: marks the prompt as highlighted (`mode` 1) for the fixed target id
-/// 0x80 and resets the on-screen position, which `func_800D4E78` fills in again
-/// when the prompt is actually spawned.
-static void func_dryfield_factory_80181938(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
+#include "../../shared/factory_panel_open_prompt.inc.c"
 
-    prompt->targetId    = 0x80;
-    prompt->mode        = 1;
-    prompt->screen.xy.x = 0;
-    prompt->screen.xy.y = 0;
-    task->state         = task->state + 1;
-}
+#include "../../shared/factory_panel_prompt.inc.c"
 
-/// Spawns the action prompt for the script's current step: clears the prompt's
-/// highlight state, then re-spawns it at the coordinates the gameplay side left
-/// in `D_80114D28` with the display mode this state picked.
-static void func_dryfield_factory_8018196C(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    RoomUtil21Work*   work   = (RoomUtil21Work*)task->work;
+#include "../../shared/factory_panel_exit.inc.c"
 
-    prompt->mode     = 0;
-    prompt->targetId = 0;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
-}
+#include "../../shared/factory_panel_wait_move.inc.c"
 
-/// Prompt state of the room's script task: clears the cursor highlight and,
-/// while `func_800D4EC0` still reports a prompt on screen, runs the cap step
-/// the work block names; otherwise it returns to the idle state 2. Either way
-/// it re-arms the idle state's delay.
-static void func_dryfield_factory_801819BC(Task* task)
-{
-    NightFactoryScriptWork* work = (NightFactoryScriptWork*)task->work;
-
-    D_80114D28[0].mode     = 0;
-    D_80114D28[0].targetId = 0;
-    if (func_800D4EC0() != 0) {
-        func_dryfield_factory_80180DE8(task, work->field_C);
-    } else {
-        task->state = 2;
-    }
-    work->field_8 = 0xA;
-}
-
-static void func_dryfield_factory_80181A24(Task* arg0)
-{
-    D_80114D08 = 0xA;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
-    Gp_MsgAlly3F3(1);
-    Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 3;
-    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill((Task*)arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, 0);
-}
-
-/// Wait state of the room's script task: once the one-shot trigger `field_A`
-/// has been raised by the script's message handler, picks the global mode
-/// byte from game flag 0x48, re-arms the idle delay, consumes the trigger and
-/// returns the script to its idle state 2.
-static void func_dryfield_factory_80181AB8(Task* task)
-{
-    RoomActionPrompt*       prompt;
-    NightFactoryScriptWork* work;
-
-    prompt           = D_80114D28;
-    work             = (NightFactoryScriptWork*)task->work;
-    prompt->targetId = 0;
-    prompt->mode     = 0;
-    if (work->field_A != 0) {
-        if (GameFlag_GetNibble(0x48) == 0) {
-            Mc_SaveData[0].state.location.loc.view = 0xC;
-        } else {
-            Mc_SaveData[0].state.location.loc.view = 5;
-        }
-        work->field_8 = 0xA;
-        work->field_A = 0;
-        task->state   = 2;
-    }
-}
-
-/// Sets the skip-link byte on the second sprite command of view 11 for the
-/// current room. `arg0` zero skips OT-linking (`field_4` = 1); non-zero draws
-/// it. No-op unless `GameSession.location.loc.stage` is 2.
-void func_dryfield_factory_80181B38(s32 arg0)
-{
-    GameSession*     g;
-    GameLocationKey* sess;
-    SpriteBatch*     batches;
-
-    g    = gGameSession;
-    sess = &g->location.loc;
-    if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][10].field_4;
-        if (!(arg0 & 0xFF)) {
-            batches[1].hidden = 1;
-            return;
-        }
-        batches[1].hidden = 0;
-    }
-}
+#include "../../shared/factory_show_view11_sprite.inc.c"
 
 #include "../../shared/action_prompt_reset.inc.c"
 
