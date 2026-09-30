@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_350500.
 D_actor_350500_80168EA4 = 0x80168EA4; // size:0xC defined:True
-D_actor_350500_80168EB0 = 0x80168EB0; // size:0x30 defined:True
+gReverseWalkMessages = 0x80168EB0; // size:0x30 defined:True
 D_actor_350500_80162AF8 = 0x80162AF8; // size:0x2AC defined:True
 D_actor_350500_80162DA4 = 0x80162DA4; // size:0x4C defined:True
 D_actor_350500_80162DF0 = 0x80162DF0; // size:0x9C0 defined:True
@@ -32,3 +32,14 @@ gActorMotionAnimBanks19 = 0x80168EA0; // size:0x4 defined:True
 actorMotionArrive19 = 0x80162038; // type:func
 actorMotionPlayAnim19 = 0x80162828; // type:func
 actorMsgPlaceEuler = 0x80162960; // type:func
+reverseWalkUpdate = 0x80161E50; // type:func
+reverseWalkStartMsg = 0x8016217C; // type:func
+reverseWalkSpawn = 0x801623CC; // type:func
+reverseWalkFaceTarget = 0x80162508; // type:func
+reverseWalkBeginMove = 0x801625E4; // type:func
+reverseWalkTurnToYaw = 0x8016272C; // type:func
+reverseWalkVisibilityMsg = 0x801629DC; // type:func
+reverseWalkIdle = 0x80162498; // type:func
+reverseWalkRunStep = 0x801624A0; // type:func
+reverseWalkBindLighting = 0x8016247C; // type:func
+reverseWalkExit = 0x8016245C; // type:func

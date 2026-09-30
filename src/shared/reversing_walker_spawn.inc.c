@@ -1,0 +1,32 @@
+/* Part of the reversing walker library; see reversing_walker.h. */
+
+/// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
+/// every later handler reads through `Task::work`, seeds the three -1 bytes
+/// and three cleared words the work's own init expects, republishes the light
+/// and colour matrices onto the display object, then installs the message
+/// table and the exit handler. An allocation failure ends the task instead of
+/// leaving a half-built actor behind.
+void reverseWalkSpawn(Task* arg0)
+{
+    Actor350500Work* work;
+
+    work = memCalloc(sizeof(Actor350500Work), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+
+    arg0->work          = work;
+    work->model.animId  = -1;
+    work->model.bank    = -1;
+    work->freeCountdown = -1;
+    work->walk.acc[0].w = 0;
+    work->walk.acc[1].w = 0;
+    work->walk.acc[2].w = 0;
+
+    reverseWalkBindLighting(arg0);
+
+    arg0->msgTable     = gReverseWalkMessages;
+    arg0->exitCallback = reverseWalkExit;
+    arg0->state       += 1;
+}

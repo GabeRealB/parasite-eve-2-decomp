@@ -33,11 +33,7 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/model_placement.h"
-
-/// Optional start animation for the same handler: the preset's `field_4`
-/// and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2 once
-/// `field_4C4` is set) and 1.
-typedef GpSpawnAnimArg Actor350700SpawnAnim;
+#include "../../shared/reversing_walker.h"
 
 /// Animation bank tables of the enemy actor and of the parent block.
 extern AnimationSet*  D_actor_350700_80169CF8[5];
@@ -46,7 +42,7 @@ extern AnimationSet*  D_actor_350700_801708C0[6];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_350700_80162404`; terminator id 0x7FFFFFFF.
+/// `reverseWalkSpawn`; terminator id 0x7FFFFFFF.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -56,13 +52,13 @@ typedef struct {
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, ActorCommand* request);
         s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, ActorTransform*, Actor350700SpawnAnim*);
+        s32 (*call4)(Task*, s32, ActorTransform*, GpSpawnAnimArg*);
         s32 (*call5)(Task*, s32, s32);
     } handler;
 } Actor350700MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor350700MsgEntry, 8);
 
-extern Actor350700MsgEntry D_actor_350700_80169D1C[];
+extern Actor350700MsgEntry gReverseWalkMessages[];
 
 /// The `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks from,
 /// and the message table it points the parent's `Task::msgTable` at: ids
@@ -71,15 +67,6 @@ extern Actor350700MsgEntry D_actor_350700_80169D1C[];
 extern TaskDesc            D_actor_350700_801708DC[];
 extern Actor350700MsgEntry D_actor_350700_8017090C[];
 
-static void func_actor_350700_80161E88(Task* arg0);
-static void func_actor_350700_80162404(Task* arg0);
-static void func_actor_350700_80162494(Task* arg0);
-static void func_actor_350700_801624B4(Task* arg0);
-static void func_actor_350700_801624D0(Task* arg0);
-static void func_actor_350700_801624D8(Task* arg0);
-static void func_actor_350700_80162540(Task* task);
-static void func_actor_350700_8016261C(Task* arg0);
-static void func_actor_350700_80162764(Task* arg0);
 static void func_actor_350700_80162B30(Task* arg0);
 static void func_actor_350700_80162D5C(Task* arg0);
 static void func_actor_350700_80163348(Task* task);
@@ -92,24 +79,24 @@ static void func_actor_350700_80163528(Task* task);
 /// Spawn, tick and exit handlers of the enemy actor, dispatched by
 /// `func_actor_350700_80162398`.
 static const TaskFuncTable3 D_actor_350700_80161E24 = { {
-    func_actor_350700_80162404,
-    func_actor_350700_80161E88,
-    func_actor_350700_80162494,
+    reverseWalkSpawn,
+    reverseWalkUpdate,
+    reverseWalkExit,
 } };
 
 /// Tick handlers of the enemy actor, indexed by `Actor350500Work::walk.motionStep`:
 /// turn to face `target`, start moving, approach until arrival, then turn to
 /// the placement yaw.
 static const TaskFuncTable4 D_actor_350700_80161E30 = { {
-    func_actor_350700_80162540,
-    func_actor_350700_8016261C,
+    reverseWalkFaceTarget,
+    reverseWalkBeginMove,
     actorMotionArrive19,
-    func_actor_350700_80162764,
+    reverseWalkTurnToYaw,
 } };
 
-/// The constant local-space offset `func_actor_350700_8016261C` rotates:
+/// The constant local-space offset `reverseWalkBeginMove` rotates:
 /// straight ahead along the part's own +Z.
-static const VECTOR D_actor_350700_80161E40 = { 0, 0, 0x200000, 0 };
+static const VECTOR _gReverseWalkForward = { 0, 0, 0x200000, 0 };
 
 /// Spawn, tick and exit handlers of the child part tasks, dispatched by
 /// `func_actor_350700_80163274`.
@@ -151,8 +138,6 @@ s32              func_actor_350700_8016395C(void);
 void             func_actor_350700_80163274(Task*);
 void             func_actor_350700_80163350(Task*);
 
-s32  func_actor_350700_801621B4(Task*, s32, ActorTransform* place, Actor350700SpawnAnim*);
-s32  func_actor_350700_80162A14(Task*, s32, s32);
 s32  func_actor_350700_80162AF4(Task*, s32, ActorCommand* msg);
 void func_actor_350700_80162398(Task*);
 
@@ -290,11 +275,11 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_350700_80169D10 = { (TASK_BODY_TMD | 0x100), 192, func_actor_350700_80162398, { .model = &D_actor_350700_801686C8 } };
 
-Actor350700MsgEntry D_actor_350700_80169D1C[6] = {
+Actor350700MsgEntry gReverseWalkMessages[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },
     { 2004, { .call3 = actorMsgPlaceEuler } },
-    { 2005, { .call5 = func_actor_350700_80162A14 } },
-    { 2013, { .call4 = func_actor_350700_801621B4 } },
+    { 2005, { .call5 = reverseWalkVisibilityMsg } },
+    { 2013, { .call4 = reverseWalkStartMsg } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_350700_80162AF4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -565,123 +550,11 @@ Actor350700MsgEntry D_actor_350700_8017090C[6] = {
     { 2011, { .call0 = func_actor_350700_8016395C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
-/// the counter at `walk.motion` indexes, then integrates the local-space `step`
-/// into the 16.16 accumulators at `walk.acc`, adds their high halves to the
-/// root coordinate's translation and truncates them back to 16 bits. Ticks the
-/// animation slots while `model.ticking` is set, and -- unless the display object's
-/// `flags` carry 0x80 -- draws the ground-shadow quad from the second
-/// part's world matrix, clears that part's `composeStamp` and rebuilds its coordinate.
-/// The `freeCountdown` countdown then runs while it is non-negative, freeing the
-/// model buffers on the frame it reaches zero; the init's -1 disables it.
-static void func_actor_350700_80161E88(Task* arg0)
-{
-    TmdObject*       ext      = arg0->extra.tmd;
-    Actor350500Work* work     = (Actor350500Work*)arg0->work;
-    TaskFunc         funcs[2] = { func_actor_350700_801624D0, func_actor_350700_801624D8 };
-    VECTOR3          pos;
-    GfxCoord*        coord;
-    s32              i;
-
-    funcs[(s16)work->walk.motion](arg0);
-    coord                = arg0->extra.tmd->coords;
-    work->walk.acc[0].w += work->walk.step.vx;
-    work->walk.acc[1].w += work->walk.step.vy;
-    work->walk.acc[2].w += work->walk.step.vz;
-    coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
-    coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
-    coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
-    work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
-    work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
-    if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-    }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
-        }
-        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
-    }
-    if (work->freeCountdown >= 0) {
-        if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
-        }
-        work->freeCountdown--;
-    }
-}
+#include "../../shared/reversing_walker_update.inc.c"
 
 #include "../../shared/actor_motion_arrive19.inc.c"
 
-/// Spawn-placement message handler: seeds the work block's position and
-/// rotation from `place`, picks the start animation from `anim` (or anim 3,
-/// 2 once `field_4C4` is set) and installs it with the body of
-/// `actorMotionPlayAnim19` written out inline. Returns 0.
-s32 func_actor_350700_801621B4(Task* task, s32 arg1, ActorTransform* place, Actor350700SpawnAnim* anim)
-{
-    Actor350500Work*      work;
-    Actor350500Work*      w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
-
-    w                   = (Actor350500Work*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
-    } else {
-        if (w->field_4C4 != 0) {
-            preset.animationId = 2;
-        } else {
-            preset.animationId = 3;
-        }
-        w->model.nextAnimId = 1;
-    }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-    msg  = &preset;
-    work = (Actor350500Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/reversing_walker_start.inc.c"
 
 /// Per-frame dispatcher of the enemy actor: runs its spawn, tick or exit state
 /// from `D_actor_350700_80161E24`, skipping the frame while the global freeze
@@ -696,39 +569,10 @@ void func_actor_350700_80162398(Task* task)
     }
 }
 
-/// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
-/// every later handler reads through `Task::work`, seeds the three -1 bytes
-/// and three cleared words the work's own init expects, republishes the light
-/// and colour matrices onto the display object, then installs the message
-/// table and the exit handler. An allocation failure ends the task instead of
-/// leaving a half-built actor behind.
-static void func_actor_350700_80162404(Task* arg0)
-{
-    Actor350500Work* work;
+#include "../../shared/reversing_walker_spawn.inc.c"
 
-    work = memCalloc(sizeof(Actor350500Work), false);
-    if (work == NULL) {
-        Gp_EnemyTaskExit(arg0);
-        return;
-    }
-
-    arg0->work          = work;
-    work->model.animId  = -1;
-    work->model.bank    = -1;
-    work->freeCountdown = -1;
-    work->walk.acc[0].w = 0;
-    work->walk.acc[1].w = 0;
-    work->walk.acc[2].w = 0;
-
-    func_actor_350700_801624B4(arg0);
-
-    arg0->msgTable     = D_actor_350700_80169D1C;
-    arg0->exitCallback = func_actor_350700_80162494;
-    arg0->state       += 1;
-}
-
-/// Exit callback `func_actor_350700_80162404` installs; tears the task down.
-static void func_actor_350700_80162494(Task* arg0)
+/// Exit callback `reverseWalkSpawn` installs; tears the task down.
+void reverseWalkExit(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
@@ -736,7 +580,7 @@ static void func_actor_350700_80162494(Task* arg0)
 /// Republishes the enemy work block's two matrices onto
 /// `TmdObject::lightMtx` / `colorMtx`, so the actor draws with its own
 /// lighting.
-static void func_actor_350700_801624B4(Task* arg0)
+void reverseWalkBindLighting(Task* arg0)
 {
     TmdObject*       ext;
     Actor350500Work* work;
@@ -748,13 +592,13 @@ static void func_actor_350700_801624B4(Task* arg0)
 }
 
 /// Tick handler 0 of the enemy actor, selected by `walk.motion`: idle.
-static void func_actor_350700_801624D0(Task* arg0)
+void reverseWalkIdle(Task* arg0)
 {
 }
 
 /// Tick handler 1 of the enemy actor: runs the state handler of
 /// `D_actor_350700_80161E30` that `walk.motionStep` selects.
-static void func_actor_350700_801624D8(Task* arg0)
+void reverseWalkRunStep(Task* arg0)
 {
     TaskFuncTable4   sp;
     Actor350500Work* work;
@@ -764,168 +608,17 @@ static void func_actor_350700_801624D8(Task* arg0)
     sp.funcs[(s16)work->walk.motionStep](arg0);
 }
 
-/// State handler at index 0 of `D_actor_350700_80161E30`: turns the root part
-/// toward `work->walk.target`, taking the yaw of the normalised offset from the
-/// part's own translation with `ratan2` -- turned half a revolution away while
-/// `field_4C4` is clear -- and rebuilding the local matrix from that yaw alone.
-/// Clearing `composeStamp` makes the coordinate tree recompute the world matrix, and
-/// bumping `walk.motionStep` moves on to the next handler.
-static void func_actor_350700_80162540(Task* task)
-{
-    Actor350500Work* work;
-    GfxCoord*        coord;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
+#include "../../shared/reversing_walker_face.inc.c"
 
-    work  = (Actor350500Work*)task->work;
-    coord = task->extra.tmd->coords;
+#include "../../shared/reversing_walker_move.inc.c"
 
-    delta.vx = work->walk.target.vx - coord->coord.t[0];
-    delta.vy = work->walk.target.vy - coord->coord.t[1];
-    delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
-
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
-    if (work->field_4C4 == 0) {
-        rot.vy += 0x7FF;
-    }
-
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->walk.motionStep++;
-}
-
-/// State handler at index 1 of `D_actor_350700_80161E30`, the move body that
-/// mirrors the parent's `func_actor_350700_80163528`: rotates the constant local-space offset
-/// `D_actor_350700_80161E40` through the root part's matrix into `work->walk.step`,
-/// opens the per-axis stop threshold to 0x7FFF, which disables it for the
-/// update loop, and advances `walk.motionStep` so the dispatcher runs the next
-/// handler. Where the parent's step rotates its offset unchanged, this one
-/// shrinks it to -0.4 of its length whenever `field_4C4` is clear.
-static void func_actor_350700_8016261C(Task* arg0)
-{
-    Actor350500Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
-
-    coord = arg0->extra.tmd->coords;
-    work  = (Actor350500Work*)arg0->work;
-
-    vec = D_actor_350700_80161E40;
-    if (work->field_4C4 == 0) {
-        vec.vx = vec.vx * -0.4;
-        vec.vy = vec.vy * -0.4;
-        vec.vz = vec.vz * -0.4;
-    }
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
-    work->walk.limit.vx = 0x7FFF;
-    work->walk.limit.vy = 0x7FFF;
-    work->walk.limit.vz = 0x7FFF;
-    work->walk.motionStep++;
-}
-
-/// State handler at index 3 of `D_actor_350700_80161E30`, the turn-to-face body
-/// that follows `func_actor_350700_80162540`. Euler-extracts the root coordinate into
-/// `vec`, and while the yaw gap to the target `work->walk.rotY` is at least
-/// 0x61 it steps `vec.vy` toward it by 0x60 -- the step is taken on an `s32`
-/// widening of the extracted yaw -- and otherwise snaps the yaw to the target
-/// and plays anim 0x7D3, clearing the two body counters. Either way the root
-/// coordinate is rebuilt as the identity matrix rotated by `vec`, which
-/// `_gpUpdateCoordTree` picks up once `composeStamp` is cleared.
-static void func_actor_350700_80162764(Task* arg0)
-{
-    Actor350500Work*     work;
-    GpMtxWords*          words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
-
-    coord = arg0->extra.tmd->coords;
-    work  = (Actor350500Work*)arg0->work;
-
-    Gp_ExtractEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
-    if (ABS(diff) >= 0x61) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x60;
-        } else {
-            vec.vy = vy + 0x60;
-        }
-    } else {
-        vec.vy                      = work->walk.rotY;
-        preset.source.index         = 0;
-        preset.animationId          = 1;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 4;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
-        work->walk.motion     = 0;
-        work->walk.motionStep = 0;
-    }
-
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/reversing_walker_turn.inc.c"
 
 #include "../../shared/actor_motion_play19.inc.c"
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
-/// message's mode word, run against the `TmdObject` parked in `Task::extra`.
-/// Mode 0 sets the 0x80 flag, under which the tick skips the shadow and the
-/// part update, and clears the 4 flag; 1 clears 0x80, allocates the model
-/// buffers and clears 4; 2 sets 0x80 and 4 and latches the mode into the
-/// `freeCountdown` countdown, which frees the buffers when it runs out; 3 clears
-/// 0x80 and sets 4. Anything else returns 1 and leaves the object alone; the
-/// handled modes return 0.
-s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
-{
-    TmdObject* obj;
-    s32        ret;
-
-    obj = task->extra.tmd;
-    ret = 0;
-    switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        case 2:
-            obj->flags                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor350500Work*)task->work)->freeCountdown = mode;
-            obj->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        default:
-            ret = 1;
-            break;
-    }
-    return ret;
-}
+#include "../../shared/reversing_walker_visibility.inc.c"
 
 /// `Gp_DispatchMsg` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
@@ -1132,7 +825,7 @@ void func_actor_350700_80163350(Task* task)
 }
 
 /// Exit callback `func_actor_350700_80162B30` installs, the same
-/// `Gp_EnemyTaskExit` teardown `func_actor_350700_80162494` performs.
+/// `Gp_EnemyTaskExit` teardown `reverseWalkExit` performs.
 static void func_actor_350700_801633BC(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
@@ -1208,7 +901,7 @@ static void func_actor_350700_80163528(Task* task)
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`,
 /// then the resulting flags are republished onto the objects of the three
 /// child tasks the spawn handler parked at `child0` / `child1` /
-/// `child2`. The modes are those of `func_actor_350700_80162A14`, the
+/// `child2`. The modes are those of `reverseWalkVisibilityMsg`, the
 /// countdown mode 2 latches being `freeCountdown`. Anything else returns 1 and
 /// leaves the object alone; the handled modes return 0.
 s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode)
