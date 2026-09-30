@@ -2378,7 +2378,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_control_room/shelter_b1_control_room", rodata = "0x4", text = "0x40", data = "0x45C8" },
   { unit = "shelter_b1_control_room/shelter_b1_control_room_2", rodata = "0x10", text = "0x1964", data = "0x45FC" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_3", rodata = "0x2C", text = "0x29C0" },
+  { unit = "shelter_b1_control_room/shelter_b1_control_room_3", rodata = "0x2C", text = "0x29C0", data = "0x46A4" },
   { kind = "collision", at = "0x4760", in_c = true },
   { kind = "collisionSource", at = "0x4B38", in_c = true },
 ]
