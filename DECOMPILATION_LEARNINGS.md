@@ -34378,7 +34378,7 @@ lifetimes and the subtract in `$v0`:
 ```c
 register void** scratch asm("v1");
 register T*     tmp asm("v0");
-register s32    blend asm("v1");
+register s32    currentWeight asm("v1");
 register Packed* p asm("v1");
 
 scratch  = SCRATCH_STACK_CURSOR_SLOT;
@@ -34388,7 +34388,7 @@ tmp -= 1;
 ```
 
 `tmp -= 1` on the 0x80-byte struct is `addiu v0, v0, -0x80` / `sw v0, 0(v1)`;
-the copy into `$s0` fills the `beq currentPose, nextPose` delay. Pin `blend` so
+the copy into `$s0` fills the `beq currentPose, nextPose` delay. Pin `currentWeight` so
 `lh v1, timeLeft` / `div v1, v0` / `mflo v1` and the nextWeight phi stay in
 `$v0`. Pin `p` so each bitfield extract is `lw v0, 0(v1)` instead of
 reloading the pointer from `$s1`. `_animationBlendPackedRotation` is the example.
@@ -36052,7 +36052,7 @@ Same `+r` pin as `func_8009AA5C`. `Gp_ExtractEuler` is the example.
 `scratch->nextWeight = inv; gte_lddp(scratch->currentWeight); ... gte_lddp(scratch->nextWeight)` CSEs
 `inv` in `$v0`: the `sw 0x7C` sinks into the blend `lw` delay and the
 second `mtc2` uses `$v0` instead of `lw 0x7C`. The target stores
-`invBlend` at the join, then reloads both weights:
+`nextWeight` at the join, then reloads both weights:
 
 ```
 sw     v0, 0x7C(s0)
@@ -36066,7 +36066,7 @@ mtc2   t0, $8
 ```
 
 `inv` must stay in `$v0` across the join (equal path is `li v0, 0x1000` /
-`sw zero, blend`). Clobber memory after the store so both `gte_lddp`s
+`sw zero, currentWeight`). Clobber memory after the store so both `gte_lddp`s
 load from the struct:
 
 ```c

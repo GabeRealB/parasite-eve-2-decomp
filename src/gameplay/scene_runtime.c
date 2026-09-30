@@ -121,16 +121,24 @@ typedef struct {
 } _AnimationBlendRequest;
 STATIC_ASSERT_SIZEOF(_AnimationBlendRequest, 0x14);
 
-/// Temporary vectors, matrices and 12-bit weights for blending one model part's pose.
+/// Scratch-stack workspace for blending one model part's pose.
+///
+/// Both decoders reserve it uninitialized for that call and release it before
+/// returning. Rotations are Euler angles in 4096 units per turn. The current
+/// weight is the remaining segment time divided by the segment length, in
+/// 1/4096 units, and the next weight is `ONE` minus that. Identical endpoint
+/// addresses instead use 0 and `ONE`. A rotation-only blend does not read
+/// `translation`. Matrices are used only when an endpoint is buffered, and
+/// only their 3x3 rotations are read.
 typedef struct {
-    SVECTOR translation;     // Blended local translation
-    SVECTOR currentRotation; // Current pose's Euler angles
-    SVECTOR nextRotation;    // Next pose's angles, overwritten by the blended result
-    MATRIX  currentMatrix;   // Current pose's rotation matrix
-    MATRIX  nextMatrix;      // Next pose's rotation matrix
-    MATRIX  deltaMatrix;     // Relative rotation and its weighted result
-    s32     currentWeight;   // Current pose's weight, in units of 1/4096
-    s32     nextWeight;      // Next pose's weight, in units of 1/4096
+    SVECTOR translation;     // Blended local translation, in model integer units
+    SVECTOR currentRotation; // Current endpoint's Euler angles, in 1/4096 turns
+    SVECTOR nextRotation;    // Next endpoint's angles, then the blended result, in 1/4096 turns
+    MATRIX  currentMatrix;   // Current endpoint's rotation on the buffered path
+    MATRIX  nextMatrix;      // Next endpoint's rotation, when refreshing the relative rotation
+    MATRIX  deltaMatrix;     // Relative rotation, then the composed rotation if the coordinate stays unchanged
+    s32     currentWeight;   // Current endpoint's weight, in 1/4096 units
+    s32     nextWeight;      // Next endpoint's weight, `ONE` minus `currentWeight`
 } _AnimationBlendScratch;
 STATIC_ASSERT_SIZEOF(_AnimationBlendScratch, 0x80);
 
@@ -1964,6 +1972,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
+            // The scaled remainder is stored, then replaced by its quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
             currentWeight          = currentWeight / slot->timeSpan;
@@ -2028,6 +2037,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
+            // The scaled remainder is stored, then replaced by its quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
             currentWeight          = currentWeight / slot->timeSpan;
