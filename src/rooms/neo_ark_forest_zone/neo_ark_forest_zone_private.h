@@ -27,9 +27,6 @@ extern Task* D_neo_ark_forest_zone_80181E68;
 
 extern GpEvsCmd D_neo_ark_forest_zone_80181E6C[23];
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-extern SVECTOR D_neo_ark_forest_zone_80182094[2];
-
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 // Callbacks referenced by the overlay's shared data tables.

@@ -39,6 +39,7 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_neo_ark.h"
+#include "../../shared/room_visual_effects.h"
 
 /// A placement for a spawned task: the x and z written into its coordinate
 /// translation (y is always zero) and the Y rotation passed to
@@ -235,11 +236,7 @@ GpEvsCmd D_neo_ark_forest_zone_80181E6C[23] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-SVECTOR D_neo_ark_forest_zone_80182094[2] = {
-    { 0, 190, -15, 0 },
-    { 0, 1085, 180, 0 },
-};
+#include "../../shared/room_visual_effects_trail_data.inc.c"
 
 GpRoomObjRec D_neo_ark_forest_zone_801820A4[1] = {
     { D_neo_ark_forest_zone_80182274, D_neo_ark_forest_zone_801826B4, D_neo_ark_forest_zone_801829D0, NULL },
