@@ -179,8 +179,8 @@ void func_shelter_1f_tent_8017F484(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694               = save->state.at4.loc.view;
-                save->state.at4.loc.view = (u8)script->field_0;
+                D_80115694                    = save->state.location.loc.view;
+                save->state.location.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -263,7 +263,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -293,7 +293,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:

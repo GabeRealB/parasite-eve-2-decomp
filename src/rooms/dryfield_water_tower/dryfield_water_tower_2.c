@@ -2272,7 +2272,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 /// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
 /// (with `80181AD0`) only when `field_66` is 2, then both stash
-/// `field_68` in `Mc_SaveData[0].state.at4.loc.view` and raise the session's `viewDirty`, the pair
+/// `field_68` in `Mc_SaveData[0].state.location.loc.view` and raise the session's `viewDirty`, the pair
 /// `func_dryfield_water_tower_8017D948` undoes.
 ///
 /// The last three commands start a script-18 pair each -- the cutscene
@@ -2304,8 +2304,8 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
 
         case 2:
-            Mc_SaveData[0].state.at4.loc.view = state->field_68;
-            gGameSession->viewDirty           = 1;
+            Mc_SaveData[0].state.location.loc.view = state->field_68;
+            gGameSession->viewDirty                = 1;
             break;
 
         case 3: {
@@ -2433,11 +2433,11 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
                 Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(7);
-                session                           = gGameSession;
-                session->viewDirty                = 1;
-                session->hideHud                  = 0;
-                session->eventState               = 0;
+                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(7);
+                session                                = gGameSession;
+                session->viewDirty                     = 1;
+                session->hideHud                       = 0;
+                session->eventState                    = 0;
                 SndEvt_EnqueueType6(0x52140006, 0, 0x20);
                 SndEvt_EnqueueType6(0x5214000C, 0, 0);
                 state->field_58 = 2;
@@ -2854,7 +2854,7 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 ///
 /// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
 /// says the view has already been announced, records the view in the saved
-/// location byte `Mc_SaveData[0].state.at4.loc.view`, sends its 0x7D4 placement
+/// location byte `Mc_SaveData[0].state.location.loc.view`, sends its 0x7D4 placement
 /// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
 /// then stops the pad scripts and queues event 0x52140006. The latch is what
 /// separates it from that sibling: this one is the re-entry the 0x5214000C
@@ -2867,8 +2867,8 @@ void func_dryfield_water_tower_8017F908(void)
     if (state->field_78 == 0) {
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
     }
-    Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(7);
-    gGameSession->viewDirty           = 1;
+    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(7);
+    gGameSession->viewDirty                = 1;
     Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -2892,8 +2892,8 @@ void func_dryfield_water_tower_8017F9AC(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData[0].state.at4.loc.view = state->field_68;
-    gGameSession->viewDirty           = 1;
+    Mc_SaveData[0].state.location.loc.view = state->field_68;
+    gGameSession->viewDirty                = 1;
     Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -2912,7 +2912,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(9);
+    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(9);
     Gp_DispatchMsgPtr(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
     state->field_48->state = 1;
     Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
@@ -3218,8 +3218,8 @@ void func_dryfield_water_tower_80180220(void)
     Gp_DispatchMsgPtr(work->field_4, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
     Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
     Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
-    Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(4);
-    gGameSession->viewDirty           = 1;
+    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(4);
+    gGameSession->viewDirty                = 1;
     CdCmd_CancelReplaceAndActivate();
     Gp_RestoreStreamRng();
 }

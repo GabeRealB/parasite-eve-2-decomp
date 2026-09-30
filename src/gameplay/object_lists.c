@@ -968,7 +968,7 @@ void Gp_CommitObj4CSave(void)
         if (node->field_4B != 0) {
             node->field_4B = 0;
             if (gGameSession->location.loc.view == node->field_48) {
-                Mc_SaveData[0].state.at4.loc.view = node->field_49;
+                Mc_SaveData[0].state.location.loc.view = node->field_49;
             }
         }
     }

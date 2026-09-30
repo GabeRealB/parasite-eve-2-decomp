@@ -1032,8 +1032,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->location.loc.room = Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->roomObjsDirty                                         = 1;
+    gGameSession->location.loc.room = Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->roomObjsDirty                                              = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -1084,10 +1084,10 @@ void func_actor_335800_801621B4(s32 arg0)
 /// the room objects for reloading.
 static inline void _actor335800SetView(s32 view)
 {
-    Mc_SaveData[0].state.at4.loc.view = view;
-    gGameSession->location.loc.view   = view;
-    gGameSession->viewDirty           = 1;
-    gGameSession->roomObjsDirty       = 1;
+    Mc_SaveData[0].state.location.loc.view = view;
+    gGameSession->location.loc.view        = view;
+    gGameSession->viewDirty                = 1;
+    gGameSession->roomObjsDirty            = 1;
 }
 
 void func_actor_335800_8016224C(void)

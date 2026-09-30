@@ -2681,8 +2681,8 @@ static void func_acropolis_bridge_8017DB60(Task* arg0)
 static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA3, 0, 0) == 0) {
-        Mc_SaveData[0].state.at4.loc.view = 8;
-        gGameSession->hideHud             = 1;
+        Mc_SaveData[0].state.location.loc.view = 8;
+        gGameSession->hideHud                  = 1;
         Gp_MsgPlayer3F3(0);
         Gp_MsgPlayerWeapon(0);
         arg0->state = (s32)(arg0->state + 1);
@@ -2704,11 +2704,11 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
-            Mc_SaveData[0].state.at4.loc.view = 6;
-            gGameSession->hideHud             = 0;
-            arg0->state                       = (s32)(arg0->state + 1);
+            Mc_SaveData[0].state.location.loc.view = 6;
+            gGameSession->hideHud                  = 0;
+            arg0->state                            = (s32)(arg0->state + 1);
         } else {
-            Mc_SaveData[0].state.at4.loc.view = 9;
+            Mc_SaveData[0].state.location.loc.view = 9;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             arg0->state = (s32)(arg0->state + 1);
         }
@@ -2748,10 +2748,10 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 1, 0x7D5);
-        Mc_SaveData[0].state.at4.loc.view = 6;
-        Mc_SaveData[0].state.at4.loc.room = 2;
-        gGameSession->location.loc.room   = 2;
-        gGameSession->roomObjsDirty       = 1;
+        Mc_SaveData[0].state.location.loc.view = 6;
+        Mc_SaveData[0].state.location.loc.room = 2;
+        gGameSession->location.loc.room        = 2;
+        gGameSession->roomObjsDirty            = 1;
         GameFlag_SetNibble(2, 3);
         Gp_MsgPlayerWeapon(1);
         arg0->state = arg0->state + 1;
@@ -5217,7 +5217,7 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1) {
         return;
     }
 
@@ -5371,7 +5371,7 @@ static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 /// ramps towards `field_5C` by `field_60` a frame; while it is non-zero it
 /// scales (`GPF`) the normalised facing column of the model matrix into the
 /// per-frame world step, which is added to the coordinate's translation and
-/// kept in `moveStep`. `Mc_SaveData[0].state.field_5C1` (a global freeze flag) zeroes the step
+/// kept in `moveStep`. `Mc_SaveData[0].state.actorsFrozen` (a global freeze flag) zeroes the step
 /// instead.
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block)
@@ -5442,7 +5442,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
     coord = walker->coord;
     speed = walker->field_5E;
     step  = &walker->moveStep;
-    if (Mc_SaveData[0].state.field_5C1 == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1) {
         step->vz            = 0;
         step->vy            = 0;
         walker->moveStep.vx = 0;

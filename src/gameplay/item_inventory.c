@@ -980,7 +980,7 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    stageAreaKey  = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
+    stageAreaKey  = GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     if (stageAreaKey == GAME_LOCATION_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();

@@ -1513,14 +1513,14 @@ void Gp_ViewGateTask(Task* task)
         task->state = 3;
     }
     save = &Mc_SaveData[0];
-    if (task->spawnArg1.value != save->state.at4.loc.view) {
+    if (task->spawnArg1.value != save->state.location.loc.view) {
         gGameSession->viewDirty = 1;
     }
     sess = gGameSession;
     if (sess->viewDirty != 0) {
         q = &gCdCmdQueue;
         if ((q->scenePayloadAvailable == 0) || (q->scenePayloadLoading == 0)) {
-            sess->location.loc.view = save->state.at4.loc.view;
+            sess->location.loc.view = save->state.location.loc.view;
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
             if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {

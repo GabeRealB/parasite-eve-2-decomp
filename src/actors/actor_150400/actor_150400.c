@@ -413,7 +413,7 @@ void func_actor_150400_80131E24(Task* task)
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (Mc_SaveData[0].state.at4.loc.view != 5) {
+    if (Mc_SaveData[0].state.location.loc.view != 5) {
         obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         obj->flags    = 0;
@@ -428,11 +428,11 @@ void func_actor_150400_80131ECC(void)
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);
         Gp_ApplyAreaRecs(D_shelter_b1_control_room_80183BE0);
-        Mc_SaveData[0].state.at4.loc.stage = 4;
-        Mc_SaveData[0].state.at4.loc.area  = 0x21;
-        Mc_SaveData[0].state.at4.loc.warp  = 4;
-        Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.spriteVariant        = 1;
+        Mc_SaveData[0].state.location.loc.stage = 4;
+        Mc_SaveData[0].state.location.loc.area  = 0x21;
+        Mc_SaveData[0].state.location.loc.warp  = 4;
+        Mc_SaveData[0].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant             = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Gp_RestoreStreamRng();
     }

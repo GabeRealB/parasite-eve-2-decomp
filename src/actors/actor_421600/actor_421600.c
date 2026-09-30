@@ -2243,14 +2243,14 @@ static void func_actor_421600_80132004(GfxCoord* coord, s16 yaw)
 /// 0x400 to another cancel each other, and each remaining one moves the
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind-0x10000 record was among them. Does
-/// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
+/// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen` is 1.
 static s32 func_actor_421600_80132310(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
         return 0;
     }
 
@@ -2713,7 +2713,7 @@ static s32 func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* re
     Actor421600AvoidScratch* s;
     s16                      diff;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -3878,7 +3878,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 SndEvt_EnqueueType6(hitSound, hitPan,
                                     (s8)gpGetObjDepth(arg0->extra.tmd->coords));
             }
-            debugMode = Mc_SaveData[0].state.field_5C1;
+            debugMode = Mc_SaveData[0].state.actorsFrozen;
             if (debugMode == 1) {
                 enemy->hp       = 0x64;
                 work->field_838 = 9;

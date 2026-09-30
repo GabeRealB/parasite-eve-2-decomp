@@ -350,7 +350,7 @@ void Title_RestoreDemoCard(void)
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         src = (u8*)0x80600100;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.at4.loc.stage, Mc_SaveData[0].state.at4.loc.area);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.location.loc.stage, Mc_SaveData[0].state.location.loc.area);
 
     memcpy(&Mc_SaveData[0], src, sizeof(McSaveData));
     src += sizeof(McSaveData);
@@ -381,10 +381,10 @@ void Title_RestoreDemoCard(void)
 
     Mc_SaveData[0].state.demoScene = saveField23;
     Mc_SaveData[0].state.vibration = saveField21;
-    if (Fs_StageCdfIsAvailable(Mc_SaveData[0].state.at4.loc.stage) != 1) {
+    if (Fs_StageCdfIsAvailable(Mc_SaveData[0].state.location.loc.stage) != 1) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.at4.loc.stage, Mc_SaveData[0].state.at4.loc.area);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.location.loc.stage, Mc_SaveData[0].state.location.loc.area);
 }
 
 static void Title_FlagAdvanceTask(Task* arg0)

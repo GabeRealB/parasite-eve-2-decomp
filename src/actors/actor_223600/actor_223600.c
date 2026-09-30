@@ -989,13 +989,13 @@ static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount)
 
 /// Steps the model `amount` units along its facing -- the coordinate matrix's z
 /// column, normalised and GTE-scaled in a scratch-pad vector -- and invalidates
-/// the coordinate. Skipped entirely while `Mc_SaveData[0].state.field_5C1` is 1.
+/// the coordinate. Skipped entirely while `Mc_SaveData[0].state.actorsFrozen` is 1.
 static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;

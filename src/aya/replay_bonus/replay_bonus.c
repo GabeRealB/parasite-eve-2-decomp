@@ -848,8 +848,8 @@ void func_replay_bonus_80116EC0(void)
 
     save                   = &Mc_SaveData[0];
     save->state.saveCount  = 0xFF;
-    save->state.field_92C  = copy.state.field_92C;
-    save->state.field_930  = copy.state.field_930;
+    save->state.maxExp     = copy.state.maxExp;
+    save->state.maxBp      = copy.state.maxBp;
     save->state.shopTiers  = copy.state.shopTiers;
     save->state.shopStock  = copy.state.shopStock;
     save->state.replayRank = copy.state.replayRank;
@@ -857,11 +857,11 @@ void func_replay_bonus_80116EC0(void)
     if (save->state.clearCount >= 100) {
         save->state.clearCount = 99;
     }
-    if (save->state.field_92C < D_replay_bonus_80119274.unk0) {
-        save->state.field_92C = D_replay_bonus_80119274.unk0;
+    if (save->state.maxExp < D_replay_bonus_80119274.unk0) {
+        save->state.maxExp = D_replay_bonus_80119274.unk0;
     }
-    if (save->state.field_930 < D_replay_bonus_80119274.field_4) {
-        save->state.field_930 = D_replay_bonus_80119274.field_4;
+    if (save->state.maxBp < D_replay_bonus_80119274.field_4) {
+        save->state.maxBp = D_replay_bonus_80119274.field_4;
     }
     sum = D_replay_bonus_80119274.field_C + D_replay_bonus_80119274.field_14;
     if (sum > 0x98967F) {

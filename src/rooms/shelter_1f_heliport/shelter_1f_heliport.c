@@ -835,7 +835,7 @@ void func_shelter_1f_heliport_80180768(Task* task)
 static void func_shelter_1f_heliport_801807C0(void)
 {
     s32 i;
-    s32 idx = Mc_SaveData[0].state.at4.loc.view;
+    s32 idx = Mc_SaveData[0].state.location.loc.view;
 
     if (gGameSession->location.loc.variant < 3 && idx < 12) {
         if (D_shelter_1f_heliport_801811D4[idx][0] != 0) {

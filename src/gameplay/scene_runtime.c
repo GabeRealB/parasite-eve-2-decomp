@@ -1809,7 +1809,7 @@ void Gp_FadeWorkTask(Task* t)
 
 void func_800B25B0(void)
 {
-    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
@@ -2767,7 +2767,7 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
     s32                 poseIndex;
 
     savedPose     = Mc_SaveData[0].state.enemyPoses;
-    savedLocation = &Mc_SaveData[0].state.at4.loc;
+    savedLocation = &Mc_SaveData[0].state.location.loc;
     model         = enemy->task->extra.tmd;
     coord         = model->coords;
     if (enemy->spawnState == 0) {
@@ -3180,7 +3180,7 @@ void Gp_ApplyAreaTmdFlags(void)
         do {
             work = iter->spawnArg2.pointer;
             if (iter->bodyKind == TASK_BODY_TMD) {
-                key   = &Mc_SaveData[0].state.at4.loc;
+                key   = &Mc_SaveData[0].state.location.loc;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
@@ -3274,7 +3274,7 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
     GpAreaObj*       areaState;
     GameLocationKey* key;
 
-    key         = &Mc_SaveData[0].state.at4.loc;
+    key         = &Mc_SaveData[0].state.location.loc;
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].field_4;
@@ -3706,7 +3706,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
     }
 }
 
-/// Walks `Gp_Bit2Banks[Mc_SaveData[0].state.at4.loc.area / stage]` for a `GpBit2Rec`
+/// Walks `Gp_Bit2Banks[Mc_SaveData[0].state.location.loc.area / stage]` for a `GpBit2Rec`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `Gp_Bit2Banks[gGameSession->location.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).

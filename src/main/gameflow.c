@@ -336,7 +336,7 @@ void GameFlow_DispatchTable5(Task* task)
 
 static void GameFlow_CopySaveIds(Task* task)
 {
-    gGameSession->location = Mc_SaveData[0].state.at4;
+    gGameSession->location = Mc_SaveData[0].state.location;
     D_8007A394             = 0;
     task->state            = task->state + 1;
 }

@@ -1403,7 +1403,7 @@ void Gp_HudTask(GpIdMapC* arg0)
 
     slot = gameGetPtrSlot(1);
     if (slot != NULL) {
-        if (slot->spawnArg1.value != Mc_SaveData[0].state.at4.loc.view) {
+        if (slot->spawnArg1.value != Mc_SaveData[0].state.location.loc.view) {
             bad = 1;
         }
     }

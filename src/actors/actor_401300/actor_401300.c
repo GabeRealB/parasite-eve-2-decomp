@@ -1510,7 +1510,7 @@ static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1600,7 +1600,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
     s16             vy;
     SVECTOR*        step;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
@@ -3198,7 +3198,7 @@ static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* v;
 
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -4808,7 +4808,7 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GfxCoord* c
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (save->state.field_5C1 != 1) {
+    if (save->state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -5033,15 +5033,14 @@ static void func_actor_401300_8013DADC(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// `actorMoveForwardNonzero` testing the same flag byte through a
-/// `McSaveData*` (`Mc_SaveData[0].state.field_5C1` is `Mc_SaveData[0].state.unknown_5C0[1]`).
+/// `actorMoveForwardNonzero` testing `actorsFrozen` through a `McSaveData*`.
 static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (save->state.field_5C1 != 1) {
+    if (save->state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;

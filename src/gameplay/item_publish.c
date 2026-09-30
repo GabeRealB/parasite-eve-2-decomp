@@ -119,7 +119,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
     s32         term;
     s32         found;
 
-    idx   = Mc_SaveData[0].state.at4.loc.stage;
+    idx   = Mc_SaveData[0].state.location.loc.stage;
     lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {

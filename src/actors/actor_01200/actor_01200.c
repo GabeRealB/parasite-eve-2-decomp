@@ -596,7 +596,7 @@ static s16 Actor01200_Fn00130(GfxCoord* coord, WorldCollisionContact* recs, s16 
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
         return 0;
     }
 

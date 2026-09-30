@@ -3342,7 +3342,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 2, 0);
             break;
         case 5:
-            Mc_SaveData[0].state.at4.loc.view = work->field_94;
+            Mc_SaveData[0].state.location.loc.view = work->field_94;
             Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             work->field_96 = 1;

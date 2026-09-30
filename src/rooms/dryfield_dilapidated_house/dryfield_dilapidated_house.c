@@ -1927,12 +1927,12 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 GameFlag_SetNibble(0x155, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
-                Mc_SaveData[0].state.sceneEvent    = 1;
-                Mc_SaveData[0].state.at4.loc.stage = 2;
-                Mc_SaveData[0].state.at4.loc.warp  = 1;
-                Mc_SaveData[0].state.at4.loc.room  = 1;
-                Mc_SaveData[0].state.at4.loc.area  = 8;
-                gDisplayState.spriteVariant        = 1;
+                Mc_SaveData[0].state.sceneEvent         = 1;
+                Mc_SaveData[0].state.location.loc.stage = 2;
+                Mc_SaveData[0].state.location.loc.warp  = 1;
+                Mc_SaveData[0].state.location.loc.room  = 1;
+                Mc_SaveData[0].state.location.loc.area  = 8;
+                gDisplayState.spriteVariant             = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             taskKill(task);

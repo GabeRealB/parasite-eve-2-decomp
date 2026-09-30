@@ -879,19 +879,19 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 SndEvt_EnqueueType6(0x5428000D, 0, 0);
                 SndEvt_EnqueueType6(0x54280003, 0, 0);
                 if (gGameSession->location.loc.room < 4) {
-                    gGameSession->location.loc.room    = 2;
-                    Mc_SaveData[0].state.at4.loc.room  = 2;
-                    gGameSession->eventRoomIndex       = 1;
-                    gGameSession->roomObjsDirty        = 1;
-                    gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
-                    gGameSession->incineratorRoomGroup = 0;
+                    gGameSession->location.loc.room        = 2;
+                    Mc_SaveData[0].state.location.loc.room = 2;
+                    gGameSession->eventRoomIndex           = 1;
+                    gGameSession->roomObjsDirty            = 1;
+                    gGameSession->eventRoomIndex           = gGameSession->location.loc.room - 1;
+                    gGameSession->incineratorRoomGroup     = 0;
                 } else {
-                    gGameSession->location.loc.room    = 5;
-                    Mc_SaveData[0].state.at4.loc.room  = 5;
-                    gGameSession->eventRoomIndex       = 4;
-                    gGameSession->roomObjsDirty        = 1;
-                    gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
-                    gGameSession->incineratorRoomGroup = 1;
+                    gGameSession->location.loc.room        = 5;
+                    Mc_SaveData[0].state.location.loc.room = 5;
+                    gGameSession->eventRoomIndex           = 4;
+                    gGameSession->roomObjsDirty            = 1;
+                    gGameSession->eventRoomIndex           = gGameSession->location.loc.room - 1;
+                    gGameSession->incineratorRoomGroup     = 1;
                 }
                 func_shelter_b3_garbage_incinerator_80180FE4(5, 0, 0x3C);
                 gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_MOVING;
@@ -921,15 +921,15 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
         case 3:
             if (((_DescentWork*)task->work)->view != gGameSession->location.loc.view) {
                 if (gGameSession->location.loc.room < 4) {
-                    gGameSession->location.loc.room   = 3;
-                    Mc_SaveData[0].state.at4.loc.room = 3;
-                    gGameSession->eventRoomIndex      = 2;
-                    gGameSession->roomObjsDirty       = 1;
+                    gGameSession->location.loc.room        = 3;
+                    Mc_SaveData[0].state.location.loc.room = 3;
+                    gGameSession->eventRoomIndex           = 2;
+                    gGameSession->roomObjsDirty            = 1;
                 } else {
-                    gGameSession->location.loc.room   = 6;
-                    Mc_SaveData[0].state.at4.loc.room = 6;
-                    gGameSession->eventRoomIndex      = 5;
-                    gGameSession->roomObjsDirty       = 1;
+                    gGameSession->location.loc.room        = 6;
+                    Mc_SaveData[0].state.location.loc.room = 6;
+                    gGameSession->eventRoomIndex           = 5;
+                    gGameSession->roomObjsDirty            = 1;
                 }
                 task->state++;
             }

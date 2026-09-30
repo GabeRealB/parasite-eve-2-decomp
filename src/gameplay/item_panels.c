@@ -1006,7 +1006,7 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
     idx = arg1->spawnArg1.value - 0x36;
     if (arg1->state == 0) {
         save = &Mc_SaveData[0];
-        p    = (McSaveData*)&save->state.unknown_0[idx * 3];
+        p    = (McSaveData*)&((u8*)&save->state.saveChecksum)[idx * 3];
         slot = p->state.attachLevels[0] > p->state.attachLevels[1];
         if (save->state.attachLevels[slot + idx * 3] >= 3) {
             slot = 2;

@@ -4330,11 +4330,11 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Mc_SaveData[0].state.at4.loc.stage = 1;
-            Mc_SaveData[0].state.at4.loc.warp  = 1;
-            Mc_SaveData[0].state.at4.loc.area  = 0x11;
-            Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.spriteVariant        = 1;
+            Mc_SaveData[0].state.location.loc.stage = 1;
+            Mc_SaveData[0].state.location.loc.warp  = 1;
+            Mc_SaveData[0].state.location.loc.area  = 0x11;
+            Mc_SaveData[0].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant             = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);

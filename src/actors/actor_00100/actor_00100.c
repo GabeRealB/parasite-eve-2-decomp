@@ -1564,14 +1564,14 @@ static void Actor00100_Fn001FC(GfxCoord* coord, s16 yaw)
 /// apart cancel each other. Each remaining bearing becomes a short step
 /// against it, added to both `pos` and the coordinate's translation. Returns
 /// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
-/// while the session's `viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
+/// while the session's `viewReady` or `Mc_SaveData[0].state.actorsFrozen` is 1.
 static s32 Actor00100_Fn00508(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
         return 0;
     }
 
@@ -1922,7 +1922,7 @@ static s32 Actor00100_Fn01388(GfxCoord* coord, WorldCollisionContact* recs, s16 
     SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor00100AvoidScratch16);
     s                        = SCRATCH_STACK_CURSOR(Actor00100AvoidScratch16);
 
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 

@@ -162,7 +162,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
     GameLocationKey* key;
     s32              one;
 
-    key = &Mc_SaveData[0].state.at4.loc;
+    key = &Mc_SaveData[0].state.location.loc;
     one = 1;
     do {
         stage = key->stage;

@@ -487,10 +487,10 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
             Gp_DispatchMsgPtr(work->owner, ANIMATION_MESSAGE_PLAY, &rec, 0);
             Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
-            if (Mc_SaveData[0].state.at4.loc.room != 2) {
-                Mc_SaveData[0].state.at4.loc.room = 2;
-                gGameSession->location.loc.room   = 2;
-                D_dryfield_warehouse_801821C4     = 1;
+            if (Mc_SaveData[0].state.location.loc.room != 2) {
+                Mc_SaveData[0].state.location.loc.room = 2;
+                gGameSession->location.loc.room        = 2;
+                D_dryfield_warehouse_801821C4          = 1;
                 return;
             }
             D_dryfield_warehouse_801821C4 = 0;
@@ -619,9 +619,9 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             switch (work->field_6) {
                 case 0:
-                    Mc_SaveData[0].state.at4.loc.room = 2;
-                    gGameSession->location.loc.room   = 2;
-                    work->field_8                     = 0;
+                    Mc_SaveData[0].state.location.loc.room = 2;
+                    gGameSession->location.loc.room        = 2;
+                    work->field_8                          = 0;
                     work->field_6++;
                     break;
                 case 1:

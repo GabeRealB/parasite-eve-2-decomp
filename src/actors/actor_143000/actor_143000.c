@@ -280,13 +280,13 @@ static void func_actor_143000_801324C8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->spawnArg2.pointer           = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
-    arg0->work                        = work;
-    temp_a0                           = Mc_SaveData[0].state.at4.loc.view;
-    Mc_SaveData[0].state.at4.loc.view = 0xB;
-    D_actor_143000_80135C0C_value     = temp_a0;
-    arg0->state                      += 1;
-    work->field_4                     = 0;
+    arg0->spawnArg2.pointer                = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->work                             = work;
+    temp_a0                                = Mc_SaveData[0].state.location.loc.view;
+    Mc_SaveData[0].state.location.loc.view = 0xB;
+    D_actor_143000_80135C0C_value          = temp_a0;
+    arg0->state                           += 1;
+    work->field_4                          = 0;
     Display_AcquireRef();
     if (p->field_8 != -1) {
         do {
@@ -779,11 +779,11 @@ static void func_actor_143000_80133800(Task* arg0)
     Display_ReleaseRef();
     gGameSession->cutsceneHold = 0;
     if (work->field_C == 0) {
-        D_80114D08                        = 0xA;
-        gGameSession->eventState          = 0;
-        gGameSession->hideHud             = 0;
-        Gp_StateF0.field_4                = 0;
-        Mc_SaveData[0].state.at4.loc.view = D_actor_143000_80135C0C_value;
+        D_80114D08                             = 0xA;
+        gGameSession->eventState               = 0;
+        gGameSession->hideHud                  = 0;
+        Gp_StateF0.field_4                     = 0;
+        Mc_SaveData[0].state.location.loc.view = D_actor_143000_80135C0C_value;
         Gp_MsgPlayer3F3(1);
     } else {
         Task_SpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);

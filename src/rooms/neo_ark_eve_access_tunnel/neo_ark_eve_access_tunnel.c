@@ -62,7 +62,7 @@ STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 
 /// Staging save location the room commits when the tunnel's save is taken:
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
-/// later copies into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
+/// later copies into `Mc_SaveData[0].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
 /// The staged event descriptor, read by the task spawned above.
@@ -559,11 +559,11 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant        = 1;
-            Mc_SaveData[0].state.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
-            Mc_SaveData[0].state.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
-            Mc_SaveData[0].state.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
-            Mc_SaveData[0].state.at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.room;
+            gDisplayState.spriteVariant             = 1;
+            Mc_SaveData[0].state.location.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
+            Mc_SaveData[0].state.location.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
+            Mc_SaveData[0].state.location.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
+            Mc_SaveData[0].state.location.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -679,10 +679,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
+            gDisplayState.spriteVariant            = 1;
+            Mc_SaveData[0].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
+            Mc_SaveData[0].state.location.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
+            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

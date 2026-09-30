@@ -1055,13 +1055,13 @@ void func_actor_461800_8013229C(void)
             gGameSession->deathFadeFrames = 0xF;
             return;
         }
-        Mc_SaveData[0].state.at4.loc.stage = 4;
-        Mc_SaveData[0].state.at4.loc.area  = 0x24;
-        Mc_SaveData[0].state.at4.loc.warp  = 1;
-        Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.spriteVariant        = 1;
+        Mc_SaveData[0].state.location.loc.stage = 4;
+        Mc_SaveData[0].state.location.loc.area  = 0x24;
+        Mc_SaveData[0].state.location.loc.warp  = 1;
+        Mc_SaveData[0].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant             = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 0);
+        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
         Gp_RestoreStreamRng();
     }
 }

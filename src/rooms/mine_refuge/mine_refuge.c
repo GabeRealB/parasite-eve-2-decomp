@@ -584,8 +584,8 @@ void func_mine_refuge_8017F49C(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694               = save->state.at4.loc.view;
-                save->state.at4.loc.view = (u8)script->field_0;
+                D_80115694                    = save->state.location.loc.view;
+                save->state.location.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -668,7 +668,7 @@ void func_mine_refuge_8017F49C(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -698,7 +698,7 @@ void func_mine_refuge_8017F49C(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -856,9 +856,9 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, TaskMessageArg ar
         } else {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            temp_a3                           = Mc_SaveData[0].state.at4.loc.view;
-            Mc_SaveData[0].state.at4.loc.view = 6U;
-            D_mine_refuge_80182ADC[0]         = temp_a3;
+            temp_a3                                = Mc_SaveData[0].state.location.loc.view;
+            Mc_SaveData[0].state.location.loc.view = 6U;
+            D_mine_refuge_80182ADC[0]              = temp_a3;
             SndEvt_EnqueueType6(0x54060003, 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
@@ -913,7 +913,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
                 arg0->state = arg0->state + 1;
                 return;
             }
-            Mc_SaveData[0].state.at4.loc.view = D_mine_refuge_80182ADC[0];
+            Mc_SaveData[0].state.location.loc.view = D_mine_refuge_80182ADC[0];
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;

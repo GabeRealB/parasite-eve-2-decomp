@@ -30,8 +30,8 @@
 
 /// 8-byte record in `D_80114198` / `D_801141F0` / `D_80114248`. Indexed by
 /// `GameFlag_GetNibble(0x4B / 0x4C / 0x4D)`. `field_0` is a per-room byte
-/// list, 1-based by `Mc_SaveData[0].state.at4.loc.area`; `field_4` is the stage id
-/// (`Mc_SaveData[0].state.at4.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
+/// list, 1-based by `Mc_SaveData[0].state.location.loc.area`; `field_4` is the stage id
+/// (`Mc_SaveData[0].state.location.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
 /// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
 /// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData[0].state.companionType`.
 typedef struct _GpNpcRoomRec {
@@ -151,9 +151,9 @@ s32 Gp_PickCompanion(void)
     u8          variant;
 
     save  = &Mc_SaveData[0];
-    stage = save->state.at4.loc.stage;
+    stage = save->state.location.loc.stage;
     bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
-    if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->state.at4.loc.area - 1] != 0) {
+    if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
         save->state.companionType    = 2;
@@ -162,24 +162,24 @@ s32 Gp_PickCompanion(void)
     }
 
     bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
-    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[Mc_SaveData[0].state.at4.loc.area - 1] & 0xF)) {
+    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[Mc_SaveData[0].state.location.loc.area - 1] & 0xF)) {
         GameSession* sess = gGameSession;
 
         Mc_SaveData[0].state.companionType = 1;
         if (sess->companionType == 1) {
-            variant = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
+            variant = bytes[Mc_SaveData[0].state.location.loc.area - 1] >> 4;
             if (sess->companionVariant == variant) {
                 Mc_SaveData[0].state.companionVariant = variant;
                 return 0;
             }
         }
-        Mc_SaveData[0].state.companionVariant = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
-        gGameSession->companionVariant        = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
+        Mc_SaveData[0].state.companionVariant = bytes[Mc_SaveData[0].state.location.loc.area - 1] >> 4;
+        gGameSession->companionVariant        = bytes[Mc_SaveData[0].state.location.loc.area - 1] >> 4;
         return 1;
     }
 
     bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
-    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[Mc_SaveData[0].state.at4.loc.area - 1] != 0) {
+    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[Mc_SaveData[0].state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
         Mc_SaveData[0].state.companionType    = 3;
@@ -205,12 +205,12 @@ void Gp_ApplyNpcRoomSnd(void)
     s32         flag;
 
     save  = &Mc_SaveData[0];
-    stage = save->state.at4.loc.stage;
+    stage = save->state.location.loc.stage;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
         if (bytes != NULL) {
             if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
-                if (bytes[save->state.at4.loc.area - 1] != 0) {
+                if (bytes[save->state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
@@ -219,7 +219,7 @@ void Gp_ApplyNpcRoomSnd(void)
         bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
         if (bytes != NULL) {
             if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
-                if (bytes[Mc_SaveData[0].state.at4.loc.area - 1] & 0xF) {
+                if (bytes[Mc_SaveData[0].state.location.loc.area - 1] & 0xF) {
                     flag = 1;
                     goto done;
                 }
@@ -228,7 +228,7 @@ void Gp_ApplyNpcRoomSnd(void)
         bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
         if (bytes != NULL) {
             if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
-                if (bytes[Mc_SaveData[0].state.at4.loc.area - 1] != 0) {
+                if (bytes[Mc_SaveData[0].state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }

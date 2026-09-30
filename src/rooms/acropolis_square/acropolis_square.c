@@ -1164,8 +1164,8 @@ void func_acropolis_square_80181228(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
-                Mc_SaveData[0].state.at4.loc.view = rec->field_0;
+                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
+                Mc_SaveData[0].state.location.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -1247,7 +1247,7 @@ void func_acropolis_square_80181228(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1277,7 +1277,7 @@ void func_acropolis_square_80181228(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = D_80115694;
+            Mc_SaveData[0].state.location.loc.view = D_80115694;
             task->state++;
             break;
         case 12:
@@ -1416,8 +1416,8 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 var_a0;
 
     if (arg2 == 2) {
-        if (Mc_SaveData[0].state.at4.loc.warp == 7) {
-            Mc_SaveData[0].state.at4.loc.warp = 1;
+        if (Mc_SaveData[0].state.location.loc.warp == 7) {
+            Mc_SaveData[0].state.location.loc.warp = 1;
         }
         D_acropolis_square_801888AC.value.field_0  = 9;
         D_acropolis_square_801888AC.value.field_1  = 1;
@@ -1504,8 +1504,8 @@ void func_acropolis_square_80181AEC(Task* task)
             return;
 
         case 5:
-            if ((u32)(Mc_SaveData[0].state.at4.loc.view - 5) >= 3U) {
-                if (Mc_SaveData[0].state.at4.loc.view == 9) {
+            if ((u32)(Mc_SaveData[0].state.location.loc.view - 5) >= 3U) {
+                if (Mc_SaveData[0].state.location.loc.view == 9) {
                     goto checkArmed;
                 }
                 goto handOff;
@@ -1587,7 +1587,7 @@ void func_acropolis_square_80181DD0(Task* task)
             break;
 
         case 4:
-            Mc_SaveData[0].state.at4.loc.view = 0xD;
+            Mc_SaveData[0].state.location.loc.view = 0xD;
             taskKill(task);
             break;
     }
@@ -1669,7 +1669,7 @@ void func_acropolis_square_80182148(Task* task)
             task->state++;
             return;
         case 1:
-            Mc_SaveData[0].state.at4.loc.view = 7;
+            Mc_SaveData[0].state.location.loc.view = 7;
             task->state++;
             return;
         case 3:
@@ -1682,7 +1682,7 @@ void func_acropolis_square_80182148(Task* task)
             return;
         case 6:
             Gp_RunCapCmd1(5);
-            Mc_SaveData[0].state.at4.loc.view = 8;
+            Mc_SaveData[0].state.location.loc.view = 8;
             task->state++;
             return;
         case 2:
@@ -1718,7 +1718,7 @@ static void func_acropolis_square_801822A4(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData[0].state.at4.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
+    if (Mc_SaveData[0].state.location.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
         D_acropolis_square_80183830     = 1;
         Mc_SaveData[0].state.sceneEvent = 2;
         func_800E8634(D_acropolis_square_8018399C, 0, D_acropolis_square_80183A5C);

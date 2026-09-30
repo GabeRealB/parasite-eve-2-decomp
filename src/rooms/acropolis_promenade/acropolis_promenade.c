@@ -1839,7 +1839,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
-                Mc_SaveData[0].state.at4.loc.view = 2;
+                Mc_SaveData[0].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);

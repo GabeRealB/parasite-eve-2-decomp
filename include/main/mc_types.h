@@ -124,70 +124,73 @@ STATIC_ASSERT_SIZEOF(AreaSavedEnemyPose, 0xC);
 ///
 /// It carries the run's progress - where the player was, the time played, the
 /// player's statistics and the whole inventory with its per-weapon equipment -
-/// and the record of what the game has already done: which stages and areas
-/// were visited, which placed enemies were taken out of the world and where
-/// they were left, which items have been seen, and what the shops still hold in
-/// stock. The header block and the data block each carry a checksum pair.
+/// and the record of what the game has already done: which stages were
+/// visited, which placed enemies were taken out of the world and where they
+/// were left, which items have been seen, and what the shops still hold.
+/// The image opens with the checksum of its 0x940-byte payload. Separate pairs
+/// cover the 56 bytes beginning at `location`, the card-title buffer, and the
+/// first byte of memcard buffer slots 1..8.
 typedef struct {
-    byte                unknown_0[0x4];
-    GameLoc             at4;               // Place the save was made at, as `GameSession.location`
-    u16                 playTime;          // Played time in minutes (capped at 0xEA5F)
-    s8                  clearCount;        // Times the game has been completed (0 never, capped at 99)
-    s8                  gameMode;          // Mode the run is played in (0..2); the stat, cost and item-grant tables have one variant per mode
-    u8                  visitFlags;        // One bit per stage marking it as visited; bit 0 marks the new-game setup as done
-    s8                  saveNumber;        // Number of this save among those made at the same save point (1..99)
-    u8                  savePoint;         // Save point the save was made at, indexing the tables of place names the slot and the save header print (1..16)
-    s8                  companionType;     // Companion the save carries (0 none, otherwise 1..3 index `Gp_AllyIdBase`)
-    s32                 playerExp;         // Player experience as of the save, as `Player_Status.exp`
-    s32                 playerBp;          // Player BP as of the save, as `Player_Status.bp`
-    u16                 hdrChecksum;       // Sum over the header's 0x38 bytes, which start at `at4`
-    u16                 hdrChecksumInv;    // Complement of `hdrChecksum`, written with it
+    s16                 saveChecksum;             // Sum of the 0x940 signed payload bytes
+    s16                 saveChecksumComplement;   // Ones' complement of `saveChecksum`
+    GameLoc             location;                 // Place the save was made, same cell as `GameSession.location`
+    u16                 playTime;                 // Minutes played, capped at 59999
+    s8                  clearCount;               // Completed runs (0 never, capped at 99)
+    s8                  gameMode;                 // 0 normal/replay, 1 Bounty, 2 Scavenger, 3 Nightmare
+    u8                  visitFlags;               // Bit 0: new-game setup done; bits 1..5: visited stages
+    s8                  saveNumber;               // Save label at this save point (1..99), distinct from total saves
+    u8                  savePoint;                // Place-label index (1..16); 15 is Opening and hides mode/EXP/BP
+    s8                  companionType;            // Companion family (0 none, otherwise 1..3 indexes `Gp_AllyIdBase`)
+    s32                 playerExp;                // Player experience as of the save, as `Player_Status.exp`
+    s32                 playerBp;                 // Player BP as of the save, as `Player_Status.bp`
+    u16                 headerChecksum;           // Sum of the 56 signed bytes beginning at `location`
+    u16                 headerChecksumComplement; // Ones' complement of `headerChecksum`
     byte                unknown_20[0x1];
-    s8                  vibration;         // Vibration setting (0 on, 1 off)
-    s8                  characterId;       // Character the save plays as (1-based); the weapon, animation and placement tables are indexed by it
-    s8                  demoScene;         // Attract demo being played back (0 during normal play)
+    s8                  vibration;                // Vibration setting (0 on, 1 off)
+    s8                  characterId;              // 0 rejected by disc load; 1 primary weapon and animation set, any other value the alternate. The only explicit initializer stores 1
+    s8                  demoScene;                // Attract demo being played back (0 during normal play)
     byte                unknown_24[0x1];
-    u8                  moveMode;          // Default movement (0 walk, 1 run)
-    u8                  hpBonus;           // Addend to the player's maximum HP
-    u8                  mpBonus;           // Addend to the player's maximum MP
-    AreaSavedEnemyPose  enemyPoses[0x20];  // The placed enemies taken out of the world, filed by their placement key
-    s8                  buttonLayout;      // Button layout the pad is remapped through (0..2)
-    s8                  soundMode;         // Sound output (0 stereo, 1 mono)
-    s8                  musicVolume;       // Music volume (0..3, 3 is off)
-    s8                  cursorMode;        // Cursor behaviour in the menus (0 remembers the row, 1 resets it)
-    InventoryItemRow    itemRows[0x100];   // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
-    s32                 collectedBits[4];  // 128 bits, one per collectible the player has picked up
-    InventoryItemRange  carriedItems;      // Window on the player's rows of `itemRows`
-    u8                  unknown_5C0;
-    u8                  field_5C1;         // Role unproven: while it reads 1 the actors stop moving and stop pushing each other apart
-    s8                  cheatMode;         // While set nothing is spent - no MP for the abilities, no ammunition and no attachments - and the save is left out of the save-slot comparison
-    s8                  interlace;         // Non-zero runs the display interlaced
+    u8                  moveMode;                 // Default movement (0 walk, 1 run)
+    u8                  hpBonus;                  // Addend to the player's maximum HP
+    u8                  mpBonus;                  // Addend to the player's maximum MP
+    AreaSavedEnemyPose  enemyPoses[0x20];         // Placed enemies taken out of the world, filed by their placement key
+    s8                  buttonLayout;             // Button layout the pad is remapped through (0..2)
+    s8                  soundMode;                // Sound output (0 stereo, 1 mono)
+    s8                  musicVolume;              // Music volume (0..3, 3 is off)
+    s8                  cursorMode;               // Cursor behaviour in the menus (0 remembers the row, 1 resets it)
+    InventoryItemRow    itemRows[0x100];          // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
+    s32                 collectedBits[4];         // 128 bits, one per collectible the player has picked up
+    InventoryItemRange  carriedItems;             // Window on the player's rows of `itemRows`
+    u8                  unknown_5C0;              // Role unproven: 1 skips a walker's turn toward its target
+    u8                  actorsFrozen;             // 1 freezes actor translation and contact separation; the same value pins one enemy's HP at 100. How it is set is unproven
+    s8                  cheatMode;                // While set nothing is spent - no MP for the abilities, no ammunition and no attachments - and the save is left out of the save-slot comparison
+    s8                  interlace;                // Non-zero runs the display interlaced
     byte                unknown_5C4;
-    s8                  sceneEvent;        // Scene event a script arms for the music and sound task
+    s8                  sceneEvent;               // Scene event a script arms for the music and sound task
     byte                unknown_5C6[0x1];
-    s8                  companionVariant;  // Which variant of `companionType` is spawned
-    EquipmentWeaponLoad weaponItems[0x20]; // Primary and secondary consumable loads, indexed by weapon item id - 0x80
-    s16                 companionHp;       // Companion's current HP
-    s16                 companionHpMax;    // Companion's maximum HP
-    u16                 field_6CC;
-    u16                 field_6CE;
-    s32                 itemSeenBits[0x60];    // One bit per item id (ids at or above 0x180 count as seen), set once the item was looked at
-    u8                  attachLevels[0x12];    // Level bought for each Parasite Energy slot (0..3), addressed as page * 3 + column
-    s16                 attachUseCounts[19];   // Times each Parasite Energy slot was used; the Play Data panel reports the first twelve
-    s32                 weaponUseCounts[0x20]; // Times each weapon was used, indexed by item id - 0x80
-    s8                  itemLevelBonus[0x20];  // Addend to the level of items 0x60-0x7F
+    s8                  companionVariant;         // Which variant of `companionType` is spawned
+    EquipmentWeaponLoad weaponItems[0x20];        // Primary and secondary consumable loads, indexed by weapon item id - 0x80
+    s16                 companionHp;              // Companion's current HP
+    s16                 companionHpMax;           // Companion's maximum HP
+    u16                 battlesWon;               // Battles won, capped at 9999. Numerator of the battles-won percentage; the extermination percentage adds it to two flag nibbles over 326
+    u16                 battlesEscaped;           // Battles escaped, capped at 9999
+    s32                 itemSeenBits[0x60];       // One bit per item id (ids at or above 0x180 count as seen), set once the item was looked at
+    u8                  attachLevels[0x12];       // Level bought for each Parasite Energy slot (0..3), addressed as page * 3 + column
+    s16                 attachUseCounts[19];      // Times each Parasite Energy slot was used; the Play Data panel reports the first twelve
+    s32                 weaponUseCounts[0x20];    // Times each weapon was used, indexed by item id - 0x80
+    s8                  itemLevelBonus[0x20];     // Addend to the level of items 0x60-0x7F
     byte                unknown_928[0x1];
-    s8                  field_929;
-    s8                  replayRank; // Rank the replay earns (0 none, 1, 2)
-    u8                  saveCount;  // How many times the game has been saved (capped at 99)
-    s32                 field_92C;
-    s32                 field_930;
-    s32                 shopTiers;         // Bitmask of the 13 price tiers the parking-lot shop offers
-    u32                 shopStock;         // 12 two-bit stock levels for that shop
-    u16                 dataChecksum;      // Sum over the save's data block
-    u16                 dataChecksumInv;   // Complement of `dataChecksum`, written with it
-    u16                 bufferChecksum;    // Sum over the first byte of each memcard buffer slot
-    u16                 bufferChecksumInv; // Complement of `bufferChecksum`, written with it
+    s8                  field_929;                // Role unproven: nonzero takes the armed lock-on branch used for a lock node or PE state 1
+    s8                  replayRank;               // Rank the replay earns (0 none, 1, 2)
+    u8                  saveCount;                // Times saved, capped at 99. 0xFF is cleared to 0 instead of incrementing
+    s32                 maxExp;                   // Highest experience kept for the play-data panel; a replay clear raises it
+    s32                 maxBp;                    // Highest BP kept for the play-data panel; a replay clear raises it
+    s32                 shopTiers;                // Bitmask of the 13 price tiers the parking-lot shop offers
+    u32                 shopStock;                // 12 two-bit stock levels for that shop
+    u16                 titleChecksum;            // Signed sum of the 0x200-byte card-title buffer
+    u16                 titleChecksumComplement;  // Ones' complement of `titleChecksum`
+    u16                 bufferChecksum;           // Sum of the first byte of memcard buffer slots 1..8
+    u16                 bufferChecksumComplement; // Ones' complement of `bufferChecksum`
 } McSaveState;
 
 /// First 128 bytes of a saved-state block, cached for a memory-card slot.
@@ -226,7 +229,7 @@ typedef union {
     McSavePreview preview;
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
-STATIC_ASSERT(OFFSET_OF(McSaveData, state.at4) == 4, McSaveData_at4);
+STATIC_ASSERT(OFFSET_OF(McSaveData, state.location) == 4, McSaveData_location);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.playTime) == 0xC, McSaveData_playTime);
 
 #endif // MAIN_MC_TYPES_H

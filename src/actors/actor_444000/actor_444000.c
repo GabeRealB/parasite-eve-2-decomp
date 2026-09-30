@@ -86,7 +86,7 @@ typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ Task* field_20; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-                               /// Area-record id published to `Mc_SaveData[0].state.at4.loc.view` on every enter/re-enter. The
+                               /// Area-record id published to `Mc_SaveData[0].state.location.loc.view` on every enter/re-enter. The
                                /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,
                                /// while every reader takes the low byte, so both views are named.
     /* 0x28 */ union {
@@ -2831,30 +2831,30 @@ void func_actor_444000_801321FC(s32 arg0)
     work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
-            gGameSession->viewDirty           = 1;
-            Mc_SaveData[0].state.at4.loc.view = work->field_28.b;
+            gGameSession->viewDirty                = 1;
+            Mc_SaveData[0].state.location.loc.view = work->field_28.b;
             break;
         case 1:
         case 2:
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    gGameSession->location.loc.room   = 4;
-                    Mc_SaveData[0].state.at4.loc.room = 4;
+                    gGameSession->location.loc.room        = 4;
+                    Mc_SaveData[0].state.location.loc.room = 4;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
-                    gGameSession->location.loc.room   = 5;
-                    Mc_SaveData[0].state.at4.loc.room = 5;
+                    gGameSession->location.loc.room        = 5;
+                    Mc_SaveData[0].state.location.loc.room = 5;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
-                    gGameSession->location.loc.room   = 6;
-                    Mc_SaveData[0].state.at4.loc.room = 6;
+                    gGameSession->location.loc.room        = 6;
+                    Mc_SaveData[0].state.location.loc.room = 6;
                     break;
             }
-            gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
-            gGameSession->incineratorRoomGroup = 1;
-            gGameSession->roomObjsDirty        = 1;
-            Mc_SaveData[0].state.at4.loc.view  = work->field_28.b;
+            gGameSession->eventRoomIndex           = gGameSession->location.loc.room - 1;
+            gGameSession->incineratorRoomGroup     = 1;
+            gGameSession->roomObjsDirty            = 1;
+            Mc_SaveData[0].state.location.loc.view = work->field_28.b;
             Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
@@ -3883,7 +3883,7 @@ static void func_actor_444000_8013482C(Task* task)
 
     switch (work->field_F08) {
         case 0: {
-            s32       paused = Mc_SaveData[0].state.field_5C1;
+            s32       paused = Mc_SaveData[0].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3900,7 +3900,7 @@ static void func_actor_444000_8013482C(Task* task)
         case 1:
             coord = task->extra.tmd->coords;
             if (coord->coord.t[0] < 0x2134) {
-                if (Mc_SaveData[0].state.field_5C1 != 1) {
+                if (Mc_SaveData[0].state.actorsFrozen != 1) {
                     Actor444000_StepForward(coord);
                 }
             } else {
@@ -3942,7 +3942,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 2: {
-            s32       paused = Mc_SaveData[0].state.field_5C1;
+            s32       paused = Mc_SaveData[0].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3957,7 +3957,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 3: {
-            s32       paused = Mc_SaveData[0].state.field_5C1;
+            s32       paused = Mc_SaveData[0].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3972,7 +3972,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 4: {
-            s32       paused = Mc_SaveData[0].state.field_5C1;
+            s32       paused = Mc_SaveData[0].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3987,7 +3987,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 5: {
-            s32       paused = Mc_SaveData[0].state.field_5C1;
+            s32       paused = Mc_SaveData[0].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {

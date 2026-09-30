@@ -2503,10 +2503,10 @@ void func_actor_121300_80133D98(Task* arg0)
             ClearImage(&scratch.rect, 0, 0, 0);
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
-            Mc_SaveData[0].state.at4.loc.stage = state;
-            Mc_SaveData[0].state.at4.loc.area  = 9;
-            Mc_SaveData[0].state.at4.loc.warp  = state;
-            gDisplayState.spriteVariant        = 1;
+            Mc_SaveData[0].state.location.loc.stage = state;
+            Mc_SaveData[0].state.location.loc.area  = 9;
+            Mc_SaveData[0].state.location.loc.warp  = state;
+            gDisplayState.spriteVariant             = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;

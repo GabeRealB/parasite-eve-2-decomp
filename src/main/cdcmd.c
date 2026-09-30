@@ -160,9 +160,9 @@ void* CdCmd_SetupMdecBuffers(void)
     } else if (Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0) < 0) {
         return NULL;
     } else {
-        sizeRow = CdCmd_MapHeapSizes[Mc_SaveData[0].state.at4.loc.stage];
+        sizeRow = CdCmd_MapHeapSizes[Mc_SaveData[0].state.location.loc.stage];
         if (sizeRow != NULL) {
-            size = sizeRow[Mc_SaveData[0].state.at4.loc.area];
+            size = sizeRow[Mc_SaveData[0].state.location.loc.area];
             if (size != 0) {
                 D_8006AC00 = Mem_Malloc(size, 1);
             }

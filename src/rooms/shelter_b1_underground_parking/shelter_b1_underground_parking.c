@@ -1726,11 +1726,11 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant        = 1;
-            Mc_SaveData[0].state.at4.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
-            Mc_SaveData[0].state.at4.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
-            Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
-            Mc_SaveData[0].state.at4.loc.room  = D_shelter_b1_underground_parking_8018D77C.room;
+            gDisplayState.spriteVariant             = 1;
+            Mc_SaveData[0].state.location.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
+            Mc_SaveData[0].state.location.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
+            Mc_SaveData[0].state.location.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
+            Mc_SaveData[0].state.location.loc.room  = D_shelter_b1_underground_parking_8018D77C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1761,8 +1761,8 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
-                Mc_SaveData[0].state.at4.loc.view = rec->field_0;
+                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
+                Mc_SaveData[0].state.location.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -1844,7 +1844,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1874,7 +1874,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = D_80115694;
+            Mc_SaveData[0].state.location.loc.view = D_80115694;
             task->state++;
             break;
         case 12:
@@ -2225,7 +2225,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 /// `gGameSession->location.loc.view` selects an entry of the ambience table, and
 /// state 0 starts the loop with `SndEvt_EnqueueType6`. Once
 /// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a
-/// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `Mc_SaveData[0].state.at4.loc.view`,
+/// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `Mc_SaveData[0].state.location.loc.view`,
 /// states 2 to 4 walk the task along, and state 5 retunes the loop to the new
 /// entry with `SndEvt_EnqueueTypeA` and returns to state 1.
 void func_shelter_b1_underground_parking_80182FC8(Task* task)
@@ -2255,7 +2255,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
                 taskKill(task);
                 break;
             }
-            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->location.loc.view) {
+            if (Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) {
                 task->state = task->state + 1;
             }
             break;
@@ -2472,9 +2472,9 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
             return;
         case 1:
             if (Gp_GetCapEventKey() == 0xB) {
-                gGameSession->location.loc.room   = 6;
-                Mc_SaveData[0].state.at4.loc.room = 6;
-                gGameSession->roomObjsDirty       = state;
+                gGameSession->location.loc.room        = 6;
+                Mc_SaveData[0].state.location.loc.room = 6;
+                gGameSession->roomObjsDirty            = state;
                 func_800E8614(D_shelter_b1_underground_parking_801872D8, 1);
                 GameFlag_SetNibble(0xF4, 1);
                 Gp_SetItemSeenBit(0x123, 1);
@@ -2534,10 +2534,10 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
 
 void func_shelter_b1_underground_parking_801837D8(u8 arg0)
 {
-    gGameSession->location.loc.room   = arg0;
-    Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->roomObjsDirty       = 1;
-    gGameSession->viewDirty           = 1;
+    gGameSession->location.loc.room        = arg0;
+    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->roomObjsDirty            = 1;
+    gGameSession->viewDirty                = 1;
 }
 
 /// Room script callback: latch this room's script argument into `D_80115768`.
@@ -2640,9 +2640,9 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer           = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
-    task->work                        = st;
-    Mc_SaveData[0].state.at4.loc.view = 0x15;
+    task->spawnArg2.pointer                = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
+    task->work                             = st;
+    Mc_SaveData[0].state.location.loc.view = 0x15;
     /* The once-loops fold away, but flow weights the references inside them
        by loop depth. The outer one keeps the state load below the mode store;
        the inner one lifts the work pointer's global-alloc priority back above
@@ -2759,10 +2759,10 @@ static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState          = 0;
-    gGameSession->hideHud             = 0;
-    gGameSession->cutsceneHold        = 0;
-    Mc_SaveData[0].state.at4.loc.view = 2;
+    gGameSession->eventState               = 0;
+    gGameSession->hideHud                  = 0;
+    gGameSession->cutsceneHold             = 0;
+    Mc_SaveData[0].state.location.loc.view = 2;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
@@ -2797,10 +2797,10 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
         Display_ReleaseRef();
-        gGameSession->eventState          = 0;
-        gGameSession->hideHud             = 0;
-        gGameSession->cutsceneHold        = 0;
-        Mc_SaveData[0].state.at4.loc.view = 2;
+        gGameSession->eventState               = 0;
+        gGameSession->hideHud                  = 0;
+        gGameSession->cutsceneHold             = 0;
+        Mc_SaveData[0].state.location.loc.view = 2;
         Task_RequestKill(task, 0);
     }
 }
@@ -2815,13 +2815,13 @@ static void func_shelter_b1_underground_parking_801848A4(void)
 
 /// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
 /// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
-/// result as the current room (both `Mc_SaveData[0].state.at4.loc.room` and the session's
-/// `at4.loc.room`) and flags the room objects for relinking.
+/// result as the current room (both `Mc_SaveData[0].state.location.loc.room` and the session's
+/// `location.loc.room`) and flags the room objects for relinking.
 static void func_shelter_b1_underground_parking_8018491C(void)
 {
-    Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
-    gGameSession->location.loc.room   = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
-    gGameSession->roomObjsDirty       = 1;
+    Mc_SaveData[0].state.location.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
+    gGameSession->location.loc.room        = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
+    gGameSession->roomObjsDirty            = 1;
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"

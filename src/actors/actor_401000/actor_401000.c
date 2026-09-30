@@ -2670,7 +2670,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
     s16             clamped;
     SVECTOR*        step;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1) {
         return 0;
     }
     head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
@@ -2744,7 +2744,7 @@ static s32 func_actor_401000_80135704(Task* arg0, WorldCollisionContact* recs, s
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

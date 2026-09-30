@@ -1821,9 +1821,9 @@ void func_actor_503500_80132BD8(void)
 
 void func_actor_503500_80132BF8(void)
 {
-    Mc_SaveData[0].state.at4.loc.area = 0x16;
-    Mc_SaveData[0].state.at4.loc.warp = 1;
-    Mc_SaveData[0].state.at4.loc.room = 1;
+    Mc_SaveData[0].state.location.loc.area = 0x16;
+    Mc_SaveData[0].state.location.loc.warp = 1;
+    Mc_SaveData[0].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

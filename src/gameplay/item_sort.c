@@ -920,7 +920,7 @@ void Gp_RefreshItemRow(InventoryItemRow* arg0)
 
 void func_800B92CC(Task* task)
 {
-    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
             func_acropolis_square_80180804(task);
             break;

@@ -511,7 +511,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == 1)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].state.location.loc.stage == 1)) {
                     flag = 1;
                 }
                 if (flag) {
@@ -732,7 +732,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 restricted = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.location.loc.stage == selected)) {
                 restricted = 1;
             }
             if (restricted != 0) {
@@ -803,7 +803,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.location.loc.stage == selected)) {
                 flag = 1;
             }
             if (flag) {
@@ -1515,7 +1515,7 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     if (Gp_ItemDescs[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == 1)) {
+    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData[0].state.location.loc.stage == 1)) {
         ret = 1;
     }
     return ret;

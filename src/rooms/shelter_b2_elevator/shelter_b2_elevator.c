@@ -468,16 +468,16 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 2:
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData[0].state.at4.loc.area = 9;
-                    Mc_SaveData[0].state.at4.loc.warp = 3;
+                    Mc_SaveData[0].state.location.loc.area = 9;
+                    Mc_SaveData[0].state.location.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData[0].state.at4.loc.area = 0x1B;
-                    Mc_SaveData[0].state.at4.loc.warp = 2;
+                    Mc_SaveData[0].state.location.loc.area = 0x1B;
+                    Mc_SaveData[0].state.location.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData[0].state.at4.loc.area = 0x2A;
-                    Mc_SaveData[0].state.at4.loc.warp = 3;
+                    Mc_SaveData[0].state.location.loc.area = 0x2A;
+                    Mc_SaveData[0].state.location.loc.warp = 3;
                     break;
             }
             task->state++;
@@ -488,14 +488,14 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.queryOnly = ROOM_EVENT_EXECUTE;
-            msg.areaId    = Mc_SaveData[0].state.at4.loc.area;
-            msg.warp      = Mc_SaveData[0].state.at4.loc.warp;
-            msg.room      = Mc_SaveData[0].state.at4.loc.room;
+            msg.areaId    = Mc_SaveData[0].state.location.loc.area;
+            msg.warp      = Mc_SaveData[0].state.location.loc.warp;
+            msg.room      = Mc_SaveData[0].state.location.loc.room;
             msg2          = msg;
             func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.warp = msg2.warp;
-            Mc_SaveData[0].state.at4.loc.room = msg2.room;
+            gDisplayState.spriteVariant            = 1;
+            Mc_SaveData[0].state.location.loc.warp = msg2.warp;
+            Mc_SaveData[0].state.location.loc.room = msg2.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

@@ -122,7 +122,7 @@ void func_800B65B0(Task* task)
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
-                                flags  = Gp_Bit2Banks[Mc_SaveData[0].state.at4.loc.stage].field_4 + (id >> 4);
+                                flags  = Gp_Bit2Banks[Mc_SaveData[0].state.location.loc.stage].field_4 + (id >> 4);
                                 *flags = (*flags & ~mask) | (2 << shift);
                             }
                             work->field_3 = 1;

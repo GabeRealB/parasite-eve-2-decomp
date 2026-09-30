@@ -825,7 +825,7 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             if (found != 0) {
                 GameFlag_SetNibble(0x3A, 2);
                 Task_SpawnOnDefaultList(D_dryfield_driveway_8017E2FC, 0, 0, 0);
-                gGameSession->location.loc.room = (Mc_SaveData[0].state.at4.loc.room = 2);
+                gGameSession->location.loc.room = (Mc_SaveData[0].state.location.loc.room = 2);
                 gGameSession->hideHud           = 1;
                 gGameSession->eventState        = 1;
                 return 1;

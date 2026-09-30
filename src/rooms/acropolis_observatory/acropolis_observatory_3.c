@@ -87,7 +87,7 @@ STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` gate the scene's setup (the latter is the
-/// cutscene/among-us mode flag). `Mc_SaveData[0].state.at4.loc.room` is the field-actor mode byte the
+/// cutscene/among-us mode flag). `Mc_SaveData[0].state.location.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
 
 extern s16 D_acropolis_observatory_8017FE68[];
@@ -956,11 +956,11 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            Mc_SaveData[0].state.at4.loc.room = 1;
-            gGameSession->location.loc.room   = 1;
-            gGameSession->roomObjsDirty       = 1;
-            gGameSession->viewDirty           = 1;
-            task->state                       = task->state + 1;
+            Mc_SaveData[0].state.location.loc.room = 1;
+            gGameSession->location.loc.room        = 1;
+            gGameSession->roomObjsDirty            = 1;
+            gGameSession->viewDirty                = 1;
+            task->state                            = task->state + 1;
             break;
         case 6:
             Gp_DispatchMsg(work->target, 0x3F1, 0, 0);

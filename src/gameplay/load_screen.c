@@ -131,9 +131,9 @@ void func_800AA548(s32 arg0)
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
         if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->location.loc.warp == 2)) {
-            Mc_SaveData[0].state.at4.loc.view = gGameSession->location.loc.view = 2;
+            Mc_SaveData[0].state.location.loc.view = gGameSession->location.loc.view = 2;
         } else {
-            Mc_SaveData[0].state.at4.loc.view = gGameSession->location.loc.view = rec.field_34;
+            Mc_SaveData[0].state.location.loc.view = gGameSession->location.loc.view = rec.field_34;
         }
     }
     Gp_ActorSlots[0] = NULL;
@@ -209,7 +209,7 @@ void Gp_BeginSessionTask(Task* arg0)
     one = 1;
     Mem_Init();
     CdCmd_ActivatePhase1();
-    gGameSession->location           = Mc_SaveData[0].state.at4;
+    gGameSession->location           = Mc_SaveData[0].state.location;
     gGameSession->spriteVariant      = ds->spriteVariant;
     queue->suppressMoviePresentation = one;
     if ((arg0->spawnArg1.value & 0xF) == 0) {
@@ -366,11 +366,11 @@ void Gp_LoadState2(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        sess = &Mc_SaveData[0].state.at4.loc;
+        sess = &Mc_SaveData[0].state.location.loc;
         Gp_InitStageVisit(sess);
         save = &Mc_SaveData[0];
-        Mem_ConfigureAuxHeap(save->state.at4.loc.stage, save->state.at4.loc.area);
-        if ((GAME_LOCATION_WORD(save->state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+        Mem_ConfigureAuxHeap(save->state.location.loc.stage, save->state.location.loc.area);
+        if ((GAME_LOCATION_WORD(save->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             Mem_SetActiveAuxHeap(true);
         }
         Mem_InitAux();
@@ -502,10 +502,10 @@ void Gp_LoadWaitSave(Task* task)
         }
         sess = gGameSession;
         if (sess->applySaveVariant == 1) {
-            areaSetPlacementVariant(&sess->location.loc, Mc_SaveData[0].state.at4.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
+            areaSetPlacementVariant(&sess->location.loc, Mc_SaveData[0].state.location.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
             gGameSession->applySaveVariant = 0;
         }
-        saveKey = &Mc_SaveData[0].state.at4.loc;
+        saveKey = &Mc_SaveData[0].state.location.loc;
         Gp_MarkAreaVisited(saveKey);
         areaSyncLocationVariant(saveKey);
         gGameSession->location.loc.variant = saveKey->variant;

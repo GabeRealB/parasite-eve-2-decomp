@@ -262,8 +262,8 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->eventState           = 1;
             gGameSession->hideHud              = 1;
             save                               = &Mc_SaveData[0];
-            view                               = save->state.at4.loc.view;
-            save->state.at4.loc.view           = 0xD;
+            view                               = save->state.location.loc.view;
+            save->state.location.loc.view      = 0xD;
             D_shelter_b1_armory_8018557C.value = view;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x16, 0);
@@ -281,7 +281,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->hideHud    = 0;
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
-            Mc_SaveData[0].state.at4.loc.view = D_shelter_b1_armory_8018557C.value;
+            Mc_SaveData[0].state.location.loc.view = D_shelter_b1_armory_8018557C.value;
         advance:
             task->state = task->state + 1;
             break;

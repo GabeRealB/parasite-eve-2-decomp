@@ -60,7 +60,7 @@ u16 Gp_PollAreaCdLoads(void)
 
     switch (Gp_AreaCdPhase) {
         case LOADING_AREA_INIT:
-            layout      = Gp_GetNestedAreaRec(&Mc_SaveData[0].state.at4.loc);
+            layout      = Gp_GetNestedAreaRec(&Mc_SaveData[0].state.location.loc);
             D_80114C64  = layout;
             Gp_CdRecCur = layout->field_0;
             if (layout == NULL) {
@@ -134,7 +134,7 @@ u16 func_800AA120(void)
 
     switch (D_80114C70) {
         case LOADING_AREA_INIT:
-            layout     = Gp_GetNestedAreaRec(&Mc_SaveData[0].state.at4.loc);
+            layout     = Gp_GetNestedAreaRec(&Mc_SaveData[0].state.location.loc);
             D_80114C64 = layout;
             D_80114C68 = layout->field_4;
             if (layout == NULL) {

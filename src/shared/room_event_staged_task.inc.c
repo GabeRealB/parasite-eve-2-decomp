@@ -41,10 +41,10 @@ void roomEventStagedTask(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = gRoomEventStagedMsg.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = gRoomEventStagedMsg.warp;
-            Mc_SaveData[0].state.at4.loc.room = gRoomEventStagedMsg.room;
+            gDisplayState.spriteVariant            = 1;
+            Mc_SaveData[0].state.location.loc.area = gRoomEventStagedMsg.areaId;
+            Mc_SaveData[0].state.location.loc.warp = gRoomEventStagedMsg.warp;
+            Mc_SaveData[0].state.location.loc.room = gRoomEventStagedMsg.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

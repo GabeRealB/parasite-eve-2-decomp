@@ -1728,11 +1728,11 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant        = 1;
-            Mc_SaveData[0].state.at4.loc.stage = D_neo_ark_observatory_80187A30.stage;
-            Mc_SaveData[0].state.at4.loc.area  = D_neo_ark_observatory_80187A30.area;
-            Mc_SaveData[0].state.at4.loc.warp  = D_neo_ark_observatory_80187A30.warp;
-            Mc_SaveData[0].state.at4.loc.room  = D_neo_ark_observatory_80187A30.room;
+            gDisplayState.spriteVariant             = 1;
+            Mc_SaveData[0].state.location.loc.stage = D_neo_ark_observatory_80187A30.stage;
+            Mc_SaveData[0].state.location.loc.area  = D_neo_ark_observatory_80187A30.area;
+            Mc_SaveData[0].state.location.loc.warp  = D_neo_ark_observatory_80187A30.warp;
+            Mc_SaveData[0].state.location.loc.room  = D_neo_ark_observatory_80187A30.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1931,13 +1931,13 @@ static void func_neo_ark_observatory_8017FD7C(Task* task)
     s32 var_a0;
 
     if (gGameSession->eventState == 0) {
-        if (Mc_SaveData[0].state.at4.loc.view != 2) {
+        if (Mc_SaveData[0].state.location.loc.view != 2) {
             Gp_MsgAlly3F3(2);
             return;
         }
     }
     var_a0 = 1;
-    if (Mc_SaveData[0].state.at4.loc.view == 3) {
+    if (Mc_SaveData[0].state.location.loc.view == 3) {
         var_a0 = 2;
     }
     Gp_MsgAlly3F3(var_a0);

@@ -856,10 +856,10 @@ void func_dryfield_underpass_8017D5D0(Task* task)
                             }
                         }
                     }
-                    session                           = gGameSession;
-                    room                              = dst.room;
-                    session->location.loc.room        = room;
-                    Mc_SaveData[0].state.at4.loc.room = room;
+                    session                                = gGameSession;
+                    room                                   = dst.room;
+                    session->location.loc.room             = room;
+                    Mc_SaveData[0].state.location.loc.room = room;
                 }
             }
             task->state = task->state + 1;
@@ -970,7 +970,7 @@ static void func_dryfield_underpass_8017DA00(Task* task)
 /// Picks the room variant to load next from nibbles 0xC9, 0x53 and 0x51, the
 /// same choice the switch task `func_dryfield_underpass_8017D5D0` makes when it
 /// toggles nibble 0x51, and writes it to the session's room and to
-/// `Mc_SaveData[0].state.at4.loc.room`, then flags the room objects dirty. Reached from the room's
+/// `Mc_SaveData[0].state.location.loc.room`, then flags the room objects dirty. Reached from the room's
 /// script data.
 void func_dryfield_underpass_8017DA08(void)
 {
@@ -1003,11 +1003,11 @@ void func_dryfield_underpass_8017DA08(void)
             }
         }
     }
-    session                           = gGameSession;
-    room                              = dst.room;
-    session->location.loc.room        = room;
-    Mc_SaveData[0].state.at4.loc.room = room;
-    gGameSession->roomObjsDirty       = 1;
+    session                                = gGameSession;
+    room                                   = dst.room;
+    session->location.loc.room             = room;
+    Mc_SaveData[0].state.location.loc.room = room;
+    gGameSession->roomObjsDirty            = 1;
 }
 
 /// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed

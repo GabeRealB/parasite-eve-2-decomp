@@ -649,15 +649,15 @@ void func_mist_parking_80184428(s32 arg0)
 
 void func_mist_parking_80184468(s32 arg0)
 {
-    Mc_SaveData[0].state.at4.loc.stage = 1;
-    Mc_SaveData[0].state.at4.loc.warp  = 1;
-    Mc_SaveData[0].state.at4.loc.room  = 1;
-    Mc_SaveData[0].state.at4.loc.area  = arg0;
-    gDisplayState.spriteVariant        = 1;
+    Mc_SaveData[0].state.location.loc.stage = 1;
+    Mc_SaveData[0].state.location.loc.warp  = 1;
+    Mc_SaveData[0].state.location.loc.room  = 1;
+    Mc_SaveData[0].state.location.loc.area  = arg0;
+    gDisplayState.spriteVariant             = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 0);
+        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
     }
 }
 
@@ -670,15 +670,15 @@ void func_mist_parking_801844EC(void)
 void func_mist_parking_8018451C(Task* task)
 {
     func_800BC4BC();
-    Player_Status.resourceVariant      = 1;
-    Mc_SaveData[0].state.at4.loc.area  = 5;
-    Mc_SaveData[0].state.at4.loc.stage = 1;
-    Mc_SaveData[0].state.at4.loc.warp  = 1;
-    Mc_SaveData[0].state.at4.loc.room  = 1;
-    gDisplayState.spriteVariant        = 1;
+    Player_Status.resourceVariant           = 1;
+    Mc_SaveData[0].state.location.loc.area  = 5;
+    Mc_SaveData[0].state.location.loc.stage = 1;
+    Mc_SaveData[0].state.location.loc.warp  = 1;
+    Mc_SaveData[0].state.location.loc.room  = 1;
+    gDisplayState.spriteVariant             = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
-    Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 0);
+    Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
 }
 
 /// Spawns entry 1 of `D_mist_parking_80190824` and keeps its handle in

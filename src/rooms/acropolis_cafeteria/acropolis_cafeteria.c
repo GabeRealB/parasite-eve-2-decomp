@@ -2549,9 +2549,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 2:
             blackout                        = 1;
-            gGameSession->location.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->roomObjsDirty                                         = 1;
-            task->state                                                        += 1;
+            gGameSession->location.loc.room = Mc_SaveData[0].state.location.loc.room = 2;
+            gGameSession->roomObjsDirty                                              = 1;
+            task->state                                                             += 1;
             break;
         case 3:
             blackout = 1;
@@ -2582,9 +2582,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 7:
             blackout = 1;
             if (CdCmd_IsIdle()) {
-                areaSetPlacementVariant(&Mc_SaveData[0].state.at4.loc, 2, AREA_VARIANT_RESET_ALWAYS);
-                areaSyncLocationVariant(&Mc_SaveData[0].state.at4.loc);
-                Gp_SpawnArea(&Mc_SaveData[0].state.at4.loc);
+                areaSetPlacementVariant(&Mc_SaveData[0].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+                areaSyncLocationVariant(&Mc_SaveData[0].state.location.loc);
+                Gp_SpawnArea(&Mc_SaveData[0].state.location.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;
             }
@@ -2723,11 +2723,11 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             func_800ABFF8();
             func_800AC000();
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.at4.loc.stage = 1;
-            Mc_SaveData[0].state.at4.loc.area  = 3;
-            Mc_SaveData[0].state.at4.loc.warp  = 3;
-            Mc_SaveData[0].state.at4.loc.room  = 3;
-            gDisplayState.spriteVariant        = 1;
+            Mc_SaveData[0].state.location.loc.stage = 1;
+            Mc_SaveData[0].state.location.loc.area  = 3;
+            Mc_SaveData[0].state.location.loc.warp  = 3;
+            Mc_SaveData[0].state.location.loc.room  = 3;
+            gDisplayState.spriteVariant             = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

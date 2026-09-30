@@ -999,8 +999,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 0:
             break;
         case 4:
-            Mc_SaveData[0].state.at4.loc.view = 8;
-            work->field_64                    = Task_Spawn(1, 0x2D, 0x10, 0);
+            Mc_SaveData[0].state.location.loc.view = 8;
+            work->field_64                         = Task_Spawn(1, 0x2D, 0x10, 0);
             break;
         case 5:
             if (work->field_64 != NULL) {
@@ -1026,7 +1026,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
             return;
         case 7:
-            Mc_SaveData[0].state.at4.loc.view = work->field_78;
+            Mc_SaveData[0].state.location.loc.view = work->field_78;
             break;
         case 8:
             switch ((u16)work->field_72) {
@@ -1101,11 +1101,11 @@ static inline void Actor342000_SetMode(s16 arg0)
 
 static inline void Actor342000_EnterArea(void)
 {
-    gGameSession->location.loc.room    = 7;
-    Mc_SaveData[0].state.at4.loc.room  = 7;
-    gGameSession->eventRoomIndex       = 6;
-    gGameSession->incineratorRoomGroup = 1;
-    gGameSession->roomObjsDirty        = 1;
+    gGameSession->location.loc.room        = 7;
+    Mc_SaveData[0].state.location.loc.room = 7;
+    gGameSession->eventRoomIndex           = 6;
+    gGameSession->incineratorRoomGroup     = 1;
+    gGameSession->roomObjsDirty            = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1114,7 +1114,7 @@ static inline void Actor342000_EnterArea(void)
 /// actors (a spawn with `GameSession::skipEventIntro` set skips to state 4);
 /// states 1..10 spawn the script tasks, seed the placements and run the timed
 /// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
-/// state 7's `Mc_SaveData[0].state.at4.loc.view` store ahead of the state load, as in retail.
+/// state 7's `Mc_SaveData[0].state.location.loc.view` store ahead of the state load, as in retail.
 void func_actor_342000_8016382C(Task* arg0)
 {
     ActorCommand          msg;
@@ -1216,13 +1216,13 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 2) {
-                Mc_SaveData[0].state.at4.loc.view = 0x21;
+                Mc_SaveData[0].state.location.loc.view = 0x21;
                 goto next;
             }
             break;
         case 7:
-            Mc_SaveData[0].state.at4.loc.view = 0x21;
-            arg0->killCountdown               = 0;
+            Mc_SaveData[0].state.location.loc.view = 0x21;
+            arg0->killCountdown                    = 0;
             arg0->state++;
             break;
         case 8:
@@ -1386,11 +1386,11 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, Act
 
 void func_actor_342000_80164154(void)
 {
-    gGameSession->location.loc.room    = 7;
-    Mc_SaveData[0].state.at4.loc.room  = 7;
-    gGameSession->eventRoomIndex       = 6;
-    gGameSession->incineratorRoomGroup = 1;
-    gGameSession->roomObjsDirty        = 1;
+    gGameSession->location.loc.room        = 7;
+    Mc_SaveData[0].state.location.loc.room = 7;
+    gGameSession->eventRoomIndex           = 6;
+    gGameSession->incineratorRoomGroup     = 1;
+    gGameSession->roomObjsDirty            = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 

@@ -95,7 +95,7 @@ void func_800AD6BC(void)
     cfg   = &Player_Status;
     slot  = gameGetPtrSlot(1);
     if (slot != NULL) {
-        if (slot->spawnArg1.value != Mc_SaveData[0].state.at4.loc.view) {
+        if (slot->spawnArg1.value != Mc_SaveData[0].state.location.loc.view) {
             func_800A7F24();
             D_80114D08 = 0xA;
         }

@@ -535,11 +535,11 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant        = 1;
-            Mc_SaveData[0].state.at4.loc.stage = D_shelter_1f_parking_garage_80181988.value.stage;
-            Mc_SaveData[0].state.at4.loc.area  = D_shelter_1f_parking_garage_80181988.value.area;
-            Mc_SaveData[0].state.at4.loc.warp  = D_shelter_1f_parking_garage_80181988.value.warp;
-            Mc_SaveData[0].state.at4.loc.room  = D_shelter_1f_parking_garage_80181988.value.room;
+            gDisplayState.spriteVariant             = 1;
+            Mc_SaveData[0].state.location.loc.stage = D_shelter_1f_parking_garage_80181988.value.stage;
+            Mc_SaveData[0].state.location.loc.area  = D_shelter_1f_parking_garage_80181988.value.area;
+            Mc_SaveData[0].state.location.loc.warp  = D_shelter_1f_parking_garage_80181988.value.warp;
+            Mc_SaveData[0].state.location.loc.room  = D_shelter_1f_parking_garage_80181988.value.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

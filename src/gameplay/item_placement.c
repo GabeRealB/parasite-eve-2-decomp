@@ -221,7 +221,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     GpBit2Rec*       place;
     u16              id;
 
-    sess  = &Mc_SaveData[0].state.at4.loc;
+    sess  = &Mc_SaveData[0].state.location.loc;
     lists = Gp_Bit2Banks[sess->stage].field_0;
     if (lists == NULL) {
         return;

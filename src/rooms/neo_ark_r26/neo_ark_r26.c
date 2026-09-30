@@ -450,13 +450,13 @@ static void func_neo_ark_r26_8017D710(Task* task);
 void func_neo_ark_r26_8017D5D0(void)
 {
     if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.at4.loc.stage = 5;
-        Mc_SaveData[0].state.at4.loc.area  = 0x1C;
-        Mc_SaveData[0].state.at4.loc.warp  = 1;
-        Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.spriteVariant        = 1;
+        Mc_SaveData[0].state.location.loc.stage = 5;
+        Mc_SaveData[0].state.location.loc.area  = 0x1C;
+        Mc_SaveData[0].state.location.loc.warp  = 1;
+        Mc_SaveData[0].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant             = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 1);
+        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 1);
     }
 }
 

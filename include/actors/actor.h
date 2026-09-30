@@ -2280,7 +2280,7 @@ static __inline__ void actorMoveForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2306,7 +2306,7 @@ static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2335,7 +2335,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
     SVECTOR*  vec;
 
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2431,7 +2431,7 @@ static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;

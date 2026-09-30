@@ -955,9 +955,9 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 
 void func_shelter_b1_sterilization_room_801814B0(void)
 {
-    Mc_SaveData[0].state.at4.loc.area = 0x27;
-    Mc_SaveData[0].state.at4.loc.warp = 3;
-    Mc_SaveData[0].state.at4.loc.room = 1;
+    Mc_SaveData[0].state.location.loc.area = 0x27;
+    Mc_SaveData[0].state.location.loc.warp = 3;
+    Mc_SaveData[0].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 
@@ -971,10 +971,10 @@ void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
             arg0->state            += 1;
             break;
         case 1:
-            Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->location.loc.room   = 2;
-            gGameSession->roomObjsDirty       = state;
-            arg0->state                      += 1;
+            Mc_SaveData[0].state.location.loc.room = 2;
+            gGameSession->location.loc.room        = 2;
+            gGameSession->roomObjsDirty            = state;
+            arg0->state                           += 1;
             break;
         default:
             taskKill(arg0);

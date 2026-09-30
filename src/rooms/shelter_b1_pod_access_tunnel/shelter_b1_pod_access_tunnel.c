@@ -1098,12 +1098,12 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.at4.loc.area = 0x23;
-            Mc_SaveData[0].state.at4.loc.warp = 3;
-            Mc_SaveData[0].state.at4.loc.room = 1;
-            room                              = GameFlag_GetNibble(0x118);
+            Mc_SaveData[0].state.location.loc.area = 0x23;
+            Mc_SaveData[0].state.location.loc.warp = 3;
+            Mc_SaveData[0].state.location.loc.room = 1;
+            room                                   = GameFlag_GetNibble(0x118);
             if (room == 2) {
-                Mc_SaveData[0].state.at4.loc.room = room;
+                Mc_SaveData[0].state.location.loc.room = room;
             }
             gDisplayState.spriteVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
@@ -1145,11 +1145,11 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
         case 4:
             GameFlag_SetNibble(0xB4, 1);
             GameFlag_SetNibble(0x1C1, 0);
-            Mc_SaveData[0].state.sceneEvent   = 0x1C;
-            Mc_SaveData[0].state.at4.loc.area = 0x17;
-            Mc_SaveData[0].state.at4.loc.warp = 1;
-            Mc_SaveData[0].state.at4.loc.room = 1;
-            gDisplayState.spriteVariant       = 1;
+            Mc_SaveData[0].state.sceneEvent        = 0x1C;
+            Mc_SaveData[0].state.location.loc.area = 0x17;
+            Mc_SaveData[0].state.location.loc.warp = 1;
+            Mc_SaveData[0].state.location.loc.room = 1;
+            gDisplayState.spriteVariant            = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

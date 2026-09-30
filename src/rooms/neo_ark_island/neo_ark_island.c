@@ -54,7 +54,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// Staging save location the island commits: area / warp / room
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
 /// location, and `func_neo_ark_island_8017E844` moves those same three bytes
-/// into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
+/// into `Mc_SaveData[0].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_island_80184008;
 
 static void func_neo_ark_island_8017EA94(Task* arg0);
@@ -599,10 +599,10 @@ void func_neo_ark_island_8017E844(Task* arg0)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_island_80184008.warp;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_island_80184008.field_4;
-            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
+            gDisplayState.spriteVariant            = 1;
+            Mc_SaveData[0].state.location.loc.area = D_neo_ark_island_80184008.warp;
+            Mc_SaveData[0].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
+            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

@@ -135,10 +135,10 @@ void Gp_CommitDirWarp(void)
     loc->queryOnly    = ROOM_EVENT_EXECUTE;
     Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
-    save                     = &Mc_SaveData[0];
-    save->state.at4.loc.area = (u8)Gp_WarpLoc.areaId;
-    save->state.at4.loc.warp = loc->warp;
-    save->state.at4.loc.room = loc->room;
+    save                          = &Mc_SaveData[0];
+    save->state.location.loc.area = (u8)Gp_WarpLoc.areaId;
+    save->state.location.loc.warp = loc->warp;
+    save->state.location.loc.room = loc->room;
     Task_Spawn(0, 0x11, 0, 0);
 
     Gp_DirAltNibble = 0;

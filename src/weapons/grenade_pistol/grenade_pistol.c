@@ -300,7 +300,7 @@ check:
         arg0->state = 3;
         goto move;
     }
-    if (idx == 1 && Mc_SaveData[0].state.at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.at4.loc.stage - 2) < 2U) {
+    if (idx == 1 && Mc_SaveData[0].state.location.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.location.loc.stage - 2) < 2U) {
         goto explode;
     }
     goto move;

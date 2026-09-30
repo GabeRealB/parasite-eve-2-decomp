@@ -4435,7 +4435,7 @@ static void func_actor_403200_80134D40(Task* arg0)
     work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
     model = arg0->extra.tmd->coords;
-    if (Mc_SaveData[0].state.field_5C1 != 1) {
+    if (Mc_SaveData[0].state.actorsFrozen != 1) {
         Actor403200_StepForward(model);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -9350,7 +9350,7 @@ after_mode:
         scratch->view = D_actor_403200_8015E6E8[work->field_F06](arg1, work->field_F08);
         if (((Gp_GetViewIndex() & 0xFF) != scratch->view) &&
             (arg1->spawnArg1.value >> 16) == 0) {
-            Mc_SaveData[0].state.at4.loc.view = scratch->view;
+            Mc_SaveData[0].state.location.loc.view = scratch->view;
         }
     }
 

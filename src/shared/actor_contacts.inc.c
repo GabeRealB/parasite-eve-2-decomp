@@ -51,7 +51,7 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
 /// in a scratch block carved off the scratch stack, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
+/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen` is 1.
 static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -59,7 +59,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
@@ -109,7 +109,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s
 /// discards any pair more than 0x400 apart, and for each remaining bearing
 /// nudges both `coord`'s translation and `*pos` a short step away from it. `*pos`
 /// accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
+/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen`
 /// is 1.
 static s32 ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
@@ -117,7 +117,7 @@ static s32 ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
         return 0;
     }
 

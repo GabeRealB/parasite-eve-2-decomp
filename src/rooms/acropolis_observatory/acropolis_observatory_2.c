@@ -771,8 +771,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(2);
-                task->state                       = task->state + 1;
+                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(2);
+                task->state                            = task->state + 1;
             }
             break;
 
@@ -881,8 +881,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(4);
-                task->state                       = task->state + 1;
+                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(4);
+                task->state                            = task->state + 1;
             }
             break;
 

@@ -1000,8 +1000,8 @@ void func_mist_parking_80181E8C(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
-                Mc_SaveData[0].state.at4.loc.view = rec->field_0;
+                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
+                Mc_SaveData[0].state.location.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -1083,7 +1083,7 @@ void func_mist_parking_80181E8C(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1113,7 +1113,7 @@ void func_mist_parking_80181E8C(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = D_80115694;
+            Mc_SaveData[0].state.location.loc.view = D_80115694;
             task->state++;
             break;
         case 12:
@@ -1204,9 +1204,9 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
             Task_SpawnFromTable(D_mist_parking_801869B8, 0, 4, &D_mist_parking_8019533C);
-            session                           = gGameSession;
-            Mc_SaveData[0].state.at4.loc.warp = 2;
-            session->location.loc.warp        = 2;
+            session                                = gGameSession;
+            Mc_SaveData[0].state.location.loc.warp = 2;
+            session->location.loc.warp             = 2;
             break;
         case 18:
             Gp_MsgPlayerWeapon(0);
@@ -1283,9 +1283,9 @@ void func_mist_parking_80182750(s32 arg0)
     if (GameFlag_GetNibble(0x7A) != 0) {
         arg0 += 2;
     }
-    Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->location.loc.room   = arg0;
-    gGameSession->roomObjsDirty       = 1;
+    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->location.loc.room        = arg0;
+    gGameSession->roomObjsDirty            = 1;
 }
 
 void func_mist_parking_801827A0(s32 arg0)
@@ -1298,7 +1298,7 @@ static void func_mist_parking_801827C0(Task* arg0)
     arg0->msgTable = D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
-        if (Mc_SaveData[0].state.at4.loc.warp == 3) {
+        if (Mc_SaveData[0].state.location.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);
             func_800E8634(D_mist_parking_8018DF34, 0, D_mist_parking_8018EDBC);

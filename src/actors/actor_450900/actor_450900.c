@@ -846,11 +846,11 @@ void func_actor_450900_8013235C(Task* task)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 8);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.at4.loc.area  = 0xF;
-            Mc_SaveData[0].state.at4.loc.warp  = 3;
-            Mc_SaveData[0].state.companionType = 0;
-            Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.spriteVariant        = 1;
+            Mc_SaveData[0].state.location.loc.area = 0xF;
+            Mc_SaveData[0].state.location.loc.warp = 3;
+            Mc_SaveData[0].state.companionType     = 0;
+            Mc_SaveData[0].state.location.loc.room = 1;
+            gDisplayState.spriteVariant            = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             taskKill(task);

@@ -1117,9 +1117,9 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer           = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work                        = st;
-    Mc_SaveData[0].state.at4.loc.view = 0xB;
+    task->spawnArg2.pointer                = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
+    task->work                             = st;
+    Mc_SaveData[0].state.location.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
        pointer's (3*1/10) and the two swap callee-saved homes. Keeping the
@@ -1197,12 +1197,12 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState          = 0;
-    gGameSession->hideHud             = 0;
-    gGameSession->cutsceneHold        = 0;
-    Mc_SaveData[0].state.at4.loc.view = 0xA;
+    gGameSession->eventState               = 0;
+    gGameSession->hideHud                  = 0;
+    gGameSession->cutsceneHold             = 0;
+    Mc_SaveData[0].state.location.loc.view = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
-       `Mc_SaveData[0].state.at4.loc.view` byte store, which then fills `taskKill`'s delay slot. */
+       `Mc_SaveData[0].state.location.loc.view` byte store, which then fills `taskKill`'s delay slot. */
     taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
@@ -1225,7 +1225,7 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
 
 /// The script step that runs while the shrine's pad is idle: it re-clears the
 /// prompt, ticks the step's timer, and once the step has run 0x1E frames latches
-/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `Mc_SaveData[0].state.at4.loc.room` and the
+/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `Mc_SaveData[0].state.location.loc.room` and the
 /// session, which makes the room rebuild its objects, and enters state 2.
 ///
 /// The same literal is stored in both arms on purpose: `gGameSession` is read
@@ -1245,11 +1245,11 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->location.loc.room   = 2;
+            Mc_SaveData[0].state.location.loc.room = 2;
+            gGameSession->location.loc.room        = 2;
         } else {
-            Mc_SaveData[0].state.at4.loc.room = 5;
-            gGameSession->location.loc.room   = 5;
+            Mc_SaveData[0].state.location.loc.room = 5;
+            gGameSession->location.loc.room        = 5;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;
@@ -1279,9 +1279,9 @@ static void func_neo_ark_shrine_8017F0F0(Task* task)
     st->timer = timer;
     if (timer >= 0x1EU) {
         Task_SpawnFromTable(D_neo_ark_shrine_80182508, 1, 0, 0);
-        Mc_SaveData[0].state.at4.loc.view = 0xE;
+        Mc_SaveData[0].state.location.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
-           `Mc_SaveData[0].state.at4.loc.view` byte store to fill its load-delay slot. */
+           `Mc_SaveData[0].state.location.loc.view` byte store to fill its load-delay slot. */
         st->timer = 0;
         task->state++;
     }
@@ -1300,7 +1300,7 @@ static void func_neo_ark_shrine_8017F178(Task* task)
         st->timer = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
-            Mc_SaveData[0].state.at4.loc.view = 0xD;
+            Mc_SaveData[0].state.location.loc.view = 0xD;
             GameFlag_SetNibble(0xE9, 1);
             next = task->state + 1;
         } else {
@@ -1328,17 +1328,17 @@ static void func_neo_ark_shrine_8017F21C(Task* task)
 
 static void func_neo_ark_shrine_8017F274(Task* task)
 {
-    Gp_StateF0.field_20               = 2;
-    Mc_SaveData[0].state.at4.loc.room = 6;
-    gGameSession->location.loc.room   = 6;
-    gGameSession->roomObjsDirty       = 1;
+    Gp_StateF0.field_20                    = 2;
+    Mc_SaveData[0].state.location.loc.room = 6;
+    gGameSession->location.loc.room        = 6;
+    gGameSession->roomObjsDirty            = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState          = 0;
-    gGameSession->hideHud             = 0;
-    gGameSession->cutsceneHold        = 0;
-    Mc_SaveData[0].state.at4.loc.view = 0xA;
+    gGameSession->eventState               = 0;
+    gGameSession->hideHud                  = 0;
+    gGameSession->cutsceneHold             = 0;
+    Mc_SaveData[0].state.location.loc.view = 0xA;
     Task_RequestKill(task, 0);
 }
 
@@ -1372,11 +1372,11 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].state.at4.loc.room = 1;
-            gGameSession->location.loc.room   = 1;
+            Mc_SaveData[0].state.location.loc.room = 1;
+            gGameSession->location.loc.room        = 1;
         } else {
-            Mc_SaveData[0].state.at4.loc.room = 4;
-            gGameSession->location.loc.room   = 4;
+            Mc_SaveData[0].state.location.loc.room = 4;
+            gGameSession->location.loc.room        = 4;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;

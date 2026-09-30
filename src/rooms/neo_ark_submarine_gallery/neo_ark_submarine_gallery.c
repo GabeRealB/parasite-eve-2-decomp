@@ -54,7 +54,7 @@ extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 /// Staging save location the gallery commits: area / warp / room
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
 /// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
-/// same three bytes into `Mc_SaveData[0].state.at4.loc.area` / `field_8` / `field_5`.
+/// same three bytes into `Mc_SaveData[0].state.location.loc.area` / `field_8` / `field_5`.
 extern RoomEventMsg D_neo_ark_submarine_gallery_80185924;
 
 GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
@@ -133,10 +133,10 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
-            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
+            gDisplayState.spriteVariant            = 1;
+            Mc_SaveData[0].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
+            Mc_SaveData[0].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
+            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

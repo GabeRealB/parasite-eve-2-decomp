@@ -1808,11 +1808,11 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 1:
             if (gGameSession->eventState == 0) {
                 SndEvt_EnqueueType7(0x80000000, 0);
-                Mc_SaveData[0].state.at4.loc.area  = 0xD;
-                Mc_SaveData[0].state.at4.loc.stage = 1;
-                Mc_SaveData[0].state.at4.loc.warp  = 2;
-                Mc_SaveData[0].state.at4.loc.room  = 1;
-                gDisplayState.spriteVariant        = 1;
+                Mc_SaveData[0].state.location.loc.area  = 0xD;
+                Mc_SaveData[0].state.location.loc.stage = 1;
+                Mc_SaveData[0].state.location.loc.warp  = 2;
+                Mc_SaveData[0].state.location.loc.room  = 1;
+                gDisplayState.spriteVariant             = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;
@@ -1842,8 +1842,8 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
                         Gp_DispatchMsgPtr(cutscene->target, 0x3E9, msg, 0);
-                        Mc_SaveData[0].state.at4.loc.view = 0xE;
-                        cutscene->step                    = cutscene->step + 1;
+                        Mc_SaveData[0].state.location.loc.view = 0xE;
+                        cutscene->step                         = cutscene->step + 1;
                     }
                     break;
             }

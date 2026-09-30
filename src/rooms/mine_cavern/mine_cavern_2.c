@@ -2174,9 +2174,9 @@ static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task);
 
 void func_mine_cavern_8017E330(void)
 {
-    Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->location.loc.room   = 2;
-    gGameSession->roomObjsDirty       = 1;
+    Mc_SaveData[0].state.location.loc.room = 2;
+    gGameSession->location.loc.room        = 2;
+    gGameSession->roomObjsDirty            = 1;
 }
 
 void func_mine_cavern_8017E358(void)

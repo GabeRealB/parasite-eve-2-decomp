@@ -718,7 +718,7 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
 
     shift = (arg0 & 0xF) * 2;
     mask  = 3 << shift;
-    stage = Mc_SaveData[0].state.at4.loc.stage;
+    stage = Mc_SaveData[0].state.location.loc.stage;
     p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
     *p   &= ~mask;
     mask  = arg1 << shift;

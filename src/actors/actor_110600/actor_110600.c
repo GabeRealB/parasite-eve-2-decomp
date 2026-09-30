@@ -1522,7 +1522,7 @@ static void func_actor_110600_80132FE0(OverlayWalker* work)
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (Mc_SaveData[0].state.field_5C1 == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1) {
         return;
     }
 
@@ -1717,7 +1717,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
 /// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
 /// while it is non-zero it scales (`GPF`) the normalised facing column of the
 /// model matrix into the per-frame world step, which is added to the
-/// coordinate's translation and kept in `moveStep`. `Mc_SaveData[0].state.field_5C1` (a global
+/// coordinate's translation and kept in `moveStep`. `Mc_SaveData[0].state.actorsFrozen` (a global
 /// freeze flag) zeroes the step instead. Written as an inline so the two
 /// scratch-head accesses inside one frame stay absolute; see
 /// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
@@ -1790,7 +1790,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
     coord = walker->coord;
     speed = walker->field_5E;
     step  = &walker->moveStep;
-    if (Mc_SaveData[0].state.field_5C1 == 1) {
+    if (Mc_SaveData[0].state.actorsFrozen == 1) {
         step->vz            = 0;
         step->vy            = 0;
         walker->moveStep.vx = 0;

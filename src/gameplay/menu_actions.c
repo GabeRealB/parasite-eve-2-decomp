@@ -3098,7 +3098,7 @@ s32 func_800D4D2C(s32 arg0)
 {
     s32 val;
 
-    val                           = *(volatile s32*)&Mc_SaveData[0].state.at4.loc;
+    val                           = *(volatile s32*)&Mc_SaveData[0].state.location.loc;
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:

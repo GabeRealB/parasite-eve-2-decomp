@@ -531,8 +531,8 @@ static void func_shelter_r47_8017F628(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
-                Mc_SaveData[0].state.at4.loc.view = rec->field_0;
+                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
+                Mc_SaveData[0].state.location.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -614,7 +614,7 @@ static void func_shelter_r47_8017F628(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -644,7 +644,7 @@ static void func_shelter_r47_8017F628(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = D_80115694;
+            Mc_SaveData[0].state.location.loc.view = D_80115694;
             task->state++;
             break;
         case 12:
@@ -1380,10 +1380,10 @@ void func_shelter_r47_8018138C(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer           = Task_SpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
-    task->work                        = work;
-    work->field_4E                    = Mc_SaveData[0].state.at4.loc.view;
-    Mc_SaveData[0].state.at4.loc.view = 0x10;
+    task->spawnArg2.pointer                = Task_SpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
+    task->work                             = work;
+    work->field_4E                         = Mc_SaveData[0].state.location.loc.view;
+    Mc_SaveData[0].state.location.loc.view = 0x10;
     task->state++;
     Display_AcquireRef();
 

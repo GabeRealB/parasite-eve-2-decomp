@@ -811,11 +811,11 @@ static void Gp_ReloadFromSave(void)
 
     slot                  = gameGetPtrSlot(1);
     save                  = &Mc_SaveData[0];
-    slot->spawnArg1.value = save->state.at4.loc.view;
+    slot->spawnArg1.value = save->state.location.loc.view;
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
-    gGameSession->location.loc.view = save->state.at4.loc.view;
+    gGameSession->location.loc.view = save->state.location.loc.view;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(2);
     gGameSession->viewReady = 0;
@@ -826,10 +826,10 @@ static void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
-    slot                              = gameGetPtrSlot(1);
-    Mc_SaveData[0].state.at4.loc.view = arg0;
-    gGameSession->location.loc.view   = arg0;
-    slot->spawnArg1.value             = (u8)arg0;
+    slot                                   = gameGetPtrSlot(1);
+    Mc_SaveData[0].state.location.loc.view = arg0;
+    gGameSession->location.loc.view        = arg0;
+    slot->spawnArg1.value                  = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
@@ -840,9 +840,9 @@ void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
-    val                               = (u8)task->spawnArg1.value;
-    Mc_SaveData[0].state.at4.loc.view = val;
-    gGameSession->location.loc.view   = val;
+    val                                    = (u8)task->spawnArg1.value;
+    Mc_SaveData[0].state.location.loc.view = val;
+    gGameSession->location.loc.view        = val;
     taskKill(task);
 }
 

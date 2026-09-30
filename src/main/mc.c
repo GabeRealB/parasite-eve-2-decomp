@@ -726,16 +726,16 @@ static void Mc_InitDualBankBuffers(void)
         p = &Mc_SaveData[0];
     } while (0);
 
-    one                      = 1;
-    p->state.at4.loc.area    = 0x14;
-    two                      = 2;
-    p->state.at4.loc.stage   = one;
-    p->state.at4.loc.view    = one;
-    p->state.at4.loc.room    = one;
-    p->state.at4.loc.warp    = 7;
-    p->state.at4.loc.variant = one;
-    p->state.sceneEvent      = two;
-    p->state.characterId     = one;
+    one                           = 1;
+    p->state.location.loc.area    = 0x14;
+    two                           = 2;
+    p->state.location.loc.stage   = one;
+    p->state.location.loc.view    = one;
+    p->state.location.loc.room    = one;
+    p->state.location.loc.warp    = 7;
+    p->state.location.loc.variant = one;
+    p->state.sceneEvent           = two;
+    p->state.characterId          = one;
     Player_InitNewGameStats();
     idx                          = p->state.characterId - 1;
     (&Player_Status)[idx].weapon = two;
@@ -1024,21 +1024,21 @@ static inline void Mc_UpdateTitleHeaderChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                                 = 0;
-    ptr                                 = (u8*)&Mc_SaveData[0];
-    ptr                                += OFFSET_OF(McSavePreview, location);
-    limit                               = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i                                   = 0;
-    Mc_SaveData[0].state.hdrChecksum    = 0;
-    Mc_SaveData[0].state.hdrChecksumInv = 0xFFFF;
+    sum                                           = 0;
+    ptr                                           = (u8*)&Mc_SaveData[0];
+    ptr                                          += OFFSET_OF(McSavePreview, location);
+    limit                                         = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
+    i                                             = 0;
+    Mc_SaveData[0].state.headerChecksum           = 0;
+    Mc_SaveData[0].state.headerChecksumComplement = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData[0].state.hdrChecksum    = sum;
-    Mc_SaveData[0].state.hdrChecksumInv = 0xFFFF - (u32)sum;
+    Mc_SaveData[0].state.headerChecksum           = sum;
+    Mc_SaveData[0].state.headerChecksumComplement = 0xFFFF - (u32)sum;
     Mc_VerifySaveHdrChecksum(&Mc_SaveData[0]);
 }
 
@@ -1062,7 +1062,7 @@ static inline void Mc_UpdateTitleDataChecksum(void)
     sum                     = 0;
     count                   = 0x200;
     src                     = Mc_DefaultChecksumSrc;
-    dst                     = (McChecksumBlock*)&Mc_SaveData[0].state.dataChecksum;
+    dst                     = (McChecksumBlock*)&Mc_SaveData[0].state.titleChecksum;
     i                       = 0;
     dst->checksum           = sum;
     dst->checksumComplement = 0xFFFF - (u32)sum;
@@ -1131,8 +1131,8 @@ static void Mc_BuildSaveTitle(McWork* work)
     }
     Mc_UpdateTitleHeaderChecksum();
     Mc_UpdateTitleDataChecksum();
-    Mc_SaveData[0].state.bufferChecksum    = 0;
-    Mc_SaveData[0].state.bufferChecksumInv = 0xFFFF;
+    Mc_SaveData[0].state.bufferChecksum           = 0;
+    Mc_SaveData[0].state.bufferChecksumComplement = 0xFFFF;
 }
 
 static const char McText_CloseParen[] = ")";
@@ -1790,8 +1790,8 @@ static inline void _mcWriteFirstByteChecksum(void)
         next = sum + *(u8*)temp;
         sum  = next;
     } while (i < 9U);
-    Mc_SaveData[0].state.bufferChecksum    = next;
-    Mc_SaveData[0].state.bufferChecksumInv = ~next;
+    Mc_SaveData[0].state.bufferChecksum           = next;
+    Mc_SaveData[0].state.bufferChecksumComplement = ~next;
 }
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work)
@@ -2628,21 +2628,21 @@ static void Mc_WriteSaveHdrChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                                 = 0;
-    ptr                                 = (u8*)&Mc_SaveData[0];
-    ptr                                += OFFSET_OF(McSavePreview, location);
-    limit                               = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i                                   = 0;
-    Mc_SaveData[0].state.hdrChecksum    = 0;
-    Mc_SaveData[0].state.hdrChecksumInv = 0xFFFF;
+    sum                                           = 0;
+    ptr                                           = (u8*)&Mc_SaveData[0];
+    ptr                                          += OFFSET_OF(McSavePreview, location);
+    limit                                         = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
+    i                                             = 0;
+    Mc_SaveData[0].state.headerChecksum           = 0;
+    Mc_SaveData[0].state.headerChecksumComplement = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData[0].state.hdrChecksum    = sum;
-    Mc_SaveData[0].state.hdrChecksumInv = ~sum;
+    Mc_SaveData[0].state.headerChecksum           = sum;
+    Mc_SaveData[0].state.headerChecksumComplement = ~sum;
     Mc_VerifySaveHdrChecksum(&Mc_SaveData[0]);
 }
 
@@ -2837,7 +2837,7 @@ static void Mc_WriteDataChecksum(s32 arg0, McWork* work)
     count = 0x200;
     if (arg0 == 0) {
         src = Mc_DefaultChecksumSrc;
-        dst = (s16*)&Mc_SaveData[0].state.dataChecksum;
+        dst = (s16*)&Mc_SaveData[0].state.titleChecksum;
     } else {
         src = work->buffer;
         dst = (s16*)&work->checksum;
@@ -2863,7 +2863,7 @@ static s32 Mc_CompareSaveChecksum(McSaveData* save, McWork* work)
     if (save->state.demoScene != 0) {
         return 0;
     }
-    return save->state.dataChecksum == work->checksum;
+    return save->state.titleChecksum == work->checksum;
 }
 
 static void Mc_ResetWork(Task* task, McWork* work)

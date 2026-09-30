@@ -66,7 +66,7 @@ extern UiObjectDesc D_800611E4;
 
 /// `Mc_SaveData[0].state.companionType` (ally present), read through its own symbol.
 
-/// `Mc_SaveData[0].state.at4.loc.view` as it was when the cutscene started, restored
+/// `Mc_SaveData[0].state.location.loc.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.
@@ -910,8 +910,8 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694               = save->state.at4.loc.view;
-                save->state.at4.loc.view = (u8)script->field_0;
+                D_80115694                    = save->state.location.loc.view;
+                save->state.location.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -994,7 +994,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1024,7 +1024,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -1200,10 +1200,10 @@ L_case5:
     GameFlag_SetNibble(0x59, 1);
     GameFlag_SetNibble(0x5A, 2);
     GameFlag_SetNibble(0x30, 0);
-    Mc_SaveData[0].state.at4.loc.area = 8;
-    Mc_SaveData[0].state.at4.loc.warp = 1;
-    Mc_SaveData[0].state.at4.loc.room = 1;
-    gDisplayState.spriteVariant       = 1;
+    Mc_SaveData[0].state.location.loc.area = 8;
+    Mc_SaveData[0].state.location.loc.warp = 1;
+    Mc_SaveData[0].state.location.loc.room = 1;
+    gDisplayState.spriteVariant            = 1;
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(task);
 }

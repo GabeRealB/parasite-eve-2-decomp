@@ -44,7 +44,7 @@
 
 extern UiObjectDesc D_800611E4;
 
-/// Saved `Mc_SaveData[0].state.at4.loc.view` (area id), restored when the cutscene ends.
+/// Saved `Mc_SaveData[0].state.location.loc.view` (area id), restored when the cutscene ends.
 
 /// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
@@ -198,8 +198,8 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694               = save->state.at4.loc.view;
-                save->state.at4.loc.view = (u8)script->field_0;
+                D_80115694                    = save->state.location.loc.view;
+                save->state.location.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -282,7 +282,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -312,7 +312,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -507,8 +507,8 @@ s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
             Gp_RunCapCmd1(0xB);
             return 0;
         }
-        if (Mc_SaveData[0].state.at4.loc.warp == arg2) {
-            Mc_SaveData[0].state.at4.loc.warp = 2;
+        if (Mc_SaveData[0].state.location.loc.warp == arg2) {
+            Mc_SaveData[0].state.location.loc.warp = 2;
         }
         D_dryfield_gas_station_80184BD8.field_0  = 8;
         D_dryfield_gas_station_80184BD8.field_1  = arg2;
@@ -547,14 +547,14 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 }
 
 /// State 0 of the gas-station cutscene task. On the first visit
-/// (`Mc_SaveData[0].state.at4.loc.warp == 1`) it spawns the room's event task and clears the three
+/// (`Mc_SaveData[0].state.location.loc.warp == 1`) it spawns the room's event task and clears the three
 /// progression flags; otherwise it just asks the stage for area 1. Either way
 /// it advances to state 1 and raises the `D_80115598` flag.
 static void func_dryfield_gas_station_8017FEDC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_gas_station_80181E54;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].state.at4.loc.warp == 1) {
+    if (Mc_SaveData[0].state.location.loc.warp == 1) {
         Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
         GameFlag_SetNibble(0x7A, 2);
         GameFlag_SetNibble(3, 0);
