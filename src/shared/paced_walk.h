@@ -29,4 +29,12 @@ s32  pacedWalkTo(Task* task, s32 arg1, ActorTransform* target);
 
 s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
 
+void pacedWalkFrame(GpEnemy* enemy, Task* task);
+void pacedWalkSpawn(GpEnemy* enemy, Task* task);
+s32  pacedWalkPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* args);
+s32  pacedWalkShowPair(Task* task, s32 arg1, s32 flags);
+
+/* Defined by each package. */
+void pacedWalkExit(Task* task);
+
 #endif /* SRC_SHARED_PACED_WALK_H */

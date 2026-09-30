@@ -68,20 +68,15 @@ typedef struct {
 } Actor160600MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor160600MessageEntry, 8);
 
-extern Actor160600MessageEntry D_actor_160600_8013DF70[6];
-extern u8                      D_actor_160600_8013DFAC[];
-extern u8                      D_actor_160600_8013DFEC[];
+extern Actor160600MessageEntry gPacedWalkMsgTable[6];
+extern u8                      gPacedWalkAnimBank[];
+extern u8                      gPacedWalkEffectParts[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
-static void func_actor_160600_80132208(GpEnemy* enemy, Task* task);
-static void func_actor_160600_80132350(Task* task);
 
 extern TmdSource D_actor_160600_8013BA9C;
 void             func_actor_160600_801321B4(Task*);
 
-s32 func_actor_160600_8013252C(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_160600_80132598(Task*, s32, s32);
 s32 func_actor_160600_8013268C(Task*, s32, ActorCommand* args);
 
 extern AnimationPlayRequest D_actor_160600_80134E8C;
@@ -1100,9 +1095,9 @@ AnimationSet D_actor_160600_8013DF48 = {
     { NULL, D_actor_160600_8013DDB4, NULL, NULL, D_actor_160600_8013DDCC, NULL, NULL, NULL },
 };
 
-Actor160600MessageEntry D_actor_160600_8013DF70[6] = {
-    { 2003, { .call0 = func_actor_160600_8013252C } },
-    { 2005, { .call3 = func_actor_160600_80132598 } },
+Actor160600MessageEntry gPacedWalkMsgTable[6] = {
+    { 2003, { .call0 = pacedWalkPlayAnim } },
+    { 2005, { .call3 = pacedWalkShowPair } },
     { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_160600_8013268C } },
     { 2013, { .call2 = pacedWalkTo } },
@@ -1111,7 +1106,7 @@ Actor160600MessageEntry D_actor_160600_8013DF70[6] = {
 
 TaskDesc D_actor_160600_8013DFA0 = { TASK_BODY_TMD, 96, func_actor_160600_801321B4, { .model = &D_actor_160600_8013BA9C } };
 
-u8 D_actor_160600_8013DFAC[64] = {
+u8 gPacedWalkAnimBank[64] = {
     0,
     0,
     0,
@@ -1178,9 +1173,7 @@ u8 D_actor_160600_8013DFAC[64] = {
     128,
 };
 
-u8 D_actor_160600_8013DFEC[11] = { 1, 3, 5, 6, 9, 14, 15, 16, 17, 18, 19 };
-
-static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task);
+u8 gPacedWalkEffectParts[11] = { 1, 3, 5, 6, 9, 14, 15, 16, 17, 18, 19 };
 
 /// Passes the task filed in the session's pointer slot 0xA, if any, to
 /// `Task_CallExit` and empties the slot.
@@ -1192,44 +1185,7 @@ void func_actor_160600_80131E24(void)
     }
 }
 
-/// The actor's per-frame body (task state 1): refreshes the root coordinate,
-/// re-lights the model at the root translation raised by 800, then runs the
-/// step body and draws the ground shadow. While `effects` is set and the
-/// model is shown and has a buffer, every other frame spawns effect 0x60070 on
-/// a randomly chosen part, with two `Gp_LcgState` draws packed into the effect
-/// argument.
-static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
-{
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        part;
-    Actor160600Work* work;
-    VECTOR           pos;
-    u32              low;
-    u32              high;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    part  = &task->extra.tmd->coords[D_actor_160600_8013DFEC[(rand() * 11) >> 15]];
-    work  = (Actor160600Work*)task->work;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 800;
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
-    pacedWalkUpdate(task);
-    walkerDrawShadow(task);
-    if (work->effects != 0 && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        if (task->killCountdown & 1) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            low         = (Gp_LcgState >> 16) & 0x10FF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            high        = (((Gp_LcgState >> 16) & 1) << 30) + 0x800231C0;
-            Gp_SpawnEff(0x60070, part, low + high, NULL);
-        }
-        task->killCountdown++;
-    }
-}
+#include "../../shared/paced_walk_frame.inc.c"
 
 #include "../../shared/paced_walk_update.inc.c"
 
@@ -1239,62 +1195,18 @@ static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
 void func_actor_160600_801321B4(Task* task)
 {
     void (*fns[2])(GpEnemy*, Task*) = {
-        func_actor_160600_80132208,
-        func_actor_160600_80131E68,
+        pacedWalkSpawn,
+        pacedWalkFrame,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// The actor's spawn routine (task state 0): allocates the work block,
-/// destroying the enemy if that fails, and installs the exit callback. It then
-/// lights the model at its root translation raised by 800, sets up the
-/// animation context and the task's message table, and runs the step body
-/// once with the plain reseed of clip 10 queued.
-static void func_actor_160600_80132208(GpEnemy* enemy, Task* task)
-{
-    VECTOR           vec;
-    Actor160600Work* work;
-    Actor160600Work* mem;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    mem        = (Actor160600Work*)memCalloc(sizeof(Actor160600Work), false);
-    work       = mem;
-    task->work = mem;
-    if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_160600_80132350;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
-    work->st.animId                  = 10;
-    work->enemy                      = enemy;
-    obj->lightMtx                    = &work->light;
-    obj->colorMtx                    = &work->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    vec.vz                           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, D_actor_160600_8013DFAC, obj,
-                  work->rig.poses, work->rig.slots);
-    work->st.state = 2;
-    task->msgTable = D_actor_160600_8013DF70;
-    pacedWalkUpdate(task);
-    task->state++;
-}
+#include "../../shared/paced_walk_spawn.inc.c"
 
 /// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
-static void func_actor_160600_80132350(Task* task)
+void pacedWalkExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
@@ -1307,61 +1219,9 @@ static void func_actor_160600_80132350(Task* task)
 
 #include "../../shared/paced_walk_blend_anim.inc.c"
 
-/// Starts the actor's scripted animation selected by the request.
-///
-/// Rejects ids 0x10 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_160600_8013252C(Task* task, s32 arg1, AnimationPlayRequest* args)
-{
-    Actor160600Work* work;
+#include "../../shared/paced_walk_play_anim.inc.c"
 
-    work = (Actor160600Work*)task->work;
-    if (args->animationId < 0x10) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
-            work->animArg  = args->blendFrames;
-        } else {
-            work->st.state = 2;
-        }
-        work->st.field_6 = 0;
-        pacedWalkUpdate(task);
-        return 0;
-    }
-    return -1;
-}
-
-/// Script opcode: shows or hides this actor's model and the model of the task
-/// parked in `pairTask`. With `flags` bit 0 both models get `TmdObject::flags`
-/// 0, which shows them; without it they get 0x80, which hides them. Bit 1
-/// additionally ORs in 0x4. With `Task::spawnArg1` clear the actor drives its
-/// own model twice.
-s32 func_actor_160600_80132598(Task* task, s32 arg1, s32 flags)
-{
-    Actor160600Work* work;
-    TmdObject*       self;
-    TmdObject*       other;
-
-    self = task->extra.tmd;
-    work = (Actor160600Work*)task->work;
-    if (task->spawnArg1.value != 0) {
-        other = work->pairTask->extra.tmd;
-    } else {
-        other = self;
-    }
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
+#include "../../shared/paced_walk_show_pair.inc.c"
 
 #include "../../shared/paced_walk_place.inc.c"
 
