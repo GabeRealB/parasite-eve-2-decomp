@@ -2,8 +2,9 @@
  * is a room-effect task that falls with a swaying drift and a random tumble
  * about X and Z until it reaches the ground plane, lies there briefly, then
  * fades out and frees its work block. It is drawn as a small textured quad by
- * leafDraw, which rooms whose leaf uses another texture cell define
- * themselves. The task is named by gameplay's effect table, so each room keeps
+ * leafDraw, which comes in two versions: falling_leaves_draw.inc.c for the
+ * Acropolis rooms and falling_leaves_draw_neo_ark.inc.c, with another texture
+ * cell, for the Neo Ark rooms. The task is named by gameplay's effect table, so each room keeps
  * its own name for it and calls the inline body.
  *
  * Include this header in the prologue and each fragment at its function's
