@@ -271,8 +271,9 @@ $( [[ "$CLI" != "grok" && -f "$RULES" ]] && cat "$RULES" )
 
 Process ${#names[@]} item(s) together: ${names[*]}
 $( ((${#names[@]} > 1)) && echo "
-These items form a cycle in the dependency graph: each uses the others, so they
-have to be understood as one unit rather than in sequence." )
+These items are one unit of work, understood together rather than in sequence:
+either they form a cycle in the dependency graph, each using the others, or they
+are one embedded asset - its record and the arrays only that record reaches." )
 $line
 
 ## What to do with this item

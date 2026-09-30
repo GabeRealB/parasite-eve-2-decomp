@@ -39,6 +39,20 @@ The one exception is a change the item's own change cannot compile or match
 without, such as a parameter whose type is the item's type. Make the minimum
 such change, keep the other symbol's name, and list it in the report.
 
+## Asset steps
+
+A model, an animation set or a collision grid embedded in an overlay is one
+step: its record (`TmdSource`, `AnimationSet`, the grid's `GpGridParams`)
+together with the arrays whose initializers come from `assets/*.inc`. Code
+reaches those arrays only through the record - except the few functions that
+edit a live grid in place - so naming the asset is one decision. Name the record
+for what the asset is, established from the code and descriptor tables that
+use it, and name each array from the record and its role, the same way for
+every asset of the kind: the include's last word says which role an array has.
+An array nothing outside its translation unit reaches is private - `static`,
+with the `_` prefix - where the build still matches; a grid array another
+package edits stays public.
+
 ## Changing code is expected
 
 Over the items done so far, "naming" an item has meant widening a field's type

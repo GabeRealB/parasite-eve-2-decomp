@@ -449,6 +449,65 @@ def components(nodes, edges):
     return comp
 
 
+# The initializer an asset's C arrays take from the extracted package. The name
+# is generated from the manifest object - package, kind and offset, then the
+# part - so it identifies which asset a definition belongs to without reading
+# anything into the symbol's name. A collision patch has no part suffix and is
+# not matched: it has no record, and code applies each one on its own.
+ASSET_INCLUDE = __import__("re").compile(
+    r'#include "assets/(\w+?)_(model|animation|collision)_([0-9A-F]{5})_\w+\.inc"')
+
+
+def asset_groups(root, nodes, edges):
+    """Each embedded asset's record and part arrays, as one set per asset.
+
+    A model's skeleton, vertices, normals and packet stream, an animation set's
+    banks, records and indices, a collision grid's arrays: nothing reaches them
+    except through the asset's record (`TmdSource`, `AnimationSet`, the grid's
+    `GpGridParams`), apart from the few functions that edit a live grid in
+    place. Naming them is one decision - what the asset is - so they are one
+    unit of work with their record, as a cycle is. The record is the data item
+    whose references into asset parts all go to a single asset.
+    """
+    lines, key_of = {}, {}
+    for usr, meta in nodes.items():
+        if usr.startswith("macro:") or _node_kind(usr) != "data":
+            continue
+        where, start, end = meta.get("file"), meta.get("start_line"), meta.get("end_line")
+        if not where or not start:
+            continue
+        if where not in lines:
+            try:
+                with open(os.path.join(root, where)) as fh:
+                    lines[where] = fh.read().split("\n")
+            except OSError:
+                lines[where] = []
+        m = ASSET_INCLUDE.search("\n".join(lines[where][start - 1:end or start]))
+        if m:
+            key_of[usr] = m.groups()
+    groups = collections.defaultdict(set)
+    for usr, key in key_of.items():
+        groups[key].add(usr)
+    for usr, deps in edges.items():
+        if usr in key_of or usr not in nodes or _node_kind(usr) != "data":
+            continue
+        keys = {key_of[d] for d in deps if d in key_of}
+        if len(keys) == 1:
+            groups[keys.pop()].add(usr)
+    return list(groups.values())
+
+
+def merge_groups(comp, sets):
+    """Make each set one component, together with anything already cycled to it."""
+    for members in sets:
+        union = set()
+        for usr in members:
+            union.update(comp.get(usr, (usr,)))
+        g = tuple(sorted(union))
+        for usr in g:
+            comp[usr] = g
+
+
 def closure(start, edges, nodes):
     seen, stack = set(), [start]
     while stack:
@@ -817,6 +876,7 @@ def main() -> int:
 
     done = processed_set(root, nodes)
     comp = components(nodes, edges)
+    merge_groups(comp, asset_groups(root, nodes, edges))
 
     if args.command == "worklist":
         out = os.path.join(root, "local", "worklist.tsv")
