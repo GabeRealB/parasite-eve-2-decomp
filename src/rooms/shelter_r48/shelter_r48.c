@@ -58,10 +58,20 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+/// Empty presence flag: this room supplies `waterDrawSpinU16` and
+/// `waterDrawTileU16`.
+///
+/// Defined, with no replacement list, immediately before `water_effects.h`.
+/// `defined()` is the only test. That header prototypes the shared drawers,
+/// whose parameters are `s32`, only when `WATER_SHARED_U16_DRAWERS` is set
+/// and this flag is not. This file prototypes and defines both drawers and
+/// includes `water_drift_task_u16.inc.c` instead of the shared bodies. The
+/// spin drawer takes a `u16` index and an `s16` scale and angle. The tile
+/// drawer keeps `s32` parameters, uses texture page 0x2C and clut 0x4393,
+/// and starts its cell grid at v 0.
 #define WATER_OWN_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
-/* The drift task draws with this room's own sprites. */
 void waterDrawSpinU16(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);
 
