@@ -11,13 +11,13 @@
 
 extern TmdSource D_actor_205200_801517EC;
 
-extern OverlayWaveCtx* D_actor_205200_80156814;
+extern OverlayWaveCtx* gScreenWaveCtx;
 
-extern OverlayWaveRec D_actor_205200_80156818[10];
+extern OverlayWaveRec gScreenWaveColumns[10];
 
-extern OverlayWaveRec D_actor_205200_80156868[30];
+extern OverlayWaveRec gScreenWaveRows[30];
 
-extern POLY_FT4 D_actor_205200_80156958[2][30][8];
+extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 extern OverlayWaveCtx D_actor_205200_8015B458;
 

@@ -41,7 +41,7 @@ extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
 
 extern Task* D_shelter_b3_garbage_incinerator_8018FC34;
 
-extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
+extern OverlayWaveCtx* gScreenWaveCtx;
 
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
@@ -68,11 +68,11 @@ extern u16 CapCaption_Data_8015E66A;
 
 extern u8 CapCaption_Data_8015E66C[4];
 
-extern OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FC60[10];
+extern OverlayWaveRec gScreenWaveColumns[10];
 
-extern OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FCB0[30];
+extern OverlayWaveRec gScreenWaveRows[30];
 
-extern POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
+extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2);
 

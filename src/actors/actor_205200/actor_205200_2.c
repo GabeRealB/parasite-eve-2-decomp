@@ -342,13 +342,13 @@ AnimationSet* D_actor_205200_80156800[5] = {
     &D_actor_205200_80156788,
 };
 
-OverlayWaveCtx* D_actor_205200_80156814 = NULL;
+OverlayWaveCtx* gScreenWaveCtx = NULL;
 
-OverlayWaveRec D_actor_205200_80156818[10];
+OverlayWaveRec gScreenWaveColumns[10];
 
-OverlayWaveRec D_actor_205200_80156868[30];
+OverlayWaveRec gScreenWaveRows[30];
 
-POLY_FT4 D_actor_205200_80156958[2][30][8];
+POLY_FT4 gScreenWaveGrid[2][30][8];
 
 OverlayWaveCtx D_actor_205200_8015B458;
 

@@ -48,6 +48,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
+#include "../../shared/screen_wave.h"
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_342100_80164BB8` points at.
@@ -66,7 +67,7 @@
 /// `func_actor_342100_8016334C`'s integer argument, the same value that
 /// function forwards as the animation message's second word.
 ///
-/// `wave` is the ramp of the screen-wave task `func_actor_342100_80161E70`:
+/// `wave` is the ramp of the screen-wave task `screenWaveGridTask`:
 /// `func_actor_342100_80163408` seeds its span and scale and spawns the task
 /// on it, and the fade task `func_actor_342100_80162748`, which reaches this
 /// block through `Task::spawnArg2`, ends the wave by setting its ramp state to
@@ -126,7 +127,7 @@ extern Actor342100MessageEntry D_actor_342100_801648F8[1];
 /// set -- 1 means the second block, anything else the `+0x22` one.
 
 /// Single-entry spawn table of the screen-wave task
-/// `func_actor_342100_80161E70`: `func_actor_342100_80163408` starts entry 0
+/// `screenWaveGridTask`: `func_actor_342100_80163408` starts entry 0
 /// and hands it the address of `Actor342100Work::wave` as its ramp.
 extern TaskDesc D_actor_342100_801648DC[];
 
@@ -180,30 +181,28 @@ extern u16 D_actor_342100_801649A8[];
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running ramp, recomputed every frame.
-extern s32 D_actor_342100_801648F4;
+extern s32 gScreenWaveRamp;
 
 /// The ramp the running wave task was spawned with, parked at spawn so the
 /// tick reads it back every frame.
-extern OverlayWaveCtx* D_actor_342100_80164BB4;
+extern OverlayWaveCtx* gScreenWaveCtx;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed on every frame
 /// `Gp_StateF0.field_4` is clear.
-extern OverlayWaveRec D_actor_342100_80164BBC[10];
-extern OverlayWaveRec D_actor_342100_80164C0C[30];
+extern OverlayWaveRec gScreenWaveColumns[10];
+extern OverlayWaveRec gScreenWaveRows[30];
 
 /// The two frame buffers' 8 by 30 meshes of textured quads, one grid per
 /// buffer, indexed by the current buffer.
 // The task starts at row 1 and draws rows -1 through 28.
-extern POLY_FT4 D_actor_342100_80164CFC[2][30][8];
+extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 void func_actor_342100_80162748(Task*);
 void func_actor_342100_80162AB0(Task*);
 void func_actor_342100_80162C88(void);
 void func_actor_342100_80162DDC(Task*);
 void func_actor_342100_801630A4(Task*);
-
-void func_actor_342100_80161E70(Task*);
 
 AnimationPackedPose D_actor_342100_80163534[6] = {
 #include "assets/actor_342100_animation_019F0_bank1.inc"
@@ -272,11 +271,11 @@ AnimationSet D_actor_342100_801648B4 = {
 };
 
 TaskDesc D_actor_342100_801648DC[2] = {
-    { 0, 192, func_actor_342100_80161E70, { .model = NULL } },
+    { 0, 192, screenWaveGridTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-s32 D_actor_342100_801648F4 = 256;
+s32 gScreenWaveRamp = 256;
 
 Actor342100MessageEntry D_actor_342100_801648F8[1] = {
     { 2011, { .call0 = func_actor_342100_80163344 } },
@@ -378,216 +377,21 @@ TaskDesc D_actor_342100_80164B78[5] = {
     { TASK_BODY_COORD, 192, func_actor_342100_80162AB0, { .model = NULL } },
 };
 
-OverlayWaveCtx* D_actor_342100_80164BB4 = NULL;
+OverlayWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_actor_342100_80164BB8 = NULL;
 
 // Nine active columns and one retained zero entry.
-OverlayWaveRec D_actor_342100_80164BBC[10] = { 0 };
+OverlayWaveRec gScreenWaveColumns[10] = { 0 };
 
-OverlayWaveRec D_actor_342100_80164C0C[30] = { 0 };
+OverlayWaveRec gScreenWaveRows[30] = { 0 };
 
-POLY_FT4 D_actor_342100_80164CFC[2][30][8] = { 0 };
+POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 
 static s32 func_actor_342100_801629B8(Task* arg0);
 static s32 func_actor_342100_80162F54(Task* arg0);
 
-/// Screen-wave task spawned from `D_actor_342100_801648DC` with the ramp at
-/// the event task's `Actor342100Work::wave` as its argument. State 0 seeds the
-/// column and row phases, parks the ramp, clears its frame and ramp state and
-/// builds both buffers' quad meshes, tinted when the ramp's tint flag is set;
-/// state 1 ramps the frame up to the span (ramp state 0) or back down to zero
-/// (ramp state 1), and ramp state 2 - which the fade task sets once the
-/// screen is white - kills the task and restores the display field. Every
-/// frame redraws the frame buffer through the mesh displaced by sine waves of
-/// the ramp's amplitude.
-void func_actor_342100_80161E70(Task* arg0)
-{
-    OverlayWaveScratch* scratch;
-    OverlayWaveScratch* head;
-    OverlayWaveCtx*     ctx;
-    OverlayWaveRec*     cols;
-    POLY_FT4*           p;
-    DR_STP*             stp;
-    s32                 i;
-    s32                 j;
-    s32                 k;
-    s32                 rowIndex;
-    s32                 rowBack;
-    s32                 u0;
-    s32                 u1;
-    s32                 v0;
-    s32                 v1;
-    s32                 waveX0;
-    s32                 waveY0;
-    s32                 waveX1;
-    s32                 waveY1;
-    s32                 waveX2;
-    s32                 waveY2;
-    s32                 waveX3;
-    s32                 waveY3;
-    OverlayWaveRec*     row;
-    POLY_FT4(*grid)
-    [8];
-    s32 tpage0;
-    s32 tpage1;
-
-    head                                     = SCRATCH_STACK_CURSOR(OverlayWaveScratch);
-    gCdCmdQueue.imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    SCRATCH_STACK_CURSOR(OverlayWaveScratch) = head - 1;
-    cols                                     = head[-1].cols;
-    scratch                                  = head - 1;
-    switch (arg0->state) {
-        case 0:
-            for (i = 0; i < 9; i++) {
-                D_actor_342100_80164BBC[i].phase  = 0;
-                D_actor_342100_80164BBC[i].offset = (u32)rand() >> 3;
-                D_actor_342100_80164BBC[i].speed  = ((rand() * 100) >> 15) + 20;
-            }
-            for (i = 0; i < 30; i++) {
-                D_actor_342100_80164C0C[i].phase  = 0;
-                D_actor_342100_80164C0C[i].offset = (u32)rand() >> 3;
-                D_actor_342100_80164C0C[i].speed  = ((rand() * 100) >> 15) + 20;
-            }
-            D_actor_342100_801648F4        = 0;
-            D_actor_342100_80164BB4        = arg0->spawnArg2.pointer;
-            D_actor_342100_80164BB4->frame = 0;
-            D_actor_342100_80164BB4->state = 0;
-            displaySetShakeY(DISPLAY_SHAKE_MIN);
-            for (i = 0; i < 2; i++) {
-                tpage0 = getTPage(2, 0, 0, i << 8);
-                tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = &D_actor_342100_80164CFC[i][1];
-                for (j = -1; j < 29; j++) {
-                    p = grid[j];
-                    for (k = 0; k < 8; p++, k++) {
-                        setPolyFT4(p);
-                        if (D_actor_342100_80164BB4->blend == 0) {
-                            setShadeTex(p, 1);
-                        } else {
-                            setShadeTex(p, 0);
-                            p->r0 = D_actor_342100_80164BB4->r;
-                            p->g0 = D_actor_342100_80164BB4->g;
-                            p->b0 = D_actor_342100_80164BB4->b;
-                        }
-                        u0 = k * 40;
-                        u1 = (k + 1) * 40;
-                        if (u1 == 320) {
-                            u1 = 319;
-                        }
-                        if (u0 < 128) {
-                            p->tpage = tpage0;
-                        } else {
-                            p->tpage = tpage1;
-                            u0      -= 128;
-                            u1      -= 128;
-                        }
-                        v1 = (j + 1) * 8 + i * 16;
-                        if (j != -1) {
-                            v0 = j * 8 + i * 16;
-                        } else {
-                            v0 = i * 16 + 8;
-                            v1 = i * 16;
-                        }
-                        p->u0 = u0;
-                        p->v0 = v0;
-                        p->u1 = u1;
-                        p->v1 = v0;
-                        do {
-                            p->u2 = u0;
-                            p->v2 = v1;
-                            p->u3 = u1;
-                        } while (0);
-                        p->v3 = v1;
-                    }
-                }
-            }
-            arg0->state++;
-            break;
-        case 1:
-            ctx = D_actor_342100_80164BB4;
-            switch (ctx->state) {
-                case 0:
-                    if (ctx->frame < ctx->span) {
-                        ctx->frame++;
-                    }
-                    break;
-                case 1:
-                    if (ctx->frame > 0) {
-                        if (Gp_StateF0.field_4 == 0) {
-                            ctx->frame--;
-                        }
-                    } else {
-                        ctx->state = 2;
-                    }
-                    break;
-                case 2:
-                    taskKill(arg0);
-                    displaySetShakeY(0);
-                    break;
-            }
-            D_actor_342100_801648F4 = D_actor_342100_80164BB4->frame * D_actor_342100_80164BB4->scale / D_actor_342100_80164BB4->span;
-            for (i = 0; i < 9; i++) {
-                if (Gp_StateF0.field_4 == 0) {
-                    D_actor_342100_80164BBC[i].phase += D_actor_342100_80164BBC[i].speed;
-                }
-                *(s32*)&cols[i] = *(s32*)&D_actor_342100_80164BBC[i];
-            }
-            for (i = 0; i < 30; i++) {
-                if (Gp_StateF0.field_4 == 0) {
-                    D_actor_342100_80164C0C[i].phase += D_actor_342100_80164C0C[i].speed;
-                }
-                *(s32*)&scratch->rows[i] = *(s32*)&D_actor_342100_80164C0C[i];
-            }
-            rowIndex = -1;
-            for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
-                rowBack = -rowIndex;
-                row     = scratch->rows - rowBack;
-                grid    = &D_actor_342100_80164CFC[gDisplayState.drawBuffer][1];
-                p       = grid[j];
-                for (k = 0; k < 8; k++, p++) {
-                    if (j != -1) {
-                        waveX0 = D_actor_342100_801648F4 * (rsin((j << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x0  = k * 40 + (s16)((waveX0 >> 20) - 160);
-                        waveY0 = D_actor_342100_801648F4 * (rsin((k << 10) + row->phase + row->offset) << 3);
-                        p->y0  = j * 8 + (s16)((ABS(waveY0) >> 20) - 104);
-                        waveX1 = D_actor_342100_801648F4 * (rsin((j << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x1  = (k + 1) * 40 + (s16)((waveX1 >> 20) - 160);
-                        waveY1 = D_actor_342100_801648F4 * (rsin(((k + 1) << 10) + row->phase + row->offset) << 3);
-                        p->y1  = j * 8 + (s16)((ABS(waveY1) >> 20) - 104);
-                    } else {
-                        p->x0 = k * 40 - 160;
-                        p->y0 = -112;
-                        p->x1 = (k + 1) * 40 - 160;
-                        p->y1 = -112;
-                    }
-                    {
-                        OverlayWaveRec* next = row + 1;
-                        waveX2               = D_actor_342100_801648F4 * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x2                = k * 40 + (s16)((waveX2 >> 20) - 160);
-                        waveY2               = D_actor_342100_801648F4 * (rsin((k << 10) + row[1].phase + next->offset) << 3);
-                        p->y2                = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3               = D_actor_342100_801648F4 * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x3                = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
-                        waveY3               = D_actor_342100_801648F4 * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
-                        p->y3                = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
-                    }
-                    addPrim(&gGpuCurrentOt[3], p);
-                }
-                SOFT_USE_REG(p);
-            }
-            break;
-    }
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
-}
+#include "../../shared/screen_wave_grid.inc.c"
 
 /// Fade-to-white driver of the encounter, six states over the eight-byte
 /// channel block it allocates into its own `Task::work` and hands the parent

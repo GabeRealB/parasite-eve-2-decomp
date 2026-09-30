@@ -55,13 +55,15 @@
 
 #include "overlay.h"
 #include "../../shared/glow_draw.h"
+#define SCREEN_WAVE_GRID gScreenWaveGrid.value
+#include "../../shared/screen_wave.h"
 
 #define D_shelter_b6_corridor_8017F844 (D_shelter_b6_corridor_8017F834 + 2)
 #define D_shelter_b6_corridor_8017F874 (D_shelter_b6_corridor_8017F834 + 8)
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
-extern s32 D_shelter_b6_corridor_8017EF20;
+extern s32 gScreenWaveRamp;
 
 /// The room task's message records.
 extern GpMsgEntry D_shelter_b6_corridor_8017EF24[];
@@ -71,11 +73,11 @@ extern GpEvsCmd D_shelter_b6_corridor_8017F684[];
 
 /// The context the wave task was spawned with: its ramp limit, peak, mode and
 /// tint.
-extern OverlayWaveCtx* D_shelter_b6_corridor_80180568;
+extern OverlayWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 9 column edges and 30 row edges.
-extern OverlayWaveRec D_shelter_b6_corridor_8018056C[10];
-extern OverlayWaveRec D_shelter_b6_corridor_801805BC[30];
+extern OverlayWaveRec gScreenWaveColumns[10];
+extern OverlayWaveRec gScreenWaveRows[30];
 
 /// The two 8 by 30 quad grids, one per frame-buffer half.
 // The task starts at row 1 and draws rows -1 through 28.
@@ -88,7 +90,7 @@ typedef struct {
 } ShelterB6CorridorStorage06AC;
 STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage06AC, 19204);
 
-extern ShelterB6CorridorStorage06AC D_shelter_b6_corridor_801806AC;
+extern ShelterB6CorridorStorage06AC gScreenWaveGrid;
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -113,19 +115,18 @@ void                        func_shelter_b6_corridor_8017E204(void);
 void func_shelter_b6_corridor_8017E19C(s32);
 void func_shelter_b6_corridor_8017E204(void);
 
-s32  func_shelter_b6_corridor_8017DEA8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b6_corridor_8017DF48(Task*, s32, s32, TaskMessageArg);
-s32  func_shelter_b6_corridor_8017E020(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b6_corridor_8017E028(Task*, s32, TaskMessageArg, TaskMessageArg);
-void func_shelter_b6_corridor_8017D5D0(Task*);
+s32 func_shelter_b6_corridor_8017DEA8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b6_corridor_8017DF48(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b6_corridor_8017E020(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b6_corridor_8017E028(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
-    { 0, 192, func_shelter_b6_corridor_8017D5D0, { .model = NULL } },
+    { 0, 192, screenWaveGridTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-s32 D_shelter_b6_corridor_8017EF20 = 256;
+s32 gScreenWaveRamp = 256;
 
 GpMsgEntry D_shelter_b6_corridor_8017EF24[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_corridor_8017DEB0 },
@@ -506,14 +507,14 @@ GpRoomParamRec* D_shelter_b6_corridor_80180548[8] = {
     D_shelter_b6_corridor_80180530,
 };
 
-OverlayWaveCtx* D_shelter_b6_corridor_80180568 = NULL;
+OverlayWaveCtx* gScreenWaveCtx = NULL;
 
 // Nine active columns and one retained zero entry.
-OverlayWaveRec D_shelter_b6_corridor_8018056C[10] = { 0 };
+OverlayWaveRec gScreenWaveColumns[10] = { 0 };
 
-OverlayWaveRec D_shelter_b6_corridor_801805BC[30] = { 0 };
+OverlayWaveRec gScreenWaveRows[30] = { 0 };
 
-ShelterB6CorridorStorage06AC D_shelter_b6_corridor_801806AC = { { 0 }, { 0 } };
+ShelterB6CorridorStorage06AC gScreenWaveGrid = { { 0 }, { 0 } };
 
 ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 
@@ -522,205 +523,7 @@ s32 D_shelter_b6_corridor_801851B8;
 static void func_shelter_b6_corridor_8017E064(Task* arg0);
 static void func_shelter_b6_corridor_8017E12C(Task* task);
 
-/// Task that ripples the whole screen. On its first frame it gives each of the
-/// 9 column and 30 row edges a random phase offset and speed, takes its
-/// context from `spawnArg2`, passes -8 to `displaySetShakeY` and builds
-/// two 8 by 30 grids of `POLY_FT4`s sampling the two frame-buffer halves,
-/// tinted with the context's colour when its tint flag is set. Afterwards the
-/// context's mode ramps the strength up to its limit (mode 0), back down to
-/// zero and on to mode 2 (mode 1), or ends the task and passes 0 back
-/// (mode 2); the displacement is the ramp's share of the context's peak. The
-/// edges advance while `Gp_StateF0.field_4` is clear, and the current
-/// buffer's grid is drawn with every corner pushed by sine waves of that
-/// displacement, bracketed by draw-mode packets that turn mask-bit setting on
-/// at the back of the order table and off again at the front.
-void func_shelter_b6_corridor_8017D5D0(Task* arg0)
-{
-    OverlayWaveScratch* scratch;
-    OverlayWaveScratch* head;
-    OverlayWaveCtx*     ctx;
-    OverlayWaveRec*     cols;
-    POLY_FT4*           p;
-    DR_STP*             stp;
-    s32                 i;
-    s32                 j;
-    s32                 k;
-    s32                 rowIndex;
-    s32                 rowBack;
-    s32                 u0;
-    s32                 u1;
-    s32                 v0;
-    s32                 v1;
-    s32                 waveX0;
-    s32                 waveY0;
-    s32                 waveX1;
-    s32                 waveY1;
-    s32                 waveX2;
-    s32                 waveY2;
-    s32                 waveX3;
-    s32                 waveY3;
-    OverlayWaveRec*     row;
-    POLY_FT4(*grid)
-    [8];
-    s32 tpage0;
-    s32 tpage1;
-
-    head                                     = SCRATCH_STACK_CURSOR(OverlayWaveScratch);
-    gCdCmdQueue.imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    SCRATCH_STACK_CURSOR(OverlayWaveScratch) = head - 1;
-    cols                                     = head[-1].cols;
-    scratch                                  = head - 1;
-    switch (arg0->state) {
-        case 0:
-            for (i = 0; i < 9; i++) {
-                D_shelter_b6_corridor_8018056C[i].phase  = 0;
-                D_shelter_b6_corridor_8018056C[i].offset = (u32)rand() >> 3;
-                D_shelter_b6_corridor_8018056C[i].speed  = ((rand() * 100) >> 15) + 20;
-            }
-            for (i = 0; i < 30; i++) {
-                D_shelter_b6_corridor_801805BC[i].phase  = 0;
-                D_shelter_b6_corridor_801805BC[i].offset = (u32)rand() >> 3;
-                D_shelter_b6_corridor_801805BC[i].speed  = ((rand() * 100) >> 15) + 20;
-            }
-            D_shelter_b6_corridor_8017EF20        = 0;
-            D_shelter_b6_corridor_80180568        = arg0->spawnArg2.pointer;
-            D_shelter_b6_corridor_80180568->frame = 0;
-            D_shelter_b6_corridor_80180568->state = 0;
-            displaySetShakeY(DISPLAY_SHAKE_MIN);
-            for (i = 0; i < 2; i++) {
-                tpage0 = getTPage(2, 0, 0, i << 8);
-                tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = &D_shelter_b6_corridor_801806AC.value[i][1];
-                for (j = -1; j < 29; j++) {
-                    p = grid[j];
-                    for (k = 0; k < 8; p++, k++) {
-                        setPolyFT4(p);
-                        if (D_shelter_b6_corridor_80180568->blend == 0) {
-                            setShadeTex(p, 1);
-                        } else {
-                            setShadeTex(p, 0);
-                            p->r0 = D_shelter_b6_corridor_80180568->r;
-                            p->g0 = D_shelter_b6_corridor_80180568->g;
-                            p->b0 = D_shelter_b6_corridor_80180568->b;
-                        }
-                        u0 = k * 40;
-                        u1 = (k + 1) * 40;
-                        if (u1 == 320) {
-                            u1 = 319;
-                        }
-                        if (u0 < 128) {
-                            p->tpage = tpage0;
-                        } else {
-                            p->tpage = tpage1;
-                            u0      -= 128;
-                            u1      -= 128;
-                        }
-                        v1 = (j + 1) * 8 + i * 16;
-                        if (j != -1) {
-                            v0 = j * 8 + i * 16;
-                        } else {
-                            v0 = i * 16 + 8;
-                            v1 = i * 16;
-                        }
-                        p->u0 = u0;
-                        p->v0 = v0;
-                        p->u1 = u1;
-                        p->v1 = v0;
-                        do {
-                            p->u2 = u0;
-                            p->v2 = v1;
-                            p->u3 = u1;
-                        } while (0);
-                        p->v3 = v1;
-                    }
-                }
-            }
-            arg0->state++;
-            break;
-        case 1:
-            ctx = D_shelter_b6_corridor_80180568;
-            switch (ctx->state) {
-                case 0:
-                    if (ctx->frame < ctx->span) {
-                        ctx->frame++;
-                    }
-                    break;
-                case 1:
-                    if (ctx->frame > 0) {
-                        if (Gp_StateF0.field_4 == 0) {
-                            ctx->frame--;
-                        }
-                    } else {
-                        ctx->state = 2;
-                    }
-                    break;
-                case 2:
-                    taskKill(arg0);
-                    displaySetShakeY(0);
-                    break;
-            }
-            D_shelter_b6_corridor_8017EF20 = D_shelter_b6_corridor_80180568->frame * D_shelter_b6_corridor_80180568->scale / D_shelter_b6_corridor_80180568->span;
-            for (i = 0; i < 9; i++) {
-                if (Gp_StateF0.field_4 == 0) {
-                    D_shelter_b6_corridor_8018056C[i].phase += D_shelter_b6_corridor_8018056C[i].speed;
-                }
-                *(s32*)&cols[i] = *(s32*)&D_shelter_b6_corridor_8018056C[i];
-            }
-            for (i = 0; i < 30; i++) {
-                if (Gp_StateF0.field_4 == 0) {
-                    D_shelter_b6_corridor_801805BC[i].phase += D_shelter_b6_corridor_801805BC[i].speed;
-                }
-                *(s32*)&scratch->rows[i] = *(s32*)&D_shelter_b6_corridor_801805BC[i];
-            }
-            rowIndex = -1;
-            for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
-                rowBack = -rowIndex;
-                row     = scratch->rows - rowBack;
-                grid    = &D_shelter_b6_corridor_801806AC.value[gDisplayState.drawBuffer][1];
-                p       = grid[j];
-                for (k = 0; k < 8; k++, p++) {
-                    if (j != -1) {
-                        waveX0 = D_shelter_b6_corridor_8017EF20 * (rsin((j << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x0  = k * 40 + (s16)((waveX0 >> 20) - 160);
-                        waveY0 = D_shelter_b6_corridor_8017EF20 * (rsin((k << 10) + row->phase + row->offset) << 3);
-                        p->y0  = j * 8 + (s16)((ABS(waveY0) >> 20) - 104);
-                        waveX1 = D_shelter_b6_corridor_8017EF20 * (rsin((j << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x1  = (k + 1) * 40 + (s16)((waveX1 >> 20) - 160);
-                        waveY1 = D_shelter_b6_corridor_8017EF20 * (rsin(((k + 1) << 10) + row->phase + row->offset) << 3);
-                        p->y1  = j * 8 + (s16)((ABS(waveY1) >> 20) - 104);
-                    } else {
-                        p->x0 = k * 40 - 160;
-                        p->y0 = -112;
-                        p->x1 = (k + 1) * 40 - 160;
-                        p->y1 = -112;
-                    }
-                    {
-                        OverlayWaveRec* next = row + 1;
-                        waveX2               = D_shelter_b6_corridor_8017EF20 * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x2                = k * 40 + (s16)((waveX2 >> 20) - 160);
-                        waveY2               = D_shelter_b6_corridor_8017EF20 * (rsin((k << 10) + row[1].phase + next->offset) << 3);
-                        p->y2                = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3               = D_shelter_b6_corridor_8017EF20 * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x3                = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
-                        waveY3               = D_shelter_b6_corridor_8017EF20 * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
-                        p->y3                = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
-                    }
-                    addPrim(&gGpuCurrentOt[3], p);
-                }
-                SOFT_USE_REG(p);
-            }
-            break;
-    }
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
-}
+#include "../../shared/screen_wave_grid.inc.c"
 
 s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {

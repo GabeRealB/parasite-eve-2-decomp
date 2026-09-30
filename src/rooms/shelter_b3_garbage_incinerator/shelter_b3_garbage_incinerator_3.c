@@ -54,6 +54,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/effect_sprite.h"
+#include "../../shared/screen_wave.h"
 
 #define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
 #define D_shelter_b3_garbage_incinerator_80187554 (D_shelter_b3_garbage_incinerator_80187544 + 2)
@@ -1842,7 +1843,7 @@ RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C = { 0 };
 
 Task* D_shelter_b3_garbage_incinerator_8018FC34 = NULL;
 
-OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38 = NULL;
+OverlayWaveCtx* gScreenWaveCtx = NULL;
 
 Task* D_shelter_b3_garbage_incinerator_8018FC3C = NULL;
 
@@ -1875,11 +1876,11 @@ u8 CapCaption_Data_8015E66C[4] = {
     51,
 };
 
-OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FC60[10];
+OverlayWaveRec gScreenWaveColumns[10];
 
-OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FCB0[30];
+OverlayWaveRec gScreenWaveRows[30];
 
-POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
+POLY_FT4 gScreenWaveGrid[2][30][8];
 
 static void func_shelter_b3_garbage_incinerator_80184D7C(void);
 static void func_shelter_b3_garbage_incinerator_80184EEC(void);
