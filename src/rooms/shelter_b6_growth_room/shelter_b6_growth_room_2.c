@@ -248,7 +248,7 @@ GpSprtRec D_shelter_b6_growth_room_8017FEB8[8] = {
     { { .empty = D_shelter_b6_growth_room_8017FEA8 }, D_shelter_b6_growth_room_8017FEA8, NULL },
 };
 
-GpPointLight D_shelter_b6_growth_room_8017FF18[1] = {
+WorldCoordPointLight D_shelter_b6_growth_room_8017FF18[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2400, -2850, 4050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 5000, 0x2710 },
 };
 

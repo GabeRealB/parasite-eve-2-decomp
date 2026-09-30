@@ -12,12 +12,12 @@
 /// `ROOM_EFFECT_CONTROL_HIDDEN`).
 static inline void muzzleFlashTask(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    u8            rgb[3];
-    s32           i;
+    GpEffWork*            work;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    u8                    rgb[3];
+    s32                   i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

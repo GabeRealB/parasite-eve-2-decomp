@@ -226,7 +226,7 @@ GpSprtRec D_shelter_b3_incinerator_control_room_80182140[8] = {
     { { .empty = D_shelter_b3_incinerator_control_room_80182130 }, D_shelter_b3_incinerator_control_room_80182130, NULL },
 };
 
-GpPointLight D_shelter_b3_incinerator_control_room_801821A0[8] = {
+WorldCoordPointLight D_shelter_b3_incinerator_control_room_801821A0[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -591, -1844, -2881 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3295, -3263, 141 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3734, 3791, 3811 }, { 0, 0 } }, 1000, 0x2D03 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6412, -2764, -1784 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2370, 2309, 2426 }, { 0, 0 } }, 1000, 5940 },

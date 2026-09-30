@@ -375,7 +375,7 @@ GpSprtRec D_shelter_b1_control_room_801833BC[8] = {
     { { .empty = D_shelter_b1_control_room_801833AC }, D_shelter_b1_control_room_801833AC, NULL },
 };
 
-GpPointLight D_shelter_b1_control_room_8018341C[2] = {
+WorldCoordPointLight D_shelter_b1_control_room_8018341C[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2870, -650, -4290 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 2621, 2375 }, { 0, 0 } }, 5000, 6000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9530, -2550, -4380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 2129, 1966 }, { 0, 0 } }, 2000, 2750 },
 };

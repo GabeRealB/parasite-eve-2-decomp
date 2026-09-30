@@ -277,7 +277,7 @@ GpSprtRec D_shelter_b2_elevator_8017E7BC[3] = {
     { { .empty = D_shelter_b2_elevator_8017E7AC }, D_shelter_b2_elevator_8017E7AC, NULL },
 };
 
-GpPointLight D_shelter_b2_elevator_8017E7E0[1] = {
+WorldCoordPointLight D_shelter_b2_elevator_8017E7E0[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2FD1, -1742, -381 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2950, 3487, 3402 }, { 0, 0 } }, 679, 5240 },
 };
 

@@ -374,7 +374,7 @@ GpSprtRec D_neo_ark_r26_8017E898[4] = {
     { { .empty = D_neo_ark_r26_8017E888 }, D_neo_ark_r26_8017E888, NULL },
 };
 
-GpPointLight D_neo_ark_r26_8017E8C8[1] = {
+WorldCoordPointLight D_neo_ark_r26_8017E8C8[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 1640, 820 }, { 0, 0 } }, 7300, 9300 },
 };
 

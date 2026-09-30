@@ -46,11 +46,11 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/action_prompt.h"
 
-static TaskDesc     D_shelter_r47_8018760C;
-static SVECTOR      D_shelter_r47_80187624[10];
-static GpPointLight D_shelter_r47_80189E90[9];
-static void         func_shelter_r47_80185214(Task*);
-static void         func_shelter_r47_8018580C(Task*);
+static TaskDesc             D_shelter_r47_8018760C;
+static SVECTOR              D_shelter_r47_80187624[10];
+static WorldCoordPointLight D_shelter_r47_80189E90[9];
+static void                 func_shelter_r47_80185214(Task*);
+static void                 func_shelter_r47_8018580C(Task*);
 
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
@@ -796,7 +796,7 @@ GpSprtRec D_shelter_r47_80189C68[46] = {
     { { .empty = D_shelter_r47_80189C58 }, D_shelter_r47_80189C58, NULL },
 };
 
-static GpPointLight D_shelter_r47_80189E90[9] = {
+static WorldCoordPointLight D_shelter_r47_80189E90[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x310C, -2576, 7191 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x309F, -2482, 7439 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38B7, -3643, 7891 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },

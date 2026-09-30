@@ -811,19 +811,19 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// and four inner-radius blades whose intensity is `level >> 1`.
 static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
 {
-    GpCoord64*         light;
-    GpPointLight*      work;
-    void**             scratch;
-    u8*                head;
-    RoomDraw05Scratch* blk;
-    POLY_G4*           prim;
-    s32                a;
-    s32                b;
-    s32                c;
-    s32                d;
-    s16                lvl;
-    s32                half;
-    s32                mask;
+    GpCoord64*            light;
+    WorldCoordPointLight* work;
+    void**                scratch;
+    u8*                   head;
+    RoomDraw05Scratch*    blk;
+    POLY_G4*              prim;
+    s32                   a;
+    s32                   b;
+    s32                   c;
+    s32                   d;
+    s16                   lvl;
+    s32                   half;
+    s32                   mask;
 
     lvl   = level;
     light = &Gp_RoomCoords[6 + (index & 1)];
@@ -1114,14 +1114,14 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GpEffWork*    eff;
-    s32           i;
-    s32           n;
-    s32           pan;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GpEffWork*            eff;
+    s32                   i;
+    s32                   n;
+    s32                   pan;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -1364,10 +1364,10 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
 
     base  = &Gp_RoomCoords[4];
     slot  = &base->light;

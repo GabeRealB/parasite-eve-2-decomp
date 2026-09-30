@@ -126,7 +126,7 @@ extern TaskDesc                   D_8014D8A4;
 void                              func_dryfield_junk_yard_8017DC54(s8);
 
 extern DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854;
-extern GpPointLight                     D_dryfield_junk_yard_80181554[8];
+extern WorldCoordPointLight             D_dryfield_junk_yard_80181554[8];
 
 GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
@@ -785,7 +785,7 @@ GpObj3A D_dryfield_junk_yard_80181518[1] = {
     { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, { -88, 5 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_junk_yard_80181554[8] = {
+WorldCoordPointLight D_dryfield_junk_yard_80181554[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 505, -2000, 6031 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3094, 3094, 3094 }, { 0, 0 } }, 0, 7200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1931, -2000, -3662 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3094, 3094, 3094 }, { 0, 0 } }, 0, 7200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9505, 161, -2977 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3278, 3278, 3278 }, { 0, 0 } }, 0, 9103 },

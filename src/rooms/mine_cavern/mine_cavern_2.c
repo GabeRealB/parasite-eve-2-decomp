@@ -1960,7 +1960,7 @@ GpSprtRec D_mine_cavern_8018CD10[25] = {
     { { .elements = D_mine_cavern_8018A90C }, D_mine_cavern_8018AD94, NULL },
 };
 
-GpPointLight D_mine_cavern_8018CE3C[8] = {
+WorldCoordPointLight D_mine_cavern_8018CE3C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8770, -2001, 8760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3799, 3112 }, { 0, 0 } }, 0, 7000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 240, -2001, 4380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3799, 3112 }, { 0, 0 } }, 0, 5000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4560, -2001, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3799, 3112 }, { 0, 0 } }, 0, 5000 },
@@ -2469,8 +2469,8 @@ static void func_mine_cavern_80181864(void)
 /// shared LCG.
 static void func_mine_cavern_80181CAC(s16 point)
 {
-    GpCoord64*    light = &Gp_RoomCoords[4 + point];
-    GpPointLight* work  = &light->light;
+    GpCoord64*            light = &Gp_RoomCoords[4 + point];
+    WorldCoordPointLight* work  = &light->light;
 
     light->framesLeft                              = 2;
     work->inner                                    = D_mine_cavern_8018E366;

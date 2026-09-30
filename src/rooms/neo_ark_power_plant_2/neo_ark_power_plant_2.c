@@ -603,7 +603,7 @@ GpSprtRec D_neo_ark_power_plant_2_8018205C[9] = {
     { { .elements = D_neo_ark_power_plant_2_80181FF4 }, D_neo_ark_power_plant_2_80182044, NULL },
 };
 
-GpPointLight D_neo_ark_power_plant_2_801820C8[21] = {
+WorldCoordPointLight D_neo_ark_power_plant_2_801820C8[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -7350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
@@ -884,10 +884,10 @@ void func_neo_ark_power_plant_2_8017D854(Task* task)
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 {
-    u32           rnd;
-    u16           intensity;
-    GpPointLight* work;
-    GpCoord64*    light;
+    u32                   rnd;
+    u16                   intensity;
+    WorldCoordPointLight* work;
+    GpCoord64*            light;
 
     if (arg0->state == 0) {
         D_80115758  = 0x601DC;

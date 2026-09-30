@@ -1076,14 +1076,14 @@ static void func_actor_800100_80166F50(Task* arg0);
 /// `age` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GfxCoord*     light;
-    GpMtxWords*   rot;
-    GpEffWork*    eff;
-    u32           ang;
+    GpEffWork*            work;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GfxCoord*             light;
+    GpMtxWords*           rot;
+    GpEffWork*            eff;
+    u32                   ang;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

@@ -280,7 +280,7 @@ void                              func_mine_mesa_8017EAC0(void);
 void                              func_mine_mesa_8017EB18(void);
 void                              func_mine_mesa_8017EB54(s32);
 
-extern GpPointLight             D_mine_mesa_801887C8[8];
+extern WorldCoordPointLight     D_mine_mesa_801887C8[8];
 extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
 s32                             func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                            func_mine_mesa_80181894(Task*);
@@ -1544,7 +1544,7 @@ GpSprtRec D_mine_mesa_80188744[11] = {
     { { .empty = D_mine_mesa_80188734 }, D_mine_mesa_80188734, NULL },
 };
 
-GpPointLight D_mine_mesa_801887C8[8] = {
+WorldCoordPointLight D_mine_mesa_801887C8[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7697, -4012, 1391 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1173, 1575, 1726 }, { 0, 0 } }, 1258, 8401 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -812, -1993, 3861 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3194, 2867, 2129 }, { 0, 0 } }, 0, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6812, -1806, 8035 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4014, 3522, 2703 }, { 0, 0 } }, 600, 3000 },

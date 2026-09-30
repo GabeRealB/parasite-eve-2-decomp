@@ -862,7 +862,7 @@ GpSprtRec D_shelter_b2_pod_bottom_80185904[16] = {
     { { .empty = D_shelter_b2_pod_bottom_801858F4 }, D_shelter_b2_pod_bottom_801858F4, NULL },
 };
 
-GpPointLight D_shelter_b2_pod_bottom_801859C4[57] = {
+WorldCoordPointLight D_shelter_b2_pod_bottom_801859C4[57] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7995, 0x3A4D, 6998 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1005, 879, 752 }, { 0, 0 } }, 10, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -291, -3647, 6898 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 461, 527, 478 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5327, -981, 8386 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },

@@ -135,7 +135,7 @@ GpSprtRec D_neo_ark_eve_elevator_8017DB20[4] = {
     { { .empty = D_neo_ark_eve_elevator_8017DB10 }, D_neo_ark_eve_elevator_8017DB10, NULL },
 };
 
-GpPointLight D_neo_ark_eve_elevator_8017DB50[1] = {
+WorldCoordPointLight D_neo_ark_eve_elevator_8017DB50[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1742, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 2867, 2621 }, { 0, 0 } }, 1500, 2500 },
 };
 

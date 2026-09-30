@@ -107,7 +107,7 @@ extern GpAreaTmdRec D_shelter_r48_8018BB30[3];
 extern GpAreaTmdRec D_shelter_r48_8018BB54[3];
 extern GpAreaTmdRec D_shelter_r48_8018BB78[2];
 
-extern GpPointLight D_shelter_r48_8018A08C[57];
+extern WorldCoordPointLight D_shelter_r48_8018A08C[57];
 
 extern GpObj4C        D_shelter_r48_8018B670[16];
 extern GpObj4C        D_shelter_r48_8018BC78[5];
@@ -1583,7 +1583,7 @@ GpSprtRec D_shelter_r48_80189FB4[18] = {
     { { .elements = D_shelter_r48_801897C0 }, D_shelter_r48_80189F7C, NULL },
 };
 
-GpPointLight D_shelter_r48_8018A08C[57] = {
+WorldCoordPointLight D_shelter_r48_8018A08C[57] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8004, -981, 0x28FC } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5803, -2722, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B5A, -682, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },

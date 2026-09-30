@@ -194,9 +194,9 @@ extern GpLightCapture* D_80760618;
 /// Re-evaluates each lit transient light slot against the view.
 static inline void _gpUpdateRoomCoordSlots(void);
 
-static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos);
+static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos);
 
-static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos);
+static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos);
 
 static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos);
 
@@ -234,7 +234,7 @@ static void Gp_DebugPanTask(Task* arg0);
 /// and clears the bit.
 static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2);
 
-static void Gp_LightFalloff(GpPointLight* light);
+static void Gp_LightFalloff(WorldCoordPointLight* light);
 
 static WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0);
 
@@ -292,14 +292,14 @@ static inline void _gpUpdateRoomCoordSlots(void)
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
-    GpRoomCoordSet*      set;
-    SVECTOR*             vec;
-    WorldCoordLight*     light;
-    GpPointLight*        point;
-    WorldCoordSpotLight* spot;
-    GfxCoord*            coord;
-    s32                  i;
-    s32                  j;
+    GpRoomCoordSet*       set;
+    SVECTOR*              vec;
+    WorldCoordLight*      light;
+    WorldCoordPointLight* point;
+    WorldCoordSpotLight*  spot;
+    GfxCoord*             coord;
+    s32                   i;
+    s32                   j;
 
     set = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     if (set == NULL) {
@@ -381,7 +381,7 @@ void Gp_UpdateRoomCoords(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
-static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
+static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos)
 {
     WorldCoordLight* base;
     GpAttnScratch*   block;
@@ -440,7 +440,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
     return result;
 }
 
-static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
+static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos)
 {
     GpAttnScratch*   block;
     s32              result;
@@ -570,14 +570,14 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 /// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
 static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
-    GpRoomCoordSet*      set;
-    GpPointLight*        point;
-    WorldCoordLight*     light;
-    WorldCoordSpotLight* cone;
-    VECTOR*              delta;
-    u32                  best;
-    u32                  dist;
-    s32                  i;
+    GpRoomCoordSet*       set;
+    WorldCoordPointLight* point;
+    WorldCoordLight*      light;
+    WorldCoordSpotLight*  cone;
+    VECTOR*               delta;
+    u32                   best;
+    u32                   dist;
+    s32                   i;
 
     set           = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     best          = 0x7FFFFFFF;
@@ -754,14 +754,14 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     register MATRIX*              colorMtx;
     register GpLightSolveScratch* block;
 
-    s32           n;
-    s32           nOcc;
-    s32           idx;
-    s32           i;
-    s32           sum;
-    s32           val;
-    void**        cutoffPtr;
-    GpPointLight* light;
+    s32                   n;
+    s32                   nOcc;
+    s32                   idx;
+    s32                   i;
+    s32                   sum;
+    s32                   val;
+    void**                cutoffPtr;
+    WorldCoordPointLight* light;
 
     startr   = start;
     set      = Gp_GetRoomCoordSet(&gGameSession->location.loc);
@@ -1330,7 +1330,7 @@ void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-static void Gp_LightFalloff(GpPointLight* light)
+static void Gp_LightFalloff(WorldCoordPointLight* light)
 {
     GpAttnScratch*   block;
     s32              result;

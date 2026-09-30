@@ -35579,7 +35579,7 @@ LCG `addu` dest stays `v0` and the store sits immediately after it.
 `Gp_RoomCoords` is an array of `GpCoord64` whose embedded point lights' colour and radius fields start at `+0x54`.
 Accessing them as `Gp_RoomCoords->light.head.color.r` uses the slot base (`sw 0x54(a0)`).
 The target computes `s5 = a0+4` (`&base->light`) and stores at `0x50(s5)`.
-Hold the embedded point light as a `GpPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
+Hold the embedded point light as a `WorldCoordPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
@@ -53927,7 +53927,7 @@ The same lever explains a `SOFT_USE_REG(x)` that only lifts `x` above a loop
 pointer. In `func_800D7A9C` a per-iteration `light = &p->light` lost
 `$s0` to its loop pointer `p` (6 refs over 16 insns against 9 over 33) until
 an empty-asm use added two weighted refs. The real source used one
-`GpPointLight* light` for that loop *and* the next loop over another light
+`WorldCoordPointLight* light` for that loop *and* the next loop over another light
 array of the same type; the merged pseudo outranks `p` with no asm at all.
 When a use-hack's only job is priority, look for a later loop whose pointer
 has the same type and lands in the same register.
@@ -55586,7 +55586,7 @@ hoist, here it lets a store sink.
 **Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
 instruction matched except that the task argument and one alias pointer had
 swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
-`GpPointLight*` member at `&Gp_RoomCoords[1].light`, ours used `s3` and `s2`.
+`WorldCoordPointLight*` member at `&Gp_RoomCoords[1].light`, ours used `s3` and `s2`.
 
 **Symptom.** Nothing in the C looked register-related; `.greg` showed the
 allocation order line

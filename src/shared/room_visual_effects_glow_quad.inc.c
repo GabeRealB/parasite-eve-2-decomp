@@ -8,23 +8,23 @@
 /// GTE flags the projection.
 static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size)
 {
-    GfxCoord       ground;
-    POLY_FT4*      prim;
-    s16            outerLeft;
-    s16            outerRight;
-    s16            outerTop;
-    s16            outerBottom;
-    s16            intensity;
-    s16            left;
-    s16            right;
-    s16            top;
-    s16            bottom;
-    s32            outerSize;
-    s32            shifted;
-    u32            random;
-    GpCoord64*     slot;
-    GpPointLight*  light;
-    GpRingScratch* block;
+    GfxCoord              ground;
+    POLY_FT4*             prim;
+    s16                   outerLeft;
+    s16                   outerRight;
+    s16                   outerTop;
+    s16                   outerBottom;
+    s16                   intensity;
+    s16                   left;
+    s16                   right;
+    s16                   top;
+    s16                   bottom;
+    s32                   outerSize;
+    s32                   shifted;
+    u32                   random;
+    GpCoord64*            slot;
+    WorldCoordPointLight* light;
+    GpRingScratch*        block;
 
     slot                                          = &Gp_RoomCoords[2];
     slot->framesLeft                              = 2;

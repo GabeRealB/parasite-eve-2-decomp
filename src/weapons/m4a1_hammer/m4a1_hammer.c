@@ -86,14 +86,14 @@ static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 ///   winds `age` back down and redraws instead of advancing.
 void func_m4a1_hammer_8011D1E0(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GfxCoord*     light;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GpMtxWords*   dstm;
-    s32           i;
-    s32           j;
+    GpEffWork*            work;
+    GfxCoord*             coord;
+    GfxCoord*             light;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GpMtxWords*           dstm;
+    s32                   i;
+    s32                   j;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

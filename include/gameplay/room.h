@@ -33,12 +33,12 @@ STATIC_ASSERT_SIZEOF(WorldCoordRoomAmbientEntry, 8);
 /// builds each spot light's orientation from its `axis`, then updates them every
 /// frame via `Gp_UpdateCoordEx`.
 typedef struct _GpRoomCoordSet {
-    /* 0x00 */ s32                  n58;
-    /* 0x04 */ WorldCoordLight*     arr58; // directional lights
-    /* 0x08 */ s32                  n60;
-    /* 0x0C */ GpPointLight*        arr60; // point lights
-    /* 0x10 */ s32                  n6C;
-    /* 0x14 */ WorldCoordSpotLight* arr6C; // spot lights
+    /* 0x00 */ s32                   n58;
+    /* 0x04 */ WorldCoordLight*      arr58; // directional lights
+    /* 0x08 */ s32                   n60;
+    /* 0x0C */ WorldCoordPointLight* arr60; // point lights
+    /* 0x10 */ s32                   n6C;
+    /* 0x14 */ WorldCoordSpotLight*  arr6C; // spot lights
 } GpRoomCoordSet;
 STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 

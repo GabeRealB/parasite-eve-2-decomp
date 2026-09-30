@@ -694,7 +694,7 @@ GpObj4C D_mist_parking_801941F8[14] = {
     { NULL, NULL, NULL, { -8784, -64, -1328, 0 }, { { 1530, 0, -544, 0 }, { 1519, 0, 545, 0 }, { -1519, 0, -545, 0 }, { -1530, 0, 544, 0 } }, { 0, 4097, 0, 0 }, { -202, 0, -4092, 0 }, 1619, 2, 9, 0, 130, 0 },
 };
 
-GpPointLight D_mist_parking_80194620[28] = {
+WorldCoordPointLight D_mist_parking_80194620[28] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4FB0, -4600, -1460 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4FB0, -4600, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x5F64, -5400, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
@@ -729,7 +729,7 @@ GpRoomCoordSet D_mist_parking_801950A0[1] = {
     { 0, NULL, 28, D_mist_parking_80194620, 0, NULL },
 };
 
-GpPointLight D_mist_parking_801950B8[2] = {
+WorldCoordPointLight D_mist_parking_801950B8[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8510, -2000, 209 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8510, -2000, -1857 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
 };

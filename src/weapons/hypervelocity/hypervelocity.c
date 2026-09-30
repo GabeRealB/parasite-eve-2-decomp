@@ -157,16 +157,16 @@ static void func_hypervelocity_8011F724(Task* arg0);
 ///   flare is 0x6F frames old or the charge goes negative.
 void func_hypervelocity_8011D1E8(Task* task)
 {
-    u8            rgb[3];
-    GfxCoord*     coord;
-    GfxCoord*     light;
-    GfxCoord*     player;
-    GpEffWork*    work;
-    GpEffWork*    eff;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GpMtxWords*   dstm;
-    s32           pan;
+    u8                    rgb[3];
+    GfxCoord*             coord;
+    GfxCoord*             light;
+    GfxCoord*             player;
+    GpEffWork*            work;
+    GpEffWork*            eff;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GpMtxWords*           dstm;
+    s32                   pan;
 
     work  = task->spawnArg2.pointer;
     base  = &Gp_RoomCoords[1];
@@ -336,22 +336,22 @@ void func_hypervelocity_8011D1E8(Task* task)
 ///   per frame until the ring falls under 0x80.
 void func_hypervelocity_8011D830(Task* task)
 {
-    GfxCoord      ground;
-    SVECTOR       after;
-    SVECTOR       before;
-    u8            rgb[3];
-    GfxCoord*     coord;
-    GfxCoord*     player;
-    GfxCoord*     light;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GpEffWork*    work;
-    GpEffWork*    eff;
-    HyperBeam*    beam;
-    GpMtxWords*   dstm;
-    GpMtxWords*   srcm;
-    u32           ang;
-    s32           i;
+    GfxCoord              ground;
+    SVECTOR               after;
+    SVECTOR               before;
+    u8                    rgb[3];
+    GfxCoord*             coord;
+    GfxCoord*             player;
+    GfxCoord*             light;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GpEffWork*            work;
+    GpEffWork*            eff;
+    HyperBeam*            beam;
+    GpMtxWords*           dstm;
+    GpMtxWords*           srcm;
+    u32                   ang;
+    s32                   i;
 
     beam  = (HyperBeam*)task->work;
     work  = task->spawnArg2.pointer;

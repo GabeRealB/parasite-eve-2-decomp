@@ -2718,7 +2718,7 @@ GpAreaVariant D_acropolis_plaza_80199390[3] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_plaza_801993A8[30] = {
+WorldCoordPointLight D_acropolis_plaza_801993A8[30] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x6952, -0x2A27, -9776 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2638, 1975, 1619 }, { 0, 0 } }, 10, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x45ED, -2152, 16 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2161, 2161, 1577 }, { 0, 0 } }, 6000, 7400 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2F00, -1488, 1096 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1507, 152, 27 }, { 0, 0 } }, 2500, 3000 },
@@ -4355,7 +4355,7 @@ void func_acropolis_plaza_80180270(Task* arg0)
 void func_acropolis_plaza_801802C0(Task* task)
 {
     GpCoord64*                 entry;
-    GpPointLight*              light;
+    WorldCoordPointLight*      light;
     GfxCoord*                  coord;
     GfxCoord*                  lightCoord;
     AcropolisPlazaBeamWork*    work;

@@ -1499,7 +1499,7 @@ GpObj3A D_dryfield_dilapidated_house_80189260[1] = {
     { NULL, NULL, { -4096, -2000, 1232, 0 }, { { 0, 2576, -2544, 0 }, { 0, -2576, -2544, 0 }, { 0, 2576, 2544, 0 }, { 0, -2576, 2544, 0 } }, { 4097, 0, 0, 0 }, { 36, 14 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_dilapidated_house_8018929C[8] = {
+WorldCoordPointLight D_dryfield_dilapidated_house_8018929C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1500, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1847, 1847, 1847 }, { 0, 0 } }, 2000, 3549 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2500, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2666, 2666, 2666 }, { 0, 0 } }, 2256, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2666, 2666, 2666 }, { 0, 0 } }, 2000, 3000 },
@@ -3493,17 +3493,17 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
-    DdhEffWork*   work;
-    GfxCoord*     coord;
-    GpCoord64*    rc;
-    GpPointLight* tail;
-    GpEffWork*    eff;
-    u16           tick;
-    u16           tick1;
-    s16           size;
-    s32           angle;
-    s32           i;
-    u8            rgb[3];
+    DdhEffWork*           work;
+    GfxCoord*             coord;
+    GpCoord64*            rc;
+    WorldCoordPointLight* tail;
+    GpEffWork*            eff;
+    u16                   tick;
+    u16                   tick1;
+    s16                   size;
+    s32                   angle;
+    s32                   i;
+    u8                    rgb[3];
 
     work           = task->spawnArg2.pointer;
     coord          = task->extra.coordBody->coord;

@@ -136,7 +136,7 @@ GpSprtRec D_shelter_r49_8017DCA0[3] = {
     { { .empty = D_shelter_r49_8017DC90 }, D_shelter_r49_8017DC90, NULL },
 };
 
-GpPointLight D_shelter_r49_8017DCC4[1] = {
+WorldCoordPointLight D_shelter_r49_8017DCC4[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 6000, 7000 },
 };
 

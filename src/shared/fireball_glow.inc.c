@@ -7,22 +7,22 @@
 /// ground quad there at twice the outer size.
 void fireballDrawGlow(GfxCoord* coord, s16 size)
 {
-    GfxCoord       ground;
-    POLY_FT4*      prim;
-    s16            intensity;
-    s16            outerLeft;
-    s16            outerRight;
-    s16            outerTop;
-    s16            outerBottom;
-    s16            left;
-    s16            right;
-    s16            top;
-    s16            bottom;
-    s32            outerSize;
-    u32            random;
-    GpCoord64*     slot;
-    GpPointLight*  light;
-    GpRingScratch* sc;
+    GfxCoord              ground;
+    POLY_FT4*             prim;
+    s16                   intensity;
+    s16                   outerLeft;
+    s16                   outerRight;
+    s16                   outerTop;
+    s16                   outerBottom;
+    s16                   left;
+    s16                   right;
+    s16                   top;
+    s16                   bottom;
+    s32                   outerSize;
+    u32                   random;
+    GpCoord64*            slot;
+    WorldCoordPointLight* light;
+    GpRingScratch*        sc;
 
     slot                                          = &Gp_RoomCoords[2];
     slot->framesLeft                              = 2;

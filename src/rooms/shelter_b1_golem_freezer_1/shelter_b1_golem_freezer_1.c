@@ -247,7 +247,7 @@ GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
     { { .empty = D_shelter_b1_golem_freezer_1_8017EDA0 }, D_shelter_b1_golem_freezer_1_8017EDA0, NULL },
 };
 
-GpPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
+WorldCoordPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2916, -3502, -3635 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 2048, 1865 }, { 0, 0 } }, 6500, 8500 },
 };
 

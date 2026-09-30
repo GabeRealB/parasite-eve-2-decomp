@@ -609,7 +609,7 @@ GpSprtRec D_acropolis_east_elevator_hall_80187870[7] = {
     { { .empty = D_acropolis_east_elevator_hall_80187860 }, D_acropolis_east_elevator_hall_80187860, NULL },
 };
 
-GpPointLight D_acropolis_east_elevator_hall_801878C4[4] = {
+WorldCoordPointLight D_acropolis_east_elevator_hall_801878C4[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3250, -2350, 810 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 110, -2350, 270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 3332 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3400, -2350, 180 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 4000 },

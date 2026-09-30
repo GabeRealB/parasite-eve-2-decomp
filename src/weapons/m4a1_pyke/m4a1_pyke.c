@@ -97,14 +97,14 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 /// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GfxCoord*     light;
-    GpMtxWords*   rot;
-    GpEffWork*    eff;
-    u32           ang;
+    GpEffWork*            work;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GfxCoord*             light;
+    GpMtxWords*           rot;
+    GpEffWork*            eff;
+    u32                   ang;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

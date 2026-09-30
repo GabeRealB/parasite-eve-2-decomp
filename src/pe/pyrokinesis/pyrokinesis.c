@@ -102,7 +102,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     GfxCoord*             player;
     GpCoord64*            base;
     GfxCoord*             slotc;
-    GpPointLight*         slot;
+    WorldCoordPointLight* slot;
     GpMtxWords*           dstm;
     GpMtxWords*           srcm;
     GpEffWork*            spawned;

@@ -90,7 +90,7 @@ GpSprtRec D_neo_ark_r31_8017DAF8[3] = {
     { { .empty = D_neo_ark_r31_8017DAE8 }, D_neo_ark_r31_8017DAE8, NULL },
 };
 
-GpPointLight D_neo_ark_r31_8017DB1C[1] = {
+WorldCoordPointLight D_neo_ark_r31_8017DB1C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x2710, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0x186A0, 0x186A0 },
 };
 

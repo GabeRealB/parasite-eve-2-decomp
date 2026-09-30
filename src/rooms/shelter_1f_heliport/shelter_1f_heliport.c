@@ -466,7 +466,7 @@ GpSprtRec D_shelter_1f_heliport_80181EC0[12] = {
     { { .empty = D_shelter_1f_heliport_80181EB0 }, D_shelter_1f_heliport_80181EB0, NULL },
 };
 
-GpPointLight D_shelter_1f_heliport_80181F50[1] = {
+WorldCoordPointLight D_shelter_1f_heliport_80181F50[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5450, -4000, 3600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, 4500, 5000 },
 };
 

@@ -191,15 +191,15 @@ u16 Gp_FadeQuadColors[8] = {
 
 void Gp_EffCtlTask2B(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    s32           temp;
-    s32           idx;
-    s32           t2;
-    s32           rng;
-    s32           count;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    s32                   temp;
+    s32                   idx;
+    s32                   t2;
+    s32                   rng;
+    s32                   count;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -305,11 +305,11 @@ void Gp_EffCtlTask2B(Task* arg0)
 
 void Gp_EffCtlTask6A(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    s32           t2;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    s32                   t2;
 
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2.pointer;
@@ -369,15 +369,15 @@ void Gp_EffCtlTask6A(Task* arg0)
 
 void Gp_EffCtlTask6B(Task* arg0)
 {
-    GpEffWork*       mem;
-    GfxCoord*        coord;
-    GpCoord64*       base;
-    GpPointLight*    slot;
-    RoomEffectState* effectState;
-    s32              temp;
-    s32              idx;
-    s32              t2;
-    s32              count;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    RoomEffectState*      effectState;
+    s32                   temp;
+    s32                   idx;
+    s32                   t2;
+    s32                   count;
 
     base        = Gp_RoomCoords;
     slot        = &base->light;
@@ -440,15 +440,15 @@ void Gp_EffCtlTask6B(Task* arg0)
 
 void func_800ED42C(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    SVECTOR*      vec;
-    s32           temp;
-    s32           t2;
-    s32           count;
-    s32           i;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    SVECTOR*              vec;
+    s32                   temp;
+    s32                   t2;
+    s32                   count;
+    s32                   i;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -629,17 +629,17 @@ void func_800ED42C(Task* arg0)
 
 void Gp_EffCtlTask6C(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    s32           temp;
-    s32           idx;
-    s32           t2;
-    s32           rng;
-    s32           rng2;
-    s32           count;
-    s32           i;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    s32                   temp;
+    s32                   idx;
+    s32                   t2;
+    s32                   rng;
+    s32                   rng2;
+    s32                   count;
+    s32                   i;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2364,7 +2364,7 @@ void func_800F4308(Task* arg0)
     GfxCoord*             coord;
     GfxCoord*             roomCoord;
     GpCoord64*            room;
-    GpPointLight*         slot;
+    WorldCoordPointLight* slot;
     ModelObjectCoordBody* body;
     SVECTOR*              vec;
     s16                   flag;

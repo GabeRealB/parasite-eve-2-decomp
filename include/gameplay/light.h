@@ -53,14 +53,29 @@ typedef struct {
 } WorldCoordLight;
 STATIC_ASSERT_SIZEOF(WorldCoordLight, 0x58);
 
-/// A light that fades with distance: full strength within `inner` of its
-/// world position, falling to nothing at `outer`.
-typedef struct GpPointLight {
-    WorldCoordLight head;
-    s32             inner; // radius the light is at full strength within
-    s32             outer; // radius beyond which it casts nothing
-} GpPointLight;
-STATIC_ASSERT_SIZEOF(GpPointLight, 0x60);
+/// A world-coordinate point light: full strength near its position, then fading out.
+///
+/// The record is the 0x60-byte room-light extension of `WorldCoordLight`.
+/// That header is the first member, so placement, the view filter,
+/// attenuation and colour are the shared record, and light selection reads
+/// the point light through it. Room tables store the entries contiguously.
+///
+/// `inner` and `outer` are distances in the same integer world units as the
+/// light's composed translation. The light is at full strength within
+/// `inner` of its position and casts nothing once the distance reaches
+/// `outer`. Between those distances the contribution scale falls in
+/// proportion to squared distance, from full strength to none. Equal radii
+/// are full strength out to that distance. Room tables, and the effects,
+/// weapons and actors that fill a transient slot, keep `inner` less than or
+/// equal to `outer`.
+///
+/// A selected point light shades along the direction toward the light.
+typedef struct {
+    WorldCoordLight head;  // Shared placement, view filter, attenuation and colour
+    s32             inner; // Full-strength distance from the position, in world units
+    s32             outer; // Distance at which the light casts nothing, in world units
+} WorldCoordPointLight;
+STATIC_ASSERT_SIZEOF(WorldCoordPointLight, 0x60);
 
 /// A world-coordinate light limited to a cone around an axis.
 ///
@@ -99,8 +114,8 @@ STATIC_ASSERT_SIZEOF(WorldCoordSpotLight, 0x6C);
 /// point lights whenever a model is lit, reading it as `light`. Nothing
 /// allocates the slots: each kind of owner writes indices of its own.
 typedef struct _GpCoord64 {
-    s32          framesLeft; // frames the light stays lit; 0 leaves the slot dark
-    GpPointLight light;      // Placement, colour and falloff radii of the transient light
+    s32                  framesLeft; // frames the light stays lit; 0 leaves the slot dark
+    WorldCoordPointLight light;      // Placement, colour and falloff radii of the transient light
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
 

@@ -1408,7 +1408,7 @@ GpSprtRec D_neo_ark_observatory_801860E8[21] = {
     { { .empty = D_neo_ark_observatory_801860D8 }, D_neo_ark_observatory_801860D8, NULL },
 };
 
-GpPointLight D_neo_ark_observatory_801861E4[17] = {
+WorldCoordPointLight D_neo_ark_observatory_801861E4[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9184, -2500, 0x2EC6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 9640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
@@ -1432,7 +1432,7 @@ GpRoomCoordSet D_neo_ark_observatory_80186844[1] = {
     { 0, NULL, 17, D_neo_ark_observatory_801861E4, 0, NULL },
 };
 
-GpPointLight D_neo_ark_observatory_8018685C[17] = {
+WorldCoordPointLight D_neo_ark_observatory_8018685C[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CD5, -2337, 0x2BA7 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 906, 669 }, { 0, 0 } }, 100, 1600 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9184, -2500, 0x2EC6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },

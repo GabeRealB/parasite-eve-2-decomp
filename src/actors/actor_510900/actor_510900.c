@@ -1127,15 +1127,15 @@ DamageAttack D_actor_510900_80167968 = { 14, 7 };
 
 void func_actor_510900_80131F24(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpPointLight* slot;
-    GpCoord64*    base;
-    GpEffWork*    eff;
-    GpMtxWords*   mat;
-    s32           i;
-    s32           bits;
-    s32           z;
+    GpEffWork*            mem;
+    GfxCoord*             coord;
+    WorldCoordPointLight* slot;
+    GpCoord64*            base;
+    GpEffWork*            eff;
+    GpMtxWords*           mat;
+    s32                   i;
+    s32                   bits;
+    s32                   z;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -1828,13 +1828,13 @@ void func_actor_510900_80133C84(Task* arg0)
 
 void func_actor_510900_801340E8(Task* arg0)
 {
-    GpCoord64*    base;
-    GfxCoord*     cam;
-    GpPointLight* ext;
-    GpEffWork*    eff;
-    GfxCoord*     coord;
-    GpMtxWords*   mat;
-    s32           i;
+    GpCoord64*            base;
+    GfxCoord*             cam;
+    WorldCoordPointLight* ext;
+    GpEffWork*            eff;
+    GfxCoord*             coord;
+    GpMtxWords*           mat;
+    s32                   i;
 
     base  = &Gp_RoomCoords[3];
     cam   = &base->light.head.transform.coord;

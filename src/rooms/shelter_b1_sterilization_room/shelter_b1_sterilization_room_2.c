@@ -746,7 +746,7 @@ GpSprtRec D_shelter_b1_sterilization_room_8018B00C[24] = {
     { { .empty = D_shelter_b1_sterilization_room_8018AFFC }, D_shelter_b1_sterilization_room_8018AFFC, NULL },
 };
 
-GpPointLight D_shelter_b1_sterilization_room_8018B12C[1] = {
+WorldCoordPointLight D_shelter_b1_sterilization_room_8018B12C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -2000, 0x30D4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2129, 3686, 3276 }, { 0, 0 } }, 3500, 3750 },
 };
 

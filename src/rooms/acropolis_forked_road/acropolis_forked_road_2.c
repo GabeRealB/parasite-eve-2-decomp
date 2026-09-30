@@ -1094,7 +1094,7 @@ GpSprtRec D_acropolis_forked_road_801844E0[12] = {
     { { .elements = D_acropolis_forked_road_80183998 }, D_acropolis_forked_road_80183A10, NULL },
 };
 
-GpPointLight D_acropolis_forked_road_80184570[24] = {
+WorldCoordPointLight D_acropolis_forked_road_80184570[24] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5613, -698, -1760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2703, 2621, 2621 }, { 0, 0 } }, 109, 4700 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8121, -599, -1760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2703, 2621, 2621 }, { 0, 0 } }, 701, 3078 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6800, -720, -1259 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 2703, 2621 }, { 0, 0 } }, 759, 3078 },

@@ -632,7 +632,7 @@ GpObj3A D_dryfield_night_cellar_801802F4[1] = {
     { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, { 75, 10 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_night_cellar_80180330[5] = {
+WorldCoordPointLight D_dryfield_night_cellar_80180330[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 100, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 100, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8300, -2000, 3200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 100, 3000 },
@@ -644,7 +644,7 @@ GpRoomCoordSet D_dryfield_night_cellar_80180510[1] = {
     { 0, NULL, 5, D_dryfield_night_cellar_80180330, 0, NULL },
 };
 
-GpPointLight D_dryfield_night_cellar_80180528[5] = {
+WorldCoordPointLight D_dryfield_night_cellar_80180528[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 100, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 100, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8300, -2000, 3200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 100, 3000 },

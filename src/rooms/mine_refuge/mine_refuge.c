@@ -448,7 +448,7 @@ GpSprtRec D_mine_refuge_8018264C[7] = {
     { { .empty = D_mine_refuge_8018263C }, D_mine_refuge_8018263C, NULL },
 };
 
-GpPointLight D_mine_refuge_801826A0[2] = {
+WorldCoordPointLight D_mine_refuge_801826A0[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2128, -1869, 1212 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3342, 2588 }, { 0, 0 } }, 0, 2200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1562, -2170, 3664 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 3000 },
 };

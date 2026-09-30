@@ -118,21 +118,21 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 ///   and releases the work block when the last step runs out.
 void func_m4a1_javelin_8011D1E4(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GameActor*    actor;
-    GpCoord64*    base;
-    GfxCoord*     light;
-    GpPointLight* slot;
-    GpMtxWords*   dstm;
-    SVECTOR       pa;
-    SVECTOR       pb;
-    SVECTOR       qa;
-    SVECTOR       qb;
-    s32           i;
-    s32           lim;
-    s32           t;
-    u16           rnd;
+    GpEffWork*            work;
+    GfxCoord*             coord;
+    GameActor*            actor;
+    GpCoord64*            base;
+    GfxCoord*             light;
+    WorldCoordPointLight* slot;
+    GpMtxWords*           dstm;
+    SVECTOR               pa;
+    SVECTOR               pb;
+    SVECTOR               qa;
+    SVECTOR               qb;
+    s32                   i;
+    s32                   lim;
+    s32                   t;
+    u16                   rnd;
 
     actor = gameGetPtrSlot(3)->work;
     base  = &Gp_RoomCoords[1];

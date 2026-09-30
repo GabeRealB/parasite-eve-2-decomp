@@ -56,7 +56,7 @@ extern GpObj4C        D_dryfield_night_motel_room_3_801804E0[7];
 extern GpRoomCoordSet D_dryfield_night_motel_room_3_80180CC4[1];
 
 extern DryfieldNightMotelRoom3SpotLightStorage D_dryfield_night_motel_room_3_801809D0;
-extern GpPointLight                            D_dryfield_night_motel_room_3_80180730[7];
+extern WorldCoordPointLight                    D_dryfield_night_motel_room_3_80180730[7];
 
 SVECTOR D_dryfield_night_motel_room_3_8017DA84 = { 510, -990, 3200, 0 };
 
@@ -628,7 +628,7 @@ GpObj3A D_dryfield_night_motel_room_3_801806F4[1] = {
     { NULL, NULL, { 1168, -1024, 4864, 0 }, { { -2096, -2048, 0, 0 }, { 2096, -2048, 0, 0 }, { -2096, 2048, 0, 0 }, { 2096, 2048, 0, 0 } }, { 0, 0, -4097, 0 }, { 114, 11 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_night_motel_room_3_80180730[7] = {
+WorldCoordPointLight D_dryfield_night_motel_room_3_80180730[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1325, -815, 1205 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1146, 1064 }, { 0, 0 } }, 300, 2500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2940, -1301, 2560 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1692, 1682, 1552 }, { 0, 0 } }, 1394, 4484 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 274, -1064, 2787 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3500, 3440, 3300 }, { 0, 0 } }, 601, 1794 },

@@ -323,7 +323,7 @@ GpSprtRec D_mine_tunnel_entrance_8017EA4C[6] = {
     { { .elements = D_mine_tunnel_entrance_8017E958 }, D_mine_tunnel_entrance_8017EA34, NULL },
 };
 
-GpPointLight D_mine_tunnel_entrance_8017EA94[6] = {
+WorldCoordPointLight D_mine_tunnel_entrance_8017EA94[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9530, -3860, 1830 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1155, 1608, 1468 }, { 0, 0 } }, 0, 0x2710 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3BEC, -2000, 3640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3522, 2539 }, { 0, 0 } }, 800, 3600 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3016, -2000, 700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3522, 2457 }, { 0, 0 } }, 800, 4000 },

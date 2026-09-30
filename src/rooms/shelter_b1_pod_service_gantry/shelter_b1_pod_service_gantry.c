@@ -71,7 +71,7 @@ s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task*, s32, RoomEventMsg*, RoomE
 s32 func_shelter_b1_pod_service_gantry_8017D80C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_pod_service_gantry_8017D814(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpPointLight                              D_shelter_b1_pod_service_gantry_80181DC8[9];
+extern WorldCoordPointLight                      D_shelter_b1_pod_service_gantry_80181DC8[9];
 extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
 
 GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
@@ -735,7 +735,7 @@ GpSprtRec D_shelter_b1_pod_service_gantry_80181BA0[46] = {
     { { .empty = D_shelter_b1_pod_service_gantry_80181B90 }, D_shelter_b1_pod_service_gantry_80181B90, NULL },
 };
 
-GpPointLight D_shelter_b1_pod_service_gantry_80181DC8[9] = {
+WorldCoordPointLight D_shelter_b1_pod_service_gantry_80181DC8[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x310C, -2576, 7191 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x309F, -2482, 7439 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38B7, -3643, 7891 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },

@@ -454,7 +454,7 @@ GpSprtRec D_dryfield_night_parking_lot_801805AC[11] = {
     { { .empty = D_dryfield_night_parking_lot_8018059C }, D_dryfield_night_parking_lot_8018059C, NULL },
 };
 
-GpPointLight D_dryfield_night_parking_lot_80180630[17] = {
+WorldCoordPointLight D_dryfield_night_parking_lot_80180630[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2680, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2211, 2457, 2703 }, { 0, 0 } }, 0x186A0, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8450, -1990, -5560 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 1884, 1966 }, { 0, 0 } }, 3000, 5000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2970, -2190, 780 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2500 },

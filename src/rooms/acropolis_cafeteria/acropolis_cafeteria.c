@@ -916,7 +916,7 @@ GpAreaVariant D_acropolis_cafeteria_80189DCC[11] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_cafeteria_80189E24[15] = {
+WorldCoordPointLight D_acropolis_cafeteria_80189E24[15] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1495, -3075, -3183 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3400, 3051, 2214 }, { 0, 0 } }, 1021, 1963 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2998, -2896, -1504 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2578, 2319, 1751 }, { 0, 0 } }, 3000, 0x2F46 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1010, -2896, -1501 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3380, 3031, 2354 }, { 0, 0 } }, 1221, 3424 },

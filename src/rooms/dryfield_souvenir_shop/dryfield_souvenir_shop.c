@@ -292,7 +292,7 @@ GpObj4C D_dryfield_souvenir_shop_8017EF8C[12] = {
     { NULL, NULL, NULL, { 4192, -64, -1824, 0 }, { { -1072, 0, 0, 0 }, { 880, 0, -32, 0 }, { -656, 0, 672, 0 }, { 880, 0, 672, 0 } }, { 0, 4113, 0, 0 }, { 0, 0, 4096, 0 }, 1101, 2, 9, 0, 132, 0 },
 };
 
-GpPointLight D_dryfield_souvenir_shop_8017F31C[6] = {
+WorldCoordPointLight D_dryfield_souvenir_shop_8017F31C[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4500, -1580, -3620 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3485, 3485, 3485 }, { 0, 0 } }, 1923, 3384 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2001, -1477, -3631 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3482, 3482, 3482 }, { 0, 0 } }, 1899, 3404 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1395, -1582, 5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1764, 2626 },

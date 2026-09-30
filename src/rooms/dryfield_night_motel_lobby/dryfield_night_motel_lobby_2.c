@@ -447,7 +447,7 @@ GpSprtRec D_dryfield_night_motel_lobby_80183D1C[8] = {
     { { .empty = D_dryfield_night_motel_lobby_80183D0C }, D_dryfield_night_motel_lobby_80183D0C, NULL },
 };
 
-GpPointLight D_dryfield_night_motel_lobby_80183D7C[7] = {
+WorldCoordPointLight D_dryfield_night_motel_lobby_80183D7C[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -2100, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 1500, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4500, -2100, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3600, 3314, 2501 }, { 0, 0 } }, 1500, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -2100, 4500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 1500, 3000 },
