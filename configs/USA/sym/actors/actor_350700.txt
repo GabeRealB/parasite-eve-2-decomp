@@ -89,3 +89,4 @@ actorMotionPlayAnim = 0x801636A8; // type:func
 actorMotionStartWalk = 0x801630C0; // type:func
 actorMotionArrive19 = 0x80162070; // type:func
 actorMotionPlayAnim19 = 0x80162860; // type:func
+actorMsgPlaceEuler = 0x80162998; // type:func

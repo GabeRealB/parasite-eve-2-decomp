@@ -44,6 +44,7 @@
 
 #include "rooms/dryfield_r08.h"
 #include "../../shared/screen_wave.h"
+#include "../../shared/actor_messages.h"
 
 /// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
 /// spawners the scene script calls, 3 by the waypoint walker for each new
@@ -212,8 +213,6 @@ extern OverlayWaveRec6 gScreenWaveColumns[13];
 
 extern OverlayWaveRec6 gScreenWaveRows[30];
 
-void func_actor_121300_8013411C(Task*, s32, ActorTransform* placement);
-void func_actor_121300_801341A8(Task*, s32, s32);
 void func_actor_121300_80134224(s32, s32, s32);
 
 extern TmdSource D_actor_121300_80139B80;
@@ -1579,8 +1578,8 @@ Actor121300Waypoint D_actor_121300_8013CC20[13] = {
 };
 
 Actor121300MessageEntry D_actor_121300_8013CC88[3] = {
-    { 2004, { .call0 = func_actor_121300_8013411C } },
-    { 2005, { .call1 = func_actor_121300_801341A8 } },
+    { 2004, { .call0 = actorMsgPlaceYawPitchRoll } },
+    { 2005, { .call1 = actorMsgSetDrawMode } },
     { 2016, { .call2 = func_actor_121300_80134224 } },
 };
 
@@ -2559,45 +2558,9 @@ void func_actor_121300_801340F0(Task* task)
     Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
 }
 
-/// Scene-script handler that places the task's model: `placement`'s position
-/// becomes the translation of the `TmdObject`'s first coordinate, its angles
-/// are applied Y, then X, then Z, and the coordinate is marked dirty.
-void func_actor_121300_8013411C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
-
-/// Scene-script handler that sets the draw bits of the task's `TmdObject`:
-/// mode 0 hides the model (0x80) and clears 0x4, mode 1 shows it and clears
-/// 0x4, mode 2 hides it and sets 0x4.
-void func_actor_121300_801341A8(Task* arg0, s32 arg1, s32 arg2)
-{
-    TmdObject* extra;
-
-    extra = arg0->extra.tmd;
-    switch (arg2) {
-        case 0:
-            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            return;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-    }
-}
+#include "../../shared/actor_messages_draw_mode.inc.c"
 
 void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
 {

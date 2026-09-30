@@ -60,6 +60,7 @@
 
 #include "overlay.h"
 #include "../../shared/screen_wave.h"
+#include "../../shared/actor_messages.h"
 
 extern TaskDesc D_80164FF8;
 
@@ -182,8 +183,6 @@ static TaskDesc CapCaption_Data_80154508;
 
 void func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
 void func_shelter_b3_garbage_incinerator_8017E158(Task*);
-void func_shelter_b3_garbage_incinerator_8017E690(Task*, s32, s32);
-void func_shelter_b3_garbage_incinerator_8017E70C(Task*, s32, ActorTransform* placement);
 void func_shelter_b3_garbage_incinerator_8017E7A4(Task*);
 void func_shelter_b3_garbage_incinerator_8017F0A8(Task*);
 void func_shelter_b3_garbage_incinerator_8017F410(Task*);
@@ -230,8 +229,8 @@ TmdSource D_shelter_b3_garbage_incinerator_80185B1C = {
 };
 
 ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
-    { 2005, { .call2 = func_shelter_b3_garbage_incinerator_8017E690 } },
-    { 2004, { .call1 = func_shelter_b3_garbage_incinerator_8017E70C } },
+    { 2005, { .call2 = actorMsgSetDrawMode } },
+    { 2004, { .call1 = actorMsgPlaceInView } },
     { 5108, { .call0 = func_shelter_b3_garbage_incinerator_8017E7A4 } },
 };
 
@@ -955,46 +954,9 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     }
 }
 
-/// Sets how the task's model is treated from `arg2`: 0 hides it and leaves its
-/// primitive buffer to be allocated on demand, 1 shows it with the same
-/// allocation, 2 hides it and exempts it from that allocation.
-void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject* extra;
+#include "../../shared/actor_messages_draw_mode.inc.c"
 
-    extra = task->extra.tmd;
-    switch (arg2) {
-        case 0:
-            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            return;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-    }
-}
-
-/// Places the task's model: re-parents its coordinate to the world frame, takes
-/// the three longs of `placement` as the translation and applies the three
-/// shorts as yaw, pitch and roll.
-void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->parent     = &gGfxViewCoord;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_in_view.inc.c"
 
 void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)
 {

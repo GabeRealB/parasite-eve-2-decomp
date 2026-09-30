@@ -83,3 +83,5 @@ func_dryfield_r08_8017F340 = 0x8017F340; // absolute:True
 
 func_dryfield_r08_8017F438 = 0x8017F438; // absolute:True
 screenWaveTask = 0x80131EB0; // type:func
+actorMsgPlaceYawPitchRoll = 0x8013411C; // type:func
+actorMsgSetDrawMode = 0x801341A8; // type:func

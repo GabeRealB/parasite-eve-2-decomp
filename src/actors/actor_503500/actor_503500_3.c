@@ -2501,7 +2501,7 @@ static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
 /// Places the boss's part at `args`: drops the translation into the root
 /// coordinate's local matrix, stores the Euler angles in the coordinate's own
 /// `rot` slot and rebuilds the rotation from them, exactly as
-/// `func_actor_503500_80132508` does. It then keeps two derived copies in the work
+/// `actorMsgPlaceEuler` does. It then keeps two derived copies in the work
 /// block -- the yaw recovered from the matrix it just built, and the same
 /// translation in 16.16 fixed point. Clearing `composeStamp` makes `_gpUpdateCoordTree`
 /// recompute the world matrix from the new local one.

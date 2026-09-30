@@ -49,3 +49,5 @@ D_actor_341900_801637A0 = 0x801637A0; // size:0x1B4 defined:True
 D_actor_341900_80163954 = 0x80163954; // size:0x28 defined:True
 D_actor_341900_8016397C = 0x8016397C; // size:0x28 defined:True
 D_actor_341900_801639A4 = 0x801639A4; // size:0x8 defined:True
+actorMsgPlaceYawPitchRoll = 0x801632A0; // type:func
+actorMsgSetDrawMode = 0x80163224; // type:func

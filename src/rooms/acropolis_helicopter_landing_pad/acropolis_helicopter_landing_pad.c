@@ -26,6 +26,7 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that
@@ -72,14 +73,12 @@ extern ActorTransform D_acropolis_helicopter_landing_pad_80182394;
 extern ActorTransform D_acropolis_helicopter_landing_pad_801823AC;
 
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
-s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
 s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task*, s32, ActorTransform* placement, s32);
 
 _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
     { 2003, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
-    { 2004, { .placement = func_acropolis_helicopter_landing_pad_8017D8E8 } },
+    { 2004, { .placement = actorMsgPlaceEuler } },
     { 0x7FFFFFFF, { .animation = NULL } },
 };
 
@@ -246,46 +245,28 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, Animat
 
     switch (msg->animationId) {
         case 0:
-            func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
+            actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
             work->field_50 = 0x78;
             work->field_0  = 0;
             work->field_4  = -0x19;
             work->field_8  = 0;
             break;
         case 1:
-            func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_801823AC, 0);
+            actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_801823AC, 0);
             work->field_50 = 0x78;
             work->field_0  = 0;
             work->field_4  = 0x19;
             work->field_8  = 0;
             break;
         case 2:
-            func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
+            actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
             work->field_50 = 0;
             break;
     }
     return 0;
 }
 
-/// Msg 0x7D4 handler, also called directly by the 0x7D3 handler. Places the
-/// task's model at `placement`: copies the position onto the coordinate's
-/// translation, the Euler angles onto its rotation, rebuilds the rotation
-/// matrix and marks the coordinate dirty.
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->param.rot.vx = placement->rot.vx;
-    coord->param.rot.vy = placement->rot.vy;
-    coord->param.rot.vz = placement->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// State handlers of the enemy task `func_acropolis_helicopter_landing_pad_8017D964`,
 /// indexed by `Task::state`: set-up, the per-frame model update and

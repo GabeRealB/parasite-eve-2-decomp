@@ -23,6 +23,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, whose
@@ -106,7 +107,6 @@ static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 extern TmdSource D_actor_317000_801683A4;
 s32              func_actor_317000_80162458(Task*, s32, ActorTransform* place, Actor317000SpawnAnim*);
-s32              func_actor_317000_80162B48(Task*, s32, ActorTransform* args);
 s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
 s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
 void             func_actor_317000_80162624(Task*);
@@ -339,7 +339,7 @@ TaskDesc D_actor_317000_8016CF44 = { (TASK_BODY_TMD | 0x100), 192, func_actor_31
 
 Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call2 = func_actor_317000_80162B48 } },
+    { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_317000_80162BC4 } },
     { 2013, { .call3 = func_actor_317000_80162458 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_317000_80162CA0 } },
@@ -807,25 +807,7 @@ static void func_actor_317000_80162950(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Message 0x7D4 handler of `D_actor_317000_8016CF50`: writes the payload's
-/// position into the root coordinate's translation and its Euler angles into
-/// `GfxCoord::param.rot`, rebuilds the rotation from them with `RotMatrix`
-/// and clears `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_317000_80162B48(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message 0x7D5 handler of `D_actor_317000_8016CF50`, also called directly by
 /// the spawn state `func_actor_317000_8016267C` with mode 0. `mode` sets or

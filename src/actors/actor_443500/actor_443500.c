@@ -40,6 +40,7 @@
 
 #include "rooms/shelter_r47.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
@@ -2383,12 +2384,11 @@ TaskDesc D_actor_443500_8015873C[2] = {
 };
 
 s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_443500_80132900(Task*, s32, ActorTransform* args);
 s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
 
 Actor443500MessageEntry D_actor_443500_80158754[4] = {
     { 2003, { .call0 = func_actor_443500_801327E0 } },
-    { 2004, { .call1 = func_actor_443500_80132900 } },
+    { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_443500_8013297C } },
     { 2147483647, { .call0 = NULL } },
 };
@@ -2745,25 +2745,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
     return 0;
 }
 
-/// Message-0x7D4 handler: places the actor at `args` - the translation goes
-/// straight into the root coordinate's local matrix, the Euler angles into the
-/// coordinate's `rot` slot, from which the rotation is rebuilt. Clearing `composeStamp`
-/// has the world matrix recomputed. Returns 0.
-s32 func_actor_443500_80132900(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 handler: the four-way switch on `mode` over the `TmdObject`
 /// parked in `Task::extra`. `mode` drives `TmdObject::flags`: bit 0x80 marks

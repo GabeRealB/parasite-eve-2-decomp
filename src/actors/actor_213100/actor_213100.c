@@ -24,6 +24,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
@@ -64,7 +65,7 @@ extern TaskDesc D_actor_213100_801521A8[];
 
 /// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
 /// animation handler `actorMotionPlayAnim19`, 0x7D4 the placement
-/// handler `func_actor_213100_8014A390` and 0x7D5 the display handler
+/// handler `actorMsgPlaceEuler` and 0x7D5 the display handler
 /// `func_actor_213100_8014A40C`.
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -91,7 +92,6 @@ static void func_actor_213100_8014A23C(Task* arg0);
 
 extern TmdSource D_actor_213100_801501E4;
 extern TmdSource D_actor_213100_801503DC;
-s32              func_actor_213100_8014A390(Task*, s32, ActorTransform* args);
 s32              func_actor_213100_8014A40C(Task*, s32, s32);
 void             func_actor_213100_80149FE4(Task*);
 void             func_actor_213100_8014A0C0(Task*);
@@ -378,7 +378,7 @@ TaskDesc D_actor_213100_801521A8[2] = {
 
 Actor213100MessageEntry D_actor_213100_801521C0[4] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call1 = func_actor_213100_8014A390 } },
+    { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_213100_8014A40C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -598,25 +598,7 @@ static void func_actor_213100_8014A23C(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Message-0x7D4 handler: places the actor at the message's arguments -
-/// the translation goes straight into the root coordinate's local matrix, the
-/// Euler angles into the coordinate's `rot` slot, from which the rotation is
-/// rebuilt. Clearing `composeStamp` has the world matrix recomputed. Returns 0.
-s32 func_actor_213100_8014A390(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 display handler: switches on the message's mode word, then
 /// copies the model's flags onto the child's model. Mode 0 hides the model

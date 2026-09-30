@@ -31,6 +31,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Optional start animation for the same handler: the preset's `field_4`
 /// and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2 once
@@ -144,14 +145,13 @@ extern TmdSource D_actor_350700_8016E86C;
 extern TmdSource D_actor_350700_8016ECC0;
 extern TmdSource D_actor_350700_8016F1B0;
 extern TmdSource D_actor_350700_8016F5F4;
-s32              func_actor_350700_801637C4(Task*, s32, ActorTransform* args);
+s32              func_actor_350700_801637C4(Task*, s32, ActorTransform* args, s32 arg3);
 s32              func_actor_350700_80163840(Task*, s32, s32);
 s32              func_actor_350700_8016395C(void);
 void             func_actor_350700_80163274(Task*);
 void             func_actor_350700_80163350(Task*);
 
 s32  func_actor_350700_801621B4(Task*, s32, ActorTransform* place, Actor350700SpawnAnim*);
-s32  func_actor_350700_80162998(Task*, s32, ActorTransform* args);
 s32  func_actor_350700_80162A14(Task*, s32, s32);
 s32  func_actor_350700_80162AF4(Task*, s32, ActorCommand* msg);
 void func_actor_350700_80162398(Task*);
@@ -292,7 +292,7 @@ TaskDesc D_actor_350700_80169D10 = { (TASK_BODY_TMD | 0x100), 192, func_actor_35
 
 Actor350700MsgEntry D_actor_350700_80169D1C[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },
-    { 2004, { .call3 = func_actor_350700_80162998 } },
+    { 2004, { .call3 = actorMsgPlaceEuler } },
     { 2005, { .call5 = func_actor_350700_80162A14 } },
     { 2013, { .call4 = func_actor_350700_801621B4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_350700_80162AF4 } },
@@ -884,25 +884,7 @@ static void func_actor_350700_80162764(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Message-0x7D4 handler of the enemy actor: places the root part at
-/// `args`. The translation goes straight into the local matrix, the Euler
-/// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds the
-/// rotation; clearing `composeStamp` makes the world matrix be recomputed. Returns 0.
-s32 func_actor_350700_80162998(Task* task, s32 msgId, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.
@@ -1242,25 +1224,10 @@ static void func_actor_350700_80163528(Task* task)
 
 #include "../../shared/actor_motion_play.inc.c"
 
-/// Message-0x7D4 handler of the parent: places the root part at `args`, the
-/// translation straight into the local matrix and the Euler angles into the
-/// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation.
-/// Returns 0.
-s32 func_actor_350700_801637C4(Task* task, s32 msgId, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// A second copy of the handler, under this file's own name.
+#define actorMsgPlaceEuler func_actor_350700_801637C4
+#include "../../shared/actor_messages_place_euler.inc.c"
+#undef actorMsgPlaceEuler
 
 /// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`,

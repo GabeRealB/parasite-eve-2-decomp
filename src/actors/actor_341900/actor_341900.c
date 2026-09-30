@@ -40,6 +40,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
@@ -251,8 +252,6 @@ void                func_actor_341900_80163658(void);
 void                func_actor_341900_80163678(void);
 
 void func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*);
-void func_actor_341900_80163224(Task*, s32, s32);
-void func_actor_341900_801632A0(Task*, s32, ActorTransform* placement);
 void func_actor_341900_8016332C(void);
 
 AnimationPackedPose D_actor_341900_801636A0[6] = {
@@ -318,8 +317,8 @@ ActorTransform D_actor_341900_80163A08[2] = {
 };
 
 Actor341900MessageEntry D_actor_341900_80163A38[2] = {
-    { 2005, { .call3 = func_actor_341900_80163224 } },
-    { 2004, { .call2 = func_actor_341900_801632A0 } },
+    { 2005, { .call3 = actorMsgSetDrawMode } },
+    { 2004, { .call2 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
@@ -327,8 +326,8 @@ ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0,
 ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
 
 Actor341900MessageEntry D_actor_341900_80163A78[4] = {
-    { 2005, { .call3 = func_actor_341900_80163224 } },
-    { 2004, { .call2 = func_actor_341900_801632A0 } },
+    { 2005, { .call3 = actorMsgSetDrawMode } },
+    { 2004, { .call2 = actorMsgPlaceYawPitchRoll } },
     { 2011, { .call0 = func_actor_341900_8016332C } },
     { 2003, { .call1 = func_actor_341900_80161FD0 } },
 };
@@ -1025,46 +1024,9 @@ void func_actor_341900_80163148(Task* arg0)
     }
 }
 
-/// Message 0x7D5 handler of both of the overlay's message tables: sets the
-/// draw bits of the task's `TmdObject` from the mode in `arg2`. Mode 0 sets
-/// 0x80 and clears 0x4, mode 1 clears both, mode 2 sets both.
-void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
-{
-    TmdObject* extra;
+#include "../../shared/actor_messages_draw_mode.inc.c"
 
-    extra = arg0->extra.tmd;
-    switch (arg2) {
-        case 0:
-            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            return;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-    }
-}
-
-/// Message 0x7D4 handler of both of the overlay's message tables: copies the
-/// placement onto the model's root coordinate, the three longs as its
-/// translation and the three angles as its rotation (Y, then X, then Z), and
-/// marks the coordinate dirty.
-void func_actor_341900_801632A0(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 /// Message 0x7DB handler of the actor's second message table; ignores it.
 void func_actor_341900_8016332C(void)

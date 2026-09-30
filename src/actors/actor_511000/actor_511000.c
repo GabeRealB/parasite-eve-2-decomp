@@ -38,6 +38,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/actor_messages.h"
 
 extern GpImgRec D_actor_511000_80146F94[2];
 
@@ -279,7 +280,6 @@ extern TmdSource D_actor_511000_80142554;
 extern TmdSource D_actor_511000_80142AAC;
 extern TmdSource D_actor_511000_80142C90;
 s32              func_actor_511000_80132604(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_511000_80132724(Task*, s32, ActorTransform* args);
 s32              func_actor_511000_801327A0(Task*, s32, s32);
 s32              func_actor_511000_8013287C(Task*, s32, ActorCommand* msg);
 s32              func_actor_511000_80132904(Task*, s32, s32);
@@ -297,7 +297,6 @@ s32  func_actor_511000_801334B8(Task*);
 s32  func_actor_511000_801334C4(Task*, s32, ActorTransform* args, s32);
 s32  func_actor_511000_80133554(Task*, s32, s32);
 s32  func_actor_511000_80133DEC(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_511000_80133E48(Task*, s32, ActorTransform* args);
 s32  func_actor_511000_80133EAC(Task*, s32, s32);
 void func_actor_511000_80133D90(Task*);
 void func_actor_511000_80133EF4(Task*);
@@ -1268,7 +1267,7 @@ TaskDesc D_actor_511000_801472E8[3] = {
 
 Actor511000MessageEntry D_actor_511000_8014730C[6] = {
     { 2003, { .call1 = func_actor_511000_80132604 } },
-    { 2004, { .call3 = func_actor_511000_80132724 } },
+    { 2004, { .call3 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_511000_801327A0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_511000_8013287C } },
     { 2016, { .call4 = func_actor_511000_80132904 } },
@@ -2093,7 +2092,7 @@ TaskDesc D_actor_511000_80155070[4] = {
 
 Actor511000MessageEntry D_actor_511000_801550A0[4] = {
     { 2003, { .call0 = func_actor_511000_80133DEC } },
-    { 2004, { .call3 = func_actor_511000_80133E48 } },
+    { 2004, { .call3 = actorMsgPlaceRotMatrix } },
     { 2005, { .call4 = func_actor_511000_80133EAC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2382,25 +2381,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
     return 0;
 }
 
-/// Placement message handler: writes the payload's translation into the root
-/// coordinate, keeps its Euler angles in the coordinate's `rot` slot and
-/// rebuilds the rotation from them, then clears `composeStamp` so the world matrix is
-/// recomputed.
-s32 func_actor_511000_80132724(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
 /// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 shows
@@ -3254,21 +3235,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* prese
     return 0;
 }
 
-/// Placement message handler: builds the root coordinate's matrix from the
-/// payload's Euler angles, drops its translation in and clears `composeStamp` so the
-/// world matrix is recomputed.
-s32 func_actor_511000_80133E48(Task* task, s32 arg1, ActorTransform* args)
-{
-    TmdObject* ext   = task->extra.tmd;
-    GfxCoord*  coord = ext->coords;
-
-    RotMatrix(&args->rot, &coord->coord);
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
 /// Visibility message handler: bit 0 of `arg2` shows the model (flags 0)
 /// instead of hiding it (0x80); bit 1 also sets flag 0x4.

@@ -16,6 +16,7 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 /// The actor's work block, allocated by the setup state and parked in
 /// `Task::work`. It holds the model's animation context and slot array and the
@@ -52,7 +53,6 @@ static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
 
 extern TmdSource D_actor_110700_801377C8;
 s32              func_actor_110700_8013201C(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_110700_80132074(Task*, s32, ActorTransform* args);
 s32              func_actor_110700_801320D8(Task*, s32, s32);
 void             func_actor_110700_80131E24(Task*);
 
@@ -202,7 +202,7 @@ TaskDesc D_actor_110700_8013BF94 = { TASK_BODY_TMD, 96, func_actor_110700_80131E
 
 Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
     { 2003, { .call0 = func_actor_110700_8013201C } },
-    { 2004, { .call1 = func_actor_110700_80132074 } },
+    { 2004, { .call1 = actorMsgPlaceRotMatrix } },
     { 2005, { .call2 = func_actor_110700_801320D8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -319,21 +319,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args
     return 0;
 }
 
-/// Message 0x7D4 handler: places the actor. Builds the root coordinate's
-/// rotation from the message's Euler angles, writes its translation, and
-/// clears `composeStamp` so the world matrix is recomputed from them.
-s32 func_actor_110700_80132074(Task* task, s32 msgId, ActorTransform* args)
-{
-    TmdObject* ext   = task->extra.tmd;
-    GfxCoord*  coord = ext->coords;
-
-    RotMatrix(&args->rot, &coord->coord);
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
 /// Message 0x7D5 handler: sets the model's visibility from `arg2`. Bit 0 clear
 /// replaces the object's flags with 0x80 (hidden), bit 0 set clears them

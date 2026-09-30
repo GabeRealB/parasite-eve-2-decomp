@@ -54,14 +54,13 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
+#include "../../shared/actor_messages.h"
 
 s32 func_actor_510900_801391B8(Task*, s32, s32);
 
 s32 func_actor_510900_8013BD5C(Task*);
 
 s32 func_actor_510900_8013BD84(Task*, s32, AnimationPlayRequest*);
-
-s32 func_actor_510900_8013BE00(Task*, s32, ActorTransform* args);
 
 s32 func_actor_510900_8013BE64(Task*, s32, s32);
 
@@ -411,7 +410,7 @@ TaskDesc D_actor_510900_80167A18[7] = {
 Actor510900MessageEntry D_actor_510900_80167A6C[7] = {
     { 2014, { .call1 = func_actor_510900_8013BD5C } },
     { 2003, { .call2 = func_actor_510900_8013BD84 } },
-    { 2004, { .call3 = func_actor_510900_8013BE00 } },
+    { 2004, { .call3 = actorMsgPlaceRotMatrix } },
     { 2005, { .call4 = func_actor_510900_8013BE64 } },
     { 2007, { .call4 = func_actor_510900_801391B8 } },
     { 2006, { .call0 = func_actor_510900_8013BE84 } },
@@ -4042,21 +4041,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Message 0x7D4 handler: places the actor. It builds the model's root coordinate
-/// from the argument block's Euler angles and translation, and clears its
-/// `composeStamp` so the world matrix is recomputed from it.
-s32 func_actor_510900_8013BE00(Task* task, s32 arg1, ActorTransform* args)
-{
-    TmdObject* ext   = task->extra.tmd;
-    GfxCoord*  coord = ext->coords;
-
-    RotMatrix(&args->rot, &coord->coord);
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
 /// Message 0x7D5 handler: switches the model's 0x80 flag: set when `arg2` is 0,
 /// cleared for any other value. The message id itself is unused.

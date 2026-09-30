@@ -1352,25 +1352,7 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
     obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
-/// Message 0x7D4 handler of the model task: copies `placement` onto the task's
-/// `TmdObject` coordinate frame. The three longs become the translation, then
-/// yaw / pitch / roll are applied with `Gfx_RotMatrixY` / `X` / `Z` and the
-/// coordinate is marked dirty.
-void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 /// Message 0x7DB handler of the model task: restarts its script, clearing the
 /// script state and `field_54` in its work block and moving the task to the

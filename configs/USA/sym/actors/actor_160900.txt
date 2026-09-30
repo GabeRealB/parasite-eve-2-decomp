@@ -112,3 +112,4 @@ D_actor_160900_8013F12C = 0x8013F12C; // size:0x28 defined:True
 D_actor_160900_8013F154 = 0x8013F154; // size:0x28 defined:True
 gScreenWaveRows = 0x8013FC08; // size:0xB4 defined:True
 screenWaveTask = 0x80131EB0; // type:func
+actorMsgPlaceYawPitchRoll = 0x80134624; // type:func

@@ -44,6 +44,7 @@
 
 #include "rooms/dryfield_night_main_street.h"
 #include "../../shared/screen_fade.h"
+#include "../../shared/actor_messages.h"
 
 extern ActorTransform D_actor_136100_8013F334[2];
 
@@ -186,7 +187,6 @@ void             func_actor_136100_80133BC8(Task*);
 void             func_actor_136100_80134588(Task*);
 void             func_actor_136100_8013467C(void);
 void             func_actor_136100_801346EC(Task*, s32, s32);
-void             func_actor_136100_80134720(Task*, s32, ActorTransform* placement);
 void             func_actor_136100_801347B8(void);
 void             func_actor_136100_80134838(s16);
 void             func_actor_136100_80134858(s16);
@@ -927,7 +927,7 @@ s32 D_actor_136100_8013F2C4[12] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x
 
 Actor136100MessageEntry D_actor_136100_8013F2F4[2] = {
     { 2005, { .call1 = func_actor_136100_801346EC } },
-    { 2004, { .call0 = func_actor_136100_80134720 } },
+    { 2004, { .call0 = actorMsgPlaceInView } },
 };
 
 // The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
@@ -2400,25 +2400,7 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
     obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
-/// Places the task's model in the world frame: its coordinate is re-parented
-/// to the view coordinate, takes `placement`'s three longs as its translation
-/// and its three shorts as yaw, pitch and roll.
-void func_actor_136100_80134720(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->parent     = &gGfxViewCoord;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_in_view.inc.c"
 
 void func_actor_136100_801347B8(void)
 {

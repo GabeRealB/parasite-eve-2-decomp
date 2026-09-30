@@ -48,6 +48,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
+#include "../../shared/actor_messages.h"
 
 /// Per-instance work block for the overlay's model actor.
 ///
@@ -190,8 +191,6 @@ void func_actor_342000_801625D8(Task*);
 void func_actor_342000_801628C8(Task*);
 void func_actor_342000_8016382C(Task*);
 void func_actor_342000_80163EAC(Task*);
-void func_actor_342000_80163FB8(Task*, s32, s32);
-void func_actor_342000_80164034(Task*, s32, ActorTransform* transform);
 void func_actor_342000_801640C0(Task*, s32, ActorTransform* transform);
 void func_actor_342000_80164110(Task*, s32, ActorCommand* request, ActorTransform* transform);
 void func_actor_342000_80164154(void);
@@ -274,8 +273,8 @@ ActorTransform D_actor_342000_80164878[2] = {
 };
 
 Actor342000MessageEntry D_actor_342000_801648A8[2] = {
-    { 2005, { .call2 = func_actor_342000_80163FB8 } },
-    { 2004, { .call1 = func_actor_342000_80164034 } },
+    { 2005, { .call2 = actorMsgSetDrawMode } },
+    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 2048, 0, 0 } };
@@ -283,7 +282,7 @@ ActorTransform D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 20
 ActorTransform D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 2048, 0, 0 } };
 
 Actor342000MessageEntry D_actor_342000_801648E8[3] = {
-    { 2005, { .call2 = func_actor_342000_80163FB8 } },
+    { 2005, { .call2 = actorMsgSetDrawMode } },
     { 2004, { .call1 = func_actor_342000_801640C0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342000_80164110 } },
 };
@@ -1314,46 +1313,9 @@ static void func_actor_342000_80163F88(Task* task)
     taskKill(task);
 }
 
-/// Message 0x7D5 handler of both of the overlay's message tables: sets the
-/// draw bits of the task's `TmdObject` from the mode in `arg2`. Mode 0 sets
-/// 0x80 and clears 0x4, mode 1 clears both, mode 2 sets both.
-void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
-{
-    TmdObject* extra;
+#include "../../shared/actor_messages_draw_mode.inc.c"
 
-    extra = arg0->extra.tmd;
-    switch (arg2) {
-        case 0:
-            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            return;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-    }
-}
-
-/// Message 0x7D4 handler of the table at `D_actor_342000_801648A8`: copies
-/// the payload onto the model's root coordinate, the three longs as its
-/// translation and the three angles as its rotation (Y, then X, then Z), and
-/// marks the coordinate dirty.
-void func_actor_342000_80164034(Task* task, s32 arg1, ActorTransform* transform)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = transform->pos.vx;
-    coord->coord.t[1] = transform->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = transform->pos.vz;
-    Gfx_RotMatrixY(mtx, transform->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, transform->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, transform->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 void func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform)
 {

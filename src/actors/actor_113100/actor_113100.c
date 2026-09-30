@@ -39,6 +39,7 @@
 
 #include "rooms/mist_parking.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a twenty-part rig and the model state, the
@@ -79,7 +80,7 @@ typedef GpSpawnAnimArg Actor113100SpawnAnim;
 extern TaskDesc D_actor_113100_80144308[];
 
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
-/// (`func_actor_113100_801331E8`), 0x7D4 (`func_actor_113100_8013333C`), 0x7D5
+/// (`func_actor_113100_801331E8`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
 /// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
 /// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
 // Handler views preserve the signatures used by this TU. The dispatcher
@@ -172,7 +173,6 @@ void             func_actor_113100_80132E98(Task*);
 s32 func_actor_113100_80132790(Task*, s32, s32, s32);
 s32 func_actor_113100_801328EC(Task*, s32, ActorTransform* place, Actor113100SpawnAnim*);
 s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_113100_8013333C(Task*, s32, ActorTransform* args);
 s32 func_actor_113100_801333B8(Task*, s32, ActorCommand* msg);
 
 TmdBone D_actor_113100_8013346C[20] = {
@@ -1167,7 +1167,7 @@ TaskDesc D_actor_113100_80144308[4] = {
 
 Actor113100MsgEntry D_actor_113100_80144338[6] = {
     { 2003, { .call0 = func_actor_113100_801331E8 } },
-    { 2004, { .call2 = func_actor_113100_8013333C } },
+    { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_113100_80132790 } },
     { 2013, { .call3 = func_actor_113100_801328EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_113100_801333B8 } },
@@ -1928,25 +1928,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
     return 0;
 }
 
-/// The 0x7D4 entry of `D_actor_113100_80144338`: places the actor at `args`.
-/// The translation goes straight into the root part's local matrix, the Euler
-/// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds
-/// the rotation; clearing `composeStamp` makes the world matrix be recomputed.
-s32 func_actor_113100_8013333C(Task* task, s32 msgId, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message 0x7DB handler, listed in `D_actor_113100_80144338` after the 0x7D3 /
 /// 0x7D5 / 0x7DD ones. The payload halfword selects one of four actions: 0 and

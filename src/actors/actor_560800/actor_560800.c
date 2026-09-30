@@ -53,6 +53,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b1_pod_service_gantry.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Reach it with
@@ -463,7 +464,6 @@ void                func_actor_560800_80135D54(Task*);
 void                func_actor_560800_80135FA0(Task*);
 void                func_actor_560800_80136094(Task*);
 void                func_actor_560800_801361A0(Task*, s32, s32);
-void                func_actor_560800_801361F4(Task*, s32, ActorTransform* placement);
 void                func_actor_560800_80136280(s32);
 void                func_actor_560800_801362B0(s32);
 void                func_actor_560800_801362E0(s16);
@@ -3129,7 +3129,7 @@ ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0,
 
 Actor560800MessageEntry D_actor_560800_8016F34C[2] = {
     { 2005, { .call3 = func_actor_560800_801361A0 } },
-    { 2004, { .call1 = func_actor_560800_801361F4 } },
+    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform* D_actor_560800_8016F35C[34] = {
@@ -5870,25 +5870,7 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
     }
 }
 
-/// Message handler that places the task's model from `placement`: the
-/// position becomes the model coordinate's translation, the Y, X and Z
-/// rotations are applied in that order, and the coordinate is marked for
-/// recalculation.
-void func_actor_560800_801361F4(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 /// Spawns entry 2 of the actor's task descriptor table with `arg0` as its
 /// spawn argument. Script tables in the actor's data call it.
@@ -7364,22 +7346,7 @@ void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
     }
 }
 
-/// Message handler that places the task's model from `placement`: the
-/// position becomes the model coordinate's translation, the Y, X and Z
-/// rotations are applied in that order, and the coordinate is marked for
-/// recalculation.
-void func_actor_560800_80139440(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+/// A second copy of the handler, under this file's own name.
+#define actorMsgPlaceYawPitchRoll func_actor_560800_80139440
+#include "../../shared/actor_messages_place_ypr.inc.c"
+#undef actorMsgPlaceYawPitchRoll

@@ -78,6 +78,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/effect_sprite.h"
+#include "../../shared/actor_messages.h"
 
 #define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
 
@@ -426,8 +427,6 @@ void func_shelter_b3_dumping_hole_80180034(void);
 void func_shelter_b3_dumping_hole_8018005C(Task*);
 void func_shelter_b3_dumping_hole_80181430(void);
 void func_shelter_b3_dumping_hole_80181560(Task*);
-void func_shelter_b3_dumping_hole_801817D8(Task*, s32, s32);
-void func_shelter_b3_dumping_hole_80181854(Task*, s32, ActorTransform* placement);
 void func_shelter_b3_dumping_hole_801818E0(void);
 void func_shelter_b3_dumping_hole_80181958(s32);
 void func_shelter_b3_dumping_hole_80181990(s16);
@@ -764,8 +763,8 @@ TmdSource D_shelter_b3_dumping_hole_80189638 = {
 };
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
-    { 2005, { .call2 = func_shelter_b3_dumping_hole_801817D8 } },
-    { 2004, { .call1 = func_shelter_b3_dumping_hole_80181854 } },
+    { 2005, { .call2 = actorMsgSetDrawMode } },
+    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
@@ -3500,45 +3499,9 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
     func_800D7A9C(tail, (VECTOR*)desc, 0, 3);
 }
 
-/// Sets how the task's model is treated from `arg2`: 0 hides it and leaves its
-/// primitive buffer to be allocated on demand, 1 shows it with the same
-/// allocation, 2 hides it and exempts it from that allocation.
-void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject* extra;
+#include "../../shared/actor_messages_draw_mode.inc.c"
 
-    extra = task->extra.tmd;
-    switch (arg2) {
-        case 0:
-            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            return;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            return;
-    }
-}
-
-/// Places the task's model at `placement`: the position becomes the
-/// coordinate's translation, the rotation is applied in Y, X, Z order, and the
-/// coordinate is marked for recomputation.
-void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 void func_shelter_b3_dumping_hole_801818E0(void)
 {

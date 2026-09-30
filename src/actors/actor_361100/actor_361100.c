@@ -43,6 +43,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
@@ -163,7 +164,6 @@ s32                 func_actor_361100_80162F58(Task*, s32, ActorTransform* place
 s32                 func_actor_361100_80162FF4(Task*, s32, s32);
 s32                 func_actor_361100_801630D4(Task*, s32, ActorCommand* msg);
 s32                 func_actor_361100_801634D0(Task*, s32, AnimationPlayRequest*);
-s32                 func_actor_361100_801635F4(Task*, s32, ActorTransform* placement);
 s32                 func_actor_361100_80163670(Task*, s32, s32);
 s32                 func_actor_361100_80163750(Task*, s32, ActorCommand* msg);
 void                func_actor_361100_80162CBC(Task*);
@@ -929,7 +929,7 @@ TaskDesc D_actor_361100_80171BAC = { (TASK_BODY_TMD | 0x100), 192, func_actor_36
 
 Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
     { 2003, { .call0 = func_actor_361100_801634D0 } },
-    { 2004, { .call2 = func_actor_361100_801635F4 } },
+    { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call3 = func_actor_361100_80163670 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_80163750 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1862,26 +1862,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg)
     return 0;
 }
 
-/// Message 0x7D4 handler, listed in `D_actor_361100_80171BB8`: places the
-/// model at once. Writes the payload's translation into the root coordinate,
-/// keeps its Euler angles in the coordinate's `rot` slot and rebuilds the
-/// rotation from them with `RotMatrix`, then clears `composeStamp` so the world matrix
-/// is recomputed.
-s32 func_actor_361100_801635F4(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->param.rot.vx = placement->rot.vx;
-    coord->param.rot.vy = placement->rot.vy;
-    coord->param.rot.vz = placement->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
 {

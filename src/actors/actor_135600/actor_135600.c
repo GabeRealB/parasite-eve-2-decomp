@@ -34,6 +34,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Optional start animation for `actorMotionStartWalk`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 0xD and 1.
@@ -84,7 +85,6 @@ static void func_actor_135600_80132DDC(Task* task);
 static void func_actor_135600_80132DF8(Task* task);
 static void func_actor_135600_80132E00(Task* task);
 static void func_actor_135600_80132F28(Task* task);
-s32         func_actor_135600_801331C4(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
 s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// States of the two part tasks (`D_actor_135600_8013B0C4` entries 1 and 2),
@@ -146,7 +146,6 @@ extern TmdSource    D_actor_135600_80137E94;
 extern TmdSource    D_actor_135600_801382E8;
 extern TmdSource    D_actor_135600_801387D8;
 extern TmdSource    D_actor_135600_80138AE8;
-s32                 func_actor_135600_801331C4(Task*, s32, ActorTransform* args, s32);
 s32                 func_actor_135600_80133240(Task*, s32, s32, s32);
 s32                 func_actor_135600_8013336C(void);
 void                func_actor_135600_801329E0(Task*);
@@ -646,7 +645,7 @@ TaskDesc D_actor_135600_8013B0C4[4] = {
 
 Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
     { 2003, { .call1 = actorMotionPlayAnim } },
-    { 2004, { .call3 = func_actor_135600_801331C4 } },
+    { 2004, { .call3 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_135600_80133240 } },
     { 2013, { .call2 = actorMotionStartWalk } },
     { 2011, { .call0 = func_actor_135600_8013336C } },
@@ -820,7 +819,7 @@ static void func_actor_135600_80132234(Task* task)
     args.rot.vx = 0;
     args.rot.vy = 0x400;
     args.rot.vz = 0;
-    func_actor_135600_801331C4(task, 0x7D4, &args, 0);
+    actorMsgPlaceEuler(task, 0x7D4, &args, 0);
 
     preset.source.index = 0;
     preset.animationId  = 2;
@@ -1114,26 +1113,7 @@ static void func_actor_135600_80132F28(Task* task)
 
 #include "../../shared/actor_motion_play.inc.c"
 
-/// The 0x7D4 entry of `D_actor_135600_8013B0F4`, also called by the setup
-/// handler: drops the translation straight into the root part's local matrix, stores
-/// the Euler angles in the coordinate's own `rot` slot and rebuilds the
-/// rotation from them; clearing `composeStamp` makes the world matrix be recomputed.
-/// Returns 0.
-s32 func_actor_135600_801331C4(Task* task, s32 msgId, ActorTransform* args, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// The 0x7D5 entry of `D_actor_135600_8013B0F4`, the actor's visibility,
 /// switched on the word `mode`. Flag 0x80 hides the model (the tick skips the

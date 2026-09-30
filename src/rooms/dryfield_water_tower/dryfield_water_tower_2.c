@@ -58,6 +58,7 @@
 #include "overlay.h"
 #include "../../shared/room_events.h"
 #include "../../shared/screen_fade.h"
+#include "../../shared/actor_messages.h"
 
 extern ActorTransform D_dryfield_water_tower_80181A70[3];
 
@@ -138,7 +139,7 @@ STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
 /// `field_40` is the slot-3 game pointer (`gameGetPtrSlot(3)`), the task the
 /// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
 /// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
-/// `D_..._80182384` -- the 0x7D4 (`func_dryfield_water_tower_8017F77C`)
+/// `D_..._80182384` -- the 0x7D4 (`actorMsgPlaceYawPitchRoll`)
 /// targets -- and `field_4C` is
 /// the task it spawns off a second table, `D_..._8018277C`. `field_50` is the
 /// script-18 task `func_dryfield_water_tower_8017E93C` spawns when the cap
@@ -224,7 +225,7 @@ extern GpGridFace D_dryfield_water_tower_80181BA0[2];
 extern SVECTOR    D_dryfield_water_tower_80181B20[8];
 
 /// The room's two cap placements with message 0x7D4, the pair the cap props
-/// publish to themselves through `func_dryfield_water_tower_8017F77C`: `[0]` is the raised position
+/// publish to themselves through `actorMsgPlaceYawPitchRoll`: `[0]` is the raised position
 /// (Y = -0x1F40, the one a task spawned with a non-zero `spawnArg1` publishes)
 /// and `[1]` the lowered one (Y = -0xFA0) the lowering prop stops at. They are
 /// the two 0x18-byte records above them in the same run --
@@ -368,7 +369,7 @@ extern ActorTransform D_dryfield_water_tower_801823A8;
 /// The pair of placements `func_dryfield_water_tower_80180220` sends with
 /// message 0x7D4, one to each of `field_8` and `field_4`; the second is the
 /// element at 0x18, so the run is declared as an array. Both are payloads of
-/// `func_dryfield_water_tower_8017F77C`, the handler the room's script table
+/// `actorMsgPlaceYawPitchRoll`, the handler the room's script table
 /// pairs with 0x7D4.
 
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
@@ -416,7 +417,6 @@ extern SVECTOR    D_dryfield_water_tower_801828CC[29];
 extern SVECTOR    D_dryfield_water_tower_801829B4[175];
 extern TaskDesc   D_8014D8A4;
 extern s16*       D_dryfield_water_tower_80183584[16];
-void              func_dryfield_water_tower_8017F77C(Task*, s32, ActorTransform* placement);
 void              func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
@@ -513,7 +513,7 @@ ActorTransform D_dryfield_water_tower_80181AD0[2] = {
 };
 
 DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2] = {
-    { 2004, { .call2 = func_dryfield_water_tower_8017F77C } },
+    { 2004, { .call2 = actorMsgPlaceYawPitchRoll } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_dryfield_water_tower_8017F808 } },
 };
 
@@ -2768,28 +2768,10 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
-/// The room's handler for message 0x7D4: copies `placement` onto the task's
-/// `TmdObject` coordinate frame -- the three longs become the translation,
-/// then yaw, pitch and roll are applied with `Gfx_RotMatrixY` / `X` / `Z` --
-/// and marks the coordinate dirty.
-void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 /// Message 0x7DB handler, the room script table `D_dryfield_water_tower_80181B00`
-/// lists beside its 0x7D4 entry `func_dryfield_water_tower_8017F77C`. It rests the cap script: the
+/// lists beside its 0x7D4 entry `actorMsgPlaceYawPitchRoll`. It rests the cap script: the
 /// three halfword slots it keeps its timers in are cleared along with the
 /// task's kill countdown, and the payload's halfword becomes the task's state,
 /// so the 0x7DB sender picks the state the cap script resumes in. The opcode

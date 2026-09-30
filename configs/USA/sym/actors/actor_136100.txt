@@ -187,3 +187,4 @@ D_dryfield_night_main_street_80183ACC = 0x80183ACC; // absolute:True
 
 D_dryfield_night_main_street_8018824C = 0x8018824C; // absolute:True size:0x390 allow_addend:True
 screenFadeInTask = 0x801344AC; // type:func
+actorMsgPlaceInView = 0x80134720; // type:func

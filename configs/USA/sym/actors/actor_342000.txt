@@ -58,3 +58,5 @@ D_shelter_b3_garbage_incinerator_80187150 = 0x80187150; // absolute:True
 D_shelter_b3_garbage_incinerator_8018FB6C = 0x8018FB6C; // absolute:True
 
 D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // absolute:True
+actorMsgPlaceYawPitchRoll = 0x80164034; // type:func
+actorMsgSetDrawMode = 0x80163FB8; // type:func

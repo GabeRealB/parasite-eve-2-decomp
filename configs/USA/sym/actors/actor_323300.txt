@@ -57,3 +57,4 @@ D_actor_323300_80174AB0 = 0x80174AB0; // size:0x18 defined:True
 
 D_dryfield_toilet_801865D0 = 0x801865D0; // absolute:True
 actorMotionPlayAnim19 = 0x801628B8; // type:func
+actorMsgPlaceEuler = 0x801629F0; // type:func

@@ -43,6 +43,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 extern AnimationSet* D_actor_503500_8016EA54[20];
 
@@ -211,7 +212,7 @@ static const TaskFuncTable3 D_actor_503500_801321F4 = {
 extern AnimationSet D_actor_503500_80176314;
 extern AnimationSet D_actor_503500_801764EC;
 extern TmdSource    D_actor_503500_80175DC8;
-s32                 func_actor_503500_80146664(Task*, s32, ActorTransform* args);
+s32                 func_actor_503500_80146664(Task*, s32, ActorTransform* args, s32 arg3);
 s32                 func_actor_503500_801466E0(Task*, s32, s32);
 s32                 func_actor_503500_801467C0(Task*, s32, ActorCommand* msg);
 void                func_actor_503500_801463C0(Task*);
@@ -1893,24 +1894,10 @@ static void func_actor_503500_80146524(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Message-0x7D4 handler of the effect task's table (the one
-/// `func_actor_503500_8014642C` installs): places the effect's model at `args`
-/// exactly as `func_actor_503500_80132508` places the actor. Returns 0.
-s32 func_actor_503500_80146664(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// A second copy of the handler, under this file's own name.
+#define actorMsgPlaceEuler func_actor_503500_80146664
+#include "../../shared/actor_messages_place_euler.inc.c"
+#undef actorMsgPlaceEuler
 
 s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
 {

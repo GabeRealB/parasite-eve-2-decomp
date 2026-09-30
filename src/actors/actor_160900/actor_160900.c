@@ -46,6 +46,7 @@
 
 #include "overlay.h"
 #include "../../shared/screen_wave.h"
+#include "../../shared/actor_messages.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -186,7 +187,6 @@ void             func_actor_160900_80134850(void);
 void             func_actor_160900_80134870(void);
 
 void func_actor_160900_801345D0(Task*, s32, s32);
-void func_actor_160900_80134624(Task*, s32, ActorTransform* placement);
 
 TmdBone D_actor_160900_80134898[20] = {
 #include "assets/actor_160900_model_07598_skeleton.inc"
@@ -672,7 +672,7 @@ STATIC_ASSERT_SIZEOF(Actor160900MessageEntry, 8);
 
 Actor160900MessageEntry D_actor_160900_8013F200[2] = {
     { 2005, { .call1 = func_actor_160900_801345D0 } },
-    { 2004, { .call0 = func_actor_160900_80134624 } },
+    { 2004, { .call0 = actorMsgPlaceYawPitchRoll } },
 };
 
 u8 D_actor_160900_8013F210[24] = {
@@ -2054,25 +2054,7 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
     }
 }
 
-/// Message 0x7D4 handler of `D_actor_160900_8013F200`: copies `placement` onto
-/// the task's `TmdObject` coordinate frame. The three longs become the
-/// translation, then yaw / pitch / roll are applied with `Gfx_RotMatrixY` /
-/// `X` / `Z` and the coordinate is marked dirty.
-void func_actor_160900_80134624(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_ypr.inc.c"
 
 /// Spawns `func_actor_160900_801344D8`, entry 1 of `D_actor_160900_8013FB50`,
 /// with `arg0` as its first spawn argument.

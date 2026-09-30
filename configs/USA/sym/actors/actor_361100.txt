@@ -158,3 +158,4 @@ D_actor_361100_80165F04 = 0x80165F04; // size:0x18 defined:True
 D_actor_361100_80165F1C = 0x80165F1C; // size:0x18 defined:True
 D_actor_361100_80165F34 = 0x80165F34; // size:0x4 defined:True
 actorMotionPlayAnim19 = 0x80162E20; // type:func
+actorMsgPlaceEuler = 0x801635F4; // type:func

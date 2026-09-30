@@ -344,3 +344,4 @@ D_actor_521100_8015F000 = 0x8015F000; // size:0x500 defined:True
 D_actor_521100_8015F500 = 0x8015F500; // size:0x28 defined:True
 D_actor_521100_8015F528 = 0x8015F528; // size:0x28 defined:True
 D_actor_521100_8015F550 = 0x8015F550; // size:0x10 defined:True
+actorMsgPlaceRotMatrix = 0x80135CAC; // type:func

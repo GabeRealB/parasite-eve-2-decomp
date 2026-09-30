@@ -136,3 +136,4 @@ roomEventGate = 0x8017D674; // type:func
 roomEventTask = 0x8017D7D8; // type:func
 screenFadeInTask = 0x8017FF5C; // type:func
 screenFadeOutTask = 0x80180038; // type:func
+actorMsgPlaceYawPitchRoll = 0x8017F77C; // type:func

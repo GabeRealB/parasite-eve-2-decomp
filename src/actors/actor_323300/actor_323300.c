@@ -41,6 +41,7 @@
 
 #include "rooms/dryfield_toilet.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, the
@@ -96,7 +97,7 @@ STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 /// Message table `func_actor_323300_80161E78` parks in `Task::msgTable`:
 /// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
 /// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `actorMotionPlayAnim19`,
-/// `func_actor_323300_801629F0`, `func_actor_323300_80162208` and
+/// `actorMsgPlaceEuler`, `func_actor_323300_80162208` and
 /// `func_actor_323300_80162360`; the 0x7FFFFFFF terminator ends the walk.
 /// Message entries with the payload signature selected by each message id.
 typedef struct {
@@ -121,7 +122,7 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 /// task parked in `Actor323300Work::field_4B8`.
 extern TaskDesc D_actor_323300_8017255C[];
 
-/// Placement `func_actor_323300_80161E78` hands `func_actor_323300_801629F0`.
+/// Placement `func_actor_323300_80161E78` hands `actorMsgPlaceEuler`.
 extern ActorTransform D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
@@ -153,7 +154,6 @@ static void func_actor_323300_801626EC(Task* arg0);
 static void func_actor_323300_801626F4(Task* arg0);
 static void func_actor_323300_80162748(Task* arg0);
 static void func_actor_323300_801627B4(Task* arg0);
-s32         func_actor_323300_801629F0(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 static void func_actor_323300_801634B0(Task* arg0);
 static void func_actor_323300_80163510(Task* arg0);
 static void func_actor_323300_8016359C(Task* arg0, s16 arg1);
@@ -170,7 +170,6 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
 
 s32 func_actor_323300_80162208(Task*, s32, s32, s32);
 s32 func_actor_323300_80162360(Task*, s32, ActorCommand* msg, ActorTransform* place);
-s32 func_actor_323300_801629F0(Task*, s32, ActorTransform* transform, s32);
 
 extern TmdSource D_actor_323300_80169200;
 extern TmdSource D_actor_323300_8017128C;
@@ -331,7 +330,7 @@ TaskDesc D_actor_323300_8017255C[2] = {
 
 _Actor323300MessageEntry D_actor_323300_80172574[5] = {
     { 2003, { .animation = actorMotionPlayAnim19 } },
-    { 2004, { .placement = func_actor_323300_801629F0 } },
+    { 2004, { .placement = actorMsgPlaceEuler } },
     { 2005, { .mode = func_actor_323300_80162208 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_323300_80162360 } },
     { 0x7FFFFFFF, { .animation = NULL } },
@@ -472,7 +471,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     Gp_InitRec18Table(obj->context.contacts, 1, 0);
     arg0->msgTable = &D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, 0x7D5, 0, 0);
-    func_actor_323300_801629F0(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
+    actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
     actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725B4, 0);
     SndEvt_EnqueueType6(0x52100006, 0, 0x28);
     arg0->exitCallback = func_actor_323300_8016269C;
@@ -815,25 +814,7 @@ static void func_actor_323300_801627B4(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Message-0x7D4 handler: places the actor at `transform`. The translation goes
-/// straight into the root part's local matrix, the Euler angles into the
-/// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
-/// clearing `composeStamp` makes the world matrix be recomputed.
-s32 func_actor_323300_801629F0(Task* task, s32 msgId, ActorTransform* transform, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = (task->extra.tmd)->coords;
-    coord->coord.t[0]   = transform->pos.vx;
-    coord->coord.t[1]   = transform->pos.vy;
-    coord->coord.t[2]   = transform->pos.vz;
-    coord->param.rot.vx = transform->rot.vx;
-    coord->param.rot.vy = transform->rot.vy;
-    coord->param.rot.vz = transform->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Blends `arg1`'s key vertex and normal arrays into the model parts starting at
 /// `arg1->field_14`, `arg2` being the 0..0x1000 ramp: the vertex pass runs
@@ -1165,25 +1146,10 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
     arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// The 0x6B0 block's placement handler, the same body as
-/// `func_actor_323300_801629F0`: copies `transform`'s translation into the root
-/// part's local matrix and its Euler angles into the coordinate's `rot` slot,
-/// rebuilds the rotation from them and clears `composeStamp`.
-static s32 func_actor_323300_8016369C(Task* task, s32 msgId, ActorTransform* transform, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = (task->extra.tmd)->coords;
-    coord->coord.t[0]   = transform->pos.vx;
-    coord->coord.t[1]   = transform->pos.vy;
-    coord->coord.t[2]   = transform->pos.vz;
-    coord->param.rot.vx = transform->rot.vx;
-    coord->param.rot.vy = transform->rot.vy;
-    coord->param.rot.vz = transform->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// A second copy of the handler, under this file's own name.
+#define actorMsgPlaceEuler func_actor_323300_8016369C
+#include "../../shared/actor_messages_place_euler.inc.c"
+#undef actorMsgPlaceEuler
 
 /// Start-preset handler for the 0x6B0 `Actor323300MtxWork` block
 /// `func_actor_323300_80162BE4` parks in `Task::work`, and the twin of

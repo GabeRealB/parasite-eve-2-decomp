@@ -62,6 +62,7 @@
 #include "overlay.h"
 #include "../../shared/fireball.h"
 #include "../../shared/player_detection.h"
+#include "../../shared/actor_messages.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -268,7 +269,6 @@ extern AnimationSet Actor00300_D15FB0;
 extern TmdSource    Actor00300_D09E84;
 extern TmdSource    Actor00300_D0A120;
 s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*);
-s32                 Actor00300_Fn05388(Task*, s32, ActorTransform* args);
 s32                 Actor00300_Fn053EC(Task*, s32, s32);
 s32                 Actor00300_Fn05434(Task*, s32, ActorCommand* args);
 void                Actor00300_Fn04770(Task*);
@@ -1172,7 +1172,7 @@ TaskDesc Actor00300_D162F0[3] = {
 
 Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {
     { 2003, { .call0 = Actor00300_Fn05304 } },
-    { 2004, { .call2 = Actor00300_Fn05388 } },
+    { 2004, { .call2 = actorMsgPlaceRotMatrix } },
     { 2005, { .call3 = Actor00300_Fn053EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor00300_Fn05434 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -3513,17 +3513,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
     return 0;
 }
 
-s32 Actor00300_Fn05388(Task* arg0, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord = arg0->extra.tmd->coords;
-
-    RotMatrix(&args->rot, &coord->coord);
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
 s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2)
 {

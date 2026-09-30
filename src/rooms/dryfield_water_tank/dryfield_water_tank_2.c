@@ -44,6 +44,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
@@ -184,7 +185,7 @@ ActorTransform D_dryfield_water_tank_8017FD60[2] = {
 };
 
 DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3] = {
-    { 2004, { .call1 = func_dryfield_water_tank_8017E0E8 } },
+    { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
     { 2011, { .call0 = func_dryfield_water_tank_8017E174 } },
     { 2005, { .call2 = func_dryfield_water_tank_8017E0B4 } },
 };

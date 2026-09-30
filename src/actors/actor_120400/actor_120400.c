@@ -32,6 +32,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the parent task, allocated zeroed by its spawn routine and
 /// kept at `Task::work`: a twenty-part rig, the walk state, and
@@ -121,7 +122,6 @@ extern TmdSource D_actor_120400_8013783C;
 extern TmdSource D_actor_120400_80137C90;
 extern TmdSource D_actor_120400_801380E4;
 s32              func_actor_120400_80132398(Task*, s32, ActorTransform* place, Actor120400SpawnAnim*);
-s32              func_actor_120400_80132BBC(Task*, s32, ActorTransform* args);
 s32              func_actor_120400_80132C38(Task*, s32, s32, s32);
 s32              func_actor_120400_80132D14(void);
 void             func_actor_120400_8013254C(Task*);
@@ -883,7 +883,7 @@ TaskDesc D_actor_120400_8013E748[3] = {
 
 Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
     { 2003, { .call1 = actorMotionPlayAnim } },
-    { 2004, { .call2 = func_actor_120400_80132BBC } },
+    { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_120400_80132C38 } },
     { 2013, { .call3 = func_actor_120400_80132398 } },
     { 2011, { .call0 = func_actor_120400_80132D14 } },
@@ -1211,24 +1211,7 @@ static void func_actor_120400_80132920(Task* task)
 
 #include "../../shared/actor_motion_play.inc.c"
 
-/// Message 0x7D4 handler of the parent: places the root part at the message's
-/// position and Euler angles, rebuilding the rotation from them and clearing
-/// `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_120400_80132BBC(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message 0x7D5 handler of the parent: shows or hides its model. `mode`
 /// drives the `TmdObject` parked in `Task::extra` -- bit 0x80 hides it, bit

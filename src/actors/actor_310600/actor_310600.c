@@ -31,6 +31,7 @@
 
 #include "rooms/acropolis_cafeteria.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/actor_messages.h"
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
@@ -170,7 +171,6 @@ void             func_actor_310600_801629CC(Task*);
 
 s32  func_actor_310600_8016246C(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_310600_801625F0(Task*, s32, s32, s32);
-s32  func_actor_310600_80162C18(Task*, s32, ActorTransform* args);
 void func_actor_310600_80162C94(Task*, s32, VECTOR*);
 
 AnimationPackedPose D_actor_310600_80162CF8[102] = {
@@ -416,7 +416,7 @@ TaskDesc D_actor_310600_801796A4[2] = {
 
 Actor310600MsgEntry D_actor_310600_801796BC[5] = {
     { 2003, { .call0 = func_actor_310600_8016246C } },
-    { 2004, { .call1 = func_actor_310600_80162C18 } },
+    { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_310600_801625F0 } },
     { 2013, { .call3 = func_actor_310600_80162C94 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -911,25 +911,7 @@ static void func_actor_310600_80162B98(Task* task)
     work->field_47E++;
 }
 
-/// Places the actor at `args`: the translation goes straight into the root
-/// part's local matrix, the Euler angles into the coordinate's `rot` slot, and
-/// the rotation is rebuilt from them. Clearing `composeStamp` makes `_gpUpdateCoordTree`
-/// recompute the world matrix. `arg1` is unused.
-s32 func_actor_310600_80162C18(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Sends the actor walking to the point `arg2`: stores it as the target the
 /// movement steps of `D_actor_310600_80161E48` turn toward and close in on,

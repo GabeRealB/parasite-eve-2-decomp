@@ -49,6 +49,7 @@
 
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig, the walk state, and
@@ -233,11 +234,10 @@ extern GpCopyArg            D_actor_335800_80164E24;
 extern GpOverlayIds         D_actor_335800_80165050;
 extern GpOverlayIds         D_actor_335800_80165058;
 extern ActorTransform       D_actor_335800_80164EA4[5];
-s32                         func_actor_335800_801633C0(Task*, s32, ActorTransform* args);
 s32                         func_actor_335800_8016343C(Task*, s32, s32);
 s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
 s32                         func_actor_335800_80163880(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
-s32                         func_actor_335800_80163F3C(Task*, s32, ActorTransform* args);
+s32                         func_actor_335800_80163F3C(Task*, s32, ActorTransform* args, s32 arg3);
 s32                         func_actor_335800_80163FB8(Task*, s32, s32);
 s32                         func_actor_335800_80164098(void);
 void                        func_actor_335800_80162040(void);
@@ -852,7 +852,7 @@ TaskDesc D_actor_335800_8016EADC[3] = {
 
 Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
     { 2003, { .call1 = actorMotionPlayAnim } },
-    { 2004, { .call3 = func_actor_335800_801633C0 } },
+    { 2004, { .call3 = actorMsgPlaceEuler } },
     { 2005, { .call5 = func_actor_335800_8016343C } },
     { 2013, { .call4 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_335800_8016354C } },
@@ -1472,24 +1472,7 @@ static void func_actor_335800_80163124(Task* task)
 
 #include "../../shared/actor_motion_play.inc.c"
 
-/// Message 0x7D4 handler of the parent block: places the root part at the
-/// message's position and Euler angles, rebuilding the rotation from them and
-/// clearing `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_801633C0(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
 {
@@ -1868,24 +1851,10 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
     return 0;
 }
 
-/// Message 0x7D4 handler of the child block: places the root part at the
-/// message's position and Euler angles, rebuilding the rotation from them and
-/// clearing `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_80163F3C(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// A second copy of the handler, under this file's own name.
+#define actorMsgPlaceEuler func_actor_335800_80163F3C
+#include "../../shared/actor_messages_place_euler.inc.c"
+#undef actorMsgPlaceEuler
 
 s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode)
 {

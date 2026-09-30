@@ -36,6 +36,7 @@
 
 #include "rooms/dryfield_night_garage.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
 /// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
@@ -81,7 +82,7 @@ STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
 
 /// The two placements `func_actor_135400_80132064` starts the actor from. The
 /// spawn copies the pair in one go and then hands the branch picked by game
-/// flag 0x6C to the 0x7D4 handler `func_actor_135400_8013276C`.
+/// flag 0x6C to the 0x7D4 handler `actorMsgPlaceEuler`.
 typedef struct Actor135400Places {
     /* 0x00 */ ActorTransform field_0;
     /* 0x18 */ ActorTransform field_18;
@@ -149,7 +150,6 @@ static void func_actor_135400_801324CC(Task* task);
 static void func_actor_135400_8013252C(Task* task);
 static void func_actor_135400_80132614(Task* arg0);
 static void func_actor_135400_80132634(Task* task);
-s32         func_actor_135400_8013276C(Task* task, s32 anim, ActorTransform* args, s32 arg3);
 s32         func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 static void func_actor_135400_80132B60(Task* arg0);
 static void func_actor_135400_80132C90(Task* arg0);
@@ -197,7 +197,6 @@ s32              func_actor_135400_80132E40(Task*, s32, ActorTransform* args, s3
 s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
 void             func_actor_135400_80132AF4(Task*);
 
-s32  func_actor_135400_8013276C(Task*, s32, ActorTransform* args, s32);
 s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
 s32  func_actor_135400_801328DC(Task*, s32, ActorCommand* msg, s32);
 void func_actor_135400_801323F8(Task*);
@@ -404,7 +403,7 @@ TaskDesc D_actor_135400_8013A4AC[3] = {
 
 _Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
     { 2003, { .animation = actorMotionPlayAnim } },
-    { 2004, { .placement = func_actor_135400_8013276C } },
+    { 2004, { .placement = actorMsgPlaceEuler } },
     { 2005, { .mode = func_actor_135400_801327E8 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_135400_801328DC } },
     { 0x7FFFFFFF, { .animation = NULL } },
@@ -683,11 +682,11 @@ static void func_actor_135400_80132064(Task* arg0)
     arg0->msgTable = D_actor_135400_8013A4D0;
     func_actor_135400_801327E8(arg0, 0x7D5, 1, 0);
     if (GameFlag_GetNibble(0x6C) <= 0) {
-        func_actor_135400_8013276C(arg0, 0x7D4, &places.field_0, 0);
+        actorMsgPlaceEuler(arg0, 0x7D4, &places.field_0, 0);
         actorMotionPlayAnim(arg0, 0x7D3, &anim[0], 0);
         func_dryfield_night_garage_80180414(0);
     } else {
-        func_actor_135400_8013276C(arg0, 0x7D4, &places.field_18, 0);
+        actorMsgPlaceEuler(arg0, 0x7D4, &places.field_18, 0);
         actorMotionPlayAnim(arg0, 0x7D3, &anim[1], 0);
     }
     arg0->exitCallback = func_actor_135400_80132614;
@@ -852,25 +851,7 @@ static void func_actor_135400_80132634(Task* task)
 
 #include "../../shared/actor_motion_play.inc.c"
 
-/// The main task's 0x7D4 handler: drops the placement's translation into the
-/// root part's local matrix and its Euler angles into the coordinate's `rot`
-/// slot, rebuilds the rotation from them and clears `composeStamp` so the world matrix
-/// is recomputed.
-s32 func_actor_135400_8013276C(Task* task, s32 anim, ActorTransform* args, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// The main task's 0x7D5 handler, a four-way model mode switch on the
 /// `TmdObject` in `Task::extra`. Mode 0 hides the model (flag 0x80) and clears
@@ -1121,23 +1102,10 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
     return 0;
 }
 
-/// The 0x7D4 handler of the same task: the same placement as
-/// `func_actor_135400_8013276C`, applied to this task's root coordinate.
-s32 func_actor_135400_80132E40(Task* task, s32 anim, ActorTransform* args, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// A second copy of the handler, under this file's own name.
+#define actorMsgPlaceEuler func_actor_135400_80132E40
+#include "../../shared/actor_messages_place_euler.inc.c"
+#undef actorMsgPlaceEuler
 
 /// The second task's 0x7D5 handler, the same mode switch as
 /// `func_actor_135400_801327E8` on this task's model alone. Mode 2 does not

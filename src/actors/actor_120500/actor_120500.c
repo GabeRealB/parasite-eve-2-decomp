@@ -43,6 +43,7 @@
 
 #include "overlay.h"
 #include "../../shared/screen_fade.h"
+#include "../../shared/actor_messages.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
@@ -135,7 +136,6 @@ extern TmdSource D_actor_120500_8013762C;
 void             func_actor_120500_80131E58(Task*);
 void             func_actor_120500_8013241C(Task*);
 void             func_actor_120500_80132A04(Task*, s32, s32);
-void             func_actor_120500_80132A74(Task*, s32, ActorTransform* placement);
 
 TmdBone D_actor_120500_80132B0C[20] = {
 #include "assets/actor_120500_model_0580C_skeleton.inc"
@@ -316,7 +316,7 @@ GpEvsCmd D_actor_120500_80138318[10] = {
 
 Actor120500MessageEntry D_actor_120500_80138408[2] = {
     { 2005, { .call1 = func_actor_120500_80132A04 } },
-    { 2004, { .call0 = func_actor_120500_80132A74 } },
+    { 2004, { .call0 = actorMsgPlaceInView } },
 };
 
 TaskDesc D_actor_120500_80138418[3] = {
@@ -775,23 +775,4 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
     }
 }
 
-/// Message 0x7D4 handler: places the task's model in the world. The model's
-/// coordinate is parented to the view coordinate, takes `placement`'s
-/// position as its translation and its rotation applied Y, then X, then Z.
-/// `arg1` is the message id.
-void func_actor_120500_80132A74(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    MATRIX*   mtx;
-
-    coord             = task->extra.tmd->coords;
-    coord->parent     = &gGfxViewCoord;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/actor_messages_place_in_view.inc.c"

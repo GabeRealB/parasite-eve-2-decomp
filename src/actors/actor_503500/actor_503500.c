@@ -20,6 +20,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
@@ -70,12 +71,11 @@ extern SVECTOR D_actor_503500_80147360[92];
 extern TmdBone D_actor_503500_80147338[1];
 extern u32     D_actor_503500_80147640[459];
 
-s32 func_actor_503500_80132508(Task*, s32, ActorTransform* args);
 s32 func_actor_503500_80132584(Task*, s32, s32);
 s32 func_actor_503500_80132664(Task*, s32, ActorCommand* msg);
 
 Actor503500MsgEntry D_actor_503500_80146888[4] = {
-    { 2004, { .call1 = func_actor_503500_80132508 } },
+    { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_503500_80132584 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_503500_80132664 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -977,26 +977,7 @@ static void func_actor_503500_801324EC(Task* arg0)
     ext->colorMtx = &work->color;
 }
 
-/// Message-0x7D4 handler of the main task's table (`D_actor_503500_80146888`):
-/// places the actor at `args` - the translation goes straight into the root
-/// coordinate's local matrix, the Euler angles into the coordinate's `rot`
-/// slot, from which the rotation is rebuilt. Clearing `composeStamp` has the world
-/// matrix recomputed. Returns 0.
-s32 func_actor_503500_80132508(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
 {

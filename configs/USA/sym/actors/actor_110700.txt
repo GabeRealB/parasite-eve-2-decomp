@@ -33,3 +33,4 @@ D_actor_110700_8013A7C0 = 0x8013A7C0; // size:0xAD0 defined:True
 D_actor_110700_8013B290 = 0x8013B290; // size:0xCB4 defined:True
 D_actor_110700_8013BF44 = 0x8013BF44; // size:0x28 defined:True
 D_actor_110700_8013BF6C = 0x8013BF6C; // size:0x28 defined:True
+actorMsgPlaceRotMatrix = 0x80132074; // type:func

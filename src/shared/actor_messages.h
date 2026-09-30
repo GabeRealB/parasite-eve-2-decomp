@@ -1,7 +1,9 @@
 /* Standard handlers actors install in their message tables. Message 2004
- * places the model from a transform, in one variant also recording the
- * resulting yaw. Message 2005 shows, hides or buffer-flags the model. Each
- * package includes the handlers its table names.
+ * places the model from a transform, in several variants that differ in how
+ * the rotation is built, whether the yaw is recorded and what they return.
+ * Message 2005 shows, hides or buffer-flags the model. Each package includes
+ * the handlers its table names; a file with a second copy of one includes the
+ * fragment again under that copy's name.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -32,9 +34,14 @@ typedef struct ActorYawWork {
     /* 0x16 */ s16  yaw;
 } ActorYawWork;
 
-s32 actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement);
-s32 actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement);
-s32 actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement);
-s32 actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2);
+s32  actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement);
+s32  actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement);
+s32  actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement);
+s32  actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2);
+s32  actorMsgPlaceEuler(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+s32  actorMsgPlaceRotMatrix(Task* arg0, s32 arg1, ActorTransform* args);
+void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement);
+void actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement);
+void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2);
 
 #endif /* SRC_SHARED_ACTOR_MESSAGES_H */

@@ -25,6 +25,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_messages.h"
 
 /// Optional start animation the placement handler takes: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2
@@ -86,7 +87,6 @@ static const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 
 extern TmdSource D_actor_350500_8016785C;
 s32              func_actor_350500_8016217C(Task*, s32, ActorTransform* place, Actor350500SpawnAnim*);
-s32              func_actor_350500_80162960(Task*, s32, ActorTransform* args);
 s32              func_actor_350500_801629DC(Task*, s32, s32);
 s32              func_actor_350500_80162ABC(Task*, s32, ActorCommand* msg);
 void             func_actor_350500_80162360(Task*);
@@ -227,7 +227,7 @@ TaskDesc D_actor_350500_80168EA4 = { (TASK_BODY_TMD | 0x100), 192, func_actor_35
 
 Actor350500MsgEntry D_actor_350500_80168EB0[6] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
-    { 2004, { .call2 = func_actor_350500_80162960 } },
+    { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_350500_801629DC } },
     { 2013, { .call3 = func_actor_350500_8016217C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_350500_80162ABC } },
@@ -547,25 +547,7 @@ static void func_actor_350500_8016272C(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Message-0x7D4 handler: places the root part at `args`. The translation
-/// goes straight into the local matrix, the Euler angles into the
-/// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
-/// clearing `composeStamp` makes the world matrix be recomputed. Returns 0.
-s32 func_actor_350500_80162960(Task* task, s32 msgId, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = (task->extra.tmd)->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.

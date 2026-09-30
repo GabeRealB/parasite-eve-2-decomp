@@ -55,3 +55,4 @@ D_actor_113000_8013AB8C = 0x8013AB8C; // size:0x24 defined:True
 D_actor_113000_8013ABB0 = 0x8013ABB0; // size:0x4 defined:True
 D_actor_113000_8013ABB4 = 0x8013ABB4; // size:0xC defined:True
 D_actor_113000_8013ABC0 = 0x8013ABC0; // size:0x28 defined:True
+actorMsgPlaceEuler = 0x8013231C; // type:func

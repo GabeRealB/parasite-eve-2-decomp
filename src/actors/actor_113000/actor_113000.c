@@ -25,6 +25,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 extern GpImgRec D_actor_113000_8013AB6C[2];
 
@@ -101,7 +102,6 @@ extern AnimationSet D_actor_113000_80139C8C;
 extern AnimationSet D_actor_113000_80139F04;
 extern TmdSource    D_actor_113000_801378E0;
 s32                 func_actor_113000_80132208(Task*, s32, AnimationPlayRequest*, s32);
-s32                 func_actor_113000_8013231C(Task*, s32, ActorTransform* args);
 s32                 func_actor_113000_80132398(Task*, s32, s32, s32);
 s32                 func_actor_113000_80132474(Task*, s32, s32);
 void                func_actor_113000_80131F38(Task*);
@@ -1126,7 +1126,7 @@ TaskDesc D_actor_113000_8013ABB4 = { TASK_BODY_TMD, 192, func_actor_113000_80131
 
 Actor113000MessageEntry D_actor_113000_8013ABC0[5] = {
     { 2003, { .call0 = func_actor_113000_80132208 } },
-    { 2004, { .call1 = func_actor_113000_8013231C } },
+    { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call3 = func_actor_113000_80132398 } },
     { 2016, { .call2 = func_actor_113000_80132474 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1320,25 +1320,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
     return 0;
 }
 
-/// Placement handler: writes the payload's position into the root
-/// coordinate's translation and its Euler angles into the coordinate's `rot`
-/// slot, rebuilds the rotation from them with `RotMatrix` and clears `composeStamp` so
-/// the world matrix is recomputed. Returns 0.
-s32 func_actor_113000_8013231C(Task* task, s32 arg1, ActorTransform* args)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Display handler: `mode` sets or clears bit 0x80 of `TmdObject::flags`
 /// (hidden) and sets or clears bit 0x4:

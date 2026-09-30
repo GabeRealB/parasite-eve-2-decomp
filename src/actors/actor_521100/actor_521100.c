@@ -51,6 +51,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "../../shared/actor_messages.h"
 
 typedef struct {
     s32 id;
@@ -70,8 +71,6 @@ extern Actor521100MessageEntry D_actor_521100_8015F6FC[8];
 s32 func_actor_521100_80135BEC(Task*);
 
 s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*);
-
-s32 func_actor_521100_80135CAC(Task*, s32, ActorTransform* args);
 
 typedef struct Actor521100FireScratch {
     /* 0x00 */ VECTOR               pos;
@@ -1604,7 +1603,7 @@ TaskDesc D_actor_521100_8015F6E4[2] = {
 Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {
     { 2014, { .call1 = func_actor_521100_80135BEC } },
     { 2003, { .call2 = func_actor_521100_80135C14 } },
-    { 2004, { .call4 = func_actor_521100_80135CAC } },
+    { 2004, { .call4 = actorMsgPlaceRotMatrix } },
     { 2005, { .call5 = func_actor_521100_80135D10 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_521100_80135D58 } },
     { 2007, { .call1 = func_actor_521100_80135D9C } },
@@ -3764,18 +3763,4 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args)
     return 0;
 }
 
-/// Message 0x7D4 handler in `D_actor_521100_8015F6FC`, placing the actor: builds the root coordinate's
-/// matrix from the argument block's angles, stores its translation and clears
-/// `composeStamp` so the world matrix is recomputed.
-s32 func_actor_521100_80135CAC(Task* task, s32 arg1, ActorTransform* args)
-{
-    TmdObject* ext   = task->extra.tmd;
-    GfxCoord*  coord = ext->coords;
-
-    RotMatrix(&args->rot, &coord->coord);
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_rot_matrix.inc.c"
