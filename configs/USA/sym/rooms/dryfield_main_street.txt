@@ -75,7 +75,7 @@ D_dryfield_main_street_801815C0 = 0x801815C0; // size:0x14 defined:True
 D_dryfield_main_street_801815D4 = 0x801815D4; // size:0x14 defined:True
 D_dryfield_main_street_801815E8 = 0x801815E8; // size:0x18 defined:True
 D_dryfield_main_street_80181600 = 0x80181600; // size:0x18 defined:True
-D_dryfield_main_street_80181BAC = 0x80181BAC; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80181BAC; // size:0x10 defined:True
 D_dryfield_main_street_80180E7C = 0x80180E7C; // size:0xC defined:True
 D_dryfield_main_street_80180E88 = 0x80180E88; // size:0xC defined:True
 D_dryfield_main_street_80180E94 = 0x80180E94; // size:0xC defined:True
@@ -111,3 +111,7 @@ func_dryfield_main_street_8017F94C = 0x8017F94C; // type:func
 func_dryfield_main_street_80180234 = 0x80180234; // type:func
 
 func_dryfield_main_street_8017E4B0 = 0x8017E4B0; // type:func
+RoomFx_DrawFlashRing = 0x8017F18C; // type:func
+RoomFx_DrawFlashDisc = 0x8017F5B8; // type:func
+RoomFx_DrawTwinTrail = 0x8017FE3C; // type:func
+RoomFx_DrawBurstStar = 0x801804BC; // type:func
