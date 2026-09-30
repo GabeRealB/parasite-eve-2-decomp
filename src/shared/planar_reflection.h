@@ -5,9 +5,13 @@
  * task table. Reflection_GetTasks supplies that table as a typed, inline view.
  * Any exported table has an unconditional declaration in the overlay header.
  *
- * REFLECTION_SCALE_IN_CODE is 1 when the scale constant is emitted with code,
- * or 0 when planar_reflection_rodata.inc.c supplies it at an earlier rodata
- * position. This changes placement only; values and behaviour are shared.
+ * Each room defines `PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION` as 0
+ * or 1 before including this header and keeps it defined through the shared
+ * implementation, then undefines it. 1 includes `planar_reflection_rodata.inc.c`
+ * at the implementation's position; 0 requires the room to include that file
+ * once at its earlier rodata position, before the implementation. Both modes
+ * define the same private Q12 X-reflection scale vector in rodata. The selection
+ * preserves each room's rodata ordering.
  * Include this header in the prologue and planar_reflection_data.inc.c before
  * the overlay's task table at its existing data position.
  */

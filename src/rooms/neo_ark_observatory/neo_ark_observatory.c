@@ -138,7 +138,10 @@ extern GpAreaApplyRec D_neo_ark_observatory_80187A28[];
 extern RoomDeparture  D_neo_ark_observatory_80187A30;
 extern s16            D_neo_ark_observatory_80187A3C;
 
-#define REFLECTION_SCALE_IN_CODE 1
+/// Defines the reflection scale at the shared implementation's include position.
+///
+/// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
+#define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 static void func_neo_ark_observatory_8017F3FC(Task* task);
 #include "../../shared/planar_reflection.h"
 
@@ -1584,7 +1587,7 @@ static void func_neo_ark_observatory_8017F3FC(Task* task)
     Reflection_PlayerTask(task);
 }
 
-#undef REFLECTION_SCALE_IN_CODE
+#undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
 /// Picks the room a departure into area `arg0->field_0` lands in, for the
 /// areas whose room depends on story progress: areas 5, 41 and 45 take a

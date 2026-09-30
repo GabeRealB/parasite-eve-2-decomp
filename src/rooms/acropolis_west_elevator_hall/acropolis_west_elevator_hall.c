@@ -96,7 +96,10 @@ extern GpImgRec                         D_acropolis_west_elevator_hall_80185004[
 /// The hall's two elevator-car tasks, spawned by the room task.
 extern Task* D_acropolis_west_elevator_hall_80186AE4[];
 
-#define REFLECTION_SCALE_IN_CODE 0
+/// Keeps the reflection scale at this room's earlier rodata position.
+///
+/// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
+#define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
 #include "../../shared/planar_reflection.h"
 
 static void func_acropolis_west_elevator_hall_8017F354(Task* task);
@@ -942,7 +945,7 @@ void func_acropolis_west_elevator_hall_8017F304(Task* task)
     Reflection_PlayerTask(task);
 }
 
-#undef REFLECTION_SCALE_IN_CODE
+#undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
 /// Runs the one-shot cutscene hand-off for the west elevator hall: once the
 /// session reports state 8 == 1 the room spawns its scripted task pair, opens

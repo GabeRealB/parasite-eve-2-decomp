@@ -35,7 +35,11 @@ static void Reflection_InitPlayer(Task* task);
 static void Reflection_UpdatePlayer(Task* task);
 static void Reflection_HeldObjectTask(Task* task);
 
-#if REFLECTION_SCALE_IN_CODE
+#ifndef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
+#error "Define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION as 0 or 1"
+#elif PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION != 0 && PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION != 1
+#error "PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION must be 0 or 1"
+#elif PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 #include "planar_reflection_rodata.inc.c"
 #endif
 

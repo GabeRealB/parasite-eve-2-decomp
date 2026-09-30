@@ -77,7 +77,10 @@ static const char D_acropolis_east_elevator_hall_8017D5E0[];
 /// one reflection of a held object.
 static TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 
-#define REFLECTION_SCALE_IN_CODE 0
+/// Keeps the reflection scale at this room's earlier rodata position.
+///
+/// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
+#define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
 #include "../../shared/planar_reflection.h"
 
 static void func_acropolis_east_elevator_hall_8017F478(Task* task);
@@ -659,7 +662,7 @@ void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
     Reflection_PlayerTask(task);
 }
 
-#undef REFLECTION_SCALE_IN_CODE
+#undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
 /// Message handler that copies the incoming location record onto the
 /// outgoing one and answers 1.

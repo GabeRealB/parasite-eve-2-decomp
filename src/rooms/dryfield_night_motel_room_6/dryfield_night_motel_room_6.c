@@ -157,7 +157,10 @@ extern RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8;
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDF\xDC"
 #include "../../shared/telephone.h"
 
-#define REFLECTION_SCALE_IN_CODE 1
+/// Defines the reflection scale at the shared implementation's include position.
+///
+/// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
+#define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
 static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -880,7 +883,7 @@ void func_dryfield_night_motel_room_6_801811A0(Task* task)
     Reflection_PlayerTask(task);
 }
 
-#undef REFLECTION_SCALE_IN_CODE
+#undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
 /// The room's cutscene task, driven by the script record at `spawnArg2`. It
 /// hides the HUD and holds the player's (and any ally's) weapon, forces the

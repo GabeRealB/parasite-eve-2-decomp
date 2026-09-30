@@ -185,7 +185,10 @@ extern AcropolisSquareStorage88AC D_acropolis_square_801888AC;
 
 extern GfxCoord D_acropolis_square_801888CC;
 
-#define REFLECTION_SCALE_IN_CODE 1
+/// Defines the reflection scale at the shared implementation's include position.
+///
+/// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
+#define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDC\xDD"
@@ -1126,7 +1129,7 @@ void func_acropolis_square_8017F41C(Task* task)
     Reflection_PlayerTask(task);
 }
 
-#undef REFLECTION_SCALE_IN_CODE
+#undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
 #include "../../shared/telephone.inc.c"
 
