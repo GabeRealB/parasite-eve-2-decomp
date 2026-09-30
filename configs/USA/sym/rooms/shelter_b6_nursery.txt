@@ -104,7 +104,7 @@ D_map_neo_ark_8017C090 = 0x8017C090; // absolute:True
 D_nursery_script_8013A8DC = 0x8013A8DC; // absolute:True
 D_shelter_b6_nursery_801879A0 = 0x801879A0; // size:0x50 defined:True
 D_shelter_b6_nursery_801879F0 = 0x801879F0; // size:0x4 defined:True
-D_shelter_b6_nursery_801852F4 = 0x801852F4; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x801852F4; // size:0x10 defined:True
 
 func_shelter_b6_nursery_80182730 = 0x80182730; // type:func
 
@@ -142,3 +142,7 @@ Telephone_Data_8017D610 = 0x8017D610;
 Telephone_Data_8017D61C = 0x8017D61C;
 Telephone_Data_8017D624 = 0x8017D624;
 Telephone_Data_8017D630 = 0x8017D630;
+RoomFx_DrawFlashRing = 0x80182FCC; // type:func
+RoomFx_DrawFlashDisc = 0x801833F8; // type:func
+RoomFx_DrawTwinTrail = 0x80183C7C; // type:func
+RoomFx_DrawBurstStar = 0x801842FC; // type:func
