@@ -47,14 +47,15 @@
 
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/power_plant_pod.h"
 
-extern EnemyParams        D_actor_105300_8013D3A0;
-extern Actor05300SpawnPos D_actor_105300_80133A20[2];
-extern Actor05300Clip     D_actor_105300_8013D3E0[];
-extern Actor05300SndRow   D_actor_105300_8013D3C4[];
-extern u32                D_actor_105300_8013D3BC;
-extern s32                D_actor_105300_8013D3B0[3];
-extern SVECTOR            D_actor_105300_80133A40[];
+extern EnemyParams        gPodWeakPointParams;
+extern Actor05300SpawnPos gPodWeakPointPos[2];
+extern Actor05300Clip     gPodIdlePulse[];
+extern Actor05300SndRow   gPodViewSound[];
+extern u32                gPodPulseSoundId;
+extern s32                gPodSoundIds[3];
+extern SVECTOR            gPodHitEffectOffsets[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -76,14 +77,9 @@ extern TaskDesc            D_actor_105300_8013D3FC[2];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern Actor05300Clip D_actor_105300_8013D3EC[];
-extern s16            D_actor_105300_80133A18[];
-extern s16            D_actor_105300_80133A2C[];
-
-static void func_actor_105300_80133530(Task* arg0);
-static void func_actor_105300_801335B8(Task* arg0);
-static void func_actor_105300_80133610(Task* arg0);
-static void func_actor_105300_80133838(GpEnemy* arg0, Task* arg1);
+extern Actor05300Clip gPodHitPulse[];
+extern s16            gPodPoseStartFrames[];
+extern s16            gPodReleaseIds[];
 
 extern AnimationSet D_actor_105300_8013C9D0;
 extern AnimationSet D_actor_105300_8013CE8C;
@@ -93,27 +89,26 @@ void                func_actor_105300_801337DC(Task*);
 void                func_actor_105300_801339A4(Task*);
 
 s16 Actor05300_Fn01B70(Task*);
-s32 func_actor_105300_8013391C(Task*, s32, ActorCommand* msg);
 
 Actor105300MsgEntry D_actor_105300_80133A00[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_105300_8013391C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = podSetReleaseBits } },
     { 2006, { .call0 = Actor05300_Fn01B70 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-s16 D_actor_105300_80133A18[4] = {
+s16 gPodPoseStartFrames[4] = {
     0,
     0,
     4,
     4,
 };
 
-Actor05300SpawnPos D_actor_105300_80133A20[2] = {
+Actor05300SpawnPos gPodWeakPointPos[2] = {
     { 6140, -6090, -8500 },
     { 1865, -1095, -4500 },
 };
 
-s16 D_actor_105300_80133A2C[2] = {
+s16 gPodReleaseIds[2] = {
     53,
     54,
 };
@@ -123,7 +118,7 @@ SVECTOR D_actor_105300_80133A30[2] = {
     { 0, -1000, 1500, 0 },
 };
 
-SVECTOR D_actor_105300_80133A40[2] = {
+SVECTOR gPodHitEffectOffsets[2] = {
     { 0, -500, 1400, 0 },
     { 0, -1000, 1600, 0 },
 };
@@ -228,19 +223,19 @@ AnimationSet D_actor_105300_8013D368 = {
 
 EnemyParams D_actor_105300_8013D390 = { NULL, 500, 400, 200, 100, 100, 0, 0, 0 };
 
-EnemyParams D_actor_105300_8013D3A0 = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
+EnemyParams gPodWeakPointParams = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
 
-s32 D_actor_105300_8013D3B0[3] = {
+s32 gPodSoundIds[3] = {
     0x55100003,
     0x55100004,
     0x55100005,
 };
 
-u32 D_actor_105300_8013D3BC = 0x55100008;
+u32 gPodPulseSoundId = 0x55100008;
 
 u32 D_actor_105300_8013D3C0 = 0x55100009;
 
-Actor05300SndRow D_actor_105300_8013D3C4[7] = {
+Actor05300SndRow gPodViewSound[7] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { 15, 0, 76, 0 },
@@ -250,13 +245,13 @@ Actor05300SndRow D_actor_105300_8013D3C4[7] = {
     { 12, 0, 38, 0 },
 };
 
-Actor05300Clip D_actor_105300_8013D3E0[3] = {
+Actor05300Clip gPodIdlePulse[3] = {
     { 0, 4032 },
     { 0, 4096 },
     { 1, 4160 },
 };
 
-Actor05300Clip D_actor_105300_8013D3EC[4] = {
+Actor05300Clip gPodHitPulse[4] = {
     { 0, 3968 },
     { 0, 3840 },
     { 0, 4096 },
@@ -275,556 +270,19 @@ AnimationSet* D_actor_105300_8013D414[4] = {
     &D_actor_105300_8013D368,
 };
 
-static void        func_actor_105300_80131E3C(Task* arg0);
-static void        func_actor_105300_8013222C(Task* arg0);
-static inline void _actor105300TickPose(Task* task);
-static void        func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_80133468(GpEnemy* arg0, Task* arg1);
+static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1);
 
-/// Hit handler of the main body, the first step of the tick. After the
-/// cooldown `field_332` has run out, each of the two contact records the
-/// player's attack claimed deals damage by distance: a tenth of it while the
-/// part object is alive (`field_336` clear), in which case the body cannot
-/// drop below 1 hit point, otherwise the full amount, quadrupled on a critical
-/// roll. A surviving body enters its hit reaction (idle state 1, pose 2); a
-/// killed one moves the task to its death handler, waiting in death state 3
-/// with pose 3. An attack id differing from the previous record's spawns its
-/// hit effect; every record restarts the cooldown from the id's parameter 2
-/// and plays the hit sound.
-static void func_actor_105300_80131E3C(Task* arg0)
-{
-    Actor05300Scratch* scr;
-    Actor05300Work*    work;
-    GpEnemy*           enemy;
-    GfxCoord*          coord;
-    s32                damage;
-    s32                lastId;
-    s32                val;
-    s32                snd;
-    s32                i;
+#include "../../shared/power_plant_pod_body_hit.inc.c"
 
-    scr    = SCRATCH_STACK_RESERVE_BLOCK(Actor05300Scratch);
-    coord  = arg0->extra.tmd->coords;
-    work   = arg0->work;
-    enemy  = arg0->spawnArg2.pointer;
-    lastId = 0;
-    if (work->field_332 != 0) {
-        work->field_332--;
-        if ((work->field_332 << 0x10) <= 0) {
-            work->field_332 = 0;
-        }
-        if (work->field_332 != 0) {
-            goto end;
-        }
-    }
-    for (i = 0; i < 2; i++) {
-        if ((work->rec18[i].key.value & 0xFFFF0000) != 0x20000) {
-            continue;
-        }
-        scr->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-        scr->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-        scr->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-        damage        = Gp_ComputeDamage(work->rec18[i].key.value, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
-        if (work->field_336 == 0) {
-            damage /= 10;
-        } else if (Gp_RollEnemyChance(enemy, work->rec18[i].key.value, 0) != 0) {
-            damage     *= 4;
-            scr->ofs.vx = D_actor_105300_80133A40[work->field_334].vx;
-            scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
-            scr->ofs.vz = D_actor_105300_80133A40[work->field_334].vz;
-            Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
-        }
-        func_800DA6E8(&enemy->node, damage, 0);
-        func_800E2C78(enemy, work->rec18[i].key.value, damage, 0);
-        enemy->hp -= damage;
-        if (enemy->hp <= 0) {
-            if (work->field_336 == 0) {
-                enemy->hp = 1;
-            } else {
-                arg0->state     = 2;
-                work->field_32E = 3;
-                work->field_330 = 2;
-                work->field_338 = 0;
-                work->field_320 = 3;
-            }
-        } else {
-            work->field_32C = 1;
-            work->field_328 = 0;
-            work->field_320 = 2;
-        }
-        if (lastId != work->rec18[i].key.value) {
-            lastId      = work->rec18[i].key.value;
-            val         = Gp_GetIdParam1(lastId) & 0xFFFF;
-            scr->ofs.vx = D_actor_105300_80133A40[work->field_334].vx;
-            scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
-            scr->ofs.vz = D_actor_105300_80133A40[work->field_334].vz;
-            if (val == 3) {
-                Gp_SpawnEff(0x6007F, coord, work->field_2F4.spawnArgLo | (work->field_2F4.spawnArgHi << 16), &scr->ofs);
-            } else {
-                func_800FDB18((u16)val, coord, &scr->ofs, &work->field_2F4);
-            }
-        }
-        val = Gp_GetIdParam2(work->rec18[i].key.value);
-        if (val > 0) {
-            work->field_332 = val;
-        }
-        snd = D_actor_105300_8013D3B0[2] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
-        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-    }
-end:
-    Gp_ClearRec18Occupied(work->rec18);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor05300Scratch);
-}
+#include "../../shared/power_plant_pod_pulse.inc.c"
 
-/// Idle schedule of the enemy, one of the steps the tick handler
-/// `func_actor_105300_80133468` runs each frame. The sub-state (`field_32C`)
-/// picks what it does: state 0 walks `D_actor_105300_8013D3E0` once the
-/// countdown `field_32A` has run out, and on that table's terminator row
-/// resets the row index, reseeds the countdown from the gameplay LCG and plays
-/// the sound id `D_actor_105300_8013D3BC` with the placement number in the
-/// high nibble of `GpEnemy::placeKey`; state 1 (entered on a hit) walks
-/// `D_actor_105300_8013D3EC` and moves to state 2 on its terminator; state 2
-/// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
-/// entry of `D_actor_105300_80133A18`. The row's `field_2` is the scale
-/// `modelPlacementSetScaled` applies to the saved coordinate matrix
-/// `field_2FC`, 0x1000 when no row was read, and while the session's
-/// `viewReady` is 1 the per-view row of `D_actor_105300_8013D3C4` is enqueued
-/// with the work block's sound id.
-static void func_actor_105300_8013222C(Task* arg0)
-{
-    Actor05300Work* work;
-    GfxCoord*       coord;
-    u16             scale;
-    s32             pan;
-    s32             sndId;
+#include "../../shared/power_plant_pod_inlines.inc.c"
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    scale = 0x1000;
-    switch ((s16)work->field_32C) {
-        case 0:
-            if ((s16)work->field_32A <= 0) {
-                scale = D_actor_105300_8013D3E0[(s16)work->field_328].field_2;
-                if (D_actor_105300_8013D3E0[(s16)work->field_328].field_0 != 0) {
-                    work->field_328 = 0;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
-                    sndId           = D_actor_105300_8013D3BC |
-                            ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
-                    pan = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
-                } else {
-                    work->field_328 = work->field_328 + 1;
-                }
-            } else {
-                work->field_32A = work->field_32A - 1;
-            }
-            break;
-        case 1:
-            scale = D_actor_105300_8013D3EC[(s16)work->field_328].field_2;
-            if (D_actor_105300_8013D3EC[(s16)work->field_328].field_0 != 0) {
-                work->field_328 = 0;
-                work->field_32C = 2;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
-            } else {
-                work->field_328 = work->field_328 + 1;
-            }
-            break;
-        case 2:
-            if ((s16)work->field_324 >= D_actor_105300_80133A18[(s16)work->field_320] + 0x23) {
-                work->field_320 = 1;
-                work->field_32C = 0;
-            }
-            break;
-    }
-    modelPlacementSetScaled(arg0, &work->field_2FC, scale, 1);
-    if (gGameSession->viewReady == 1) {
-        SndEvt_EnqueueTypeA(work->field_31C, D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_0,
-                            D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_2);
-    }
-}
+#include "../../shared/power_plant_pod_death.inc.c"
 
-/// Pose tick, inlined into the death handler; the same step
-/// `func_actor_105300_80133610` performs out of line. When the pose asked for
-/// (`field_320`) differs from the one the animation slots were last queued
-/// for (`field_322`), slots 1-9 are re-queued with it and its entry of
-/// `D_actor_105300_80133A18`, and the frame count `field_324` restarts;
-/// otherwise every slot is ticked and the count advances by one.
-static inline void _actor105300TickPose(Task* task)
-{
-    Actor05300Work* work;
-    s32             i;
-    s32             value;
+#include "../../shared/power_plant_pod_weak_point_spawn.inc.c"
 
-    work = task->work;
-    if ((s16)work->field_320 != work->field_322) {
-        work->field_322 = work->field_320;
-        work->field_324 = 0;
-        value           = D_actor_105300_80133A18[(s16)work->field_320];
-        for (i = 1; i < 10; i++) {
-            func_800B4114(&work->anim, i, (s16)work->field_320, 0, value);
-        }
-    } else {
-        work->field_324++;
-        for (i = 1; i < 10; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
-        }
-    }
-}
-
-/// Death handler of the main task (its state 2). Death state `field_32E` 3 is
-/// the wait the hit handler enters when the enemy dies: effects are spawned
-/// every fourth frame until message bit 1 moves it to 0. State 0 drops the
-/// enemy's lock-on node and both collision objects and starts the sequence;
-/// state 1 runs it for 0x78 frames, shrinking the model towards an eighth of
-/// its scale while flickering through `D_actor_105300_8013D3EC`, spawning the
-/// same two randomly offset effects every fourth frame, setting bit 1 of the
-/// model's `field_C` at frame 0x14, spawning effect 0x600A5 at 0x1E and
-/// switching the light mode at 0x6E, then ends in state 2. Independently,
-/// `field_330` 0 calls `Gp_ReleaseStateF0Add` once with this sub-state's entry
-/// of `D_actor_105300_80133A2C` (message bit 2 clears the hold value 2). The
-/// pose and colour are ticked every frame, and the enemy is destroyed once the
-/// sequence has ended and the release has run.
-static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
-{
-    SVECTOR         ofs;
-    VECTOR          pos;
-    TmdObject*      obj;
-    Actor05300Work* work;
-    GfxCoord*       coord;
-    GfxCoord*       tmp;
-    Actor05300Clip* clip;
-    u16             scale;
-    s32             r;
-    s8              flag;
-    s32             x;
-    s32             z;
-    s32             x2;
-    s32             z2;
-
-    obj   = arg1->extra.tmd;
-    work  = arg1->work;
-    coord = obj->coords;
-    scale = 0x1000;
-    switch (Gp_StateF0.field_4) {
-        case 1:
-            pos.vx = coord->workm.t[0];
-            pos.vy = coord->workm.t[1];
-            pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
-            return;
-        case 2:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case 0:
-            break;
-    }
-    if ((work->field_33A & 1) && (s16)work->field_32E == 3) {
-        work->field_32E = 0;
-    }
-    if ((work->field_33A & 2) && (s16)work->field_330 == 2) {
-        work->field_330 = 0;
-    }
-    switch ((s16)work->field_32E) {
-        case 0:
-            work->field_326 = 0x1000;
-            work->field_2FC = coord->coord;
-            arg0->recs      = 0;
-            Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->node0);
-            Gp_UnlinkObj(&work->node1);
-            Gp_SetLightMode(arg0, 1);
-            if (work->field_334 == 0) {
-                work->field_328 = 0;
-                work->field_32C = 0;
-                work->field_32E = 1;
-                r               = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = r;
-            } else {
-                work->field_328 = 0;
-                work->field_32C = 0;
-                work->field_32E = 1;
-                r               = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = r;
-            }
-            flag                = 1;
-            work->field_32A     = (((u32)r >> 16) & 0xF) + 0xA;
-            Gp_StateF0.field_26 = flag;
-            break;
-        case 1:
-            if ((s16)work->field_326 > 0x200) {
-                work->field_326 -= 0x20;
-            }
-            switch ((s16)work->field_32C) {
-                case 0:
-                    work->field_32A--;
-                    if ((s16)work->field_32A <= 0) {
-                        work->field_32C = 1;
-                    }
-                    scale = work->field_326;
-                    break;
-                case 1:
-                    clip  = &D_actor_105300_8013D3EC[(s16)work->field_32A];
-                    scale = ((s16)work->field_326 * (s16)clip->field_2) >> 12;
-                    if (clip->field_0 != 0) {
-                        work->field_32C = 0;
-                        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                        work->field_32A = ((Gp_LcgState >> 16) & 0xF) + 0xA;
-                    } else {
-                        work->field_32A++;
-                    }
-                    break;
-            }
-            modelPlacementSetScaled(arg1, &work->field_2FC, scale, 0);
-            if (!(work->field_328 & 3)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    x = -x;
-                }
-                ofs.vx      = x;
-                ofs.vy      = -0x9C4;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    z = -z;
-                }
-                ofs.vz = z;
-                Gp_SpawnEff(0x600E0, coord, 0x400, &ofs);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    x2 = -x2;
-                }
-                ofs.vx      = x2;
-                ofs.vy      = -0x960;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    z2 = -z2;
-                }
-                ofs.vz = z2;
-                Gp_SpawnEff(0x60070, coord, 0x30011600, &ofs);
-            }
-            work->field_328++;
-            if ((s16)work->field_328 == 0x14) {
-                obj->flags |= TMD_OBJECT_SEMI_TRANS;
-            }
-            if ((s16)work->field_328 == 0x1E) {
-                Gp_SpawnEff(0x600A5, coord, 5, NULL);
-            }
-            if ((s16)work->field_328 == 0x6E) {
-                Gp_SetLightMode(arg0, 2);
-            }
-            if ((s16)work->field_328 >= 0x78) {
-                work->field_32E = 2;
-            }
-            tmp    = arg1->extra.tmd->coords;
-            pos.vx = tmp->workm.t[0];
-            pos.vy = tmp->workm.t[1];
-            pos.vz = tmp->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
-            break;
-        case 2:
-            break;
-        case 3:
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            work->field_328++;
-            if (!(work->field_328 & 3)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    x = -x;
-                }
-                ofs.vx      = x;
-                ofs.vy      = -0x9C4;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    z = -z;
-                }
-                ofs.vz = z;
-                Gp_SpawnEff(0x600E0, coord, 0x400, &ofs);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    x2 = -x2;
-                }
-                ofs.vx      = x2;
-                ofs.vy      = -0x960;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
-                    z2 = -z2;
-                }
-                ofs.vz = z2;
-                Gp_SpawnEff(0x60070, coord, 0x30011600, &ofs);
-            }
-            break;
-    }
-    if ((s16)work->field_330 == 0) {
-        Gp_ReleaseStateF0Add(arg1, D_actor_105300_80133A2C[work->field_334]);
-        work->field_330 = 1;
-        Gp_ClearAreaFlag4(&gGameSession->location.loc);
-    }
-    _actor105300TickPose(arg1);
-    tmp    = arg1->extra.tmd->coords;
-    pos.vx = tmp->workm.t[0];
-    pos.vy = tmp->workm.t[1];
-    pos.vz = tmp->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
-    if ((s16)work->field_32E == 2 && (s16)work->field_330 == 1) {
-        Gp_DestroyEnemy(arg0, arg1);
-    }
-}
-
-/// Spawn state of the enemy: allocates the 0x48-byte part object, seeds its
-/// coordinate's translation from the sub-state's entry in
-/// `D_actor_105300_80133A20`, links it into `Gp_ObjLists[2]`, and raises one of
-/// the two per-enemy death flags. A failed allocation tears the enemy down
-/// instead and leaves the task on this handler; otherwise the task moves to the
-/// tick handler (`state` 1).
-static void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
-{
-    TmdObject*             obj;
-    Actor05300Work*        work;
-    Actor05300Part*        part;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec18;
-    s32                    flag;
-    u16                    type;
-
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = (Actor05300Work*)arg1->parent->work;
-    part  = memCalloc(0x48, 0);
-    if (part == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    arg1->work          = part;
-    coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = D_actor_105300_80133A20[work->field_334].x;
-    coord->coord.t[1]   = D_actor_105300_80133A20[work->field_334].y;
-    coord->coord.t[2]   = D_actor_105300_80133A20[work->field_334].z;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
-    rec18                      = part->rec18;
-    arg0->coord                = coord;
-    arg0->bodyPos.vx           = 0;
-    arg0->bodyPos.vy           = 0;
-    arg0->bodyPos.vz           = 0;
-    arg0->param                = &D_actor_105300_8013D3A0;
-    arg0->recs                 = rec18;
-    arg0->hp                   = D_actor_105300_8013D3A0.hpMax;
-    part->field_38.spawnArgLo  = 0x500;
-    part->field_38.coord       = coord;
-    part->field_38.spawnArgHi  = 2;
-    part->obj.coord            = coord;
-    part->obj.context.contacts = rec18;
-    part->obj.pos.vx           = 0;
-    part->obj.pos.vy           = 0;
-    part->obj.pos.vz           = 0;
-    part->obj.key              = ((Actor05300Work*)arg1->parent->work)->node0.key;
-    part->obj.radius           = 0xC8;
-    part->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &part->obj);
-    Gp_InitRec18Table(rec18, 1, 0);
-    part->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    type             = (u16)work->field_334;
-    part->field_46   = type;
-    if ((type << 0x10) == 0) {
-        func_neo_ark_power_plant_2_8017FD88(1);
-        flag = 0x147;
-    } else {
-        func_neo_ark_power_plant_1_8017E524(1);
-        flag = 0x148;
-    }
-    GameFlag_SetNibble(flag, 0);
-    arg1->state = 1;
-}
-
-static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
-{
-    VECTOR*         vec;
-    Actor05300Part* part;
-    GfxCoord*       coord;
-    s32             damage;
-    s32             snd;
-    s32             hitTime;
-
-    coord = arg1->extra.tmd->coords;
-    part  = (Actor05300Part*)arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 1:
-            return;
-        case 0:
-            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-            break;
-        case 2:
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            return;
-    }
-    vec = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    if (part->field_40 != 0) {
-        part->field_40--;
-        if (part->field_40 <= 0) {
-            part->field_40 = 0;
-        }
-    }
-    if (part->field_44 != 0) {
-        part->field_44--;
-    }
-    if (part->field_40 == 0 && (part->rec18[0].key.value & 0xFFFF0000) == 0x20000) {
-        if (part->rec18[0].key.value & 0x8000) {
-            func_800DA6E8(&arg0->node, 0, 0);
-        } else {
-            vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->rec18[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
-            if (Gp_RollEnemyChance(arg0, part->rec18[0].key.value, 0) != 0) {
-                damage *= 4;
-                Gp_SpawnEff(0x6009C, coord, 0, NULL);
-            }
-            func_800DA6E8(&arg0->node, damage, 0);
-            arg0->hp -= damage;
-            if (arg0->hp <= 0) {
-                arg1->state                                      = 2;
-                part->field_42                                   = 0;
-                ((Actor05300Work*)arg1->parent->work)->field_336 = 1;
-                Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
-                Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
-                snd  = D_actor_105300_8013D3B0[1];
-                snd |= (arg0->placeKey >> 12) << 8;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            } else if (damage > 0) {
-                if (part->field_44 == 0) {
-                    if ((Gp_GetIdParam0(part->rec18[0].key.value) & 0xFFFF) == 7) {
-                        func_800FDB18(3, coord, NULL, &part->field_38);
-                    }
-                    func_800FDB18(7, coord, NULL, &part->field_38);
-                    part->field_44 = 10;
-                }
-                hitTime = Gp_GetIdParam2(part->rec18[0].key.value);
-                if (hitTime > 0) {
-                    part->field_40 = hitTime;
-                }
-                snd  = D_actor_105300_8013D3B0[0];
-                snd |= (arg0->placeKey >> 12) << 8;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            }
-        }
-    }
-    Gp_ClearRec18Occupied(part->rec18);
-    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
-}
+#include "../../shared/power_plant_pod_weak_point_hit.inc.c"
 
 static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 {
@@ -917,92 +375,19 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     }
     sound           = D_actor_105300_8013D3C0 | ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8);
     work->field_31C = sound;
-    SndEvt_EnqueueType6(sound, D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_0,
-                        D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_2);
+    SndEvt_EnqueueType6(sound, gPodViewSound[gGameSession->location.loc.view].field_0,
+                        gPodViewSound[gGameSession->location.loc.view].field_2);
     arg1->msgTable = D_actor_105300_80133A00;
     arg1->state    = 1;
 }
 
-/// Tick handler of the main task (its state 1), switched on the gameplay mode
-/// `Gp_StateF0.field_4`. Mode 1 only updates the colour; mode 2 sets the model's
-/// `field_C` to 0x80 and the lock-on node not lockable, and stops there. Any
-/// other mode runs the frame - mode 0 first clearing the model's `field_C` and
-/// hiding the node's HP: the hit handler, the idle schedule, the pose
-/// tick, the model's coordinate refresh, the colour update and the
-/// regeneration step.
-static void func_actor_105300_80133468(GpEnemy* arg0, Task* arg1)
-{
-    GfxCoord*  temp_s1;
-    TmdObject* temp_a1;
-    s32        state;
-    s32        one;
+#include "../../shared/power_plant_pod_tick.inc.c"
 
-    temp_a1 = arg1->extra.tmd;
-    temp_s1 = temp_a1->coords;
-    state   = Gp_StateF0.field_4;
-    one     = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    temp_a1->flags               = 0;
-    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-    goto default_body;
-case1:
-    func_actor_105300_801335B8(arg1);
-    return;
-case2:
-    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
-    func_actor_105300_80131E3C(arg1);
-    func_actor_105300_8013222C(arg1);
-    func_actor_105300_80133610(arg1);
-    temp_s1->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(temp_s1);
-    func_actor_105300_801335B8(arg1);
-    func_actor_105300_80133530(arg1);
-}
-
-/// Regeneration step: while the part object is alive (`field_336` clear)
-/// and the enemy's hit points are below the ceiling `field_33C`, one point
-/// comes back every five frames (`field_33E` counts them down), reported
-/// through the lock-on node as a damage of -1.
-static void func_actor_105300_80133530(Task* arg0)
-{
-    Actor05300Work* work;
-    GpEnemy*        enemy;
-    s16             timer;
-
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if ((work->field_336 == 0) && (enemy->hp < work->field_33C)) {
-        timer           = work->field_33E - 1;
-        work->field_33E = timer;
-        if ((timer << 0x10) <= 0) {
-            enemy->hp = enemy->hp + 1;
-            func_800DA6E8(&enemy->node, -1, 0);
-            work->field_33E = 5;
-        }
-    }
-}
+#include "../../shared/power_plant_pod_regenerate.inc.c"
 
 /// Hands the model's world position (its coordinate's `workm` translation) to
 /// `Gp_UpdateActorColor` for the enemy, with no blend parameters.
-static void func_actor_105300_801335B8(Task* arg0)
+void podUpdateColor(Task* arg0)
 {
     GfxCoord* coord;
     VECTOR    vec;
@@ -1014,32 +399,7 @@ static void func_actor_105300_801335B8(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Pose tick. When the pose asked for (`field_320`) differs from the one the
-/// animation slots were last queued for (`field_322`), slots 1-9 are re-queued
-/// with it and its entry of `D_actor_105300_80133A18`, and the frame count
-/// `field_324` restarts; otherwise every slot is ticked and the count advances
-/// by one.
-static void func_actor_105300_80133610(Task* arg0)
-{
-    Actor05300Work* work;
-    s32             i;
-    s32             value;
-
-    work = arg0->work;
-    if ((s16)work->field_320 != work->field_322) {
-        work->field_322 = work->field_320;
-        work->field_324 = 0;
-        value           = D_actor_105300_80133A18[(s16)work->field_320];
-        for (i = 1; i < 10; i++) {
-            func_800B4114(&work->anim, i, (s16)work->field_320, 0, value);
-        }
-    } else {
-        work->field_324++;
-        for (i = 1; i < 10; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
-        }
-    }
-}
+#include "../../shared/power_plant_pod_tick_pose.inc.c"
 
 #include "../../shared/model_placement_scale.inc.c"
 
@@ -1047,9 +407,9 @@ static void func_actor_105300_80133610(Task* arg0)
 /// hit reaction and teardown.
 static const GpEnemyTaskFuncTable3 D_actor_105300_80131E24 = {
     {
-        func_actor_105300_80132BAC,
-        func_actor_105300_80132DAC,
-        func_actor_105300_80133838,
+        podWeakPointSpawn,
+        podWeakPointHit,
+        podWeakPointTeardown,
     },
 };
 
@@ -1061,67 +421,9 @@ void func_actor_105300_801337DC(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Teardown handler of the part task (its state 2), ticking only while the
-/// gameplay mode `Gp_StateF0.field_4` is 0. The first tick unlinks the enemy's lock-on
-/// node and the part's collision object, drops the enemy's `recs`, sends the
-/// main task's sound id `field_31C` a type-7 event, and undoes what the spawn
-/// did for this sub-state (chosen by `field_46`): the same room call with 0
-/// instead of 1, and game flag 0x147 or 0x148 set to 1 where the spawn set it
-/// to 0. The enemy is destroyed once the counter `field_42` reaches 0x3D.
-static void func_actor_105300_80133838(GpEnemy* arg0, Task* arg1)
-{
-    Actor05300Part* part;
-    Actor05300Work* parentWork;
-    u16             timer;
+#include "../../shared/power_plant_pod_weak_point_teardown.inc.c"
 
-    part       = (Actor05300Part*)arg1->work;
-    parentWork = (Actor05300Work*)arg1->parent->work;
-    if (Gp_StateF0.field_4 == 0) {
-        timer          = part->field_42 + 1;
-        part->field_42 = timer;
-        if ((s16)timer == 1) {
-            Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&part->obj);
-            arg0->recs = 0;
-            SndEvt_EnqueueType7(parentWork->field_31C, 1);
-            if (part->field_46 == 0) {
-                func_neo_ark_power_plant_2_8017FD88(0);
-                GameFlag_SetNibble(0x147, 1);
-            } else {
-                func_neo_ark_power_plant_1_8017E524(0);
-                GameFlag_SetNibble(0x148, 1);
-            }
-        }
-        if ((s16)part->field_42 >= 0x3D) {
-            Gp_DestroyEnemy(arg0, arg1);
-        }
-    }
-}
-
-/// Message handler in the main task's message table: ORs the bit the payload's
-/// selector names into the work block's `field_33A` (1, 2 or both for
-/// selector 3; 0 is a no-op). Bit 1 releases the death handler from its wait,
-/// bit 2 lets it run its `Gp_ReleaseStateF0Add` call.
-s32 func_actor_105300_8013391C(Task* task, s32 msgId, ActorCommand* msg)
-{
-    Actor05300Work* work;
-
-    work = (Actor05300Work*)task->work;
-    switch (msg->command) {
-        case 0:
-            break;
-        case 1:
-            work->field_33A |= 1;
-            break;
-        case 2:
-            work->field_33A |= 2;
-            break;
-        case 3:
-            work->field_33A |= 3;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/power_plant_pod_release_bits.inc.c"
 
 s16 Actor05300_Fn01B70(Task* arg0)
 {
@@ -1133,8 +435,8 @@ s16 Actor05300_Fn01B70(Task* arg0)
 static const GpEnemyTaskFuncTable3 D_actor_105300_80131E30 = {
     {
         func_actor_105300_8013310C,
-        func_actor_105300_80133468,
-        func_actor_105300_8013246C,
+        podTickState,
+        podDeathState,
     },
 };
 
