@@ -450,7 +450,7 @@ static void        func_actor_341900_80162AD4(Task* arg0);
 
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0
 /// is skipped for the eight-slot actor). If every one of them then has
-/// `field_10` bit 0x100 set, passes them the `D_actor_341900_801639D0` id and
+/// `ANIMATION_SLOT_SETTLED` set, passes them the `D_actor_341900_801639D0` id and
 /// returns 1; otherwise returns 0. The gotos reproduce retail's block layout.
 static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
 {

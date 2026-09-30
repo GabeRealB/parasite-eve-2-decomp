@@ -2133,7 +2133,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose*
     SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
     scratch     = SCRATCH_STACK_CURSOR(_AnimationTickScratch);
     slot->flags = 0;
-    // Advance signed sixteenth-frame timing, then follow any control records.
+    // A latched hold whose endpoints still agree reports only the hold and does not step time.
     if (slot->atEnd == 1) {
         if (slot->nextPose.key == slot->currentPose.key) {
             slot->flags = ANIMATION_SLOT_SETTLED;
@@ -2180,6 +2180,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose*
             slot->timeLeft                    += segmentDuration;
         }
         if (slot->flags & ANIMATION_SLOT_REACHED_END) {
+            // The forward walk reached a boundary: latch the hold.
             slot->atEnd  = 1;
             slot->flags |= ANIMATION_SLOT_SETTLED;
         } else {
@@ -2204,6 +2205,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose*
             slot->timeSpan                        = segmentDuration;
         }
         if (slot->flags & ANIMATION_SLOT_REACHED_END) {
+            // The reverse walk reached the track start: latch the hold.
             slot->atEnd  = 1;
             slot->flags |= ANIMATION_SLOT_SETTLED;
         } else {

@@ -15,11 +15,20 @@ enum { ANIMATION_RATE_ONE = 0x10 };
 enum { ANIMATION_SET_BUFFERED_POSE = 0x7FFF };
 
 /// Results of the latest slot tick or track walk. Initialization and each tick clear them first.
+///
+/// `ANIMATION_SLOT_SETTLED` means the latest pose tick is holding the boundary
+/// pose. While `atEnd` is set and both endpoints still agree, that tick reports
+/// this bit alone and does not advance time. The tick whose walk reaches a
+/// boundary also reports `ANIMATION_SLOT_REACHED_END` and latches the hold.
+/// A seek keeps that tick's flags and can add walk bits after moving the
+/// endpoints, so a set bit after a seek is not a hold of the new segment.
+/// The next pose tick clears the flags first. A zero `rate` outside a hold
+/// leaves the segment where it is and leaves this bit clear.
 enum {
     ANIMATION_SLOT_REACHED_END   = 1,    // End control, jump to the selected keyframe, or reverse track boundary
     ANIMATION_SLOT_FOLLOWED_JUMP = 2,    // Control jump taken this walk (stop clear; index becomes wordOffset), including a jump that also sets ANIMATION_SLOT_REACHED_END
     ANIMATION_SLOT_BOUNDARY_MASK = ANIMATION_SLOT_REACHED_END | ANIMATION_SLOT_FOLLOWED_JUMP,
-    ANIMATION_SLOT_SETTLED       = 0x100 // The boundary pose is held
+    ANIMATION_SLOT_SETTLED       = 0x100 // Boundary pose held by the latest pose tick
 };
 
 /// Low record-index bits used by actor cue tests; playback uses the full index.
@@ -57,9 +66,11 @@ STATIC_ASSERT_SIZEOF(AnimationPoseReference, 4);
 /// `currentPose` and `nextPose` identify the interpolation endpoints. Segment
 /// timing counts sixteenths of a normal-rate frame: `timeLeft / timeSpan` is
 /// the current endpoint's weight. Signed `rate` advances toward the next pose;
-/// negative values step backwards, and zero holds time. Death playback halves
-/// the step with signed rounding. The walk reports boundaries and jumps in
-/// `flags`; `atEnd` holds the boundary until the endpoints change.
+/// negative values step backwards, and zero holds time without by itself
+/// reporting a boundary. Death playback halves the step with signed rounding.
+/// The walk reports boundaries and jumps in `flags`. `ANIMATION_SLOT_SETTLED`
+/// reports that the latest pose tick is holding the boundary pose; `atEnd`
+/// keeps that hold until the endpoints change.
 ///
 /// The caller owns the slot array and a writable, word-aligned 16-byte pose
 /// buffer entry per slot. `sets` borrows loaded clip descriptors and their data
@@ -81,7 +92,7 @@ typedef struct {
     u8                     poseEncoding;          // Initial keyframe's low flags nibble (1 translation/rotation, 4 packed rotation; 2 diagnostic only)
     s16                    timeLeft;              // Remaining sixteenth-frame time; may cross either segment boundary
     u16                    timeSpan;              // Segment duration in sixteenths; interpolation denominator (0 skips pose output)
-    u16                    flags;                 // Latest ANIMATION_SLOT_* walk results, cleared at each tick
+    u16                    flags;                 // Latest ANIMATION_SLOT_* tick and walk results; a pose tick clears them first
     u16                    field_12;              // Cleared by initialization; role unproven
     u8                     coordIndex;            // Destination model-part coordinate index
     u8                     trackIndex;            // Source model-part track index

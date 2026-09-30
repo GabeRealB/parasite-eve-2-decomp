@@ -1778,7 +1778,7 @@ void func_actor_121300_801326EC(Task* arg0)
 }
 
 /// Slot re-arm of the cutscene actor: ticks all nineteen animation slots, and
-/// once every one of slots 1..18 has `field_10` bit 0x100 set ("finished"),
+/// once every one of slots 1..18 has `ANIMATION_SLOT_SETTLED` set,
 /// hands them the animation id `D_actor_121300_8013CC18` holds for the current
 /// `field_4A0`, blending it in over ten frames.  A negative table entry leaves
 /// the slots alone and only the return value follows.  The gotos reproduce

@@ -5096,9 +5096,9 @@ static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, Actor400600ViewPos*
 }
 
 /// Returns 1 when any of bits 0, 1 or 8 of the second animation slot's
-/// `slots[1].flags` is set - the walk took the clip's end, followed a control
-/// entry, or the clip has settled on its last pose - and 0 otherwise. Bit 0 is
-/// read as a halfword and the other two through the word starting there,
+/// `slots[1].flags` is set (reached a boundary, followed a control record, or
+/// holding the boundary pose, `ANIMATION_SLOT_SETTLED`) and 0 otherwise. Bit 0
+/// is read as a halfword and the other two through the word starting there,
 /// which is why the work block is seen through `ActorsShared8013a0b0Work`.
 static s32 func_actor_400600_8013A0B0(Task* arg0)
 {

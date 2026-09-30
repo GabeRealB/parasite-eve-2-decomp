@@ -4327,7 +4327,7 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
 
 /// Ticks every animation slot, then advances the script at `field_4B4`: a step
 /// with a non-zero hold waits `hold` frames in `field_4BE`, a zero hold waits
-/// for every slot to finish (bit 0x100 of the slot's `flags`). Returns 1 when the next
+/// for every slot to hold its boundary pose (`ANIMATION_SLOT_SETTLED`). Returns 1 when the next
 /// step's id is negative (the script ended), 0 otherwise.
 ///
 /// The step is re-indexed at every use rather than held in a local, and the

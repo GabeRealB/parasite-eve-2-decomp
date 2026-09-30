@@ -90,9 +90,9 @@ typedef union Actor400500HitFlags {
 STATIC_ASSERT_SIZEOF(Actor400500HitFlags, 0x4);
 
 /// Prefix view of `Actor400500Work` for the dual-width flags at +0x4C.
-/// That address is `slots[1].field_10` / `field_12` (0x10 into the second
+/// That address is `slots[1].flags` / `field_12` (0x10 into the second
 /// animation slot), the same overlap `ActorsShared80168d3cWork` uses for
-/// `flags_EC`.
+/// `flags_EC`. Bit 0x100 of the halfword is `ANIMATION_SLOT_SETTLED`.
 typedef struct Actor400500HitView {
     /* 0x00 */ byte                pad[0x4C];
     /* 0x4C */ Actor400500HitFlags flags_4C;
@@ -116,7 +116,7 @@ typedef struct Actor400500HitView {
 /// The block opens with the 0x14-byte animation context and eighteen 0x28-byte
 /// slots. `func_actor_400500_8013DC4C` walks slots 1..17, copies the low byte
 /// of `field_9F8` into each slot's `field_9`, resets them from `field_9FE`,
-/// and latches that id in `field_9FC`. The second slot's `field_10` overlaps
+/// and latches that id in `field_9FC`. The second slot's `flags` overlaps
 /// `Actor400500HitView::flags_4C`.
 typedef struct Actor400500Work {
     /* 0x000 */ AnimationContext      anim;

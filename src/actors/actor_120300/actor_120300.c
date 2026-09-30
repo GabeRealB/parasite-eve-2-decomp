@@ -1328,7 +1328,7 @@ static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTO
 }
 
 /// Ticks slots 1..19 of a task's animation context and, if every one of them
-/// then has `AnimationSlot.flags` bit 0x100 set, re-reads the work block and
+/// then has `ANIMATION_SLOT_SETTLED` set, re-reads the work block and
 /// restarts all twenty slots on the id `D_actor_120300_80140980` selects for
 /// `field_4D4`, returning 1; a negative entry or an unset slot returns 0. The
 /// gotos reproduce retail's block layout.

@@ -449,7 +449,7 @@ static inline void Actor342000_EnterArea(void);
 
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0 is
 /// skipped for the eight-slot actor). If every one of them then has
-/// `AnimationSlot.flags` bit 0x100 set, passes them the
+/// `ANIMATION_SLOT_SETTLED` set, passes them the
 /// `D_actor_342000_80164810` id and returns 1; otherwise returns 0. The gotos
 /// reproduce retail's block layout.
 static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)

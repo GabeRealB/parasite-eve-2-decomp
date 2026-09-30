@@ -85,8 +85,9 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 /// counter it advances; `field_ACA` is the clip id that tick copies into each
 /// display node, so `func_actor_403000_8013D850` starting the actor rewrites
 /// `field_AC6` and `field_ACA` together. `field_6` is the per-frame tick that
-/// same function bumps, and bit 0x100 of `field_60` is what it watches to tell
-/// that the animation it asked for has arrived.
+/// same function bumps, and `field_60` (slot 1's `flags`) watches
+/// `ANIMATION_SLOT_SETTLED` to tell that the animation it asked for is holding
+/// its boundary pose.
 typedef struct Actor403000Work {
     /* 0x000 */ s16  field_0;
     /* 0x002 */ s16  field_2;
@@ -529,7 +530,7 @@ static void func_actor_403000_8013D5F8(Task* arg0);
 /// Per-frame update for the actor once its work block exists: on the frame
 /// `field_4` is set, reinstate the display object's buffers and restart the
 /// animation state machine on clip 0x10, then tick `field_6` and the playback
-/// state, and when bit 0x100 of `field_60` reports the clip has arrived, raise
+/// state, and when `field_60` has `ANIMATION_SLOT_SETTLED`, raise
 /// `field_FD2`/`field_FD3` and move the state machine to state 2.
 static void func_actor_403000_8013D850(Task* arg0);
 
@@ -5654,7 +5655,7 @@ static void func_actor_403000_80137084(Task* arg0)
 /// switch to the lunge clip with a per-frame step of a fifteenth of the distance.
 /// On frame 10 of the lunge, if a hit record is live and the player accepts
 /// message 0x3F8, snap the model in front of the player and send the grab
-/// (front or back by the facing difference). Bit 0x100 of `field_60` ends the
+/// (front or back by the facing difference). `ANIMATION_SLOT_SETTLED` in `field_60` ends the
 /// lunge in state 4 with a fresh `field_FD3` direction.
 static void func_actor_403000_801377C8(Task* arg0)
 {

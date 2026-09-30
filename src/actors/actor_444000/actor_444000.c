@@ -4051,8 +4051,9 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// state, the model's flag word and the four counters, marks the session
 /// (`gGameSession::location.loc.variant` 3) and plays the death cue at half depth.
 ///
-/// The rest of the tick splits on bit 0x100 of the second animation slot --
-/// whether the collapse animation is still running or has finished.
+/// The rest of the tick splits on `ANIMATION_SLOT_SETTLED` in the second
+/// animation slot: whether the collapse animation is still running or is
+/// holding its boundary pose.
 ///
 /// While it runs, `D_actor_444000_80144A70` is walked down 0xC8 a step until it
 /// is under 0x191, four one-shot cues fire on frames 0x33, 0x3D, 0x4E and 0x71
