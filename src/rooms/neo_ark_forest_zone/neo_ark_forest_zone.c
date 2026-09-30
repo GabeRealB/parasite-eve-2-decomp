@@ -50,6 +50,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
+#include "../../shared/falling_leaves.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -69,7 +70,6 @@ extern RoomFadeStorage gRoomEventFade;
 
 static void func_neo_ark_forest_zone_8017DA80(Task* arg0);
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0);
-static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2);
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
@@ -258,111 +258,12 @@ void func_neo_ark_forest_zone_8017DBBC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// A drifting flake. State 0 gives it a size of 0x20, random X and Z tilts and
-/// a random velocity. State 1 moves and tilts it each frame: the vertical
-/// speed eases towards 0x1C, the sideways speeds decay and get a fresh random
-/// kick whenever they reach zero, and the tilts wobble. Once it drops below
-/// the ground plane (`t[1] > 0`) state 2 holds it while `angle` counts up to
-/// 0x80, and state 3 fades it out, drawn semi-transparent at `angle` as that
-/// counts back down, before releasing the work block. Until the fade it is
-/// drawn as an opaque textured quad.
+#include "../../shared/falling_leaves_task.inc.c"
+
+/// The room's falling-leaf task, named by gameplay's effect table.
 void func_neo_ark_forest_zone_8017DC20(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        vy;
-    s32        vx;
-    s32        vz;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
-    work->age++;
-    switch (task->state) {
-        case 0:
-            work->scale   = 0x20;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            task->state   = 1;
-            /* fallthrough */
-        case 1:
-            coord->coord.t[0] += work->move.vx;
-            coord->coord.t[1] += work->move.vy;
-            coord->coord.t[2] += work->move.vz;
-            Gfx_RotMatrixX(&coord->coord, work->period, 0);
-            Gfx_RotMatrixZ(&coord->coord, work->step, 0);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-
-            vy = work->move.vy;
-            if (vy >= 0x1D) {
-                vy = vy - 1;
-            } else {
-                vy = vy + 1;
-            }
-            work->move.vy = vy;
-
-            vx = work->move.vx;
-            if (vx == 0) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
-            } else {
-                if (vx > 0) {
-                    vx = vx - 1;
-                } else {
-                    vx = vx + 1;
-                }
-                work->move.vx = vx;
-            }
-
-            vz = work->move.vz;
-            if (vz == 0) {
-                work->move.vz += work->step % 32;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
-            } else {
-                if (vz > 0) {
-                    vz = vz - 1;
-                } else {
-                    vz = vz + 1;
-                }
-                work->move.vz = vz;
-            }
-
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
-
-            if (coord->coord.t[1] > 0) {
-                task->state = 2;
-            }
-            func_neo_ark_forest_zone_8017E074(coord, work->scale, 0);
-            break;
-        case 2:
-            if (work->angle < 0x80) {
-                work->angle += 0x10;
-            } else {
-                task->state = 3;
-            }
-            func_neo_ark_forest_zone_8017E074(coord, work->scale, 0);
-            break;
-        case 3:
-            if (work->angle >= 0x11) {
-                work->angle -= 0x10;
-                func_neo_ark_forest_zone_8017E074(coord, work->scale, work->angle);
-            } else {
-                Gp_ReleaseState1CMem(work, task);
-            }
-            break;
-    }
+    leafFallTask(task);
 }
 
 /// Draws the drifting flake as one textured quad lying in the coordinate's
@@ -372,7 +273,7 @@ void func_neo_ark_forest_zone_8017DC20(Task* task)
 /// (tpage 0x2B, clut 0x4390, an 8x8 texel cell at (0, 0x28)) is queued, raw
 /// textured when `arg2` is zero and otherwise semi-transparent at grey level
 /// `arg2`.
-static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2)
+void leafDraw(GfxCoord* arg0, s32 arg1, s16 arg2)
 {
     GpQuadScratch* block;
     s32            i;

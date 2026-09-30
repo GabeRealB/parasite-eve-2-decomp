@@ -60,6 +60,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/falling_leaves.h"
 
 /// Grey level of each of the three variants the ambient sprite task can be
 /// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
@@ -94,7 +95,6 @@ extern SVECTOR D_acropolis_roof_garden_80186E98;
 
 static void func_acropolis_roof_garden_8017DB74(Task* arg0);
 static void func_acropolis_roof_garden_8017DBEC(Task* task);
-static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 arg2);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
@@ -1456,171 +1456,15 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-/// One drifting mote of the room's ambient effect. The first tick seeds it
-/// from `Gp_LcgState`: a size of 0x20, a random tilt pair (`period` /
-/// `step`) and a random drift in `move`. While it flies, the drift
-/// moves its coordinate frame and the tilt rotates it; each drift axis eases
-/// back towards zero by one a tick and re-rolls a fresh multiple of 8 when it
-/// gets there, and the tilt wanders by a random step. Once the frame has
-/// risen past the origin the mote fades in by 0x10 a tick up to 0x80, then
-/// fades back out and releases its work block.
+#include "../../shared/falling_leaves_task.inc.c"
+
+/// The room's falling-leaf task, named by gameplay's effect table.
 void func_acropolis_roof_garden_8017F10C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        vy;
-    s32        vx;
-    s32        vz;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
-    work->age++;
-    switch (task->state) {
-        case 0:
-            work->scale   = 0x20;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            task->state   = 1;
-            /* fallthrough */
-        case 1:
-            coord->coord.t[0] += work->move.vx;
-            coord->coord.t[1] += work->move.vy;
-            coord->coord.t[2] += work->move.vz;
-            Gfx_RotMatrixX(&coord->coord, work->period, 0);
-            Gfx_RotMatrixZ(&coord->coord, work->step, 0);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-
-            vy = work->move.vy;
-            if (vy >= 0x1D) {
-                vy = vy - 1;
-            } else {
-                vy = vy + 1;
-            }
-            work->move.vy = vy;
-
-            vx = work->move.vx;
-            if (vx == 0) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
-            } else {
-                if (vx > 0) {
-                    vx = vx - 1;
-                } else {
-                    vx = vx + 1;
-                }
-                work->move.vx = vx;
-            }
-
-            vz = work->move.vz;
-            if (vz == 0) {
-                work->move.vz += work->step % 32;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
-            } else {
-                if (vz > 0) {
-                    vz = vz - 1;
-                } else {
-                    vz = vz + 1;
-                }
-                work->move.vz = vz;
-            }
-
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
-
-            if (coord->coord.t[1] > 0) {
-                task->state = 2;
-            }
-            func_acropolis_roof_garden_8017F560(coord, work->scale, 0);
-            break;
-        case 2:
-            if (work->angle < 0x80) {
-                work->angle += 0x10;
-            } else {
-                task->state = 3;
-            }
-            func_acropolis_roof_garden_8017F560(coord, work->scale, 0);
-            break;
-        case 3:
-            if (work->angle >= 0x11) {
-                work->angle -= 0x10;
-                func_acropolis_roof_garden_8017F560(coord, work->scale, work->angle);
-            } else {
-                Gp_ReleaseState1CMem(work, task);
-            }
-            break;
-    }
+    leafFallTask(task);
 }
 
-/// Draws one mote: the unit quad `D_80111E38` scaled by `arg1`, rotated and
-/// placed by the mote's coordinate frame, then projected through
-/// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
-/// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
-/// else modulates it to that grey and draws it semi-transparent.
-static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 arg2)
-{
-    RoomQuadScratch* blk;
-    POLY_FT4*        prim;
-    SVECTOR*         sv;
-    s32              i;
-
-    blk = SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
-    for (i = 0; i < 4; i++) {
-        blk->v[i].vx = D_80111E38[i].x * arg1;
-        // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
-        // pointer from the one the GTE macros below take; writing both the same
-        // way lets CSE fold them into one register and the loop stops matching.
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
-        sv->vy = 0;
-        sv->vz = D_80111E38[i].y * arg1;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&blk->v[i]);
-        gte_rtv0();
-        gte_stsv(&blk->v[i]);
-        blk->v[i].vx += arg0->workm.t[0];
-        sv->vy       += arg0->workm.t[1];
-        sv->vz       += arg0->workm.t[2];
-    }
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->v[0]);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt();
-    setUV4(prim, 0, 0xE8, 7, 0xE8, 0, 0xEF, 7, 0xEF);
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        if (arg2 != 0) {
-            setRGB0(prim, arg2, arg2, arg2);
-            setSemiTrans(prim, 1);
-        } else {
-            setShadeTex(prim, 1);
-        }
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4390;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
-}
+#include "../../shared/falling_leaves_draw.inc.c"
 
 /// reports one, adds its X and Z to the coordinate's translation, rounding a
 /// fractional part away from zero. The whole-unit displacement is also left in
