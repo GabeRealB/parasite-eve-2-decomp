@@ -748,7 +748,7 @@ static void func_actor_207200_8014B628(Task* arg0)
     u32                    rnd;
     u16                    hi;
 
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work = (_Actor207200LargeWork*)arg0->work;
     obj  = arg0->extra.tmd->coords;
     if (work->field_4A6 == 0) {
@@ -1699,7 +1699,7 @@ static void func_actor_207200_8014D77C(Task* task)
     VECTOR3*  vec;
 
     coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
+    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];

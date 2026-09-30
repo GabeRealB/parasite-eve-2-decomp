@@ -124,7 +124,7 @@ void waterDistortBandTask(Task* task)
     }
     sinArg = task->killCountdown << 5;
     cosArg = task->killCountdown << 4;
-    SCRATCH_PUSH_BYTES(0x40);
+    SCRATCH_STACK_RESERVE_BYTES(0x40);
     otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {

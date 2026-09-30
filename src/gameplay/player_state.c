@@ -1431,7 +1431,7 @@ s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     s16        ret;
 
     coords = arg0->extra.tmd->coords;
-    vec    = SCRATCH_PUSH_BYTES(0x10);
+    vec    = SCRATCH_STACK_RESERVE_BYTES(0x10);
     actor  = arg0->work;
     func_80103C74(coords, arg1, vec);
     ret = func_80103E7C(actor->field_52, ratan2(vec->vx, vec->vz));

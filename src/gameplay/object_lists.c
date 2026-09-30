@@ -336,7 +336,7 @@ void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
 {
     VECTOR3* vec;
 
-    SCRATCH_PUSH_BYTES(0x30);
+    SCRATCH_STACK_RESERVE_BYTES(0x30);
     vec = SCRATCH_STACK_CURSOR(VECTOR3);
     gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&arg0->pos.vx);
@@ -353,7 +353,7 @@ void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
     GpAxisScratch* block;
     s32            i;
 
-    SCRATCH_PUSH_BYTES(0x20);
+    SCRATCH_STACK_RESERVE_BYTES(0x20);
     block              = SCRATCH_STACK_CURSOR(GpAxisScratch);
     block->local[0].vx = 0;
     block->local[0].vy = (u16)arg0->pos.vy + arg0->radius;

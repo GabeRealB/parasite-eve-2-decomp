@@ -388,7 +388,7 @@ static void Pad_TickEventBanks(PadState* pad)
     PadVibrationRequest* request;
     s32                  i;
 
-    SCRATCH_PUSH_BYTES(4);
+    SCRATCH_STACK_RESERVE_BYTES(4);
     motor    = SCRATCH_STACK_CURSOR(u8);
     motor[1] = 0;
     motor[0] = 0;

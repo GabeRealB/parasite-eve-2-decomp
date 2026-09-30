@@ -1980,7 +1980,7 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
+        s = (ActorBeamScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -2826,7 +2826,7 @@ static void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
     s32                   mag;
     Actor00100DamageWork* work;
 
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = (Actor00100DamageWork*)((Actor00100Work*)arg0->work);
     if (mag < 0x200) {
@@ -4984,7 +4984,7 @@ static void Actor00100_Fn09724(Task* arg0)
     s32             pan;
 
     work = arg0->work;
-    SCRATCH_PUSH_BYTES(0x10);
+    SCRATCH_STACK_RESERVE_BYTES(0x10);
     ctx = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                         = arg0->extra.tmd;
@@ -5054,7 +5054,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
     s32             pan;
 
     work = arg0->work;
-    SCRATCH_PUSH_BYTES(0x14);
+    SCRATCH_STACK_RESERVE_BYTES(0x14);
     ctx = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                         = arg0->extra.tmd;

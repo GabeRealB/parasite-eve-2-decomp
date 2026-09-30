@@ -3699,7 +3699,7 @@ static void func_actor_403200_80133DD8(Task* arg0)
 /// scratchpad stack for the duration of the call.
 static void func_actor_403200_80134044(GfxCoord* coord, s32 id)
 {
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
+    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200EffScratch));
     sc->eff.spawnArgLo        = 0x500;
     sc->eff.coord             = coord;
     sc->eff.spawnArgHi        = 3;
@@ -4347,7 +4347,7 @@ static void func_actor_403200_80134D40(Task* arg0)
         work->field_E96 = 0xE74;
     }
 
-    SCRATCH_PUSH_BYTES(0xC);
+    SCRATCH_STACK_RESERVE_BYTES(0xC);
     func_actor_403200_80133DD8(arg0);
 
     frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
@@ -6228,7 +6228,7 @@ static void func_actor_403200_80139A60(Task* arg0)
     cfg   = &Player_Status;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor403200Work*)arg0->work;
-    sc    = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc    = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
     i     = 0;
@@ -6396,7 +6396,7 @@ static void func_actor_403200_80139E94(Task* arg0)
     cfg  = &Player_Status;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
@@ -6603,7 +6603,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     cfg  = &Player_Status;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
@@ -6823,7 +6823,7 @@ static void func_actor_403200_8013AB70(Task* arg0)
     cfg  = &Player_Status;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
@@ -7078,7 +7078,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     s16                     state;
     s16                     ang;
 
-    sc   = (Actor403200TurnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200TurnScratch));
+    sc   = (Actor403200TurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200TurnScratch));
     work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
         work->field_F1D        = 2;
@@ -7214,7 +7214,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     task  = gameGetPtrSlot(3);
     cfg   = &Player_Status;
-    sc    = (Actor403200DragScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200DragScratch));
+    sc    = (Actor403200DragScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200DragScratch));
 
     if (work->field_4 != 0) {
         work->field_F1D        = 3;
@@ -7604,7 +7604,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         return;
     }
 
-    SCRATCH_PUSH_BYTES(0x3C);
+    SCRATCH_STACK_RESERVE_BYTES(0x3C);
     func_actor_403200_80133DD8(arg0);
     if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && (work->field_7B3 == 0xF)) {
         work->field_7B0 = 2;
@@ -7736,7 +7736,7 @@ static void func_actor_403200_8013D028(Task* arg0)
     work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     task  = gameGetPtrSlot(3);
-    SCRATCH_PUSH_BYTES(0x30);
+    SCRATCH_STACK_RESERVE_BYTES(0x30);
 
     if (work->field_4 != 0) {
         work->field_F1D        = 0xB;
@@ -8447,7 +8447,7 @@ static void func_actor_403200_8013E9C0(Task* arg0)
         SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200009, 1);
         return;
     }
-    SCRATCH_PUSH_BYTES(0xC);
+    SCRATCH_STACK_RESERVE_BYTES(0xC);
     func_actor_403200_80133DD8(arg0);
     if (D_actor_403200_80141C58 >= 0x191) {
         D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
@@ -8518,7 +8518,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
         D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
         work->field_7A4         = 0;
     }
-    sc = (Actor403200ApproachScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200ApproachScratch));
+    sc = (Actor403200ApproachScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200ApproachScratch));
     func_actor_403200_80133DD8(arg0);
 
     coord    = arg0->extra.tmd->coords;
@@ -8653,7 +8653,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     work = (Actor403200Work*)arg0->work;
     host = arg0->spawnArg2.pointer;
     if (D_actor_403200_80141C50 != 1) {
-        sc = (Actor403200SpawnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200SpawnScratch));
+        sc = (Actor403200SpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200SpawnScratch));
         if (work->field_4 != 0) {
             state           = work->field_7B3;
             work->field_EF4 = 0;
@@ -9119,7 +9119,7 @@ clear_and_return:
     return;
 after_mode:
 
-    scratch = (Actor403200TickScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200TickScratch));
+    scratch = (Actor403200TickScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200TickScratch));
 
     if (arg0->hp > 0) {
         if (work->field_EC8 != 1 && work->field_0 != 0xD) {

@@ -259,7 +259,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
 
     swinging = 0;
     actor    = arg0->work;
-    SCRATCH_PUSH_BYTES(0x18);
+    SCRATCH_STACK_RESERVE_BYTES(0x18);
     swing = SCRATCH_STACK_CURSOR(TonfaSwing);
     switch (actor->field_95E) {
         case 0:

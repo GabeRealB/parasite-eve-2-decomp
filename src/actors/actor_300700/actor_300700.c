@@ -480,7 +480,7 @@ static void func_actor_300700_8016252C(Task* arg0)
     s32              direction2;
     s32              product;
 
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work = arg0->work;
     if (++work->field_2E0 >= 16) {
         work->field_2E0 = 0;
@@ -536,7 +536,7 @@ static void func_actor_300700_801626C0(Task* arg0)
     s16               turn;
     s16               wrap;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_2E6) {
@@ -771,7 +771,7 @@ static void func_actor_300700_80162EFC(Task* arg0)
     POLY_FT4*         prim;
     ActorSpriteUv*    uv;
     obj         = arg0->extra.tmd;
-    sc          = (ActorQuadScratch*)SCRATCH_PUSH_BYTES(0x28);
+    sc          = (ActorQuadScratch*)SCRATCH_STACK_RESERVE_BYTES(0x28);
     coord       = obj->coords;
     work        = arg0->work;
     sc->v[0].vx = coord->workm.t[0];

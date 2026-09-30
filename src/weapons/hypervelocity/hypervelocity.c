@@ -975,7 +975,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
     extra->colorMtx     = playerExtra->colorMtx;
     extra->lightMtx     = playerExtra->lightMtx;
 
-    SCRATCH_PUSH_BYTES(0x10);
+    SCRATCH_STACK_RESERVE_BYTES(0x10);
     switch (arg0->spawnArg1.value & 0xF) {
         case 0:
             if (*(u32*)&((GameActor*)work->work)->field_954 != 0x40000) {

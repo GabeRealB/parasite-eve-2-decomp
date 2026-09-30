@@ -432,7 +432,7 @@ static void func_actor_205200_8014BD4C(Task* arg0)
     found = 0;
     work  = arg0->work;
     last  = 0;
-    SCRATCH_PUSH_BYTES(0x10);
+    SCRATCH_STACK_RESERVE_BYTES(0x10);
     if (work->field_57C != 0) {
         if (--work->field_57C <= 0) {
             work->field_57C = 0;

@@ -98,7 +98,7 @@ static void func_p229_8011DDA0(Task* arg0)
     /* The push must stay *after* the three loads above, or the `lui`/`ori`
        of the scratch-head address wins the ready list and reschedules the
        entry. */
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:

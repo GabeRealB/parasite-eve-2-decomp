@@ -1783,7 +1783,7 @@ void Actor05700_Fn01E28(Task* arg0)
     Actor105600Work* work;
     GfxCoord*        coord;
 
-    delta = (VECTOR*)SCRATCH_PUSH_BYTES(0x20);
+    delta = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x20);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_6A8) {
@@ -2000,7 +2000,7 @@ static void Actor05700_Fn02554(Task* arg0)
     Actor105600Work*       work;
     GfxCoord*              self;
 
-    scratch              = (Actor105600AimScratch*)SCRATCH_PUSH_BYTES(0x40);
+    scratch              = (Actor105600AimScratch*)SCRATCH_STACK_RESERVE_BYTES(0x40);
     self                 = arg0->extra.tmd->coords;
     work                 = arg0->work;
     self[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2091,7 +2091,7 @@ static void Actor05700_Fn0295C(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
     s32                     j;
     s32                     depth;
 
-    s          = (Actor105600BeamScratch*)SCRATCH_PUSH_BYTES(0x48);
+    s          = (Actor105600BeamScratch*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     self       = arg0->extra.tmd->coords;
     s->step.vx = (arg1->vx - arg2->vx) / 8;
     s->step.vy = (arg1->vy - arg2->vy) / 8;
@@ -2208,7 +2208,7 @@ static void Actor05700_Fn031BC(Enemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (Actor105600PlaceScratch*)SCRATCH_PUSH_BYTES(0x38);
+    scratch       = (Actor105600PlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x38);
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
@@ -2347,7 +2347,7 @@ static void Actor05700_Fn035FC(Enemy* arg0, Task* arg1)
     coord->coord.t[1]  += (coord->coord.m[1][1] * 75) >> 11;
     coord->coord.t[2]  += (coord->coord.m[2][1] * 75) >> 11;
 
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(0x28);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x28);
     if (++work->field_E8 >= 4) {
         scratch->vx = 0;
         scratch->vy = 0x64;
@@ -2395,7 +2395,7 @@ void Actor05700_Fn03930(Task* arg0)
     s32              sound;
     u32              random;
 
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work    = arg0->work;
     self    = arg0->extra.tmd->coords;
     switch (work->field_6A8) {

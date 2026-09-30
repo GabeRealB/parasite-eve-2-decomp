@@ -1635,7 +1635,7 @@ void Gp_EffTileTaskA4(Task* arg0)
     s16               c;
 
     coord = arg0->extra.coordBody->coord;
-    SCRATCH_PUSH_BYTES(0x14);
+    SCRATCH_STACK_RESERVE_BYTES(0x14);
     block = SCRATCH_STACK_CURSOR(GpEffTileScratch);
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
@@ -2617,7 +2617,7 @@ void Gp_EffLineTask92(Task* arg0)
     s32               one;
     s16               val;
 
-    SCRATCH_PUSH_BYTES(0x20);
+    SCRATCH_STACK_RESERVE_BYTES(0x20);
     coord = arg0->extra.coordBody->coord;
     block = SCRATCH_STACK_CURSOR(GpEffLineScratch);
     mem   = arg0->spawnArg2.pointer;

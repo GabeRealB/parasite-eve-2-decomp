@@ -838,7 +838,7 @@ static void func_actor_123200_80133820(Enemy* enemy, Task* task)
         return;
     }
     work->field_6++;
-    SCRATCH_PUSH_BYTES(0xC);
+    SCRATCH_STACK_RESERVE_BYTES(0xC);
     coord = task->extra.tmd->coords;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         Actor123200_StepForward(coord);

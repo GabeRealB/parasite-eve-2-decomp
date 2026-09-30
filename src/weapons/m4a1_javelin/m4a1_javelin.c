@@ -806,7 +806,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
     s32        tick;
     u16        count;
 
-    SCRATCH_PUSH_BYTES(0x58);
+    SCRATCH_STACK_RESERVE_BYTES(0x58);
     coord        = arg0->extra.tmd->coords;
     actor        = arg0->work;
     spot         = SCRATCH_STACK_CURSOR(GfxCoord);

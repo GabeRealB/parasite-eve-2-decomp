@@ -1143,7 +1143,7 @@ static void Actor02500_Fn012F0(Task* actor)
     coord   = actor->extra.tmd->coords;
     obj     = actor->extra.tmd;
     work    = actor->work;
-    scratch = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    scratch = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     switch (work->field_324) {
         case 0:
             obj->flags                                                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1245,7 +1245,7 @@ static void Actor02500_Fn016FC(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

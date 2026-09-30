@@ -921,7 +921,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
         return NULL;
     }
 
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     world = &gGfxViewCoord;
     body  = arg0->extra.coordBody;
     dest  = body->coord;

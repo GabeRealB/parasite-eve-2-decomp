@@ -1571,7 +1571,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
     }
     work->field_0 = 0xC;
     head          = SCRATCH_STACK_CURSOR(Actor104000AimScratch);
-    sc            = (Actor104000AimScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor104000AimScratch));
+    sc            = (Actor104000AimScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor104000AimScratch));
     pos           = arg1->extra.tmd->coords;
     head[-1].d.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
     sc->d.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
@@ -1875,7 +1875,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
+    sc   = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
     animDriverTick(arg1);
     pos               = arg1->extra.tmd->coords;
     head[-1].delta.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
@@ -2169,7 +2169,7 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     s32              mag;
     GfxCoord*        coord;
 
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(sizeof(SVECTOR));
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(sizeof(SVECTOR));
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
@@ -2252,7 +2252,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
     s16                    i;
 
     work = arg1->work;
-    sc   = (ActorHitTakenScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorHitTakenScratch));
+    sc   = (ActorHitTakenScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorHitTakenScratch));
     pos  = &sc->pos;
     recs = work->hits;
     i    = 0;
@@ -2346,7 +2346,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
         return;
     }
     head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    sc                = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
+    sc                = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
     head[-1].delta.vx = work->patrol[work->patrolIdx].vx - arg1->extra.tmd->coords->coord.t[0];
     sc->delta.vy      = 0;
     sc->delta.vz      = work->patrol[work->patrolIdx].vz - arg1->extra.tmd->coords->coord.t[2];
@@ -2428,7 +2428,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
+    sc   = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
     animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->origin.vx - arg1->extra.tmd->coords->coord.t[0];

@@ -1868,7 +1868,7 @@ static void Actor02000_Fn0150C(Task* arg0)
     s32              next;
     s32              wrapStep;
 
-    rot   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    rot   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -2037,7 +2037,7 @@ static void Actor02000_Fn01A20(Enemy* ctx, Task* actor)
 
     work    = actor->work;
     coord   = actor->extra.tmd->coords;
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     switch (Gp_StateF0.field_4) {
         case 0:
             actor->extra.tmd->flags     = 0;

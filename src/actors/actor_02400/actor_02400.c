@@ -428,7 +428,7 @@ static void Actor02400_Fn00C08(Task* task)
     push    = 0;
     lastId  = 0;
     work    = task->work;
-    scratch = (ActorPushFrame*)SCRATCH_PUSH_BYTES(0x58);
+    scratch = (ActorPushFrame*)SCRATCH_STACK_RESERVE_BYTES(0x58);
     coord   = task->extra.tmd->coords;
     enemy   = task->spawnArg2.pointer;
     res     = func_800E0C10(work->rec60, &scratch->delta, 4, NULL);
@@ -1061,7 +1061,7 @@ static void Actor02400_Fn02264(Task* task)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = task->extra.tmd->coords;
     work  = task->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

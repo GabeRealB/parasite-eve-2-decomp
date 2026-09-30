@@ -307,7 +307,7 @@ void Gp_UpdateRoomCoords(Task* task)
         return;
     }
 
-    vec = SCRATCH_PUSH_BYTES(0x1C);
+    vec = SCRATCH_STACK_RESERVE_BYTES(0x1C);
     if (task->state == 0) {
         point = set->arr60;
         for (i = 0; i < set->n60; i++, point++) {
@@ -585,7 +585,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     arg1->field_4 = 0;
     arg1->light   = NULL;
     if (set != NULL) {
-        SCRATCH_PUSH_BYTES(0x10);
+        SCRATCH_STACK_RESERVE_BYTES(0x10);
         delta = SCRATCH_STACK_CURSOR(VECTOR);
         if (set->n60 > 0) {
             point = set->arr60;

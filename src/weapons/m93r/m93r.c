@@ -42,7 +42,7 @@ static void func_m93r_8011D1C4(Task* arg0)
        delay slot, as the ROM does; case 3 reads it twice. */
     s32 lockedOut;
 
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot      = SCRATCH_STACK_CURSOR(GfxCoord);
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;

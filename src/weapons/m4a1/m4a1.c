@@ -37,7 +37,7 @@ static void func_m4a1_8011D1C4(Task* arg0)
        the `field_97F == 1` compare below. */
     s16 shots;
 
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;

@@ -1921,7 +1921,7 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
     s32              mag;
     Actor401000Work* work;
 
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {

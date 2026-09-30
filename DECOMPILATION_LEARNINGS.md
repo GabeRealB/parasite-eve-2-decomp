@@ -113070,7 +113070,7 @@ turn = (ActorTurnScratch*)(*(u32*)SCRATCH_STACK_CURSOR_SLOT -= 0xC);
 The store the expression performs *is* the reservation, so no separate
 `*(T**)SCRATCH_STACK_CURSOR_SLOT = turn;` statement may follow. `SCRATCH_STACK_CURSOR_SLOT` is
 `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` to update its 32-bit address in bytes, or to `T**` to step the stored pointer by `sizeof(T)` per element.
-`func_actor_401300_80134BA4` uses byte steps through `sc = (SVECTOR*)SCRATCH_PUSH_BYTES(8);`.
+`func_actor_401300_80134BA4` uses byte steps through `sc = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);`.
 Writing the head into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
 collapse to the single `addiu` and lose the copy. Same family as "Combined
 `*scratch = tmp` assignment keeps the add in `$v0` without a pin" above: one

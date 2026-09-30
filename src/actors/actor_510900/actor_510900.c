@@ -1891,7 +1891,7 @@ void func_actor_510900_80134284(Task* arg0)
     s16                      val;
     s16                      count;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor510900TrailScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor510900TrailScratch));
     block = SCRATCH_STACK_CURSOR(Actor510900TrailScratch);
     eff   = arg0->spawnArg2.pointer;
     mode  = gRoomEffectState->effectControl;

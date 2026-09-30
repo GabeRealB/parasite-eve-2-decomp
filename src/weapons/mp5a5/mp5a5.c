@@ -100,7 +100,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
     GpEffWork*             eff;
     s32                    anim;
 
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;

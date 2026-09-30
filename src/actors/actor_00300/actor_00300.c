@@ -1865,7 +1865,7 @@ static void Actor00300_Fn01D60(Task* arg0)
     ActorFaceScratch* sc;
     s32               random;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (((Enemy*)arg0->spawnArg2.pointer)->hp * 100 / (s32)Actor00300_D15FE8.hpMax < 50 &&
@@ -2499,7 +2499,7 @@ static void Actor00300_Fn032BC(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -3074,7 +3074,7 @@ static void Actor00300_Fn04528(Task* arg0)
     s16               wrap;
 
     coord        = arg0->extra.tmd->coords;
-    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];

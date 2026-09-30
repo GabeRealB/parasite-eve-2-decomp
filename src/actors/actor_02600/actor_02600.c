@@ -1668,7 +1668,7 @@ static void Actor02600_Fn02214(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

@@ -867,7 +867,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
     push    = 0;
     broke   = 0;
     work    = (Actor103700Work*)task->work;
-    scratch = (ActorPushFrame*)SCRATCH_PUSH_BYTES(0x58);
+    scratch = (ActorPushFrame*)SCRATCH_STACK_RESERVE_BYTES(0x58);
     coord   = task->extra.tmd->coords;
     res     = func_800E0C10(work->records, &scratch->delta, 4, NULL);
     if (res == 1)
@@ -1640,7 +1640,7 @@ static void Actor03700_Fn01F48(Task* task)
 
     coord           = task->extra.tmd->coords;
     work            = (Actor103700Work*)task->work;
-    rot             = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    rot             = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     rot->vx         = work->field_23C.vx - coord->coord.t[0];
     rot->vy         = 0;
     rot->vz         = work->field_23C.vz - coord->coord.t[2];
@@ -1934,7 +1934,7 @@ static void Actor03700_Fn027DC(Task* task)
     GfxCoord*                coord;
     s32                      d;
 
-    s     = (Actor103700SteerScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor103700SteerScratch));
+    s     = (Actor103700SteerScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor103700SteerScratch));
     work  = (Actor103700Work*)task->work;
     coord = task->extra.tmd->coords;
     switch (work->field_250) {

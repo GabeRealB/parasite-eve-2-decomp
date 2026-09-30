@@ -552,7 +552,7 @@ void Title_EnqueueDemoScene(s32 arg0)
     u8  param2[4];
     u8* param1;
 
-    param1                 = SCRATCH_PUSH_BYTES(8);
+    param1                 = SCRATCH_STACK_RESERVE_BYTES(8);
     gGameSession->field_80 = 0;
     param1[3]              = 0;
     param1[2]              = 0x50;

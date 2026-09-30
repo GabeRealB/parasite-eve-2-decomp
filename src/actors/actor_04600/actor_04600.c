@@ -715,7 +715,7 @@ static void Actor04600_Fn005B0(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     work  = (Actor104600Work*)arg0->work;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     if (Gp_CountRec18Hi(&work->rec11C, 0x10000) != 0) {
         work->field_2D8 = 1;
     }
@@ -848,7 +848,7 @@ static void Actor04600_Fn00978(Task* arg0)
     s32                    i;
 
     work     = (Actor104600Work*)arg0->work;
-    scratch  = (ActorContactFrame*)SCRATCH_PUSH_BYTES(0x4C);
+    scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
     movement = func_800E0C10(work->rec154, &scratch->delta, 4, &scratch->result);
@@ -1021,7 +1021,7 @@ static void Actor04600_Fn00FD8(Task* arg0)
 
     coord        = arg0->extra.tmd->coords;
     work         = (Actor104600Work*)arg0->work;
-    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
@@ -1390,7 +1390,7 @@ static void Actor04600_Fn01E0C(Task* arg0)
     s32                movement;
 
     work     = (Actor104600Work*)arg0->work;
-    scratch  = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
+    scratch  = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(&work->rec154[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -1701,7 +1701,7 @@ static void Actor04600_Fn028E0(Task* task)
     VECTOR3*  vec;
 
     coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
+    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
@@ -1976,7 +1976,7 @@ static void Actor04600_Fn030A8(Task* arg0)
     Enemy*                 ctx;
 
     work = (Actor104600Enemy2Work*)arg0->work;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     obj = arg0->extra.tmd->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
         Gp_StateF0.prefix.bytes.field_3 = 1;

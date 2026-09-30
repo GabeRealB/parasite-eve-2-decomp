@@ -1867,7 +1867,7 @@ static void func_actor_402200_8013314C(Task* arg0)
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     player = gameGetPtrSlot(3);
-    SCRATCH_PUSH_BYTES(sizeof(Actor402200GrabScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200GrabScratch));
     sc     = SCRATCH_STACK_CURSOR(Actor402200GrabScratch);
     pcoord = player->extra.tmd->coords;
     flag   = 0;
@@ -2127,7 +2127,7 @@ static void func_actor_402200_80133AEC(Task* arg0)
     s16                       part;
     s16                       timer;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200OffsetScratch));
     sc    = SCRATCH_STACK_CURSOR(Actor402200OffsetScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -2476,7 +2476,7 @@ static void func_actor_402200_801347F4(Task* arg0)
     u32              random;
     s16              timer;
 
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;
     state = work->field_6CE;
     coord = arg0->extra.tmd->coords;
@@ -2534,7 +2534,7 @@ static void func_actor_402200_80134968(Task* arg0)
     u32              random;
     s16              t;
 
-    sc    = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc    = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;
     obj   = arg0->extra.tmd;
     coord = obj->coords;

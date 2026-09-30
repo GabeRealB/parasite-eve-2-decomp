@@ -3646,7 +3646,7 @@ static void func_actor_444000_8013441C(Task* arg0)
 /// scratchpad stack for the duration of the call.
 static void func_actor_444000_80134688(GfxCoord* coord, s32 id)
 {
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
+    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200EffScratch));
 
     sc->eff.spawnArgLo = 0x500;
     sc->eff.coord      = coord;
@@ -3754,7 +3754,7 @@ static void func_actor_444000_8013482C(Task* task)
     s32                    frame;
 
     head = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_PUSH_BYTES(sizeof(Actor444000RunScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000RunScratch));
     sc = SCRATCH_STACK_CURSOR(Actor444000RunScratch);
 
     work  = task->work;
@@ -6435,7 +6435,7 @@ static void func_actor_444000_8013C060(Task* task)
     cfg   = &Player_Status;
     enemy = task->spawnArg2.pointer;
     work  = task->work;
-    sc    = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc    = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
     i     = 0;
@@ -6571,7 +6571,7 @@ static void func_actor_444000_8013C4B0(Task* task)
     cfg  = &Player_Status;
     host = task->spawnArg2.pointer;
     work = task->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
@@ -6754,7 +6754,7 @@ static void func_actor_444000_8013CA60(Task* task)
     cfg  = &Player_Status;
     host = task->spawnArg2.pointer;
     work = task->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
@@ -6957,7 +6957,7 @@ static void func_actor_444000_8013D128(Task* task)
     cfg  = &Player_Status;
     host = task->spawnArg2.pointer;
     work = task->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
@@ -7312,7 +7312,7 @@ static void func_actor_444000_8013E058(Task* task)
     s16                     dz;
 
     slot3 = gameGetPtrSlot(3);
-    sc    = (Actor444000DragScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor444000DragScratch));
+    sc    = (Actor444000DragScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000DragScratch));
     actor = slot3->work;
 
     if (work->field_4 != 0) {
@@ -7684,7 +7684,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
     cfg    = &Player_Status;
 
     if (work->field_4 != 0) {
-        sc = (Actor444000WarpScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor444000WarpScratch));
+        sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
 
         verts        = Gp_GridParams->field_8;
         verts[24].vy = 0x1F4;
@@ -7765,7 +7765,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         D_actor_444000_80161888.value.command           = 3;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
     } else {
-        sc = (Actor444000WarpScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor444000WarpScratch));
+        sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
         func_actor_444000_8013441C(arg0);
 
         if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && work->field_7B3 == 0xF) {
@@ -7906,7 +7906,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
     player = gameGetPtrSlot(3);
-    SCRATCH_PUSH_BYTES(0x30);
+    SCRATCH_STACK_RESERVE_BYTES(0x30);
 
     if (work->field_4 != 0) {
         work->field_F1D        = 0xB;
@@ -8436,7 +8436,7 @@ static void func_actor_444000_8014105C(Task* arg0)
         SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
         return;
     }
-    SCRATCH_PUSH_BYTES(0xC);
+    SCRATCH_STACK_RESERVE_BYTES(0xC);
     if (D_actor_444000_80144A70 >= 0x191) {
         work->field_7A4         = 0;
         D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
@@ -8568,7 +8568,7 @@ static void func_actor_444000_801411C8(Task* arg0)
         return;
     }
 
-    sc           = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
+    sc           = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
     sc->delta.vx = player->extra.tmd->coords->coord.t[0] -
                    arg0->extra.tmd->coords->coord.t[0] - 0x51F;
     sc->delta.vy = player->extra.tmd->coords->coord.t[1] -
@@ -8627,7 +8627,7 @@ static void func_actor_444000_80141618(Task* task)
     s16                      angle;
     u32                      frame;
 
-    sc   = (Actor403200SpawnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200SpawnScratch));
+    sc   = (Actor403200SpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200SpawnScratch));
     work = task->work;
     host = task->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -9208,7 +9208,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             return;
     }
 
-    SCRATCH_PUSH_BYTES(0x1C);
+    SCRATCH_STACK_RESERVE_BYTES(0x1C);
 
     if (enemy->hp > 0) {
         if (work->field_EC8 != 1 && cfg->hp > 0 && work->field_0 != 0xD) {

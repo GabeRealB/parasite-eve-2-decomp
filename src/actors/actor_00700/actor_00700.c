@@ -1126,7 +1126,7 @@ static void Actor00700_Fn00BC0(Task* arg0)
     s32             snd;
 
     one   = 1;
-    vec   = (VECTOR*)SCRATCH_PUSH_BYTES(0x10);
+    vec   = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x10);
     work  = arg0->work;
     obj   = arg0->extra.tmd;
     state = work->field_37C;
@@ -1393,7 +1393,7 @@ static void Actor00700_Fn012E4(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -2087,7 +2087,7 @@ static void Actor00700_Fn0268C(Task* arg0)
     s32             direction;
     s32             direction2;
     s32             product;
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work = arg0->work;
     if (++work->field_2E0 >= 16) {
         work->field_2E0 = 0;
@@ -2143,7 +2143,7 @@ static void Actor00700_Fn02820(Task* arg0)
     s16               turn;
     s16               wrap;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_2E6) {
@@ -2378,7 +2378,7 @@ static void Actor00700_Fn0305C(Task* arg0)
     POLY_FT4*         prim;
     ActorSpriteUv*    uv;
     obj         = arg0->extra.tmd;
-    sc          = (ActorQuadScratch*)SCRATCH_PUSH_BYTES(0x28);
+    sc          = (ActorQuadScratch*)SCRATCH_STACK_RESERVE_BYTES(0x28);
     coord       = obj->coords;
     work        = arg0->work;
     sc->v[0].vx = coord->workm.t[0];

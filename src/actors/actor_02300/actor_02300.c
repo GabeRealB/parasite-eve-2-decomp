@@ -1934,7 +1934,7 @@ void Actor02300_Fn02518(Task* arg0)
     s32              sound;
     u32              random;
 
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work    = arg0->work;
     self    = arg0->extra.tmd->coords;
     switch (work->field_6A8) {

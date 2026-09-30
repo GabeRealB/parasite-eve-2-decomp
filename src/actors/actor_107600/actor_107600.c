@@ -1381,7 +1381,7 @@ static void func_actor_107600_80133024(Task* arg0)
     coord = ext->coords;
     obj   = ext;
     sp    = D_actor_107600_80131E84;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     v = SCRATCH_STACK_CURSOR(SVECTOR);
     switch (Gp_StateF0.field_4) {
         case 0:
@@ -1779,7 +1779,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
 
     work  = (Actor107600Work*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work->field_156 = 0;
     if (Gp_FindRec18(work->obj.context.contacts, 0) != 0) {
         for (i = 0; i < 8; i++) {
@@ -1835,7 +1835,7 @@ static void func_actor_107600_80133FA8(GfxCoord* coord, SVECTOR* pos)
     POLY_FT4*               p;
     s32                     i;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor107600QuadScratch));
     s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
@@ -1894,7 +1894,7 @@ static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
     POLY_FT4*               p;
     s32                     i;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor107600QuadScratch));
     s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);

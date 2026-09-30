@@ -783,7 +783,7 @@ static void func_actor_510900_80135744(Task* arg0)
     s32              pan;
     s16              wait;
 
-    SCRATCH_PUSH_BYTES(sizeof(VECTOR));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(VECTOR));
     d        = SCRATCH_STACK_CURSOR(VECTOR);
     coord    = arg0->extra.tmd->coords;
     work     = arg0->work;
@@ -1790,7 +1790,7 @@ static void func_actor_510900_80137868(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
 
-    SCRATCH_PUSH_BYTES(0x10);
+    SCRATCH_STACK_RESERVE_BYTES(0x10);
 
     switch (work->field_590) {
         case 0:
@@ -2355,7 +2355,7 @@ static void func_actor_510900_80138BF0(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     head  = &coord[4];
-    SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorAimScratch));
     scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
     Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
@@ -2466,7 +2466,7 @@ static void func_actor_510900_80138F44(Task* arg0)
     SVECTOR*                corners;
     s32                     i;
 
-    scratch = (Actor510900GridScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor510900GridScratch));
+    scratch = (Actor510900GridScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor510900GridScratch));
     coord   = arg0->extra.tmd->coords;
     normals = Gp_GridParams->field_4;
     corners = Gp_GridParams->field_8;
@@ -2683,7 +2683,7 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    SCRATCH_PUSH_BYTES(0x20);
+    SCRATCH_STACK_RESERVE_BYTES(0x20);
     switch (work->field_586) {
         case 0x1C:
         case 0x1D:
@@ -2770,7 +2770,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (Actor105600PlaceScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor105600PlaceScratch));
+    scratch       = (Actor105600PlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor105600PlaceScratch));
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 

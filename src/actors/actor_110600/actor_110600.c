@@ -1692,7 +1692,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
             pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
         case 2:
-            SCRATCH_PUSH_BYTES(4);
+            SCRATCH_STACK_RESERVE_BYTES(4);
             walker->field_6F = func_actor_110600_801327EC(walker, 1);
             walker->field_70 = func_actor_110600_80132958(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
@@ -2813,7 +2813,7 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     SVECTOR* sc;
     s32      mag;
 
-    sc  = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc  = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag = (arg1 >= 0) ? arg1 : -arg1;
     if (mag < 0x200) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2911,7 +2911,7 @@ static void func_actor_110600_80136210(Task* arg0)
         work->field_A90.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
-    sc      = (Actor110600HitScratch*)SCRATCH_PUSH_BYTES(0x30);
+    sc      = (Actor110600HitScratch*)SCRATCH_STACK_RESERVE_BYTES(0x30);
     sc->key = Actor110600_FindHit(&sc->point, work->recs_8D8, 5);
     if (!sc->key) {
         sc->key = Actor110600_FindHit(&sc->point, work->recs_970, 12);

@@ -288,7 +288,7 @@ static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
 
     work  = (Actor110700Work*)task->work;
     coord = &task->extra.tmd->coords[1];
-    SCRATCH_PUSH_BYTES(0x10);
+    SCRATCH_STACK_RESERVE_BYTES(0x10);
     block = SCRATCH_STACK_CURSOR(VECTOR);
     if (work->animId != 0) {
         for (i = 1; i < 0x13; i++) {

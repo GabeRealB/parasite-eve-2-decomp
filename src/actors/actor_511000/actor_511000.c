@@ -3113,7 +3113,7 @@ static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
     s32                    flag;
 
     extra = task->extra.tmd;
-    SCRATCH_PUSH_BYTES(0x20);
+    SCRATCH_STACK_RESERVE_BYTES(0x20);
     work   = (Actor511000ParentWork*)task->work;
     coords = extra->coords;
     coord  = &coords[1];

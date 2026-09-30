@@ -1282,7 +1282,7 @@ static void Actor02100_Fn016EC(Task* arg0)
     s16             state;
     s16             frame;
 
-    SCRATCH_PUSH_BYTES(0x48);
+    SCRATCH_STACK_RESERVE_BYTES(0x48);
     work    = arg0->work;
     state   = work->field_174;
     coord   = arg0->extra.tmd->coords;

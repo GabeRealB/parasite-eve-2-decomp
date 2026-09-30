@@ -272,7 +272,7 @@ void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
     _GfxAxisRotationScratch* block;
     s16                      angle;
 
-    block = SCRATCH_PUSH_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
+    block = SCRATCH_STACK_RESERVE_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
 
     angle           = -ratan2(matrix->m[1][2], matrix->m[2][2]);
     vector->vx      = angle;

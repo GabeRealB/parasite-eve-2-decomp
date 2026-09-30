@@ -193,7 +193,7 @@ static void Reflection_UpdatePlayer(Task* task)
         work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_A0[2]        = -0x78;
         work->field_A0[3]        = 0x78;
-        plane                    = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
+        plane                    = (RoomMirrorPlaneScratch*)SCRATCH_STACK_RESERVE_BYTES(0x70);
         work->coord.parent       = viewParent;
         if (task->spawnArg1.value == 0) {
             work->field_4     = 1;
@@ -528,7 +528,7 @@ static void Reflection_UpdatePlayer(Task* task)
             }
         }
         if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)SCRATCH_PUSH_BYTES(0x34);
+            extent = (RoomMirrorExtentScratch*)SCRATCH_STACK_RESERVE_BYTES(0x34);
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);

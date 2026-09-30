@@ -1791,7 +1791,7 @@ static void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoi
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
+        s = (ActorBeamScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -4368,7 +4368,7 @@ static void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, 
     POLY_FT4*               poly;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    s                          = (Actor400600QuadScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor400600QuadScratch));
+    s                          = (Actor400600QuadScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor400600QuadScratch));
     Gp_UpdateCoord(&gGfxViewCoord);
     angle         = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
     halfX         = (arg0->vx - arg1->vx) / 2;

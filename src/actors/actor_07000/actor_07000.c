@@ -1425,7 +1425,7 @@ static void Actor07000_Fn00654(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     work  = (Actor107000Work*)arg0->work;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     if (Gp_CountRec18Hi(&work->field_11C, 0x10000) != 0) {
         work->field_2D8 = 1;
     }
@@ -1577,7 +1577,7 @@ static void Actor07000_Fn00A1C(Task* arg0)
 
     work     = (Actor107000Work*)arg0->work;
     coord    = arg0->extra.tmd->coords;
-    scratch  = (ActorContactFrame*)SCRATCH_PUSH_BYTES(0x4C);
+    scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
     enemy    = arg0->spawnArg2.pointer;
     movement = func_800E0C10(work->field_154, &scratch->delta, 4, &scratch->result);
     switch (movement) {
@@ -1786,7 +1786,7 @@ static void Actor07000_Fn0107C(Task* arg0)
 
     coord        = arg0->extra.tmd->coords;
     work         = (Actor107000Work*)arg0->work;
-    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
@@ -2175,7 +2175,7 @@ static void Actor07000_Fn01EB0(Task* arg0)
     s32                movement;
 
     work     = (Actor107000Work*)arg0->work;
-    scratch  = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
+    scratch  = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(&work->field_154[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -2479,7 +2479,7 @@ static void Actor07000_Fn02984(Task* task)
     VECTOR3*  vec;
 
     coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
+    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
@@ -3098,7 +3098,7 @@ static void Actor07000_Fn03E08(Task* arg0)
     ActorDeltaFrame38*     scratch;
 
     work     = arg0->work;
-    head     = SCRATCH_PUSH_BYTES(0x38);
+    head     = SCRATCH_STACK_RESERVE_BYTES(0x38);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
     scratch  = head;
@@ -3901,7 +3901,7 @@ static void Actor07000_Fn0595C(Task* arg0)
     s32                       movement;
 
     work     = (ActorsShared8013777cWork*)arg0->work;
-    scratch  = (ActorDeltaFrame38*)SCRATCH_PUSH_BYTES(0x38);
+    scratch  = (ActorDeltaFrame38*)SCRATCH_STACK_RESERVE_BYTES(0x38);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(&work->field_24C[0], &scratch->delta, 4, NULL);
     switch (movement) {

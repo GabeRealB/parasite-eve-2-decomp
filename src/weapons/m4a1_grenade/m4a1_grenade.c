@@ -83,7 +83,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
        caller-saved register and the copy into `spot` is a second read of
        `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     sfx  = slot->secondaryItemId - 0x9F;
     if (sfx < 0) {

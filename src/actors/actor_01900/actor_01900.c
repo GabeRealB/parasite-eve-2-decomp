@@ -1366,7 +1366,7 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     s32             absAng;
     Actor01900Work* work;
 
-    dir    = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    dir    = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     absAng = (yaw >= 0) ? yaw : -yaw;
     work   = arg0->work;
     if (absAng < 0x200) {

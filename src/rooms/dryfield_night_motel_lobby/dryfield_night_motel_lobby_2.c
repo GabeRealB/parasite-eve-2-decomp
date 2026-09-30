@@ -933,7 +933,7 @@ static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s3
     s32                blend;
     s16                xy;
 
-    block = SCRATCH_PUSH_BYTES(0x20);
+    block = SCRATCH_STACK_RESERVE_BYTES(0x20);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

@@ -3658,7 +3658,7 @@ void Actor01100_Fn06554(Task* task)
     sp      = Actor01100_D00004;
     enemy   = task->spawnArg2.pointer;
     work    = task->work;
-    scratch = (u8*)SCRATCH_PUSH_BYTES(0x68);
+    scratch = (u8*)SCRATCH_STACK_RESERVE_BYTES(0x68);
 
     scratch[0x64] = 0;
     sp.funcs[task->state](enemy, task, work, scratch);

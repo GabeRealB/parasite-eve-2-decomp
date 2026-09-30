@@ -605,7 +605,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:

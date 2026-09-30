@@ -1823,7 +1823,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
 
     lastId  = 0;
     work    = arg0->work;
-    scratch = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
+    scratch = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
     result  = func_800E0C10(work->rec49C, &scratch->delta, 5, NULL);
@@ -2117,7 +2117,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
 
     work   = arg0->work;
     player = gameGetPtrSlot(3);
-    msg    = (GpDelayArg*)SCRATCH_PUSH_BYTES(0x18);
+    msg    = (GpDelayArg*)SCRATCH_STACK_RESERVE_BYTES(0x18);
 
     diff  = work->field_698 - work->field_696;
     adiff = diff >= 0 ? diff : -diff;
@@ -2471,7 +2471,7 @@ static void func_actor_521100_801335B4(Task* arg0)
     s32              snd;
     s32              pair;
 
-    SCRATCH_PUSH_BYTES(0x18);
+    SCRATCH_STACK_RESERVE_BYTES(0x18);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
 
@@ -2587,7 +2587,7 @@ static void func_actor_521100_801339B0(Task* arg0)
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     player = gameGetPtrSlot(3);
-    SCRATCH_PUSH_BYTES(0x54);
+    SCRATCH_STACK_RESERVE_BYTES(0x54);
     sc = SCRATCH_STACK_CURSOR(Actor521100FireScratch);
 
     switch (work->field_6A0) {
@@ -3081,7 +3081,7 @@ static void func_actor_521100_80134C38(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -3192,7 +3192,7 @@ static void func_actor_521100_80134EDC(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     head  = &coord[4];
-    SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorAimScratch));
     scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
     Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);

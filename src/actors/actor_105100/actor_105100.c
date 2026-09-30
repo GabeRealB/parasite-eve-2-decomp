@@ -2443,7 +2443,7 @@ static void func_actor_105100_80135B40(Task* arg0)
     s32               next;
     s32               step;
 
-    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord        = arg0->extra.tmd->coords;
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;

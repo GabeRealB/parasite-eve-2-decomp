@@ -1822,7 +1822,7 @@ static void func_actor_401300_80133834(Task* arg0, s16 arg1)
 {
     SVECTOR* sc;
 
-    sc     = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc     = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     sc->vx = D_actor_401300_801589F8[1].vx +
              ((D_actor_401300_801589F8[0].vx - D_actor_401300_801589F8[1].vx) * (0x200 - arg1)) / 512;
     sc->vy = D_actor_401300_801589F8[1].vy +
@@ -2378,7 +2378,7 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
     s32              mag;
     Actor401300Work* work;
 
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {

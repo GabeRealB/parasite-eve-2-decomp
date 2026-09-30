@@ -67,7 +67,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
     s8  param2[4];
     u8* param1;
 
-    param1 = SCRATCH_PUSH_BYTES(8);
+    param1 = SCRATCH_STACK_RESERVE_BYTES(8);
 
     param1[2] = 2;
     param1[3] = 0;

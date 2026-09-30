@@ -336,7 +336,7 @@ static void func_actor_207200_8014A1C4(Task* arg0)
     Enemy*                   ctx;
 
     work = (ActorShared8014df20Work*)arg0->work;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     obj = arg0->extra.tmd->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
         Gp_StateF0.prefix.bytes.field_3 = 1;

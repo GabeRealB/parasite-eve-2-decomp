@@ -5254,7 +5254,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
         case 2:
-            SCRATCH_PUSH_BYTES(4);
+            SCRATCH_STACK_RESERVE_BYTES(4);
             walker->field_6F = func_acropolis_bridge_801843A0(walker, 1);
             walker->field_70 = func_acropolis_bridge_8018450C(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
@@ -6550,7 +6550,7 @@ hidden:
     return;
 
 body:
-    SCRATCH_PUSH_BYTES(0xC);
+    SCRATCH_STACK_RESERVE_BYTES(0xC);
     block = SCRATCH_STACK_CURSOR(AcropolisBridgeHitScratch);
     recs  = work->recs;
     i     = 0;

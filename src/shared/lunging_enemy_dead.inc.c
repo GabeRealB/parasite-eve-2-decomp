@@ -24,7 +24,7 @@ void lungerDeadState(Enemy* arg0, Task* arg1)
 
     work    = arg1->work;
     coord   = arg1->extra.tmd->coords;
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     switch (Gp_StateF0.field_4) {
         case 0:
             arg1->extra.tmd->flags       = 0;

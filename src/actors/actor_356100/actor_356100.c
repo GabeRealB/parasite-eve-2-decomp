@@ -2449,7 +2449,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
     }
     head                                        = SCRATCH_STACK_CURSOR(u8);
     ((ActorTurnScratch*)(head - 0xC))->delta.vx = work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0];
-    turn                                        = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(0xC);
+    turn                                        = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(0xC);
     turn->delta.vy                              = 0;
     turn->delta.vz                              = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
     if (!overlayOutOfRange(&turn->delta, 0xA0)) {

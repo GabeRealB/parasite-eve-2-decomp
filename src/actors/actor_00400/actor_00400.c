@@ -2564,7 +2564,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
     Actor100400TextQuadScratch* s;
     POLY_FT4*                   poly;
 
-    s                          = (Actor100400TextQuadScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor100400TextQuadScratch));
+    s                          = (Actor100400TextQuadScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor100400TextQuadScratch));
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

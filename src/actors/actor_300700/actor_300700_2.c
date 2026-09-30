@@ -731,7 +731,7 @@ static void func_actor_300700_80164070(Task* arg0)
     s32              snd;
 
     one   = 1;
-    vec   = (VECTOR*)SCRATCH_PUSH_BYTES(0x10);
+    vec   = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x10);
     work  = arg0->work;
     obj   = arg0->extra.tmd;
     state = work->field_37C;
@@ -991,7 +991,7 @@ static void func_actor_300700_80164794(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

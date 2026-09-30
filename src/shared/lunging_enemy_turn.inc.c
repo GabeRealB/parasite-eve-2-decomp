@@ -21,7 +21,7 @@ void lungerTurnTowardTarget(Task* arg0)
     s32              next;
     s32              wrapStep;
 
-    rot   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    rot   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

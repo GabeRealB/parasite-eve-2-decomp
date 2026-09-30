@@ -1287,7 +1287,7 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorsShared80163354Scratch*)SCRATCH_PUSH_BYTES(sizeof(ActorsShared80163354Scratch));
+        s = (ActorsShared80163354Scratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorsShared80163354Scratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -2061,7 +2061,7 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
     work    = (Actor104400Work*)arg0->work;
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work->field_41E = 0;
     for (i = 0; i < 8; i++) {
         switch (work->rec_2EC[i].key.value & 0xFFFF0000) {

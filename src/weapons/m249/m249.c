@@ -34,7 +34,7 @@ static void func_m249_8011D1DC(Task* arg0)
     M249Scratch* scratch;
     s32          anim;
 
-    SCRATCH_PUSH_BYTES(0x68);
+    SCRATCH_STACK_RESERVE_BYTES(0x68);
     scratch = SCRATCH_STACK_CURSOR(M249Scratch);
     actor   = arg0->work;
     coord   = arg0->extra.tmd->coords;

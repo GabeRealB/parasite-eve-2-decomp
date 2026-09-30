@@ -3422,7 +3422,7 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
     s32                      i;
     s32                      j;
 
-    s        = (Actor503500ChainScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor503500ChainScratch));
+    s        = (Actor503500ChainScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor503500ChainScratch));
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;

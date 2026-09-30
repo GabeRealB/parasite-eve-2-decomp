@@ -1210,7 +1210,7 @@ static void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
     s32             mag;
     GfxCoord*       coord;
 
-    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(sizeof(SVECTOR));
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(sizeof(SVECTOR));
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
@@ -1291,7 +1291,7 @@ static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
     s16                    i;
 
     work = arg1->work;
-    sc   = (ActorHitTakenScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorHitTakenScratch));
+    sc   = (ActorHitTakenScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorHitTakenScratch));
     pos  = &sc->pos;
     recs = work->jointContacts;
     i    = 0;

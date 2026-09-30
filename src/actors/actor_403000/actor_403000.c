@@ -3762,7 +3762,7 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
     POLY_FT4*                prim;
     SVECTOR*                 n;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor403000TrailScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403000TrailScratch));
     scratch = SCRATCH_STACK_CURSOR(Actor403000TrailScratch);
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
@@ -3889,7 +3889,7 @@ static void func_actor_403000_801330D4(GfxCoord* parent)
     SVECTOR*                 pos;
     s16                      i;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor403000TrailScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403000TrailScratch));
     scratch = SCRATCH_STACK_CURSOR(Actor403000TrailScratch);
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];

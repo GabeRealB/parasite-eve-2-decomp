@@ -2105,7 +2105,7 @@ void func_acropolis_patio_8017E730(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
-        sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
+        sc = (RoomMoteScratch*)SCRATCH_STACK_RESERVE_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;

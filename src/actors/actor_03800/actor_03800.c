@@ -1397,7 +1397,7 @@ static void Actor03800_Fn0166C(Task* arg0)
     s32                    pan;
     s32                    pan2;
 
-    scratch = (Actor03800MoveScratch*)SCRATCH_PUSH_BYTES(0x18);
+    scratch = (Actor03800MoveScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     work    = arg0->work;
     ctx     = arg0->spawnArg2.pointer;
     state   = work->field_354;
@@ -1750,7 +1750,7 @@ static void Actor03800_Fn021E4(Task* arg0)
     s32                    sound;
     s32                    pan;
 
-    scratch = (Actor03800TurnScratch*)SCRATCH_PUSH_BYTES(sizeof(*scratch));
+    scratch = (Actor03800TurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(*scratch));
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
     ctx     = arg0->spawnArg2.pointer;
@@ -1893,7 +1893,7 @@ static void Actor03800_Fn026F8(Task* arg0)
     s32              next;
     s32              wrapStep;
 
-    rot   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    rot   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
