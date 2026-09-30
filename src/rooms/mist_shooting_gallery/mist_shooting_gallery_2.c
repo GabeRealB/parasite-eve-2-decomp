@@ -2280,7 +2280,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
 
 /// Per-frame update for the gallery's bonus course. START (`0x100`) aborts the
 /// whole mini-game; otherwise the seventeen states run the banner countdown
-/// (`field_20` steps the sprite, `Mc_SaveData[0].state.buttonLayout` picks which variant), seed the
+/// (`field_20` steps the sprite, `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout` picks which variant), seed the
 /// course by spawning individual records of `D_mist_shooting_gallery_80186900[0]`
 /// on a timer, and finally enter the wave loop of state 15. State 16 is the
 /// out-of-ammo banner: it is entered from anywhere the moment the equipped
@@ -2306,7 +2306,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
     u8                        step;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = Mc_SaveData[0].state.buttonLayout;
+    bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
         func_8014A9A0();
         return;
@@ -2590,7 +2590,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// the countdown hold `gDisplayState.pendingMode`; states 4-5 wait on the player picking up
 /// item 0x40, states 6-8 count the banner up through `field_20` while
 /// `Gp_StateF0.field_4` holds, state 9 spawns the start jingle and state 10 is the
-/// wave loop over `D_mist_shooting_gallery_80186908`. `Mc_SaveData[0].state.buttonLayout` picks the
+/// wave loop over `D_mist_shooting_gallery_80186908`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
 static void func_mist_shooting_gallery_8018341C(Task* arg0)
 {
@@ -2604,7 +2604,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
     u8                        step;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = Mc_SaveData[0].state.buttonLayout;
+    bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
 
     switch (work->field_04) {
         case 0:
@@ -2784,7 +2784,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
     u8                        hold;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = Mc_SaveData[0].state.buttonLayout;
+    bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
 
     switch (work->field_04) {
         case 0:

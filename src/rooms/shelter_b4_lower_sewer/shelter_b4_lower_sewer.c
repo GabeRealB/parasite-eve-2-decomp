@@ -393,10 +393,10 @@ void func_shelter_b4_lower_sewer_8017E2D4(Task* task)
 }
 
 /// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `Mc_SaveData[0].state.companionType`, and advances to the next state.
+/// `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and advances to the next state.
 static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -406,11 +406,11 @@ static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 
 /// Drawing state of the water task: points the primitive cursor
 /// `D_shelter_b4_lower_sewer_80183E14` at `Fs_ActorLoadBase2` or `Fs_ActorLoadBase1`, chosen
-/// by `Mc_SaveData[0].state.companionType`, plus 0xC000 bytes per `gDisplayState.otBuffer`, then draws both sets
+/// by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, plus 0xC000 bytes per `gDisplayState.otBuffer`, then draws both sets
 /// of water surfaces.
 static void func_shelter_b4_lower_sewer_8017E37C(Task* task)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;

@@ -130,7 +130,7 @@ extern GpEvsCmd D_actor_303600_80162DD8[];
 
 /// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
 /// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.spriteVariant` is the
-/// latch state 2 below sets alongside `Mc_SaveData`.
+/// latch state 2 below sets alongside `gMcSaveData`.
 
 static void func_actor_303600_80162850(Task* task);
 static void func_actor_303600_80162950(Task* task);
@@ -16977,7 +16977,7 @@ static void func_actor_303600_80161F40(Task* arg0)
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
 /// the session's `eventState` to clear -- the cutscene having finished -- and then
-/// sets the saved location in `Mc_SaveData` to stage 5, area 0x1F, warp 1,
+/// sets the saved location in `gMcSaveData` to stage 5, area 0x1F, warp 1,
 /// room 1, raises the `gDisplayState.spriteVariant` latch, starts the stage-0 type-0x11 task and
 /// kills itself; while the cutscene is still up it steps the state machine
 /// instead.
@@ -17008,11 +17008,11 @@ void func_actor_303600_8016216C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].state.location.loc.stage = 5;
-                Mc_SaveData[0].state.location.loc.area  = 0x1F;
-                Mc_SaveData[0].state.location.loc.warp  = 1;
-                Mc_SaveData[0].state.location.loc.room  = 1;
-                gDisplayState.spriteVariant             = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1F;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+                gDisplayState.spriteVariant                                 = 1;
                 Task_Spawn(0, 0x11, 0x10, 0);
                 taskKill(arg0);
                 break;

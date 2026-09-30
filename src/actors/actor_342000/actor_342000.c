@@ -743,7 +743,7 @@ void func_actor_342000_801628C8(Task* arg0)
 }
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
-/// base weapon id, `Mc_SaveData[0].state.characterId` selects the alternate animation block.
+/// base weapon id, `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the alternate animation block.
 
 /// Per-tick sequence driver of the event task: raises 0x3ED on `field_48`,
 /// then runs the one-shot step latched in `field_68` (warps, animation
@@ -816,7 +816,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             s32 anim;
 
             weaponId                 = Player_Status.weapon;
-            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 1;
             msg.blend                = ANIMATION_BLEND_RESET;
@@ -838,7 +838,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             s32 anim;
 
             weaponId                 = Player_Status.weapon;
-            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 1;
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -998,8 +998,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 0:
             break;
         case 4:
-            Mc_SaveData[0].state.location.loc.view = 8;
-            work->field_64                         = Task_Spawn(1, 0x2D, 0x10, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+            work->field_64                                             = Task_Spawn(1, 0x2D, 0x10, 0);
             break;
         case 5:
             if (work->field_64 != NULL) {
@@ -1025,7 +1025,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
             return;
         case 7:
-            Mc_SaveData[0].state.location.loc.view = work->field_78;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_78;
             break;
         case 8:
             switch ((u16)work->field_72) {
@@ -1100,11 +1100,11 @@ static inline void Actor342000_SetMode(s16 arg0)
 
 static inline void Actor342000_EnterArea(void)
 {
-    gGameSession->location.loc.room        = 7;
-    Mc_SaveData[0].state.location.loc.room = 7;
-    gGameSession->eventRoomIndex           = 6;
-    gGameSession->incineratorRoomGroup     = 1;
-    gGameSession->roomObjsDirty            = 1;
+    gGameSession->location.loc.room                            = 7;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 7;
+    gGameSession->eventRoomIndex                               = 6;
+    gGameSession->incineratorRoomGroup                         = 1;
+    gGameSession->roomObjsDirty                                = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1113,7 +1113,7 @@ static inline void Actor342000_EnterArea(void)
 /// actors (a spawn with `GameSession::skipEventIntro` set skips to state 4);
 /// states 1..10 spawn the script tasks, seed the placements and run the timed
 /// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
-/// state 7's `Mc_SaveData[0].state.location.loc.view` store ahead of the state load, as in retail.
+/// state 7's `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store ahead of the state load, as in retail.
 void func_actor_342000_8016382C(Task* arg0)
 {
     ActorCommand          msg;
@@ -1215,13 +1215,13 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 2) {
-                Mc_SaveData[0].state.location.loc.view = 0x21;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x21;
                 goto next;
             }
             break;
         case 7:
-            Mc_SaveData[0].state.location.loc.view = 0x21;
-            arg0->killCountdown                    = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x21;
+            arg0->killCountdown                                        = 0;
             arg0->state++;
             break;
         case 8:
@@ -1348,11 +1348,11 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, Act
 
 void func_actor_342000_80164154(void)
 {
-    gGameSession->location.loc.room        = 7;
-    Mc_SaveData[0].state.location.loc.room = 7;
-    gGameSession->eventRoomIndex           = 6;
-    gGameSession->incineratorRoomGroup     = 1;
-    gGameSession->roomObjsDirty            = 1;
+    gGameSession->location.loc.room                            = 7;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 7;
+    gGameSession->eventRoomIndex                               = 6;
+    gGameSession->incineratorRoomGroup                         = 1;
+    gGameSession->roomObjsDirty                                = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1417,14 +1417,14 @@ void func_actor_342000_801642F4(void)
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_7C == 0) {
-        Gp_StateF0.field_6              = 0;
-        Gp_StateF0.prefix.bytes.field_1 = 0xF;
-        Gp_StateF0.prefix.bytes.field_0 = 0;
-        Gp_StateF0.prefix.bytes.field_2 = 0;
-        Gp_StateF0.prefix.bytes.field_3 = 0;
-        gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        Mc_SaveData[0].state.sceneEvent = 0xD;
-        work->field_7C                  = 1;
+        Gp_StateF0.field_6                                  = 0;
+        Gp_StateF0.prefix.bytes.field_1                     = 0xF;
+        Gp_StateF0.prefix.bytes.field_0                     = 0;
+        Gp_StateF0.prefix.bytes.field_2                     = 0;
+        Gp_StateF0.prefix.bytes.field_3                     = 0;
+        gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
+        work->field_7C                                      = 1;
     }
 }
 
@@ -1452,7 +1452,7 @@ void func_actor_342000_8016439C(void)
     Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
     func_shelter_b3_garbage_incinerator_8018507C();
     weaponId                 = Player_Status.weapon;
-    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 1;
     msg.blend                = ANIMATION_BLEND_RESET;

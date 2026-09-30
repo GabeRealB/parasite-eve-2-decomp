@@ -1590,7 +1590,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     arg0->msgTable = D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
-        if (Mc_SaveData[0].state.location.loc.room == 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
@@ -1725,10 +1725,10 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 return;
             }
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 4;
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.warp = D_acropolis_patio_80187064;
-            Mc_SaveData[0].state.location.loc.room = D_acropolis_patio_80187065;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 4;
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
         kill:
             taskKill(task);
@@ -1743,8 +1743,8 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
-        Mc_SaveData[0].state.sceneEvent = 3;
-        gGameSession->flowFlags         = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
+        gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
@@ -1854,8 +1854,8 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 
 void func_acropolis_patio_8017DF48(void)
 {
-    gGameSession->location.loc.room = Mc_SaveData[0].state.location.loc.room = 2;
-    gGameSession->roomObjsDirty                                              = 1;
+    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+    gGameSession->roomObjsDirty                                                                  = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {

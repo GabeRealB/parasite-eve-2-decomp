@@ -27,7 +27,7 @@ struct UiObject;
 
 s32 Gp_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2);
 
-/// Confirmation UI for raising `Mc_SaveData[0].state.itemLevelBonus` of the equipped
+/// Confirmation UI for raising `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus` of the equipped
 /// 0x60–0x7F item (`Player_Status.armor`). If the clamped level is
 /// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
 /// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
@@ -35,7 +35,7 @@ void Gp_UiBoostAttach(struct UiObject* arg0, Task* arg1);
 
 void Gp_UiBoostMp(struct UiObject* arg0, Task* arg1);
 
-/// HP counterpart of `Gp_UiBoostMp`: adds 5 to `Mc_SaveData[0].state.hpBonus`
+/// HP counterpart of `Gp_UiBoostMp`: adds 5 to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus`
 /// (clamped below 250), recomputes max HP (same body as `Gp_RecalcMaxHp`),
 /// heals current HP to that max, then consumes `Gp_SelItemRec` and spawns
 /// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.

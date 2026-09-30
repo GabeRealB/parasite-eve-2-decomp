@@ -814,7 +814,7 @@ static __inline__ void Actor01900_MoveForward(GfxCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -843,7 +843,7 @@ static __inline__ void Actor01900_StepForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -868,7 +868,7 @@ static __inline__ void Actor01900_StepForwardHead(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -1892,7 +1892,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
     s16             vy;
     SVECTOR*        step;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
     head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
@@ -1963,7 +1963,7 @@ static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

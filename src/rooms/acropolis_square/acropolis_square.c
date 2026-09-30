@@ -1221,8 +1221,8 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 var_a0;
 
     if (arg2 == 2) {
-        if (Mc_SaveData[0].state.location.loc.warp == 7) {
-            Mc_SaveData[0].state.location.loc.warp = 1;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         }
         D_acropolis_square_801888AC.value.field_0  = 9;
         D_acropolis_square_801888AC.value.field_1  = 1;
@@ -1242,7 +1242,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if ((arg2 == 0x10) && (GameFlag_GetNibble(0x156) == 0)) {
         GameFlag_SetNibble(0x156, 1);
         var_a0 = 0x11;
-        if (Mc_SaveData[0].state.buttonLayout != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
             var_a0 = 0x10;
         }
         Gp_SpawnIfCapIdle(var_a0, 1);
@@ -1309,8 +1309,8 @@ void func_acropolis_square_80181AEC(Task* task)
             return;
 
         case 5:
-            if ((u32)(Mc_SaveData[0].state.location.loc.view - 5) >= 3U) {
-                if (Mc_SaveData[0].state.location.loc.view == 9) {
+            if ((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view - 5) >= 3U) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 9) {
                     goto checkArmed;
                 }
                 goto handOff;
@@ -1392,7 +1392,7 @@ void func_acropolis_square_80181DD0(Task* task)
             break;
 
         case 4:
-            Mc_SaveData[0].state.location.loc.view = 0xD;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             taskKill(task);
             break;
     }
@@ -1457,7 +1457,7 @@ void func_acropolis_square_80182148(Task* task)
             task->state++;
             return;
         case 1:
-            Mc_SaveData[0].state.location.loc.view = 7;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
             task->state++;
             return;
         case 3:
@@ -1470,7 +1470,7 @@ void func_acropolis_square_80182148(Task* task)
             return;
         case 6:
             Gp_RunCapCmd1(5);
-            Mc_SaveData[0].state.location.loc.view = 8;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
             task->state++;
             return;
         case 2:
@@ -1506,9 +1506,9 @@ static void func_acropolis_square_801822A4(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData[0].state.location.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
-        D_acropolis_square_80183830     = 1;
-        Mc_SaveData[0].state.sceneEvent = 2;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
+        D_acropolis_square_80183830                         = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
         func_800E8634(D_acropolis_square_8018399C, 0, D_acropolis_square_80183A5C);
     }
 }

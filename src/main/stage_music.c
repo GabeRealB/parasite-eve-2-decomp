@@ -137,7 +137,7 @@ static void Task_AllocIdMap(Task* task)
             gStageRoomSong = 0;
         }
         temp_a0                    = gGameSession->location.loc.stage;
-        ret                        = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData[0].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
+        ret                        = TaskIdMap_RemapIndex(temp_a0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
         field34                    = task->spawnArg1.value;
         gStageMusicRow             = ret;
         Stage_MusicCountdownActive = 0;

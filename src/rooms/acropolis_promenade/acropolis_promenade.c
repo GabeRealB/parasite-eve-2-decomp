@@ -1543,8 +1543,8 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
             Task_SpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
-    if (Mc_SaveData[0].state.sceneEvent == 6) {
-        Mc_SaveData[0].state.sceneEvent = 5;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
     }
     temp = gGameSession->location.loc.variant;
     if (temp == 1) {
@@ -1573,7 +1573,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
-/// script to pick up, and arms `Mc_SaveData[0].state.sceneEvent` with 4. Message 0xE spawns the
+/// script to pick up, and arms `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` with 4. Message 0xE spawns the
 /// capsule sequence the first time (nibble 2 still 0) and afterwards reports
 /// through `room` whether nibble 2 has reached 3.
 ///
@@ -1596,9 +1596,9 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     if (in->areaId == 0xC && GameFlag_GetNibble(2) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->warp                       = 3;
-            D_acropolis_promenade_801862D0  = *out;
-            Mc_SaveData[0].state.sceneEvent = 4;
+            out->warp                                           = 3;
+            D_acropolis_promenade_801862D0                      = *out;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
         }
         return 1;
     }
@@ -1782,7 +1782,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.source.index                      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId                       = 1;
             rec.blend                             = ANIMATION_BLEND_RESET;
             rec.blendFrames                       = 0;
@@ -1839,7 +1839,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);

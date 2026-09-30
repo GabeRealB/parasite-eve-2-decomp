@@ -1873,14 +1873,14 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
 /// message (`gGameSession->battleResetPending`), and state 7 -- reached once the save
-/// has not already banked this clear (`Mc_SaveData[0].state.demoScene`) -- applies the
+/// has not already banked this clear (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
 /// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
 /// States 0..6 share the `advance` tail that walks the task one state on;
 /// `goto advance` from state 1 is the `acropolis_patio` idiom, and the
 /// `do/while (0)` around the shared increment is this project's allocation
 /// lever, not a loop: it weights the task pointer's references by loop depth
-/// so it outranks the `Mc_SaveData` base and takes `$s0` instead of `$s1`.
+/// so it outranks the `gMcSaveData` base and takes `$s0` instead of `$s1`.
 void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 {
     switch (task->state) {
@@ -1911,7 +1911,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             } while (0);
             return;
         case 7:
-            if (Mc_SaveData[0].state.demoScene != 9) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
                 Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189AA0);
                 if (GameFlag_GetNibble(0xCE) != 0) {
                     Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189B24);
@@ -1926,12 +1926,12 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 GameFlag_SetNibble(0x155, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
-                Mc_SaveData[0].state.sceneEvent         = 1;
-                Mc_SaveData[0].state.location.loc.stage = 2;
-                Mc_SaveData[0].state.location.loc.warp  = 1;
-                Mc_SaveData[0].state.location.loc.room  = 1;
-                Mc_SaveData[0].state.location.loc.area  = 8;
-                gDisplayState.spriteVariant             = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 8;
+                gDisplayState.spriteVariant                                 = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             taskKill(task);

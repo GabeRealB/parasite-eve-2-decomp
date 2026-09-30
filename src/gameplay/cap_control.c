@@ -138,7 +138,7 @@ s32 func_800E7358(void)
 
 s32 func_800E7378(void)
 {
-    if (Mc_SaveData[0].state.demoScene == 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         if (D_801156B8 != NULL) {
             return 0;
         }
@@ -153,7 +153,7 @@ s32 func_800E73E8(void)
 {
     Task* task;
 
-    if (Mc_SaveData[0].state.demoScene == 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         task = D_801156B8;
         if (task != NULL) {
             task->spawnArg1.value = 1;
@@ -168,7 +168,7 @@ s32 func_800E73E8(void)
 
 s32 func_800E7434(void)
 {
-    if (Mc_SaveData[0].state.demoScene == 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         if (D_801156B8 == NULL) {
             return 0;
         }

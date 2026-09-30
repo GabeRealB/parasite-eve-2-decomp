@@ -898,10 +898,10 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_trailer_coach_801879B8, 0);
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_trailer_coach_80187CEC, 0);
     }
-    if (Mc_SaveData[0].state.location.loc.warp == 2) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
         func_800E8634(D_dryfield_night_trailer_coach_80187D00, 0, D_dryfield_night_trailer_coach_80187F58);
     }
-    if (Mc_SaveData[0].state.location.loc.warp == 3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
         func_800E8634(D_dryfield_night_trailer_coach_80189080, 0, D_dryfield_night_trailer_coach_801892C0);
         Gp_SetCurBit2Flag(0x22, 1);
     }
@@ -947,7 +947,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     func_800E8634(D_dryfield_night_trailer_coach_801889A8, 1,
                                   D_dryfield_night_trailer_coach_80188F00);
                     func_800E3FAC(0xA2, 0x13);
-                    Mc_SaveData[0].state.sceneEvent = 2;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                 } else {
                     func_800E8614(D_dryfield_night_trailer_coach_80188858, 1);
                 }
@@ -985,9 +985,9 @@ s32 func_dryfield_night_trailer_coach_801826A8(s32 arg0, s32 arg1, RoomEventMsg*
 s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0xE) {
-        Mc_SaveData[0].state.location.loc.warp          = 1;
-        D_dryfield_night_trailer_coach_8018C21C.field_0 = 8;
-        D_dryfield_night_trailer_coach_8018C21C.field_1 = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+        D_dryfield_night_trailer_coach_8018C21C.field_0            = 8;
+        D_dryfield_night_trailer_coach_8018C21C.field_1            = 1;
         if (GameFlag_GetNibble(0x7A) < 4) {
             D_dryfield_night_trailer_coach_8018C21C.field_14 = 0x380;
             D_dryfield_night_trailer_coach_8018C21C.field_3  = 1;
@@ -1038,7 +1038,7 @@ static void func_dryfield_night_trailer_coach_80182898(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData[0].state.location.loc.view == 5) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 5) {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     } else {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;

@@ -84,10 +84,10 @@ static void func_mist_r21_8017D61C(Task* task)
 static void func_mist_r21_8017D678(Task* task)
 {
     if ((Pad_CheckButtons(0, 0, 0x200) != 0) && (Pad_CheckButtons(0, 1, 0x40) != 0)) {
-        Mc_SaveData[0].state.location.loc.area = 5;
-        Mc_SaveData[0].state.location.loc.warp = 1;
-        Mc_SaveData[0].state.location.loc.view = 2;
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
+        Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
         Task_Spawn(0, 0x11, 1, 0);
         taskKill(task);
     }

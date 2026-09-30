@@ -63,7 +63,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32                 _i;                                                         \
         s32                 _n;                                                         \
                                                                                         \
-        _scan   = &Mc_SaveData[0].state.carriedItems;                                   \
+        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
         _cfg    = &Player_Status;                                                       \
         _n      = (index);                                                              \
         _rec    = Gp_GetItemTable(_scan);                                               \
@@ -88,7 +88,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32                 _i;                                                         \
                                                                                         \
         (count) = 0;                                                                    \
-        _scan   = &Mc_SaveData[0].state.carriedItems;                                   \
+        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
         _cfg    = &Player_Status;                                                       \
         _rec    = Gp_GetItemTable(_scan);                                               \
         _i      = 0;                                                                    \
@@ -108,7 +108,7 @@ static inline s32 _gpFindSpareArmor(s32 index)
     s32                 i;
     s32                 found;
 
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     cfg   = &Player_Status;
     rec   = Gp_GetItemTable(scan);
     found = i = 0;
@@ -563,7 +563,7 @@ void Gp_ReloadPromptTask(Task* arg0)
         } else {
             Gp_SetItemSeenBit(lo, 1);
             text = Gp_GetItemText(lo, 0, 0);
-            Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, hi, lo, -1);
+            Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, -1);
             other       = Text_MeasureWidth(Gp_StrLoaded);
             arg0->state = 1;
         }

@@ -25,7 +25,7 @@ typedef struct _GpCountArg {
 } GpCountArg;
 STATIC_ASSERT_SIZEOF(GpCountArg, 8);
 
-/// 2-wide rows indexed by `Mc_SaveData[0].state.characterId`. `Gp_PlayerMode2StateB` passes
+/// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
 

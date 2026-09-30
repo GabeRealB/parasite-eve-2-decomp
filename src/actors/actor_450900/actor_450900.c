@@ -706,11 +706,11 @@ void func_actor_450900_80131E38(Task* task)
             if (Gp_StateF0.field_4 != 0) {
                 break;
             }
-            if (Mc_SaveData[0].state.demoScene != 0xB) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB) {
                 D_8017A99C = D_8017A99C + 1;
             }
             t = D_8017A99C - 0x30C;
-            if (D_actor_450900_80135E74 == 0 && Mc_SaveData[0].state.companionHp > 0 && t >= 0) {
+            if (D_actor_450900_80135E74 == 0 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
                     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
@@ -846,11 +846,11 @@ void func_actor_450900_8013235C(Task* task)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 8);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 0xF;
-            Mc_SaveData[0].state.location.loc.warp = 3;
-            Mc_SaveData[0].state.companionType     = 0;
-            Mc_SaveData[0].state.location.loc.room = 1;
-            gDisplayState.spriteVariant            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0xF;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+            gDisplayState.spriteVariant                                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             taskKill(task);

@@ -449,14 +449,14 @@ static void func_neo_ark_r26_8017D710(Task* task);
 /// task 0x11 and starts loading that location.
 void func_neo_ark_r26_8017D5D0(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.location.loc.stage = 5;
-        Mc_SaveData[0].state.location.loc.area  = 0x1C;
-        Mc_SaveData[0].state.location.loc.warp  = 1;
-        Mc_SaveData[0].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant             = 1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1C;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant                                 = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 1);
+        Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 1);
     }
 }
 
@@ -491,7 +491,7 @@ static void func_neo_ark_r26_8017D6A4(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_r26_8017E0A4;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].state.demoScene != 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         func_800E8634(D_neo_ark_r26_8017DA74, 0, D_neo_ark_r26_8017DFCC);
     }
     arg0->state = arg0->state + 1;

@@ -840,7 +840,7 @@ static void func_actor_123200_80133820(Enemy* enemy, Task* task)
     work->field_6++;
     SCRATCH_PUSH_BYTES(0xC);
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         Actor123200_StepForward(coord);
     }
     animDriverTick(task);
@@ -856,7 +856,7 @@ static __inline__ void Actor123200_MoveForward(GfxCoord* coord)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;

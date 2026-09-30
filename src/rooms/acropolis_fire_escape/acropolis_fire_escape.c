@@ -87,7 +87,7 @@ STATIC_ASSERT_SIZEOF(AcropolisFireEscapeGlowScratch, 0x18);
 extern UiObjectDesc D_800611E4;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
-/// end reads it through this name rather than through `Mc_SaveData`.
+/// end reads it through this name rather than through `gMcSaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -626,11 +626,11 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
     switch (gGameSession->location.loc.view) {
         case 8:
             vol = 0x64;
-            if (Mc_SaveData[0].state.sceneEvent == 5) {
-                Mc_SaveData[0].state.sceneEvent = 7;
-                pair                            = &gStageMusicParams;
-                pair->fadeFrames                = 1;
-                pair->unusedCommandArg          = 1;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 7;
+                pair                                                = &gStageMusicParams;
+                pair->fadeFrames                                    = 1;
+                pair->unusedCommandArg                              = 1;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 gGameSession->flowFlags = 0;
             }
@@ -699,14 +699,14 @@ s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// First state of the room's message task: installs the message table, takes
-/// pointer slot 7, spawns the ambient-sound task and, when `Mc_SaveData[0].state.sceneEvent` is 5,
+/// pointer slot 7, spawns the ambient-sound task and, when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` is 5,
 /// sets the session's flow flags to 8.
 static void func_acropolis_fire_escape_8017FE50(Task* task)
 {
     task->msgTable = D_acropolis_fire_escape_80181D3C;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
-    if (Mc_SaveData[0].state.sceneEvent == 5) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }
     task->state = task->state + 1;

@@ -765,7 +765,7 @@ SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90 = { 0, 0, 0, 0, 0, 0 };
 
 /// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
-/// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData[0].state.location.loc.variant`), stamps
+/// slot-4 entry 1 on a second-or-later visit (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant`), stamps
 /// the save location with 0x12 and sets the override vector. States 1-4 wait
 /// for `gGameSession->viewReady`, post 0x7D9 to slot 4 on a first visit, then
 /// call `func_800A99B4`. State 5 asks slot 4 to spawn the enemy task (0x7D8),
@@ -789,13 +789,13 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->spawnArg1.value = 0;
             Gp_MsgPlayerWeapon(0);
             task->state += 1;
-            if (Mc_SaveData[0].state.location.loc.variant >= 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
             }
-            Mc_SaveData[0].state.location.loc.view = 0x12;
-            vec.vx                                 = 0x4B0;
-            vec.vy                                 = 0x4B0;
-            vec.vz                                 = 0x610;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
+            vec.vx                                                     = 0x4B0;
+            vec.vy                                                     = 0x4B0;
+            vec.vz                                                     = 0x610;
             Gp_SetOverrideVec(&vec);
             break;
         case 1:
@@ -804,7 +804,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             }
             break;
         case 2:
-            if (Mc_SaveData[0].state.location.loc.variant < 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
                 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D9, 0, 0);
             }
             task->state += 1;
@@ -830,7 +830,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 6:
-            if (Mc_SaveData[0].state.location.loc.variant < 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
                 param1[2] = 0x33;
                 param2[0] = 0xA;
                 param2[2] = 3;
@@ -847,7 +847,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 7:
             task->spawnArg1.value -= 1;
-            if (Mc_SaveData[0].state.location.loc.variant >= 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 task->state = 9;
             } else if (CdCmd_IsIdle()) {
                 func_800A99B4();
@@ -856,9 +856,9 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 8:
             task->spawnArg1.value -= 1;
-            areaSetPlacementVariant(&Mc_SaveData[0].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
-            areaSyncLocationVariant(&Mc_SaveData[0].state.location.loc);
-            Gp_SpawnArea(&Mc_SaveData[0].state.location.loc);
+            areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+            areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            Gp_SpawnArea(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_acropolis_helicopter_landing_pad_80184D9C = 4;
             task->state                                += 1;
             break;
@@ -930,12 +930,12 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             return;
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.sceneEvent         = 1;
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.area  = 0x12;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x12;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Display_ReleaseRef();
             taskKill(arg0);

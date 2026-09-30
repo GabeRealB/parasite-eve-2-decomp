@@ -543,12 +543,12 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 3:
-            Mc_SaveData[0].state.location.loc.stage = 5;
-            Mc_SaveData[0].state.location.loc.area  = 0x1A;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
-            Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1A;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
+            Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

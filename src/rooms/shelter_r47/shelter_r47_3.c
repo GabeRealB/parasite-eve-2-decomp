@@ -1705,15 +1705,15 @@ static void func_shelter_r47_8018431C(Task* task)
     spriteX                    = -0x9C;
     do {
     } while (0);
-    view                                   = Mc_SaveData[0].state.location.loc.view;
-    state->field_20                        = -0x104;
-    state->field_E                         = quadW;
-    state->field_10                        = quadH;
-    state->field_16                        = quad2W;
-    state->field_18                        = quad2H;
-    state->field_1E                        = spriteX;
-    state->field_29                        = view;
-    Mc_SaveData[0].state.location.loc.view = 0x25;
+    view                                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    state->field_20                                            = -0x104;
+    state->field_E                                             = quadW;
+    state->field_10                                            = quadH;
+    state->field_16                                            = quad2W;
+    state->field_18                                            = quad2H;
+    state->field_1E                                            = spriteX;
+    state->field_29                                            = view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x25;
     if ((arg = task->spawnArg1.value) == 1 || arg == 2) {
         state->fade     = 0xFF;
         level           = (u8)state->fade;
@@ -2037,10 +2037,10 @@ static void func_shelter_r47_80185510(Task* task)
     Gp_MsgPlayer3F3(1);
     SndEvt_EnqueueType7(0x542F0005, 1);
     Display_ReleaseRef();
-    Mc_SaveData[0].state.location.loc.view = state->field_29;
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_29;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
     taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
@@ -2061,14 +2061,14 @@ static void func_shelter_r47_801855B8(Task* task)
                 if (state->field_1C < 0) {
                     state->field_1C = 4;
                 }
-                Mc_SaveData[0].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
             case 3:
                 state->field_1C++;
                 if (state->field_1C >= 5) {
                     state->field_1C = 0;
                 }
-                Mc_SaveData[0].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
         }
         task->state++;

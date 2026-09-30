@@ -54,7 +54,7 @@ extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 /// Staging save location the gallery commits: area / warp / room
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
 /// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
-/// same three bytes into `Mc_SaveData[0].state.location.loc.area` / `field_8` / `field_5`.
+/// same three bytes into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `field_8` / `field_5`.
 extern RoomEventMsg D_neo_ark_submarine_gallery_80185924;
 
 GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
@@ -91,7 +91,7 @@ static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
 /// State 1 waits for that caption, state 2 takes the confirm key or backs out,
 /// state 3 raises the helper task 0x31 and queues the sound event, state 4
 /// waits for that voice, and state 5 - the commit - copies the staged location
-/// into `Mc_SaveData` and reloads. Every state advances by one except a
+/// into `gMcSaveData` and reloads. Every state advances by one except a
 /// confirmed cancel and the commit itself.
 void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
 {
@@ -133,10 +133,10 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

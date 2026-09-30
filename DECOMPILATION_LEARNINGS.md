@@ -6512,8 +6512,8 @@ also need separate block-scope pointers: a function-level `pos` lives in
 
 ## Fresh block-scope pointer at a join so it reuses a dead `s` register
 
-A function-level `save = &Mc_SaveData` lives in `$s2` from the first half. At a
-later join the target reloads `&Mc_SaveData` into `$s1` (the now-dead `rec`
+A function-level `save = &gMcSaveData` lives in `$s2` from the first half. At a
+later join the target reloads `&gMcSaveData` into `$s1` (the now-dead `rec`
 register). Reassigning the same `save` reloads into `$s2`. Give the join its
 own block-scope pointer so the allocator takes the lowest free saved reg:
 
@@ -6521,7 +6521,7 @@ own block-scope pointer so the allocator takes the lowest free saved reg:
 block_companion:
 {
     McSaveData* p;
-    p = &Mc_SaveData;
+    p = &gMcSaveData;
     if ((s16)p->field_6C8 <= 0) {
         /* ... */
     }
@@ -7063,7 +7063,7 @@ register s32         hi asm("v1");
 register GpBit2Bank* tmp asm("a1");
 register GpBit2Bank* banks asm("t1");
 
-sess = &Mc_SaveData.location.loc;
+sess = &gMcSaveData.location.loc;
 asm("lui %0, %%hi(Gp_Bit2Banks)" : "=r"(hi));
 idx8 = sess->stage;
 asm("addiu %0, %1, %%lo(Gp_Bit2Banks)" : "=r"(tmp) : "r"(hi));
@@ -7869,24 +7869,24 @@ address and the extra saved register different.
 A shared no-match tail that zeros two BSS objects wants:
 
 ```
-lui    v0, %hi(Mc_SaveData)
+lui    v0, %hi(gMcSaveData)
 lui    v1, %hi(gGameSession)
 lw     a0, %lo(gGameSession)(v1)
-addiu  v0, v0, %lo(Mc_SaveData)
+addiu  v0, v0, %lo(gMcSaveData)
 sb     zero, field(v0)
 sb     zero, field(a0)
 lw     v1, %lo(gGameSession)(v1)
 sb     zero, field(v1)
 ```
 
-Hoisting `save = &Mc_SaveData; session = gGameSession` clumps `lui`+`addiu`
+Hoisting `save = &gMcSaveData; session = gGameSession` clumps `lui`+`addiu`
 before the session load, or delay-fills the wrong `lui` into the incoming
 `beqz`. Store through the globals by name so `-fschedule-insns` splits the
 first `la` around the second:
 
 ```c
-Mc_SaveData.companionType    = 0;
-Mc_SaveData.companionVariant   = 0;
+gMcSaveData.companionType    = 0;
+gMcSaveData.companionVariant   = 0;
 gGameSession->companionType = 0;
 gGameSession->companionVariant = 0;
 ```
@@ -10605,11 +10605,11 @@ if (GameFlag_GetNibble(0x7A) != 1) {
 Put the asm on the **first** compare so the second stays `li v1, 1` after the
 jal. `func_dryfield_night_trailer_coach_80181DB0` is the example.
 
-## Cap-task restore `sb` stays `Mc_SaveData.location.loc.view`
+## Cap-task restore `sb` stays `gMcSaveData.location.loc.view`
 
-Case 11 writes the saved area id with `sb` at `Mc_SaveData+4`. Some overlays'
+Case 11 writes the saved area id with `sb` at `gMcSaveData+4`. Some overlays'
 target asm names that reloc `D_8007216C`; the linked bytes are the same as
-`Mc_SaveData.location.loc.view = (u8)D_80115694`. Do not overlay `*(u8*)&D_8007216C` in
+`gMcSaveData.location.loc.view = (u8)D_80115694`. Do not overlay `*(u8*)&D_8007216C` in
 a function that also word-loads `D_8007216C` for the `0xFFFF0000` test — GCC
 2.8.1 treats them as one object and the switch grows insert/delete.
 
@@ -12265,10 +12265,10 @@ typedef struct {
     u8 unknown_6[2];
 } GameLoc;   /* GameSession.location */
 
-gGameSession->location = Mc_SaveData[0].state.location;
+gGameSession->location = gMcSaveData[0].state.location;
 ```
 
-`GameFlow_CopySaveIds` is the pure example (`gGameSession` ← `Mc_SaveData`).
+`GameFlow_CopySaveIds` is the pure example (`gGameSession` ← `gMcSaveData`).
 
 ## Big-endian halfword from two `u8` fields (stack `sb`/`sb`/`lhu`)
 
@@ -12704,8 +12704,8 @@ do {
     next = sum + *(u8*)temp;
     sum = next;
 } while (i < 9U);
-Mc_SaveData.bufferChecksum = next;
-Mc_SaveData.bufferChecksumComplement = ~next;
+gMcSaveData.bufferChecksum = next;
+gMcSaveData.bufferChecksumComplement = ~next;
 ```
 
 Also keep an intermediate `base = Mc_BufferSlots; p = base + 1;` so the address
@@ -14066,34 +14066,34 @@ clears:
 
 ```c
 sum = 0;
-ptr = (u8*)&Mc_SaveData;
+ptr = (u8*)&gMcSaveData;
 ptr += 4;                      /* addiu a0, v1, %lo(D); addiu a0, a0, 4 */
 limit = 0x38;
 i = 0;
-Mc_SaveData.headerChecksum = 0;       /* completes v1 with second %lo(D) */
-Mc_SaveData.headerChecksumComplement = 0xFFFF;
+gMcSaveData.headerChecksum = 0;       /* completes v1 with second %lo(D) */
+gMcSaveData.headerChecksumComplement = 0xFFFF;
 do {
     i += 1;
     tmp = (s8)*ptr;
     sum = sum + tmp;
     ptr += 1;
 } while (i < limit);
-Mc_SaveData.headerChecksum = sum;
-Mc_SaveData.headerChecksumComplement = ~sum;
-Mc_VerifySaveHdrChecksum(&Mc_SaveData);
+gMcSaveData.headerChecksum = sum;
+gMcSaveData.headerChecksumComplement = ~sum;
+Mc_VerifySaveHdrChecksum(&gMcSaveData);
 ```
 
 That emits the shared-`%hi` shape:
 
 ```
-lui    v1, %hi(Mc_SaveData)
-addiu  a0, v1, %lo(Mc_SaveData)
+lui    v1, %hi(gMcSaveData)
+addiu  a0, v1, %lo(gMcSaveData)
 addiu  a0, a0, 4
 ...
-addiu  v1, v1, %lo(Mc_SaveData)
+addiu  v1, v1, %lo(gMcSaveData)
 ```
 
-After the loop, reloading `&Mc_SaveData` as `%lo(D+4)` / `addiu -4` is fine —
+After the loop, reloading `&gMcSaveData` as `%lo(D+4)` / `addiu -4` is fine —
 it links to the same address as a splat `D_xxx+4` symbol (e.g. `D_8007216C`).
 
 `Mc_WriteSaveHdrChecksum` is the pure example (checksum writer for `McSaveState::headerChecksum` /
@@ -23410,7 +23410,7 @@ p->field_s8 = save;     /* sb */
 ```
 
 `Title_RestoreDemoCard` (title demo-card restore) needs this for
-`Mc_SaveData.vibration` / `demoScene`. The struct fields themselves must also be
+`gMcSaveData.vibration` / `demoScene`. The struct fields themselves must also be
 `s8` (see also the `D_80072189` / `D_8007218B` aliases).
 
 ## Interleave `lui` into a `index * 0xE4` multiply (title `GameFlag_ShelterBanks`)
@@ -23725,14 +23725,14 @@ then inserts the `nop` delay on the `bne`. `func_80105A8C` is the pure example.
 
 ## `mc.h` exports `D_8007216C` as `u8`; 268.c needs a word load of that symbol
 
-`D_8007216C` is `Mc_SaveData.location.loc.view`. `mc.h` declares it `u8` because `stage.c`
+`D_8007216C` is `gMcSaveData.location.loc.view`. `mc.h` declares it `u8` because `stage.c`
 stores a byte (`sb`). `func_800B92CC` needs `lw` of the same symbol so
 `& 0xFFFF0000` sees `field_6`/`field_7`. Including `mc.h` and also writing
 `extern u32 D_8007216C` is a conflicting-types error.
 
 Fix: keep the `mc.h` include and load the overlay as `*(u32*)&D_8007216C`. The
 relocation stays on `D_8007216C` and codegen stays `lw`. Do not switch the
-access to `&Mc_SaveData.location.loc` — that rebases the reloc onto `Mc_SaveData`.
+access to `&gMcSaveData.location.loc` — that rebases the reloc onto `gMcSaveData`.
 
 ## Take `&global` so its `lui` is emitted first into `$v1`
 
@@ -24965,7 +24965,7 @@ been consumed as the word offset (`index >> 4`). `Gp_SetBit2Flag` is the
 example.
 
 The two-arg sibling that takes the bank index from a global byte
-(`Mc_SaveData.field_7`) needs that byte assigned to the same `$v0` temp
+(`gMcSaveData.field_7`) needs that byte assigned to the same `$v0` temp
 *after* the mask, not used as a subscript. `table[global.field].ptr`
 emits `lui table` first; assigning the byte first issues `lui global`
 so the table `lui`/`addiu` and the `sra` of the bit index fill the load
@@ -24974,7 +24974,7 @@ delay:
 ```c
 temp = 3;
 mask = temp << shift;
-temp = Mc_SaveData.field_7;
+temp = gMcSaveData.field_7;
 p = Gp_Bit2Banks[temp].field_4;
 p += arg0 >> 4;
 ```
@@ -26398,7 +26398,7 @@ constant 0 is rematerialized after the hi is consumed:
 
 ```c
 rec   = NULL;
-scan  = &Mc_SaveData.carriedItems;
+scan  = &gMcSaveData.carriedItems;
 table = Gp_GetItemTable(scan);
 i     = 0;
 table = &table[scan->firstRow];
@@ -26756,15 +26756,15 @@ if ((u32)arg0 >= 0x180) {
     return;
 }
 if (arg1 == 0) {
-    p = &Mc_SaveData;            /* addiu v0, %lo in this arm */
+    p = &gMcSaveData;            /* addiu v0, %lo in this arm */
     p->field_6D0[word] &= ~bit;
     return;
 }
-p = &Mc_SaveData;                /* addiu v0, %lo rematerialized */
+p = &gMcSaveData;                /* addiu v0, %lo rematerialized */
 p->field_6D0[word] |= bit;
 ```
 
-A single `p = &Mc_SaveData` before the `value` test stuck at 83%
+A single `p = &gMcSaveData` before the `value` test stuck at 83%
 (`sllv t0` for the mask, CSEd base). Same `p->arr[i]` form as the
 reader (`Gp_HasItemSeenBit`). `Gp_SetItemSeenBit` is the example.
 
@@ -26808,7 +26808,7 @@ global so LIM sees the `lui` first:
 ```c
 do {
     item  = *p;
-    bits  = Mc_SaveData.collectedBits; /* lui t4 hoisted first */
+    bits  = gMcSaveData.collectedBits; /* lui t4 hoisted first */
     one   = 1;                     /* li t3, 1 hoisted second */
     bit   = item & 0x7F;
     bits += bit / 32;
@@ -28185,7 +28185,7 @@ if ((inner->field_962 & 0x40) && (temp != -1)) {
 ```
 
 `func_801066DC` is the example. Two literal `= 1` stores stuck at 81%
-with `$v0` for both the constant and the `Mc_SaveData` address.
+with `$v0` for both the constant and the `gMcSaveData` address.
 
 ## Pin `&node->field` in `$v1` so `$a0` can hold `ONE` then a global
 
@@ -28487,8 +28487,8 @@ the address calc in `$v1`:
 
 ```
 sll    v0, a0, 3
-lui    v1, %hi(Mc_SaveData)
-addiu  v1, v1, %lo(Mc_SaveData+0x1C8)
+lui    v1, %hi(gMcSaveData)
+addiu  v1, v1, %lo(gMcSaveData+0x1C8)
 addu   a3, v0, v1
 ```
 
@@ -28501,7 +28501,7 @@ register s32 found asm("a3");
 EquipmentWeaponLoad*  slot;
 
 found = 0;
-slot  = &((EquipmentWeaponLoad*)((s32)Mc_SaveData[0].state.weaponItems - 0x400))[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
+slot  = &((EquipmentWeaponLoad*)((s32)gMcSaveData[0].state.weaponItems - 0x400))[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
 ```
 
 `Gp_ClearEquipSlot` is the example. Pinning `slot` to `$a2` stuck at 99.6%
@@ -28614,7 +28614,7 @@ switch (scan->tableId) {
         tmp = Gp_ItemTable1;
         break;
     default:
-        tmp = Mc_SaveData.itemRows;
+        tmp = gMcSaveData.itemRows;
         break;
 }
 table = tmp;
@@ -28847,7 +28847,7 @@ switch (scan->tableId) {
         qty = rec->qty;
         goto after_loop;
     default:
-        tmp = Mc_SaveData.itemRows;
+        tmp = gMcSaveData.itemRows;
         break;
 }
 table = tmp;
@@ -29854,26 +29854,26 @@ counts  = (s32*)((s32)slots + 0x4C0);
 counter = (s32*)(off4 + (s32)counts);
 ```
 
-Shift `index << 3` *before* mentioning `Mc_SaveData` so that shift takes
+Shift `index << 3` *before* mentioning `gMcSaveData` so that shift takes
 `$v1` and the `lui` of the table can follow it. `Gp_ConsumeSlotQty` is the
 example.
 
-## Take `&Mc_SaveData` only on the later path so it is not CSEd with `+0x1C8`
+## Take `&gMcSaveData` only on the later path so it is not CSEd with `+0x1C8`
 
-Two consume paths both touch `Mc_SaveData.cheatMode` / `carriedItems`. If
-both write `Mc_SaveData.field_*` directly, GCC keeps the slot base in
+Two consume paths both touch `gMcSaveData.cheatMode` / `carriedItems`. If
+both write `gMcSaveData.field_*` directly, GCC keeps the slot base in
 `$a1` and uses `lb 0x3FA(a1)` / `addiu a0, a1, 0x3F4` for both. The
 later path reloads the object:
 
 ```
-lui    v0,%hi(Mc_SaveData)
-addiu  a0,v0,%lo(Mc_SaveData)
+lui    v0,%hi(gMcSaveData)
+addiu  a0,v0,%lo(gMcSaveData)
 lb     v0,0x5C2(a0)
 addiu  a0,a0,0x5BC
 ```
 
-Assign `save = &Mc_SaveData` only in that path and use `save->cheatMode`
-/ `&save->carriedItems`. Leave the first path as `Mc_SaveData.field_*` so
+Assign `save = &gMcSaveData` only in that path and use `save->cheatMode`
+/ `&save->carriedItems`. Leave the first path as `gMcSaveData.field_*` so
 it still CSEs with the live slot-base pointer. `Gp_ConsumeSlotQty` is the
 example.
 
@@ -29960,7 +29960,7 @@ The table address then lands in the `jal` delay slot (`addiu s1, %lo`)
 and each fail branch preloads the next nibble id. Widen the cached
 compare byte to `s32` (`stage = save->field_7`) so `lbu field_4` /
 `bne v0, s2` does not emit `andi s2, 0xFF`. First `field_6` through
-the `save` pointer, later ones as `Mc_SaveData.field_6` so they
+the `save` pointer, later ones as `gMcSaveData.field_6` so they
 rematerialize as `lui` / `lbu %lo`. `Gp_ApplyNpcRoomSnd` is the example.
 
 ## Keep a live `-1` so `count + prev` is `addu`, not `addiu -1`
@@ -30191,7 +30191,7 @@ the scheduler fills that delay:
 lbu   v0, 0x28(a3)    /* bodyKind */
 lw    t0, 0x20(a3)    /* spawnArg2 — delay of the lbu */
 bne   v0, t2, skip
- lui  v0, %hi(Mc_SaveData)
+ lui  v0, %hi(gMcSaveData)
 ```
 
 ```c
@@ -31466,17 +31466,17 @@ available to fill that delay. `Gp_NthRelatedId` is the example.
 
 ## Do not pin the switch result to `$a0` if the `la` must split through `$v0`
 
-The item-table switch (`Gp_ItemTable2` / `Gp_ItemTable1` / `Mc_SaveData.itemRows`)
+The item-table switch (`Gp_ItemTable2` / `Gp_ItemTable1` / `gMcSaveData.itemRows`)
 wants the default hi in the `bne` delay slot and a split `la`:
 
 ```
 bne   field, 2, default
- lui  v0, %hi(Mc_SaveData)
+ lui  v0, %hi(gMcSaveData)
 lui   v0, %hi(Gp_ItemTable2)
 j     join
  addiu a0, v0, %lo(Gp_ItemTable2)
 default:
-addiu a0, v0, %lo(Mc_SaveData+0x1AC)
+addiu a0, v0, %lo(gMcSaveData+0x1AC)
 ```
 
 `register GpItemRec* tmp asm("a0")` fuses each `la` into `lui a0` /
@@ -31717,7 +31717,7 @@ if (Gp_ItemDescs[item].field_3 & 1) {
 }
 ```
 
-Compare `Mc_SaveData.field_7` to the already-live `selected == 1`
+Compare `gMcSaveData.field_7` to the already-live `selected == 1`
 temp (`$s2`), not a fresh `1`, so the `bne` reuses that register.
 
 ## Index the slot table in the loop so `lui` stays in `$a0`
@@ -32200,15 +32200,15 @@ is the example.
 
 ## Split-address inline asm for `lui v1; addiu dest, v1` of a second global
 
-Two prologue address-of-globals (`Mc_SaveData.itemRows` then
+Two prologue address-of-globals (`gMcSaveData.itemRows` then
 `Wip_SysConfig`) both want `$v0` as the `lui` temp once the first
-Two prologue address-of-globals (`Mc_SaveData.field_1AC` then
+Two prologue address-of-globals (`gMcSaveData.field_1AC` then
 `Player_Status`) both want `$v0` as the `lui` temp once the first
 `addiu` has freed it. The target instead uses `$v1` for the second:
 
 ```
-lui   v0, %hi(Mc_SaveData)
-addiu a2, v0, %lo(Mc_SaveData+0x1ac)
+lui   v0, %hi(gMcSaveData)
+addiu a2, v0, %lo(gMcSaveData+0x1ac)
 lui   v1, %hi(Player_Status)
 addiu t4, v1, %lo(Player_Status)
 ```
@@ -32821,7 +32821,7 @@ case 1:
     tmp = Gp_ItemTable1;
     break;
 default:
-    tmp = Mc_SaveData.itemRows;
+    tmp = gMcSaveData.itemRows;
     break;
 }
 table = tmp;
@@ -33312,7 +33312,7 @@ do {
         src        = scans[item & 0xFF];
         Gp_MoveItemKey = item;
     } else {
-        src = &Mc_SaveData.carriedItems;
+        src = &gMcSaveData.carriedItems;
     }
     (&Gp_MoveScanSrc)[i] = *src;
     i++;
@@ -33610,16 +33610,16 @@ nested range check wants:
 
 ```
 bne    s2, v0, inc
- lui    v0, %hi(Mc_SaveData)
+ lui    v0, %hi(gMcSaveData)
 lw     v0, gGameSession
 ...
 bnez   in_range, skip
  lui    s0, %hi(scan)
-lui    v0, %hi(Mc_SaveData)
-addiu  a0, v0, %lo(Mc_SaveData)
+lui    v0, %hi(gMcSaveData)
+addiu  a0, v0, %lo(gMcSaveData)
 ```
 
-`register McSaveData* save asm("a0"); save = &Mc_SaveData;` delay-fills
+`register McSaveData* save asm("a0"); save = &gMcSaveData;` delay-fills
 with `lui a0` / `addiu a0, a0`. An unpinned local plus the skip-goto
 CFG lets `-fdelayed-branch` copy `lui v0, %hi` into the `bne` delay
 and keep `addiu a0, v0, %lo` at the merge:
@@ -33630,14 +33630,14 @@ if (key == 0x50B0000 || key == 0x51D0000) {
         goto skip_count;
     }
 }
-save = &Mc_SaveData;
+save = &gMcSaveData;
 if (save->battlesWon < 0x270FU) {
     save->battlesWon++;
 }
 skip_count:
 ```
 
-A later straight-line `&Mc_SaveData` (no incoming `bne` to fill) still
+A later straight-line `&gMcSaveData` (no incoming `bne` to fill) still
 needs the split `lui $v0` / `addiu $a0` pair from the Gp_Bit2Banks note,
 so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
 across two states also merges them into `$s0`; the state-3 path wants
@@ -34020,7 +34020,7 @@ n    = arg2 - 0xF;
 col  = i / 3;
 row  = col;
 col  = i - row * 3;
-save = &Mc_SaveData;
+save = &gMcSaveData;
 asm volatile("" : "+r"(row), "+r"(col), "+r"(i), "+r"(n));
 n = n - i * 3 + 1;
 if (save->unknown_850[col + row * 3] < n) {
@@ -34031,9 +34031,9 @@ if (save->unknown_850[col + row * 3] < n) {
 `i = (arg2 - 0xF) / 3` *before* `n = arg2 - 0xF` (n pinned to `$a1`) CSEs
 the dividend into `$a1` and emits `lui`/`ori` of the `/3` magic *then*
 `addiu a1, s1, -0xF`. Assigning `n` first puts the `addiu` above the
-magic. `save = &Mc_SaveData` in the same block as the second `/3` fills
+magic. `save = &gMcSaveData` in the same block as the second `/3` fills
 that `mult`'s latency with `addiu s0, s0, -0x5BC` (from
-`&Mc_SaveData.carriedItems` back to the struct base). A volatile asm after
+`&gMcSaveData.carriedItems` back to the struct base). A volatile asm after
 the `% 3` of `i` keeps `n % 3 + 1` from sliding into that same slot.
 
 `Gp_InvokePeItemPanel` is the example.
@@ -34334,7 +34334,7 @@ register McSaveData* save asm("v0");
 register InventoryItemRange* src asm("t4");
 register GpItemRec*  table asm("v1");
 
-save = &Mc_SaveData;
+save = &gMcSaveData;
 dest = &save->field_5BC;
 asm volatile("lui %0, %%hi(Gp_DefaultScan)" : "=r"(table));
 item = 0x6C;
@@ -34939,13 +34939,13 @@ strength reduction create the IV; the init lands after the movables.
 
 Two copies of the 1 / 2 / default table select: a `switch` (case 2, 1,
 default) for the first copy hoists `s3=1`, `s2=2`, `s1=C20`, `s0=D70`,
-`t9=Mc_SaveData`. Repeating that `switch` for the second copy, with
+`t9=gMcSaveData`. Repeating that `switch` for the second copy, with
 `minKey = key` in the `== 1` delay, expands to extra `j` / `nop` and
 moves default out of the `bne` delay. Write the second copy as:
 
 ```c
 if (scan->tableId != 1) {
-    table = Mc_SaveData.itemRows;
+    table = gMcSaveData.itemRows;
     if (scan->tableId == 2) {
         table = Gp_ItemTable2;
     }
@@ -35076,17 +35076,17 @@ immediate emits `lui` that *can* fill the delay:
 
 ```c
 hi = 0x8007 << 16;
-asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+asm("addiu %0, %1, %%lo(gMcSaveData+0x5BC)" : "=r"(scan) : "r"(hi));
 ```
 
 ```
 bnez   v0, skip
- lui    s0, 0x8007          # delay; linked bytes == %hi(Mc_SaveData+0x5BC)
+ lui    s0, 0x8007          # delay; linked bytes == %hi(gMcSaveData+0x5BC)
 addiu  s1, s0, %lo(...)
 ```
 
 Keep the `%lo` addiu as asm so it retains its reloc. `0x8007` is
-`%hi(Mc_SaveData+0x5BC)` (`Mc_SaveData` is `0x80072168`). `Gp_SelectArmorMenuTask`
+`%hi(gMcSaveData+0x5BC)` (`gMcSaveData` is `0x80072168`). `Gp_SelectArmorMenuTask`
 is the example.
 
 ## Store scratch `head - N` through `$v1`, barrier, then copy to the s-reg
@@ -35760,16 +35760,16 @@ cfg = &Player_Status;
 
 ## C `&global` fills a delay-slot `lui`; `volatile` field load keeps the split `%hi`
 
-`asm("lui %0, %%hi(Mc_SaveData+0x5BC)")` is a scheduling barrier, so
+`asm("lui %0, %%hi(gMcSaveData+0x5BC)")` is a scheduling barrier, so
 `bnez s0, else` gets `nop` instead of the `lui`. A C
-`scan = &Mc_SaveData.carriedItems` emits a schedulable `lui`. CSE then turns
-`Mc_SaveData.carriedItems.firstRow` into `lbu 0(scan)`. A volatile object
+`scan = &gMcSaveData.carriedItems` emits a schedulable `lui`. CSE then turns
+`gMcSaveData.carriedItems.firstRow` into `lbu 0(scan)`. A volatile object
 keeps the split `%hi` in `$s1` for the later `%lo` load:
 
 ```c
-scan  = &Mc_SaveData.carriedItems;
+scan  = &gMcSaveData.carriedItems;
 table = Gp_GetItemTable(scan);
-idx   = ((volatile InventoryItemRange*)&Mc_SaveData.carriedItems)->firstRow;
+idx   = ((volatile InventoryItemRange*)&gMcSaveData.carriedItems)->firstRow;
 count = scan->rowCount;
 ```
 
@@ -36295,7 +36295,7 @@ A dummy `$v0` temp plus `menu = p` coalesced back to `lui s4`.
 
 ## A search over a scan window at a fixed global needs no hand-built `%hi/%lo`
 
-A loop that re-reads `lui t0, %hi(Mc_SaveData+0x5BC)` after `Gp_GetItemTable`
+A loop that re-reads `lui t0, %hi(gMcSaveData+0x5BC)` after `Gp_GetItemTable`
 and indexes by `lbu %lo(...)(t0)` looks like a hand-placed address pair, and an
 earlier body pinned `$8`, faked the `lui` in asm and moved the `found = rec`
 assignment behind gotos to reproduce it. It is the ordinary scan idiom:
@@ -36303,7 +36303,7 @@ assignment behind gotos to reproduce it. It is the ordinary scan idiom:
 ```c
 col   = i % 5;
 row   = i / 5;
-scan  = &Mc_SaveData.carriedItems;
+scan  = &gMcSaveData.carriedItems;
 rec   = Gp_GetItemTable(scan);
 found = NULL;
 rec   = &rec[scan->firstRow];
@@ -36637,7 +36637,7 @@ gte_stlvnl(&tmp);
 After `prompt = index` (`move s4, a0`), a plain `obj = value` is delayed: GCC
 keeps `$a1` live until `lb a1, field_8` clobbers it, then stages the value
 through another saved register (`sw s1` / `move s1, a1` / later `move s5, s1`).
-That extra copy also lets an independent `la` of `&Mc_SaveData.carriedItems`
+That extra copy also lets an independent `la` of `&gMcSaveData.carriedItems`
 lift or land after every `$s` save.
 
 Force the second incoming arg into its pinned register immediately, with the
@@ -36649,15 +36649,15 @@ register UiObject*     obj asm("s5");
 register s32           hi asm("v0");
 prompt = arg0;
 asm("addu %0, %1, $zero" : "=r"(obj) : "r"(arg1), "r"(prompt));
-asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi) : "r"(prompt), "r"(obj));
-asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+asm("lui %0, %%hi(gMcSaveData+0x5BC)" : "=r"(hi) : "r"(prompt), "r"(obj));
+asm("addiu %0, %1, %%lo(gMcSaveData+0x5BC)" : "=r"(scan) : "r"(hi));
 ```
 
 ```
 move   s4, a0
 move   s5, a1
-lui    v0, %hi(Mc_SaveData+0x5BC)
-addiu  s7, v0, %lo(Mc_SaveData+0x5BC)
+lui    v0, %hi(gMcSaveData+0x5BC)
+addiu  s7, v0, %lo(gMcSaveData+0x5BC)
 ```
 
 A `volatile` empty `"+r"(obj)` barrier also stops the `$s1` staging but
@@ -37339,7 +37339,7 @@ copy and branches into the later one, turning `bne .. ; ori 0x20 ; j L ; ori
 breaks the tail match, but **placement matters**:
 
 ```c
-if (Mc_SaveData.buttonLayout == 1) {
+if (gMcSaveData.buttonLayout == 1) {
     asm volatile("");        /* before: cross-jump broken, delay slots still fill */
     mask = tmp | 0x80;
 } else {
@@ -37522,7 +37522,7 @@ ret = Gp_HealPending = Gp_StateC08.field_16 = 1; /* sb then sw, each via `move v
 Two register-allocation levers that together took `Gp_ApplyItemUse` from 99.2% to
 a byte match:
 
-* A single `InventoryItemRange* scan` reassigned `&Mc_SaveData.carriedItems` at five
+* A single `InventoryItemRange* scan` reassigned `&gMcSaveData.carriedItems` at five
   different sites becomes **one** pseudo, so it is pinned in one callee-saved
   register for the whole function. The target used `s0` / `s1` / `s2` at
   different sites, i.e. five distinct locals. Splitting them (`scanEquip`,
@@ -39895,8 +39895,8 @@ beqz   a0, end
  move  s2, s0          # row
 move   s7, s1          # col
 move   s5, s8          # lvl
-lui    v0, %hi(Mc_SaveData)
-addiu  s3, v0, %lo(Mc_SaveData)
+lui    v0, %hi(gMcSaveData)
+addiu  s3, v0, %lo(gMcSaveData)
 ```
 
 Three `move`s means three *new* pseudos, not the pre-loop ones reused. Reusing
@@ -40039,7 +40039,7 @@ if (childObj->resultValue == 0x33) {
 ```
 
 pins the address to that block for the same reason fresh conditional locals are
-not hoisted. Note the asymmetry: `Mc_SaveData`, read from both arms, *is* still
+not hoisted. Note the asymmetry: `gMcSaveData`, read from both arms, *is* still
 hoisted — so convert only the globals the target keeps inside.
 
 ## `TextDrawReq` field order is `x, y, otIndex, colorRgb, glyphTable, alignment, drawMode`
@@ -42061,9 +42061,9 @@ diff <(norm "$A") <(norm "$B") && echo IDENTICAL
 
 The scratch env still scores such a port below 100%: `dist.py` compares
 relocation *names*, and the ported C reaches a byte through the struct the
-matched sibling used (`Mc_SaveData+0x13`) where the target `.s` names the raw
+matched sibling used (`gMcSaveData+0x13`) where the target `.s` names the raw
 splat symbol (`D_8007217B`). A 99.9% score whose whole `base_N_diff` is
-`%hi(Mc_SaveData)` against `%hi(D_8007217B)` — plus `%hi(.rodata)` against
+`%hi(gMcSaveData)` against `%hi(D_8007217B)` — plus `%hi(.rodata)` against
 `%hi(jtbl_…)` for the compiler-generated switch table — is a match; the
 authority is `./tools/build-and-verify.sh`, not the scratch score.
 
@@ -45767,7 +45767,7 @@ together by the load that depends on them - so a barrier and an array
 declaration have nothing to act on.
 
 `func_dryfield_water_tower_8017F9AC` reads a byte out of its state block into
-`Mc_SaveData.location.loc.view` and then sets `gGameSession->viewDirty`. Written to the
+`gMcSaveData.location.loc.view` and then sets `gGameSession->viewDirty`. Written to the
 imported address `D_8007216C` the block schedules as
 
 ```
@@ -45783,7 +45783,7 @@ same cycle and `priority()` picks between them:
 
 The byte store is `priority (lbu) + 2 - 1 = 4` (a load's `result_ready_cost` is
 2), while the `sh`'s 3 comes from its anti-dependence on the same `lbu` at the
-anti cost clamped to 1. Writing the store as `Mc_SaveData.location.loc.view` adds
+anti cost clamped to 1. Writing the store as `gMcSaveData.location.loc.view` adds
 `REG_DEP_OUTPUT` between the two stores - the suppressing clause needs a
 non-struct fixed-address partner, and an in-struct store is neither - which
 passes `4 + 1 - 1 = 4` to the `sh`. The tie then falls to
@@ -45796,7 +45796,7 @@ Equal priorities are therefore resolved by original order, which is worth
 knowing before reaching for a fence: changing `priority()` from 3 to 4 does the
 work that adding a dependence would, and does not pin the constant setup the
 target schedules above the store. 99.773% on the scratch scorer, the residue
-being the `%hi(Mc_SaveData)` / `%lo(Mc_SaveData+4)` symbol pair; the unscoped
+being the `%hi(gMcSaveData)` / `%lo(gMcSaveData+4)` symbol pair; the unscoped
 `build-and-verify.sh` checksums.
 
 ## A global shared with another family is a struct member: the scalar form costs the *schedule*
@@ -46790,12 +46790,12 @@ wrong remedy", not as "close, permute it".
 ## When the aliasing victim is really a struct field, name that field rather than declaring an array
 
 Both remedies above treat the global as a bare scalar. Check whether it is one
-first. `D_8007216C` is `Mc_SaveData.location.loc.view` -- `Mc_SaveData = 0x80072168` and
+first. `D_8007216C` is `gMcSaveData.location.loc.view` -- `gMcSaveData = 0x80072168` and
 the sym files carry both names for that one address. Writing the access the way
 the save data actually is
 
 ```c
-Mc_SaveData.location.loc.view = Gp_FindViewIndex(9);
+gMcSaveData.location.loc.view = Gp_FindViewIndex(9);
 ```
 
 restores the order with no barrier and no shape claim, because both sides are
@@ -46814,14 +46814,14 @@ and the same conclusion follows. Keep `[1]` for a global that really is a bare
 scalar.
 
 The residual cost of naming the field is the *symbol spelling*, not the code. A
-`COMPONENT_REF` off a different symbol emits `%hi(Mc_SaveData)` /
-`%lo(Mc_SaveData+4)` where the target `asm/` names `%hi(D_8007216C)` /
+`COMPONENT_REF` off a different symbol emits `%hi(gMcSaveData)` /
+`%lo(gMcSaveData+4)` where the target `asm/` names `%hi(D_8007216C)` /
 `%lo(D_8007216C)`. Only the relocation addend differs; the linked bytes do not.
 So `asm-differ` and the scratch scorer report 99.833% for an exact match, while
 the project's acceptance criterion -- `build-and-verify.sh`, the image
 checksum -- passes. The repo already builds matched bodies this way
 (`src/rooms/lib/rooms_shared_80181228.c` and `acropolis_observatory_3.c` both
-write `Mc_SaveData.location.loc.view`), so do not "fix" the score by fabricating an alias
+write `gMcSaveData.location.loc.view`), so do not "fix" the score by fabricating an alias
 for the symbol.
 
 One operand detail worth keeping: the clause that drops the dependence needs
@@ -46975,7 +46975,7 @@ allocators per *family*, not per overlay.)
 
 Read each family's state-0 entry end to end before writing the struct: it is
 the only place most of the fields are ever written, and it names them. In
-`shelter_r47` it gave the two exit scripts' saved area byte (`Mc_SaveData.location.loc.view`
+`shelter_r47` it gave the two exit scripts' saved area byte (`gMcSaveData.location.loc.view`
 low byte parked at `0x4E` / `0x29` and restored on the way out), which is what
 justifies `u8` there rather than the `s8` m2c guessed elsewhere in the file.
 
@@ -48813,8 +48813,8 @@ Beyond the obvious block layout, the if/else form stops cse from reusing the
 load that the condition tested:
 
 ```c
-if (Mc_SaveData.battlesWon == 0) { pct = 0; }
-else { pct = Mc_SaveData.battlesWon * 10000 / (...); }   /* reloads 0x6cc */
+if (gMcSaveData.battlesWon == 0) { pct = 0; }
+else { pct = gMcSaveData.battlesWon * 10000 / (...); }   /* reloads 0x6cc */
 ```
 
 The `pct = 0;` form CSEs the second read into `move v1,v0`. Read the target:
@@ -49880,12 +49880,12 @@ label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
 label0.alignment = 0;
 label0.drawMode    = 1;
-rating            = &missionLevels.entries[Mc_SaveData.gameMode];
+rating            = &missionLevels.entries[gMcSaveData.gameMode];
 label0.otIndex    = (s16)obj->drawOrder + 1;
 
 /* 100% - struct declaration order, with the pointer read in between */
 label0.otIndex    = (s16)obj->drawOrder + 1;
-rating            = &missionLevels.entries[Mc_SaveData.gameMode];
+rating            = &missionLevels.entries[gMcSaveData.gameMode];
 label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
 label0.alignment = 0;
@@ -50410,7 +50410,7 @@ touches the struct with an unscoped `build-and-verify.sh` after the change.
 them to 999999. The obvious C keeps one variable:
 
 ```c
-switch (Mc_SaveData.gameMode) {
+switch (gMcSaveData.gameMode) {
 case 3:  exp = 0;            break;
 case 2:  exp = raw / 100;    break;
 case 1:  exp = raw / 20;     break;
@@ -50959,18 +50959,18 @@ penalty — the kind of leftover that looks like a coloring problem and is not.
 ```c
 /* ours: li v0,5 sinks below the three sb's, so 1 and 5 share $v0 */
 D_80073BAE          = 1;
-Mc_SaveData.field_7 = 1;
-Mc_SaveData.field_8 = 1;
-Mc_SaveData.field_5 = 1;
-Mc_SaveData.field_6 = 5;
+gMcSaveData.field_7 = 1;
+gMcSaveData.field_8 = 1;
+gMcSaveData.field_5 = 1;
+gMcSaveData.field_6 = 5;
 
 /* target: li v0,5 is hoisted, 1 lives in $v1 across all four stores,
    and the sb of field_6 still sinks to its original place */
 D_80073BAE          = 1;
-Mc_SaveData.field_6 = 5;
-Mc_SaveData.field_7 = 1;
-Mc_SaveData.field_8 = 1;
-Mc_SaveData.field_5 = 1;
+gMcSaveData.field_6 = 5;
+gMcSaveData.field_7 = 1;
+gMcSaveData.field_8 = 1;
+gMcSaveData.field_5 = 1;
 ```
 
 Writing the odd store early gives its constant a birth before the repeated
@@ -52454,7 +52454,7 @@ state: writing state 1's `D += step` sum through `d1` and re-reading
 `regs`-only leftover survives every local edit inside the mismatching block,
 look at the other cases for a local the original evidently recycled.
 
-### A bare `extern u8` inside `Mc_SaveData` lets its load hoist over a struct store; name the member
+### A bare `extern u8` inside `gMcSaveData` lets its load hoist over a struct store; name the member
 
 `func_acropolis_helicopter_landing_pad_8017DA9C` state 7 decrements a
 countdown and then tests the visit counter:
@@ -52476,25 +52476,25 @@ the load-side twin of "Struct-typing a body changes GCC 2.8.1's aliasing":
 extern is a fixed-address scalar, so `true_dependence` says they cannot
 alias and the scheduler is free to reorder them.
 
-`D_80072171` is `Mc_SaveData + 9`, and `Mc_SaveData.field_9` is itself a
+`D_80072171` is `gMcSaveData + 9`, and `gMcSaveData.field_9` is itself a
 `COMPONENT_REF`, so writing the member restores the dependence and the
 target order with no barrier:
 
 ```c
 task->spawnArg1 -= 1;
-if (Mc_SaveData.field_9 >= 2) { ... }
+if (gMcSaveData.field_9 >= 2) { ... }
 ```
 
-The same holds for `D_8007216C` (`&Mc_SaveData.location.loc`, the
+The same holds for `D_8007216C` (`&gMcSaveData.location.loc`, the
 cast `src/gameplay/D4.c` already uses). Bytes are identical either way for
-the `lui`/`lbu` pair -- `%lo(Mc_SaveData+9)` assembles to `0x2171` -- so the
+the `lui`/`lbu` pair -- `%lo(gMcSaveData+9)` assembles to `0x2171` -- so the
 scratch diff shows only symbol spelling once the order is right. When a
 `D_8007216x`/`D_800721xx` import sits in a room's callee list, check whether
-it is a `Mc_SaveData` offset before reaching for `SOFT_BARRIER()`.
+it is a `gMcSaveData` offset before reaching for `SOFT_BARRIER()`.
 
 ## `D_80073Bxx` in a weapon overlay is `Player_Status`; a bare extern floats its `lbu` above the struct stores
 
-The same fixed-scalar-vs-struct aliasing hole as the `Mc_SaveData` entry above,
+The same fixed-scalar-vs-struct aliasing hole as the `gMcSaveData` entry above,
 seen from the other end: not a store that sinks, but a *load* that rises past a
 run of struct stores.
 
@@ -52531,7 +52531,7 @@ permutation and every register pin, in a block that mixes `struct->field`
 stores with a bare-extern global. Before either, look the address up in
 `configs/USA/sym.main.txt`: for weapon and actor overlays the two bases worth
 checking are `Player_Status = 0x80073B88` (`D_80073Bxx`) and
-`Mc_SaveData = 0x80072168` (`D_800721xx`). Both spell the same `%hi`/`%lo`
+`gMcSaveData = 0x80072168` (`D_800721xx`). Both spell the same `%hi`/`%lo`
 bytes, so the scratch diff shows only the symbol name once the order is right.
 
 
@@ -53616,8 +53616,8 @@ body changes GCC 2.8.1's aliasing": `task->state` is an in-struct MEM at a
 register-based address, `D_8007216C` is a scalar MEM at a fixed address, so
 `true_dependence` says they cannot alias. The fix is that entry's preferred
 remedy — the "bare global" was interior to a named symbol. `configs/USA/sym.main.txt`
-gives `Mc_SaveData = 0x80072168`, so `D_8007216C` is `Mc_SaveData.location.loc.view` and
-`D_8007218A` is `Mc_SaveData.characterId`; `configs/USA/sym.gameplay.txt` gives
+gives `gMcSaveData = 0x80072168`, so `D_8007216C` is `gMcSaveData.location.loc.view` and
+`D_8007218A` is `gMcSaveData.characterId`; `configs/USA/sym.gameplay.txt` gives
 `Gp_StateF0 = 0x801153F0`, so `D_801153F4` is `Gp_StateF0.field_4`. Writing the
 member form restores the dependence, the registers agree again, and all four
 tails merge: 96.3% → 99.8%, with `branch`/`insert`/`delete` all zero.
@@ -54922,7 +54922,7 @@ grep -rn "movieFrame\|movieReady" src/     # -> acropolis_observatory_2.c
 different path table and one fewer state, already matched and already carrying
 the `AobStreamWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `ActorTransform`
 0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
-every remaining difference a symbol *name* (`Mc_SaveData+0x22` vs
+every remaining difference a symbol *name* (`gMcSaveData+0x22` vs
 `D_8007218A`), i.e. already a match.
 
 Good discriminators to grep for: an unusual struct field offset, a rare callee
@@ -55230,11 +55230,11 @@ still calls that address `D_<addr>`:
 ```
 -lui    v0,%hi(D_8007218A)          # target.o, from configs/USA/sym/weapons.imports.txt
 -lb     v0,%lo(D_8007218A)(v0)
-+lui    v0,%hi(Mc_SaveData)         # ours, Mc_SaveData = 0x80072168, +0x22
-+lb     v0,%lo(Mc_SaveData+0x22)(v0)
++lui    v0,%hi(gMcSaveData)         # ours, gMcSaveData = 0x80072168, +0x22
++lb     v0,%lo(gMcSaveData+0x22)(v0)
 ```
 
-`Mc_SaveData + 0x22 == 0x8007218A`, so the linked words are identical and the
+`gMcSaveData + 0x22 == 0x8007218A`, so the linked words are identical and the
 residual `regs=2` is an artifact. Add the base address of the named symbol to
 the offset before rewriting C: if it lands on the `D_` address, stop matching
 and go straight to `./tools/build-and-verify.sh`, which links and checksums for
@@ -55482,10 +55482,10 @@ exact — yet `./build.sh` reported 99.911% with `regs=4`.
 -lbu    v0,%lo(D_80073BAA)(v0)          <- target (raw splat symbol)
 +lbu    v0,%lo(Player_Status+0x22)(v0)  <- ours (named struct + field)
 -lb     v0,%lo(D_8007218A)(v0)
-+lb     v0,%lo(Mc_SaveData+0x22)(v0)
++lb     v0,%lo(gMcSaveData+0x22)(v0)
 ```
 
-`Player_Status+0x22` *is* `0x80073BAA` and `Mc_SaveData+0x22` *is*
+`Player_Status+0x22` *is* `0x80073BAA` and `gMcSaveData+0x22` *is*
 `0x8007218A`. The scratch harness links the target against splat's unnamed
 `D_` symbols, so any field access through a named struct in a *different* TU
 shows as a difference even though the linked bytes are identical.
@@ -55764,8 +55764,8 @@ switch (actor->field_95E) {
 ```
 
 `func_p229_8011DDA0` went 97.3% → 100% on that move alone (the residue was
-`%hi`/`%lo` symbol names for `Wip_SysConfig.field_22` and `Mc_SaveData.characterId`,
-`%hi`/`%lo` symbol names for `Player_Status.weaponSlotItem` and `Mc_SaveData.field_22`,
+`%hi`/`%lo` symbol names for `Wip_SysConfig.field_22` and `gMcSaveData.characterId`,
+`%hi`/`%lo` symbol names for `Player_Status.weaponSlotItem` and `gMcSaveData.field_22`,
 which link identically). Only the relative position of the pinned block matters:
 permuting `actor` / `coord` / `rec` among themselves changed nothing, because
 the pin, not source order, is what reprioritises the ready list.
@@ -55963,16 +55963,16 @@ the array form in state 0 and the standalone symbol in state 1.
 ## A target `D_8007xxxx` that is a named global's *interior* is not a real diff
 
 The scratch env compares symbol *names*, and splat names an interior reference
-by address: `Mc_SaveData` is imported at `0x80072168`, but a `%hi/%lo` pair
-reaching `Mc_SaveData.characterId` disassembles as `D_8007218A` because splat has
+by address: `gMcSaveData` is imported at `0x80072168`, but a `%hi/%lo` pair
+reaching `gMcSaveData.characterId` disassembles as `D_8007218A` because splat has
 no size for the absolute import. Writing the field access the way the rest of
 the overlay does leaves a permanent two-line hunk:
 
 ```
 -lui    v0,%hi(D_8007218A)
 -lb     v0,%lo(D_8007218A)(v0)
-+lui    v0,%hi(Mc_SaveData)
-+lb     v0,%lo(Mc_SaveData+0x22)(v0)
++lui    v0,%hi(gMcSaveData)
++lb     v0,%lo(gMcSaveData+0x22)(v0)
 ```
 
 Both relocations resolve to `0x8007218A`, so this scores as a `regs` penalty
@@ -56129,15 +56129,15 @@ zero. The whole diff was three `lui`/`lbu` pairs:
 ```
 -lui    v0,%hi(D_80073BAA)          +lui    v0,%hi(Player_Status)
 -lbu    v1,%lo(D_80073BAA)(v0)      +lbu    v1,%lo(Player_Status+0x22)(v0)
--lb     v0,%lo(D_8007218A)(v0)      +lb     v0,%lo(Mc_SaveData+0x22)(v0)
+-lb     v0,%lo(D_8007218A)(v0)      +lb     v0,%lo(gMcSaveData+0x22)(v0)
 ```
 
-`Wip_SysConfig` is at `0x80073B88` and `Mc_SaveData` at `0x80072168`, so
+`Wip_SysConfig` is at `0x80073B88` and `gMcSaveData` at `0x80072168`, so
 `D_80073BAA` *is* `Wip_SysConfig.field_22` and `D_8007218A` *is*
-`Mc_SaveData.characterId`. When a function reads a byte from the middle of a
-`Player_Status` is at `0x80073B88` and `Mc_SaveData` at `0x80072168`, so
+`gMcSaveData.characterId`. When a function reads a byte from the middle of a
+`Player_Status` is at `0x80073B88` and `gMcSaveData` at `0x80072168`, so
 `D_80073BAA` *is* `Player_Status.weaponSlotItem` and `D_8007218A` *is*
-`Mc_SaveData.field_22`. When a function reads a byte from the middle of a
+`gMcSaveData.field_22`. When a function reads a byte from the middle of a
 global struct, splat has no symbol at that address and invents a `D_ADDR` name;
 the C references the struct symbol plus an offset. Both encode to the same
 `%hi`/`%lo` relocation pair against the same address, but the scratch
@@ -60195,7 +60195,7 @@ from the register choice, so fix the reads first and the branch shape follows.
 ## Brute-force the permutation of a small constant-store group
 
 When a basic block ends in a run of stores to adjacent byte fields of one
-global — the `Mc_SaveData.field_5/6/7/8` block that every room's stage-handoff
+global — the `gMcSaveData.field_5/6/7/8` block that every room's stage-handoff
 writes — the offsets in the object dump are **not** the source order, for the
 reason "Primitive field store order: interleave vertices, do not group by
 constant" gives: `sched1` may reorder stores that provably do not alias. What
@@ -65425,7 +65425,7 @@ func_8004E200 worktree; the standalone Spu_GetVoiceRef leaf was not changed.
 
 ## A dead scan-pointer initialization can prevent loop-invariant hoisting
 
-`func_800D6334` assigns a scan pointer to `&Mc_SaveData.carriedItems` inside an
+`func_800D6334` assigns a scan pointer to `&gMcSaveData.carriedItems` inside an
 attachment-icon loop. With only that assignment, GCC 2.8.1's `.loop` hoisted
 both the `%hi` and full pointer, extending its lifetime across four calls and
 eventually spilling the armor id. Initializing this otherwise local pointer
@@ -66244,7 +66244,7 @@ until the following `0xFFFF` store was unsigned. A store of `0xFFFF` to an
 `s16` field becomes `-1`, preventing constant reuse. The field,
 `McSaveData::bufferChecksumComplement`, is the complement half of a checksum pair
 whose siblings are all `u16`, and nothing reads it signed; declared `u16`, the
-plain `Mc_SaveData.bufferChecksumComplement = 0xFFFF` keeps the shared `0xFFFF`.
+plain `gMcSaveData.bufferChecksumComplement = 0xFFFF` keeps the shared `0xFFFF`.
 When a store needs an unsigned view to match, suspect the field's declared
 signedness before reaching for a cast.
 
@@ -67801,7 +67801,7 @@ register can only come from an allocation where `$v0` was busy across the pair,
 which means the two `high` temps did overlap in the sched1 output. Statement
 reordering does not produce that overlap: in `Gp_CountAmmoRows` five positions
 for `cfg = &Player_Status;` (first, after `count = 0`, between the two
-`Mc_SaveData` statements, after them, inside the guarded block) all kept the
+`gMcSaveData` statements, after them, inside the guarded block) all kept the
 `high`/`lo_sum` pairs adjacent and all put the second `high` in `$v0`, leaving a
 `regs=2` residue at 99.894%. The existing recipes for this shape - the split
 `asm("lui")`/`asm("addiu")` pair, and `register … asm("v1")` when the `%lo`
@@ -73814,9 +73814,9 @@ and `work->anim.field_0` is exactly that varying `mem/s` store while `lb
 %lo(D_8007218A)` is a fixed-address non-struct load, so the load never depended
 on it.
 
-The two addresses are `Mc_SaveData.characterId` (`Mc_SaveData = 0x80072168`) and
+The two addresses are `gMcSaveData.characterId` (`gMcSaveData = 0x80072168`) and
 `Wip_SysConfig.field_21` (`Wip_SysConfig = 0x80073B88`) - the spelling
-The two addresses are `Mc_SaveData.field_22` (`Mc_SaveData = 0x80072168`) and
+The two addresses are `gMcSaveData.field_22` (`gMcSaveData = 0x80072168`) and
 `Player_Status.weapon` (`Player_Status = 0x80073B88`) - the spelling
 `include/gameplay/3CD8.h` already documents for this index. Writing them that
 way makes both loads `mem/s`, the exemption no longer applies, the store keeps
@@ -77206,14 +77206,14 @@ register reuse.
 
 ## An address that is both a `D_` symbol and a struct field: the two spellings are *different code*, not just different labels
 
-`D_8007218B` is `Mc_SaveData.demoScene` (`Mc_SaveData = 0x80072168`), so the
+`D_8007218B` is `gMcSaveData.demoScene` (`gMcSaveData = 0x80072168`), so the
 guard in `func_actor_461800_8013229C` can be written either way, and a matched
 sibling in the same family (`func_shelter_r36_8017D738`) writes the field form.
 Both assemble to the same immediate, but they do not compile the same:
 
 ```c
-if (Mc_SaveData.demoScene != 9)   /* 99.836%, regs=2 */
-    lui v0,%hi(Mc_SaveData) ; lb v1,%lo(Mc_SaveData+0x23)(v0)
+if (gMcSaveData.demoScene != 9)   /* 99.836%, regs=2 */
+    lui v0,%hi(gMcSaveData) ; lb v1,%lo(gMcSaveData+0x23)(v0)
 
 extern s8 D_8007218B;
 if (D_8007218B != 9)             /* 100.00% */
@@ -77221,11 +77221,11 @@ if (D_8007218B != 9)             /* 100.00% */
 ```
 
 Only the relocation expression differs here, and this is *not* the harness
-artifact of entry [25]: the field form lets the two references to `Mc_SaveData`
+artifact of entry [25]: the field form lets the two references to `gMcSaveData`
 in the same function share one address computation / one `%hi` group, while a
 separate symbol forces a fresh absolute load. The direction that wins is set by
 the target: this function's target names the raw symbol, whereas
-`shelter_r36`'s target instead holds `&Mc_SaveData` in `$s0` and reads
+`shelter_r36`'s target instead holds `&gMcSaveData` in `$s0` and reads
 `lb $v1, 0x23($s0)` -- the field spelling would be *wrong* there and the
 extern right here. Read the target's first two instructions before choosing,
 and keep the `D_` extern the sibling actor files already use
@@ -80615,7 +80615,7 @@ Inputs: `base_1.i`
 ## A switch arm that reads the selector field again: check the constant first
 
 `func_actor_215100_8014A5C0` dispatches on `index->state`, and case 1 stores that
-state's value three times (`Mc_SaveData.sceneEvent`, `gGameSession->hideHud`,
+state's value three times (`gMcSaveData.sceneEvent`, `gGameSession->hideHud`,
 `D_80071076`) around two calls. Since the state *is* 1 in that arm, m2c reads the
 three stores as `index->state` and the target agrees byte for byte — but the
 target keeps the value in one register the whole arm while the C reloads it:
@@ -80629,7 +80629,7 @@ candidate:jal  Gp_ClearInventory
 ```
 
 A `mem` expression cannot survive that arm: the stores in between go through
-register bases (`$s0 = &Mc_SaveData`), which CSE cannot prove distinct from
+register bases (`$s0 = &gMcSaveData`), which CSE cannot prove distinct from
 `index->state`, so each store invalidates it and the next use reloads. A constant
 cannot be invalidated at all. Writing the literal `1` in all three stores took
 the function from 92.97% to 100.00%.
@@ -84502,7 +84502,7 @@ linker resolves the raw name and the target object's relocation carries it
 (`R_MIPS_HI16 D_8017DA00`).
 
 The function itself is the standard "story trigger unless the demo is running"
-shape: `if (Mc_SaveData.demoScene != 9)` — 9 is the `Task_Spawn` bank the
+shape: `if (gMcSaveData.demoScene != 9)` — 9 is the `Task_Spawn` bank the
 `Gp_StrDemoWait` / `Gp_StrDemoPause` prompts key off — then arm the scene event
 byte `field_5C5` and spawn the table's task. `func_actor_450800_80132080` and
 `func_shelter_r36_8017D738` are the same shape with `Task_Spawn` instead.
@@ -85937,13 +85937,13 @@ to any address whose owner the gameplay map names only at the base — the
 cutscene blob `D_80165720` in this same function is another, referenced by many
 rooms and named nowhere.
 
-The trap does *not* need the generator to be missing an entry. `Mc_SaveData`
+The trap does *not* need the generator to be missing an entry. `gMcSaveData`
 (0x80072168) and `D_8007216C` are **both** absolute imports in
-`configs/USA/sym/rooms.imports.txt`, so `Mc_SaveData.location.loc.view` and `D_8007216C`
+`configs/USA/sym/rooms.imports.txt`, so `gMcSaveData.location.loc.view` and `D_8007216C`
 link to the same word and either would checksum — yet the struct spelling costs
 the scratch scorer 0.24% (`regs=2`) on an object whose instruction words are
 identical, because the target object is what relocates against the address name.
-`func_dryfield_water_tower_8017F908`: `Mc_SaveData.location.loc.view` is 99.756%, the
+`func_dryfield_water_tower_8017F908`: `gMcSaveData.location.loc.view` is 99.756%, the
 address form 100.000%, and both produce the same `sb` (the reported `regs` is a
 counting artefact of the two renamed operands, not an allocation difference —
 do not go looking in `.lreg` for it). The struct spelling is not always wrong,
@@ -88684,9 +88684,9 @@ stores plus the task spawn they feed:
 
 ```c
 SndEvt_EnqueueType7(0x80000000, 0);
-Mc_SaveData.field_6 = 0x26;
-Mc_SaveData.field_8 = D_dryfield_general_store_80185709;
-Mc_SaveData.field_5 = D_dryfield_general_store_8018570A;
+gMcSaveData.field_6 = 0x26;
+gMcSaveData.field_8 = D_dryfield_general_store_80185709;
+gMcSaveData.field_5 = D_dryfield_general_store_8018570A;
 D_80071076          = 1;              /* last in the source */
 Task_Spawn(0, 0x11, 0, 0);
 ```
@@ -89884,8 +89884,8 @@ with `branch=1 regs=2 insert=1`.
 The target is the three-argument call with the store written *before* it:
 
 ```c
-temp_a3                = Mc_SaveData.location.loc.view;   /* lbu a3,4(v0) */
-Mc_SaveData.location.loc.view = 6;
+temp_a3                = gMcSaveData.location.loc.view;   /* lbu a3,4(v0) */
+gMcSaveData.location.loc.view = 6;
 D_mine_refuge_80182ADC = temp_a3;
 SndEvt_EnqueueType6(0x54060003, 0, 0);
 ```
@@ -93864,7 +93864,7 @@ if (sess->stage == 2) {
 ```
 
 The session pointer then stays in `$v0` and the byte loads become `0x3($a1)` /
-`0x2($a1)`. `Mc_SaveData` has the same overlay in use. The prologue recurs
+`0x2($a1)`. `gMcSaveData` has the same overlay in use. The prologue recurs
 across the rooms (the dryfield night motel balcony's
 `func_dryfield_night_motel_balcony_8017E4B8` opens with it), and
 `func_dryfield_water_tower_801802D8` is the worked example: the m2c baseline sat
@@ -94389,10 +94389,10 @@ Input `base_1.c`
 
 An m2c seed at 98.292% with `delete=1 branch=3 regs=4` is the reloc-fold shape of
 "The reloc fold's single-field shape": m2c's
-`M2C_FIELD(&Mc_SaveData, u8 *, 8)` rides the offset inside the symbol reloc
-(`lui s0,%hi(Mc_SaveData)` + `lbu v1,%lo(Mc_SaveData+8)(s0)`), so the target's
-`addiu s0,v0,%lo(Mc_SaveData)` is gone and every later branch lands a word
-early. `Mc_SaveData.field_8` through `main/mc.h` fixes that and gives the
+`M2C_FIELD(&gMcSaveData, u8 *, 8)` rides the offset inside the symbol reloc
+(`lui s0,%hi(gMcSaveData)` + `lbu v1,%lo(gMcSaveData+8)(s0)`), so the target's
+`addiu s0,v0,%lo(gMcSaveData)` is gone and every later branch lands a word
+early. `gMcSaveData.field_8` through `main/mc.h` fixes that and gives the
 target's bare symbol with the displacement in the memory operand.
 
 That fix re-types the whole body, and the *tail* of this function then wants the
@@ -94422,7 +94422,7 @@ one `/s` on each and nothing else in the whole function.
 
 Inputs: `base.i` (m2c, 98.292%)
 `fd927c9d180df292afdb702cd0aad9bdf9ed058200eb44514a00c793db93ec3a`, `base_5.i`
-(`Mc_SaveData.field_8` + `*(s32*)((u8*)task + 0x30) += 1`, 100.000%)
+(`gMcSaveData.field_8` + `*(s32*)((u8*)task + 0x30) += 1`, 100.000%)
 `e84629213ef9382f2683b363f3a2321b58a6189d43e5f763967b054fbf7dfd00`.
 
 ## A constant assigned before the call forces a callee-saved register; give the else arm its own copy (func_dryfield_gas_station_8017FA20, 2026-09-16)
@@ -95106,7 +95106,7 @@ task wrapper: start from `src/rooms/lib/room_script01.c` (the pointer-parameter
 twin is `room_script09.c`), keep the declarations in their order - `src` before
 `dst`, so the slots land as above - and change only the tail (this one publishes
 `gGameSession->location.loc.room` / `D_8007216D` and sets `field_76`, where the script
-saves `Mc_SaveData.queryOnly` and kills the task). m2c's `? sp18` seed scores
+saves `gMcSaveData.queryOnly` and kills the task). m2c's `? sp18` seed scores
 55.833%; this is 100.000% / zero penalties on the first rewrite.
 
 Input `base_1.c`
@@ -101970,15 +101970,15 @@ if ((kind & 0xF0) == 0x10) {
 ### `lui t0; addiu t0,t0,%lo(G); lbu off(t0)` right before a use is a spilled `p = &G` from the prologue (func_actor_401300_8013E930, 2026-09-16)
 
 **Symptom.** 99.78%, the only difference: target
-`li v1,1; lui t0,%hi(Mc_SaveData); addiu t0,t0,%lo(Mc_SaveData); lbu v0,0x5c1(t0)`,
-while every local form (`McSaveData* save = &Mc_SaveData;` inside the inline,
-or `&Mc_SaveData` passed as an inline argument) gave the fused
+`li v1,1; lui t0,%hi(gMcSaveData); addiu t0,t0,%lo(gMcSaveData); lbu v0,0x5c1(t0)`,
+while every local form (`McSaveData* save = &gMcSaveData;` inside the inline,
+or `&gMcSaveData` passed as an inline argument) gave the fused
 `lui v0,%hi(G+0x5c1); lbu v0,%lo(G+0x5c1)(v0)` - combine folds a one-use address
 pseudo into the `mem`. The same byte is `D_80072729` elsewhere in the function,
 loaded the normal split way.
 
 **Cause.** The pointer is a function-wide local set once at the top
-(`save = &Mc_SaveData;` next to `config = &Player_Status;`) and used once deep
+(`save = &gMcSaveData;` next to `config = &Player_Status;`) and used once deep
 in a switch case. It gets a `REG_EQUIV` constant, and with every callee-saved
 register already taken it gets no hard register; reload rematerialises the
 constant into a reload register (`$t0`) immediately before the use, after the
@@ -102311,18 +102311,18 @@ A pair of byte stores into the same save-data global, written the way m2c
 renders them, expands to two independent addresses of the same symbol:
 
 ```c
-M2C_FIELD(&Mc_SaveData, s8 *, 6) = 0x19;   /* *(s8*)((s8*)&Mc_SaveData + 6) */
-M2C_FIELD(&Mc_SaveData, s8 *, 5) = state;  /* ... + 5 */
+M2C_FIELD(&gMcSaveData, s8 *, 6) = 0x19;   /* *(s8*)((s8*)&gMcSaveData + 6) */
+M2C_FIELD(&gMcSaveData, s8 *, 5) = state;  /* ... + 5 */
 ```
 
 CSE keeps the first address and folds the second into `(sym + 6) - 1`, so the
 object comes out with a constant inside the `%hi` and a negative displacement:
 
 ```
-lui     $v0, %hi(Mc_SaveData+6)
+lui     $v0, %hi(gMcSaveData+6)
 li      $v1, 0x19
-sb      $v1, %lo(Mc_SaveData+6)($v0)
-addiu   $v0, $v0, %lo(Mc_SaveData+6)
+sb      $v1, %lo(gMcSaveData+6)($v0)
+addiu   $v0, $v0, %lo(gMcSaveData+6)
 sb      $s0, -1($v0)
 ```
 
@@ -102330,8 +102330,8 @@ The target materialises the bare base once and reaches both fields by
 displacement:
 
 ```
-lui     $v0, %hi(Mc_SaveData)
-addiu   $v0, $v0, %lo(Mc_SaveData)
+lui     $v0, %hi(gMcSaveData)
+addiu   $v0, $v0, %lo(gMcSaveData)
 li      $v1, 0x19
 sb      $v1, 0x6($v0)
 sb      $s0, 0x5($v0)
@@ -102340,8 +102340,8 @@ sb      $s0, 0x5($v0)
 Writing the two stores as members of the declared struct is the whole fix:
 
 ```c
-Mc_SaveData.field_6 = 0x19;
-Mc_SaveData.field_5 = state;
+gMcSaveData.field_6 = 0x19;
+gMcSaveData.field_5 = state;
 ```
 
 Both member accesses are `COMPONENT_REF`s on one base, so the base is
@@ -104319,10 +104319,10 @@ intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
 `Gp_WeaponIdBase[D_8007218A - 1]`. The ROM keeps `sh zero,0xFCC(s2)` between
 `lui v0,%hi(D_8007218A)` and the `lb`; with `extern s8 D_8007218A` sched2
 moved the store after the `lb` (reorder=1, everything else zero). `D_8007218A`
-is `Mc_SaveData + 0x22`, and writing `Mc_SaveData.characterId` makes the load a
+is `gMcSaveData + 0x22`, and writing `gMcSaveData.characterId` makes the load a
 struct-flagged `mem/s`, which the scheduler treats as possibly aliasing the
 `mem/s:HI` store, so the store has to stay ahead of the load. The relocation
-changes to `Mc_SaveData+0x22`, but the linked bytes are the same. Before chasing
+changes to `gMcSaveData+0x22`, but the linked bytes are the same. Before chasing
 a store/load reorder through `sched.c`, check whether the absolute symbol is a
 field of a known struct.
 
@@ -119852,12 +119852,12 @@ The function is a state switch in which cases 0..6 all do `state += 1; return;`.
 Written the way the corpus recommends for a shared tail - one copy at the join
 point with `goto` from the earlier cases - the body scores 100.000% with every
 penalty zero, and the overlay still does not match: the task pointer comes out in
-`$s1` where retail has `$s0`, and the `Mc_SaveData` base it conflicts with takes
+`$s1` where retail has `$s0`, and the `gMcSaveData` base it conflicts with takes
 `$s0` where retail has `$s1`. `.greg` has the whole story:
 
 ```
 ;; 3 regs to allocate: 132 103 80
-r103  7 refs / 100 insns  -> $s0     (Mc_SaveData base)
+r103  7 refs / 100 insns  -> $s0     (gMcSaveData base)
 r80   5 refs / 190 insns  -> $s1     (the task pointer)
 ```
 
@@ -120207,14 +120207,14 @@ which is exactly where moving the two labels puts them:
 ```
 
 That one move took the score to 94.52% with `branch=0 reorder=0`, leaving only
-`insert=2 delete=2` — case 4's `Mc_SaveData` stores, which were still
-`M2C_FIELD(&Mc_SaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
-idiom (`src/gameplay/1A8.c`'s `Mc_SaveData.field_6 = (u8)Gp_WarpLoc.areaId;`) and
+`insert=2 delete=2` — case 4's `gMcSaveData` stores, which were still
+`M2C_FIELD(&gMcSaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
+idiom (`src/gameplay/1A8.c`'s `gMcSaveData.field_6 = (u8)Gp_WarpLoc.areaId;`) and
 using the `RoomEventMsg`/`McSaveData` struct fields instead fixed those and the
 function:
 
 ```c
-        Mc_SaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.warp;
+        gMcSaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.warp;
 ```
 
 Diagnostic to reuse: the `.jump` dump prints `;; Start of basic block N` in
@@ -124260,7 +124260,7 @@ materializes this way can end up in a saved register -- `case 0`'s is a `beqz`.
 
 The other direction is just as uninformative: a literal equal to the *case's own*
 value needs no separate `li`, because the compare already proved it. `case 3:`'s
-`Mc_SaveData.field_7 = 3;` and `Mc_SaveData.field_7 = state;` (the discriminant
+`gMcSaveData.field_7 = 3;` and `gMcSaveData.field_7 = state;` (the discriminant
 local) build byte-identical objects here -- both `sb $s0` -- so a store of the
 case's own number says nothing about whether retail named it.
 
@@ -142563,23 +142563,23 @@ constant sequence, run `overlay_dup_index.py similar` and look for a sibling
 whose body is a prefix of yours.
 ## cse2 ignores loop notes, so a global's base pointer set after a loop reaches every later `sym+k` (func_800B8014, 2026-09-26)
 
-`func_800B8014` sets `save = &Mc_SaveData` after the attach-level loop and uses
-it three times. At the end of the function it reads `Mc_SaveData.location` and
-passes `&Mc_SaveData.carriedItems`. The target builds that tail from a new
-`lui a0,%hi(Mc_SaveData+4)` pointer, with the second address at `s0+0x5b8`.
+`func_800B8014` sets `save = &gMcSaveData` after the attach-level loop and uses
+it three times. At the end of the function it reads `gMcSaveData.location` and
+passes `&gMcSaveData.carriedItems`. The target builds that tail from a new
+`lui a0,%hi(gMcSaveData+4)` pointer, with the second address at `s0+0x5b8`.
 Written plainly, `save` stays live in `$s3` to the end instead, and the tail
 reads `lw 4(s3)` / `addiu a0,s3,0x5bc`.
 
 cse1 is not the cause. It stops at `NOTE_INSN_LOOP_END`, and the `do { } while (0)`
 macro between the two stops it before the tail. The cause is cse2: it runs
 with `after_loop` set, ignores those notes, and follows the path around the
-`if` to the end. There, `use_related_value` looks up `Mc_SaveData+4` in the
+`if` to the end. There, `use_related_value` looks up `gMcSaveData+4` in the
 related-value ring. The ring runs symbol → newest → oldest, so the symbol's
 own class is checked first, and its register (`save`) wins over any newer
 `sym+4` pointer.
 
 Things that do *not* make `save` opaque: an inline helper taking
-`&Mc_SaveData` (integrate keeps the constant equivalence), a
+`&gMcSaveData` (integrate keeps the constant equivalence), a
 `do { } while (0)` around the block (cse2 ignores it), and every order of the
 three statements. A copy of a pointer set *before* the loop is opaque in both
 passes and gives the right tail. But that pointer then needs a register across
@@ -143683,8 +143683,8 @@ switch collapses to its default arm (-19 instructions). The seed held the
 runtime switch with a pin and a second pointer local to the same object.
 
 **Fix.** The stores were an existing setter (`Gp_SetPlayerScan`) inlined:
-its own `p = &Mc_SaveData` writes `0x5BE(p)`, while the caller reads through
-`scan = &Mc_SaveData.carriedItems`, i.e. `2(scan)`. CSE's memory table compares
+its own `p = &gMcSaveData` writes `0x5BE(p)`, while the caller reads through
+`scan = &gMcSaveData.carriedItems`, i.e. `2(scan)`. CSE's memory table compares
 address RTL, so the two spellings are never equated and the load stays. When a
 constant store "should" fold but the target reloads, look for a sibling
 function that performs those stores and inline it.

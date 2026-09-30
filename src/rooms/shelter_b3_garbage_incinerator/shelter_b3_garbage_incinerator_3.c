@@ -2904,7 +2904,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
     switch (arg0->state) {
         case 0:
             v = Player_Status.weapon;
-            if (Mc_SaveData[0].state.characterId == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 v = v + 1;
             } else {
                 v = v + 0x22;

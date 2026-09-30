@@ -1124,10 +1124,10 @@ void func_shelter_r47_8018138C(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                = Task_SpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
-    task->work                             = work;
-    work->field_4E                         = Mc_SaveData[0].state.location.loc.view;
-    Mc_SaveData[0].state.location.loc.view = 0x10;
+    task->spawnArg2.pointer                                    = Task_SpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
+    task->work                                                 = work;
+    work->field_4E                                             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
     task->state++;
     Display_AcquireRef();
 

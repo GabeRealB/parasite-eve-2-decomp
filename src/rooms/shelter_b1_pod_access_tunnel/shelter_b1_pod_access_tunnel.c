@@ -1098,12 +1098,12 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 0x23;
-            Mc_SaveData[0].state.location.loc.warp = 3;
-            Mc_SaveData[0].state.location.loc.room = 1;
-            room                                   = GameFlag_GetNibble(0x118);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x23;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+            room                                                       = GameFlag_GetNibble(0x118);
             if (room == 2) {
-                Mc_SaveData[0].state.location.loc.room = room;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
             }
             gDisplayState.spriteVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
@@ -1145,11 +1145,11 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
         case 4:
             GameFlag_SetNibble(0xB4, 1);
             GameFlag_SetNibble(0x1C1, 0);
-            Mc_SaveData[0].state.sceneEvent        = 0x1C;
-            Mc_SaveData[0].state.location.loc.area = 0x17;
-            Mc_SaveData[0].state.location.loc.warp = 1;
-            Mc_SaveData[0].state.location.loc.room = 1;
-            gDisplayState.spriteVariant            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent        = 0x1C;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x17;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+            gDisplayState.spriteVariant                                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1223,7 +1223,7 @@ void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 /// Two-state task: state 0, unless blocked by `Gp_StateC08.field_A` or `gDisplayState.pendingMode`,
 /// sends the slot-3 task a `AnimationPlayRequest` built from `Player_Status.weapon` (msg 0x3E8) and runs
 /// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
-/// sets `Mc_SaveData[0].state.sceneEvent` to 0x1D and kills this task once the session is idle.
+/// sets `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x1D and kills this task once the session is idle.
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
 {
     AnimationPlayRequest rec;
@@ -1236,7 +1236,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
         case 0:
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 weaponId                 = Player_Status.weapon;
-                id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.source.index         = id;
                 rec.animationId          = 1;
                 rec.blend                = ANIMATION_BLEND_RESET;
@@ -1249,7 +1249,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
             break;
         case 1:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].state.sceneEvent = 0x1D;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1D;
                 Task_RequestKill(task, 0);
             }
             break;

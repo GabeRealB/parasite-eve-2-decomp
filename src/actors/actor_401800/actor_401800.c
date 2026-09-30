@@ -2464,7 +2464,7 @@ static s32 func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3049,7 +3049,7 @@ static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECT
 
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
-    if (Mc_SaveData[0].state.characterId == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
         D_actor_401800_80155A0C.source.sets = D_actor_401800_801559F8;
     } else {
         D_actor_401800_80155A0C.source.sets = D_actor_401800_801559F0;

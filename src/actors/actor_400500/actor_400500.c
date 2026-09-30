@@ -1904,7 +1904,7 @@ static void func_actor_400500_80132C54(Task* arg0)
 
     work  = (Actor400500Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (Mc_SaveData[0].state.location.loc.warp) {
+    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp) {
         case 1:
             tx                = 0x800;
             work->field_94A   = tx;

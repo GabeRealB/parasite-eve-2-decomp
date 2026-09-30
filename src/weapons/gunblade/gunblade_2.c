@@ -43,7 +43,7 @@ STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
 
-/// `Mc_SaveData[0].state.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
 
 static void func_gunblade_8011E040(Task* arg0);
 
@@ -220,7 +220,7 @@ static void func_gunblade_8011E040(Task* arg0)
             /* fallthrough */
         case 7:
             actor->field_12A &= 0x3FFF;
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

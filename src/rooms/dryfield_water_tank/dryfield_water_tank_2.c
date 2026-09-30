@@ -67,7 +67,7 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 /// Main-executable globals with no module header yet: the cutscene task
 /// refuses to start while `Gp_StateC08.field_A` is 1 or `gDisplayState.pendingMode` is non-zero.
 /// `Player_Status.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
-/// record is keyed on, and `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases
+/// record is keyed on, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases
 /// that record uses.
 
 /// Main-executable flag set to 1 before the view tasks are respawned.
@@ -1082,7 +1082,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     // $a1 and `field_4` is stored through it.
                     rec                         = &script;
                     weaponId                    = Player_Status.weapon;
-                    script.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                    script.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                     rec->animationId            = 1;
                     script.blend                = ANIMATION_BLEND_RESET;
                     script.blendFrames          = 0;
@@ -1144,7 +1144,7 @@ L_case0:
             D_dryfield_water_tank_80188D50 = task;
         }
         weaponId                    = Player_Status.weapon;
-        anim                        = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        anim                        = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         script.source.index         = anim;
         script.animationId          = 1;
         script.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -1193,7 +1193,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     Gp_DispatchMsgPtr(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                       &D_dryfield_water_tank_801804F4, 0);
     weaponId                 = Player_Status.weapon;
-    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = anim;
     rec.animationId          = 1;
     rec.blend                = ANIMATION_BLEND_RESET;

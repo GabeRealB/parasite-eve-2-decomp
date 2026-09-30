@@ -186,21 +186,21 @@ void Gp_UpdatePadInput(void)
             mask |= 0x1000;
             if (actor->field_954 != 0 || actor->field_956 < 2) {
                 if (pad->stickAxes[PAD_STICK_LEFT_Y] < -0xE80) {
-                    if (Mc_SaveData[0].state.moveMode == 0) {
-                        if (Mc_SaveData[0].state.buttonLayout != 1) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
                             mask |= 0x20;
                         } else {
                             mask |= 0x80;
                         }
                     } else {
-                        if (Mc_SaveData[0].state.buttonLayout == 1) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == 1) {
                             mask &= 0xFF7F;
                         } else {
                             mask &= 0xFFDF;
                         }
                     }
-                } else if (Mc_SaveData[0].state.moveMode == 1) {
-                    if (Mc_SaveData[0].state.buttonLayout != 1) {
+                } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 1) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
                         mask |= 0x20;
                     } else {
                         mask |= 0x80;
@@ -248,7 +248,7 @@ static u16 Gp_RemapButtons(GameActor* actor, u16 mask)
     s32 i;
 
     result = 0;
-    switch (Mc_SaveData[0].state.buttonLayout) {
+    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout) {
         case 0:
             for (i = 0; i < 0x10; i++) {
                 if ((mask >> i) & 1) {

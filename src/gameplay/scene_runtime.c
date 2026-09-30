@@ -676,7 +676,7 @@ void Gp_StepCdAudioCmd(void)
             if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
                 break;
             }
-            save23            = Mc_SaveData[0].state.demoScene;
+            save23            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
             p->sceneAudioMode = one;
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
@@ -701,7 +701,7 @@ void Gp_StepCdAudioCmd(void)
             if (CdAudio_Phase.field_1 != 4) {
                 break;
             }
-            if (Mc_SaveData[0].state.demoScene != 0) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
             Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
@@ -1829,7 +1829,7 @@ void Gp_FadeWorkTask(Task* t)
 
 void func_800B25B0(void)
 {
-    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
@@ -2340,7 +2340,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
     u8                     recordFlags;
     s32                    setIndex;
 
-    if (Mc_SaveData[0].state.demoScene == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
         u8  slotIndex;
         s32 poseBufferOffset;
 
@@ -2790,8 +2790,8 @@ void Gp_SaveEnemyPose(Enemy* enemy)
     u16                 placementKey;
     s32                 poseIndex;
 
-    savedPose     = Mc_SaveData[0].state.enemyPoses;
-    savedLocation = &Mc_SaveData[0].state.location.loc;
+    savedPose     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
+    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     model         = enemy->task->extra.tmd;
     coord         = model->coords;
     if (enemy->spawnState == 0) {
@@ -2799,31 +2799,31 @@ void Gp_SaveEnemyPose(Enemy* enemy)
     }
     placementKey = enemy->placeKey;
     // Keep the first saved transform and resume state for this placement.
-    for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+    for (poseIndex = 0; poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->placeKey == placementKey) {
             return;
         }
     }
 
     euler     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    savedPose = Mc_SaveData[0].state.enemyPoses;
-    for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+    savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
+    for (poseIndex = 0; poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->resumeState == AREA_SAVED_ENEMY_POSE_FREE) {
             break;
         }
     }
-    if (poseIndex == ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+    if (poseIndex == ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses)) {
         u32 stageAreaKey;
 
         // Evict a pose from another area, using the final slot as the fallback.
-        savedPose    = Mc_SaveData[0].state.enemyPoses;
+        savedPose    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
         stageAreaKey = (savedLocation->stage << AREA_PLACEMENT_STAGE_SHIFT) | savedLocation->area;
-        for (poseIndex = 0; poseIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+        for (poseIndex = 0; poseIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); poseIndex++, savedPose++) {
             if ((savedPose->placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) != stageAreaKey) {
                 break;
             }
         }
-        for (; poseIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+        for (; poseIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); poseIndex++, savedPose++) {
             savedPose[0] = savedPose[1];
         }
     }
@@ -2889,9 +2889,9 @@ void Gp_SpawnArea(GameLocationKey* location)
                         s32                       poseFound;
                         s32                       savedPoseIndex;
 
-                        savedPose = Mc_SaveData[0].state.enemyPoses;
+                        savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
                         poseFound = 0;
-                        for (savedPoseIndex = 0; savedPoseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); savedPoseIndex++, savedPose++) {
+                        for (savedPoseIndex = 0; savedPoseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); savedPoseIndex++, savedPose++) {
                             if (savedPose->placeKey == ((placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area)) {
                                 poseFound = 1;
                                 break;
@@ -2931,7 +2931,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                             } else {
                                 const AreaSavedEnemyPose* savedPose;
 
-                                savedPose = Mc_SaveData[0].state.enemyPoses;
+                                savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
                                 poseIndex = 0;
                                 do {
                                     if (savedPose->placeKey == enemy->placeKey) {
@@ -2949,8 +2949,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                                     }
                                     poseIndex++;
                                     savedPose++;
-                                } while (poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses));
-                                if (poseIndex == ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+                                } while (poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses));
+                                if (poseIndex == ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses)) {
                                     Gp_DestroyEnemy(enemy, enemy->task);
                                 }
                             }
@@ -3079,7 +3079,7 @@ static void func_800B51F4(Task* task)
     if (task->spawnArg1.value == 0x10) {
         count = 2;
     }
-    if (Mc_SaveData[0].state.demoScene == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
         return;
     }
 
@@ -3204,7 +3204,7 @@ void Gp_ApplyAreaTmdFlags(void)
         do {
             work = iter->spawnArg2.pointer;
             if (iter->bodyKind == TASK_BODY_TMD) {
-                key   = &Mc_SaveData[0].state.location.loc;
+                key   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
@@ -3298,7 +3298,7 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
     GpAreaObj*       areaState;
     GameLocationKey* key;
 
-    key         = &Mc_SaveData[0].state.location.loc;
+    key         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].field_4;
@@ -3359,17 +3359,17 @@ static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState)
     // A changed layout invalidates saved poses for every placement in this area.
     if (areaState->spawnFlags & AREA_SPAWN_RESET_SAVED_POSES) {
         areaState->spawnFlags &= 0xFF ^ (AREA_SPAWN_RESET_SAVED_POSES | AREA_SPAWN_RESTORE_SAVED_POSES);
-        poseIndex              = (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1);
-        savedPoses             = Mc_SaveData[0].state.enemyPoses;
+        poseIndex              = (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1);
+        savedPoses             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
         do {
             if ((savedPoses[poseIndex].placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) == ((key->stage << AREA_PLACEMENT_STAGE_SHIFT) | key->area)) {
-                if (poseIndex != (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)) {
-                    for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); shiftIndex++) {
+                if (poseIndex != (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)) {
+                    for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); shiftIndex++) {
                         savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
                     }
                 }
-                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
-                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey    = 0;
+                savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
+                savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].placeKey    = 0;
             }
             poseIndex--;
         } while (poseIndex >= 0);
@@ -3730,7 +3730,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
     }
 }
 
-/// Walks `Gp_Bit2Banks[Mc_SaveData[0].state.location.loc.area / stage]` for a `GpBit2Rec`
+/// Walks `Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area / stage]` for a `GpBit2Rec`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `Gp_Bit2Banks[gGameSession->location.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).

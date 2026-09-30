@@ -2716,12 +2716,12 @@ static void func_actor_450800_80132028(void)
 
 void func_actor_450800_80132080(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.location.loc.stage = 5;
-        Mc_SaveData[0].state.location.loc.area  = 0x17;
-        Mc_SaveData[0].state.location.loc.warp  = 1;
-        Mc_SaveData[0].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant             = 1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x17;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant                                 = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }
 }

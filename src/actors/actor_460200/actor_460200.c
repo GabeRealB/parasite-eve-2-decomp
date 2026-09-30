@@ -2249,7 +2249,7 @@ void func_actor_460200_801320E0(s32 arg0)
 
 void func_actor_460200_80132204(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 static void func_actor_460200_80132210(void)

@@ -1556,12 +1556,12 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             if (Task_PollKill(work->child, &poll) == 0) {
                 break;
             }
-            gGameSession->unknown_138               = 1;
-            Mc_SaveData[0].state.location.loc.stage = 4;
-            Mc_SaveData[0].state.location.loc.area  = 0x11;
-            Mc_SaveData[0].state.location.loc.warp  = 2;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gGameSession->unknown_138                                   = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x11;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
         case 2:
         next:

@@ -753,8 +753,8 @@ void func_800A57B0(GpIdMapC* arg0)
     }
 
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
-        if (Mc_SaveData[0].state.companionType != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData[0].state.companionHp, Mc_SaveData[0].state.companionHpMax, 0);
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 2) {
+            Gp_DrawHudNumbers(0x2D, -0x64, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax, 0);
         }
     }
 }

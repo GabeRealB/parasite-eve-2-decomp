@@ -1407,7 +1407,7 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     arg0->field_14 = 0;
     arg0->field_16 = 0;
     arg0->field_C  = 0;
-    if (Mc_SaveData[0].state.cursorMode != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
         arg0->field_10  = 0;
         arg0->field_9.u = 0;
     }
@@ -2255,7 +2255,7 @@ void Ui_InitList(UiList* list, UiPanel* panel)
     list->field_14 = 0;
     list->field_16 = 0;
     list->field_C  = 0;
-    if (Mc_SaveData[0].state.cursorMode != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
         list->field_10  = 0;
         list->field_9.u = 0;
     }

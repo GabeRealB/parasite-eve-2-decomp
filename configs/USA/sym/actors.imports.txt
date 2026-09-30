@@ -147,7 +147,7 @@ gGpuCurrentOt = 0x800710A0; // absolute:True
 GsWSMATRIX = 0x80071138; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
 Pad_States = 0x80071620; // absolute:True
-Mc_SaveData = 0x80072168; // absolute:True
+gMcSaveData = 0x80072168; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (216 symbols)

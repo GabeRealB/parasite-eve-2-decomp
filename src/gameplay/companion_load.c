@@ -30,10 +30,10 @@
 
 /// 8-byte record in `D_80114198` / `D_801141F0` / `D_80114248`. Indexed by
 /// `GameFlag_GetNibble(0x4B / 0x4C / 0x4D)`. `field_0` is a per-room byte
-/// list, 1-based by `Mc_SaveData[0].state.location.loc.area`; `field_4` is the stage id
-/// (`Mc_SaveData[0].state.location.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
+/// list, 1-based by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area`; `field_4` is the stage id
+/// (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
 /// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
-/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData[0].state.companionType`.
+/// `Gp_PickCompanion` uses the same tables to pick `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`.
 typedef struct _GpNpcRoomRec {
     /* 0x0 */ u8*  field_0;
     /* 0x4 */ u8   field_4;
@@ -150,7 +150,7 @@ s32 Gp_PickCompanion(void)
     s32         stage;
     u8          variant;
 
-    save  = &Mc_SaveData[0];
+    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
     if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->state.location.loc.area - 1] != 0) {
@@ -162,38 +162,38 @@ s32 Gp_PickCompanion(void)
     }
 
     bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
-    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[Mc_SaveData[0].state.location.loc.area - 1] & 0xF)) {
+    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
         GameSession* sess = gGameSession;
 
-        Mc_SaveData[0].state.companionType = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 1;
         if (sess->companionType == 1) {
-            variant = bytes[Mc_SaveData[0].state.location.loc.area - 1] >> 4;
+            variant = bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
             if (sess->companionVariant == variant) {
-                Mc_SaveData[0].state.companionVariant = variant;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = variant;
                 return 0;
             }
         }
-        Mc_SaveData[0].state.companionVariant = bytes[Mc_SaveData[0].state.location.loc.area - 1] >> 4;
-        gGameSession->companionVariant        = bytes[Mc_SaveData[0].state.location.loc.area - 1] >> 4;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
+        gGameSession->companionVariant                            = bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
         return 1;
     }
 
     bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
-    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[Mc_SaveData[0].state.location.loc.area - 1] != 0) {
+    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
-        Mc_SaveData[0].state.companionType    = 3;
-        Mc_SaveData[0].state.companionVariant = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 3;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 0;
         if (sess->companionType == 3) {
             return 0;
         }
         return 3;
     }
 
-    Mc_SaveData[0].state.companionType    = 0;
-    Mc_SaveData[0].state.companionVariant = 0;
-    gGameSession->companionType           = 0;
-    gGameSession->companionVariant        = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 0;
+    gGameSession->companionType                               = 0;
+    gGameSession->companionVariant                            = 0;
     return 0;
 }
 
@@ -204,7 +204,7 @@ void Gp_ApplyNpcRoomSnd(void)
     s32         stage;
     s32         flag;
 
-    save  = &Mc_SaveData[0];
+    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
@@ -219,7 +219,7 @@ void Gp_ApplyNpcRoomSnd(void)
         bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
         if (bytes != NULL) {
             if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
-                if (bytes[Mc_SaveData[0].state.location.loc.area - 1] & 0xF) {
+                if (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF) {
                     flag = 1;
                     goto done;
                 }
@@ -228,7 +228,7 @@ void Gp_ApplyNpcRoomSnd(void)
         bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
         if (bytes != NULL) {
             if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
-                if (bytes[Mc_SaveData[0].state.location.loc.area - 1] != 0) {
+                if (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
@@ -245,7 +245,7 @@ void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
     McSaveData* save;
     s32         field;
 
-    save  = &Mc_SaveData[0];
+    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     field = save->state.companionType;
     if (field != 0) {
         if (field == 2) {
@@ -275,7 +275,7 @@ void Gp_MarkAreaVisited(GameLocationKey* arg0)
     s32         flags;
 
     bank = Gp_FlagBanks[arg0->stage];
-    save = &Mc_SaveData[0];
+    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
         save->state.visitFlags |= 1 << arg0->stage;
         if (gDisplayState.debugMode != 0) {

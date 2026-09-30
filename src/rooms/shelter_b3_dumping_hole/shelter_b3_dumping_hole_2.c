@@ -2551,7 +2551,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId   = Player_Status.weapon;
-                        msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.animationId          = 0x2F;
                         msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
                         msg.anim.blendFrames          = 0xA;
@@ -2566,7 +2566,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 2: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
             s32                weaponId   = Player_Status.weapon;
-            msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.animationId          = 0x32;
             msg.anim.blend                = ANIMATION_BLEND_RESET;
             msg.anim.blendFrames          = 0;
@@ -2582,7 +2582,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             {
                 DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
                 s32                weaponId   = Player_Status.weapon;
-                msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.anim.animationId          = 9;
                 msg.anim.blend                = ANIMATION_BLEND_RESET;
                 msg.anim.blendFrames          = 0;
@@ -2608,7 +2608,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId   = Player_Status.weapon;
-                        msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.animationId          = 0x30;
                         msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
                         msg.anim.blendFrames          = 0xA;
@@ -2623,7 +2623,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 6: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
             s32                weaponId   = Player_Status.weapon;
-            msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.animationId          = 0x33;
             msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.anim.blendFrames          = 0xA;
@@ -2635,7 +2635,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 7: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
             s32                weaponId   = Player_Status.weapon;
-            msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.animationId          = 0x31;
             msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.anim.blendFrames          = 0xA;
@@ -2781,16 +2781,16 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 work->field_48                     = 0;
                 work->field_46                     = 0;
             }
-            w                               = (DumpingHoleEntity*)arg0->work;
-            w->field_0                      = w->field_28->extra.tmd->coords->coord.t[0];
-            t                               = w->field_28;
-            w->field_4                      = t->extra.tmd->coords->coord.t[1];
-            w->field_8                      = t->extra.tmd->coords->coord.t[2];
-            w->field_12                     = 0x400;
-            w->field_10                     = 0;
-            w->field_14                     = 0;
-            Mc_SaveData[0].state.sceneEvent = 0xC;
-            gStageSceneMusicEntry           = 3;
+            w                                                   = (DumpingHoleEntity*)arg0->work;
+            w->field_0                                          = w->field_28->extra.tmd->coords->coord.t[0];
+            t                                                   = w->field_28;
+            w->field_4                                          = t->extra.tmd->coords->coord.t[1];
+            w->field_8                                          = t->extra.tmd->coords->coord.t[2];
+            w->field_12                                         = 0x400;
+            w->field_10                                         = 0;
+            w->field_14                                         = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
+            gStageSceneMusicEntry                               = 3;
             arg0->state++;
             break;
         case 1:
@@ -2813,7 +2813,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             Gp_DispatchMsgPtr(w2->field_24, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             weaponId                  = Player_Status.weapon;
             p                         = &anim;
-            anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             p->animationId            = 1;
             p->blend                  = ANIMATION_BLEND_INTERPOLATE;
             p->blendFrames            = 0xA;
@@ -2974,7 +2974,7 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
     Gp_DispatchMsgPtr(ent->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
-    desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+    desc[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
@@ -3182,7 +3182,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
         case 1:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            buf.words[0]         = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+            buf.words[0]         = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             buf.words[1]         = 9;
             buf.words[2]         = 1;
             buf.words[3]         = 0xA;
@@ -3341,7 +3341,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 2, 0);
             break;
         case 5:
-            Mc_SaveData[0].state.location.loc.view = work->field_94;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_94;
             Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             work->field_96 = 1;
@@ -3352,7 +3352,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             command5->command          = 0xC;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command5, ACTOR_COMMAND_MESSAGE_APPLY);
             p        = words;
-            words[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+            words[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             p[1]     = 1;
             p[2]     = 1;
             p[3]     = 0xA;
@@ -3430,7 +3430,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
 
     p3       = desc3;
-    desc3[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+    desc3[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
     p3[1]    = 1;
     desc3[2] = 0;
     desc3[3] = 0;
@@ -3470,7 +3470,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
             ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->location.loc.view;
             Gp_MsgPlayerWeapon(0);
-            desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+            desc[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
             desc[2] = 1;
             desc[3] = 0xA;

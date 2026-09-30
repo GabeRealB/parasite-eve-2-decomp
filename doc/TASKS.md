@@ -349,7 +349,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `Stage_Ctx->field_0` | Per-stage desc table; `Display_SpawnFromMode` spawns index 0 |
 | `D_80725C54` | Overlay desc, from `Task_KillMaybeSpawn` |
-| `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `Mc_SaveData`) |
+| `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
 | Stack `TaskDesc` | `Ui_SpawnFromDesc` seeds flags/priority/callback from a `UiObjectDesc` |
 
 `Task_GetDesc(bank, type)` is the typed way to hand a bank entry to

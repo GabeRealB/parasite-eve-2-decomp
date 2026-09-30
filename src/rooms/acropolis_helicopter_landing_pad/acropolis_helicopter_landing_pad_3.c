@@ -769,9 +769,9 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
-        Mc_SaveData[0].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
-        Mc_SaveData[0].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
-        Mc_SaveData[0].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
         Task_Spawn(0, 0x11, 0, 0);
         taskKill(arg0);
     }

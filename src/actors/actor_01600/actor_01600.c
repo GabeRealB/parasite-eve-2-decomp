@@ -2848,7 +2848,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         if (Actor01600_Fn047A0(actor) & 0xFF) {
                             targetKind = work->field_53E;
                             if (targetKind == 1) {
-                                if (Mc_SaveData[0].state.companionHp > 0) {
+                                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0) {
                                     if (Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair(ctx, 0), 0) == targetKind) {
                                         work->field_506 = 9;
                                         work->field_50E = 0;
@@ -2961,7 +2961,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         }
                     } else {
                     block_156:
-                        if (Mc_SaveData[0].state.companionHp <= 0) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
                             work->field_506               = 9;
                             work->field_50E               = 0;
                             work->field_50A               = 0;

@@ -1087,8 +1087,8 @@ static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
     arg0->msgTable = D_acropolis_roof_garden_80183BDC;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].state.sceneEvent == 6) {
-        Mc_SaveData[0].state.sceneEvent = 5;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
     }
     Task_SpawnFromTable(D_acropolis_roof_garden_80183C10, 0, 0, 0);
     arg0->state += 1;

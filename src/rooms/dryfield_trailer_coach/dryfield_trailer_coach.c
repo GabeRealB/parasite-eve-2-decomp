@@ -1614,7 +1614,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 GameFlag_SetNibble(0x3A, 1);
                 GameFlag_SetNibble(0x4B, 1);
                 func_800E3FAC(0xA2, 0xF);
-                Mc_SaveData[0].state.sceneEvent = 6;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
                 Gp_ApplyAreaRecs(D_dryfield_trailer_coach_80189C50);
             } else if (Gp_HasCollectedBit(0x111) == 0 && GameFlag_GetNibble(0x4F) != 0) {
                 if (GameFlag_GetNibble(0xFD) == 0) {
@@ -1665,8 +1665,8 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMes
         Task_SpawnFromTable(D_dryfield_trailer_coach_80184FC0, 1, 0, 0);
     }
     if (arg2 == 0xE) {
-        if (Mc_SaveData[0].state.location.loc.warp == 2) {
-            Mc_SaveData[0].state.location.loc.warp = 1U;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1U;
         }
         if (GameFlag_GetNibble(0x16C) == 0) {
             GameFlag_SetNibble(0x16C, 1);
@@ -1809,7 +1809,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0)
 {
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].state.location.loc.warp == 2) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
         func_800E8634(D_dryfield_trailer_coach_801853F4, 0, D_dryfield_trailer_coach_80185964);
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 4);
@@ -1823,7 +1823,7 @@ static void func_dryfield_trailer_coach_8018291C(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData[0].state.location.loc.view == 8) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 8) {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     } else {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;

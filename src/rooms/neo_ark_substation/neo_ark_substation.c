@@ -516,7 +516,7 @@ GpRoomParamRec* D_neo_ark_substation_80180328[8] = {
 /// in: `gGameSession->location.loc.view` selects one of the room's nine `(pan, vol)`
 /// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
 /// through 4 then watch for the session's index to stop matching the area
-/// `Mc_SaveData[0].state.location.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
 /// along - and state 5 retunes the playing loop to the new entry with
 /// `SndEvt_EnqueueTypeA` and returns to state 1 to keep watching.
 void func_neo_ark_substation_8017D608(Task* task)
@@ -540,7 +540,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 task->state = task->state + 1;
             }
             break;

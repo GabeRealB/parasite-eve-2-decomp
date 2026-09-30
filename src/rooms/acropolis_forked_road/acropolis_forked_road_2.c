@@ -1283,11 +1283,11 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Gp_StateF0.field_4 = 0;
             func_800E9BDC(2, 0x9FF);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.area  = 0xA;
-            Mc_SaveData[0].state.location.loc.warp  = 4;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0xA;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
@@ -1336,7 +1336,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             weaponId                 = Player_Status.weapon;
-            rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
@@ -1399,7 +1399,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(5);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;

@@ -462,10 +462,10 @@ void func_mine_cavern_8017E0F4(s32 arg0)
     gGameSession->flowFlags |= GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
 }
 
-/// Room script callback: stores its argument into `Mc_SaveData[0].state.sceneEvent`.
+/// Room script callback: stores its argument into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`.
 void func_mine_cavern_8017E150(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 void func_mine_cavern_8017E15C(void)

@@ -2483,7 +2483,7 @@ static s32 func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* re
     Actor421600AvoidScratch* s;
     s16                      diff;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -3648,7 +3648,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 SndEvt_EnqueueType6(hitSound, hitPan,
                                     (s8)gpGetObjDepth(arg0->extra.tmd->coords));
             }
-            debugMode = Mc_SaveData[0].state.actorsFrozen;
+            debugMode = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             if (debugMode == 1) {
                 enemy->hp       = 0x64;
                 work->field_838 = 9;
@@ -6825,7 +6825,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 if (command == &Actor421600RearAnim) {
                     if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
                         message           = &work->field_E7C;
-                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
@@ -6834,7 +6834,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
                     message                       = &work->field_E7C;
-                    Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+                    Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
 
                     work->field_E80 = 4;
                     work->field_E84 = 1;
@@ -6882,9 +6882,9 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->field_E80 = 5;
                         nextCommand     = work->field_E7C;
                         if (nextCommand == &Actor421600RearAnim) {
-                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
                         } else {
-                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
                         }
                         nextMessage = &work->field_E7C;
                         Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);

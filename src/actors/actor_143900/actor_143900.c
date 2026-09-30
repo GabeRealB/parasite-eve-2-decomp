@@ -1199,8 +1199,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task);
 /// plays.
 void func_actor_143900_80131E24(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.sceneEvent = 0x14;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x14;
         Task_SpawnFromTable(D_shelter_r49_8017DA00, 0, 0, 0);
     }
 }

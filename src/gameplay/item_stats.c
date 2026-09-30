@@ -357,7 +357,7 @@ void func_800C5F70(Task* arg0)
                         gGpuPrimCursor = sprt + 1;
                         sprt->x0       = x;
                         sprt->y0       = y - 8;
-                        spriteMode     = Mc_SaveData[0].state.buttonLayout;
+                        spriteMode     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
                         if (spriteMode != 2) {
                             h        = 8;
                             sprt->y0 = y - 4;
@@ -557,7 +557,7 @@ void func_800C5F70(Task* arg0)
                     req110.alignment  = TEXT_ALIGNMENT_LEFT;
                     req110.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                     Text_DrawString(&req110, bufC0);
-                    Text_ItoaSigned(bufC0, Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item));
+                    Text_ItoaSigned(bufC0, Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item));
                     Text_ItoaSigned(bufE0, Gp_StackLimits[idx].maxHeld);
                     Text_Strcat(bufC0, Gp_StrSlash);
                     Text_Strcat(bufC0, bufE0);

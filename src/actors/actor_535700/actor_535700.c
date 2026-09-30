@@ -1160,13 +1160,13 @@ void func_actor_535700_80131EF0(s32 frames)
 
 void func_actor_535700_80131F2C(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.location.loc.area = 0x1D;
-        Mc_SaveData[0].state.location.loc.warp = 5;
-        Mc_SaveData[0].state.location.loc.room = 2;
-        gDisplayState.spriteVariant            = 1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1D;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+        gDisplayState.spriteVariant                                = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Mc_SaveData[0].state.sceneEvent = 6;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         Gp_RestoreStreamRng();
     }
 }

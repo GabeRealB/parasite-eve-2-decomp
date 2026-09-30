@@ -259,11 +259,11 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     }
 }
 
-/// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData[0].state.location.loc.room`.
+/// Sets the session's current room to `arg0` and mirrors it in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
-    gGameSession->location.loc.room        = arg0;
-    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
 }
 
 /// First state of the room task: publishes the room's message table, claims
@@ -299,7 +299,7 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
         GameFlag_SetNibble(0x96, 1);
         func_800E8614(D_dryfield_night_motel_loft_8017EB78, 0);
         func_800E3FAC(0xA2, 0x15);
-        Mc_SaveData[0].state.sceneEvent = 3;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
     }
 }
 

@@ -168,7 +168,7 @@ STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
-/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses, and
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` (the cutscene mode flag) gate the actor's setup.
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
@@ -2470,7 +2470,7 @@ void func_actor_121300_80133D98(Task* arg0)
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 weaponId                         = Player_Status.weapon;
-                anim                             = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.source.index         = anim;
                 scratch.msg.animationId          = 1;
                 scratch.msg.blend                = ANIMATION_BLEND_RESET;
@@ -2502,10 +2502,10 @@ void func_actor_121300_80133D98(Task* arg0)
             ClearImage(&scratch.rect, 0, 0, 0);
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
-            Mc_SaveData[0].state.location.loc.stage = state;
-            Mc_SaveData[0].state.location.loc.area  = 9;
-            Mc_SaveData[0].state.location.loc.warp  = state;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = state;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 9;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = state;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;

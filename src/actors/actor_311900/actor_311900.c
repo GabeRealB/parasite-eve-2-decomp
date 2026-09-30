@@ -552,7 +552,7 @@ static void func_actor_311900_801625F0(Enemy* enemy, Task* task)
 /// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
 /// `arg0->coord.t` and clears `arg0->composeStamp`. Returns the step, or 0 having
-/// touched nothing while the game is paused (`Mc_SaveData[0].state.actorsFrozen == 1`) or when the
+/// touched nothing while the game is paused (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1`) or when the
 /// step is zero. `arg0` is the per-part `GfxCoord` the caller takes from
 /// `TmdObject::coords`.
 ///
@@ -566,7 +566,7 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
     SVECTOR* vec;
     SVECTOR* gte;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
     head                          = SCRATCH_STACK_CURSOR(SVECTOR);

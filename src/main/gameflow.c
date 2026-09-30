@@ -176,7 +176,7 @@ void GameFlow_StateByField34(Task* task)
         gDisplayState.demoScene = DISPLAY_DEMO_NONE;
         Pad_SetCooldown(0);
         if (task->spawnArg1.value == 0) {
-            saved = Mc_SaveData[0].state.vibration;
+            saved = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 1;
@@ -184,8 +184,8 @@ void GameFlow_StateByField34(Task* task)
             p->blockGamePause                            = 1;
             Wip_SysFlags.field_4                         = 1;
             Mc_InitBufferSlots();
-            Mc_SaveData[0].state.vibration = saved;
-            task->state                    = task->state + 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
+            task->state                                        = task->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.gameRunning                    = 1;
@@ -251,7 +251,7 @@ static void Game_ResetSessionAndBuffers(Task* task)
     CdCmdQueue* p;
 
     p     = &gCdCmdQueue;
-    saved = Mc_SaveData[0].state.vibration;
+    saved = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                    = 1;
@@ -260,7 +260,7 @@ static void Game_ResetSessionAndBuffers(Task* task)
     Wip_SysFlags.field_4                         = 1;
     Mc_InitBufferSlots();
     do {
-        Mc_SaveData[0].state.vibration = saved;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
     } while (0);
     task->state = task->state + 1;
 }
@@ -289,7 +289,7 @@ static void GameFlow_WaitMenuDone(Task* task)
         Ui_TeardownTree(obj, obj->owner);
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
-        if (Mc_SaveData[0].state.soundMode == 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 1) {
             CdVol_SetMixMode(0);
         } else {
             CdVol_SetMixMode(1);
@@ -336,7 +336,7 @@ void GameFlow_DispatchTable5(Task* task)
 
 static void GameFlow_CopySaveIds(Task* task)
 {
-    gGameSession->location = Mc_SaveData[0].state.location;
+    gGameSession->location = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     D_8007A394             = 0;
     task->state            = task->state + 1;
 }
@@ -419,7 +419,7 @@ static void Pad_TickEventBanks(PadState* pad)
         }
     }
 
-    if (Mc_SaveData[0].state.vibration == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration == 0) {
         pad->actuatorCommand[0] = motor[0];
         pad->actuatorCommand[1] = motor[1];
     } else {

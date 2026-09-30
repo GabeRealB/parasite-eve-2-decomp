@@ -25,16 +25,16 @@ void shelterElevatorTask(Task* task)
             Gp_StateF0.field_4 = 1;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData[0].state.location.loc.area = 9;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 9;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData[0].state.location.loc.area = 0x1B;
-                    Mc_SaveData[0].state.location.loc.warp = 2;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1B;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData[0].state.location.loc.area = 0x2A;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x2A;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 default:
                     Gp_MsgPlayerWeapon(1);
@@ -54,13 +54,13 @@ void shelterElevatorTask(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.room      = 1;
             msg.queryOnly = ROOM_EVENT_EXECUTE;
-            msg.areaId    = Mc_SaveData[0].state.location.loc.area;
-            msg.warp      = Mc_SaveData[0].state.location.loc.warp;
+            msg.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
+            msg.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
             msg2          = msg;
             func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.warp = msg2.warp;
-            Mc_SaveData[0].state.location.loc.room = msg2.room;
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = msg2.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = msg2.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

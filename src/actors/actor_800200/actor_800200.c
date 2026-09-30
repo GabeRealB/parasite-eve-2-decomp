@@ -954,7 +954,7 @@ static void func_actor_800200_80162088(Task* arg0)
     obj->context.motion         = &actor->field_88[0];
     obj->coord                  = coord;
     actor->field_88[0].contacts = recs;
-    save                        = &Mc_SaveData[0];
+    save                        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     obj->pos.vx                 = 0;
     obj->pos.vy                 = -0xFA;
     obj->pos.vz                 = 0;

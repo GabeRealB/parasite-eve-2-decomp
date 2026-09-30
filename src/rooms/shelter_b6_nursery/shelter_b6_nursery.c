@@ -108,8 +108,8 @@ extern GpEvsCmd D_nursery_script_8013A8DC[];
 extern s32      D_8013AF8C;
 extern s32      D_8013BA84;
 
-/// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
-/// path does not share the `Mc_SaveData` address with case 0.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
+/// path does not share the `gMcSaveData` address with case 0.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -965,7 +965,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 arg0->state++;
             }
             break;

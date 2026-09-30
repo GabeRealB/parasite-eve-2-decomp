@@ -51,10 +51,10 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task);
 
 extern UiObjectDesc D_800611E4;
 
-/// Saved `Mc_SaveData[0].state.location.loc.view` (area id), restored when the cutscene ends.
+/// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
 
-/// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
-/// path does not share the `Mc_SaveData` address with case 0.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
+/// path does not share the `gMcSaveData` address with case 0.
 
 /// Row labels of the play-data statistics panel, one per row
 /// `func_dryfield_night_motel_lobby_8017D748` draws.
@@ -347,8 +347,8 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                         }
                         func_dryfield_night_motel_lobby_80180440(task, hs->id);
                         if (work->field_8 != 0) {
-                            Mc_SaveData[0].state.location.loc.view = 7;
-                            task->state                            = 6;
+                            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
+                            task->state                                                = 6;
                             func_dryfield_night_motel_lobby_801802A8(task);
                             return;
                         }

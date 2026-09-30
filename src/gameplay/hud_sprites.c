@@ -646,7 +646,7 @@ void Gp_StartAreaBgm(s16* arg0)
     if (cfg->hp <= 0) {
         SndEvt_EnqueueType6((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
     } else {
-        type = Mc_SaveData[0].state.companionType;
+        type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType;
         if (type == 1) {
             SndEvt_EnqueueType6(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
         } else if (type == 3) {
@@ -669,7 +669,7 @@ u8* Gp_GetAttachLevels(void)
         cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData[0].state.attachLevels;
+        return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -912,7 +912,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
             cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData[0].state.attachLevels;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -943,12 +943,12 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
         cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData[0].state.attachLevels;
+        table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
     if (arg1 != 0) {
-        save = &Mc_SaveData[0];
+        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         do {
             if (arg1 > 0) {
                 do {
@@ -1513,7 +1513,7 @@ void Gp_ViewGateTask(Task* task)
     if (task->state == 0) {
         task->state = 3;
     }
-    save = &Mc_SaveData[0];
+    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if (task->spawnArg1.value != save->state.location.loc.view) {
         gGameSession->viewDirty = 1;
     }

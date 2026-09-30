@@ -51,7 +51,7 @@ extern s32 D_801360E4;
 extern s32 D_80136804;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
-/// end reads it through this name rather than through `Mc_SaveData`.
+/// end reads it through this name rather than through `gMcSaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -181,15 +181,15 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x138) != 0) {
-            Mc_SaveData[0].state.location.loc.warp                  = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.field_0  = 8;
-            D_shelter_b3_incinerator_control_room_80182A58.field_1  = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.field_3  = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.field_2  = 0;
-            D_shelter_b3_incinerator_control_room_80182A58.field_4  = 0x54290001;
-            D_shelter_b3_incinerator_control_room_80182A58.field_8  = 0x54290004;
-            D_shelter_b3_incinerator_control_room_80182A58.field_10 = 0x54290002;
-            D_shelter_b3_incinerator_control_room_80182A58.field_C  = 0x54290003;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.field_0     = 8;
+            D_shelter_b3_incinerator_control_room_80182A58.field_1     = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.field_3     = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.field_2     = 0;
+            D_shelter_b3_incinerator_control_room_80182A58.field_4     = 0x54290001;
+            D_shelter_b3_incinerator_control_room_80182A58.field_8     = 0x54290004;
+            D_shelter_b3_incinerator_control_room_80182A58.field_10    = 0x54290002;
+            D_shelter_b3_incinerator_control_room_80182A58.field_C     = 0x54290003;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
         } else {
             GameFlag_SetNibble(0x138, 1);

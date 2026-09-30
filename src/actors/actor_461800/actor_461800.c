@@ -1030,10 +1030,10 @@ void func_actor_461800_8013223C(s32 arg0)
 /// been seen. With neither seen the session bails out (`restartMode` / `deathFadeFrames`
 /// are the stage-load sentinels); otherwise the save header is primed and the
 /// boot loader started, with the stream RNG restored behind it. Skipped whole
-/// when `Mc_SaveData[0].state.demoScene` (the current screen id) is 9.
+/// when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` (the current screen id) is 9.
 void func_actor_461800_8013229C(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (GameFlag_GetNibble(0xEA) == 2) {
             Gp_SetCollectedBit(0x130);
         }
@@ -1045,13 +1045,13 @@ void func_actor_461800_8013229C(void)
             gGameSession->deathFadeFrames = 0xF;
             return;
         }
-        Mc_SaveData[0].state.location.loc.stage = 4;
-        Mc_SaveData[0].state.location.loc.area  = 0x24;
-        Mc_SaveData[0].state.location.loc.warp  = 1;
-        Mc_SaveData[0].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant             = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x24;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant                                 = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
+        Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
         Gp_RestoreStreamRng();
     }
 }

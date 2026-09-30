@@ -161,9 +161,9 @@ static void Reflection_UpdatePlayer(Task* task)
     width  = 0x1C0;
     work   = task->work;
     extra  = task->extra.tmd;
-    stage  = Mc_SaveData[0].state.location.loc.stage;
-    area   = Mc_SaveData[0].state.location.loc.area;
-    view   = Mc_SaveData[0].state.location.loc.view;
+    stage  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
+    area   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
+    view   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     status = &Player_Status;
     if (stage == 5) {
         width = 0x140;
@@ -565,7 +565,7 @@ static void Reflection_UpdatePlayer(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
+            if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
                 if (task->spawnArg1.value == 0) {
                     halfWidth = 0x5F;
                 } else {

@@ -66,9 +66,9 @@
 
 extern UiObjectDesc D_800611E4;
 
-/// `Mc_SaveData[0].state.companionType` (ally present), read through its own symbol.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
-/// `Mc_SaveData[0].state.location.loc.view` as it was when the cutscene started, restored
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.
@@ -995,10 +995,10 @@ L_case5:
     GameFlag_SetNibble(0x59, 1);
     GameFlag_SetNibble(0x5A, 2);
     GameFlag_SetNibble(0x30, 0);
-    Mc_SaveData[0].state.location.loc.area = 8;
-    Mc_SaveData[0].state.location.loc.warp = 1;
-    Mc_SaveData[0].state.location.loc.room = 1;
-    gDisplayState.spriteVariant            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 8;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+    gDisplayState.spriteVariant                                = 1;
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(task);
 }

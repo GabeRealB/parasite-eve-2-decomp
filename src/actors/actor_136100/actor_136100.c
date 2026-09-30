@@ -1253,7 +1253,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
 
     msgWork                  = (Actor136100Work*)arg0->work;
     weaponId                 = Player_Status.weapon;
-    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     msgWork->field_4DE       = idx;
     rec.animationId          = idx;
@@ -1413,22 +1413,22 @@ void func_actor_136100_80132284(Task* arg0)
 /// evaluated once. Dispatch consumes the request synchronously.
 /// The bank selector depends on the current weapon and save character.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, anim, blendChoice, frames, record)                        \
-    {                                                                                                             \
-        Actor136100Work* msgWork;                                                                                 \
-        s32              weaponId;                                                                                \
-        s32              id;                                                                                      \
-                                                                                                                  \
-        msgWork                       = (Actor136100Work*)(task)->work;                                           \
-        weaponId                      = Player_Status.weapon;                                                     \
-        id                            = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        (record).source.index         = id;                                                                       \
-        msgWork->field_4DE            = anim;                                                                     \
-        (record).animationId          = anim;                                                                     \
-        (record).blend                = (blendChoice);                                                            \
-        (record).blendFrames          = (frames);                                                                 \
-        (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
-        Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &(record), 0);                              \
+#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, anim, blendChoice, frames, record)                                            \
+    {                                                                                                                                 \
+        Actor136100Work* msgWork;                                                                                                     \
+        s32              weaponId;                                                                                                    \
+        s32              id;                                                                                                          \
+                                                                                                                                      \
+        msgWork                       = (Actor136100Work*)(task)->work;                                                               \
+        weaponId                      = Player_Status.weapon;                                                                         \
+        id                            = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        (record).source.index         = id;                                                                                           \
+        msgWork->field_4DE            = anim;                                                                                         \
+        (record).animationId          = anim;                                                                                         \
+        (record).blend                = (blendChoice);                                                                                \
+        (record).blendFrames          = (frames);                                                                                     \
+        (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                            \
+        Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &(record), 0);                                                  \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -1593,7 +1593,7 @@ static void func_actor_136100_80132748(Task* arg0)
 
                         msgWork                  = arg0->work;
                         weaponId                 = Player_Status.weapon;
-                        id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         rec.source.index         = id;
                         msgWork->field_4DE       = 0x30;
                         rec.animationId          = 0x30;
@@ -1941,7 +1941,7 @@ void func_actor_136100_80133690(void)
 
     msgWork                  = (Actor136100Work*)task->work;
     weaponId                 = Player_Status.weapon;
-    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     msgWork->field_4DE       = 1;
     rec.animationId          = 1;
@@ -1995,7 +1995,7 @@ void func_actor_136100_8013379C(s32 arg0)
 
     msgWork                  = (Actor136100Work*)task->work;
     weaponId                 = Player_Status.weapon;
-    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     msgWork->field_4DE       = 1;
     rec.animationId          = 1;
@@ -2377,7 +2377,7 @@ void func_actor_136100_8013467C(void)
     s32                  id;
 
     weaponId                 = Player_Status.weapon;
-    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     rec.animationId          = 1;
     rec.blend                = ANIMATION_BLEND_RESET;
@@ -2486,7 +2486,7 @@ void func_actor_136100_801349B4(s32 arg0)
     if (arg0 == 0) {
         GameFlag_SetNibble(0x4B, 6);
     } else {
-        Mc_SaveData[0].state.sceneEvent = 8;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 8;
         GameFlag_SetNibble(0x4B, 0);
     }
 }

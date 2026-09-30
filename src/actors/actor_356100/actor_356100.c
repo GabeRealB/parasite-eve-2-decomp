@@ -1380,7 +1380,7 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         SCRATCH_STACK_CURSOR(SVECTOR) = head - 1;
         vec                           = head - 1;
@@ -1412,7 +1412,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
     OverlayDeltaFlag* s;
     s32               val;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         scratch = SCRATCH_HEAD_ADDR;
         head    = SCRATCH_HEAD_AT(scratch, void);
         SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
@@ -1448,7 +1448,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
 }
 
 /// `Actor356100_PushRecords` without the freeze guard, returning `field_10`
-/// after the scratch is given back. The caller names `Mc_SaveData[0].state.actorsFrozen` first so the
+/// after the scratch is given back. The caller names `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` first so the
 /// compare interleaves with the coordinate load.
 static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
 {
@@ -1625,7 +1625,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     s                                           = head - 1;
     arg0->extra.tmd->coords->composeStamp       = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
-    paused    = Mc_SaveData[0].state.actorsFrozen;
+    paused    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
     pushCoord = arg0->extra.tmd->coords;
     records   = &work->field_A58;
     if (paused == 1) {
@@ -1911,7 +1911,7 @@ static void func_actor_356100_80165B30(Task* arg0)
 /// in mode 2, takes the player offset again through
 /// `actorMatrixPositionYaw` and — if the turn is within 0x10 and the
 /// player is closer than 0x44C — points `D_actor_356100_80173244.field_0` at
-/// one of the two blocks `Mc_SaveData[0].state.characterId` selects, then queries message 0x3F8 and
+/// one of the two blocks `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects, then queries message 0x3F8 and
 /// on acceptance moves to state 0xC, sets `field_B68` and re-sends the handler
 /// as message 0x3FF. Bit 0 of `field_68` forces `field_0` to 7 on clip 4, and
 /// past clip 0x10 the actor is pushed one normalised unit away from the player
@@ -1953,7 +1953,7 @@ static void func_actor_356100_80166018(Task* arg0)
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
-            if (Mc_SaveData[0].state.characterId == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[2];
             } else {
                 D_actor_356100_80173244.source.sets = D_actor_356100_80173228;
@@ -2080,7 +2080,7 @@ static void func_actor_356100_801668FC(Task* actor)
         work->field_B68 = 0;
     }
     if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
-        saveData = &Mc_SaveData[0];
+        saveData = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         coord    = actor->extra.tmd->coords;
         if (saveData->state.actorsFrozen != 1) {
             // Move back along the local Z axis using a temporary direction.
@@ -2404,7 +2404,7 @@ static __inline__ void Actor356100_MoveForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR) - 1;
         vec                           = head;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2543,7 +2543,7 @@ static void func_actor_356100_8016804C(Task* arg0)
 }
 
 /// `actorMoveForwardNonzero` testing the freeze flag through a
-/// `McSaveData*` rather than `Mc_SaveData[0].state.actorsFrozen`, and without its zero-amount guard.
+/// `McSaveData*` rather than `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`, and without its zero-amount guard.
 /// Reads the X component back through `vec`, as `Actor01900_StepForward` does —
 /// the `head[-1]` spelling gives the scratch release value a register of its
 /// own and costs three instructions here. Same body as
@@ -2683,7 +2683,7 @@ static void func_actor_356100_801684F0(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_97E == 0x11) {
         work->field_6++;
-        save  = &Mc_SaveData[0];
+        save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         coord = arg0->extra.tmd->coords;
         if (save->state.actorsFrozen != 1) {
             Actor356100_StepForwardSave(save, coord, -0x10);

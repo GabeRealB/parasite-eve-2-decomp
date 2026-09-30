@@ -104,16 +104,16 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     McSaveData*          save;
     s32                  count;
 
-    slot    = &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    counter = &Mc_SaveData[0].state.weaponUseCounts[arg0 - 0x80];
+    slot    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
+    counter = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[arg0 - 0x80];
 
     if (arg1 == 1) {
         if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
             count = slot->primaryQty;
             if (count != 0) {
-                if (Mc_SaveData[0].state.cheatMode == 0) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
                     slot->primaryQty = count - 1;
-                    Gp_ConsumeScanQty(&Mc_SaveData[0].state.carriedItems, slot->primaryItemId, 1);
+                    Gp_ConsumeScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->primaryItemId, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -129,7 +129,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
             if (count != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 count = slot->secondaryQty;
                 if (count != 0) {
-                    save = &Mc_SaveData[0];
+                    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                     if (save->state.cheatMode == 0) {
                         slot->secondaryQty = count - 1;
                         Gp_ConsumeScanQty(&save->state.carriedItems, slot->secondaryItemId, 1);
@@ -161,7 +161,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                  have;
     s32                  i;
 
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     table = Gp_GetItemTable(scan);
     if ((u32)(arg1 - 0x80) >= 0x20) {
         return -1;
@@ -191,7 +191,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = scan->firstRow;
-    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
+    slot  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
     have  = (s16)Gp_FindScanQty(table, scan, &index, arg2);
     have -= Gp_CountEquippedRelated(scan, arg2);
     if (arg0 == 0) {
@@ -268,7 +268,7 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = arg0->firstRow;
-    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
+    slot  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
     have  = (s16)Gp_FindScanQty(table, arg0, &index, arg2);
     have -= Gp_CountEquippedRelated(arg0, arg2);
     if (slot->primaryItemId == arg2) {
@@ -448,7 +448,7 @@ void Gp_RecalcMaxMp(void)
 
     cfg    = &Player_Status;
     acc    = 0;
-    levels = (s8*)Mc_SaveData[0].state.attachLevels;
+    levels = (s8*)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     for (i = 0; i < 0xC; i++) {
         if (*levels > 0) {
             for (j = 0; j < *levels; j++) {
@@ -461,7 +461,7 @@ void Gp_RecalcMaxMp(void)
         acc += Gp_ModStatAttrs[cfg->armor - 1].field_6;
     }
     rows       = Gp_StatRows;
-    save       = &Mc_SaveData[0];
+    save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     acc       += rows[save->state.gameMode].field_4;
     acc       += save->state.mpBonus;
     cfg->mpMax = acc;
@@ -505,7 +505,7 @@ void Gp_EquipMod(s32 arg0)
 
                     p        = &Player_Status;
                     table    = Gp_StatRows;
-                    save     = &Mc_SaveData[0];
+                    save     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                     val      = table[save->state.gameMode].base.half;
                     p->hpMax = val;
                     val     += save->state.hpBonus;
@@ -553,7 +553,7 @@ void Gp_EquipMod(s32 arg0)
                     word = arg0 / 32;
                     bit  = 1 << (arg0 % 32);
                     if ((u32)arg0 < 0x180U) {
-                        p                            = &Mc_SaveData[0];
+                        p                            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                         p->state.itemSeenBits[word] |= bit;
                     }
                 }
@@ -565,7 +565,7 @@ void Gp_EquipMod(s32 arg0)
         u16         val;
 
         table      = Gp_StatRows;
-        save       = &Mc_SaveData[0];
+        save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         val        = table[save->state.gameMode].base.half;
         cfg->hpMax = val;
         val       += save->state.hpBonus;

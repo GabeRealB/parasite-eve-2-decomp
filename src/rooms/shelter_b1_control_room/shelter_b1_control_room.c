@@ -162,7 +162,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
     GameLocationKey* key;
     s32              one;
 
-    key = &Mc_SaveData[0].state.location.loc;
+    key = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     one = 1;
     do {
         stage = key->stage;
@@ -651,7 +651,7 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->location.loc.variant == 0xB) {
         func_80131FB8();
-        if (Mc_SaveData[0].state.demoScene != 9) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
             func_800E8634(&D_80132D70, 0, &D_80133088);
         }
     }

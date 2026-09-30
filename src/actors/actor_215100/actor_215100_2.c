@@ -1867,7 +1867,7 @@ static void func_actor_215100_8014A398(void)
 ///
 /// State 1 commits the character to the save slot once the caption system is
 /// idle again: it copies `D_actor_215100_8015E678`'s appearance bytes into
-/// `Mc_SaveData`, clears the inventory, then spawns task 0x11 and kills itself.
+/// `gMcSaveData`, clears the inventory, then spawns task 0x11 and kills itself.
 void func_actor_215100_8014A5C0(Task* arg0)
 {
     switch (arg0->state) {
@@ -1909,15 +1909,15 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Player_Status.resourceVariant   = 3;
-                Mc_SaveData[0].state.sceneEvent = 1;
+                Player_Status.resourceVariant                       = 3;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                gDisplayState.spriteVariant            = 1;
-                Mc_SaveData[0].state.location.loc.area = D_actor_215100_8015E678.field_0;
-                Mc_SaveData[0].state.location.loc.warp = D_actor_215100_8015E678.field_2;
-                Mc_SaveData[0].state.location.loc.room = D_actor_215100_8015E678.field_3;
+                gDisplayState.spriteVariant                                = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_actor_215100_8015E678.field_0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_actor_215100_8015E678.field_2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
             }
@@ -1951,7 +1951,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             break;
         case 1:
             Gp_MsgPlayerWeapon(0);
-            Mc_SaveData[0].state.location.loc.view = 8;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
             func_mist_shooting_gallery_801811C0(0);
             arg0->state++;
             break;
@@ -1975,7 +1975,7 @@ static void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670.value < 3) {
-        Mc_SaveData[0].state.location.loc.view = 8;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         func_mist_shooting_gallery_801811C0(0);
     } else {
         func_mist_shooting_gallery_80180390(1);

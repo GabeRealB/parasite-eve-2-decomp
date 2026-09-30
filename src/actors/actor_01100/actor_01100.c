@@ -1112,7 +1112,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
         return;
     }
 
-    locationWord = GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc);
+    locationWord = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -1317,13 +1317,13 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionC
 /// `func_800E0C10`, stepping each nonzero fractional X/Z delta one unit away
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
-/// `Mc_SaveData[0].state.actorsFrozen` is 1.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
 static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts)
 {
     OverlayDeltaFlag* head;
     OverlayDeltaFlag* blk;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
     head = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
@@ -1588,7 +1588,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, ActorsShared80138efcWork
             work->field_B92 = hp;
             enemy->hp       = hp;
             if (work->field_B92 <= 0) {
-                if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) {
                     work->field_BC8 = 0;
                 } else {
                     Gp_ReleaseStateF0Add(task, (s8)work->field_BBB);
@@ -3095,7 +3095,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// not finished, then `Actor01100_Fn039D0` supplies the yaw at 0xB90. While
 /// the frame sits in [1, 0x2E) the model's `field_46` turns toward that yaw by
 /// at most 0x10 and the Y rotation is rebuilt. The same window steps
-/// `((frame - 13) * 900) / 33` and, while `Mc_SaveData[0].state.actorsFrozen` is clear, adds the
+/// `((frame - 13) * 900) / 33` and, while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is clear, adds the
 /// scaled facing column's X/Z onto the translation through the frame block's
 /// vector at 0x10. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
 ///
@@ -3175,7 +3175,7 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, ActorsShared80138efcWor
         frame              = work->field_BAD;
         scale              = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords             = task->extra.tmd->coords;
-        if (Mc_SaveData[0].state.actorsFrozen == 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 0) {
             Actor104900_MatrixCol2(&coords->coord, &arg->vec, scale);
             coords->coord.t[0]  += arg->vec.vx;
             coords->coord.t[2]  += arg->vec.vz;
@@ -3266,7 +3266,7 @@ static void Actor01100_Fn05678(
     WorldCollisionBody* obj;
 
     extra = task->extra.tmd;
-    if (((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
+    if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
@@ -3331,7 +3331,7 @@ static void Actor01100_Fn05678(
     } else {
         time            = work->field_B8C - 1;
         work->field_B8C = time;
-        if ((time == 0) && ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(5, 24, 0, 0))) {
+        if ((time == 0) && ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(5, 24, 0, 0))) {
             work->field_BA6 = 0x10;
         }
     }
@@ -3538,7 +3538,7 @@ static void Actor01100_Fn06198(Task* task)
     s16                       countdown;
 
     work          = task->work;
-    stageAreaKey  = GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc);
+    stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     coord         = task->extra.tmd->coords;
     soundCoord    = coord;
@@ -3601,7 +3601,7 @@ static void Actor01100_Fn0638C(Task* task)
     GpMtxWords*               rotation;
 
     coord        = task->extra.tmd->coords;
-    stageAreaKey = GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+    stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     variant      = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     work         = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {
@@ -3888,7 +3888,7 @@ static s32 Actor01100_Fn06AC8(GfxCoord* arg0)
 /// itself needs and no call site confirms them.
 static void Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
-    if (Mc_SaveData[0].state.actorsFrozen == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 0) {
         gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->vec);
         gte_lddp(arg2);
         gte_ldsv(&arg1->vec);

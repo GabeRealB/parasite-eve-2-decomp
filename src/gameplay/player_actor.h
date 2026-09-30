@@ -21,7 +21,7 @@ enum {
 /// Bank sentinel for a directly installed animation-set table.
 enum { PLAYER_ACTOR_DIRECT_ANIMATION_BANK = 0x7FFF };
 
-/// u8 table indexed by `Mc_SaveData[0].state.companionVariant`. Non-zero selects
+/// u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`. Non-zero selects
 /// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 

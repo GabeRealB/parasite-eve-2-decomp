@@ -425,7 +425,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, DirectionActionRe
                     GameFlag_SetNibble(0x6C, 1);
                     func_800E3FAC(0xA2, 0x17);
                     Gp_ClearCollectedBit(0x118);
-                    Mc_SaveData[0].state.sceneEvent = 5;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
                 }
             } else {
                 Gp_MsgPlayerWeapon(0);

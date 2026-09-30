@@ -4379,7 +4379,7 @@ static void func_actor_403200_80134D40(Task* arg0)
     work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
     model = arg0->extra.tmd->coords;
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         Actor403200_StepForward(model);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4839,7 +4839,7 @@ static void func_actor_403200_801364F4(Enemy* enemy, Task* task)
             return;
         }
         D_actor_403200_8015E710[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
         work->anim.source.sets = D_actor_403200_8015E710;
         work->anim.animationId = 2;
         work->anim.blend       = armed;
@@ -9294,7 +9294,7 @@ after_mode:
         scratch->view = D_actor_403200_8015E6E8[work->field_F06](arg1, work->field_F08);
         if (((Gp_GetViewIndex() & 0xFF) != scratch->view) &&
             (arg1->spawnArg1.value >> 16) == 0) {
-            Mc_SaveData[0].state.location.loc.view = scratch->view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = scratch->view;
         }
     }
 
@@ -9324,7 +9324,7 @@ after_mode:
                         work->anim.source.sets = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             (Gp_PlayerAnimBlkTbl
-                                 [Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])
+                                 [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])
                                 ->table.sets[7];
                         work->anim.animationId = 4;
                         work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;

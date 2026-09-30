@@ -218,7 +218,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg2)) > 0) {
+                if ((arg3->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
@@ -262,7 +262,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
-                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg2)) > 0) {
+                if ((arg3->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
@@ -619,7 +619,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
             cfg->mp      = cfg->mp - func_800D50D4(arg2, 2);
             be8->field_4 = cfg->mp;
             cfg->hp      = cfg->hp + func_800D50D4(arg2, 4);
-            save         = &Mc_SaveData[0];
+            save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if ((s16)save->state.attachUseCounts[7] < 0x270F) {
                 save->state.attachUseCounts[7] = save->state.attachUseCounts[7] + 1;
             }
@@ -694,7 +694,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         extra        = src;
         switch (item) {
             case 9:
-                scan = &Mc_SaveData[0].state.carriedItems;
+                scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 if (Gp_SumScanQty(scan, 0x9F) != 0) {
                     arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x9E) != 0) {
@@ -708,7 +708,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 }
                 break;
             case 0xC:
-                scan = &Mc_SaveData[0].state.carriedItems;
+                scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 if (Gp_SumScanQty(scan, 0x80) != 0) {
                     arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x83) != 0) {
@@ -724,7 +724,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             case 0x44:
             case 0x45:
             case 0x46:
-                scan = &Mc_SaveData[0].state.carriedItems;
+                scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 if (Gp_SumScanQty(scan, 0x94) != 0) {
                     if (item == 0xA) {
                         arg1->status = 0x1A;
@@ -741,7 +741,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                     p              = start;
                     arg1->status   = 0x17;
                     do {
-                        if (Gp_SumScanQty(&Mc_SaveData[0].state.carriedItems, p->src) != 0) {
+                        if (Gp_SumScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, p->src) != 0) {
                             extra = p->dst;
                             if (item == ten && p->src == 0x93) {
                                 extra = 0;
@@ -771,7 +771,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
             newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
-            scanInit   = &Mc_SaveData[0].state.carriedItems;
+            scanInit   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             arg1->work = newWork;
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
             rec->itemId = result;
@@ -787,10 +787,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 cfg->weapon = temp - 0x7F;
             }
             if (extra != 0) {
-                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, extra, -1);
+                Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, extra, -1);
             }
             if (bonus != 0) {
-                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, bonus, -1);
+                Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, bonus, -1);
             }
             temp              = result;
             newWork->field_8  = temp;
@@ -960,13 +960,13 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         Ui_UpdateLayoutSize(&(arg0)->panel, width + 5, Ui_Scale15(2) + 1);
         (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
         (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
-        Gp_RemoveItem(&Mc_SaveData[0].state.carriedItems, Gp_SelItemRec, 1);
+        Gp_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
 
         i   = (arg2 - 0xF) / 3;
         n   = arg2 - 0xF;
         row = col = i / 3;
         col       = i - row * 3;
-        save      = &Mc_SaveData[0];
+        save      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         n         = n - i * 3 + 1;
         cfg       = &Player_Status;
         if (save->state.attachLevels[col + row * 3] < n) {
@@ -1005,7 +1005,7 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
 
     idx = arg1->spawnArg1.value - 0x36;
     if (arg1->state == 0) {
-        save = &Mc_SaveData[0];
+        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         p    = (McSaveData*)&((u8*)&save->state.saveChecksum)[idx * 3];
         slot = p->state.attachLevels[0] > p->state.attachLevels[1];
         if (save->state.attachLevels[slot + idx * 3] >= 3) {
@@ -1015,7 +1015,7 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
                 goto store;
             }
         }
-        save2 = &Mc_SaveData[0];
+        save2 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         temp  = slot + idx * 3;
         slot  = save2->state.attachLevels[temp] + temp * 3 + 0xF;
     store:
@@ -1214,7 +1214,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     buf[0] = D_800971A4;
     memset(&buf[1], 0, 0x1F);
     color = 0x606060;
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     cur   = Gp_CountScanItems(scan);
     cap   = Gp_GetScanCount(scan);
     Text_ItoaUnsigned(buf, cur);
@@ -1267,7 +1267,7 @@ void Gp_PickupTask(Task* arg0)
             if (spawned != NULL) {
                 spawned->resultValue = 0x33;
             }
-        } else if (Gp_CanAddItem(&Mc_SaveData[0].state.carriedItems, Gp_PubItemLoc) != 0) {
+        } else if (Gp_CanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_PubItemLoc) != 0) {
             one = 1;
             Ui_SpawnFromDesc(desc + 1, 0, one, one, obj);
         } else {
@@ -1450,7 +1450,7 @@ void Gp_PickupAskTask(Task* arg0)
                 if (arg0->state == one) {
                     if (childObj->resultValue == 0x33) {
                         if (Gp_PubItemLoc < 0xC0U) {
-                            scan = &Mc_SaveData[0].state.carriedItems;
+                            scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                             if (Gp_CanAddItem(scan, Gp_PubItemLoc) != 0) {
                                 Gp_GiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
@@ -1684,7 +1684,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
 
     if (arg3 != NULL) {
         if ((u32)(arg3->itemId - 0xA0) < 0x20U) {
-            count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg3->itemId);
+            count          = arg3->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg3->itemId);
             req.x          = arg0->panel.contentOriginX.unsignedValue + 0x84 + arg1;
             y              = arg0->panel.contentOriginY.unsignedValue - 3;
             req.y          = y + arg2;
@@ -1778,8 +1778,8 @@ void Gp_SpawnPickupUiTask(Task* arg0)
                 break;
             case 8:
                 Gp_SavePlayerPos();
-                desc                           = &D_8010D348;
-                Mc_SaveData[0].state.savePoint = Gp_PubItemLoc;
+                desc                                               = &D_8010D348;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = Gp_PubItemLoc;
                 break;
             default:
                 Stage_InitPrimBufOnce();

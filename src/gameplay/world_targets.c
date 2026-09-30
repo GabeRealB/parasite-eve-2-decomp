@@ -789,7 +789,7 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
     area  = loc->area;
     sub   = loc->variant;
     key   = (stage << 24) | (area << 16) | (sub << 8);
-    mode  = Mc_SaveData[0].state.gameMode;
+    mode  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     if ((mode == 0) || (mode == 2)) {
         rec = D_8010F9F4[stage];
     } else {
@@ -910,7 +910,7 @@ void Gp_InitStateF0(void)
     if (Gp_IsDebugAttachRoom() == 1) {
         p->field_2B = 0;
     } else {
-        save        = &Mc_SaveData[0];
+        save        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         val         = (u8)save->state.gameMode;
         p->field_2B = val;
         if (val == 0) {

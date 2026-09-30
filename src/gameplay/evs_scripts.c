@@ -206,7 +206,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
     if (st->wait != 0) {
         st->wait--;
-        if (Mc_SaveData[0].state.demoScene == 9) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -220,7 +220,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
     }
 
     if (D_801156A4 & 0x40) {
-        if (Mc_SaveData[0].state.demoScene == 9) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -281,7 +281,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 /* fallthrough */
 
             case 3:
-                Mc_SaveData[0].state.location.loc.view = (u8)st->pc->arg0.value;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)st->pc->arg0.value;
                 break;
 
             case 4:
@@ -337,7 +337,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 11:
-                Mc_SaveData[0].state.location.loc.view = D_801156F8;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_801156F8;
                 break;
 
             case 12:
@@ -389,12 +389,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_801156C9 != 0) {
                     break;
                 }
-                pair                            = &gStageMusicParams;
-                Mc_SaveData[0].state.sceneEvent = (u8)st->pc->arg0.value;
-                D_801156C9                      = 1;
-                pair->fadeFrames                = (u16)st->pc->arg1.value;
-                gStageMusicLoadState            = 0;
-                pair->unusedCommandArg          = (u16)st->pc->arg2.value;
+                pair                                                = &gStageMusicParams;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = (u8)st->pc->arg0.value;
+                D_801156C9                                          = 1;
+                pair->fadeFrames                                    = (u16)st->pc->arg1.value;
+                gStageMusicLoadState                                = 0;
+                pair->unusedCommandArg                              = (u16)st->pc->arg2.value;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 break;
 
@@ -603,7 +603,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 49:
-                D_801156F8 = Mc_SaveData[0].state.location.loc.view;
+                D_801156F8 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                 break;
         }
         D_801156CB = 1;
@@ -690,7 +690,7 @@ void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2)
     D_801156F0               = 5;
     D_801156CD               = 0;
     D_801156CE               = 0;
-    D_801156F8               = Mc_SaveData[0].state.location.loc.view;
+    D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     D_801156EC               = Player_Status.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0.address);

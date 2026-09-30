@@ -2716,7 +2716,7 @@ static void func_mine_mesa_8017DC80(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
         if (gameGetPtrSlot(0xA) != NULL) {
-            Mc_SaveData[0].state.companionHp = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 5;
             Task_SpawnFromTable(D_mine_mesa_80181990, 0, 0, 0);
         }
         GameFlag_SetNibble(0x1BD, 0);
@@ -3224,7 +3224,7 @@ void func_mine_mesa_8017EA24(void)
 {
     if (GameFlag_GetNibble(0x4C) != 0) {
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData[0].state.companionType = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
         Task_CallExit(gameGetPtrSlot(0xA));
         Game_SetPtrSlot(NULL, 0xA);
     }
@@ -3535,7 +3535,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         place                  = Gp_GetNestedAreaRec(&key)->field_0;
         tmd->texturePageOffset = place->texturePageOffset;
         tmd->clutRowOffset     = place->clutRowOffset;
-        if (Mc_SaveData[0].state.demoScene == 10) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 10) {
             printf("tpage=%x, clut=%x, eno=%x\n", place->texturePageOffset, place->clutRowOffset, 0);
         }
         if (tmd->buffer != NULL) {
@@ -3552,10 +3552,10 @@ static void func_mine_mesa_80181358(Task* arg0)
         return;
     }
 end:
-    Mc_SaveData[0].state.companionType = 0;
-    arg0->spawnArg2.pointer            = &result;
-    result.param                       = NULL;
-    Gp_StateF0.field_6                 = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
+    arg0->spawnArg2.pointer                                = &result;
+    result.param                                           = NULL;
+    Gp_StateF0.field_6                                     = 1;
     Gp_ReleaseStateF0(arg0, 0);
     gStageSceneMusicEntry = 1;
     arg0->state++;

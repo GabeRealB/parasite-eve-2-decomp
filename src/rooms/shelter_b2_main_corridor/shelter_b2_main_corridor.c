@@ -1918,7 +1918,7 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
             }
         }
     }
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
@@ -2046,10 +2046,10 @@ void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 }
 
 /// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `Mc_SaveData[0].state.companionType`, and advances to the next state.
+/// `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and advances to the next state.
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

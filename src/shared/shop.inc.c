@@ -49,12 +49,12 @@ static void Shop_BuyPromptTask(Task* task);
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
-/// `Mc_SaveData[0].state.gameMode` 2 and above has groups of its own. A high halfword
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `Shop_Data_80181AD4`.
 static u16* Shop_SelectStock(s32 mode)
 {
-    if (Mc_SaveData[0].state.gameMode < 2) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode < 2) {
         switch ((u16)mode) {
             case 0x30:
                 switch ((u32)mode >> 16) {
@@ -273,9 +273,9 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData[0].state.carriedItems hoisted into a saved register here, as the original does,
+    /* &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData[0].state.carriedItems;
+    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     if (prompt->field_C == 1) {
         Shop_Data_801819EC = itemId;
     }
@@ -415,8 +415,8 @@ static void Shop_AddItem(RoomShopList* shop, UiObject* obj, s32 item)
 /// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `Mc_SaveData[0].state.shopStock`, the id of that level
-/// (the first slot needs level 2). With `Mc_SaveData[0].state.demoScene` 1 every row
+/// twelve two-bit levels in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock`, the id of that level
+/// (the first slot needs level 2). With `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` 1 every row
 /// and level is unlocked first.
 static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
 {
@@ -446,15 +446,15 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
         ids++;
     }
 
-    if (Mc_SaveData[0].state.demoScene == 1) {
-        Mc_SaveData[0].state.shopTiers = 0x1FFF;
-        Mc_SaveData[0].state.shopStock = -1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers = 0x1FFF;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock = -1;
     }
 
-    if (Mc_SaveData[0].state.gameMode == 0) {
-        if (Mc_SaveData[0].state.shopTiers != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode == 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData[0].state.shopTiers & (1 << tier);
+                unlocked = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = Shop_Data_80181950[tier].items[j];
@@ -492,7 +492,7 @@ static void Shop_BuildItemList(RoomShopList* shop, UiObject* obj)
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData[0].state.shopStock >> (slot * 2)) & 3;
+                level = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
@@ -788,7 +788,7 @@ static void Shop_BalanceTask(Task* task)
     Text_DrawString(&req1, (char*)Shop_Data_8017D6E4);
 
     p        = total;
-    scan     = &Mc_SaveData[0].state.carriedItems;
+    scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
@@ -830,7 +830,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData[0].state.carriedItems;
+        scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -994,9 +994,9 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count)
     InventoryItemRange* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {
-        count += Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item);
+        count += Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
     } else {
-        scan = &Mc_SaveData[0].state.carriedItems;
+        scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         rec  = Gp_GetItemTable(scan) + scan->firstRow;
         n    = scan->rowCount;
         for (i = 0; i < n; i++) {
@@ -1087,7 +1087,7 @@ static void Shop_QuantityTask(Task* task)
         GpItemA0* stock = gpItemStock(itemId);
 
         if (stock->perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, itemId);
+            held    = Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
             maxHeld = stock->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1098,7 +1098,7 @@ static void Shop_QuantityTask(Task* task)
             }
         }
     } else {
-        maxQty = Mc_SaveData[0].state.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].state.carriedItems);
+        maxQty = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount - Gp_CountScanItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1149,7 +1149,7 @@ static void Shop_QuantityTask(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState.value;
             for (i = 0; i < task->extraState.value; i++) {
-                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
+                Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->result = USER_INTERFACE_RESULT_CONFIRM;

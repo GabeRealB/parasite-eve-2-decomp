@@ -818,7 +818,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
 
             col   = i % 5;
             row   = i / 5;
-            scan  = &Mc_SaveData[0].state.carriedItems;
+            scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             rec   = Gp_GetItemTable(scan);
             found = NULL;
             rec   = &rec[scan->firstRow];
@@ -1201,7 +1201,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     s32               idx2;
     UiObject*         obj;
 
-    sel = _gpNthLooseRec(&Mc_SaveData[0].state.carriedItems, arg0->field_8);
+    sel = _gpNthLooseRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0->field_8);
     if (sel == NULL) {
         Gp_DrawSortCmd(arg0, arg1);
         return;
@@ -1241,7 +1241,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
         color = arg0->field_1C;
         if (sel != NULL) {
             if ((u32)(sel->itemId - 0xA0) < 0x20U) {
-                qty            = sel->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, sel->itemId);
+                qty            = sel->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, sel->itemId);
                 req.x          = arg1->panel.contentOriginX.unsignedValue + 0x84 + x;
                 baseY          = arg1->panel.contentOriginY.unsignedValue - 3;
                 req.y          = baseY + y;
@@ -1274,7 +1274,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             InventoryItemRange* scan2;
-            scan2 = &Mc_SaveData[0].state.carriedItems;
+            scan2 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
             idx2  = Gp_ScanIndexOf(scan2, sel);
             SndEvt_EnqueueType6(3, 0, 0);
@@ -1307,8 +1307,8 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
 
     count = 0;
     // Byte offsets select whole rows; accesses resume through the row type.
-    rowBytes = (u8*)&Mc_SaveData[0].state.itemRows;
-    scan     = &Mc_SaveData[0].state.carriedItems;
+    rowBytes = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
+    scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     {
         register s32 hi asm("v1");
         asm volatile("lui %1, %%hi(Player_Status)\n\t"
@@ -1393,7 +1393,7 @@ static __inline__ void countItemRows(UiList* menu)
     s32                 ok;
     s32                 id;
 
-    scan          = &Mc_SaveData[0].state.carriedItems;
+    scan          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     table         = Gp_GetItemTable(scan);
     table         = &table[scan->firstRow];
     menu->field_4 = scan->rowCount;
@@ -1617,7 +1617,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             s32                 i;
             s32                 count;
 
-            scan  = &Mc_SaveData[0].state.carriedItems;
+            scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             table = Gp_GetItemTable(scan);
             if (item != 0) {
                 table = &table[scan->firstRow];
@@ -1833,7 +1833,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
             }
         } else if (mode == rowState) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                if (Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
+                if (Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     SndEvt_EnqueueType6(3, 0, 0);
                     Gp_ItemOrderMode = 0;
@@ -2045,7 +2045,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         s32                 row;
         s32                 i;
         row   = prompt->field_8;
-        scan  = &Mc_SaveData[0].state.carriedItems;
+        scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         table = Gp_GetItemTable(scan);
         found = NULL;
         i     = 0;
@@ -2087,7 +2087,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         y     = prompt->field_1A;
         color = prompt->field_1C;
         if ((u32)(id - 0xA0) < 0x20U) {
-            count                   = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, id);
+            count                   = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id);
             draw.qty.req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
             off                     = obj->panel.contentOriginY.unsignedValue - 3;
             draw.qty.req.y          = off + y;
@@ -2343,7 +2343,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     InventoryItemRow*   table;
                     s32                 i;
 
-                    scan  = &Mc_SaveData[0].state.carriedItems;
+                    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                     table = Gp_GetItemTable(scan);
                     table = &table[scan->firstRow];
                     for (i = 0; i < scan->rowCount; i++, table++) {

@@ -2172,9 +2172,9 @@ static void func_mine_cavern_80183890(Enemy* enemy, Task* task);
 
 void func_mine_cavern_8017E330(void)
 {
-    Mc_SaveData[0].state.location.loc.room = 2;
-    gGameSession->location.loc.room        = 2;
-    gGameSession->roomObjsDirty            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+    gGameSession->location.loc.room                            = 2;
+    gGameSession->roomObjsDirty                                = 1;
 }
 
 void func_mine_cavern_8017E358(void)
@@ -2938,7 +2938,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D65C;
-    if (Mc_SaveData[0].state.demoScene != 3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 3) {
         sp.funcs[arg0->state](arg0);
     }
 }

@@ -85,7 +85,7 @@ extern UiObjectDesc D_800611E4;
 extern TaskDesc D_801358D8;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
-/// end reads it through this name rather than through `Mc_SaveData`.
+/// end reads it through this name rather than through `gMcSaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -640,9 +640,9 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, TaskMessageArg ar
         } else {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            temp_a3                                = Mc_SaveData[0].state.location.loc.view;
-            Mc_SaveData[0].state.location.loc.view = 6U;
-            D_mine_refuge_80182ADC[0]              = temp_a3;
+            temp_a3                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6U;
+            D_mine_refuge_80182ADC[0]                                  = temp_a3;
             SndEvt_EnqueueType6(0x54060003, 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
@@ -697,7 +697,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
                 arg0->state = arg0->state + 1;
                 return;
             }
-            Mc_SaveData[0].state.location.loc.view = D_mine_refuge_80182ADC[0];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_mine_refuge_80182ADC[0];
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;

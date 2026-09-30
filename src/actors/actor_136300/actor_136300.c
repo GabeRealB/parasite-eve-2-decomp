@@ -1445,12 +1445,12 @@ void func_actor_136300_8013267C(Task* arg0)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0xF);
             GameFlag_SetNibble(0x4C, 4);
-            Mc_SaveData[0].state.sceneEvent         = 9;
-            Mc_SaveData[0].state.location.loc.stage = 4;
-            Mc_SaveData[0].state.location.loc.area  = 1;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 9;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
             Gp_ClearCollectedBit(0x116);
             gDisplayState.spriteVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
@@ -1483,7 +1483,7 @@ void func_actor_136300_80132854(Task* arg0)
 
 void func_actor_136300_801328D4(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 void func_actor_136300_801328E0(s32 arg0)

@@ -1667,7 +1667,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
             GameFlag_SetNibble(0xE1, 1);
-            Mc_SaveData[0].state.sceneEvent = 0x15;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x15;
             func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
     }
@@ -1783,13 +1783,13 @@ static void func_neo_ark_observatory_8017FD7C(Task* task)
     s32 var_a0;
 
     if (gGameSession->eventState == 0) {
-        if (Mc_SaveData[0].state.location.loc.view != 2) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 2) {
             Gp_MsgAlly3F3(2);
             return;
         }
     }
     var_a0 = 1;
-    if (Mc_SaveData[0].state.location.loc.view == 3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) {
         var_a0 = 2;
     }
     Gp_MsgAlly3F3(var_a0);

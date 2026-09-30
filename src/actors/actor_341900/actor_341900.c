@@ -180,7 +180,7 @@ typedef struct Actor341900AnimCmd {
 STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
-/// base weapon id records are numbered from, and `Mc_SaveData[0].state.characterId` selects the
+/// base weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
@@ -747,7 +747,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 s32 anim;
 
                 weaponId                 = Player_Status.weapon;
-                anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.source.index         = anim;
                 msg.animationId          = 1;
                 msg.blend                = ANIMATION_BLEND_RESET;
@@ -787,7 +787,7 @@ static void func_actor_341900_801628B8(Task* arg0)
             s32 anim;
 
             weaponId                 = Player_Status.weapon;
-            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 9;
             msg.blend                = ANIMATION_BLEND_RESET;
@@ -970,8 +970,8 @@ void func_actor_341900_80162EFC(Task* arg0)
             gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             goto next;
         case 1:
-            gStageSceneMusicEntry           = 4;
-            Mc_SaveData[0].state.sceneEvent = 0xC;
+            gStageSceneMusicEntry                               = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
             func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
         next:
             arg0->state += 1;
@@ -1140,7 +1140,7 @@ void func_actor_341900_801635A4(void)
 
     work                     = (Actor341900Work*)D_actor_341900_80164208->work;
     weaponId                 = Player_Status.weapon;
-    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 9;
     msg.blend                = ANIMATION_BLEND_RESET;

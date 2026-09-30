@@ -1011,8 +1011,8 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventM
     *dst = *src;
     if (src->areaId == 1 && GameFlag_GetNibble(0x21) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
         GameFlag_SetNibble(0x21, 1);
-        Mc_SaveData[0].state.sceneEvent = 1;
-        dst->warp                       = 7;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
+        dst->warp                                           = 7;
     }
     return 1;
 }

@@ -1398,7 +1398,7 @@ static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1488,7 +1488,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
     s16             vy;
     SVECTOR*        step;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
@@ -3042,7 +3042,7 @@ static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* v;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -4720,7 +4720,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
     aim               = (ActorChaseScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
     aim->delta.vy     = config->coordMtx->t[1] - root->coord.t[1];
     aim->delta.vz     = config->coordMtx->t[2] - root->coord.t[2];
-    save              = &Mc_SaveData[0];
+    save              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     func_actor_401300_80133A3C(arg0);
     switch (work->field_8A2) {
         case 0x1B:
@@ -4928,7 +4928,7 @@ static void func_actor_401300_8013E930(Task* arg0)
     task   = gameGetPtrSlot(3);
     player = (GameActor*)task->work;
     config = &Player_Status;
-    save   = &Mc_SaveData[0];
+    save   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     enemy  = arg0->spawnArg2.pointer;
 
     if (work->field_4 != 0) {

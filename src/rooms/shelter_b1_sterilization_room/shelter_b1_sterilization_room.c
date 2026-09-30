@@ -1045,9 +1045,9 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             Fade_DrawOverlay(c, c, c, 2);
             break;
         case 2:
-            Mc_SaveData[0].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
-            gGameSession->location.loc.view        = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
-            gGameSession->viewDirty                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
+            gGameSession->location.loc.view                            = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
+            gGameSession->viewDirty                                    = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9,
                               &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
                               0);

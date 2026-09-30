@@ -158,11 +158,11 @@ void Gp_EvtCapWeaponTask(Task* arg0)
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
                 recA              = Gp_WeaponMsgRec;
-                recA.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+                recA.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &recA, 0);
             }
             recB              = D_8010FB10;
-            recB.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
@@ -209,7 +209,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
             recB              = D_8010FB24;
-            recB.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;
@@ -266,7 +266,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
 
     if (arg0 == 0) {
         sp              = Gp_WeaponMsgRec;
-        sp.source.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+        sp.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &sp, 0);
     } else {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
@@ -286,12 +286,12 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 
 void Gp_PlayerWeaponId(s32* arg0)
 {
-    *arg0 = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+    *arg0 = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
 }
 
 void Gp_AllyAnimId(s32* arg0)
 {
-    *arg0 = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    *arg0 = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
 }
 
 void Gp_FillPlayerHpMp(void)
@@ -305,7 +305,7 @@ void Gp_FillPlayerHpMp(void)
 
 void Gp_FillAllyHp(void)
 {
-    Mc_SaveData[0].state.companionHp = Mc_SaveData[0].state.companionHpMax;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax;
 }
 
 void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1)
@@ -361,7 +361,7 @@ void Gp_MsgAllyWeapon(s32 arg0)
     if (slot != NULL) {
         if (arg0 == 0) {
             sp              = Gp_WeaponMsgRec;
-            sp.source.index = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+            sp.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
             Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &sp, 0);
         } else {
             Gp_DispatchMsg(slot, 0x3F1, 0, 0);

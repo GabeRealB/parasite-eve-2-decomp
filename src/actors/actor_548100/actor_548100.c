@@ -927,11 +927,11 @@ static void func_actor_548100_80132420(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
-    task->msgTable                         = D_actor_548100_801351C0;
-    task->work                             = work;
-    Mc_SaveData[0].state.location.loc.view = 4;
-    task->state                           += 1;
+    task->spawnArg2.pointer                                    = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
+    task->msgTable                                             = D_actor_548100_801351C0;
+    task->work                                                 = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
+    task->state                                               += 1;
     if (GameFlag_GetNibble(0xBE) == 0) {
         GameFlag_SetNibble(0xBE, 1);
         GameFlag_SetNibble(0xC2, 1);
@@ -2279,10 +2279,10 @@ static void func_actor_548100_80134E0C(Task* arg0)
     Gp_MsgPlayer3F3(1);
     D_80114D08 = 0xA;
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 3;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);

@@ -272,7 +272,7 @@ extern GpObj4A D_acropolis_plaza_8019923C[4];
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses.
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
 /// the main executable, not in this overlay.
@@ -3596,7 +3596,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (q->movieFrame >= 0x60) {
                 rec                                 = &buf.weapon.rec;
                 weaponId                            = Player_Status.weapon;
-                id                                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.source.index         = id;
                 rec->animationId                    = 1;
                 buf.weapon.rec.blend                = ANIMATION_BLEND_RESET;
@@ -3929,7 +3929,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     switch (state) {
         case 0:
             weaponId                 = Player_Status.weapon;
-            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
@@ -3979,7 +3979,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     switch (task->state) {
         case 0:
             weaponId                 = Player_Status.weapon;
-            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
@@ -4330,11 +4330,11 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.area  = 0x11;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x11;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);

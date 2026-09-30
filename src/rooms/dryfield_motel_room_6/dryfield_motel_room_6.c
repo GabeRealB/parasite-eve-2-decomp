@@ -77,9 +77,9 @@ STATIC_ASSERT_SIZEOF(DryfieldMotelRoom6SpotLightStorage, 1080);
 extern UiObjectDesc D_800611E4;
 extern TaskDesc     D_8013843C;
 
-/// `Mc_SaveData[0].state.companionType` (ally present), read through its own symbol.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
-/// `Mc_SaveData[0].state.location.loc.view` as it was when the cutscene started, restored
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.

@@ -1157,7 +1157,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 arg0->state++;
             }
             break;
@@ -1270,10 +1270,10 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             }
             return;
         case 1:
-            Mc_SaveData[0].state.sceneEvent = 0xE;
-            pair                            = &gStageMusicParams;
-            pair->fadeFrames                = 0;
-            pair->unusedCommandArg          = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xE;
+            pair                                                = &gStageMusicParams;
+            pair->fadeFrames                                    = 0;
+            pair->unusedCommandArg                              = 0;
             Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
             task->state++;
             return;

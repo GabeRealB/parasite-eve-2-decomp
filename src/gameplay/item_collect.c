@@ -28,7 +28,7 @@
 #include "main/wipsys.h"
 
 /// 0xFFFF-terminated item-id list walked by `Gp_NthCollectedId`. Each id's
-/// low 7 bits index a collected-item bit in `Mc_SaveData[0].state.collectedBits`.
+/// low 7 bits index a collected-item bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits`.
 extern u16 Gp_CollectedIds[];
 
 /// Unreferenced nonzero halfword after the collected-item terminator.
@@ -71,7 +71,7 @@ static inline s32 _gpGetModLevel(s32 item)
     if ((u32)idx < 0x20) {
         p    = &Gp_ModStatAttrs[(item)-0x60];
         ret  = p->field_5;
-        ret += Mc_SaveData[0].state.itemLevelBonus[idx];
+        ret += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
         if (ret >= 0xB) {
             ret = 0xA;
         }
@@ -206,7 +206,7 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
     if (*p != 0xFFFF) {
         do {
             item  = *p;
-            bits  = Mc_SaveData[0].state.collectedBits;
+            bits  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
             one   = 1;
             bit   = item & 0x7F;
             bits += bit / 32;
@@ -250,7 +250,7 @@ s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].state.itemRows;
+            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     table = tmp;
@@ -289,11 +289,11 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
         return;
     }
     if (arg1 == 0) {
-        p                            = &Mc_SaveData[0];
+        p                            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         p->state.itemSeenBits[word] &= ~bit;
         return;
     }
-    p                            = &Mc_SaveData[0];
+    p                            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     p->state.itemSeenBits[word] |= bit;
 }
 
@@ -361,7 +361,7 @@ void Gp_SavePlayerPos(void)
         savedPos->yaw = angle + PLAYER_YAW_FULL_TURN;
     }
     cfg                   = &Player_Status;
-    save                  = &Mc_SaveData[0];
+    save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     save->state.playerExp = cfg->exp;
     save->state.playerBp  = cfg->bp;
 }
@@ -482,7 +482,7 @@ s32 Gp_NextMappedSlot(s32 arg0)
     s32                 i;
     GpItemMap*          p;
 
-    scan = &Mc_SaveData[0].state.carriedItems;
+    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     if ((u32)arg0 >= 8) {
         return -1;
     }
@@ -508,7 +508,7 @@ s32 Gp_HasMappedItem(void)
     GpItemMap*          p;
 
     found = 0;
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     for (i = 0, p = Gp_ItemMaps; i < 8; i++) {
         if (Gp_SumScanQty(scan, p->field_1)) {
             found = 1;
@@ -524,8 +524,8 @@ static void Gp_ResetAuxSlots(void)
     EquipmentWeaponLoad* p;
     s32                  i;
 
-    p = Mc_SaveData[0].state.weaponItems;
-    for (i = 0; i < ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); i++) {
+    p = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems;
+    for (i = 0; i < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems); i++) {
         p->primaryItemId   = INVENTORY_ITEM_NONE;
         p->primaryQty      = 0;
         p->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;
@@ -554,7 +554,7 @@ static void Gp_SetPlayerScan(s32 arg0)
 {
     McSaveData* p;
 
-    p                              = &Mc_SaveData[0];
+    p                              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     p->state.carriedItems.firstRow = 0;
     p->state.carriedItems.rowCount = arg0;
     p->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
@@ -589,7 +589,7 @@ static void Gp_InitItemSeenBits(void)
     s32         i;
     s32         count;
 
-    p = &Mc_SaveData[0];
+    p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     for (i = 0x5F; i >= 0; i--) {
         p->state.itemSeenBits[i] = 0;
     }
@@ -628,7 +628,7 @@ s32 Gp_HasItemSeenBit(s32 arg0)
     if ((u32)arg0 >= 0x180) {
         return 1;
     }
-    p   = &Mc_SaveData[0];
+    p   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     val = p->state.itemSeenBits[word] & bit;
     return val != 0;
 }
@@ -642,7 +642,7 @@ void Gp_RecalcMaxHp(void)
 
     cfg        = &Player_Status;
     table      = Gp_StatRows;
-    save       = &Mc_SaveData[0];
+    save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     val        = table[save->state.gameMode].base.half;
     cfg->hpMax = val;
     val       += save->state.hpBonus;
@@ -697,7 +697,7 @@ s32 Gp_ItemSortKey(s32 id)
 
 void Gp_MarkPlayTime(void)
 {
-    gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark = Mc_SaveData[0].state.playTime;
+    gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime;
 }
 
 static s16 Gp_PlayTimeDelta(void)
@@ -705,7 +705,7 @@ static s16 Gp_PlayTimeDelta(void)
     u16* markMinutes;
 
     markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
-    return Mc_SaveData[0].state.playTime - *markMinutes;
+    return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes;
 }
 
 s32 Gp_AgeFlag119(void)
@@ -716,7 +716,7 @@ s32 Gp_AgeFlag119(void)
     ret = 0;
     if (Gp_HasCollectedBit(0x119) != 0) {
         markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
-        if ((s16)(Mc_SaveData[0].state.playTime - *markMinutes) >= 2) {
+        if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
             ret = 1;
@@ -731,7 +731,7 @@ void Gp_AgeFlag119Void(void)
 
     if (Gp_HasCollectedBit(0x119) != 0) {
         markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
-        if ((s16)(Mc_SaveData[0].state.playTime - *markMinutes) >= 2) {
+        if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
         }
@@ -765,7 +765,7 @@ s32 Gp_HasStockedItem(s32 arg0)
     s32                 ret;
     s32                 count;
 
-    scan = &Mc_SaveData[0].state.carriedItems;
+    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     ret  = 0;
     switch (scan->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -775,7 +775,7 @@ s32 Gp_HasStockedItem(s32 arg0)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData[0].state.itemRows;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     i      = 0;
@@ -797,7 +797,7 @@ void Gp_ResetScanDefault(void)
 {
     McSaveData* p;
 
-    p                     = &Mc_SaveData[0];
+    p                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     p->state.carriedItems = Gp_DefaultScan;
 }
 

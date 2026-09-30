@@ -25,7 +25,7 @@ void roomCutsceneTask(Task* task)
         case 0:
             ROOM_CUTSCENE_SOUND_TASK = NULL;
             Gp_MsgPlayerWeapon(0);
-            save = &Mc_SaveData[0];
+            save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if (save->state.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
@@ -114,7 +114,7 @@ void roomCutsceneTask(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -144,7 +144,7 @@ void roomCutsceneTask(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.location.loc.view = (u8)D_80115694;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -154,7 +154,7 @@ void roomCutsceneTask(Task* task)
         case 14:
             SndEvt_EnqueueType6(script->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].state.companionType == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;

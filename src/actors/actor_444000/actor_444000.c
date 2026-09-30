@@ -87,7 +87,7 @@ typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ Task* field_20; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-                               /// Area-record id published to `Mc_SaveData[0].state.location.loc.view` on every enter/re-enter. The
+                               /// Area-record id published to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` on every enter/re-enter. The
                                /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,
                                /// while every reader takes the low byte, so both views are named.
     /* 0x28 */ union {
@@ -195,7 +195,7 @@ extern Actor444000Storage1878 D_actor_444000_80161878;
 /// 0xFF-terminated area-record list this overlay applies on entry.
 
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
-/// event on the "everything is dead" state, and `Mc_SaveData[0].state.sceneEvent` is the ending
+/// event on the "everything is dead" state, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` is the ending
 /// selector the death sequence latches.
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_shelter_b3_garbage_incinerator_80187150` is the
@@ -2780,7 +2780,7 @@ static void func_actor_444000_80132054(Task* task)
         case 1:
             /* Install the weapon-specific player animation on the slot-3 task. */
             anim = Player_Status.weapon;
-            if (Mc_SaveData[0].state.characterId == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 anim += 1;
             } else {
                 anim += 0x22;
@@ -2836,30 +2836,30 @@ void func_actor_444000_801321FC(s32 arg0)
     work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
-            gGameSession->viewDirty                = 1;
-            Mc_SaveData[0].state.location.loc.view = work->field_28.b;
+            gGameSession->viewDirty                                    = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_28.b;
             break;
         case 1:
         case 2:
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    gGameSession->location.loc.room        = 4;
-                    Mc_SaveData[0].state.location.loc.room = 4;
+                    gGameSession->location.loc.room                            = 4;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 4;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
-                    gGameSession->location.loc.room        = 5;
-                    Mc_SaveData[0].state.location.loc.room = 5;
+                    gGameSession->location.loc.room                            = 5;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 5;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
-                    gGameSession->location.loc.room        = 6;
-                    Mc_SaveData[0].state.location.loc.room = 6;
+                    gGameSession->location.loc.room                            = 6;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
                     break;
             }
-            gGameSession->eventRoomIndex           = gGameSession->location.loc.room - 1;
-            gGameSession->incineratorRoomGroup     = 1;
-            gGameSession->roomObjsDirty            = 1;
-            Mc_SaveData[0].state.location.loc.view = work->field_28.b;
+            gGameSession->eventRoomIndex                               = gGameSession->location.loc.room - 1;
+            gGameSession->incineratorRoomGroup                         = 1;
+            gGameSession->roomObjsDirty                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_28.b;
             Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
@@ -2934,14 +2934,14 @@ void func_actor_444000_80132358(Task* task)
                 Gp_MsgPlayerWeapon(0);
                 other = (Actor444000EventWork*)D_actor_444000_80161860->work;
                 if (other->field_30 == 0) {
-                    Gp_StateF0.field_6              = 0;
-                    Gp_StateF0.prefix.bytes.field_1 = 0xF;
-                    Gp_StateF0.prefix.bytes.field_0 = 0;
-                    Gp_StateF0.prefix.bytes.field_2 = 0;
-                    Gp_StateF0.prefix.bytes.field_3 = 0;
-                    gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-                    Mc_SaveData[0].state.sceneEvent = 0xD;
-                    other->field_30                 = state;
+                    Gp_StateF0.field_6                                  = 0;
+                    Gp_StateF0.prefix.bytes.field_1                     = 0xF;
+                    Gp_StateF0.prefix.bytes.field_0                     = 0;
+                    Gp_StateF0.prefix.bytes.field_2                     = 0;
+                    Gp_StateF0.prefix.bytes.field_3                     = 0;
+                    gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
+                    other->field_30                                     = state;
                 }
                 task->killCountdown = 0;
                 task->state        += 1;
@@ -3029,14 +3029,14 @@ void func_actor_444000_80132778(void)
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_30 == 0) {
-        Gp_StateF0.field_6              = 0;
-        Gp_StateF0.prefix.bytes.field_1 = 0xF;
-        Gp_StateF0.prefix.bytes.field_0 = 0;
-        Gp_StateF0.prefix.bytes.field_2 = 0;
-        Gp_StateF0.prefix.bytes.field_3 = 0;
-        gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        Mc_SaveData[0].state.sceneEvent = 0xD;
-        work->field_30                  = 1;
+        Gp_StateF0.field_6                                  = 0;
+        Gp_StateF0.prefix.bytes.field_1                     = 0xF;
+        Gp_StateF0.prefix.bytes.field_0                     = 0;
+        Gp_StateF0.prefix.bytes.field_2                     = 0;
+        Gp_StateF0.prefix.bytes.field_3                     = 0;
+        gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
+        work->field_30                                      = 1;
     }
 }
 
@@ -3832,7 +3832,7 @@ static void func_actor_444000_8013482C(Task* task)
 
     switch (work->field_F08) {
         case 0: {
-            s32       paused = Mc_SaveData[0].state.actorsFrozen;
+            s32       paused = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3849,7 +3849,7 @@ static void func_actor_444000_8013482C(Task* task)
         case 1:
             coord = task->extra.tmd->coords;
             if (coord->coord.t[0] < 0x2134) {
-                if (Mc_SaveData[0].state.actorsFrozen != 1) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
                     Actor444000_StepForward(coord);
                 }
             } else {
@@ -3891,7 +3891,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 2: {
-            s32       paused = Mc_SaveData[0].state.actorsFrozen;
+            s32       paused = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3906,7 +3906,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 3: {
-            s32       paused = Mc_SaveData[0].state.actorsFrozen;
+            s32       paused = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3921,7 +3921,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 4: {
-            s32       paused = Mc_SaveData[0].state.actorsFrozen;
+            s32       paused = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -3936,7 +3936,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 5: {
-            s32       paused = Mc_SaveData[0].state.actorsFrozen;
+            s32       paused = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -4974,7 +4974,7 @@ static void func_actor_444000_801389EC(Enemy* enemy, Task* task)
             return;
         }
         D_actor_444000_80161694[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
         work->anim.source.sets = D_actor_444000_80161694;
         work->anim.animationId = 2;
         work->anim.blend       = armed;
@@ -7526,7 +7526,7 @@ static void func_actor_444000_8013E058(Task* task)
         sc->push.vx = sc->dir.vx;
         sc->push.vy = 0;
         sc->push.vz = sc->dir.vz;
-        if (Mc_SaveData[0].state.demoScene != 2 && Mc_SaveData[0].state.demoScene != 0xA && actor->field_954 != 2) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 2 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xA && actor->field_954 != 2) {
             func_80105B74(&sc->push);
         }
     }
@@ -8084,7 +8084,7 @@ scanned:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.source.sets     = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = (Gp_PlayerAnimBlkTbl
-                                                          [Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])
+                                                          [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])
                                                          ->table.sets[7];
                         work->anim.animationId = 4;
                         work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;

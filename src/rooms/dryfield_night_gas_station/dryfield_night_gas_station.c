@@ -2763,7 +2763,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     Gp_ClearCollectedBit(0x117);
     func_800E8634(D_dryfield_night_gas_station_801840AC, 0, D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
-    Mc_SaveData[0].state.sceneEvent = 4;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
     taskKill(arg0);
 }
 

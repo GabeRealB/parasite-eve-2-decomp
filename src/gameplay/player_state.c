@@ -964,7 +964,7 @@ void Gp_PlayerStepSfx(Task* arg0)
 
     inner = arg0->work;
     obj   = arg0->extra.tmd->coords;
-    if (Mc_SaveData[0].state.cheatMode != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode != 0) {
         return;
     }
     if ((s8)inner->field_97A != 0) {
@@ -1208,7 +1208,7 @@ void Gp_EndPlayerActorTask(Task* arg0)
         actor->field_91C     = NULL;
         extra                = arg0->extra.tmd;
         inner                = arg0->work;
-        inner->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+        inner->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
         inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
         func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
                       inner->field_438);
@@ -1255,7 +1255,7 @@ Task* Gp_SetupAllyWeapon(void)
     }
 
     if (actor->field_924 != NULL) {
-        save             = &Mc_SaveData[0];
+        save             = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
@@ -1278,7 +1278,7 @@ Task* Gp_SetupAllyWeapon(void)
 
     inner                = work->work;
     extra                = work->extra.tmd;
-    inner->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    inner->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
     inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
     func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
                   inner->field_438);
@@ -1310,7 +1310,7 @@ void func_8010B9A4(Task* arg0)
     actor            = arg0->work;
     actor->field_954 = 1;
     actor->field_95C = 7;
-    save             = &Mc_SaveData[0];
+    save             = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     actor->field_958 = 0;
     actor->field_95A = 0;
     actor->field_95E = 0;
@@ -1328,7 +1328,7 @@ void func_8010B9A4(Task* arg0)
     if ((s8)actor->field_97E == 2) {
         actor->field_97E = 1;
     }
-    func_80106350(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     anim = 0x11;
     if ((u16)actor->field_96C == 1) {
         anim = 0x10;
@@ -1345,7 +1345,7 @@ Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
     s32        type;
 
     if (arg1 == 1) {
-        type = Mc_SaveData[0].state.companionVariant + 0x7F;
+        type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant + 0x7F;
     } else {
         type = arg1 + 0x82;
     }
@@ -1518,7 +1518,7 @@ void func_8010BFCC(Task* arg0)
 
     actor                = arg0->work;
     extra                = arg0->extra.tmd;
-    actor->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    actor->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
     actor->animationSets = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
     func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
@@ -1528,9 +1528,9 @@ s32 func_8010C058(void)
 {
     s32 ret;
 
-    if ((Mc_SaveData[0].state.companionHpMax >> 1) < Mc_SaveData[0].state.companionHp) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax >> 1) < gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp) {
         ret = 0;
-    } else if ((Mc_SaveData[0].state.companionHpMax >> 2) >= Mc_SaveData[0].state.companionHp) {
+    } else if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax >> 2) >= gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp) {
         ret = 2;
     } else {
         ret = 1;
@@ -1558,10 +1558,10 @@ void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
             Gp_AimYawToLock(arg0, val);
         }
         if (arg1 & 2) {
-            if (D_80113388[Mc_SaveData[0].state.companionVariant] != 0) {
+            if (D_80113388[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
                 Gp_AimPitchToLock(arg0);
             } else {
-                Gp_AimPitchRec(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0x380);
+                Gp_AimPitchRec(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0x380);
             }
         }
     }
@@ -1651,7 +1651,7 @@ s32 func_8010C30C(Task* arg0)
     actor->field_14      = coord->coord.t[1];
     actor->field_18      = coord->coord.t[2];
     prev                 = actor->animationSets;
-    actor->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
+    actor->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
     anim                 = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
     changed              = prev != anim;
     actor->animationSets = anim;
@@ -1683,7 +1683,7 @@ static void func_8010C46C(Task* arg0)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
 
 s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
@@ -1706,7 +1706,7 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(task, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    func_80106350(task, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     // Select the animation table before resetting or blending its slots.
     actor->field_956 = 1;
     if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
@@ -1801,7 +1801,7 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     actor->field_956 = 6;
     actor->field_934 = arg2->field_14;
     actor->field_93E = 0;
@@ -1829,7 +1829,7 @@ s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  i;
     s32  count;
 
-    dest.block = Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant];
+    dest.block = Gp_AnimBlkTbl[Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
     src        = arg2->source.words;
     count      = arg2->count;
     if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
@@ -1847,9 +1847,9 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32 ret;
 
     ret = 0;
-    if (Mc_SaveData[0].state.cheatMode == 0) {
-        Mc_SaveData[0].state.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
-        if (Mc_SaveData[0].state.companionHp <= 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
             ret = 1;
         }

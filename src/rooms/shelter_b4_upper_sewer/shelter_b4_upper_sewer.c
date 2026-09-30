@@ -818,7 +818,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
         case 3:
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                Mc_SaveData[0].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -887,10 +887,10 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_shelter_b4_upper_sewer_80188D24.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_upper_sewer_80188D24.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -937,10 +937,10 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, TaskMe
             Gp_MsgAlly3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_StateF0.field_4                     = 2;
-            temp_a1                                = Mc_SaveData[0].state.location.loc.view;
-            Mc_SaveData[0].state.location.loc.view = 0xD;
-            D_shelter_b4_upper_sewer_80188D2C[0]   = temp_a1;
+            Gp_StateF0.field_4                                         = 2;
+            temp_a1                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
+            D_shelter_b4_upper_sewer_80188D2C[0]                       = temp_a1;
             Task_SpawnFromTable(D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(6);
@@ -965,7 +965,7 @@ s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, TaskMes
 
 void func_shelter_b4_upper_sewer_8017DB94(void)
 {
-    Mc_SaveData[0].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
 }
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
@@ -1003,7 +1003,7 @@ static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
     u8  c;
     s32 h;
 
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
@@ -1156,7 +1156,7 @@ void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
 
 static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

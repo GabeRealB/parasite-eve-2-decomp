@@ -123,7 +123,7 @@ extern Actor342100MessageEntry D_actor_342100_801648F8[1];
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the base
-/// weapon id records are numbered from, and `Mc_SaveData[0].state.characterId` selects the alternate
+/// weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the alternate
 /// set -- 1 means the second block, anything else the `+0x22` one.
 
 /// Single-entry spawn table of the screen-wave task
@@ -514,7 +514,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     anim                     = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
     w                        = (Actor342100Work*)arg0->work;
     weaponId                 = Player_Status.weapon;
-    setId                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
     w->field_3C              = anim;
     msg.animationId          = anim;
@@ -875,7 +875,7 @@ void func_actor_342100_8016334C(s32 arg0)
     work                     = (Actor342100Work*)D_actor_342100_80164BB8->work;
     anim                     = arg0 + 0x2F;
     weaponId                 = Player_Status.weapon;
-    setId                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
     work->field_3C           = anim;
     msg.animationId          = anim;

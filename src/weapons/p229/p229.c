@@ -166,7 +166,7 @@ static void func_p229_8011DDA0(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 frames = 0x12;
                 if (actor->field_97F == 1) {

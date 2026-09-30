@@ -53,7 +53,7 @@ void Display_SetMode(s32 modeBits)
     heightPixels = Display_HeightTable[modeBits & DISPLAY_SETUP_HEIGHT_MASK];
     ds->width    = widthPixels;
     ds->height   = heightPixels;
-    if (Mc_SaveData[0].state.interlace != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {
         interlaced = 1;
     }
     envHeight     = heightPixels & 0xFFFF;

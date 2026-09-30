@@ -1471,6 +1471,6 @@ void func_actor_450200_80132880(s32 arg0)
 
 void func_actor_450200_801328A0(u8 arg0)
 {
-    gGameSession->location.loc.room        = arg0;
-    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
 }

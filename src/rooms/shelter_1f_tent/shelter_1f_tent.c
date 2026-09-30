@@ -56,7 +56,7 @@ extern s32 D_801362B8;
 extern s32 D_80137890;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
-/// end reads it through this name rather than through `Mc_SaveData`.
+/// end reads it through this name rather than through `gMcSaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
 

@@ -6279,10 +6279,10 @@ static void func_actor_403100_80138F88(Task* arg0)
         pan   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         depth = gpGetObjDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
-        Mc_SaveData[0].state.location.loc.view = 0xB;
-        translation                            = coords->coord.t;
-        *translation++                         = -0x44C;
-        work                                   = D_actor_403100_80155808;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
+        translation                                                = coords->coord.t;
+        *translation++                                             = -0x44C;
+        work                                                       = D_actor_403100_80155808;
         SOFT_TOUCH_REG(work);
         *translation++         = 0;
         *translation           = 0x1770;
@@ -6399,24 +6399,24 @@ static void func_actor_403100_8013922C(Task* arg0)
             return;
         }
         func_actor_403100_8013D1B8(1, 0x3F4);
-        D_actor_403100_80155808->field_5EC     = 0;
-        D_actor_403100_80155808->field_5E2     = 8;
-        D_actor_403100_80155808->field_5DE     = 0xE;
-        D_actor_403100_80155808->field_5DA     = 2;
-        Mc_SaveData[0].state.location.loc.view = 0xC;
-        coords->coord.t[0]                     = -0x44C;
-        coords->coord.t[2]                     = 0x1770;
-        coords->coord.t[1]                     = 0;
-        D_actor_403100_80155808->field_82      = 0xC00;
-        D_actor_403100_80155808->field_80      = 0;
-        D_actor_403100_80155808->field_84      = 0;
-        D_actor_403100_80155808->field_604     = 0;
-        D_actor_403100_80155808->field_608     = 0;
-        D_actor_403100_80155808->field_A0      = 0;
-        D_actor_403100_80155808->field_A2      = 0;
-        D_actor_403100_80155808->field_A4      = 0;
-        part->coord.t[0]                       = -0x877;
-        D_actor_403100_80155808->field_5FA     = 8;
+        D_actor_403100_80155808->field_5EC                         = 0;
+        D_actor_403100_80155808->field_5E2                         = 8;
+        D_actor_403100_80155808->field_5DE                         = 0xE;
+        D_actor_403100_80155808->field_5DA                         = 2;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
+        coords->coord.t[0]                                         = -0x44C;
+        coords->coord.t[2]                                         = 0x1770;
+        coords->coord.t[1]                                         = 0;
+        D_actor_403100_80155808->field_82                          = 0xC00;
+        D_actor_403100_80155808->field_80                          = 0;
+        D_actor_403100_80155808->field_84                          = 0;
+        D_actor_403100_80155808->field_604                         = 0;
+        D_actor_403100_80155808->field_608                         = 0;
+        D_actor_403100_80155808->field_A0                          = 0;
+        D_actor_403100_80155808->field_A2                          = 0;
+        D_actor_403100_80155808->field_A4                          = 0;
+        part->coord.t[0]                                           = -0x877;
+        D_actor_403100_80155808->field_5FA                         = 8;
     }
 }
 static void func_actor_403100_801395EC(Task* arg0)
@@ -6449,35 +6449,35 @@ static void func_actor_403100_801395EC(Task* arg0)
     D_actor_403100_80155808->field_5EC = frame;
     i                                  = 0;
     if (((s32)(frame << 0x10) >> 0x10) >= 0x1F) {
-        entries                                   = D_actor_403100_80155814;
-        obj                                       = &entries->obj;
-        entry                                     = entries;
-        Mc_SaveData[0].state.location.loc.view    = 0x18;
-        coords->coord.t[1]                        = -0x1388;
-        D_actor_403100_80155808->field_5E8        = 0;
-        D_actor_403100_80155808->field_604        = 0;
-        D_actor_403100_80155808->field_608        = 0;
-        D_actor_403100_80155808->field_A0         = 0;
-        D_actor_403100_80155808->field_A2         = 0;
-        D_actor_403100_80155808->field_A4         = 0;
-        part->coord.t[0]                          = -0x877;
-        D_actor_403100_80155808->field_5DE        = 7;
-        D_actor_403100_80155808->field_5DA        = 2;
-        D_actor_403100_80155808->flags_634.h.high = 0x14;
-        D_actor_403100_80155808->field_B2         = 0x200;
-        D_actor_403100_80155808->field_5EC        = 0;
-        D_actor_403100_80155808->field_5E2        = 0x10;
-        D_actor_403100_80155808->field_61C        = 0;
-        D_actor_403100_80155808->field_B0         = 0;
-        D_actor_403100_80155808->field_B4         = 0;
-        D_actor_403100_80155810                   = 0;
-        D_actor_403100_80155808->field_5FA       += 1;
-        coords->coord.t[0]                        = -0x44C;
-        coords->coord.t[2]                        = 0x2710;
-        coords->coord.t[1]                        = -0x1388;
-        D_actor_403100_80155808->field_80         = 0;
-        D_actor_403100_80155808->field_82         = 0xA00;
-        D_actor_403100_80155808->field_84         = 0;
+        entries                                                    = D_actor_403100_80155814;
+        obj                                                        = &entries->obj;
+        entry                                                      = entries;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
+        coords->coord.t[1]                                         = -0x1388;
+        D_actor_403100_80155808->field_5E8                         = 0;
+        D_actor_403100_80155808->field_604                         = 0;
+        D_actor_403100_80155808->field_608                         = 0;
+        D_actor_403100_80155808->field_A0                          = 0;
+        D_actor_403100_80155808->field_A2                          = 0;
+        D_actor_403100_80155808->field_A4                          = 0;
+        part->coord.t[0]                                           = -0x877;
+        D_actor_403100_80155808->field_5DE                         = 7;
+        D_actor_403100_80155808->field_5DA                         = 2;
+        D_actor_403100_80155808->flags_634.h.high                  = 0x14;
+        D_actor_403100_80155808->field_B2                          = 0x200;
+        D_actor_403100_80155808->field_5EC                         = 0;
+        D_actor_403100_80155808->field_5E2                         = 0x10;
+        D_actor_403100_80155808->field_61C                         = 0;
+        D_actor_403100_80155808->field_B0                          = 0;
+        D_actor_403100_80155808->field_B4                          = 0;
+        D_actor_403100_80155810                                    = 0;
+        D_actor_403100_80155808->field_5FA                        += 1;
+        coords->coord.t[0]                                         = -0x44C;
+        coords->coord.t[2]                                         = 0x2710;
+        coords->coord.t[1]                                         = -0x1388;
+        D_actor_403100_80155808->field_80                          = 0;
+        D_actor_403100_80155808->field_82                          = 0xA00;
+        D_actor_403100_80155808->field_84                          = 0;
         do {
             if (entry->active != 0) {
                 entry->active = 0;
@@ -6675,24 +6675,24 @@ static void func_actor_403100_80139E80(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame >= 0x1F) {
-        D_actor_403100_80155808->field_5E2     = 8;
-        D_actor_403100_80155808->field_5DE     = 0xE;
-        D_actor_403100_80155808->field_5DA     = 2;
-        D_actor_403100_80155808->field_5EC     = 0;
-        Mc_SaveData[0].state.location.loc.view = 0xC;
-        coords->coord.t[0]                     = -0x44C;
-        coords->coord.t[2]                     = 0x1770;
-        coords->coord.t[1]                     = 0;
-        D_actor_403100_80155808->field_82      = 0xC00;
-        D_actor_403100_80155808->field_80      = 0;
-        D_actor_403100_80155808->field_84      = 0;
-        D_actor_403100_80155808->field_604     = 0;
-        D_actor_403100_80155808->field_608     = 0;
-        D_actor_403100_80155808->field_A0      = 0;
-        D_actor_403100_80155808->field_A2      = 0;
-        D_actor_403100_80155808->field_A4      = 0;
-        part->coord.t[0]                       = -0x877;
-        D_actor_403100_80155808->field_5FA    += 1;
+        D_actor_403100_80155808->field_5E2                         = 8;
+        D_actor_403100_80155808->field_5DE                         = 0xE;
+        D_actor_403100_80155808->field_5DA                         = 2;
+        D_actor_403100_80155808->field_5EC                         = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
+        coords->coord.t[0]                                         = -0x44C;
+        coords->coord.t[2]                                         = 0x1770;
+        coords->coord.t[1]                                         = 0;
+        D_actor_403100_80155808->field_82                          = 0xC00;
+        D_actor_403100_80155808->field_80                          = 0;
+        D_actor_403100_80155808->field_84                          = 0;
+        D_actor_403100_80155808->field_604                         = 0;
+        D_actor_403100_80155808->field_608                         = 0;
+        D_actor_403100_80155808->field_A0                          = 0;
+        D_actor_403100_80155808->field_A2                          = 0;
+        D_actor_403100_80155808->field_A4                          = 0;
+        part->coord.t[0]                                           = -0x877;
+        D_actor_403100_80155808->field_5FA                        += 1;
     }
 }
 static void func_actor_403100_8013A064(Task* arg0)
@@ -6720,12 +6720,12 @@ static void func_actor_403100_8013A064(Task* arg0)
     D_actor_403100_80155808->field_84 = 0;
     func_actor_403100_80132528(arg0);
     if ((s16)D_actor_403100_80155808->field_5EC >= 0x44) {
-        D_actor_403100_80155808->field_5FC     = 0x14;
-        D_actor_403100_80155808->field_5E2     = 0x10;
-        D_actor_403100_80155808->field_5DE     = 5;
-        D_actor_403100_80155808->field_5DA     = 1;
-        Mc_SaveData[0].state.location.loc.view = 0x17;
-        D_actor_403100_80155808->field_5FA    += 1;
+        D_actor_403100_80155808->field_5FC                         = 0x14;
+        D_actor_403100_80155808->field_5E2                         = 0x10;
+        D_actor_403100_80155808->field_5DE                         = 5;
+        D_actor_403100_80155808->field_5DA                         = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x17;
+        D_actor_403100_80155808->field_5FA                        += 1;
         func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
         task = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 5), 0) != 0) {
@@ -6784,7 +6784,7 @@ static void func_actor_403100_8013A254(Task* task)
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             if (D_actor_403100_8015580C->hp > 0) {
-                Mc_SaveData[0].state.location.loc.view = 6;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
             }
             D_actor_403100_80155808->field_632             = 0;
             D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -6992,8 +6992,8 @@ static void func_actor_403100_8013AC04(Task* task)
     }
     D_actor_403100_80155808->field_5EC = (s16)((u16)D_actor_403100_80155808->field_5EC + 1);
     if ((completed = finished != 0)) {
-        Mc_SaveData[0].state.location.loc.view = 0x14;
-        task                                   = gameGetPtrSlot(3);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x14;
+        task                                                       = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 2), 0) != 0) {
             gGameSession->suppressDeathChecks   = 1;
             gGameSession->deathSoundCountdown   = GAME_SESSION_DEATH_SOUND_HOLD;
@@ -7063,7 +7063,7 @@ static void func_actor_403100_8013AE28(Task* task)
             D_actor_403100_80155808->field_668.b.field_668 = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             if (D_actor_403100_8015580C->hp > 0) {
-                Mc_SaveData[0].state.location.loc.view = 4;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
             }
             gGameSession->suppressViewTriggers  = 0;
             D_actor_403100_80155808->pad_670[3] = 0;
@@ -7114,29 +7114,29 @@ static void func_actor_403100_8013B128(Task* arg0)
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
-    D_actor_403100_80155808->field_622              = (s16)gGameSession->location.loc.view;
-    D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
-    D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
-    Mc_SaveData[0].state.location.loc.view          = 0x18;
-    work                                            = D_actor_403100_80155808;
-    work->pad_660[1]                                = 1;
-    work->field_5F6                                 = 5;
-    work->field_5E2                                 = 0x10;
-    work->field_5DE                                 = 0x10;
-    work->field_5DA                                 = 2;
-    work->field_61C                                 = 2;
-    D_actor_403100_80155808->field_604              = 0;
-    D_actor_403100_80155808->field_608              = 0;
-    D_actor_403100_80155808->field_A0               = 0;
-    D_actor_403100_80155808->field_A2               = 0;
-    D_actor_403100_80155808->field_A4               = 0;
-    coords->coord.t[0]                              = -0x44C;
-    coords->coord.t[1]                              = -0x1388;
-    coords->coord.t[2]                              = 0x2710;
-    D_actor_403100_80155808->field_80               = 0;
-    D_actor_403100_80155808->field_82               = 0xA00;
-    D_actor_403100_80155808->field_84               = 0;
-    gGameSession->hideHud                           = 1;
+    D_actor_403100_80155808->field_622                         = (s16)gGameSession->location.loc.view;
+    D_actor_403100_80155808->field_0.matrices.coord            = coords->coord;
+    D_actor_403100_80155808->savedRotation                     = *(SVECTOR*)&D_actor_403100_80155808->field_80;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
+    work                                                       = D_actor_403100_80155808;
+    work->pad_660[1]                                           = 1;
+    work->field_5F6                                            = 5;
+    work->field_5E2                                            = 0x10;
+    work->field_5DE                                            = 0x10;
+    work->field_5DA                                            = 2;
+    work->field_61C                                            = 2;
+    D_actor_403100_80155808->field_604                         = 0;
+    D_actor_403100_80155808->field_608                         = 0;
+    D_actor_403100_80155808->field_A0                          = 0;
+    D_actor_403100_80155808->field_A2                          = 0;
+    D_actor_403100_80155808->field_A4                          = 0;
+    coords->coord.t[0]                                         = -0x44C;
+    coords->coord.t[1]                                         = -0x1388;
+    coords->coord.t[2]                                         = 0x2710;
+    D_actor_403100_80155808->field_80                          = 0;
+    D_actor_403100_80155808->field_82                          = 0xA00;
+    D_actor_403100_80155808->field_84                          = 0;
+    gGameSession->hideHud                                      = 1;
     Gp_MsgPlayerWeapon(0);
     sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000B;
     pan   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
@@ -7154,9 +7154,9 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     s32       depth;
     GfxCoord* coords;
 
-    coords                                 = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_5EC    += 1;
-    Mc_SaveData[0].state.location.loc.view = 0x18;
+    coords                                                     = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->field_5EC                        += 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
     if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
         Gp_LoadImages(&D_actor_403100_801555EC[0]);
     }
@@ -7178,11 +7178,11 @@ static void func_actor_403100_8013B3C4(Task* arg0)
         D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         gGameSession->hideHud                           = 0;
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
-        coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
-        *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;
-        Mc_SaveData[0].state.location.loc.view        = (u8)D_actor_403100_80155808->field_622;
-        D_actor_403100_80155808->field_5F8            = 1;
-        D_actor_403100_80155808->field_5FA            = 0;
+        coords->coord                                              = D_actor_403100_80155808->field_0.matrices.coord;
+        *(SVECTOR*)&D_actor_403100_80155808->field_80              = D_actor_403100_80155808->savedRotation;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_actor_403100_80155808->field_622;
+        D_actor_403100_80155808->field_5F8                         = 1;
+        D_actor_403100_80155808->field_5FA                         = 0;
     }
 }
 
@@ -8350,7 +8350,7 @@ static void func_actor_403100_8013E1E4(void)
     AnimationPlayRequest sp;
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+        _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
         sp.source.sets                      = _gActor403100PlayerAnimationSets;
         sp.blend                            = ANIMATION_BLEND_INTERPOLATE;
         sp.blendFrames                      = 3;
@@ -8895,10 +8895,10 @@ static void func_actor_403100_8013F3EC(Task* arg0)
     D_actor_403100_80155808->field_84  = 0;
     D_actor_403100_80155808->field_5DA = 2;
     func_actor_403100_80132528(arg0);
-    Mc_SaveData[0].state.location.loc.view = 0x18;
-    D_actor_403100_80155808->field_60E     = 0;
-    D_actor_403100_80155808->field_610     = 0;
-    D_actor_403100_80155808->field_5FA    += 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
+    D_actor_403100_80155808->field_60E                         = 0;
+    D_actor_403100_80155808->field_610                         = 0;
+    D_actor_403100_80155808->field_5FA                        += 1;
 }
 static void func_actor_403100_8013F488(Task* task)
 {

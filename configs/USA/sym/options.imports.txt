@@ -33,7 +33,7 @@ Pad_MaskCancel = 0x8005ED74; // absolute:True
 Pad_MaskMenu = 0x8005ED78; // absolute:True
 gGpuCurrentOt = 0x800710A0; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
-Mc_SaveData = 0x80072168; // absolute:True
+gMcSaveData = 0x80072168; // absolute:True
 
 // --- still unnamed in their own overlay (5)
 D_80072189 = 0x80072189; // absolute:True

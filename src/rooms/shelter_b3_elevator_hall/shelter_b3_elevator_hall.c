@@ -192,9 +192,9 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             break;
         case 4:
             if (Gp_GetCapEventKey() == 0x15) {
-                Mc_SaveData[0].state.location.loc.area = 0x1A;
-                Mc_SaveData[0].state.location.loc.warp = 1;
-                Mc_SaveData[0].state.location.loc.room = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1A;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             } else {
                 Gp_MsgPlayerWeapon(1);
                 Gp_StateF0.field_4 = 0;

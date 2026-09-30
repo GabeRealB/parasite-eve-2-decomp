@@ -3251,7 +3251,7 @@ void Actor04000_Fn06F54(Task* arg0)
         }
         arg0->state++;
     }
-    if (Mc_SaveData[0].state.location.loc.view == 5) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 5) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
                 Gp_ArmStateF0(1);

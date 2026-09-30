@@ -66,7 +66,7 @@ STATIC_ASSERT_SIZEOF(EquipmentWeaponLoad, 0x8);
 
 /// Row storage selectors for `InventoryItemRange::tableId`.
 enum {
-    INVENTORY_ITEM_TABLE_SAVED       = 0, // `Mc_SaveData[0].state.itemRows`
+    INVENTORY_ITEM_TABLE_SAVED       = 0, // `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows`
     INVENTORY_ITEM_TABLE_INDIRECT    = 1, // Rows addressed by `Gp_ItemTable1`; backing and lifetime unproven
     INVENTORY_ITEM_TABLE_AREA_GRANTS = 2, // `Gp_ItemTable2`, holding items granted on area entry
 };
@@ -242,5 +242,22 @@ STATIC_ASSERT(OFFSET_OF(McSaveData, preview.location) == OFFSET_OF(McSaveData, s
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.headerChecksumComplement) == OFFSET_OF(McSaveData, preview.headerChecksumComplement), McSaveData_sharedHeader);
 STATIC_ASSERT(OFFSET_OF(McSaveData, preview.remainingBytes) == 0x20, McSaveData_previewRemainder);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.playTime) == 0xC, McSaveData_playTime);
+
+/// Indices of the two resident images in `gMcSaveData`.
+///
+/// The live image is the record the game reads and writes. The backup is the
+/// next image. Initialization clears the live image and fills the backup with
+/// 0xFF. Loading writes both copies from the card back into the array. Saving
+/// checksums the live image, writes that image to the card twice, and then
+/// copies the live image over the resident backup.
+enum {
+    MEMORY_CARD_SAVE_LIVE   = 0, // Image the game reads and writes
+    MEMORY_CARD_SAVE_BACKUP = 1, // Copy kept immediately after the live image
+    MEMORY_CARD_SAVE_COUNT  = 2  // Live image followed by its backup
+};
+
+/// 128-byte card sectors occupied by both resident save images.
+enum { MEMORY_CARD_SAVE_CARD_SECTORS = (sizeof(McSaveData) * MEMORY_CARD_SAVE_COUNT + 0x7F) >> 7 };
+STATIC_ASSERT(MEMORY_CARD_SAVE_CARD_SECTORS == 0x26, McSaveData_cardSectors);
 
 #endif // MAIN_MC_TYPES_H

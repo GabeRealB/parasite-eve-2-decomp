@@ -186,11 +186,11 @@ s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* i
 }
 
 /// Stores `arg0` as the session's current room number and mirrors it into the
-/// main-executable byte `Mc_SaveData[0].state.location.loc.room`.
+/// main-executable byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
 void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 {
-    gGameSession->location.loc.room        = arg0;
-    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
 }
 
 /// Room entry task tick: publish the message table, claim game pointer slot 7,
