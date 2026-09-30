@@ -42,6 +42,7 @@
 #include "overlay.h"
 #include "../../shared/screen_negative.h"
 #include "../../shared/paced_walk.h"
+#include "../../shared/walker.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -106,7 +107,6 @@ extern s32                     D_actor_460200_80151538;
 
 static void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
 static void func_actor_460200_80132950(Task* task);
-static void func_actor_460200_80132978(Task* task);
 static void func_actor_460200_80132F0C(Task* task);
 static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task);
 static void func_actor_460200_8013322C(Task* task);
@@ -2354,7 +2354,7 @@ static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     pacedWalkUpdate(task);
-    func_actor_460200_80132978(task);
+    walkerDrawShadow(task);
     if ((work->effects != 0) && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (obj->buffer != NULL)) {
         if (task->killCountdown & 1) {
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -2430,26 +2430,7 @@ static void func_actor_460200_80132950(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow under its root part, unless the model is
-/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
-/// world translation, staged on the scratchpad stack.
-static void func_actor_460200_80132978(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow.inc.c"
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 
@@ -2687,26 +2668,10 @@ static void func_actor_460200_8013322C(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow under its root part, unless the model is
-/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
-/// world translation, staged on the scratchpad stack.
-static void func_actor_460200_80133254(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+/// A further copy of the shadow, under this file's own name.
+#define walkerDrawShadow func_actor_460200_80133254
+#include "../../shared/walker_shadow.inc.c"
+#undef walkerDrawShadow
 
 /// The second walker's copy.
 #define pacedWalkTickAnim func_actor_460200_801332E0
@@ -2924,48 +2889,23 @@ static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-static void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    func_actor_460200_801336B4(task);
-    func_actor_460200_80133AB0(task);
-}
+#define walkerFrame      func_actor_460200_80133A04
+#define walkerUpdate     func_actor_460200_801336B4
+#define walkerDrawShadow func_actor_460200_80133AB0
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 static void func_actor_460200_80133A88(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow under its root part, unless the model is
-/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
-/// world translation, staged on the scratchpad stack.
-static void func_actor_460200_80133AB0(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+/// A further copy of the shadow, under this file's own name.
+#define walkerDrawShadow func_actor_460200_80133AB0
+#include "../../shared/walker_shadow.inc.c"
+#undef walkerDrawShadow
 
 /// The third walker's copy.
 #define pacedWalkTickAnim func_actor_460200_80133B3C

@@ -201,3 +201,4 @@ scriptedWalkTickAnim = 0x801324C8; // type:func
 scriptedWalkResetAnim = 0x80132514; // type:func
 scriptedWalkBlendAnim = 0x801325A4; // type:func
 scriptedWalkTo = 0x8013279C; // type:func
+walkerDrawShadowShaded = 0x8013242C; // type:func

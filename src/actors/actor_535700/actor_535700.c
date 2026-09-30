@@ -31,6 +31,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/footstep_walk.h"
+#include "../../shared/walker.h"
 
 /// Reset argument the first enemy's "play animation" opcode leaves behind:
 /// `footstepWalkBlendAnim` forwards it to every reseeded slot, and the
@@ -89,7 +90,6 @@ extern u8                  D_actor_535700_80146828[];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task);
-static void func_actor_535700_80132ABC(Task* task);
 static void func_actor_535700_80132D68(Task* task);
 static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task);
 static void func_actor_535700_80132FF8(Task* task);
@@ -1199,25 +1199,13 @@ void func_actor_535700_80132478(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State 1 of the first enemy's task: refreshes the model root's coordinate,
-/// hands `func_800D7A9C` the point 0x320 above it, then runs the runner and
-/// draws the ground shadow.
-static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     pos;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 0x320;
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
-    footstepWalkUpdate(task);
-    func_actor_535700_80132ABC(task);
-}
+#define walkerFrame      func_actor_535700_801324D4
+#define walkerUpdate     footstepWalkUpdate
+#define walkerDrawShadow walkerDrawShadowShaded
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 /// Exit callback the first enemy's spawn handler installs on its task: tears
 /// down the enemy the task was spawned for.
@@ -1314,27 +1302,7 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-/// Draws the first enemy's ground shadow quad under its model root, unless the
-/// model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
-/// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
-/// the room's current `gRoomEffectState->groundShadowShade`.
-static void func_actor_535700_80132ABC(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, gRoomEffectState->groundShadowShade);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow_shaded.inc.c"
 
 /// State 0 of the second enemy's task. Allocates its `Actor150400Work`,
 /// spawns its sub-model task from `D_actor_535700_80146810`, takes the
@@ -1436,25 +1404,13 @@ void func_actor_535700_80132F20(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State 1 of the second enemy's task: refreshes the model root's coordinate,
-/// hands `func_800D7A9C` the point 0x320 above it, then runs the state machine
-/// and draws the ground shadow.
-static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     pos;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 0x320;
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_535700_80132D68(task);
-    func_actor_535700_80133020(task);
-}
+#define walkerFrame      func_actor_535700_80132F74
+#define walkerUpdate     func_actor_535700_80132D68
+#define walkerDrawShadow func_actor_535700_80133020
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 /// Exit callback the second enemy's spawn handler installs on its task: tears
 /// down the enemy the task was spawned for.
@@ -1463,27 +1419,10 @@ static void func_actor_535700_80132FF8(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the second enemy's ground shadow quad under its model root, unless
-/// the model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
-/// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
-/// the room's current `gRoomEffectState->groundShadowShade`.
-static void func_actor_535700_80133020(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, gRoomEffectState->groundShadowShade);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+/// A further copy of the shadow, under this file's own name.
+#define walkerDrawShadowShaded func_actor_535700_80133020
+#include "../../shared/walker_shadow_shaded.inc.c"
+#undef walkerDrawShadowShaded
 
 /// Ticks the second enemy's animation slots 1..0x12.
 static void func_actor_535700_801330BC(Task* task)

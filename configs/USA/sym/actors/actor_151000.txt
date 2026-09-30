@@ -132,3 +132,4 @@ footstepWalkTickAnim = 0x801325C4; // type:func
 footstepWalkResetAnim = 0x80132610; // type:func
 footstepWalkBlendAnim = 0x801326AC; // type:func
 footstepWalkTo = 0x801328DC; // type:func
+walkerDrawShadowShaded = 0x80132A38; // type:func

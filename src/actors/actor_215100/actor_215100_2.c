@@ -108,12 +108,12 @@ STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
 
 static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
 static void func_actor_215100_8014CB04(Task* task);
-static void func_actor_215100_8014CB2C(Task* task);
 
 /* cap captions instance: retain the original overlay symbols. */
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
 static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
 #include "../../shared/cap_captions.h"
+#include "../../shared/walker.h"
 
 extern TaskDesc D_actor_215100_8014E13C[];
 extern GpEvsCmd D_actor_215100_8014E370[];
@@ -2253,25 +2253,13 @@ void func_actor_215100_8014CA2C(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State-1 handler of the actor's dispatcher: recomputes the root part's
-/// world matrix, hands the position 800 units above it to the model's
-/// light/colour step, then runs the animation step and draws the shadow.
-static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     pos;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 0x320;
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
-    pacedWalkUpdate(task);
-    func_actor_215100_8014CB2C(task);
-}
+#define walkerFrame      func_actor_215100_8014CA80
+#define walkerUpdate     pacedWalkUpdate
+#define walkerDrawShadow walkerDrawShadow
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 /// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
 static void func_actor_215100_8014CB04(Task* task)
@@ -2279,26 +2267,7 @@ static void func_actor_215100_8014CB04(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow under its root part, unless the model's
-/// `flags` bit 0x80 is set or it has no buffer. The position is the root
-/// part's world translation, staged on the scratchpad stack.
-static void func_actor_215100_8014CB2C(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow.inc.c"
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 

@@ -32,6 +32,7 @@
 
 #include "rooms/shelter_1f_heliport.h"
 #include "../../shared/paced_walk.h"
+#include "../../shared/walker.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -97,7 +98,6 @@ extern GpEvsCmd       D_actor_161500_80137AB8[];
 static void func_actor_161500_8013252C(Task* task);
 static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
 static void func_actor_161500_8013284C(Task* task);
-static void func_actor_161500_80132874(Task* task);
 
 extern AnimationPlayRequest D_actor_161500_80133F7C;
 extern AnimationPlayRequest D_actor_161500_80134020;
@@ -1699,7 +1699,7 @@ static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
         }
     }
     func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->turnWeight);
-    func_actor_161500_80132874(task);
+    walkerDrawShadow(task);
 }
 
 /// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
@@ -1709,27 +1709,7 @@ static void func_actor_161500_8013284C(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow quad under the model root, unless the model
-/// is hidden (`TmdObject::flags` bit 0x80) or has no buffer yet. The world
-/// position is the translation of the root coordinate's `workm`, staged in a
-/// scratchpad VECTOR3 rather than on the stack.
-static void func_actor_161500_80132874(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow.inc.c"
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 

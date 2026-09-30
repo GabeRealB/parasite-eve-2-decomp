@@ -27,6 +27,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/paced_walk.h"
+#include "../../shared/walker.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -75,7 +76,6 @@ extern u8                      D_actor_160600_8013DFEC[];
 
 static void func_actor_160600_80132208(GpEnemy* enemy, Task* task);
 static void func_actor_160600_80132350(Task* task);
-static void func_actor_160600_80132378(Task* task);
 
 extern TmdSource D_actor_160600_8013BA9C;
 void             func_actor_160600_801321B4(Task*);
@@ -1219,7 +1219,7 @@ static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
     pacedWalkUpdate(task);
-    func_actor_160600_80132378(task);
+    walkerDrawShadow(task);
     if (work->effects != 0 && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         if (task->killCountdown & 1) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -1300,27 +1300,7 @@ static void func_actor_160600_80132350(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow quad under the model root, unless the model
-/// is hidden (`TmdObject::flags` bit 0x80) or has no buffer yet. The world
-/// position is the translation of the root coordinate's `workm`, staged in a
-/// scratchpad VECTOR3 rather than on the stack.
-static void func_actor_160600_80132378(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow.inc.c"
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 

@@ -25,6 +25,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/paced_walk.h"
+#include "../../shared/walker.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -67,7 +68,6 @@ extern GpEvsCmd             D_actor_160700_80136414[];
 
 static void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
 static void func_actor_160700_80132414(Task* task);
-static void func_actor_160700_8013243C(Task* task);
 
 extern AnimationPlayRequest D_actor_160700_80135288;
 extern AnimationPlayRequest D_actor_160700_8013529C;
@@ -1584,25 +1584,13 @@ void func_actor_160700_8013233C(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State-1 handler of the actor's dispatcher: recomputes the root part's
-/// world matrix, hands the position 800 units above it to the model's
-/// light/colour step, then runs the animation step and draws the shadow.
-static void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 800;
-    vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    pacedWalkUpdate(task);
-    func_actor_160700_8013243C(task);
-}
+#define walkerFrame      func_actor_160700_80132390
+#define walkerUpdate     pacedWalkUpdate
+#define walkerDrawShadow walkerDrawShadow
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 /// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
 static void func_actor_160700_80132414(Task* task)
@@ -1610,26 +1598,7 @@ static void func_actor_160700_80132414(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Draws the actor's ground shadow under its root part, unless the model's
-/// `flags` bit 0x80 (hidden) is set or it has no buffer. The position is the
-/// root part's world translation, staged on the scratchpad stack.
-static void func_actor_160700_8013243C(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow.inc.c"
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 

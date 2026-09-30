@@ -25,6 +25,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/footstep_walk.h"
+#include "../../shared/walker.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -89,7 +90,6 @@ static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
 static void func_actor_260500_8014A540(Task* task);
 static void func_actor_260500_8014A5B4(void);
 static void func_actor_260500_8014A644(void);
-static void func_actor_260500_8014A99C(Task* task);
 
 extern TmdSource D_actor_260500_80159D58;
 void             func_actor_260500_8014A460(Task*);
@@ -1671,25 +1671,13 @@ void func_actor_260500_8014A460(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Per-frame state (state 1 of `func_actor_260500_8014A460`): refreshes the
-/// model root's world matrix, relights the model from a point 0x320 above its
-/// translation, then runs the update and draws the ground shadow.
-static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     pos;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 0x320;
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_260500_8014A110(task);
-    func_actor_260500_8014A99C(task);
-}
+#define walkerFrame      func_actor_260500_8014A4BC
+#define walkerUpdate     func_actor_260500_8014A110
+#define walkerDrawShadow walkerDrawShadow
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
 /// back to `Gp_DestroyEnemy`.
@@ -1843,24 +1831,4 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     return 0;
 }
 
-/// Draws the actor's ground shadow quad under the model root, unless the model
-/// is hidden (`flags & 0x80`) or has no buffer yet. The root's world
-/// translation is staged in a scratchpad `VECTOR3` rather than on the stack,
-/// and the quad is drawn at a fixed brightness of 0xC0.
-static void func_actor_260500_8014A99C(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow.inc.c"

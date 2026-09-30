@@ -28,6 +28,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/footstep_walk.h"
+#include "../../shared/walker.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -89,7 +90,6 @@ extern Actor151000MsgEntry gFootstepWalkMsgTable[];
 extern u8                  gFootstepWalkAnims[];
 
 static void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
-static void func_actor_151000_80132A38(Task* task);
 
 extern TmdSource D_actor_151000_80139270;
 void             func_actor_151000_801323F4(Task*);
@@ -871,25 +871,13 @@ void func_actor_151000_801323F4(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State 1 of the enemy's task: refreshes the model root's coordinate, hands
-/// `func_800D7A9C` the point 0x320 above it, then runs the runner and draws the
-/// ground shadow.
-static void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    Gp_UpdateCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    footstepWalkUpdate(task);
-    func_actor_151000_80132A38(task);
-}
+#define walkerFrame      func_actor_151000_80132450
+#define walkerUpdate     footstepWalkUpdate
+#define walkerDrawShadow walkerDrawShadowShaded
+#include "../../shared/walker_frame.inc.c"
+#undef walkerFrame
+#undef walkerUpdate
+#undef walkerDrawShadow
 
 /// Exit callback the spawn handler installs on the enemy's task: tears down
 /// the enemy the task was spawned for.
@@ -985,24 +973,4 @@ s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg)
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-/// Draws the enemy's ground shadow quad under the model root, unless the model
-/// is hidden (`flags & 0x80`) or has no buffer yet. The root part's `workm`
-/// translation is staged in a scratchpad VECTOR3 rather than on the stack, and
-/// the quad takes the room's current ground shade.
-static void func_actor_151000_80132A38(Task* task)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR3*   vec;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, gRoomEffectState->groundShadowShade);
-        SCRATCH_STACK_RELEASE_BYTES(0x18);
-    }
-}
+#include "../../shared/walker_shadow_shaded.inc.c"

@@ -1,0 +1,21 @@
+/* Part of the walker library; see walker.h. */
+
+/// Draws the walker's ground shadow, a 0x200 quad at shade 0xC0, under the model
+/// root, unless the model is hidden or has no buffer yet.
+void walkerDrawShadow(Task* task)
+{
+    TmdObject* obj;
+    GfxCoord*  coord;
+    VECTOR3*   vec;
+
+    obj   = task->extra.tmd;
+    coord = obj->coords;
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_STACK_RELEASE_BYTES(0x18);
+    }
+}
