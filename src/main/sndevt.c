@@ -150,10 +150,14 @@ static bool _gSndEvtProcessEnabled;
 /// invalid command discards the queue and clears both endpoints.
 static SndEvt* _gSndEvtHead;
 
-/// Last event in the pending queue, or `NULL` when the queue is empty.
+/// Last pool slot in the deferred audio-command FIFO, or `NULL` when empty.
 ///
-/// Kept alongside the head so an append reaches the end without walking the
-/// list; a pass that consumes the last event clears it with the head.
+/// Refers into `_gSndEvtPool`; the slot stays reserved through dispatch and its
+/// `next` link is `NULL` after an append completes. Saving this endpoint permits
+/// appending without traversing `_gSndEvtHead`. Interrupt processing is disabled
+/// while append links are updated. Draining earlier slots leaves the tail in
+/// place; releasing the last slot, reset and invalid-command recovery clear
+/// both endpoints.
 static SndEvt* _gSndEvtTail;
 
 /// Maximum number of simultaneous sound-event reservations, queued or unqueued.
