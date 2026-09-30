@@ -9,7 +9,7 @@
 
 extern GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5];
 
-extern Task* D_shelter_b3_incinerator_control_room_80182A54;
+extern Task* gRoomCutsceneSoundTask;
 
 extern RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
 

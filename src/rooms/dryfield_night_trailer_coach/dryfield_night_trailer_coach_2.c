@@ -42,6 +42,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 extern SVECTOR D_dryfield_night_trailer_coach_801893F8[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
@@ -841,7 +842,7 @@ s32 Shop_Data_80187628 = 0;
 
 GpItemMap* Shop_Data_8018762C = NULL;
 
-Task* D_dryfield_night_trailer_coach_8018C218 = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C = { 0 };
 

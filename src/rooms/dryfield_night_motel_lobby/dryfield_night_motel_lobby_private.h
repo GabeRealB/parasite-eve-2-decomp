@@ -43,7 +43,7 @@ extern TaskDesc D_dryfield_night_motel_lobby_801828D4;
 
 extern Task* D_dryfield_night_motel_lobby_801844CC;
 
-extern Task* D_dryfield_night_motel_lobby_801844D0;
+extern Task* gRoomCutsceneSoundTask;
 
 extern s32 D_dryfield_night_motel_lobby_801844D4;
 

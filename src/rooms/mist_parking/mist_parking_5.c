@@ -41,6 +41,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 /// World-space points the room's glow markers are drawn at. Every view draws
 /// its markers from this one table, by index.
@@ -820,7 +821,7 @@ s32 Shop_Data_80187628 = 0;
 
 GpItemMap* Shop_Data_8018762C = NULL;
 
-Task* D_mist_parking_80195318 = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 s32 D_mist_parking_8019531C = 0;
 

@@ -66,6 +66,8 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+#define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.value
+#include "../../shared/room_cutscene.h"
 
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
 /// the scratch stack: the projected centre `sx` / `sy`, its `otz` and GTE
@@ -137,7 +139,7 @@ static UiList       Telephone_Data_80181CF4;
 
 /// Task tables the room spawns from: the cutscene, the flag-gated exit's
 /// transition, and the console's tasks.
-extern TaskDesc D_shelter_b2_laboratory_80182A08[];
+extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 
@@ -168,7 +170,7 @@ typedef struct {
 } ShelterB2LaboratoryStorage64A4;
 STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64A4, 8);
 
-extern ShelterB2LaboratoryStorage64A4 D_shelter_b2_laboratory_801864A4;
+extern ShelterB2LaboratoryStorage64A4 gRoomCutsceneSoundTask;
 
 /// Copies of the message and request that started the pending exit
 /// transition, read back by `roomEventTask`.
@@ -216,7 +218,6 @@ s32  func_shelter_b2_laboratory_801800F4(Task*, s32, TaskMessageArg, TaskMessage
 s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b2_laboratory_801801D0(Task*, s32, DirectionActionRequest* request, s32);
 s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, TaskMessageArg);
-void func_shelter_b2_laboratory_8017F4D8(Task*);
 void func_shelter_b2_laboratory_8017FEB8(Task*);
 void func_shelter_b2_laboratory_80180064(Task*);
 void func_shelter_b2_laboratory_80180290(Task*);
@@ -260,8 +261,8 @@ TmdSource D_shelter_b2_laboratory_801829E4 = {
     D_shelter_b2_laboratory_80182688,
 };
 
-TaskDesc D_shelter_b2_laboratory_80182A08[3] = {
-    { 0, 32, func_shelter_b2_laboratory_8017F4D8, { .model = NULL } },
+TaskDesc gRoomCutsceneTaskDescs[3] = {
+    { 0, 32, roomCutsceneTask, { .model = NULL } },
     { 0, 32, func_shelter_b2_laboratory_80180064, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
@@ -1045,7 +1046,7 @@ GpAreaApplyRec D_shelter_b2_laboratory_8018649C[2] = {
     { 255, 0, 0, 0 },
 };
 
-ShelterB2LaboratoryStorage64A4 D_shelter_b2_laboratory_801864A4 = { NULL, { 0 } };
+ShelterB2LaboratoryStorage64A4 gRoomCutsceneSoundTask = { NULL, { 0 } };
 
 RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
@@ -1072,188 +1073,7 @@ void func_shelter_b2_laboratory_8017EAB4(Task* task)
 
 #undef TELEPHONE_TITLE_BYTES
 
-void func_shelter_b2_laboratory_8017F4D8(Task* task)
-{
-    s32              out;
-    s32              var_a0;
-    s32              var_a1;
-    s32              temp;
-    RoomCutsceneRec* p;
-
-    p = task->spawnArg2.pointer;
-    switch (task->state) {
-        case 0:
-            D_shelter_b2_laboratory_801864A4.value = NULL;
-            Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(0);
-            }
-            if (p->field_0 > 0) {
-                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
-                Mc_SaveData[0].state.location.loc.view = p->field_0;
-            } else {
-                D_80115694 = -p->field_0;
-            }
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.field_4       = 2;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
-            if (p->field_4 != 0) {
-                SndEvt_EnqueueType6(p->field_4, 0, 0);
-            }
-            task->state++;
-            break;
-        case 1:
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (p->field_3 != 0) {
-                Gp_CapFile = 0;
-                Gp_LoadCapFile(p->field_3);
-                var_a0 = p->field_14;
-                var_a1 = 0;
-                if (var_a0 == 0) {
-                    var_a0 = 0x3C0;
-                } else {
-                    var_a1 = p->field_16;
-                }
-                func_800E6D4C(var_a0, var_a1);
-            }
-            if (p->field_2 != 0) {
-                task->state = 6;
-            } else {
-                task->state++;
-            }
-            break;
-        case 4:
-            D_shelter_b2_laboratory_801864A4.value = Task_SpawnFromTable(D_shelter_b2_laboratory_80182A08, 1, 0, p->field_10);
-            Gp_StartCapSlot(p->field_1, 0, 0x63);
-            task->state++;
-            break;
-        case 5:
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType7(p->field_10, 1);
-                taskKill(D_shelter_b2_laboratory_801864A4.value);
-                task->state++;
-            } else if (Task_PollKill(D_shelter_b2_laboratory_801864A4.value, &out) != 0) {
-                task->state++;
-            }
-            break;
-        case 6:
-            Gp_AbortCap();
-            task->state++;
-            break;
-        case 7:
-            if (p->field_2 == 0) {
-                SndEvt_EnqueueType6(p->field_C, 0, 0);
-            }
-            temp = GameFlag_GetNibble(0x7A);
-            if (temp > 0) {
-                if (temp >= 5) {
-                    if (temp == 5) {
-                        if (GameFlag_GetNibble(0x111) != 0) {
-                            if (GameFlag_GetNibble(0x112) == 0) {
-                                GameFlag_SetNibble(3, 0);
-                                GameFlag_SetNibble(0x155, 9);
-                                GameFlag_SetNibble(0x112, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            if (p->field_1 == 1) {
-                Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            } else {
-                Gp_RunCapCmd(p->field_1, 0);
-            }
-            if ((GameFlag_GetNibble(0x7A) == 1) && (GameFlag_GetNibble(0) == 2)) {
-                GameFlag_SetNibble(0, 3);
-                GameFlag_SetNibble(0xE, 4);
-                if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
-                    Gp_ApplyAreaRecs(D_acropolis_square_80188888);
-                    func_800E3FAC(0xA2, 5);
-                }
-            }
-            task->state++;
-            break;
-        case 8:
-            if (Gp_CapBusy() == 0) {
-                if ((GameFlag_GetNibble(0x155) == 0xE) && (GameFlag_GetNibble(3) == 0)) {
-                    GameFlag_SetNibble(3, 1);
-                    task->state = 0x14;
-                } else {
-                    Gp_RunCapCmd1(task->spawnArg1.value);
-                    task->state++;
-                }
-            }
-            break;
-        case 9:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 10:
-            task->state++;
-            break;
-        case 11:
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.location.loc.view = D_80115694;
-            task->state++;
-            break;
-        case 12:
-        case 13:
-            task->state++;
-            break;
-        case 14:
-            SndEvt_EnqueueType6(p->field_8, 0, 0);
-            Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(1);
-            }
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.field_4       = 0;
-            if (p->field_3 != 0) {
-                Gp_ResetCap();
-            }
-            D_80114D08 = 0xA;
-            taskKill(task);
-            break;
-        case 20:
-            Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            task->state++;
-            break;
-        case 21:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 22:
-            switch (Gp_GetCapEventKey()) {
-                case 11:
-                    Gp_RunCapCmd(0x20, 0);
-                    task->state++;
-                    break;
-                case 12:
-                    Gp_RunCapCmd(0x21, 0);
-                    task->state++;
-                    break;
-                default:
-                    GameFlag_SetNibble(3, 2);
-                    task->state = 8;
-                    break;
-            }
-            break;
-        case 23:
-            if (Gp_CapBusy() == 0) {
-                task->state = 0x14;
-            }
-            break;
-    }
-}
+#include "../../shared/room_cutscene_task.inc.c"
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -1285,7 +1105,7 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMess
             D_shelter_b2_laboratory_801864BC.value.field_8  = 0x541F0008;
             D_shelter_b2_laboratory_801864BC.value.field_10 = 0x541F0006;
             D_shelter_b2_laboratory_801864BC.value.field_C  = 0x541F0007;
-            Task_SpawnFromTable(D_shelter_b2_laboratory_80182A08, 0, 1, &D_shelter_b2_laboratory_801864BC.value);
+            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.value);
             Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 2, 0, 0);
         } else {
             D_shelter_b2_laboratory_801864BC.value.field_0  = 0xD;
@@ -1297,7 +1117,7 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMess
             D_shelter_b2_laboratory_801864BC.value.field_8  = 0x541F0008;
             D_shelter_b2_laboratory_801864BC.value.field_10 = 0x541F0006;
             D_shelter_b2_laboratory_801864BC.value.field_C  = 0x541F0007;
-            Task_SpawnFromTable(D_shelter_b2_laboratory_80182A08, 0, 8, &D_shelter_b2_laboratory_801864BC.value);
+            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.value);
         }
     }
     return 0;

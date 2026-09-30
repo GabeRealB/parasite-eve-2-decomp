@@ -41,7 +41,7 @@ extern TaskDesc D_mist_parking_8018FC24[];
 extern TaskDesc D_mist_parking_80190824[];
 
 /// Tasks the room keeps a handle on while they run.
-extern Task* D_mist_parking_80195318;
+extern Task* gRoomCutsceneSoundTask;
 
 extern Task* D_mist_parking_80195320;
 

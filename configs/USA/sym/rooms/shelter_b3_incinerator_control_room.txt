@@ -76,11 +76,11 @@ D_shelter_b3_incinerator_control_room_80182A10 = 0x80182A10; // size:0x8 defined
 D_shelter_b3_incinerator_control_room_80182A18 = 0x80182A18; // size:0x8 defined:True
 D_shelter_b3_incinerator_control_room_80182A20 = 0x80182A20; // size:0x20 defined:True
 D_shelter_b3_incinerator_control_room_80182A40 = 0x80182A40; // size:0x14 defined:True
-D_shelter_b3_incinerator_control_room_80182A54 = 0x80182A54; // size:0x4 defined:True
+gRoomCutsceneSoundTask = 0x80182A54; // size:0x4 defined:True
 D_shelter_b3_incinerator_control_room_80182A58 = 0x80182A58; // size:0x18 defined:True
 D_80135E24 = 0x80135E24; // absolute:True
 D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
-D_shelter_b3_incinerator_control_room_80181814 = 0x80181814; // size:0x24 defined:True
+gRoomCutsceneTaskDescs = 0x80181814; // size:0x24 defined:True
 D_shelter_b3_incinerator_control_room_80181838 = 0x80181838; // size:0x30 defined:True
 
 func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func
@@ -108,3 +108,4 @@ Telephone_Data_8017D630 = 0x8017D630;
 glowDrawCapsule = 0x8017FEB4; // type:func
 glowDrawPulsingDisc = 0x80180B6C; // type:func
 glowDrawDiamond = 0x801806F8; // type:func
+roomCutsceneTask = 0x8017F488; // type:func

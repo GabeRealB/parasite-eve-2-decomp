@@ -3,9 +3,10 @@
 #include "main/task_types.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-Task* D_dryfield_night_motel_lobby_801844D0;
+Task* gRoomCutsceneSoundTask;
 
 s32 D_dryfield_night_motel_lobby_801844D4;
 

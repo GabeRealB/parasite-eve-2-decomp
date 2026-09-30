@@ -65,7 +65,7 @@ D_dryfield_night_motel_lobby_80184484 = 0x80184484; // size:0x8 defined:True
 D_dryfield_night_motel_lobby_8018448C = 0x8018448C; // size:0x20 defined:True
 D_dryfield_night_motel_lobby_801844AC = 0x801844AC; // size:0x20 defined:True
 D_dryfield_night_motel_lobby_801844CC = 0x801844CC; // size:0x4 defined:True
-D_dryfield_night_motel_lobby_801844D0 = 0x801844D0; // size:0x4 defined:True
+gRoomCutsceneSoundTask = 0x801844D0; // size:0x4 defined:True
 D_dryfield_night_motel_lobby_801844D4 = 0x801844D4; // size:0x4 defined:True
 D_dryfield_night_motel_lobby_801844D8 = 0x801844D8; // size:0x7 defined:True
 D_dryfield_night_motel_lobby_801844E0 = 0x801844E0; // size:0x18 defined:True
@@ -82,7 +82,7 @@ D_dryfield_night_motel_lobby_80182814 = 0x80182814; // size:0xC defined:True
 D_dryfield_night_motel_lobby_80182820 = 0x80182820; // size:0xB4 defined:True
 D_dryfield_night_motel_lobby_801828D4 = 0x801828D4; // size:0xC defined:True
 D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
-D_dryfield_night_motel_lobby_801827A8 = 0x801827A8; // size:0x24 defined:True
+gRoomCutsceneTaskDescs = 0x801827A8; // size:0x24 defined:True
 D_dryfield_night_motel_lobby_801827CC = 0x801827CC; // size:0x30 defined:True
 D_dryfield_night_motel_lobby_801827FC = 0x801827FC; // size:0x18 defined:True
 
@@ -117,3 +117,4 @@ actionPromptHitTest = 0x80180DE4; // type:func
 actionPromptReset = 0x80181298; // type:func
 glowDrawPulsingDisc = 0x80181878; // type:func
 glowDrawDiamond = 0x80181404; // type:func
+roomCutsceneTask = 0x8017F504; // type:func

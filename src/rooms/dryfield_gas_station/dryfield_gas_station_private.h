@@ -14,7 +14,7 @@ extern TaskDesc D_dryfield_gas_station_80181E7C[3];
 
 extern Task* D_dryfield_gas_station_80184BCC;
 
-extern Task* D_dryfield_gas_station_80184BD0;
+extern Task* gRoomCutsceneSoundTask;
 
 extern RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 

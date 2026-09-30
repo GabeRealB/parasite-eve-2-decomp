@@ -38,6 +38,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 #define D_shelter_b3_incinerator_control_room_801818E8 (D_shelter_b3_incinerator_control_room_80181888 + 12)
 
@@ -336,7 +337,7 @@ GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
     { 255, 0, 0, 0 },
 };
 
-Task* D_shelter_b3_incinerator_control_room_80182A54 = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
 

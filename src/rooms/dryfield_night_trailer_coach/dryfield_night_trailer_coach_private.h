@@ -68,7 +68,7 @@ extern s32 Shop_Data_80187628;
 
 extern GpItemMap* Shop_Data_8018762C;
 
-extern Task* D_dryfield_night_trailer_coach_8018C218;
+extern Task* gRoomCutsceneSoundTask;
 
 extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
 

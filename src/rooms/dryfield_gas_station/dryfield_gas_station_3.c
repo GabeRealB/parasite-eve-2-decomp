@@ -3,7 +3,7 @@
 #include "main/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-Task* D_dryfield_gas_station_80184BD0;
+Task* gRoomCutsceneSoundTask;
 
 /// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
 /// `DgsWork` block is set up, so the room's script helpers can reach it.

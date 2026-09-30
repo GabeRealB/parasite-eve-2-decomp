@@ -51,9 +51,10 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_cutscene.h"
 
 /// Task descriptor tables the room spawns its tasks from.
-extern TaskDesc D_mist_parking_801869B8[];
+extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The "%" suffix appended to the play-data percentages.
 static u8 Telephone_Data_80181A78[];
@@ -137,7 +138,6 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
 #include "../../shared/shop.h"
 
-void func_mist_parking_80181E8C(Task*);
 void func_mist_parking_80182628(Task*);
 
 s32  func_mist_parking_801823F8(s32, s32, s32);
@@ -155,8 +155,8 @@ TaskDesc D_mist_parking_8018668C = { 0, 192, Shop_SessionTask, { .model = NULL }
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc D_mist_parking_801869B8[3] = {
-    { 0, 32, func_mist_parking_80181E8C, { .model = NULL } },
+TaskDesc gRoomCutsceneTaskDescs[3] = {
+    { 0, 32, roomCutsceneTask, { .model = NULL } },
     { 0, 32, func_mist_parking_80182628, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
@@ -978,195 +978,7 @@ void func_mist_parking_80181468(Task* task)
 
 /// The area records applied when the scene hands the Dryfield story on.
 
-/// The room's cutscene runner: suppresses the player and ally HUD, loads and
-/// starts the scene's caption slot, lets confirm or cancel cut the scene
-/// sub-task short, applies the story-flag side effects when the scene ends,
-/// and restores everything before killing itself.
-void func_mist_parking_80181E8C(Task* task)
-{
-    RoomCutsceneRec* rec;
-    s32              killOut;
-    s32              flag;
-    s32              cmd;
-    s32              fadeA;
-    s32              fadeB;
-
-    rec = (RoomCutsceneRec*)task->spawnArg2.pointer;
-    switch (task->state) {
-        case 0:
-            D_mist_parking_80195318 = NULL;
-            Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(0);
-            }
-            if (rec->field_0 > 0) {
-                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
-                Mc_SaveData[0].state.location.loc.view = rec->field_0;
-            } else {
-                D_80115694 = -rec->field_0;
-            }
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.field_4       = 2;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
-            if (rec->field_4 != 0) {
-                SndEvt_EnqueueType6(rec->field_4, 0, 0);
-            }
-            task->state++;
-            break;
-        case 1:
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (rec->field_3 != 0) {
-                Gp_CapFile = 0;
-                Gp_LoadCapFile(rec->field_3);
-                fadeB = 0;
-                fadeA = rec->field_14;
-                if (fadeA == 0) {
-                    fadeA = 0x3C0;
-                } else {
-                    fadeB = rec->field_16;
-                }
-                func_800E6D4C(fadeA, fadeB);
-            }
-            if (rec->field_2 != 0) {
-                task->state = 6;
-            } else {
-                task->state++;
-            }
-            break;
-        case 4:
-            D_mist_parking_80195318 = Task_SpawnFromTable(D_mist_parking_801869B8, 1, 0, rec->field_10);
-            Gp_StartCapSlot(rec->field_1, 0, 0x63);
-            task->state++;
-            break;
-        case 5:
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType7(rec->field_10, 1);
-                taskKill(D_mist_parking_80195318);
-                task->state++;
-            } else if (Task_PollKill(D_mist_parking_80195318, &killOut) != 0) {
-                task->state++;
-            }
-            break;
-        case 6:
-            Gp_AbortCap();
-            task->state++;
-            break;
-        case 7:
-            if (rec->field_2 == 0) {
-                SndEvt_EnqueueType6(rec->field_C, 0, 0);
-            }
-            flag = GameFlag_GetNibble(0x7A);
-            if (flag > 0) {
-                if (flag >= 5) {
-                    if (flag == 5) {
-                        if (GameFlag_GetNibble(0x111) != 0) {
-                            if (GameFlag_GetNibble(0x112) == 0) {
-                                GameFlag_SetNibble(3, 0);
-                                GameFlag_SetNibble(0x155, 9);
-                                GameFlag_SetNibble(0x112, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            if (rec->field_1 == 1) {
-                Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            } else {
-                Gp_RunCapCmd(rec->field_1, 0);
-            }
-            if (GameFlag_GetNibble(0x7A) == 1) {
-                if (GameFlag_GetNibble(0) == 2) {
-                    GameFlag_SetNibble(0, 3);
-                    GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
-                        func_800E3FAC(0xA2, 5);
-                    }
-                }
-            }
-            task->state++;
-            break;
-        case 8:
-            if (Gp_CapBusy() == 0) {
-                if ((GameFlag_GetNibble(0x155) == 0xE) && (GameFlag_GetNibble(3) == 0)) {
-                    GameFlag_SetNibble(3, 1);
-                    task->state = 0x14;
-                } else {
-                    Gp_RunCapCmd1(task->spawnArg1.value);
-                    task->state++;
-                }
-            }
-            break;
-        case 9:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 10:
-            task->state++;
-            break;
-        case 11:
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.location.loc.view = D_80115694;
-            task->state++;
-            break;
-        case 12:
-        case 13:
-            task->state++;
-            break;
-        case 14:
-            SndEvt_EnqueueType6(rec->field_8, 0, 0);
-            Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(1);
-            }
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.field_4       = 0;
-            if (rec->field_3 != 0) {
-                Gp_ResetCap();
-            }
-            D_80114D08 = 0xA;
-            taskKill(task);
-            break;
-        case 20:
-            Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            task->state++;
-            break;
-        case 21:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 22:
-            switch (Gp_GetCapEventKey()) {
-                case 11:
-                    Gp_RunCapCmd(0x20, 0);
-                    task->state++;
-                    break;
-                case 12:
-                    Gp_RunCapCmd(0x21, 0);
-                    task->state++;
-                    break;
-                default:
-                    GameFlag_SetNibble(3, 2);
-                    task->state = 8;
-                    break;
-            }
-            break;
-        case 23:
-            if (Gp_CapBusy() == 0) {
-                task->state = 0x14;
-            }
-            break;
-    }
-}
+#include "../../shared/room_cutscene_task.inc.c"
 
 s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -1203,10 +1015,10 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_8  = 0x51130004;
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
-            Task_SpawnFromTable(D_mist_parking_801869B8, 0, 4, &D_mist_parking_8019533C);
-            session                                = gGameSession;
-            Mc_SaveData[0].state.location.loc.warp = 2;
-            session->location.loc.warp             = 2;
+            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
+            session                           = gGameSession;
+            Mc_SaveData[0].state.at4.loc.warp = 2;
+            session->location.loc.warp        = 2;
             break;
         case 18:
             Gp_MsgPlayerWeapon(0);

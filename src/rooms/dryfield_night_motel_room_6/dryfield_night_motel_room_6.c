@@ -61,6 +61,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -129,9 +130,9 @@ static UiList Telephone_Data_80181CF4;
 static u8 Reflection_Data_8017FC8C[];
 
 /// Task table of the room's cutscene: entry 0 is the cutscene task
-/// `func_dryfield_night_motel_room_6_801811F0`, entry 1 the sound task
+/// `roomCutsceneTask`, entry 1 the sound task
 /// `func_dryfield_night_motel_room_6_80181A0C` it runs alongside the scene.
-extern TaskDesc D_dryfield_night_motel_room_6_80182E8C[];
+extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[];
@@ -149,7 +150,7 @@ extern GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[];
 
 /// The sound task the cutscene task spawned, killed when the player skips the
 /// scene.
-extern Task* D_dryfield_night_motel_room_6_801862B4;
+extern Task* gRoomCutsceneSoundTask;
 
 /// Script record the room's event handler fills in and hands to the cutscene
 /// task as its `spawnArg2`.
@@ -168,10 +169,8 @@ static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 
 static void func_dryfield_night_motel_room_6_80181C34(Task* task);
 static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 
-void func_dryfield_night_motel_room_6_801811F0(Task*);
 void func_dryfield_night_motel_room_6_80181A0C(Task*);
 
-void func_dryfield_night_motel_room_6_801811F0(Task*);
 void func_dryfield_night_motel_room_6_80181A0C(Task*);
 
 extern GpGridParams   D_dryfield_night_motel_room_6_80183984[1];
@@ -199,8 +198,8 @@ static inline TaskDesc* Reflection_GetTasks(void)
     return D_dryfield_night_motel_room_6_80182E74;
 }
 
-TaskDesc D_dryfield_night_motel_room_6_80182E8C[3] = {
-    { 0, 32, func_dryfield_night_motel_room_6_801811F0, { .model = NULL } },
+TaskDesc gRoomCutsceneTaskDescs[3] = {
+    { 0, 32, roomCutsceneTask, { .model = NULL } },
     { 0, 32, func_dryfield_night_motel_room_6_80181A0C, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
@@ -856,7 +855,7 @@ GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
     { 255, 0, 0, 0 },
 };
 
-Task* D_dryfield_night_motel_room_6_801862B4 = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8;
 
@@ -883,205 +882,7 @@ void func_dryfield_night_motel_room_6_801811A0(Task* task)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
-/// The room's cutscene task, driven by the script record at `spawnArg2`. It
-/// hides the HUD and holds the player's (and any ally's) weapon, forces the
-/// script's area id and loads its cap file, then starts the scene with its
-/// sound task and waits for it to end or for the player to skip it. On the way
-/// out it advances the story flags the scene belongs to, runs the follow-up
-/// cap commands, and restores the view, weapons and HUD before killing itself.
-void func_dryfield_night_motel_room_6_801811F0(Task* task)
-{
-    s32              poll;
-    s32              a0;
-    s32              a1;
-    s32              flag;
-    RoomCutsceneRec* script;
-    McSaveData*      save;
-
-    script = task->spawnArg2.pointer;
-    switch (task->state) {
-        case 0:
-            D_dryfield_night_motel_room_6_801862B4 = NULL;
-            Gp_MsgPlayerWeapon(0);
-            save = &Mc_SaveData[0];
-            if (save->state.companionType == 1) {
-                Gp_MsgAllyWeapon(0);
-            }
-            if (script->field_0 > 0) {
-                D_80115694                    = save->state.location.loc.view;
-                save->state.location.loc.view = (u8)script->field_0;
-            } else {
-                D_80115694 = -script->field_0;
-            }
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.field_4       = 2;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
-            if (script->field_4 != 0) {
-                SndEvt_EnqueueType6(script->field_4, 0, 0);
-            }
-            task->state++;
-            break;
-        case 1:
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (script->field_3 != 0) {
-                Gp_CapFile = 0;
-                Gp_LoadCapFile(script->field_3);
-                a0 = script->field_14;
-                a1 = 0;
-                if (a0 == 0) {
-                    a0 = 0x3C0;
-                } else {
-                    a1 = script->field_16;
-                }
-                func_800E6D4C(a0, a1);
-            }
-            if (script->field_2 != 0) {
-                task->state = 6;
-            } else {
-                task->state++;
-            }
-            break;
-        case 4:
-            D_dryfield_night_motel_room_6_801862B4 =
-                Task_SpawnFromTable(D_dryfield_night_motel_room_6_80182E8C, 1, 0, script->field_10);
-            Gp_StartCapSlot(script->field_1, 0, 0x63);
-            task->state++;
-            break;
-        case 5:
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType7(script->field_10, 1);
-                taskKill(D_dryfield_night_motel_room_6_801862B4);
-                task->state++;
-            } else if (Task_PollKill(D_dryfield_night_motel_room_6_801862B4, &poll) != 0) {
-                task->state++;
-            }
-            break;
-        case 6:
-            Gp_AbortCap();
-            task->state++;
-            break;
-        case 7:
-            if (script->field_2 == 0) {
-                SndEvt_EnqueueType6(script->field_C, 0, 0);
-            }
-            flag = GameFlag_GetNibble(0x7A);
-            if (flag > 0) {
-                if (flag >= 5) {
-                    if (flag == 5) {
-                        if (GameFlag_GetNibble(0x111) != 0) {
-                            if (GameFlag_GetNibble(0x112) == 0) {
-                                GameFlag_SetNibble(3, 0);
-                                GameFlag_SetNibble(0x155, 9);
-                                GameFlag_SetNibble(0x112, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            if (script->field_1 == 1) {
-                Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            } else {
-                Gp_RunCapCmd(script->field_1, 0);
-            }
-            if (GameFlag_GetNibble(0x7A) == 1) {
-                if (GameFlag_GetNibble(0) == 2) {
-                    GameFlag_SetNibble(0, 3);
-                    GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
-                        func_800E3FAC(0xA2, 5);
-                    }
-                }
-            }
-            task->state++;
-            break;
-        case 8:
-            if (Gp_CapBusy() == 0) {
-                if ((GameFlag_GetNibble(0x155) == 0xE) && (GameFlag_GetNibble(3) == 0)) {
-                    GameFlag_SetNibble(3, 1);
-                    task->state = 0x14;
-                } else {
-                    Gp_RunCapCmd1(task->spawnArg1.value);
-                    task->state++;
-                }
-            }
-            break;
-        case 9:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 10:
-            task->state++;
-            break;
-        case 11:
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.location.loc.view = (u8)D_80115694;
-            task->state++;
-            break;
-        case 12:
-        case 13:
-            task->state++;
-            break;
-        case 14:
-            SndEvt_EnqueueType6(script->field_8, 0, 0);
-            Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(1);
-            }
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.field_4       = 0;
-            if (script->field_3 != 0) {
-                Gp_ResetCap();
-            }
-            D_80114D08 = 0xA;
-            taskKill(task);
-            break;
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19:
-            break;
-        case 20:
-            Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            task->state++;
-            break;
-        case 21:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 22:
-            switch (Gp_GetCapEventKey()) {
-                case 11:
-                    Gp_RunCapCmd(0x20, 0);
-                    task->state++;
-                    break;
-                case 12:
-                    Gp_RunCapCmd(0x21, 0);
-                    task->state++;
-                    break;
-                default:
-                    GameFlag_SetNibble(3, 2);
-                    task->state = 8;
-                    break;
-            }
-            break;
-        case 23:
-            if (Gp_CapBusy() == 0) {
-                task->state = 0x14;
-            }
-            break;
-    }
-}
+#include "../../shared/room_cutscene_task.inc.c"
 
 /// State handlers of the room entry task `func_dryfield_night_motel_room_6_80181C80`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
@@ -1129,7 +930,7 @@ s32 func_dryfield_night_motel_room_6_8018175C(Task* arg0, s32 arg1, s32 arg2, s3
         D_dryfield_night_motel_room_6_801862B8.field_8  = Gp_PackStageSndId(0x521E000B);
         D_dryfield_night_motel_room_6_801862B8.field_10 = Gp_PackStageSndId(0x521E0009);
         D_dryfield_night_motel_room_6_801862B8.field_C  = Gp_PackStageSndId(0x521E000A);
-        Task_SpawnFromTable(D_dryfield_night_motel_room_6_80182E8C, 0, count, &D_dryfield_night_motel_room_6_801862B8);
+        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &D_dryfield_night_motel_room_6_801862B8);
     } else {
         func_dryfield_night_motel_room_6_80181A9C(arg0, arg1, arg2, arg3);
     }

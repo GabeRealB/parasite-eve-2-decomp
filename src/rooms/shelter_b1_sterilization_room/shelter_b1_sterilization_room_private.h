@@ -53,7 +53,7 @@ extern GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28];
 
 extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2];
 
-extern Task* D_shelter_b1_sterilization_room_8018C33C;
+extern Task* gRoomCutsceneSoundTask;
 
 extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 

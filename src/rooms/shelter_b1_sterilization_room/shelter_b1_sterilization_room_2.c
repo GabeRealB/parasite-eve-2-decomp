@@ -54,6 +54,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 #define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
 
@@ -914,7 +915,7 @@ GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
     { 255, 0, 0, 0 },
 };
 
-Task* D_shelter_b1_sterilization_room_8018C33C = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 s32 D_shelter_b1_sterilization_room_8018C340 = 0;
 

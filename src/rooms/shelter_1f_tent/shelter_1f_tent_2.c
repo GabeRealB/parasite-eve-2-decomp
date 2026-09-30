@@ -39,6 +39,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 /// Glow positions `func_shelter_1f_tent_8017FE10` draws per view.
 extern SVECTOR D_shelter_1f_tent_80181D04[];
@@ -616,7 +617,7 @@ GpAreaApplyRec D_shelter_1f_tent_801843B8[2] = {
     { 255, 0, 0, 0 },
 };
 
-Task* D_shelter_1f_tent_801843C0 = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_shelter_1f_tent_801843C4 = { 0 };
 

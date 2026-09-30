@@ -43,6 +43,7 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_cutscene.h"
 
 static TaskDesc     D_shelter_r47_8018760C;
 static SVECTOR      D_shelter_r47_80187624[10];
@@ -1642,7 +1643,7 @@ GpAreaApplyRec D_shelter_r47_8018A638[21] = {
     { 255, 0, 0, 0 },
 };
 
-Task* D_shelter_r47_8018A68C = NULL;
+Task* gRoomCutsceneSoundTask = NULL;
 
 Task* D_shelter_r47_8018A690;
 

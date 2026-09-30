@@ -50,6 +50,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_cutscene.h"
 
 typedef struct {
     s32 id;
@@ -69,8 +70,8 @@ static s32 Shop_Data_801819EC;
 
 /// Task descriptor table the room's cutscene tasks spawn from: the room spawns
 /// entry 0 with a cutscene record as its argument, and
-/// `func_dryfield_night_trailer_coach_80181DB0` spawns entry 1 for the scene.
-extern TaskDesc D_dryfield_night_trailer_coach_80184FE4[];
+/// `roomCutsceneTask` spawns entry 1 for the scene.
+extern TaskDesc gRoomCutsceneTaskDescs[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0N\xF2"
 #include "../../shared/telephone.h"
@@ -154,7 +155,6 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32, s32, s32);
 s32 func_dryfield_night_trailer_coach_80182800(void);
 s32 func_dryfield_night_trailer_coach_80182808(s32, s32, s32);
 
-void func_dryfield_night_trailer_coach_80181DB0(Task*);
 void func_dryfield_night_trailer_coach_8018243C(Task*);
 void func_dryfield_night_trailer_coach_80182610(Task*);
 
@@ -214,8 +214,8 @@ TmdSource D_dryfield_night_trailer_coach_80184CA0 = {
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc D_dryfield_night_trailer_coach_80184FE4[3] = {
-    { 0, 32, func_dryfield_night_trailer_coach_80181DB0, { .model = NULL } },
+TaskDesc gRoomCutsceneTaskDescs[3] = {
+    { 0, 32, roomCutsceneTask, { .model = NULL } },
     { 0, 32, func_dryfield_night_trailer_coach_80182610, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
@@ -850,7 +850,7 @@ static void func_dryfield_night_trailer_coach_80182898(Task* task);
 /// Request 0xE forces area 8 for the scene, fills the room's cutscene record
 /// the same way the motel lobby fills its own -- save view 8, slot 1, and the
 /// cap file picked by `GameFlag_GetNibble(0x7A)` (file 1 below four, file 2 at
-/// four or more) -- then hands it to `D_dryfield_night_trailer_coach_80184FE4`. Request 3
+/// four or more) -- then hands it to `gRoomCutsceneTaskDescs`. Request 3
 /// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
 /// asks the cap system to run command 0x17. Always returns 0.
 extern TaskDesc D_dryfield_night_trailer_coach_8018797C;
@@ -875,195 +875,7 @@ void func_dryfield_night_trailer_coach_8018138C(Task* task)
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
 
-/// The room's cutscene runner: suppresses the player and ally HUD, loads and
-/// starts the scene's caption slot, lets confirm or cancel cut the scene
-/// sub-task short, applies the story-flag side effects when the scene ends,
-/// and restores everything before killing itself.
-void func_dryfield_night_trailer_coach_80181DB0(Task* task)
-{
-    RoomCutsceneRec* rec;
-    s32              killOut;
-    s32              flag;
-    s32              cmd;
-    s32              fadeA;
-    s32              fadeB;
-
-    rec = (RoomCutsceneRec*)task->spawnArg2.pointer;
-    switch (task->state) {
-        case 0:
-            D_dryfield_night_trailer_coach_8018C218 = NULL;
-            Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(0);
-            }
-            if (rec->field_0 > 0) {
-                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
-                Mc_SaveData[0].state.location.loc.view = rec->field_0;
-            } else {
-                D_80115694 = -rec->field_0;
-            }
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.field_4       = 2;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
-            if (rec->field_4 != 0) {
-                SndEvt_EnqueueType6(rec->field_4, 0, 0);
-            }
-            task->state++;
-            break;
-        case 1:
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (rec->field_3 != 0) {
-                Gp_CapFile = 0;
-                Gp_LoadCapFile(rec->field_3);
-                fadeB = 0;
-                fadeA = rec->field_14;
-                if (fadeA == 0) {
-                    fadeA = 0x3C0;
-                } else {
-                    fadeB = rec->field_16;
-                }
-                func_800E6D4C(fadeA, fadeB);
-            }
-            if (rec->field_2 != 0) {
-                task->state = 6;
-            } else {
-                task->state++;
-            }
-            break;
-        case 4:
-            D_dryfield_night_trailer_coach_8018C218 = Task_SpawnFromTable(D_dryfield_night_trailer_coach_80184FE4, 1, 0, rec->field_10);
-            Gp_StartCapSlot(rec->field_1, 0, 0x63);
-            task->state++;
-            break;
-        case 5:
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType7(rec->field_10, 1);
-                taskKill(D_dryfield_night_trailer_coach_8018C218);
-                task->state++;
-            } else if (Task_PollKill(D_dryfield_night_trailer_coach_8018C218, &killOut) != 0) {
-                task->state++;
-            }
-            break;
-        case 6:
-            Gp_AbortCap();
-            task->state++;
-            break;
-        case 7:
-            if (rec->field_2 == 0) {
-                SndEvt_EnqueueType6(rec->field_C, 0, 0);
-            }
-            flag = GameFlag_GetNibble(0x7A);
-            if (flag > 0) {
-                if (flag >= 5) {
-                    if (flag == 5) {
-                        if (GameFlag_GetNibble(0x111) != 0) {
-                            if (GameFlag_GetNibble(0x112) == 0) {
-                                GameFlag_SetNibble(3, 0);
-                                GameFlag_SetNibble(0x155, 9);
-                                GameFlag_SetNibble(0x112, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            if (rec->field_1 == 1) {
-                Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            } else {
-                Gp_RunCapCmd(rec->field_1, 0);
-            }
-            if (GameFlag_GetNibble(0x7A) == 1) {
-                if (GameFlag_GetNibble(0) == 2) {
-                    GameFlag_SetNibble(0, 3);
-                    GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
-                        func_800E3FAC(0xA2, 5);
-                    }
-                }
-            }
-            task->state++;
-            break;
-        case 8:
-            if (Gp_CapBusy() == 0) {
-                if ((GameFlag_GetNibble(0x155) == 0xE) && (GameFlag_GetNibble(3) == 0)) {
-                    GameFlag_SetNibble(3, 1);
-                    task->state = 0x14;
-                } else {
-                    Gp_RunCapCmd1(task->spawnArg1.value);
-                    task->state++;
-                }
-            }
-            break;
-        case 9:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 10:
-            task->state++;
-            break;
-        case 11:
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.location.loc.view = D_80115694;
-            task->state++;
-            break;
-        case 12:
-        case 13:
-            task->state++;
-            break;
-        case 14:
-            SndEvt_EnqueueType6(rec->field_8, 0, 0);
-            Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(1);
-            }
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.field_4       = 0;
-            if (rec->field_3 != 0) {
-                Gp_ResetCap();
-            }
-            D_80114D08 = 0xA;
-            taskKill(task);
-            break;
-        case 20:
-            Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            task->state++;
-            break;
-        case 21:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 22:
-            switch (Gp_GetCapEventKey()) {
-                case 11:
-                    Gp_RunCapCmd(0x20, 0);
-                    task->state++;
-                    break;
-                case 12:
-                    Gp_RunCapCmd(0x21, 0);
-                    task->state++;
-                    break;
-                default:
-                    GameFlag_SetNibble(3, 2);
-                    task->state = 8;
-                    break;
-            }
-            break;
-        case 23:
-            if (Gp_CapBusy() == 0) {
-                task->state = 0x14;
-            }
-            break;
-    }
-}
+#include "../../shared/room_cutscene_task.inc.c"
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -1206,7 +1018,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_night_trailer_coach_8018C21C.field_8  = 0x531B0005;
         D_dryfield_night_trailer_coach_8018C21C.field_10 = 0x531B0004;
         D_dryfield_night_trailer_coach_8018C21C.field_C  = 0x531B0006;
-        Task_SpawnFromTable(D_dryfield_night_trailer_coach_80184FE4, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
+        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
     }
     if (arg2 == 3) {
         Task_SpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);

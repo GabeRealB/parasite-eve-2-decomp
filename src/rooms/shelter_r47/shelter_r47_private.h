@@ -9,7 +9,7 @@
 
 #include "rooms/room.h"
 
-extern Task* D_shelter_r47_8018A68C;
+extern Task* gRoomCutsceneSoundTask;
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];

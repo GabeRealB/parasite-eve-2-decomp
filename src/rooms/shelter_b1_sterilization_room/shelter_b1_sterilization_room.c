@@ -58,6 +58,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_cutscene.h"
 
 /// The "%" suffix appended to a formatted percentage.
 static u8 Telephone_Data_80181A78[];
@@ -67,10 +68,10 @@ static u8 Telephone_Data_80181A78[];
 static UiObjectDesc Telephone_Data_80181C90;
 
 /// Task descriptor table used by the cutscene runner
-/// `func_shelter_b1_sterilization_room_8017F550`, which spawns entry 1 and
+/// `roomCutsceneTask`, which spawns entry 1 and
 /// waits on it while the cutscene plays. The room's event handler spawns
 /// entry 0 with a `RoomCutsceneRec` as its argument.
-extern TaskDesc D_shelter_b1_sterilization_room_80184E1C[];
+extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
 /// stride is known.
@@ -151,7 +152,7 @@ extern AnimationPlayRequest            D_shelter_b1_sterilization_room_80188624;
 extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[];
 
-/// Area records `func_shelter_b1_sterilization_room_8017F550` applies when it
+/// Area records `roomCutsceneTask` applies when it
 /// advances game flag nibble 0 from 2 to 3 in one particular view.
 
 extern UiObjectDesc D_800611E4;
@@ -179,7 +180,6 @@ s32  func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
 s32  func_shelter_b1_sterilization_room_801803E4(void);
 s32  func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
-void func_shelter_b1_sterilization_room_8017F550(Task*);
 void func_shelter_b1_sterilization_room_80180188(Task*);
 void func_shelter_b1_sterilization_room_801802B0(Task*);
 
@@ -228,8 +228,8 @@ TmdSource D_shelter_b1_sterilization_room_80184DF8 = {
     D_shelter_b1_sterilization_room_80184A9C,
 };
 
-TaskDesc D_shelter_b1_sterilization_room_80184E1C[3] = {
-    { 0, 32, func_shelter_b1_sterilization_room_8017F550, { .model = NULL } },
+TaskDesc gRoomCutsceneTaskDescs[3] = {
+    { 0, 32, roomCutsceneTask, { .model = NULL } },
     { 0, 32, func_shelter_b1_sterilization_room_801802B0, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
@@ -508,196 +508,7 @@ void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
 
 #undef TELEPHONE_TITLE_BYTES
 
-/// Runs a cutscene described by the `RoomCutsceneRec` in `spawnArg2`:
-/// hides the HUD and holds the player, optionally switches the view and loads
-/// a cap file, plays the cap slot while waiting on a spawned task that the
-/// confirm or cancel button can cut short, then runs the follow-up cap
-/// commands, restores the view and releases the player.
-void func_shelter_b1_sterilization_room_8017F550(Task* task)
-{
-    RoomCutsceneRec* rec;
-    s32              killOut;
-    s32              flag;
-    s32              cmd;
-    s32              fadeA;
-    s32              fadeB;
-
-    rec = (RoomCutsceneRec*)task->spawnArg2.pointer;
-    switch (task->state) {
-        case 0:
-            D_shelter_b1_sterilization_room_8018C33C = NULL;
-            Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(0);
-            }
-            if (rec->field_0 > 0) {
-                D_80115694                             = Mc_SaveData[0].state.location.loc.view;
-                Mc_SaveData[0].state.location.loc.view = rec->field_0;
-            } else {
-                D_80115694 = -rec->field_0;
-            }
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.field_4       = 2;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
-            if (rec->field_4 != 0) {
-                SndEvt_EnqueueType6(rec->field_4, 0, 0);
-            }
-            task->state++;
-            break;
-        case 1:
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (rec->field_3 != 0) {
-                Gp_CapFile = 0;
-                Gp_LoadCapFile(rec->field_3);
-                fadeB = 0;
-                fadeA = rec->field_14;
-                if (fadeA == 0) {
-                    fadeA = 0x3C0;
-                } else {
-                    fadeB = rec->field_16;
-                }
-                func_800E6D4C(fadeA, fadeB);
-            }
-            if (rec->field_2 != 0) {
-                task->state = 6;
-            } else {
-                task->state++;
-            }
-            break;
-        case 4:
-            D_shelter_b1_sterilization_room_8018C33C = Task_SpawnFromTable(D_shelter_b1_sterilization_room_80184E1C, 1, 0, rec->field_10);
-            Gp_StartCapSlot(rec->field_1, 0, 0x63);
-            task->state++;
-            break;
-        case 5:
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType7(rec->field_10, 1);
-                taskKill(D_shelter_b1_sterilization_room_8018C33C);
-                task->state++;
-            } else if (Task_PollKill(D_shelter_b1_sterilization_room_8018C33C, &killOut) != 0) {
-                task->state++;
-            }
-            break;
-        case 6:
-            Gp_AbortCap();
-            task->state++;
-            break;
-        case 7:
-            if (rec->field_2 == 0) {
-                SndEvt_EnqueueType6(rec->field_C, 0, 0);
-            }
-            flag = GameFlag_GetNibble(0x7A);
-            if (flag > 0) {
-                if (flag >= 5) {
-                    if (flag == 5) {
-                        if (GameFlag_GetNibble(0x111) != 0) {
-                            if (GameFlag_GetNibble(0x112) == 0) {
-                                GameFlag_SetNibble(3, 0);
-                                GameFlag_SetNibble(0x155, 9);
-                                GameFlag_SetNibble(0x112, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            if (rec->field_1 == 1) {
-                Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            } else {
-                Gp_RunCapCmd(rec->field_1, 0);
-            }
-            if (GameFlag_GetNibble(0x7A) == 1) {
-                if (GameFlag_GetNibble(0) == 2) {
-                    GameFlag_SetNibble(0, 3);
-                    GameFlag_SetNibble(0xE, 4);
-                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
-                        func_800E3FAC(0xA2, 5);
-                    }
-                }
-            }
-            task->state++;
-            break;
-        case 8:
-            if (Gp_CapBusy() == 0) {
-                if ((GameFlag_GetNibble(0x155) == 0xE) && (GameFlag_GetNibble(3) == 0)) {
-                    GameFlag_SetNibble(3, 1);
-                    task->state = 0x14;
-                } else {
-                    Gp_RunCapCmd1(task->spawnArg1.value);
-                    task->state++;
-                }
-            }
-            break;
-        case 9:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 10:
-            task->state++;
-            break;
-        case 11:
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].state.location.loc.view = D_80115694;
-            task->state++;
-            break;
-        case 12:
-        case 13:
-            task->state++;
-            break;
-        case 14:
-            SndEvt_EnqueueType6(rec->field_8, 0, 0);
-            Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].state.companionType == 1) {
-                Gp_MsgAllyWeapon(1);
-            }
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.field_4       = 0;
-            if (rec->field_3 != 0) {
-                Gp_ResetCap();
-            }
-            D_80114D08 = 0xA;
-            taskKill(task);
-            break;
-        case 20:
-            Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
-            task->state++;
-            break;
-        case 21:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 22:
-            switch (Gp_GetCapEventKey()) {
-                case 11:
-                    Gp_RunCapCmd(0x20, 0);
-                    task->state++;
-                    break;
-                case 12:
-                    Gp_RunCapCmd(0x21, 0);
-                    task->state++;
-                    break;
-                default:
-                    GameFlag_SetNibble(3, 2);
-                    task->state = 8;
-                    break;
-            }
-            break;
-        case 23:
-            if (Gp_CapBusy() == 0) {
-                task->state = 0x14;
-            }
-            break;
-    }
-}
+#include "../../shared/room_cutscene_task.inc.c"
 
 /// The three states of the room's main task, run by
 /// `func_shelter_b1_sterilization_room_80180518`: set-up, the per-frame
@@ -860,7 +671,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         D_shelter_b1_sterilization_room_8018C344.field_8  = 0x5410000F;
         D_shelter_b1_sterilization_room_8018C344.field_10 = 0x5410000D;
         D_shelter_b1_sterilization_room_8018C344.field_C  = 0x5410000E;
-        Task_SpawnFromTable(D_shelter_b1_sterilization_room_80184E1C, 0, 6, &D_shelter_b1_sterilization_room_8018C344);
+        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 6, &D_shelter_b1_sterilization_room_8018C344);
     }
     if (arg2 == 0x15) {
         Gp_RunCapCmd1(arg2);
