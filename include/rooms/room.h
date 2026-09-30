@@ -22,7 +22,7 @@ typedef struct {
     s32 capCmd;   // CAP command index the event task runs first
     s32 stageSnd; // Stage sound id played after that command; 0 skips it. A set stage nibble is replaced with the current stage
     s16 flagId;   // Game-flag nibble set to 1 on latch; 0 records nothing and stays eligible
-    u8  fade;     // (0 skip, nonzero start fade task 0x31: a 30-frame ramp, fade-out flag left clear)
+    u8  fade;     // (0 skip, nonzero start fade task 0x31: subtract blend, running phase, 30-frame ramp; return not requested)
 } RoomLatchedEvent;
 STATIC_ASSERT_SIZEOF(RoomLatchedEvent, 0xC);
 
