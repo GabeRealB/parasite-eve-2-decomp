@@ -143564,7 +143564,7 @@ The pass stops at a jump, so when the copy sits *before* the `if` the reads
 inside the block keep the carve, the copy serves the asm operand alone, and dbr
 moves it into the branch delay slot.
 
-**Fix.** `trans = &head[-1].translation;` just above `if (slot->poseEncoding == 1)`, no
+**Fix.** `trans = &head[-1].translation;` just above `if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
 ## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_STACK_RESERVE_BLOCK` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)

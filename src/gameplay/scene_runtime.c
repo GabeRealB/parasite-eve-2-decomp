@@ -94,6 +94,17 @@ enum {
     ANIMATION_TIME_UNITS_PER_FRAME = 1 << ANIMATION_TIME_FRACTION_BITS
 };
 
+/// Track encoding that supplies both local translation and Euler rotation.
+///
+/// The initial keyframe's low flags nibble supplies this selector, which also
+/// indexes the slot's pose bank. `AnimationPackedPose` stores six signed
+/// halfwords: X/Y/Z translation in model integer units, then X/Y/Z angles in
+/// 1/4096 turns. A record's word offset must leave all three four-byte words
+/// within the live, word-aligned bank. Buffered endpoints store the same
+/// 12-byte format at the start of a slot's 16-byte entry. Applying an unpacked
+/// pose writes translation only for this encoding.
+enum { ANIMATION_POSE_TRANSLATION_ROTATION = 1 };
+
 /// Packed saved placement key: high nibble placement, next nibble stage, low byte area.
 enum {
     AREA_PLACEMENT_INDEX_SHIFT     = 12,

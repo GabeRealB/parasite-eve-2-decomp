@@ -58,8 +58,7 @@ STATIC_ASSERT_SIZEOF(AnimationPackedRotation, 4);
 
 /// Pose encodings selected by a track's initial keyframe.
 enum {
-    ANIMATION_POSE_TRANSLATION_ROTATION = 1, // Three words: packed translation and Euler angles
-    ANIMATION_POSE_PACKED_ROTATION      = 4  // One word: packed Euler angles
+    ANIMATION_POSE_PACKED_ROTATION = 4 // One word: packed Euler angles
 };
 
 /// Masks for the encoding, caller-defined cues and control commands in `AnimationRecord.flags`.
