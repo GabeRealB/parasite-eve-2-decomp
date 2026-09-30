@@ -51,11 +51,11 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-/// Staging save location the island commits: `field_2` / `field_4` / `field_1`
+/// Staging save location the island commits: area / warp / room
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
 /// location, and `func_neo_ark_island_8017E844` moves those same three bytes
 /// into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
-extern GpSaveLoc D_neo_ark_island_80184008;
+extern RoomEventMsg D_neo_ark_island_80184008;
 
 static void func_neo_ark_island_8017EA94(Task* arg0);
 static void func_neo_ark_island_8017EB08(Task* task);
@@ -556,7 +556,7 @@ GpRoomParamRec* D_neo_ark_island_80183FE8[8] = {
     D_neo_ark_island_80183FC8,
 };
 
-GpSaveLoc D_neo_ark_island_80184008;
+RoomEventMsg D_neo_ark_island_80184008;
 
 /// Water-refraction ripple over part of the screen. Only some views of areas
 /// 27, 14, 15, 13, 30 and 29 have one; each picks a row range, a split row
@@ -1303,9 +1303,9 @@ void func_neo_ark_island_8017E844(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_island_80184008.field_2;
+            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_island_80184008.warp;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_island_80184008.field_4;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_island_80184008.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1321,15 +1321,15 @@ s32 func_neo_ark_island_8017E960(Task* task, s32 msgId, GpMessageArg arg2, GpMes
 /// reports no pending flag, latches the save location the outgoing message
 /// carries and starts the cutscene that leads to the island's arrival. Returns
 /// 1 for every other message and for a location that is already latched.
-s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (*(u16*)src == 0x1E) {
-        if (src->field_5 == 0) {
-            D_neo_ark_island_80184008.field_2              = dst->prefix.bytes.field_0;
-            D_neo_ark_island_80184008.field_4              = dst->field_2;
-            D_neo_ark_island_80184008.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 0x1E) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_neo_ark_island_80184008.warp              = (u8)dst->areaId;
+            D_neo_ark_island_80184008.field_4           = dst->warp;
+            ((u8*)&D_neo_ark_island_80184008.areaId)[1] = dst->room;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
         }

@@ -437,7 +437,7 @@ TaskDesc D_shelter_b1_underground_parking_8018720C[3] = {
 };
 
 GpMsgEntry D_shelter_b1_underground_parking_80187230[6] = {
-    { 5102, func_shelter_b1_underground_parking_80183360 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_underground_parking_80183360 },
     { 5105, func_shelter_b1_underground_parking_80183284 },
     { 5103, func_shelter_b1_underground_parking_80182830 },
     { 5104, func_shelter_b1_underground_parking_80182A60 },
@@ -1995,16 +1995,16 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
 s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, GpMessageArg arg3)
 {
-    if (msg->field_2 == 1 && gGameSession->at4.loc.variant == 0x15) {
+    if (msg->warp == 1 && gGameSession->at4.loc.variant == 0x15) {
         func_80131E38();
     }
-    if (msg->field_2 == 0xA) {
-        if ((u8)msg->field_3 == 1 && gGameSession->at4.loc.room < 7) {
+    if (msg->warp == 0xA) {
+        if ((u8)msg->room == 1 && gGameSession->at4.loc.room < 7) {
             Gp_StartCapSlot(0xA, 1, 0);
             GameFlag_SetNibble(0x1B4, 2);
         }
     }
-    if (msg->field_2 == 0xB) {
+    if (msg->warp == 0xB) {
         switch (gGameSession->at4.loc.room) {
             case 2:
                 Gp_RunCapCmd1(8);
@@ -2027,7 +2027,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
                 break;
         }
     }
-    if (msg->field_2 == 0xC) {
+    if (msg->warp == 0xC) {
         switch (gGameSession->at4.loc.room) {
             case 6:
                 Gp_StartCapSlot(0xB, 1, 0);
@@ -2210,15 +2210,15 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 rec.sndEvent = 0x54140008;
                 rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
-                p                 = &rec;
-                msg.prefix.packed = p->area;
-                msg.field_2       = p->warp;
-                msg.field_3       = p->room;
-                msg.field_5       = 0;
+                p             = &rec;
+                msg.areaId    = p->area;
+                msg.warp      = p->warp;
+                msg.room      = p->room;
+                msg.queryOnly = ROOM_EVENT_EXECUTE;
                 handler(&msg, &msg);
-                p->area                                   = msg.prefix.packed;
-                p->warp                                   = msg.field_2;
-                p->room                                   = msg.field_3;
+                p->area                                   = msg.areaId;
+                p->warp                                   = msg.warp;
+                p->room                                   = msg.room;
                 D_shelter_b1_underground_parking_8018D77C = rec;
                 Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
                 taskKill(task);
@@ -2284,33 +2284,33 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
 static s32 func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->field_5 == 0) {
-        switch (in->prefix.packed) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+        switch (in->areaId) {
             case 7:
-                out->field_3 = GameFlag_GetNibble(0xE1) + 1;
+                out->room = GameFlag_GetNibble(0xE1) + 1;
                 break;
             case 13:
-                out->field_3 = GameFlag_GetNibble(0xD9) + 1;
+                out->room = GameFlag_GetNibble(0xD9) + 1;
                 break;
             case 20:
-                out->field_3 = 1;
+                out->room = 1;
                 if (GameFlag_GetNibble(0xDD) != 0) {
                     if (GameFlag_GetNibble(0xDC) != 0) {
-                        out->field_3 = 3;
+                        out->room = 3;
                     } else {
-                        out->field_3 = 2;
+                        out->room = 2;
                     }
                 }
                 break;
             case 21:
                 if (GameFlag_GetNibble(0xE9) != 0) {
-                    out->field_3 = 4;
+                    out->room = 4;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
                 break;
             case 32:
-                out->field_3 = GameFlag_GetNibble(0xDD) + 1;
+                out->room = GameFlag_GetNibble(0xDD) + 1;
                 break;
             case 8:
             case 9:
@@ -2410,7 +2410,7 @@ s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEvent
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         return 1;
     }
-    if (in->field_5 == 0) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         Gp_RunCapCmd1(0x1E);
     }
     return 2;

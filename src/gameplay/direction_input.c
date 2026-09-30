@@ -50,7 +50,7 @@ u8 D_80114CDE;
 
 s16 D_80114CE0;
 
-GpSaveLoc Gp_WarpLoc;
+RoomEventMsg Gp_WarpLoc;
 
 s32 D_80114CF0;
 
@@ -208,14 +208,14 @@ void Gp_SetupDirWarp(void)
     Gp_DirFadeLevel = 0;
     rec             = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
 
-    Gp_WarpLoc.field_4       = 1;
-    Gp_WarpLoc.field_3       = 1;
-    Gp_WarpLoc.field_5       = 1;
-    Gp_WarpLoc.prefix.packed = Gp_DirByte;
-    Gp_WarpLoc.field_2       = Gp_DirNibble & 0xF;
-    Gp_WarpLoc.field_6       = rec.field_36;
+    Gp_WarpLoc.field_4   = 1;
+    Gp_WarpLoc.room      = 1;
+    Gp_WarpLoc.queryOnly = ROOM_EVENT_QUERY_ONLY;
+    Gp_WarpLoc.areaId    = Gp_DirByte;
+    Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
+    Gp_WarpLoc.flagId    = rec.field_36;
 
-    ret        = Gp_DispatchMsgPtrs(slot7, 0x13EE, &Gp_WarpLoc, &Gp_WarpLoc);
+    ret        = Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
     D_80114CF4 = ret;
 
     switch (ret) {
@@ -250,13 +250,13 @@ void Gp_SetupDirWarp(void)
                 D_80114CF0 = 0;
             }
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-                Gp_WarpLoc.field_4       = Gp_StateF0.prefix.bytes.field_0;
-                Gp_WarpLoc.field_3       = Gp_StateF0.prefix.bytes.field_0;
-                Gp_WarpLoc.field_5       = 0;
-                Gp_WarpLoc.prefix.packed = Gp_DirByte;
-                Gp_WarpLoc.field_2       = Gp_DirNibble & 0xF;
-                Gp_WarpLoc.field_6       = rec.field_36;
-                Gp_DispatchMsgPtrs(slot7, 0x13EE, &Gp_WarpLoc, &Gp_WarpLoc);
+                Gp_WarpLoc.field_4   = Gp_StateF0.prefix.bytes.field_0;
+                Gp_WarpLoc.room      = Gp_StateF0.prefix.bytes.field_0;
+                Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
+                Gp_WarpLoc.areaId    = Gp_DirByte;
+                Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
+                Gp_WarpLoc.flagId    = rec.field_36;
+                Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
                 D_80114CF8    = 0;
                 Gp_DirNibble  = 0;
                 Gp_DirByte    = 0;
@@ -283,13 +283,13 @@ void Gp_SetupDirWarp(void)
             break;
 
         case 2:
-            Gp_WarpLoc.field_4       = 1;
-            Gp_WarpLoc.field_3       = 1;
-            Gp_WarpLoc.field_5       = 0;
-            Gp_WarpLoc.prefix.packed = Gp_DirByte;
-            Gp_WarpLoc.field_2       = Gp_DirNibble & 0xF;
-            Gp_WarpLoc.field_6       = rec.field_36;
-            Gp_DispatchMsgPtrs(slot7, 0x13EE, &Gp_WarpLoc, &Gp_WarpLoc);
+            Gp_WarpLoc.field_4   = 1;
+            Gp_WarpLoc.room      = 1;
+            Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
+            Gp_WarpLoc.areaId    = Gp_DirByte;
+            Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
+            Gp_WarpLoc.flagId    = rec.field_36;
+            Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
             D_80114CF8    = 0;
             Gp_DirNibble  = 0;
             Gp_DirByte    = 0;
@@ -328,7 +328,7 @@ void Gp_CommitWarp(void)
     PlayerStatus*    cfg;
     GameLocationKey* sess;
     GpWarpRec        rec;
-    GpSaveLoc*       loc;
+    RoomEventMsg*    loc;
     u8               fade;
 
     slot3 = gameGetPtrSlot(3);
@@ -347,14 +347,14 @@ void Gp_CommitWarp(void)
         }
     }
 
-    loc                      = &Gp_WarpLoc;
-    loc->field_4             = 1;
-    loc->field_3             = 1;
-    loc->field_5             = 0;
-    Gp_WarpLoc.prefix.packed = Gp_DirByte;
-    loc->field_2             = Gp_DirNibble & 0xF;
-    loc->field_6             = rec.field_36;
-    Gp_DispatchMsgPtrs(slot7, 0x13EE, loc, loc);
+    loc               = &Gp_WarpLoc;
+    loc->field_4      = 1;
+    loc->room         = 1;
+    loc->queryOnly    = ROOM_EVENT_EXECUTE;
+    Gp_WarpLoc.areaId = Gp_DirByte;
+    loc->warp         = Gp_DirNibble & 0xF;
+    loc->flagId       = rec.field_36;
+    Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
     if (D_80114CF0 != 0) {
         if (cfg->hp > 0) {

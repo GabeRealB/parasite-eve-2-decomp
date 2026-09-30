@@ -91,7 +91,7 @@ extern RoomFadeStorage D_neo_ark_pavilion_80187A0C;
 
 /// The save-location record and event the message handler latched for the
 /// room's event task.
-extern GpSaveLoc        D_neo_ark_pavilion_80187A14;
+extern RoomEventMsg     D_neo_ark_pavilion_80187A14;
 extern RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 
 /// Set by the message handler when its last message latched an event and
@@ -112,7 +112,7 @@ static void func_neo_ark_pavilion_801834D4(GfxCoord* arg0, s32 arg1);
 
 void func_neo_ark_pavilion_8017E854(Task*);
 s32  func_neo_ark_pavilion_8017E9EC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_pavilion_8017E9F4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, GpMessageArg);
 s32  func_neo_ark_pavilion_8017EB78(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -135,7 +135,7 @@ TaskDesc D_neo_ark_pavilion_80183858 = { 0, 192, func_neo_ark_pavilion_8017E2B4,
 TaskDesc D_neo_ark_pavilion_80183864 = { 0, 32, func_neo_ark_pavilion_8017E854, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_pavilion_80183870[5] = {
-    { 5102, func_neo_ark_pavilion_8017E9F4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
     { 5105, func_neo_ark_pavilion_8017E9EC },
     { 5103, func_neo_ark_pavilion_8017EB78 },
     { 5104, func_neo_ark_pavilion_8017EB3C },
@@ -1091,7 +1091,7 @@ GpRoomParamRec* D_neo_ark_pavilion_801879EC[8] = {
 
 RoomFadeStorage D_neo_ark_pavilion_80187A0C = { 0 };
 
-GpSaveLoc D_neo_ark_pavilion_80187A14 = { 0 };
+RoomEventMsg D_neo_ark_pavilion_80187A14 = { 0 };
 
 s8 D_neo_ark_pavilion_80187A1C[4] = {
     0,
@@ -1102,7 +1102,7 @@ s8 D_neo_ark_pavilion_80187A1C[4] = {
 
 RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 
-static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_pavilion_8017EB80(Task* arg0);
 static void           func_neo_ark_pavilion_8017EBEC(Task* task);
 
@@ -1853,9 +1853,9 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_pavilion_80187A14.prefix.bytes.field_0;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_pavilion_80187A14.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_pavilion_80187A14.field_3;
+            Mc_SaveData[0].state.at4.loc.area = (u8)D_neo_ark_pavilion_80187A14.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_pavilion_80187A14.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_pavilion_80187A14.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1867,11 +1867,11 @@ s32 func_neo_ark_pavilion_8017E9EC(Task* task, s32 msgId, GpMessageArg arg2, GpM
     return 0;
 }
 
-static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
+static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_pavilion_80187A1C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_neo_ark_pavilion_80187A14 = *dst;
             D_neo_ark_pavilion_80187A20 = *event;
             if (event->flagId != 0) {
@@ -1889,13 +1889,13 @@ static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent
 /// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Message
 /// `0xC` builds the room's event record - cap command 4, flag `0x17E` - and
 /// hands it to `NeoArkPavilion_StartEvent`; every other message answers 1.
-s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (*(u16*)in != 0xC) {
+    if (in->areaId != 0xC) {
         return 1;
     }
     event.capCmd   = 4;

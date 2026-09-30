@@ -67,7 +67,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D61C(Task*, s32, GpMessageArg, GpMessage
 s32 func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
-    { 5102, func_shelter_b1_golem_freezer_1_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_golem_freezer_1_8017D5D8 },
     { 5105, func_shelter_b1_golem_freezer_1_8017D5D0 },
     { 5103, func_shelter_b1_golem_freezer_1_8017D624 },
     { 5104, func_shelter_b1_golem_freezer_1_8017D61C },
@@ -376,7 +376,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, GpMessageArg
 /// and the session's place is 0x15, calls `func_80131E70`. Always answers 0.
 s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, GpMessageArg arg3)
 {
-    if (msg->field_2 == 1 && gGameSession->at4.loc.variant == 0x15) {
+    if (msg->warp == 1 && gGameSession->at4.loc.variant == 0x15) {
         func_80131E70();
     }
     return 0;

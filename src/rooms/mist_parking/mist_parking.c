@@ -142,7 +142,7 @@ void func_mist_parking_80182628(Task*);
 
 s32  func_mist_parking_801823F8(s32, s32, s32);
 s32  func_mist_parking_801826B8(void);
-s32  func_mist_parking_801826C0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_mist_parking_801826C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_mist_parking_801826E8(Task*, s32, GpMsg13EF*);
 void func_mist_parking_80182750(s32);
 void func_mist_parking_801827A0(s32);
@@ -189,14 +189,14 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, GpMsg13EF*);
-        s32 (*call2)(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+        s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
 } MistParkingMessageEntry;
 STATIC_ASSERT_SIZEOF(MistParkingMessageEntry, 8);
 
 MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
-    { 5102, { .call2 = func_mist_parking_801826C0 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_mist_parking_801826C0 } },
     { 5103, { .call1 = func_mist_parking_801826E8 } },
     { 5105, { .call0 = func_mist_parking_801826B8 } },
     { 5104, { .call3 = func_mist_parking_801823F8 } },
@@ -1260,7 +1260,7 @@ s32 func_mist_parking_801826B8(void)
 
 /// Message handler that copies the location record it is given onto the
 /// reply record and answers 1.
-s32 func_mist_parking_801826C0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_mist_parking_801826C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

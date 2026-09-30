@@ -56,7 +56,7 @@
 extern SVECTOR D_neo_ark_savanna_zone_8017F9D4[2];
 
 extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
-extern GpSaveLoc        D_neo_ark_savanna_zone_80180990;
+extern RoomEventMsg     D_neo_ark_savanna_zone_80180990;
 extern s8               D_neo_ark_savanna_zone_80180998;
 extern RoomLatchedEvent D_neo_ark_savanna_zone_8018099C;
 
@@ -82,7 +82,7 @@ extern GpObj4C        D_neo_ark_savanna_zone_8018061C[5];
 extern GpRoomBoundVec D_neo_ark_savanna_zone_80180908[5];
 extern GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1];
 extern TaskDesc       D_8014D8A4;
-s32                   func_neo_ark_savanna_zone_8017D77C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                   func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                   func_neo_ark_savanna_zone_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
 s32                   func_neo_ark_savanna_zone_8017D8F8(Task*, s32, GpMessageArg, GpMessageArg);
 s32                   func_neo_ark_savanna_zone_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
@@ -91,7 +91,7 @@ void                  func_neo_ark_savanna_zone_8017D5E4(Task*);
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, func_neo_ark_savanna_zone_8017D5E4, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
-    { 5102, func_neo_ark_savanna_zone_8017D77C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },
     { 5105, func_neo_ark_savanna_zone_8017D8F0 },
     { 5103, func_neo_ark_savanna_zone_8017D900 },
     { 5104, func_neo_ark_savanna_zone_8017D8F8 },
@@ -418,13 +418,13 @@ GpRoomParamRec* D_neo_ark_savanna_zone_80180968[8] = {
 
 RoomFadeStorage D_neo_ark_savanna_zone_80180988 = { 0 };
 
-GpSaveLoc D_neo_ark_savanna_zone_80180990 = { 0 };
+RoomEventMsg D_neo_ark_savanna_zone_80180990 = { 0 };
 
 s8 D_neo_ark_savanna_zone_80180998 = 0;
 
 RoomLatchedEvent D_neo_ark_savanna_zone_8018099C = { 0 };
 
-static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_savanna_zone_8017D908(Task* task);
 static void           func_neo_ark_savanna_zone_8017D94C(Task* task);
 
@@ -470,9 +470,9 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_savanna_zone_80180990.prefix.bytes.field_0;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_savanna_zone_80180990.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_savanna_zone_80180990.field_3;
+            Mc_SaveData[0].state.at4.loc.area = (u8)D_neo_ark_savanna_zone_80180990.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_savanna_zone_80180990.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_savanna_zone_80180990.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -481,15 +481,15 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
 
 /// Latches the room's pending event and starts the controller that runs it:
 /// clears the "event running" flag, and once the event's flag nibble is clear
-/// (or the event carries no flag) and `dst->field_5` does not ask for the side
+/// (or the event carries no flag) and `dst->queryOnly` does not ask for the side
 /// effects to be suppressed, commits `dst` and the event and spawns the
-/// controller task. Answers 2 for a started event, 1 when `field_5` held it
+/// controller task. Answers 2 for a started event, 1 when `queryOnly` held it
 /// back.
-static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
+static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_savanna_zone_80180998 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_neo_ark_savanna_zone_80180990 = *dst;
             D_neo_ark_savanna_zone_8018099C = *event;
             if (event->flagId != 0) {
@@ -508,7 +508,7 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEv
 /// 0x15 build the room's event record - cap command 3 / 2, the stage sound and
 /// flag 0x15E / 0x15F - and hand it to `NeoArkSavannaZone_StartEvent`; every
 /// other message is not consumed and answers 1.
-s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
     s32              cmd;
@@ -517,7 +517,7 @@ s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, GpSaveLoc* in, GpSa
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (*(u16*)in != 0x13) {
+    if (in->areaId != 0x13) {
         goto message15;
     }
     snd            = 0x55120003;
@@ -530,7 +530,7 @@ start_event:
     event.fade   = 0;
     return NeoArkSavannaZone_StartEvent(out, &event);
 message15:
-    if (*(u16*)in == 0x15) {
+    if (in->areaId == 0x15) {
         snd            = 0x55120001;
         cmd            = 2;
         event.stageSnd = snd;

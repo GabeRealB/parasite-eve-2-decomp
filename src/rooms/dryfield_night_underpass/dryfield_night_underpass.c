@@ -63,7 +63,7 @@ TaskDesc D_dryfield_night_underpass_8017DCD8[2] = {
 };
 
 GpMsgEntry D_dryfield_night_underpass_8017DCF0[6] = {
-    { 5102, func_dryfield_night_underpass_8017D788 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_underpass_8017D788 },
     { 5105, func_dryfield_night_underpass_8017D900 },
     { 5103, func_dryfield_night_underpass_8017D908 },
     { 5104, func_dryfield_night_underpass_8017D868 },
@@ -710,15 +710,15 @@ static void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 
 /// chosen room is 5 or above, then kills the task.
 void func_dryfield_night_underpass_8017D5D0(Task* task)
 {
-    GpSaveLoc    src;
-    GpSaveLoc    dst;
-    GpSaveLoc*   s;
-    GpSaveLoc*   d;
-    GameSession* session;
-    s32          flag;
-    s32          state;
-    s32          arg;
-    u8           room;
+    RoomEventMsg  src;
+    RoomEventMsg  dst;
+    RoomEventMsg* s;
+    RoomEventMsg* d;
+    GameSession*  session;
+    s32           flag;
+    s32           state;
+    s32           arg;
+    u8            room;
 
     flag  = task->spawnArg1.value;
     state = task->state;
@@ -738,30 +738,30 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
             if (Gp_GetCapEventKey() >= 0xA) {
                 GameFlag_SetNibble(flag, GameFlag_GetNibble(flag) == 0);
                 if (flag == 0x51) {
-                    d           = &dst;
-                    s           = &src;
-                    *(u16*)&src = 0x26;
-                    src.field_5 = 0;
-                    if (s->field_5 == 0) {
+                    d             = &dst;
+                    s             = &src;
+                    src.areaId    = 0x26;
+                    src.queryOnly = ROOM_EVENT_EXECUTE;
+                    if (s->queryOnly == ROOM_EVENT_EXECUTE) {
                         if (GameFlag_GetNibble(0xC9) != 0) {
                             if (GameFlag_GetNibble(0x53) != 0) {
-                                d->field_3 = 2;
+                                d->room = 2;
                             } else {
-                                d->field_3 = 1;
+                                d->room = 1;
                             }
                             if (GameFlag_GetNibble(0x51) == 0) {
-                                dst.field_3 = dst.field_3 + 2;
+                                dst.room = dst.room + 2;
                             }
                         } else {
                             if (GameFlag_GetNibble(0x51) != 0) {
-                                d->field_3 = 5;
+                                d->room = 5;
                             } else {
-                                d->field_3 = 6;
+                                d->room = 6;
                             }
                         }
                     }
                     session                           = gGameSession;
-                    room                              = dst.field_3;
+                    room                              = dst.room;
                     session->at4.loc.room             = room;
                     Mc_SaveData[0].state.at4.loc.room = room;
                 }
@@ -778,27 +778,27 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
 }
 
 /// Handler for message 0x13EE: copies the incoming record onto the outgoing one
-/// and, unless the query is report-only (`field_5` set), answers record id 0x20
+/// and, unless the query is report-only (`queryOnly` set), answers record id 0x20
 /// with 1 or 2 from nibble 0x51, raised by 2 while nibble 0x53 is set, and
 /// record id 0x22 with 1 or 2 from nibble 0x52. Always returns 1.
 s32 func_dryfield_night_underpass_8017D788(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 0x20 && in->field_5 == 0) {
+    if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x51) == 0) {
-            out->field_3 = 2;
+            out->room = 2;
         } else {
-            out->field_3 = 1;
+            out->room = 1;
         }
         if (GameFlag_GetNibble(0x53) != 0) {
-            out->field_3 += 2;
+            out->room += 2;
         }
     }
-    if (in->prefix.packed == 0x22 && in->field_5 == 0) {
+    if (in->areaId == 0x22 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x52) == 0) {
-            out->field_3 = 2;
+            out->room = 2;
         } else {
-            out->field_3 = 1;
+            out->room = 1;
         }
     }
     return 1;

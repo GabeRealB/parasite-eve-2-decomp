@@ -132,7 +132,7 @@ extern DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
 extern GpPointLight                      D_dryfield_water_hole_80181FA0[6];
 
 GpMsgEntry D_dryfield_water_hole_8017FC5C[6] = {
-    { 5102, func_dryfield_water_hole_8017D5F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_hole_8017D5F0 },
     { 5105, func_dryfield_water_hole_8017D5E8 },
     { 5103, func_dryfield_water_hole_8017D784 },
     { 5104, func_dryfield_water_hole_8017D73C },
@@ -1348,8 +1348,8 @@ s32 func_dryfield_water_hole_8017D5E8(Task* task, s32 msgId, GpMessageArg arg2, 
 }
 
 /// Handler for message 0x13EE in the room's message table. It copies the
-/// incoming record to `out` and, unless `in->field_5` is set, answers two
-/// queries in `out->field_3`:
+/// incoming record to `out` and, unless `in->queryOnly` is set, answers two
+/// queries in `out->room`:
 ///
 /// - 0x19: while the session's stage is 2, 2 once progress nibble 0x3A has
 ///   reached 2 and 1 before; in any other stage, nibble 0x61 plus one.
@@ -1362,35 +1362,35 @@ s32 func_dryfield_water_hole_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     u8 temp;
 
     *out = *in;
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         temp = gGameSession->at4.loc.stage;
         if (temp == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->field_3 = temp;
+                    out->room = temp;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
             }
-        } else if (in->field_5 == 0) {
-            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
         }
     }
-    if (in->prefix.packed == 0x26 && in->field_5 == 0) {
+    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0xC9) != 0) {
             if (GameFlag_GetNibble(0x53) != 0) {
-                out->field_3 = 2;
+                out->room = 2;
             } else {
-                out->field_3 = 1;
+                out->room = 1;
             }
             if (GameFlag_GetNibble(0x51) == 0) {
-                out->field_3 += 2;
+                out->room += 2;
             }
         } else {
             if (GameFlag_GetNibble(0x51) != 0) {
-                out->field_3 = 5;
+                out->room = 5;
             } else {
-                out->field_3 = 6;
+                out->room = 6;
             }
         }
     }

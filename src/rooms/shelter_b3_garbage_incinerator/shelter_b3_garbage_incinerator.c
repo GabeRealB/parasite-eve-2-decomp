@@ -55,7 +55,7 @@ s32  func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, GpMessageArg)
 s32  func_shelter_b3_garbage_incinerator_8017DB2C(Task*, s32, s32, GpMessageArg);
 
 GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
-    { 5102, func_shelter_b3_garbage_incinerator_8017D840 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_garbage_incinerator_8017D840 },
     { 5105, func_shelter_b3_garbage_incinerator_8017D838 },
     { 5103, func_shelter_b3_garbage_incinerator_8017D9BC },
     { 5104, func_shelter_b3_garbage_incinerator_8017D9B4 },
@@ -100,9 +100,9 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -118,8 +118,8 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x29) {
-        if (in->field_5 != 0) {
+    if (in->areaId == 0x29) {
+        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
         Gp_StateF0.field_4 = 1;
@@ -132,15 +132,15 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
         } else {
             GameFlag_SetNibble(0x4C, 5);
         }
-        out->field_2                              = 4;
+        out->warp                                 = 4;
         D_shelter_b3_garbage_incinerator_8018FC2C = *out;
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 1);
         Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
         return 2;
     }
-    if (in->prefix.packed == 0x27 && in->field_5 == 0) {
-        out->field_3 = gGameSession->field_133 + 1;
+    if (in->areaId == 0x27 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        out->room = gGameSession->field_133 + 1;
     }
     return 1;
 }
@@ -152,7 +152,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D9B4(Task* task, s32 msgId, GpMessag
 
 s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->field_2 == 2 && gGameSession->field_135 == 0) {
+    if (in->warp == 2 && gGameSession->field_135 == 0) {
         if (gGameSession->field_132 == 3) {
             Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
             gGameSession->field_135 = 1;

@@ -69,7 +69,7 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
 
 void func_neo_ark_substation_8017D608(Task*);
 s32  func_neo_ark_substation_8017D71C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_substation_8017D724(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_substation_8017D768(Task*, s32, s32, GpMessageArg);
 s32  func_neo_ark_substation_8017D7A4(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -79,7 +79,7 @@ extern GpObj4C        D_neo_ark_substation_8017FFEC[10];
 extern GpRoomCoordSet D_neo_ark_substation_8017FC44[1];
 
 GpMsgEntry D_neo_ark_substation_8017E294[5] = {
-    { 5102, func_neo_ark_substation_8017D724 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_substation_8017D724 },
     { 5105, func_neo_ark_substation_8017D71C },
     { 5103, func_neo_ark_substation_8017D7A4 },
     { 5104, func_neo_ark_substation_8017D768 },
@@ -562,9 +562,9 @@ s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, GpMessageArg arg2, G
 }
 
 /// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `GpSaveLoc` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
+/// `RoomEventMsg` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
 /// Always returns 1.
-s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

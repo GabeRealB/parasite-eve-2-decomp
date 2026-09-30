@@ -205,7 +205,7 @@ TaskDesc D_dryfield_night_motel_room_6_80182E8C[3] = {
 };
 
 GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
-    { 5102, func_dryfield_night_motel_room_6_80181B7C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_motel_room_6_80181B7C },
     { 5105, func_dryfield_night_motel_room_6_80181B74 },
     { 5103, func_dryfield_night_motel_room_6_80181BF8 },
     { 5104, func_dryfield_night_motel_room_6_8018175C },
@@ -1265,21 +1265,21 @@ s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, GpMessageAr
 }
 
 /// Handler of message 0x13EE in the room's message table: copies the incoming record onto the outgoing one and,
-/// for message 0x1D with `field_5` clear, answers 1 or 3 in `field_3`
+/// for message 0x1D with `queryOnly` clear, answers 1 or 3 in `room`
 /// depending on whether flag nibble 0x61 is set. Always returns 1.
 s32 func_dryfield_night_motel_room_6_80181B7C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 nib;
 
     *out = *in;
-    if (in->prefix.packed == 0x1D && in->field_5 == 0) {
+    if (in->areaId == 0x1D && in->queryOnly == ROOM_EVENT_EXECUTE) {
         nib = GameFlag_GetNibble(0x61);
         if (nib == 0) {
             nib = 1;
         } else {
             nib = 3;
         }
-        out->field_3 = nib;
+        out->room = nib;
     }
     return 1;
 }

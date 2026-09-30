@@ -158,7 +158,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, GpMsg13EF*);
 s32 func_dryfield_night_motel_lobby_8017FCDC(s32, s32, s32);
 
 DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
-    { 5102, { .call2 = func_dryfield_night_motel_lobby_8017FB08 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_night_motel_lobby_8017FB08 } },
     { 5105, { .call0 = func_dryfield_night_motel_lobby_8017FB00 } },
     { 5103, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
     { 5104, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
@@ -404,13 +404,13 @@ s32 func_dryfield_night_motel_lobby_8017FB00(void)
 }
 
 /// Message handler: copies the incoming message onto the outgoing one and, for
-/// message 0xF with `field_5` clear, answers in `field_3` with game-flag nibble
+/// message 0xF with `queryOnly` clear, answers in `room` with game-flag nibble
 /// 0x61 plus one. Always returns 1.
 s32 func_dryfield_night_motel_lobby_8017FB08(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 0xF && in->field_5 == 0) {
-        out->field_3 = GameFlag_GetNibble(0x61) + 1;
+    if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        out->room = GameFlag_GetNibble(0x61) + 1;
     }
     return 1;
 }

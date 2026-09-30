@@ -51,7 +51,7 @@ s32 func_acropolis_forked_road_8017D858(Task*, s32, s32, GpMessageArg);
 s32 func_acropolis_forked_road_8017D8A8(Task*, s32, GpMsg13EF*, GpMessageArg);
 
 GpMsgEntry D_acropolis_forked_road_80180F14[5] = {
-    { 5102, func_acropolis_forked_road_8017D5EC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
     { 5105, func_acropolis_forked_road_8017D850 },
     { 5104, func_acropolis_forked_road_8017D858 },
     { 5103, func_acropolis_forked_road_8017D8A8 },
@@ -62,10 +62,10 @@ AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 
 /// Message gate for the forked road's two hotspots: copies the incoming record
 /// to the outgoing one, then answers according to the message id and the
-/// game's progress nibbles. `field_5` non-zero means "report only", so every
+/// game's progress nibbles. `queryOnly` non-zero means "report only", so every
 /// side effect below is skipped while the answer stays the same.
 ///
-/// Message 8 (the path back down) marks itself with `field_3 = 2` once nibble 9
+/// Message 8 (the path back down) marks itself with `room = 2` once nibble 9
 /// has bit 1 set, then either plays capture slot 0 while nibble 0 is still
 /// under 3 or, past that, plays slot 3 once and records it in nibble 0x13.
 ///
@@ -73,25 +73,25 @@ AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 /// Once it is at 2 the forked-road cutscene spawns from
 /// `D_acropolis_forked_road_80180F44` and nibble 1 advances to 3, unless no
 /// stream file is open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`), in which
-/// case the message is refused with `field_2 = 2`.
+/// case the message is refused with `warp = 2`.
 s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 8) {
-        if ((GameFlag_GetNibble(9) & 2) && (in->field_5 == 0)) {
-            out->field_3 = 2;
+    if (in->areaId == 8) {
+        if ((GameFlag_GetNibble(9) & 2) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
+            out->room = 2;
         }
-        if (in->prefix.packed == 8) {
+        if (in->areaId == 8) {
             if (GameFlag_GetNibble(0) < 3) {
-                if (in->field_5 == 0) {
-                    Gp_SetNibbleIf(in->field_6, 2);
+                if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                    Gp_SetNibbleIf(in->flagId, 2);
                     Gp_StartCapSlot(1, 1, 0);
                 }
                 return 0;
             }
             if (GameFlag_GetNibble(0) >= 3) {
                 if (GameFlag_GetNibble(0x13) == 0) {
-                    if (in->field_5 == 0) {
+                    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                         Gp_StartCapSlot(1, 1, 3);
                         GameFlag_SetNibble(0x13, 1);
                     }
@@ -100,21 +100,21 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             }
         }
     }
-    if (in->prefix.packed == 0xA) {
+    if (in->areaId == 0xA) {
         if (GameFlag_GetNibble(1) < 2) {
-            if (in->field_5 == 0) {
-                Gp_SetNibbleIf(in->field_6, 2);
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(2);
             }
             return 0;
         }
         if ((gDisplayState.debugMode < 0) || (D_8006AC30.sector == 0)) {
-            if (in->field_5 != 0) {
+            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 1;
             }
-            out->field_2 = 2;
+            out->warp = 2;
         } else if (GameFlag_GetNibble(1) == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Mc_SaveData[0].state.at4.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
@@ -122,9 +122,9 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             }
             return 0;
         } else {
-            out->field_2 = 2;
+            out->warp = 2;
         }
-        if (in->field_5 != 0) {
+        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 1;
         }
         if ((GameFlag_GetNibble(9) & 2) == 0) {
@@ -133,7 +133,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
         if (GameFlag_GetNibble(0xCA) != 0) {
             return 1;
         }
-        out->field_3 = 2;
+        out->room = 2;
         return 1;
     }
     return 1;

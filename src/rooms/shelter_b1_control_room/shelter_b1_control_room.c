@@ -121,7 +121,7 @@ void func_shelter_b1_control_room_8017D7B8(Task*);
 TaskDesc D_shelter_b1_control_room_80181B88 = { 0, 112, func_shelter_b1_control_room_8017D7B8, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_control_room_80181B94[5] = {
-    { 5102, func_shelter_b1_control_room_8017ECD4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_8017ECD4 },
     { 5105, func_shelter_b1_control_room_8017ECCC },
     { 5103, func_shelter_b1_control_room_8017EE24 },
     { 5104, func_shelter_b1_control_room_8017ED68 },
@@ -593,16 +593,16 @@ s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed != 0x13) {
+    if (in->areaId != 0x13) {
         return 1;
     }
     if (GameFlag_GetNibble(0xAD) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_SetNibbleIf(in->flagId, 2);
     Gp_RunCapCmd1(1);
     return 0;
 }

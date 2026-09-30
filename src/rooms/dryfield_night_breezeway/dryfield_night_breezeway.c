@@ -61,7 +61,7 @@ static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
 
 // Indexed views below share one contiguous table.
 s32 func_dryfield_night_breezeway_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, GpMessageArg);
 s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -73,7 +73,7 @@ extern GpRoomCoordSet D_dryfield_night_breezeway_80180158[1];
 extern TaskDesc D_8014D8A4;
 
 GpMsgEntry D_dryfield_night_breezeway_8017E67C[5] = {
-    { 5102, func_dryfield_night_breezeway_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_breezeway_8017D5D8 },
     { 5105, func_dryfield_night_breezeway_8017D5D0 },
     { 5103, func_dryfield_night_breezeway_8017D62C },
     { 5104, func_dryfield_night_breezeway_8017D600 },
@@ -520,7 +520,7 @@ s32 func_dryfield_night_breezeway_8017D5D0(Task* task, s32 msgId, GpMessageArg a
 
 /// The room's 0x13EE message handler: copies the incoming location onto the
 /// outgoing record and answers 1.
-s32 func_dryfield_night_breezeway_8017D5D8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_night_breezeway_8017D5D8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

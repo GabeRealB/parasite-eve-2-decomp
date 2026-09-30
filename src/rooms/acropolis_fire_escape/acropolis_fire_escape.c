@@ -173,7 +173,7 @@ static void func_acropolis_fire_escape_8017FE50(Task* task);
 static void func_acropolis_fire_escape_8017FECC(Task* task);
 
 s32 func_acropolis_fire_escape_8017F9F8(Task*, s32, s32, s32);
-s32 func_acropolis_fire_escape_8017FD98(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_acropolis_fire_escape_8017FD98(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_acropolis_fire_escape_8017FE40(Task*, s32, s32, s32);
 s32 func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
 
@@ -210,7 +210,7 @@ TaskDesc D_acropolis_fire_escape_80181D18[3] = {
 };
 
 GpMsgEntry D_acropolis_fire_escape_80181D3C[5] = {
-    { 5102, func_acropolis_fire_escape_8017FD98 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fire_escape_8017FD98 },
     { 5105, func_acropolis_fire_escape_8017FE40 },
     { 5104, func_acropolis_fire_escape_8017F9F8 },
     { 5106, func_acropolis_fire_escape_8017FE48 },
@@ -887,19 +887,19 @@ void func_acropolis_fire_escape_8017FD08(Task* task)
 
 /// The `0x13EE` message handler of `D_acropolis_fire_escape_80181D3C`: copies
 /// the incoming save location onto the outgoing one, fades the ambient sound
-/// out when `field_5` is 0, and for location 0xE with `field_5` 0 sets the
-/// outgoing `field_3` to 2 when game flag 2 is 3, to 1 otherwise.
-s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+/// out when `queryOnly` is 0, and for location 0xE with `queryOnly` 0 sets the
+/// outgoing `room` to 2 when game flag 2 is 3, to 1 otherwise.
+s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (src->field_5 == 0) {
+    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x510F0005, 0xF);
     }
-    if (*(u16*)src == 0xE && src->field_5 == 0) {
+    if (src->areaId == 0xE && src->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(2) == 3) {
-            dst->field_3 = 2;
+            dst->room = 2;
         } else {
-            dst->field_3 = 1;
+            dst->room = 1;
         }
     }
     return 1;

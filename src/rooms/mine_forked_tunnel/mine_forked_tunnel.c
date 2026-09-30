@@ -845,7 +845,7 @@ s16* D_mine_forked_tunnel_80181C58[1] = {
 GpGridParams D_mine_forked_tunnel_80181C5C = { NULL, D_mine_forked_tunnel_80181BD4, D_mine_forked_tunnel_80181BEC, D_mine_forked_tunnel_80181C2C, D_mine_forked_tunnel_80181C58, -1747, -7643, 1, 1, 4000, 3 };
 
 GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
-    { 5102, func_mine_forked_tunnel_8017E0F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
     { 5105, func_mine_forked_tunnel_8017E0E8 },
     { 5103, func_mine_forked_tunnel_8017E19C },
     { 5104, func_mine_forked_tunnel_8017E134 },

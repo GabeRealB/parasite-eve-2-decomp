@@ -173,7 +173,7 @@ void                        func_shelter_b1_pod_access_tunnel_8017E7B4(void);
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { 0, 32, func_shelter_b1_pod_access_tunnel_8017D61C, { .model = NULL } };
 
 ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
-    { 5102, { .call1 = func_shelter_b1_pod_access_tunnel_8017D7B4 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b1_pod_access_tunnel_8017D7B4 } },
     { 5105, { .call0 = func_shelter_b1_pod_access_tunnel_8017DD68 } },
     { 5103, { .call0 = func_shelter_b1_pod_access_tunnel_8017DDD8 } },
     { 5104, { .call2 = func_shelter_b1_pod_access_tunnel_8017DD70 } },
@@ -1033,9 +1033,9 @@ void func_shelter_b1_pod_access_tunnel_8017D61C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_pod_access_tunnel_80184D04.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_pod_access_tunnel_80184D04.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_pod_access_tunnel_80184D04.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_pod_access_tunnel_80184D04.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_pod_access_tunnel_80184D04.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_pod_access_tunnel_80184D04.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1046,7 +1046,7 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
 {
     D_shelter_b1_pod_access_tunnel_80184D0C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b1_pod_access_tunnel_80184D04 = *dst;
             D_shelter_b1_pod_access_tunnel_80184D10 = *event;
             if (event->flagId != 0) {
@@ -1066,42 +1066,42 @@ s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventM
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x2F) {
+    if (in->areaId == 0x2F) {
         if (GameFlag_GetNibble(0x118) == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(8);
             }
             return 2;
         }
         if (GameFlag_GetNibble(0x7A) >= 6) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 1, 0, 0);
             }
             return 2;
         }
         if (GameFlag_GetNibble(0xB3) == 0) {
-            if (in->field_5 == 0) {
-                Gp_SetNibbleIf(in->field_6, 2);
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(3);
             }
             return 0;
         }
-        if (in->field_5 == 0 && GameFlag_GetNibble(0xD1) == 0 && GameFlag_GetNibble(0x83) == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0xD1) == 0 && GameFlag_GetNibble(0x83) == 0) {
             Gp_FillAllyHp();
             GameFlag_SetNibble(0xD1, 1);
             GameFlag_SetNibble(0x4C, 7);
         }
     }
-    if (in->prefix.packed == 0x10) {
+    if (in->areaId == 0x10) {
         if (GameFlag_GetNibble(0x118) == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(8);
             }
             return 2;
         }
         if (GameFlag_GetNibble(0xD1) == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(4);
             }
             return 2;

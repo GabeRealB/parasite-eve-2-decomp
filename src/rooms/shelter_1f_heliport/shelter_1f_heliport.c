@@ -239,7 +239,7 @@ TaskDesc D_shelter_1f_heliport_80181188 = { 0, 192, Shop_SessionTask, { .model =
 TaskDesc D_shelter_1f_heliport_80181194 = { 0, 32, func_shelter_1f_heliport_8017FF08, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_heliport_801811A0[5] = {
-    { 5102, func_shelter_1f_heliport_801800A0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_801800A0 },
     { 5105, func_shelter_1f_heliport_80180334 },
     { 5103, func_shelter_1f_heliport_801804BC },
     { 5104, func_shelter_1f_heliport_8018041C },
@@ -655,9 +655,9 @@ void func_shelter_1f_heliport_8017FF08(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_heliport_80182CA8.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_heliport_80182CA8.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_heliport_80182CA8.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_heliport_80182CA8.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_heliport_80182CA8.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_heliport_80182CA8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -679,7 +679,7 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
 {
     D_shelter_1f_heliport_80182CB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_1f_heliport_80182CA8 = *dst;
             D_shelter_1f_heliport_80182CB4 = *event;
             if (event->flagId != 0) {
@@ -699,13 +699,13 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
 
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (src->prefix.packed == 0x1C && src->field_5 == 0) {
+    if (src->areaId == 0x1C && src->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x55040006, 1);
         SndEvt_EnqueueType7(0x55040007, 1);
     }
-    if (src->prefix.packed == 3) {
+    if (src->areaId == 3) {
         if (GameFlag_GetNibble(0xE3) == 0 && gGameSession->at4.loc.variant == 1) {
-            if (src->field_5 == 0) {
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x2B);
             }
             return 2;
@@ -714,7 +714,7 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
         event.stageSnd = 0x55040001;
         event.flagId   = 0;
         event.fade     = 1;
-        if (src->field_5 == 0) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             SndEvt_EnqueueType7(0x55040006, 1);
             SndEvt_EnqueueType7(0x55040007, 1);
         }
@@ -791,7 +791,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, GpMessageA
 
 s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, GpMessageArg arg3)
 {
-    switch (in->field_2) {
+    switch (in->warp) {
         case 1:
             if (gGameSession->at4.loc.variant == 1) {
                 func_80149EBC();

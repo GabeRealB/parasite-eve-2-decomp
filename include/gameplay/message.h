@@ -8,27 +8,34 @@
 
 #include "main/task_types.h"
 
-/// 8-byte room destination record the message handlers receive alongside the
-/// request. Handlers registered in a room's `(msgId, handler)` dispatch table
-/// are passed the incoming record and an outgoing copy of it, and answer by
-/// editing `field_3` of the copy. `field_5` non-zero suppresses the side
-/// effects (the handler only reports what *would* happen); `field_6` is the
-/// nibble index passed to `Gp_SetNibbleIf`. Alignment is 2, which is why the
-/// whole-record copies compile to `lwl`/`lwr` pairs.
-typedef struct _RoomEventMsg {
-    union {
-        struct {
-            u8 field_0, field_1;
-        } bytes;
-        u16 packed;
-    } prefix; // Destination identifier; the warp code also addresses its bytes.
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ s8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-    /* 0x6 */ u16 field_6;
+/// Requests and resolves a room transition within the active stage.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` passes a borrowed request and a writable reply;
+/// they may be the same object. Handlers copy the complete record before
+/// resolving the destination, and may retain a copy for a deferred transition.
+/// Queries test whether a transition can proceed without committing its effects;
+/// handlers may leave the destination selectors unchanged in query mode.
+///
+/// Area, room and arrival IDs are 1-based and must exist in the active stage's
+/// tables. Warp senders select arrival IDs from a four-bit value. Only fields
+/// read by the selected handler need initialization. `flagId` is zero or a
+/// valid game-flag nibble index. The record is eight bytes with two-byte alignment.
+typedef struct {
+    u16 areaId;    // Area within the active stage; committed to the saved area's byte
+    u8  warp;      // Arrival record within the area's warp table
+    s8  room;      // Room within the area (1 default); handlers resolve it from game progress
+    u8  field_4;   // Warp senders initialize this to 1; its request role is unproven
+    u8  queryOnly; // Execution choice (0 execute effects, nonzero query)
+    u16 flagId;    // Optional game-flag nibble to update when handling the event (0 none)
 } RoomEventMsg;
 STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
+
+/// Room-transition message and execution choices; the stored choice remains a byte.
+enum {
+    ROOM_EVENT_MESSAGE_RESOLVE = 0x13EE,
+    ROOM_EVENT_EXECUTE         = 0,
+    ROOM_EVENT_QUERY_ONLY      = 1,
+};
 
 struct GpXformArg;
 struct AnimationPlayRequest;

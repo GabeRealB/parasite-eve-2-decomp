@@ -845,16 +845,16 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->prefix.packed != 0x21) {
+    if (in->areaId != 0x21) {
         return 1;
     }
     if (GameFlag_GetNibble(0xDC) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_SetNibbleIf(in->flagId, 2);
     Gp_RunCapCmd1(1);
     return 0;
 }

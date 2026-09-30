@@ -79,7 +79,7 @@ extern GpRoomCoordSet D_mine_tunnel_entrance_8017ECD4[1];
 extern TaskDesc D_8014D8A4;
 
 GpMsgEntry D_mine_tunnel_entrance_8017DAF0[5] = {
-    { 5102, func_mine_tunnel_entrance_8017D5F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_entrance_8017D5F0 },
     { 5105, func_mine_tunnel_entrance_8017D5E8 },
     { 5103, func_mine_tunnel_entrance_8017D63C },
     { 5104, func_mine_tunnel_entrance_8017D634 },

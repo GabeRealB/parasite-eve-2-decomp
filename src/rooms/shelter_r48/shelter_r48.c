@@ -120,7 +120,7 @@ TmdSource D_shelter_r48_80182F88[1] = {
 TaskDesc D_shelter_r48_80182FAC = { 257, 192, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
 
 GpMsgEntry D_shelter_r48_80182FB8[6] = {
-    { 5102, func_shelter_r48_8017E044 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
     { 5105, func_shelter_r48_8017DF50 },
     { 5103, func_shelter_r48_8017E090 },
     { 5104, func_shelter_r48_8017E088 },
@@ -2147,7 +2147,7 @@ s32 func_shelter_r48_8017E088(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, GpMessageArg arg3)
 {
-    if (in->field_2 == 1) {
+    if (in->warp == 1) {
         switch (GameFlag_GetNibble(0x100)) {
             case 0:
                 Gp_RunCapCmd1(6);

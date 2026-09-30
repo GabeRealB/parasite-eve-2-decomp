@@ -757,7 +757,7 @@ static s32 func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg)
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_factory_8018A3B4 = *msg;
                 D_dryfield_factory_8018A3CC = *req;
                 id                          = req->flagId;
@@ -774,9 +774,9 @@ static s32 func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg)
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -822,9 +822,9 @@ void func_dryfield_factory_8017D85C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_factory_8018A3B4.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_factory_8018A3B4.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_factory_8018A3B4.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_factory_8018A3B4.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_factory_8018A3B4.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_factory_8018A3B4.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -873,50 +873,50 @@ s32 func_dryfield_factory_8017DB08(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
     u8           variant;
 
     *out = *in;
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         variant = gGameSession->at4.loc.stage;
         if (variant == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->field_3 = variant;
+                    out->room = variant;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
             }
-        } else if (in->field_5 == 0) {
-            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
         }
     }
-    if (in->prefix.packed == 0x18) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 0x18) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0x7A) < 4) {
-                out->field_3 = 1;
+                out->room = 1;
             } else {
-                out->field_3 = 2;
+                out->room = 2;
             }
         }
-        if (in->prefix.packed == 0x18) {
+        if (in->areaId == 0x18) {
             if (GameFlag_GetNibble(0x4A) != 2) {
-                if (in->field_5 != 0) {
+                if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                     return 0;
                 }
                 Gp_StartCapSlot(4, 1, 0);
-                Gp_SetNibbleIf(in->field_6, 2);
+                Gp_SetNibbleIf(in->flagId, 2);
                 return 0;
             }
         }
     }
-    if (in->prefix.packed == 0x16) {
+    if (in->areaId == 0x16) {
         if (GameFlag_GetNibble(0x37) == 0) {
-            if (in->field_5 != 0) {
+            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
             }
-            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(0xD);
             return 0;
         }
     }
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         req.field_0 = 0xE;
         req.field_4 = 0xE;
         req.field_8 = 0x52170013;

@@ -157,33 +157,33 @@ static void func_map_neo_ark_801799BC(u8* arg0)
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
 s32 func_map_neo_ark_80179B14(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {
-    if (arg0->field_5 == 0) {
-        switch (arg0->prefix.packed) {
+    if (arg0->queryOnly == ROOM_EVENT_EXECUTE) {
+        switch (arg0->areaId) {
             case 7:
-                arg1->field_3 = GameFlag_GetNibble(0xE1) + 1;
+                arg1->room = GameFlag_GetNibble(0xE1) + 1;
                 break;
             case 13:
-                arg1->field_3 = GameFlag_GetNibble(0xD9) + 1;
+                arg1->room = GameFlag_GetNibble(0xD9) + 1;
                 break;
             case 20:
-                arg1->field_3 = 1;
+                arg1->room = 1;
                 if (GameFlag_GetNibble(0xDD) != 0) {
                     if (GameFlag_GetNibble(0xDC) != 0) {
-                        arg1->field_3 = 3;
+                        arg1->room = 3;
                     } else {
-                        arg1->field_3 = 2;
+                        arg1->room = 2;
                     }
                 }
                 break;
             case 21:
                 if (GameFlag_GetNibble(0xE9) != 0) {
-                    arg1->field_3 = 4;
+                    arg1->room = 4;
                 } else {
-                    arg1->field_3 = 1;
+                    arg1->room = 1;
                 }
                 break;
             case 32:
-                arg1->field_3 = GameFlag_GetNibble(0xDD) + 1;
+                arg1->room = GameFlag_GetNibble(0xDD) + 1;
                 break;
             case 8:
             case 9:

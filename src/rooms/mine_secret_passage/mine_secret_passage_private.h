@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -21,7 +20,7 @@ void func_mine_secret_passage_8017D60C(Task*);
 
 s32 func_mine_secret_passage_8017D7C4(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_mine_secret_passage_8017D7CC(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_mine_secret_passage_8017D7CC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_mine_secret_passage_8017D888(Task*, s32, GpMessageArg, GpMessageArg);
 

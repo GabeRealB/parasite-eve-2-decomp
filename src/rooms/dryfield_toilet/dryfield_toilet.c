@@ -59,7 +59,7 @@ s32 func_dryfield_toilet_8017D8C0(void);
 s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg*, RoomEventMsg*);
 
 DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
-    { 5102, { .call2 = func_dryfield_toilet_8017D810 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_toilet_8017D810 } },
     { 5105, { .call0 = func_dryfield_toilet_8017D8B8 } },
     { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
     { 5104, { .call0 = func_dryfield_toilet_8017D8C0 } },
@@ -174,14 +174,14 @@ static void func_dryfield_toilet_8017D5E4(void)
 }
 
 /// Message handler that answers query 0xF: copies the incoming record onto the
-/// outgoing one and, unless the query is report-only (`field_5` set), replies
+/// outgoing one and, unless the query is report-only (`queryOnly` set), replies
 /// with game flag nibble 0x61 plus one. Always returns 1, leaving the message
 /// unconsumed.
 s32 func_dryfield_toilet_8017D810(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 0xF && in->field_5 == 0) {
-        out->field_3 = GameFlag_GetNibble(0x61) + 1;
+    if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        out->room = GameFlag_GetNibble(0x61) + 1;
     }
     return 1;
 }
@@ -207,13 +207,13 @@ s32 func_dryfield_toilet_8017D8C0(void)
 
 /// Handler for message `0x13EF` in the room's `(msgId, handler)` table - the
 /// direction record `Gp_PostMsg13EF` posts. On the visit whose sub-id
-/// (`field_2`) is 1, that agrees with the session's own sub-id
+/// (`warp`) is 1, that agrees with the session's own sub-id
 /// (`gGameSession::at4.loc.variant`) and that has not yet latched nibble 0x60, the
 /// toilet starts its cutscene pair and latches the nibble. The outgoing record
 /// is never written: this handler only consumes the message.
 s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    u8 subId = in->field_2;
+    u8 subId = in->warp;
 
     if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.variant == subId) {
         func_800E8634(D_dryfield_toilet_80180C58, 1, D_dryfield_toilet_80180F40);

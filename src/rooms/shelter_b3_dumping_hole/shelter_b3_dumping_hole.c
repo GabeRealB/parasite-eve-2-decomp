@@ -86,7 +86,7 @@ TmdSource D_shelter_b3_dumping_hole_80187550 = {
 };
 
 ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
-    { 5102, { .call1 = func_shelter_b3_dumping_hole_8017D760 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b3_dumping_hole_8017D760 } },
     { 5105, { .call0 = func_shelter_b3_dumping_hole_8017D758 } },
     { 5103, { .call0 = func_shelter_b3_dumping_hole_8017D868 } },
     { 5104, { .call2 = func_shelter_b3_dumping_hole_8017D82C } },
@@ -235,15 +235,15 @@ s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, 
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x28) {
+    if (in->areaId == 0x28) {
         if (func_shelter_b3_dumping_hole_8017FB70() != 0) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x16);
             }
             return 0;
         }
-        if (in->field_5 == 0) {
-            out->field_3 = (u8)gGameSession->eventRoomIndex + 1;
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = (u8)gGameSession->eventRoomIndex + 1;
         }
         return 1;
     }

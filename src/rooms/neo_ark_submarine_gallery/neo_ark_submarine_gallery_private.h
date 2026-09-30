@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -21,7 +20,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task*);
 
 s32 func_neo_ark_submarine_gallery_8017EA04(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_neo_ark_submarine_gallery_8017EA0C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_submarine_gallery_8017EA0C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_neo_ark_submarine_gallery_8017EABC(Task*, s32, s32, GpMessageArg);
 

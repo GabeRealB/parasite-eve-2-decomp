@@ -112,7 +112,7 @@ extern GpGridParams D_acropolis_helicopter_landing_pad_80185998[1];
 extern GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16];
 
 GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
-    { 5102, func_acropolis_helicopter_landing_pad_8017E3F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_helicopter_landing_pad_8017E3F0 },
     { 5105, func_acropolis_helicopter_landing_pad_8017E49C },
     { 5103, func_acropolis_helicopter_landing_pad_8017E4A4 },
     { 5104, func_acropolis_helicopter_landing_pad_8017E570 },
@@ -710,17 +710,17 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 }
 
 /// Asks the slot-7 task to warp to stage 0xF, room 3 (message 0x13EE with the
-/// room's `GpSaveLoc`); advances on success, otherwise kills the task.
+/// room's `RoomEventMsg`); advances on success, otherwise kills the task.
 static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
 {
     Task* slot = gameGetPtrSlot(7);
 
-    D_acropolis_helicopter_landing_pad_80187F90.field_4 = 1;
-    D_acropolis_helicopter_landing_pad_80187F90.field_3 = 1;
-    *(u16*)&D_acropolis_helicopter_landing_pad_80187F90 = 0xF;
-    D_acropolis_helicopter_landing_pad_80187F90.field_2 = 3;
-    D_acropolis_helicopter_landing_pad_80187F90.field_5 = 0;
-    if (Gp_DispatchMsgPtrs(slot, 0x13EE, &D_acropolis_helicopter_landing_pad_80187F90,
+    D_acropolis_helicopter_landing_pad_80187F90.field_4   = 1;
+    D_acropolis_helicopter_landing_pad_80187F90.room      = 1;
+    D_acropolis_helicopter_landing_pad_80187F90.areaId    = 0xF;
+    D_acropolis_helicopter_landing_pad_80187F90.warp      = 3;
+    D_acropolis_helicopter_landing_pad_80187F90.queryOnly = ROOM_EVENT_EXECUTE;
+    if (Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, &D_acropolis_helicopter_landing_pad_80187F90,
                            &D_acropolis_helicopter_landing_pad_80187F90) != 0) {
         arg0->state += 1;
     } else {
@@ -764,9 +764,9 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
-        Mc_SaveData[0].state.at4.loc.area = D_acropolis_helicopter_landing_pad_80187F90.prefix.bytes.field_0;
-        Mc_SaveData[0].state.at4.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.field_2;
-        Mc_SaveData[0].state.at4.loc.room = D_acropolis_helicopter_landing_pad_80187F90.field_3;
+        Mc_SaveData[0].state.at4.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
+        Mc_SaveData[0].state.at4.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
+        Mc_SaveData[0].state.at4.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
         Task_Spawn(0, 0x11, 0, 0);
         taskKill(arg0);
     }

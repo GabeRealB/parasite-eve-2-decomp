@@ -61,7 +61,7 @@ s32  func_shelter_b1_north_maintenance_walkway_8017DA44(Task*, s32, GpMessageArg
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { 0, 32, func_shelter_b1_north_maintenance_walkway_8017D60C, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
-    { 5102, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
     { 5105, func_shelter_b1_north_maintenance_walkway_8017DA34 },
     { 5103, func_shelter_b1_north_maintenance_walkway_8017DA44 },
     { 5104, func_shelter_b1_north_maintenance_walkway_8017DA3C },
@@ -117,7 +117,7 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
 {
     D_shelter_b1_north_maintenance_walkway_80185B7C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b1_north_maintenance_walkway_80185B74 = *dst;
             D_shelter_b1_north_maintenance_walkway_80185B80 = *event;
             if (event->flagId != 0) {
@@ -174,9 +174,9 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -195,7 +195,7 @@ s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task* arg0, s32 arg1, Roo
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed != 0xB) {
+    if (in->areaId != 0xB) {
         goto message0E;
     }
     snd            = 0x540C0001;
@@ -208,7 +208,7 @@ start_event:
     event.fade   = 0;
     return _shelterB1NorthMaintenanceWalkwayStartEvent(out, &event);
 message0E:
-    if (in->prefix.packed == 0xE) {
+    if (in->areaId == 0xE) {
         snd            = 0x540C0003;
         cmd            = 2;
         event.stageSnd = snd;

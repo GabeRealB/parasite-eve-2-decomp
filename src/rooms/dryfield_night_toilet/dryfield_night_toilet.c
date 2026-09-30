@@ -60,7 +60,7 @@ extern GpObj4C        D_dryfield_night_toilet_8017F064[8];
 extern GpRoomCoordSet D_dryfield_night_toilet_8017EE84[1];
 
 GpMsgEntry D_dryfield_night_toilet_8017DA70[6] = {
-    { 5102, func_dryfield_night_toilet_8017D5D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_toilet_8017D5D0 },
     { 5105, func_dryfield_night_toilet_8017D678 },
     { 5103, func_dryfield_night_toilet_8017D688 },
     { 5104, func_dryfield_night_toilet_8017D680 },
@@ -479,13 +479,13 @@ static void func_dryfield_night_toilet_8017D71C(Task* task);
 static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply and, for a message 0xF that is not report-only (`field_5 == 0`),
+/// reply and, for a message 0xF that is not report-only (`queryOnly == 0`),
 /// answers game nibble 0x61 plus one. Returns 1.
 s32 func_dryfield_night_toilet_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 0xF && in->field_5 == 0) {
-        out->field_3 = GameFlag_GetNibble(0x61) + 1;
+    if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        out->room = GameFlag_GetNibble(0x61) + 1;
     }
     return 1;
 }

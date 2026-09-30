@@ -22,7 +22,7 @@ s32  func_mist_r21_8017D614(Task* task, s32 msgId, GpMessageArg arg2, GpMessageA
 void func_mist_r21_8017D760(Task* task);
 
 GpMsgEntry D_mist_r21_8017D770[] = {
-    { 0x13EE, func_mist_r21_8017D5E4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_r21_8017D5E4 },
     { 0x13F1, func_mist_r21_8017D5DC },
     { 0x13EF, func_mist_r21_8017D614 },
     { 0x13F0, func_mist_r21_8017D60C },
@@ -48,8 +48,8 @@ s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageAr
 /// onto the reply record unchanged and answers 1.
 s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
-    GpSaveLoc* src = arg2.storage;
-    GpSaveLoc* dst = arg3.storage;
+    RoomEventMsg* src = arg2.roomEvent;
+    RoomEventMsg* dst = arg3.roomEvent;
 
     *dst = *src;
     return 1;

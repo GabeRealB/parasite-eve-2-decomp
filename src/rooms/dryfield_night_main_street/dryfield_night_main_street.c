@@ -251,7 +251,7 @@ TaskDesc D_dryfield_night_main_street_80182098 = { 0, 32, func_dryfield_night_ma
 TaskDesc D_dryfield_night_main_street_801820A4 = { 0, 32, func_dryfield_night_main_street_8017DE78, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_main_street_801820B0[6] = {
-    { 5102, func_dryfield_night_main_street_8017DA6C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_main_street_8017DA6C },
     { 5105, func_dryfield_night_main_street_8017E054 },
     { 5103, func_dryfield_night_main_street_8017E05C },
     { 5104, func_dryfield_night_main_street_8017DFC8 },
@@ -1680,9 +1680,9 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BAC.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BAC.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_main_street_80188BAC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BAC.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BAC.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_main_street_80188BAC.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1693,7 +1693,7 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
 /// runs the request's CAP command and answers 0. Otherwise the message and
 /// request are latched, the nibble is written, the event task is spawned and
-/// the answer is 2. A non-zero `field_5` on the message only reports the
+/// the answer is 2. A non-zero `queryOnly` on the message only reports the
 /// answer, with none of the side effects.
 static s32 func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -1718,7 +1718,7 @@ static s32 func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEvent
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_night_main_street_80188BBC = *msg;
                 D_dryfield_night_main_street_80188BD8 = *req;
                 id                                    = req->flagId;
@@ -1735,9 +1735,9 @@ static s32 func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEvent
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -1787,9 +1787,9 @@ void func_dryfield_night_main_street_8017D8FC(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BBC.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BBC.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BBC.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BBC.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1802,7 +1802,7 @@ static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
 };
 
 /// Message handler for the room. Messages 0x19, 1 and 0xF answer in the copy's
-/// `field_3` from story nibbles. Messages 0xB and 0xC run the room's own event
+/// `room` from story nibbles. Messages 0xB and 0xC run the room's own event
 /// gate: unless the event's nibble is already set, the message and event are
 /// latched, the nibble is set and the room's event task is spawned. Messages
 /// 0xD and 0xE go through the event gate `func_dryfield_night_main_street_8017D798`
@@ -1815,47 +1815,47 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
     s32              ret;
 
     *out = *msg;
-    if (msg->prefix.packed == 0x19) {
+    if (msg->areaId == 0x19) {
         if (gGameSession->at4.loc.stage == 2) {
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->field_3 = 2;
+                    out->room = 2;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
             }
-        } else if (msg->field_5 == 0) {
-            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        } else if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
         }
     }
-    if (msg->prefix.packed == 1 && msg->field_5 == 0) {
+    if (msg->areaId == 1 && msg->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x63) == 0) {
-            out->field_3 = 1;
+            out->room = 1;
         } else if (GameFlag_GetNibble(0x7A) >= 4) {
-            out->field_3 = 4;
+            out->room = 4;
         } else {
-            out->field_3 = GameFlag_GetNibble(0x61) + 2;
+            out->room = GameFlag_GetNibble(0x61) + 2;
         }
     }
-    if (msg->prefix.packed == 0xF && msg->field_5 == 0) {
-        out->field_3 = GameFlag_GetNibble(0x61) + 1;
+    if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
+        out->room = GameFlag_GetNibble(0x61) + 1;
     }
-    if (msg->prefix.packed == 0x19 && GameFlag_GetNibble(0x61) != 0) {
-        if (msg->field_5 == 0) {
-            Gp_SetNibbleIf(msg->field_6, 2);
+    if (msg->areaId == 0x19 && GameFlag_GetNibble(0x61) != 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
+            Gp_SetNibbleIf(msg->flagId, 2);
             Gp_RunCapCmd1(0x13);
             return 2;
         }
         return 2;
     }
-    if (msg->prefix.packed == 0xB) {
+    if (msg->areaId == 0xB) {
         ev.capCmd                                   = 3;
         ev.stageSnd                                 = 0x52020005;
         ev.flagId                                   = 0x57;
         ev.fade                                     = 0;
         D_dryfield_night_main_street_80188BB4.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
-            if (out->field_5 == 0) {
+            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_night_main_street_80188BAC       = *out;
                 D_dryfield_night_main_street_80188BC8.value = ev;
                 if (ev.flagId != 0) {
@@ -1868,14 +1868,14 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
             return 2;
         }
         return 1;
-    } else if (msg->prefix.packed == 0xC) {
+    } else if (msg->areaId == 0xC) {
         ev.capCmd                                   = 4;
         ev.stageSnd                                 = 0x52020005;
         ev.flagId                                   = 0x58;
         ev.fade                                     = 0;
         D_dryfield_night_main_street_80188BB4.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
-            if (out->field_5 == 0) {
+            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_night_main_street_80188BAC       = *out;
                 D_dryfield_night_main_street_80188BC8.value = ev;
                 if (ev.flagId != 0) {
@@ -1888,7 +1888,7 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
             return 2;
         }
         return 1;
-    } else if (msg->prefix.packed == 0xD) {
+    } else if (msg->areaId == 0xD) {
         req.field_0 = 0xA;
         req.field_4 = 5;
         req.field_8 = Gp_PackStageSndId(0x5202000A);
@@ -1904,11 +1904,11 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
-        if (msg->field_5 == 0 && GameFlag_GetNibble(0x93) == 0) {
-            Gp_SetNibbleIf(msg->field_6, 0);
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x93) == 0) {
+            Gp_SetNibbleIf(msg->flagId, 0);
         }
         return ret;
-    } else if (msg->prefix.packed == 0xE) {
+    } else if (msg->areaId == 0xE) {
         req.field_0 = 0xB;
         req.field_4 = 6;
         req.field_8 = Gp_PackStageSndId(0x5202000A);
@@ -1924,8 +1924,8 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
-        if (msg->field_5 == 0 && GameFlag_GetNibble(0x94) == 0) {
-            Gp_SetNibbleIf(msg->field_6, 0);
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x94) == 0) {
+            Gp_SetNibbleIf(msg->flagId, 0);
         }
         return ret;
     }

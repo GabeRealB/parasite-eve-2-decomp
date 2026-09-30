@@ -197,7 +197,7 @@ s32 func_dryfield_night_garage_801803A4(Task*, s32, GpMessageArg, GpMessageArg);
 TaskDesc D_dryfield_night_garage_80181C2C = { 0, 192, Shop_SessionTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
-    { 5102, func_dryfield_night_garage_80180360 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_garage_80180360 },
     { 5105, func_dryfield_night_garage_80180358 },
     { 5103, func_dryfield_night_garage_801800C8 },
     { 5104, func_dryfield_night_garage_801803A4 },

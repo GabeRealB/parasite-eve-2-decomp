@@ -100,7 +100,7 @@ TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
 };
 
 GpMsgEntry D_shelter_b3_elevator_hall_80182A38[6] = {
-    { 5102, func_shelter_b3_elevator_hall_8017DC80 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_elevator_hall_8017DC80 },
     { 5105, func_shelter_b3_elevator_hall_8017DC78 },
     { 5103, func_shelter_b3_elevator_hall_8017DD90 },
     { 5104, func_shelter_b3_elevator_hall_8017DD88 },
@@ -155,7 +155,7 @@ static void func_shelter_b3_elevator_hall_8017F1A8(GfxCoord* arg0, s16 arg1, u8*
 /// the answer is 1. Without the prerequisite collected item the request's CAP
 /// command runs and the answer is 0. Otherwise the request and message are
 /// latched, the flag nibble is written, the task that runs the request is
-/// spawned, and the answer is 2. A non-zero `field_5` on the message only asks
+/// spawned, and the answer is 2. A non-zero `queryOnly` on the message only asks
 /// for the answer and changes nothing.
 static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -180,7 +180,7 @@ static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMs
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b3_elevator_hall_80184A00 = *msg;
                 D_shelter_b3_elevator_hall_80184A0C = *req;
                 id                                  = req->flagId;
@@ -197,9 +197,9 @@ static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMs
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -248,9 +248,9 @@ void func_shelter_b3_elevator_hall_8017D790(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_elevator_hall_80184A00.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b3_elevator_hall_80184A00.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_elevator_hall_80184A00.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b3_elevator_hall_80184A00.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -309,15 +309,15 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            msg.field_3       = 1;
-            msg.field_5       = 0;
-            msg.prefix.packed = Mc_SaveData[0].state.at4.loc.area;
-            msg.field_2       = Mc_SaveData[0].state.at4.loc.warp;
-            msg2              = msg;
+            msg.room      = 1;
+            msg.queryOnly = ROOM_EVENT_EXECUTE;
+            msg.areaId    = Mc_SaveData[0].state.at4.loc.area;
+            msg.warp      = Mc_SaveData[0].state.at4.loc.warp;
+            msg2          = msg;
             func_map_shelter_80179A04(&msg, &msg2);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
-            Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
+            Mc_SaveData[0].state.at4.loc.warp = msg2.warp;
+            Mc_SaveData[0].state.at4.loc.room = msg2.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -399,7 +399,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x29) {
+    if (in->areaId == 0x29) {
         req.field_0 = 1;
         req.field_4 = 1;
         req.field_8 = 0x542A0005;
@@ -408,10 +408,10 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
         req.itemId  = 0;
         return func_shelter_b3_elevator_hall_8017D62C(&req, out);
     }
-    if (in->prefix.packed != 0x1A) {
+    if (in->areaId != 0x1A) {
         return 1;
     }
-    if (in->field_5 == 0) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0xBA) == 0) {
             Gp_RunCapCmd1(2);
             GameFlag_SetNibble(0xBA, 1);

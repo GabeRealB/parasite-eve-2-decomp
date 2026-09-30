@@ -55,7 +55,7 @@ extern s8 D_neo_ark_forest_zone_80182E40[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern s8 D_neo_ark_forest_zone_80182E40_value __asm__("D_neo_ark_forest_zone_80182E40");
 
-extern GpSaveLoc        D_neo_ark_forest_zone_80182E38;
+extern RoomEventMsg     D_neo_ark_forest_zone_80182E38;
 extern RoomLatchedEvent D_neo_ark_forest_zone_80182E48;
 
 /// Payload handed to the helper task 0x31 the event may start.
@@ -75,7 +75,7 @@ static void func_neo_ark_forest_zone_8017F9F4(GfxCoord* arg0, s16 arg1, u8* arg2
 
 RoomFadeStorage D_neo_ark_forest_zone_80182E30 = { 0 };
 
-GpSaveLoc D_neo_ark_forest_zone_80182E38 = { 0 };
+RoomEventMsg D_neo_ark_forest_zone_80182E38 = { 0 };
 
 s8 D_neo_ark_forest_zone_80182E40[4] = {
     0,
@@ -96,7 +96,7 @@ u16 D_neo_ark_forest_zone_80182E54[5] = {
     0,
 };
 
-static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_forest_zone_8017DBAC(Task* task);
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
@@ -141,9 +141,9 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_forest_zone_80182E38.prefix.bytes.field_0;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_forest_zone_80182E38.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_forest_zone_80182E38.field_3;
+            Mc_SaveData[0].state.at4.loc.area = (u8)D_neo_ark_forest_zone_80182E38.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_forest_zone_80182E38.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_forest_zone_80182E38.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -157,15 +157,15 @@ s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, GpMessageArg arg2, 
 
 /// Latches the room's pending event and starts the controller that runs it:
 /// clears the "event running" flag, and once the event's flag nibble is clear
-/// (or the event carries no flag) and `dst->field_5` does not ask for the side
+/// (or the event carries no flag) and `dst->queryOnly` does not ask for the side
 /// effects to be suppressed, commits `dst` and the event and spawns the
-/// controller task. Answers 2 for a started event, 1 when `field_5` held it
+/// controller task. Answers 2 for a started event, 1 when `queryOnly` held it
 /// back.
-static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
+static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_forest_zone_80182E40_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_neo_ark_forest_zone_80182E38 = *dst;
             D_neo_ark_forest_zone_80182E48 = *event;
             if (event->flagId != 0) {
@@ -181,21 +181,21 @@ static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEve
 
 /// Room handler for the save-location message: copies the incoming record onto
 /// the outgoing one and forwards both to `func_map_neo_ark_80179B14`. On a first pass
-/// (`field_5` clear, the flag that asks a handler to only report what *would*
+/// (`queryOnly` clear, the flag that asks a handler to only report what *would*
 /// happen) it also restarts the room's ambience sound. Message 0x1D builds the
 /// room's event record - cap command 2, the stage sound, flag 0x140 - and hands
 /// it to `NeoArkForestZone_StartEvent`; every other message is not consumed and
 /// answers 1.
-s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->field_5 == 0) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x550B0006, 0x3C);
     }
-    if (*(u16*)in != 0x1D) {
+    if (in->areaId != 0x1D) {
         return 1;
     }
     event.capCmd   = 2;
@@ -210,7 +210,7 @@ s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, GpMessageArg arg2, 
     return 0;
 }
 
-/// Room message handler: on the first-visit sub-id (`field_2 == 1`) with flag
+/// Room message handler: on the first-visit sub-id (`warp == 1`) with flag
 /// 0xBD unset and the session's visit count equal to that sub-id, latches flag
 /// 0xBD and starts the room's fade with the record at `D_..._80181E6C`. Then
 /// forwards the message to the room's own task, answering -1 while that task
@@ -219,7 +219,7 @@ s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 {
     u8 visit;
 
-    visit = in->field_2;
+    visit = in->warp;
     if (visit == 1) {
         if (GameFlag_GetNibble(0xBD) == 0 && gGameSession->at4.loc.variant == visit) {
             GameFlag_SetNibble(0xBD, 1);

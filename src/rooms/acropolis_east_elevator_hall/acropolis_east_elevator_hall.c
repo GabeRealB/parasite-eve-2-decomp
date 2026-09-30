@@ -112,7 +112,7 @@ extern GpObj4C              D_acropolis_east_elevator_hall_8018685C[6];
 extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
 extern GpOverlayIds         D_acropolis_east_elevator_hall_80185CB4;
 extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
-s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, GpMessageArg, GpMessageArg);
 s32                         func_acropolis_east_elevator_hall_8017F378(Task*, s32, GpMsg13EF*, s32);
 s32                         func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, GpMessageArg);
@@ -315,7 +315,7 @@ GpEvsCmd D_acropolis_east_elevator_hall_8018621C[9] = {
 };
 
 GpMsgEntry D_acropolis_east_elevator_hall_801862F4[5] = {
-    { 5102, func_acropolis_east_elevator_hall_8017F348 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_east_elevator_hall_8017F348 },
     { 5104, func_acropolis_east_elevator_hall_8017F420 },
     { 5105, func_acropolis_east_elevator_hall_8017F370 },
     { 5103, func_acropolis_east_elevator_hall_8017F378 },
@@ -666,7 +666,7 @@ void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
 
 /// Message handler that copies the incoming location record onto the
 /// outgoing one and answers 1.
-s32 func_acropolis_east_elevator_hall_8017F348(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_acropolis_east_elevator_hall_8017F348(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

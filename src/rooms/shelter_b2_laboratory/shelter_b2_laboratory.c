@@ -270,7 +270,7 @@ TaskDesc D_shelter_b2_laboratory_80182A08[3] = {
 TaskDesc D_shelter_b2_laboratory_80182A2C = { 0, 32, func_shelter_b2_laboratory_8017FBA8, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_laboratory_80182A38[6] = {
-    { 5102, func_shelter_b2_laboratory_801800FC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
     { 5105, func_shelter_b2_laboratory_801800F4 },
     { 5103, func_shelter_b2_laboratory_801801D0 },
     { 5104, func_shelter_b2_laboratory_8017FD18 },
@@ -1264,7 +1264,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
 /// is needed), sets the flag, records `msg` and `req`, spawns the transition
 /// task and returns 2; if the item is missing, runs cap command `req->field_4`
 /// and returns 0. The spawn and the cap command happen only when
-/// `msg->field_5` is 0.
+/// `msg->queryOnly` is 0.
 static s32 func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
@@ -1288,7 +1288,7 @@ static s32 func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* 
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b2_laboratory_801864AC = *msg;
                 D_shelter_b2_laboratory_8018652C = *req;
                 id                               = req->flagId;
@@ -1305,9 +1305,9 @@ static s32 func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* 
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -1357,9 +1357,9 @@ void func_shelter_b2_laboratory_8017FBA8(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_laboratory_801864AC.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_laboratory_801864AC.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_laboratory_801864AC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_laboratory_801864AC.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_laboratory_801864AC.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_laboratory_801864AC.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1496,12 +1496,12 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (GameFlag_GetNibble(0xD0) == 2) {
-        if (in->field_5 == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(5);
         }
         return 2;
     }
-    if (in->prefix.packed != 0x21) {
+    if (in->areaId != 0x21) {
         return 1;
     }
     req.field_0 = 1;

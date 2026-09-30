@@ -36,7 +36,7 @@ extern s32        D_80133F90;
 extern s32        D_80134470;
 
 s32  func_neo_ark_r31_8017D8B0(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_r31_8017D8B8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_r31_8017D8B8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_r31_8017D8FC(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_r31_8017D904(Task*, s32, GpMessageArg, GpMessageArg);
 void func_neo_ark_r31_8017D5D0(Task*);
@@ -44,7 +44,7 @@ void func_neo_ark_r31_8017D5D0(Task*);
 TaskDesc D_neo_ark_r31_8017D9E8 = { 0, 192, func_neo_ark_r31_8017D5D0, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_r31_8017D9F4[5] = {
-    { 5102, func_neo_ark_r31_8017D8B8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r31_8017D8B8 },
     { 5105, func_neo_ark_r31_8017D8B0 },
     { 5103, func_neo_ark_r31_8017D904 },
     { 5104, func_neo_ark_r31_8017D8FC },
@@ -214,9 +214,9 @@ s32 func_neo_ark_r31_8017D8B0(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
     return 0;
 }
 
-/// Message handler for the save location: copies the incoming `GpSaveLoc`
+/// Message handler for the save location: copies the incoming `RoomEventMsg`
 /// onto the outgoing one and passes both to `func_map_neo_ark_80179B14`. Returns 1.
-s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

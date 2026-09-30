@@ -36,7 +36,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task*);
 
 s32 func_neo_ark_eve_access_tunnel_8017DC64(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_neo_ark_eve_access_tunnel_8017DD70(Task*, s32, s32, GpMessageArg);
 

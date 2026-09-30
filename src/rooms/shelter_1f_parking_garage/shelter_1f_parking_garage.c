@@ -112,7 +112,7 @@ TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, func_shelter_1f_parking
 TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, func_shelter_1f_parking_garage_8017D958, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
-    { 5102, func_shelter_1f_parking_garage_8017DCF4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
     { 5105, func_shelter_1f_parking_garage_8017DCEC },
     { 5103, func_shelter_1f_parking_garage_8017DE4C },
     { 5104, func_shelter_1f_parking_garage_8017DE44 },
@@ -379,13 +379,13 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
+/// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_parking_garage_80181984_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_1f_parking_garage_8018197C = *dst;
             D_shelter_1f_parking_garage_80181998 = *event;
             if (event->flagId != 0) {
@@ -399,8 +399,8 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
     return 1;
 }
 
-/// Answers the progress query `in->msgId` in `out->field_3`, unless
-/// `in->field_5` is set. Six queries have an answer, each read from a
+/// Answers the progress query `in->msgId` in `out->room`, unless
+/// `in->queryOnly` is set. Six queries have an answer, each read from a
 /// game-flag nibble: 2 answers 2 once nibble 0x10F is set and 3 once nibble
 /// 0x11A reaches 2; 5, 41 and 45 answer nibbles 0xA4, 0xB6 and 0xB7 plus one;
 /// 16 answers 3 once nibble 0x7A reaches 6; and 20 maps nibble 0xF4's values
@@ -408,48 +408,48 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 /// untouched. Always returns 1.
 static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->field_5 == 0) {
-        switch (in->prefix.packed) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+        switch (in->areaId) {
             case 2:
                 if (GameFlag_GetNibble(0x10F) != 0) {
-                    out->field_3 = 2;
+                    out->room = 2;
                 }
                 if (GameFlag_GetNibble(0x11A) >= 2) {
-                    out->field_3 = 3;
+                    out->room = 3;
                 }
                 break;
             case 5:
-                out->field_3 = GameFlag_GetNibble(0xA4) + 1;
+                out->room = GameFlag_GetNibble(0xA4) + 1;
                 break;
             case 16:
                 if (GameFlag_GetNibble(0x7A) >= 6) {
-                    out->field_3 = 3;
+                    out->room = 3;
                 }
                 break;
             case 20:
                 switch (GameFlag_GetNibble(0xF4)) {
                     case 0:
-                        out->field_3 = 1;
+                        out->room = 1;
                         break;
                     case 1:
-                        out->field_3 = 6;
+                        out->room = 6;
                         break;
                     case 2:
-                        out->field_3 = 7;
+                        out->room = 7;
                         break;
                     case 3:
-                        out->field_3 = 8;
+                        out->room = 8;
                         break;
                     default:
-                        out->field_3 = 1;
+                        out->room = 1;
                         break;
                 }
                 break;
             case 45:
-                out->field_3 = GameFlag_GetNibble(0xB7) + 1;
+                out->room = GameFlag_GetNibble(0xB7) + 1;
                 break;
             case 41:
-                out->field_3 = GameFlag_GetNibble(0xB6) + 1;
+                out->room = GameFlag_GetNibble(0xB6) + 1;
                 break;
             case 3:
             case 4:
@@ -596,9 +596,9 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_parking_garage_8018197C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_parking_garage_8018197C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_parking_garage_8018197C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_parking_garage_8018197C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_parking_garage_8018197C.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_parking_garage_8018197C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -651,15 +651,15 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 rec.sndEvent = 0x55010004;
                 rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
-                p                 = &rec;
-                msg.prefix.packed = p->area;
-                msg.field_2       = p->warp;
-                msg.field_3       = p->room;
-                msg.field_5       = 0;
+                p             = &rec;
+                msg.areaId    = p->area;
+                msg.warp      = p->warp;
+                msg.room      = p->room;
+                msg.queryOnly = ROOM_EVENT_EXECUTE;
                 handler(&msg, &msg);
-                p->area                                    = msg.prefix.packed;
-                p->warp                                    = msg.field_2;
-                p->room                                    = msg.field_3;
+                p->area                                    = msg.areaId;
+                p->warp                                    = msg.warp;
+                p->room                                    = msg.room;
                 D_shelter_1f_parking_garage_80181988.value = rec;
                 Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
@@ -683,7 +683,7 @@ s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* 
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->prefix.packed != 5) {
+    if (in->areaId != 5) {
         return 1;
     }
     event.capCmd   = 3;

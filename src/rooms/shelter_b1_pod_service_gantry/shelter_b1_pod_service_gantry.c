@@ -75,7 +75,7 @@ extern GpPointLight                              D_shelter_b1_pod_service_gantry
 extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
 
 GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
-    { 5102, func_shelter_b1_pod_service_gantry_8017D7C8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_service_gantry_8017D7C8 },
     { 5105, func_shelter_b1_pod_service_gantry_8017D7C0 },
     { 5103, func_shelter_b1_pod_service_gantry_8017D814 },
     { 5104, func_shelter_b1_pod_service_gantry_8017D80C },

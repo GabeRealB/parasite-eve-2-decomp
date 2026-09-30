@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
@@ -35,7 +34,7 @@ extern TaskDesc D_shelter_b6_training_room_8018431C[2];
 // Callbacks referenced by the overlay's shared data tables.
 s32 func_shelter_b6_training_room_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_shelter_b6_training_room_8017D640(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_b6_training_room_8017D640(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_shelter_b6_training_room_8017D684(Task*, s32, s32, GpMessageArg);
 

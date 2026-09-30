@@ -124,7 +124,7 @@ void func_dryfield_water_tank_8017D618(Task*);
 
 s32 func_dryfield_water_tank_8017D7BC(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_dryfield_water_tank_8017D7C4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_dryfield_water_tank_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_dryfield_water_tank_8017D7EC(Task*, s32, GpMsg13EF*, GpMessageArg);
 

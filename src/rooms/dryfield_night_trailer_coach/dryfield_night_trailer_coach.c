@@ -463,7 +463,7 @@ AnimationSet D_dryfield_night_trailer_coach_80187924 = {
 };
 
 DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
-    { 5102, { .call1 = func_dryfield_night_trailer_coach_801826A8 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_dryfield_night_trailer_coach_801826A8 } },
     { 5105, { .call0 = func_dryfield_night_trailer_coach_801826A0 } },
     { 5103, { .call0 = func_dryfield_night_trailer_coach_80182800 } },
     { 5104, { .call2 = func_dryfield_night_trailer_coach_801826EC } },

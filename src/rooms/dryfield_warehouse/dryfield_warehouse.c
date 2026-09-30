@@ -245,23 +245,23 @@ s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
 }
 
 /// Copies the room message, then answers msg 9 by running CAP command 3 and
-/// setting the event's nibble. field_5 suppresses the side effects (the
+/// setting the event's nibble. queryOnly suppresses the side effects (the
 /// handler only reports what *would* happen); any other message plays the
 /// "refused" sound instead.
 s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 9) {
+    if (in->areaId == 9) {
         if (GameFlag_GetNibble(0x3C) != 0) {
             return 1;
         }
-        if (in->field_5 == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(3);
-            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_SetNibbleIf(in->flagId, 2);
         }
         return 0;
     }
-    if (in->field_5 == 0) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         SndEvt_EnqueueType7(0x52070005, 0xF);
     }
     return 1;

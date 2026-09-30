@@ -113,7 +113,7 @@ void                func_acropolis_cafeteria_8017E2D0(void);
 void                func_acropolis_cafeteria_8017E310(void);
 
 GpMsgEntry D_acropolis_cafeteria_80182AA8[6] = {
-    { 5102, func_acropolis_cafeteria_8017D700 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
     { 5103, func_acropolis_cafeteria_8017E154 },
     { 5104, func_acropolis_cafeteria_8017E0DC },
     { 5105, func_acropolis_cafeteria_8017E0D4 },
@@ -2467,58 +2467,58 @@ static void func_acropolis_cafeteria_8017D6AC(Task* task)
     }
 }
 
-/// Answers message 3 in the outgoing copy unless field_5 suppresses it: before
+/// Answers message 3 in the outgoing copy unless queryOnly suppresses it: before
 /// nibble 0 reaches 2 the answer is 1 or 2 by nibble 0x21, afterwards the
 /// message id itself. Returns 1, the handler's "message accepted" result.
 static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out)
 {
-    s32 msgId = in->prefix.packed;
+    s32 msgId = in->areaId;
 
-    if (msgId == 3 && in->field_5 == 0) {
+    if (msgId == 3 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0) < 2) {
             if (GameFlag_GetNibble(0x21) < 2) {
-                out->field_3 = 1;
+                out->room = 1;
             } else {
-                out->field_3 = 2;
+                out->room = 2;
             }
         } else {
-            out->field_3 = msgId;
+            out->room = msgId;
         }
     }
     return 1;
 }
 
 /// Copies the room message, selects its response, and starts capture slots 5
-/// or 6 when the room's progress permits. field_5 suppresses side effects.
+/// or 6 when the room's progress permits. queryOnly suppresses side effects.
 s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 msgId;
 
     *out = *in;
-    if (in->prefix.packed == 7 && in->field_2 == 4) {
+    if (in->areaId == 7 && in->warp == 4) {
         if (GameFlag_GetNibble(0) >= 3) {
             return 1;
         }
-        if (in->field_5 == 0) {
-            Gp_SetNibbleIf(in->field_6, 2);
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            Gp_SetNibbleIf(in->flagId, 2);
             Gp_StartCapSlot(5, 1, 0);
         }
         return 0;
     }
-    msgId = in->prefix.packed;
+    msgId = in->areaId;
     if (msgId == 3) {
         if (GameFlag_GetNibble(0) < 2) {
             if (D_acropolis_cafeteria_80184164 == 0) {
                 return _acropolisCafeteriaAnswer(in, out);
             }
             if (D_acropolis_cafeteria_80184164 == 2) {
-                if (in->field_5 == 0) {
+                if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_StartCapSlot(6, 1, 0);
                 }
             }
             return 0;
         }
-        if (GameFlag_GetNibble(0xE) == msgId && in->field_5 == 0) {
+        if (GameFlag_GetNibble(0xE) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
             GameFlag_SetNibble(0xE, 2);
         }
         return _acropolisCafeteriaAnswer(in, out);

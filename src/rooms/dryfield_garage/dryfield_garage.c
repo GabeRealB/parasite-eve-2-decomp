@@ -95,7 +95,7 @@ void                  func_dryfield_garage_8017DAA0(Task*);
 TaskDesc D_dryfield_garage_8017DC70 = { 0, 32, func_dryfield_garage_8017D74C, { .model = NULL } };
 
 GpMsgEntry D_dryfield_garage_8017DC7C[6] = {
-    { 5102, func_dryfield_garage_8017D91C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
     { 5105, func_dryfield_garage_8017D914 },
     { 5106, func_dryfield_garage_8017D8BC },
     { 5104, func_dryfield_garage_8017DA18 },
@@ -613,7 +613,7 @@ static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 /// Event gate for a room exit. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when
 /// `req->itemId` has been collected or is 0, it returns 2 and - unless
-/// `msg->field_5` asks for a dry run - latches `msg` and `req`, sets the
+/// `msg->queryOnly` asks for a dry run - latches `msg` and `req`, sets the
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`. Nothing in this
 /// room calls it.
@@ -640,7 +640,7 @@ static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_garage_80180224 = *msg;
                 D_dryfield_garage_80180230 = *req;
                 id                         = req->flagId;
@@ -657,9 +657,9 @@ static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -708,9 +708,9 @@ void func_dryfield_garage_8017D74C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_garage_80180224.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_garage_80180224.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_garage_80180224.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_garage_80180224.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_garage_80180224.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_garage_80180224.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -752,7 +752,7 @@ s32 func_dryfield_garage_8017D914(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// warp request: copies `in` to `out`. For area 0x1A it answers 2 while nibble
 /// 0x33 is clear, spawning the task of `D_dryfield_garage_8017DCAC` outside a
 /// dry run; once 0x33 is set it sets nibble 0x2F (and 0x4B to 3) the first
-/// time. For area 0x17 it reports nibble 0x47 in `out->field_3`, 1 when clear
+/// time. For area 0x17 it reports nibble 0x47 in `out->room`, 1 when clear
 /// and 2 when set. Otherwise it answers 1.
 s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -766,9 +766,9 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     s32          nib;
 
     *out = *in;
-    if (in->prefix.packed == 0x1A) {
+    if (in->areaId == 0x1A) {
         if (GameFlag_GetNibble(0x33) == 0) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Task_SpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
             }
             return 2;
@@ -778,15 +778,15 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
             GameFlag_SetNibble(0x4B, 3);
         }
     }
-    if (in->prefix.packed == 0x17) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 0x17) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             nib = GameFlag_GetNibble(0x47);
             if (nib == 0) {
                 nib = 1;
             } else {
                 nib = 2;
             }
-            out->field_3 = nib;
+            out->room = nib;
         }
     }
     return 1;
@@ -807,7 +807,7 @@ s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, GpMessageArg a
 /// value.
 s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, GpMessageArg arg3)
 {
-    if ((msg->field_2 == 2) && (gGameSession->at4.loc.variant != 1)) {
+    if ((msg->warp == 2) && (gGameSession->at4.loc.variant != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);
     }
 }

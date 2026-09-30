@@ -361,9 +361,9 @@ s32 func_shelter_b6_training_room_8017D638(Task* task, s32 msgId, GpMessageArg a
     return 0;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
+/// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
 /// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
-s32 func_shelter_b6_training_room_8017D640(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_shelter_b6_training_room_8017D640(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

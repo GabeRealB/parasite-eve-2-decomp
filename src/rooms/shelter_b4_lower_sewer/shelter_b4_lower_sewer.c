@@ -65,7 +65,7 @@ s32  func_shelter_b4_lower_sewer_8017D65C(Task*, s32, GpMessageArg, GpMessageArg
 void func_shelter_b4_lower_sewer_8017E2D4(Task*);
 
 GpMsgEntry D_shelter_b4_lower_sewer_80181E44[5] = {
-    { 5102, func_shelter_b4_lower_sewer_8017D610 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_lower_sewer_8017D610 },
     { 5105, func_shelter_b4_lower_sewer_8017D608 },
     { 5103, func_shelter_b4_lower_sewer_8017D65C },
     { 5104, func_shelter_b4_lower_sewer_8017D654 },

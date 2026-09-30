@@ -43,7 +43,7 @@ extern GpEvsCmd D_neo_ark_r26_8017DFCC[];
 extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
 
 s32 func_neo_ark_r26_8017D648(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_r26_8017D650(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_r26_8017D694(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_neo_ark_r26_8017D69C(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -202,7 +202,7 @@ GpEvsCmd D_neo_ark_r26_8017DFCC[9] = {
 };
 
 GpMsgEntry D_neo_ark_r26_8017E0A4[5] = {
-    { 5102, func_neo_ark_r26_8017D650 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r26_8017D650 },
     { 5105, func_neo_ark_r26_8017D648 },
     { 5103, func_neo_ark_r26_8017D69C },
     { 5104, func_neo_ark_r26_8017D694 },
@@ -465,9 +465,9 @@ s32 func_neo_ark_r26_8017D648(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
     return 0;
 }
 
-/// Message handler for the save location: copies the incoming `GpSaveLoc`
+/// Message handler for the save location: copies the incoming `RoomEventMsg`
 /// onto the outgoing one and passes both to `func_map_neo_ark_80179B14`. Returns 1.
-s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

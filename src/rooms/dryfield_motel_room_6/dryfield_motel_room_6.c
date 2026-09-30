@@ -220,7 +220,7 @@ TaskDesc D_dryfield_motel_room_6_80182D24[3] = {
 };
 
 GpMsgEntry D_dryfield_motel_room_6_80182D48[6] = {
-    { 5102, func_dryfield_motel_room_6_80181920 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_6_80181920 },
     { 5105, func_dryfield_motel_room_6_80181918 },
     { 5103, func_dryfield_motel_room_6_801819A8 },
     { 5106, func_dryfield_motel_room_6_80181A00 },
@@ -2100,13 +2100,13 @@ s32 func_dryfield_motel_room_6_80181918(Task* task, s32 msgId, GpMessageArg arg2
 s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed != 0x14) {
+    if (in->areaId != 0x14) {
         return 1;
     }
     if (GameFlag_GetNibble(0x54) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
     GameFlag_SetNibble(0x54, 1);

@@ -235,7 +235,7 @@ TaskDesc D_shelter_b1_sterilization_room_80184E1C[3] = {
 };
 
 ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
-    { 5102, { .call2 = func_shelter_b1_sterilization_room_801803EC } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b1_sterilization_room_801803EC } },
     { 5105, { .call0 = func_shelter_b1_sterilization_room_801803E4 } },
     { 5103, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
     { 5104, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },

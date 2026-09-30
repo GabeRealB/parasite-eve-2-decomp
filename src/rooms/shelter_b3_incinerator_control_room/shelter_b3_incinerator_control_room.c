@@ -135,7 +135,7 @@ TaskDesc D_shelter_b3_incinerator_control_room_80181814[3] = {
 };
 
 GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
-    { 5102, func_shelter_b3_incinerator_control_room_8017FA8C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_incinerator_control_room_8017FA8C },
     { 5105, func_shelter_b3_incinerator_control_room_8017FA84 },
     { 5103, func_shelter_b3_incinerator_control_room_8017FBE0 },
     { 5104, func_shelter_b3_incinerator_control_room_8017FB20 },
@@ -379,16 +379,16 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, Room
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed != 0x2A) {
+    if (in->areaId != 0x2A) {
         return 1;
     }
     if (GameFlag_GetNibble(0xA7) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_SetNibbleIf(in->flagId, 2);
     Gp_RunCapCmd1(3);
     return 0;
 }

@@ -29,7 +29,7 @@ s32 func_acropolis_observatory_8017D7BC(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
-    { 5102, func_acropolis_observatory_8017D618 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_observatory_8017D618 },
     { 5105, func_acropolis_observatory_8017D7BC },
     { 5103, func_acropolis_observatory_8017D7C4 },
     { 0x7FFFFFFF, NULL },
@@ -45,53 +45,53 @@ static void func_acropolis_observatory_8017D8AC(Task* task);
 /// game's progress nibbles.
 ///
 /// Message 9 (the telescope) and message 0xB (the door) both answer with a
-/// `field_2` refusal code — 5 and 1 respectively — while the disc has no stream
+/// `warp` refusal code — 5 and 1 respectively — while the disc has no stream
 /// file open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`) or the message's
 /// nibble is not in the state that lets it run once. The first pass through
 /// each also advances that nibble, so the refusal only shows on later visits.
-/// `field_5` non-zero means "report only", which suppresses both the nibble
+/// `queryOnly` non-zero means "report only", which suppresses both the nibble
 /// writes and the refusals.
 s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 answer;
 
     *out = *in;
-    if (in->prefix.packed == 9 && in->field_5 == 0) {
+    if (in->areaId == 9 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
-            out->field_2 = 5;
+            out->warp = 5;
         }
         if (GameFlag_GetNibble(0x25) == 0) {
             GameFlag_SetNibble(0x25, 1);
         } else {
-            out->field_2 = 5;
+            out->warp = 5;
         }
-        if (in->prefix.packed == 9) {
+        if (in->areaId == 9) {
             if (GameFlag_GetNibble(9) & 1) {
-                out->field_3 = 2;
+                out->room = 2;
             }
         }
     }
-    if (in->prefix.packed == 0xB) {
+    if (in->areaId == 0xB) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
-            if (in->field_5 == 0) {
-                out->field_2 = 1;
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                out->warp = 1;
             }
         }
-        if (in->field_5 == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(1) == 3) {
                 GameFlag_SetNibble(1, 4);
             } else {
-                out->field_2 = 1;
+                out->warp = 1;
             }
         }
-        if (in->prefix.packed == 0xB && in->field_5 == 0) {
+        if (in->areaId == 0xB && in->queryOnly == ROOM_EVENT_EXECUTE) {
             answer = GameFlag_GetNibble(2);
             if (answer == 0) {
                 answer = 1;
             } else {
                 answer = 2;
             }
-            out->field_3 = answer;
+            out->room = answer;
         }
     }
     return 1;
@@ -109,7 +109,7 @@ s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, GpMessageArg arg2
 /// consumes the message.
 s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if ((in->field_2 == 1) && (gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
+    if ((in->warp == 1) && (gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         GameFlag_SetNibble(0xCA, 1);
         Task_SpawnFromTable(&D_acropolis_observatory_8017FE6C, 0, 0, 0);
     }

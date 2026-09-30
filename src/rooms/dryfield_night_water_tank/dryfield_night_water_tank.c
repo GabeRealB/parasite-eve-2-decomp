@@ -95,7 +95,7 @@ extern TmdSource      D_dryfield_night_water_tank_8017EE04;
 void                  func_dryfield_night_water_tank_8017DB8C(Task*);
 
 s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_night_water_tank_8017D714(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, GpMessageArg);
 s32  func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, GpMessageArg);
 void func_dryfield_night_water_tank_8017D5D0(Task*);
@@ -135,7 +135,7 @@ GpEvsCmd D_dryfield_night_water_tank_8017DEE0[11] = {
 };
 
 GpMsgEntry D_dryfield_night_water_tank_8017DFE8[5] = {
-    { 5102, func_dryfield_night_water_tank_8017D714 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_tank_8017D714 },
     { 5105, func_dryfield_night_water_tank_8017D70C },
     { 5103, func_dryfield_night_water_tank_8017D76C },
     { 5104, func_dryfield_night_water_tank_8017D73C },
@@ -663,7 +663,7 @@ s32 func_dryfield_night_water_tank_8017D70C(Task* task, s32 msgId, GpMessageArg 
 
 /// Handler for message 0x13EE in the room's message table: copies the location
 /// record it is handed onto the outgoing one and answers 1.
-s32 func_dryfield_night_water_tank_8017D714(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_night_water_tank_8017D714(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;
@@ -682,14 +682,14 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
     u8 temp_v1;
 
     if ((gGameSession->at4.loc.variant != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
-        if (in->field_2 == 3) {
+        if (in->warp == 3) {
             func_800E8614(D_dryfield_night_water_tank_8017DDD8, 0);
         }
-        if (in->field_2 == 4) {
+        if (in->warp == 4) {
             func_800E8614(D_dryfield_night_water_tank_8017DEE0, 0);
         }
     }
-    if (in->field_2 == 5) {
+    if (in->warp == 5) {
         temp_v1 = gGameSession->at4.loc.variant;
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {

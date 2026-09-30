@@ -51,11 +51,11 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// the same shape `D_mine_mesa_80189B38` has.
 extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 
-/// Staging save location the gallery commits: `field_2` / `field_4` / `field_1`
+/// Staging save location the gallery commits: area / warp / room
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
 /// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
 /// same three bytes into `Mc_SaveData[0].state.at4.loc.area` / `field_8` / `field_5`.
-extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
+extern RoomEventMsg D_neo_ark_submarine_gallery_80185924;
 
 GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
     { 5, 12, 4, 0 },
@@ -66,7 +66,7 @@ GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
 
 RoomFadeStorage D_neo_ark_submarine_gallery_8018591C = { 0 };
 
-GpSaveLoc D_neo_ark_submarine_gallery_80185924 = { 0 };
+RoomEventMsg D_neo_ark_submarine_gallery_80185924 = { 0 };
 
 static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
 
@@ -835,9 +835,9 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             break;
         case 5:
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
+            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -853,15 +853,15 @@ s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, GpMessageArg 
 /// reports no pending flag, latches the save location the outgoing message
 /// carries and starts the cutscene the gallery leads out of. Returns 0 for that
 /// message and 1 for every other one.
-s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (*(u16*)src == 0xE) {
-        if (src->field_5 == 0) {
-            D_neo_ark_submarine_gallery_80185924.field_2              = dst->prefix.bytes.field_0;
-            D_neo_ark_submarine_gallery_80185924.field_4              = dst->field_2;
-            D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 0xE) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_neo_ark_submarine_gallery_80185924.warp              = (u8)dst->areaId;
+            D_neo_ark_submarine_gallery_80185924.field_4           = dst->warp;
+            ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1] = dst->room;
             Task_SpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
         }
         return 0;

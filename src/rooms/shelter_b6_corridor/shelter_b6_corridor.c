@@ -129,7 +129,7 @@ TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
 s32 D_shelter_b6_corridor_8017EF20 = 256;
 
 GpMsgEntry D_shelter_b6_corridor_8017EF24[6] = {
-    { 5102, func_shelter_b6_corridor_8017DEB0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_corridor_8017DEB0 },
     { 5105, func_shelter_b6_corridor_8017DEA8 },
     { 5103, func_shelter_b6_corridor_8017E020 },
     { 5104, func_shelter_b6_corridor_8017DF48 },
@@ -735,11 +735,11 @@ s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    k  = in->prefix.packed;
+    k  = in->areaId;
     id = k;
     k  = 0x19;
     if (id == 9) {
-        if (in->field_5 == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(1);
         }
         return 0;

@@ -86,7 +86,7 @@ void                  func_dryfield_parking_lot_8017D74C(Task*);
 TaskDesc D_dryfield_parking_lot_8017DBF8 = { 0, 32, func_dryfield_parking_lot_8017D74C, { .model = NULL } };
 
 GpMsgEntry D_dryfield_parking_lot_8017DC04[6] = {
-    { 5102, func_dryfield_parking_lot_8017D8BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_parking_lot_8017D8BC },
     { 5105, func_dryfield_parking_lot_8017DAF0 },
     { 5103, func_dryfield_parking_lot_8017DB00 },
     { 5104, func_dryfield_parking_lot_8017DAF8 },
@@ -464,7 +464,7 @@ static void func_dryfield_parking_lot_8017DB4C(Task* task);
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
 /// runs the request's CAP command `field_4` and answers 0. Otherwise the
 /// message and request are latched, the nibble is written, the event task is
-/// spawned and the answer is 2. A non-zero `field_5` on the message only
+/// spawned and the answer is 2. A non-zero `queryOnly` on the message only
 /// reports the answer, with none of the side effects.
 static s32 func_dryfield_parking_lot_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -489,7 +489,7 @@ static s32 func_dryfield_parking_lot_8017D5E8(RoomEventReq* req, RoomEventMsg* m
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_parking_lot_8017FB50 = *msg;
                 D_dryfield_parking_lot_8017FB5C = *req;
                 id                              = req->flagId;
@@ -506,9 +506,9 @@ static s32 func_dryfield_parking_lot_8017D5E8(RoomEventReq* req, RoomEventMsg* m
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -559,9 +559,9 @@ void func_dryfield_parking_lot_8017D74C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_parking_lot_8017FB50.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_parking_lot_8017FB50.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_parking_lot_8017FB50.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_parking_lot_8017FB50.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_parking_lot_8017FB50.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_parking_lot_8017FB50.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -571,7 +571,7 @@ void func_dryfield_parking_lot_8017D74C(Task* task)
 /// Handler for message 0x13EE in the room's message table: the room's two
 /// reports and its two events. The incoming record is first copied to `out`.
 ///
-/// Messages 2 and 0x1D answer in `out->field_3` (only when `field_5` is clear):
+/// Messages 2 and 0x1D answer in `out->room` (only when `queryOnly` is clear):
 /// message 2 gives nibble 0x61 plus one while nibble 0x7A is under 4, and 3
 /// once it is not; message 0x1D gives 1 while nibble 0x61 is clear and 3 once
 /// it is set.
@@ -590,25 +590,25 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
     s32          n;
 
     *out = *msg;
-    if ((msg->prefix.packed == 2) && (msg->field_5 == 0)) {
+    if ((msg->areaId == 2) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;
         } else {
             val = GameFlag_GetNibble(0x61) + 1;
         }
-        out->field_3 = val;
+        out->room = val;
     }
-    if ((msg->prefix.packed == 0x1D) && (msg->field_5 == 0)) {
+    if ((msg->areaId == 0x1D) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
         n = GameFlag_GetNibble(0x61);
         if (n == 0) {
             n = 1;
         } else {
             n = 3;
         }
-        out->field_3 = n;
+        out->room = n;
     }
-    if (msg->prefix.packed == 0x11) {
+    if (msg->areaId == 0x11) {
         req.field_0 = 6;
         req.field_4 = 1;
         req.field_8 = Gp_PackStageSndId(0x520F000B);
@@ -624,7 +624,7 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
         }
-    } else if (msg->prefix.packed == 0x12) {
+    } else if (msg->areaId == 0x12) {
         req.field_0 = 3;
         req.field_4 = 2;
         req.field_8 = Gp_PackStageSndId(0x520F000B);

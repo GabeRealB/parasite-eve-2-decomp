@@ -123,7 +123,7 @@ void func_shelter_1f_tent_8017F484(Task*);
 void func_shelter_1f_tent_8017FBC4(Task*);
 
 s32 func_shelter_1f_tent_8017FC54(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_tent_8017FC5C(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_1f_tent_8017FC5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, GpMessageArg);
 s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, GpMessageArg);
 
@@ -139,7 +139,7 @@ TaskDesc D_shelter_1f_tent_80181CB8[3] = {
 };
 
 GpMsgEntry D_shelter_1f_tent_80181CDC[5] = {
-    { 5102, func_shelter_1f_tent_8017FC5C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_tent_8017FC5C },
     { 5105, func_shelter_1f_tent_8017FC54 },
     { 5103, func_shelter_1f_tent_8017FD54 },
     { 5104, func_shelter_1f_tent_8017FCA0 },
@@ -426,9 +426,9 @@ s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, GpMessageArg arg2, GpMe
     return 0;
 }
 
-/// Copies the incoming `GpSaveLoc` onto the outgoing one, hands both to
+/// Copies the incoming `RoomEventMsg` onto the outgoing one, hands both to
 /// `func_map_neo_ark_80179B14` and returns 1.
-s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -458,10 +458,10 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg a
 
 s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (arg2->warp == 1) {
         func_801322B8();
     }
-    if (arg2->field_2 == 2) {
+    if (arg2->warp == 2) {
         func_80132390();
     }
     return 0;

@@ -80,7 +80,7 @@ extern GpRoomCoordSet D_dryfield_back_street_80180FF8[1];
 extern TaskDesc D_8014D8A4;
 
 GpMsgEntry D_dryfield_back_street_8017F964[5] = {
-    { 5102, func_dryfield_back_street_8017D748 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_back_street_8017D748 },
     { 5105, func_dryfield_back_street_8017D89C },
     { 5103, func_dryfield_back_street_8017D8AC },
     { 5104, func_dryfield_back_street_8017D8A4 },
@@ -376,8 +376,8 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 }
 
 /// Message handler for the back street's two events. Copies the incoming
-/// record to the outgoing one and answers by editing `field_3` of the copy; a
-/// non-zero `field_5` suppresses the side effects.
+/// record to the outgoing one and answers by editing `room` of the copy; a
+/// non-zero `queryOnly` suppresses the side effects.
 ///
 /// On stage 2 (`gGameSession->at4.loc.stage`), message 7 answers 1 while event
 /// nibble 0x3C is clear and the stage byte, read once into a local, when it is
@@ -392,29 +392,29 @@ s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg* in, R
     *out = *in;
     s1   = gGameSession->at4.loc.stage;
     if (s1 == 2) {
-        if (in->prefix.packed == 7) {
-            if (in->field_5 == 0) {
+        if (in->areaId == 7) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3C) == 0) {
-                    out->field_3 = 1;
+                    out->room = 1;
                 } else {
-                    out->field_3 = s1;
+                    out->room = s1;
                 }
             }
         }
     }
-    if ((in->prefix.packed == 9) && (GameFlag_GetNibble(0x3F) == 0)) {
-        if (in->field_5 == 0) {
+    if ((in->areaId == 9) && (GameFlag_GetNibble(0x3F) == 0)) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             s32 cmd = 9;
 
             if (gGameSession->at4.loc.stage == 2) {
                 cmd = 2;
             }
             Gp_RunCapCmd1(cmd);
-            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_SetNibbleIf(in->flagId, 2);
         }
         return 0;
     }
-    if (in->field_5 == 0) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gGameSession->at4.loc.stage == 2) {
             SndEvt_EnqueueType7(0x52050006, 0xF);
         }

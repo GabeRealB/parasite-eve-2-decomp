@@ -111,14 +111,14 @@ extern GpObj4C        D_dryfield_motel_lobby_80180AEC[4];
 extern GpObj4C        D_dryfield_motel_lobby_80180C1C[7];
 extern GpRoomCoordSet D_dryfield_motel_lobby_80181010[1];
 s32                   func_dryfield_motel_lobby_8017F40C(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_motel_lobby_8017F414(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                   func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                   func_dryfield_motel_lobby_8017F43C(Task*, s32, GpMessageArg, GpMessageArg);
 s32                   func_dryfield_motel_lobby_8017F444(Task*, s32, GpMessageArg, GpMessageArg);
 
 #include "../../shared/telephone_data.inc.c"
 
 GpMsgEntry D_dryfield_motel_lobby_8017F810[5] = {
-    { 5102, func_dryfield_motel_lobby_8017F414 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_lobby_8017F414 },
     { 5105, func_dryfield_motel_lobby_8017F40C },
     { 5103, func_dryfield_motel_lobby_8017F444 },
     { 5104, func_dryfield_motel_lobby_8017F43C },
@@ -470,7 +470,7 @@ s32 func_dryfield_motel_lobby_8017F40C(Task* task, s32 msgId, GpMessageArg arg2,
 
 /// Location-message handler of the room's message table: copies the requested
 /// location onto the outgoing record and answers 1.
-s32 func_dryfield_motel_lobby_8017F414(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_motel_lobby_8017F414(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

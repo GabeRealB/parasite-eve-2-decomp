@@ -216,7 +216,7 @@ AnimationSet D_dryfield_night_water_hole_801805C4 = {
 TaskDesc D_dryfield_night_water_hole_801805EC = { 0, 32, func_dryfield_night_water_hole_8017D7E8, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_water_hole_801805F8[5] = {
-    { 5102, func_dryfield_night_water_hole_8017DADC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_hole_8017DADC },
     { 5105, func_dryfield_night_water_hole_8017DAD4 },
     { 5103, func_dryfield_night_water_hole_8017DD5C },
     { 5104, func_dryfield_night_water_hole_8017DC28 },
@@ -1280,8 +1280,8 @@ s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, GpMessageArg 
 }
 
 /// Handler for message 0x13EE in the room's message table. It copies the
-/// incoming record to `out` and, unless `in->field_5` is set, answers two
-/// queries in `out->field_3`:
+/// incoming record to `out` and, unless `in->queryOnly` is set, answers two
+/// queries in `out->room`:
 ///
 /// - 0x19: while the session's stage is 2, 2 once progress nibble 0x3A has
 ///   reached 2 and 1 before; in any other stage, nibble 0x61 plus one.
@@ -1294,35 +1294,35 @@ s32 func_dryfield_night_water_hole_8017DADC(Task* arg0, s32 arg1, RoomEventMsg* 
     u8 temp;
 
     *out = *in;
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         temp = gGameSession->at4.loc.stage;
         if (temp == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->field_3 = temp;
+                    out->room = temp;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
             }
-        } else if (in->field_5 == 0) {
-            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
         }
     }
-    if (in->prefix.packed == 0x26 && in->field_5 == 0) {
+    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0xC9) != 0) {
             if (GameFlag_GetNibble(0x53) != 0) {
-                out->field_3 = 2;
+                out->room = 2;
             } else {
-                out->field_3 = 1;
+                out->room = 1;
             }
             if (GameFlag_GetNibble(0x51) == 0) {
-                out->field_3 += 2;
+                out->room += 2;
             }
         } else {
             if (GameFlag_GetNibble(0x51) != 0) {
-                out->field_3 = 5;
+                out->room = 5;
             } else {
-                out->field_3 = 6;
+                out->room = 6;
             }
         }
     }
@@ -1387,11 +1387,11 @@ s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* 
 {
     u8 temp_s0;
 
-    if ((in->field_2 == 2) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.variant == 1)) {
+    if ((in->warp == 2) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.variant == 1)) {
         GameFlag_SetNibble(0x95, 1);
         func_800E8614(D_dryfield_night_water_hole_8018067C, 0);
     }
-    temp_s0 = in->field_2;
+    temp_s0 = in->warp;
     if ((temp_s0 == 1) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.variant == temp_s0)) {
         GameFlag_SetNibble(0x95, 1);
         func_800E8614(D_dryfield_night_water_hole_801807FC, 0);

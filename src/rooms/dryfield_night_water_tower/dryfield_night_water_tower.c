@@ -53,7 +53,7 @@ static void func_dryfield_night_water_tower_8017DB20(Task* task);
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
 /// runs the request's CAP command and answers 0. Otherwise the message and
 /// request are latched, the nibble is written, the event task is spawned and
-/// the answer is 2. A non-zero `field_5` on the message only reports the
+/// the answer is 2. A non-zero `queryOnly` on the message only reports the
 /// answer, with none of the side effects.
 static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -78,7 +78,7 @@ static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEvent
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_night_water_tower_80182C50 = *msg;
                 D_dryfield_night_water_tower_80182C5C = *req;
                 id                                    = req->flagId;
@@ -95,9 +95,9 @@ static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEvent
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -147,9 +147,9 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_water_tower_80182C50.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_water_tower_80182C50.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_water_tower_80182C50.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_water_tower_80182C50.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_water_tower_80182C50.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_water_tower_80182C50.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -172,7 +172,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
     s32          ret;
 
     *out = *msg;
-    if (msg->prefix.packed == 0x13) {
+    if (msg->areaId == 0x13) {
         req.field_0 = 0xA;
         req.field_4 = 6;
         req.field_8 = Gp_PackStageSndId(0x5214000E);
@@ -188,11 +188,11 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
         }
         return ret;
     }
-    if (msg->field_5 == 0 && GameFlag_GetNibble(0x55) == 2) {
+    if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x55) == 2) {
         GameFlag_SetNibble(0x55, 1);
     }
-    if (msg->prefix.packed == 0x15) {
-        if (msg->field_5 == 0 && GameFlag_GetNibble(0x4B) == 7) {
+    if (msg->areaId == 0x15) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 7) {
             GameFlag_SetNibble(0x4B, 0);
         }
         if (gGameSession->at4.loc.stage == 3) {

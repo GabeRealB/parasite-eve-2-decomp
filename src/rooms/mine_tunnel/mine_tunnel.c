@@ -62,7 +62,7 @@ AnimationSet D_mine_tunnel_8017DF9C = {
 };
 
 GpMsgEntry D_mine_tunnel_8017DFC4[5] = {
-    { 5102, func_mine_tunnel_8017D5EC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_8017D5EC },
     { 5105, func_mine_tunnel_8017D5E4 },
     { 5103, func_mine_tunnel_8017D670 },
     { 5104, func_mine_tunnel_8017D630 },
@@ -125,7 +125,7 @@ s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
     u8 temp_v1;
 
-    temp_v1 = msg->field_2;
+    temp_v1 = msg->warp;
     if ((temp_v1 == 1) && (gGameSession->at4.loc.variant == temp_v1) && (GameFlag_GetNibble(0xA1) == 0)) {
         GameFlag_SetNibble(0xA1, 1);
         Gp_MsgPlayerWeapon(0);

@@ -57,7 +57,7 @@ TaskDesc D_dryfield_night_general_store_8017E798[3] = {
 };
 
 GpMsgEntry D_dryfield_night_general_store_8017E7BC[6] = {
-    { 5102, func_dryfield_night_general_store_8017D904 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_general_store_8017D904 },
     { 5105, func_dryfield_night_general_store_8017DE24 },
     { 5103, func_dryfield_night_general_store_8017DE2C },
     { 5104, func_dryfield_night_general_store_8017DD88 },
@@ -70,7 +70,7 @@ static s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEve
 /// The room's event gate. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when
 /// `req->itemId` has been collected or is 0, it returns 2 and - unless
-/// `msg->field_5` asks for a dry run - latches `msg` and `req`, sets the
+/// `msg->queryOnly` asks for a dry run - latches `msg` and `req`, sets the
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`.
 static s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEventMsg* msg)
@@ -96,7 +96,7 @@ static s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEve
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_night_general_store_801858BC = *msg;
                 D_dryfield_night_general_store_801858C8 = *req;
                 id                                      = req->flagId;
@@ -113,9 +113,9 @@ static s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEve
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -164,9 +164,9 @@ void func_dryfield_night_general_store_8017D794(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_general_store_801858BC.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858BC.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_general_store_801858BC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_general_store_801858BC.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858BC.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_general_store_801858BC.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -174,7 +174,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
 }
 
 /// Handler for the store's two event ids. Both answer with a furniture-style
-/// "which variant" byte in `out->field_3`, and a non-zero `field_5` asks what
+/// "which variant" byte in `out->room`, and a non-zero `queryOnly` asks what
 /// would happen without the side effects.
 ///
 /// Message 1 is the grandfather clock: with nibble 0x63 clear the reply is the
@@ -185,7 +185,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
 /// Message 0x26 is the shop till: with nibble 0xC9 set the reply is 2, or 1
 /// while nibble 0x53 is clear, plus 2 more while nibble 0x51 is clear;
 /// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
-/// latches `field_2` / `field_3` for the spawned task and answers 2, or runs
+/// latches `warp` / `room` for the spawned task and answers 2, or runs
 /// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
 s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -194,36 +194,36 @@ s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMs
     s32          v;
 
     *out  = *in;
-    msgId = in->prefix.packed;
-    if (msgId == 1 && in->field_5 == 0) {
+    msgId = in->areaId;
+    if (msgId == 1 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x63) == 0) {
-            out->field_3 = msgId;
+            out->room = msgId;
         } else {
             if (GameFlag_GetNibble(0x7A) >= 4) {
                 v = 4;
             } else {
                 v = GameFlag_GetNibble(0x61) + 2;
             }
-            out->field_3 = v;
+            out->room = v;
         }
     }
-    if (in->prefix.packed == 0x26 && in->field_5 == 0) {
+    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0xC9) != 0) {
             if (GameFlag_GetNibble(0x53) == 0) {
-                out->field_3 = 1;
+                out->room = 1;
             } else {
-                out->field_3 = 2;
+                out->room = 2;
             }
             if (GameFlag_GetNibble(0x51) == 0) {
-                out->field_3 = out->field_3 + 2;
+                out->room = out->room + 2;
             }
         } else if (GameFlag_GetNibble(0x51) == 0) {
-            out->field_3 = 6;
+            out->room = 6;
         } else {
-            out->field_3 = 5;
+            out->room = 5;
         }
     }
-    if (in->prefix.packed == 1) {
+    if (in->areaId == 1) {
         req.field_0 = 0xD;
         req.field_4 = 0xD;
         req.field_8 = Gp_PackStageSndId(0x5203000C);
@@ -232,16 +232,16 @@ s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMs
         req.itemId  = 0;
         return func_dryfield_night_general_store_8017D630(&req, in);
     }
-    if (in->prefix.packed != 0x26) {
+    if (in->areaId != 0x26) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 2;
     }
     if (GameFlag_GetNibble(0x62) == 0) {
         Task_SpawnFromTable(D_dryfield_night_general_store_8017E798, 1, 0, 0);
-        D_dryfield_night_general_store_801858C5 = in->field_2;
-        D_dryfield_night_general_store_801858C6 = in->field_3;
+        D_dryfield_night_general_store_801858C5 = in->warp;
+        D_dryfield_night_general_store_801858C6 = in->room;
     } else {
         Gp_RunCapCmd1(0xE);
     }

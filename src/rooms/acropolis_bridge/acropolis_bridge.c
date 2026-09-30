@@ -417,7 +417,7 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
 };
 
 GpMsgEntry D_acropolis_bridge_80188E4C[6] = {
-    { 5102, func_acropolis_bridge_8017D6F4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_bridge_8017D6F4 },
     { 5104, func_acropolis_bridge_8017D7F8 },
     { 5103, func_acropolis_bridge_8017D868 },
     { 5105, func_acropolis_bridge_8017D7F0 },
@@ -2505,9 +2505,9 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
     GameLocationKey key;
 
     *out = *in;
-    if (in->prefix.packed == 0xF) {
+    if (in->areaId == 0xF) {
         if (GameFlag_GetNibble(0x10) == 0) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 GameFlag_SetNibble(0x10, 1);
                 func_800E8634(D_acropolis_bridge_80188EBC, 0, D_acropolis_bridge_8018912C);
                 GameFlag_SetNibble(6, 1);
@@ -2518,8 +2518,8 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
             return 2;
         }
     }
-    if ((in->prefix.packed == 0xB) && (in->field_5 == 0)) {
-        out->field_3 = 2;
+    if ((in->areaId == 0xB) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
+        out->room = 2;
     }
     return 1;
 }

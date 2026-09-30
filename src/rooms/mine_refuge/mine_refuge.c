@@ -203,7 +203,7 @@ TaskDesc D_mine_refuge_80181860[3] = {
 };
 
 GpMsgEntry D_mine_refuge_80181884[6] = {
-    { 5102, func_mine_refuge_8017FBE8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_refuge_8017FBE8 },
     { 5105, func_mine_refuge_8017FBB4 },
     { 5103, func_mine_refuge_8017FCD0 },
     { 5104, func_mine_refuge_8017FC2C },

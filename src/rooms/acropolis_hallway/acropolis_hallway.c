@@ -67,7 +67,7 @@ s32                   func_acropolis_hallway_8017D72C(Task*, s32, GpMessageArg, 
 s32                   func_acropolis_hallway_8017D734(Task*, s32, s32, GpMessageArg);
 
 GpMsgEntry D_acropolis_hallway_8017E238[4] = {
-    { 5102, func_acropolis_hallway_8017D5D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
     { 5105, func_acropolis_hallway_8017D72C },
     { 5106, func_acropolis_hallway_8017D734 },
     { 0x7FFFFFFF, NULL },
@@ -325,7 +325,7 @@ static s32  func_acropolis_hallway_8017D9D4(GfxCoord* coord, WorldCollisionConta
 static void func_acropolis_hallway_8017E1C0(Task* task);
 
 /// Message gate for the hallway's first hotspot: copies the incoming record to
-/// the outgoing one, then edits the copy's `field_3` (the answer the caller
+/// the outgoing one, then edits the copy's `room` (the answer the caller
 /// acts on) according to the message id and the room's progress nibbles.
 /// Returning 0 means the message was consumed.
 s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -333,27 +333,27 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     u16 msgId;
 
     *out = *in;
-    if (in->prefix.packed == 8) {
-        if ((GameFlag_GetNibble(9) & 2) && in->field_5 == 0) {
-            out->field_3 = 2;
+    if (in->areaId == 8) {
+        if ((GameFlag_GetNibble(9) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = 2;
         }
     }
-    if (in->prefix.packed == 4 && in->field_2 == 3 && GameFlag_GetNibble(0) < 3) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 4 && in->warp == 3 && GameFlag_GetNibble(0) < 3) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(1);
         }
         return 0;
     }
-    if (in->prefix.packed == 8 && GameFlag_GetNibble(0) == 3) {
+    if (in->areaId == 8 && GameFlag_GetNibble(0) == 3) {
         return 1;
     }
-    msgId = in->prefix.packed;
-    if (msgId == 4 && in->field_5 == 0) {
+    msgId = in->areaId;
+    if (msgId == 4 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0) >= 3) {
-            out->field_3 = msgId;
+            out->room = msgId;
         }
         if (GameFlag_GetNibble(0) == 2) {
-            out->field_3 = 3;
+            out->room = 3;
         }
     }
     return 1;

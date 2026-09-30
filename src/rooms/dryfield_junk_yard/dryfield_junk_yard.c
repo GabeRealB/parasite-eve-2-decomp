@@ -129,7 +129,7 @@ extern DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854;
 extern GpPointLight                     D_dryfield_junk_yard_80181554[8];
 
 GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
-    { 5102, func_dryfield_junk_yard_8017DA4C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
     { 5105, func_dryfield_junk_yard_8017DA44 },
     { 5104, func_dryfield_junk_yard_8017D994 },
     { 5103, func_dryfield_junk_yard_8017DB78 },
@@ -1650,32 +1650,32 @@ s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, GpMessageArg arg2, G
 
 /// Handler for message 0x13EE in the room's message table. Copies the
 /// incoming record to the outgoing one, then edits the copy: message 0x18
-/// answers `field_3` 2 once nibble 0x7A has reached 4, else 1. Message 0x1B,
+/// answers `room` 2 once nibble 0x7A has reached 4, else 1. Message 0x1B,
 /// while nibble 0x38 is 1, returns 2, advancing the nibble to 2 and starting a
 /// `func_800E8634` sequence; otherwise, with nibble 0x28 still clear, it
-/// answers `field_2` 2 and sets nibbles 0x28 and 0x4B. Returns 1.
+/// answers `warp` 2 and sets nibbles 0x28 and 0x4B. Returns 1.
 ///
-/// `field_5` non-zero means "report only", which suppresses every side effect.
+/// `queryOnly` non-zero means "report only", which suppresses every side effect.
 s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 0x18 && in->field_5 == 0) {
+    if (in->areaId == 0x18 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x7A) >= 4) {
-            out->field_3 = 2;
+            out->room = 2;
         } else {
-            out->field_3 = 1;
+            out->room = 1;
         }
     }
-    if (in->prefix.packed == 0x1B) {
+    if (in->areaId == 0x1B) {
         if (GameFlag_GetNibble(0x38) == 1) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 GameFlag_SetNibble(0x38, 2);
                 func_800E8634(D_dryfield_junk_yard_8017E3D0, 0, D_dryfield_junk_yard_8017E2B0);
             }
             return 2;
         }
-        if (GameFlag_GetNibble(0x28) == 0 && in->field_5 == 0) {
-            out->field_2 = 2;
+        if (GameFlag_GetNibble(0x28) == 0 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->warp = 2;
             GameFlag_SetNibble(0x28, 1);
             GameFlag_SetNibble(0x4B, 4);
         }

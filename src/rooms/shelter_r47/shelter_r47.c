@@ -126,7 +126,7 @@ static TaskDesc D_shelter_r47_80186F08[3] = {
 };
 
 static GpMsgEntry D_shelter_r47_80186F2C[6] = {
-    { 5102, func_shelter_r47_801805D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r47_801805D8 },
     { 5105, func_shelter_r47_801805D0 },
     { 5103, func_shelter_r47_8017FE84 },
     { 5104, func_shelter_r47_801801DC },
@@ -792,7 +792,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, G
 
     field9 = gGameSession->at4.loc.variant;
     if (field9 == 1) {
-        switch (arg2->field_2) {
+        switch (arg2->warp) {
             case 2:
                 if ((GameFlag_GetNibble(0x83) == 1) && (GameFlag_GetNibble(0x81) == 0)) {
                     SndEvt_EnqueueType6(0x542F0001, -0xA, 0x40);
@@ -841,7 +841,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, G
                 break;
         }
     } else if (field9 == 2) {
-        kind = arg2->field_2;
+        kind = arg2->warp;
         if (kind < 6) {
             if (kind < 4) {
                 if ((kind == 1) && (GameFlag_GetNibble(0x83) == 0) && (GameFlag_GetNibble(0x80) == 0)) {
@@ -884,7 +884,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, G
             }
         }
     } else {
-        switch (arg2->field_2) {
+        switch (arg2->warp) {
             case 4:
             case 5:
                 spawned_a1             = Task_SpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);

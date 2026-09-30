@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -21,7 +20,7 @@ extern RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 // Callbacks referenced by the overlay's shared data tables.
 void func_shelter_b1_elevator_hall_8017D620(Task*);
 
-s32 func_shelter_b1_elevator_hall_8017D810(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_b1_elevator_hall_8017D810(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 void func_shelter_b1_elevator_hall_8017D99C(Task*);
 

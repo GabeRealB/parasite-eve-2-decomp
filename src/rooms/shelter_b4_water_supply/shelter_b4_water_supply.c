@@ -120,9 +120,9 @@ extern RoomHaloShade D_shelter_b4_water_supply_801826F0[];
 /// with `Task_Spawn(1, 0x31, ...)`.
 extern RoomFadeStorage D_shelter_b4_water_supply_80184E34;
 
-/// Staging save location the spawned task reads: `field_2` / `field_4` /
+/// Staging save location the spawned task reads: area / `field_4` /
 /// `field_1` receive the outgoing location's `field_0` / `field_2` / `field_3`.
-extern GpSaveLoc D_shelter_b4_water_supply_80184E3C;
+extern RoomEventMsg D_shelter_b4_water_supply_80184E3C;
 
 /// The staged event block, read by the departure task.
 extern RoomDeparture D_shelter_b4_water_supply_80184E44;
@@ -151,7 +151,7 @@ static void func_shelter_b4_water_supply_8018226C(GfxCoord* arg0, s32 arg1);
 void func_shelter_b4_water_supply_8017D650(Task*);
 void func_shelter_b4_water_supply_8017D7C0(Task*);
 s32  func_shelter_b4_water_supply_8017D970(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b4_water_supply_8017D978(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_b4_water_supply_8017D978(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b4_water_supply_8017DA28(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, GpMsg13EF*, s32);
 s32  func_shelter_b4_water_supply_8017DAE4(Task*, s32, s32, s32);
@@ -163,7 +163,7 @@ extern TaskDesc D_80147E48;
 TaskDesc D_shelter_b4_water_supply_801825E4 = { 0, 32, func_shelter_b4_water_supply_8017D650, { .model = NULL } };
 
 GpMsgEntry D_shelter_b4_water_supply_801825F0[6] = {
-    { 5102, func_shelter_b4_water_supply_8017D978 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
     { 5105, func_shelter_b4_water_supply_8017D970 },
     { 5103, func_shelter_b4_water_supply_8017DA30 },
     { 5104, func_shelter_b4_water_supply_8017DA28 },
@@ -785,7 +785,7 @@ GpRoomParamRec* D_shelter_b4_water_supply_80184E14[8] = {
 
 RoomFadeStorage D_shelter_b4_water_supply_80184E34 = { 0 };
 
-GpSaveLoc D_shelter_b4_water_supply_80184E3C = { 0 };
+RoomEventMsg D_shelter_b4_water_supply_80184E3C = { 0 };
 
 RoomDeparture D_shelter_b4_water_supply_80184E44 = { 0 };
 
@@ -903,9 +903,9 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             break;
         case 5:
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_water_supply_80184E3C.warp;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -919,17 +919,17 @@ s32 func_shelter_b4_water_supply_8017D970(Task* task, s32 msgId, GpMessageArg ar
 
 /// Copies the location at `src` into `dst` and passes both to `func_map_shelter_80179A04`.
 /// When the leading halfword of `src` is 0x2C it returns 0, first staging three
-/// bytes of `dst` and spawning from the task table unless `src->field_5` is set;
+/// bytes of `dst` and spawning from the task table unless `src->queryOnly` is set;
 /// any other location returns 1.
-s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (*(u16*)src == 0x2C) {
-        if (src->field_5 == 0) {
-            D_shelter_b4_water_supply_80184E3C.field_2              = dst->prefix.bytes.field_0;
-            D_shelter_b4_water_supply_80184E3C.field_4              = dst->field_2;
-            D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 0x2C) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_shelter_b4_water_supply_80184E3C.warp              = (u8)dst->areaId;
+            D_shelter_b4_water_supply_80184E3C.field_4           = dst->warp;
+            ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1] = dst->room;
             Task_SpawnFromTable(D_shelter_b4_water_supply_80182620, 1, 4, 0);
         }
         return 0;
@@ -989,15 +989,15 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     work.sndEvent = 0x542E0003;
     work.facing   = 0x400;
     Gp_MsgPlayerWeapon(0);
-    wp                  = &work;
-    param.prefix.packed = wp->area;
-    param.field_2       = wp->warp;
-    param.field_3       = wp->room;
-    param.field_5       = 0;
+    wp              = &work;
+    param.areaId    = wp->area;
+    param.warp      = wp->warp;
+    param.room      = wp->room;
+    param.queryOnly = ROOM_EVENT_EXECUTE;
     resolve(&param, &param);
-    wp->area                           = param.prefix.packed;
-    wp->warp                           = param.field_2;
-    wp->room                           = param.field_3;
+    wp->area                           = param.areaId;
+    wp->warp                           = param.warp;
+    wp->room                           = param.room;
     D_shelter_b4_water_supply_80184E44 = work;
     Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
     if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
@@ -1020,14 +1020,14 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         work.sndEvent = 0x542E0003;
         work.facing   = 0x400;
         Gp_MsgPlayerWeapon(0);
-        param.prefix.packed = work.area;
-        param.field_2       = work.warp;
-        param.field_3       = work.room;
-        param.field_5       = 0;
+        param.areaId    = work.area;
+        param.warp      = work.warp;
+        param.room      = work.room;
+        param.queryOnly = ROOM_EVENT_EXECUTE;
         resolve(&param, &param);
-        work.area                          = param.prefix.packed;
-        work.warp                          = param.field_2;
-        work.room                          = param.field_3;
+        work.area                          = param.areaId;
+        work.warp                          = param.warp;
+        work.room                          = param.room;
         D_shelter_b4_water_supply_80184E44 = work;
         Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
         if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
@@ -1063,19 +1063,19 @@ void func_shelter_b4_water_supply_8017DDA4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Message 0x20: unless a report-only query, answers in `field_3` from
+/// Message 0x20: unless a report-only query, answers in `room` from
 /// nibbles 0x51 (1 when set, 2 when clear) and 0x53 (adds 2 when set).
 /// Always returns 1 (not consumed).
 static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->prefix.packed == 0x20 && in->field_5 == 0) {
+    if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x51) == 0) {
-            out->field_3 = 2;
+            out->room = 2;
         } else {
-            out->field_3 = 1;
+            out->room = 1;
         }
         if (GameFlag_GetNibble(0x53) != 0) {
-            out->field_3 = (u8)out->field_3 + 2;
+            out->room = (u8)out->room + 2;
         }
     }
     return 1;

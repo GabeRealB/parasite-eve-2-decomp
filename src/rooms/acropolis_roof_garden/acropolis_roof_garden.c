@@ -209,7 +209,7 @@ AnimationSet D_acropolis_roof_garden_80183BB4 = {
 };
 
 GpMsgEntry D_acropolis_roof_garden_80183BDC[6] = {
-    { 5102, func_acropolis_roof_garden_8017D71C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_roof_garden_8017D71C },
     { 5103, func_acropolis_roof_garden_8017D7A0 },
     { 5104, func_acropolis_roof_garden_8017D8AC },
     { 5105, func_acropolis_roof_garden_8017D798 },
@@ -944,13 +944,13 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
 /// Message gate for the roof garden's hotspot: copies the incoming record to
 /// the outgoing one, then runs the message's one-shot side effect.
 ///
-/// Message 0xC, when not a "report only" query (`field_5 == 0`) and its nibble
+/// Message 0xC, when not a "report only" query (`queryOnly == 0`) and its nibble
 /// is still clear, advances nibble 7 to 2 and sets collection bit 0x13 to 2.
 /// The copy itself is unedited, so the answer is always "allowed".
 s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->prefix.packed == 0xC && in->field_5 == 0 && GameFlag_GetNibble(7) == 0) {
+    if (in->areaId == 0xC && in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(7) == 0) {
         GameFlag_SetNibble(7, 2);
         Gp_SetCurBit2Flag(0x13, 2);
     }
@@ -965,7 +965,7 @@ s32 func_acropolis_roof_garden_8017D798(Task* task, s32 msgId, GpMessageArg arg2
 
 s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    switch (in->field_2) {
+    switch (in->warp) {
         case 1:
             if (((gGameSession->at4.loc.variant == 1) || (gGameSession->at4.loc.variant == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
                 GameFlag_SetNibble(0xCB, 1);

@@ -120,25 +120,25 @@ void Gp_MsgPlayerDirFacing(void)
 
 void Gp_CommitDirWarp(void)
 {
-    Task*       slot;
-    GpSaveLoc*  loc;
-    McSaveData* save;
+    Task*         slot;
+    RoomEventMsg* loc;
+    McSaveData*   save;
 
     slot = gameGetPtrSlot(7);
     loc  = &Gp_WarpLoc;
 
-    /* first two bytes as one halfword (field_1 cleared) */
-    Gp_WarpLoc.prefix.packed = Gp_DirAlt;
-    loc->field_2             = Gp_DirAltNibble & 0xF;
-    loc->field_4             = 1;
-    loc->field_3             = 1;
-    loc->field_5             = 0;
-    Gp_DispatchMsgPtrs(slot, 0x13EE, loc, loc);
+    // The area selector is a byte; assigning the halfword clears its high byte.
+    Gp_WarpLoc.areaId = Gp_DirAlt;
+    loc->warp         = Gp_DirAltNibble & 0xF;
+    loc->field_4      = 1;
+    loc->room         = 1;
+    loc->queryOnly    = ROOM_EVENT_EXECUTE;
+    Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
     save                     = &Mc_SaveData[0];
-    save->state.at4.loc.area = Gp_WarpLoc.prefix.bytes.field_0;
-    save->state.at4.loc.warp = loc->field_2;
-    save->state.at4.loc.room = loc->field_3;
+    save->state.at4.loc.area = (u8)Gp_WarpLoc.areaId;
+    save->state.at4.loc.warp = loc->warp;
+    save->state.at4.loc.room = loc->room;
     Task_Spawn(0, 0x11, 0, 0);
 
     Gp_DirAltNibble = 0;

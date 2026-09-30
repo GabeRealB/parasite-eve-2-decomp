@@ -92,7 +92,7 @@ extern TaskDesc D_shelter_b4_upper_sewer_8018643C[];
 /// Save location filled from the outgoing location just before a table task is
 /// spawned: `field_2` / `field_4` / `field_1` take its `field_0` / `field_2` /
 /// `field_3`.
-extern GpSaveLoc D_shelter_b4_upper_sewer_80188D24;
+extern RoomEventMsg D_shelter_b4_upper_sewer_80188D24;
 /// Spawn argument for the task `func_shelter_b4_upper_sewer_8017D80C` starts
 /// with `Task_Spawn(1, 0x31, ...)`.
 extern RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C;
@@ -141,7 +141,7 @@ static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
 void func_shelter_b4_upper_sewer_8017E4F4(Task*);
 
 s32  func_shelter_b4_upper_sewer_8017D9BC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, GpMessageArg);
 s32  func_shelter_b4_upper_sewer_8017DB50(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, GpMessageArg);
@@ -152,7 +152,7 @@ void func_shelter_b4_upper_sewer_8017DB94(void);
 extern TaskDesc D_80147E48;
 
 GpMsgEntry D_shelter_b4_upper_sewer_801862D0[6] = {
-    { 5102, func_shelter_b4_upper_sewer_8017D9C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_upper_sewer_8017D9C4 },
     { 5105, func_shelter_b4_upper_sewer_8017D9BC },
     { 5103, func_shelter_b4_upper_sewer_8017DB50 },
     { 5104, func_shelter_b4_upper_sewer_8017DAB0 },
@@ -785,7 +785,7 @@ GpRoomParamRec* D_shelter_b4_upper_sewer_80188CFC[8] = {
 
 RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C = { 0 };
 
-GpSaveLoc D_shelter_b4_upper_sewer_80188D24 = { 0 };
+RoomEventMsg D_shelter_b4_upper_sewer_80188D24 = { 0 };
 
 u8 D_shelter_b4_upper_sewer_80188D2C[4] = {
     0,
@@ -891,9 +891,9 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             break;
         case 5:
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_upper_sewer_80188D24.field_2;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_upper_sewer_80188D24.warp;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_upper_sewer_80188D24.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -905,24 +905,24 @@ s32 func_shelter_b4_upper_sewer_8017D9BC(Task* task, s32 msgId, GpMessageArg arg
     return 0;
 }
 
-s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (*(u16*)src == 0x2D) {
-        if (src->field_5 == 0) {
-            D_shelter_b4_upper_sewer_80188D24.field_2              = dst->prefix.bytes.field_0;
-            D_shelter_b4_upper_sewer_80188D24.field_4              = dst->field_2;
-            D_shelter_b4_upper_sewer_80188D24.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 0x2D) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
+            D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
+            ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = dst->room;
             Task_SpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 7, 0);
         }
         return 0;
     }
-    if (*(u16*)src == 0x2E) {
-        if (src->field_5 == 0) {
-            D_shelter_b4_upper_sewer_80188D24.field_2              = dst->prefix.bytes.field_0;
-            D_shelter_b4_upper_sewer_80188D24.field_4              = dst->field_2;
-            D_shelter_b4_upper_sewer_80188D24.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 0x2E) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
+            D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
+            ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = dst->room;
             Task_SpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 8, 0);
         }
         return 0;

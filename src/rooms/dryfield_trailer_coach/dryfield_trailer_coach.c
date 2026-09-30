@@ -174,7 +174,7 @@ static u16 Shop_Data_80181AD4[];
 #include "../../shared/shop.h"
 
 s32  func_dryfield_trailer_coach_80182578(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_trailer_coach_80182580(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_dryfield_trailer_coach_80182580(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, GpMessageArg);
 void func_dryfield_trailer_coach_80181D88(Task*);
 void func_dryfield_trailer_coach_801822F4(Task*);
@@ -321,7 +321,7 @@ TaskDesc D_dryfield_trailer_coach_80184F7C[3] = {
 };
 
 GpMsgEntry D_dryfield_trailer_coach_80184FA0[4] = {
-    { 5102, func_dryfield_trailer_coach_80182580 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_trailer_coach_80182580 },
     { 5105, func_dryfield_trailer_coach_80182578 },
     { 5104, func_dryfield_trailer_coach_801825A8 },
     { 0x7FFFFFFF, NULL },
@@ -1853,7 +1853,7 @@ s32 func_dryfield_trailer_coach_80182578(Task* task, s32 msgId, GpMessageArg arg
 
 /// Location-message handler: copies the requested location onto the outgoing
 /// record and answers 1.
-s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

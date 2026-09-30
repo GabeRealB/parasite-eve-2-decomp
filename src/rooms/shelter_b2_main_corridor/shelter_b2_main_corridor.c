@@ -210,7 +210,7 @@ AnimationSet D_shelter_b2_main_corridor_80182BE0 = {
 TaskDesc D_shelter_b2_main_corridor_80182C08 = { 0, 32, func_shelter_b2_main_corridor_8017D82C, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_main_corridor_80182C14[6] = {
-    { 5102, func_shelter_b2_main_corridor_8017D9C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_main_corridor_8017D9C4 },
     { 5105, func_shelter_b2_main_corridor_8017E1CC },
     { 5103, func_shelter_b2_main_corridor_8017DC88 },
     { 5104, func_shelter_b2_main_corridor_8017E1D4 },
@@ -1706,9 +1706,9 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_main_corridor_80189654.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_main_corridor_80189654.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_main_corridor_80189654.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_main_corridor_80189654.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_main_corridor_80189654.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_main_corridor_80189654.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1725,48 +1725,48 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x1B && GameFlag_GetNibble(0xAB) == 0) {
-        if (in->field_5 != 0) {
+    if (in->areaId == 0x1B && GameFlag_GetNibble(0xAB) == 0) {
+        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_SetNibbleIf(in->field_6, 2);
+        Gp_SetNibbleIf(in->flagId, 2);
         Gp_RunCapCmd1(1);
         return 0;
     }
-    if (in->prefix.packed == 0x1F && GameFlag_GetNibble(0xB1) == 0) {
-        if (in->field_5 != 0) {
+    if (in->areaId == 0x1F && GameFlag_GetNibble(0xB1) == 0) {
+        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_SetNibbleIf(in->field_6, 2);
+        Gp_SetNibbleIf(in->flagId, 2);
         Gp_RunCapCmd1(2);
         return 0;
     }
-    if ((in->prefix.packed == 0x1F || in->prefix.packed == 0x20 || in->prefix.packed == 0x1B) && GameFlag_GetNibble(0xD1) == 2) {
-        if (in->field_5 != 0) {
+    if ((in->areaId == 0x1F || in->areaId == 0x20 || in->areaId == 0x1B) && GameFlag_GetNibble(0xD1) == 2) {
+        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 2;
         }
         Gp_RunCapCmd1(4);
         return 2;
     }
-    if (in->prefix.packed == 0x22) {
+    if (in->areaId == 0x22) {
         func_shelter_b2_main_corridor_8017E264(out);
         sndId           = 0x54210001;
         capCmd          = 0xA;
         staged.stageSnd = sndId;
         flag            = 0x133;
-    } else if (in->prefix.packed == 0x20) {
+    } else if (in->areaId == 0x20) {
         func_shelter_b2_main_corridor_8017E264(out);
         sndId           = 0x54210001;
         capCmd          = 9;
         staged.stageSnd = sndId;
         flag            = 0x134;
-    } else if (in->prefix.packed == 0x1B) {
+    } else if (in->areaId == 0x1B) {
         func_shelter_b2_main_corridor_8017E264(out);
         sndId           = 0x54210001;
         capCmd          = 0xB;
         staged.stageSnd = sndId;
         flag            = 0x135;
-    } else if (in->prefix.packed == 0x1F) {
+    } else if (in->areaId == 0x1F) {
         func_shelter_b2_main_corridor_8017E264(out);
         sndId           = 0x54210001;
         capCmd          = 0xC;
@@ -1781,7 +1781,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
     staged.fade                               = 0;
     D_shelter_b2_main_corridor_8018965C_value = 0;
     if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
-        if (out->field_5 != 0) {
+        if (out->queryOnly != ROOM_EVENT_EXECUTE) {
             return 2;
         }
         D_shelter_b2_main_corridor_80189654       = *out;
@@ -1912,14 +1912,14 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             }
             resolve = func_shelter_b2_main_corridor_8017E0FC;
             Gp_MsgPlayerWeapon(0);
-            param.prefix.packed = D_shelter_b2_main_corridor_80189684.area;
-            param.field_2       = D_shelter_b2_main_corridor_80189684.warp;
-            param.field_3       = D_shelter_b2_main_corridor_80189684.room;
-            param.field_5       = 0;
+            param.areaId    = D_shelter_b2_main_corridor_80189684.area;
+            param.warp      = D_shelter_b2_main_corridor_80189684.warp;
+            param.room      = D_shelter_b2_main_corridor_80189684.room;
+            param.queryOnly = ROOM_EVENT_EXECUTE;
             resolve(&param, &param);
-            D_shelter_b2_main_corridor_80189684.area  = param.prefix.packed;
-            D_shelter_b2_main_corridor_80189684.warp  = param.field_2;
-            D_shelter_b2_main_corridor_80189684.room  = param.field_3;
+            D_shelter_b2_main_corridor_80189684.area  = param.areaId;
+            D_shelter_b2_main_corridor_80189684.warp  = param.warp;
+            D_shelter_b2_main_corridor_80189684.room  = param.room;
             D_shelter_b2_main_corridor_80189664.value = D_shelter_b2_main_corridor_80189684;
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.task, 0, 0, 0);
             taskKill(arg0);
@@ -1933,33 +1933,33 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
 static s32 func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->field_5 == 0) {
-        switch (in->prefix.packed) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+        switch (in->areaId) {
             case 7:
-                out->field_3 = GameFlag_GetNibble(0xE1) + 1;
+                out->room = GameFlag_GetNibble(0xE1) + 1;
                 break;
             case 13:
-                out->field_3 = GameFlag_GetNibble(0xD9) + 1;
+                out->room = GameFlag_GetNibble(0xD9) + 1;
                 break;
             case 20:
-                out->field_3 = 1;
+                out->room = 1;
                 if (GameFlag_GetNibble(0xDD) != 0) {
                     if (GameFlag_GetNibble(0xDC) != 0) {
-                        out->field_3 = 3;
+                        out->room = 3;
                     } else {
-                        out->field_3 = 2;
+                        out->room = 2;
                     }
                 }
                 break;
             case 21:
                 if (GameFlag_GetNibble(0xE9) != 0) {
-                    out->field_3 = 4;
+                    out->room = 4;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
                 break;
             case 32:
-                out->field_3 = GameFlag_GetNibble(0xDD) + 1;
+                out->room = GameFlag_GetNibble(0xDD) + 1;
                 break;
             case 8:
             case 9:
@@ -2022,7 +2022,7 @@ void func_shelter_b2_main_corridor_8017E210(Task* arg0)
 
 static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
 {
-    if ((GameFlag_GetNibble(0x4C) == 9) && (GameFlag_GetNibble(0xD1) == 3) && (msg->field_5 == 0)) {
+    if ((GameFlag_GetNibble(0x4C) == 9) && (GameFlag_GetNibble(0xD1) == 3) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
         GameFlag_SetNibble(0x4C, 0);
         Gp_ApplyAreaRecs(D_shelter_b2_main_corridor_80189644);
     }

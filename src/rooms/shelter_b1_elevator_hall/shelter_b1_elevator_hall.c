@@ -27,12 +27,12 @@
 
 #include "rooms/room_common.h"
 
-extern GpSaveLoc D_shelter_b1_elevator_hall_801849F8;
+extern RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 
 static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
 static void func_shelter_b1_elevator_hall_8017DC20(Task* task);
 
-GpSaveLoc D_shelter_b1_elevator_hall_801849F8;
+RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 
 void func_shelter_b1_elevator_hall_8017D620(Task* task)
 {
@@ -81,51 +81,51 @@ void func_shelter_b1_elevator_hall_8017D620(Task* task)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            msg.field_3       = 1;
-            msg.field_5       = 0;
-            msg.prefix.packed = Mc_SaveData[0].state.at4.loc.area;
-            msg.field_2       = Mc_SaveData[0].state.at4.loc.warp;
-            msg2              = msg;
+            msg.room      = 1;
+            msg.queryOnly = ROOM_EVENT_EXECUTE;
+            msg.areaId    = Mc_SaveData[0].state.at4.loc.area;
+            msg.warp      = Mc_SaveData[0].state.at4.loc.warp;
+            msg2          = msg;
             func_map_shelter_80179A04(&msg, &msg2);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
-            Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
+            Mc_SaveData[0].state.at4.loc.warp = msg2.warp;
+            Mc_SaveData[0].state.at4.loc.room = msg2.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }
 }
 
-s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (*(u16*)src == 0xF && GameFlag_GetNibble(0xA5) == 0) {
-        if (src->field_5 == 0) {
-            Gp_SetNibbleIf(src->field_6, 2);
+    if (src->areaId == 0xF && GameFlag_GetNibble(0xA5) == 0) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            Gp_SetNibbleIf(src->flagId, 2);
             Gp_RunCapCmd1(2);
         }
         return 0;
     }
-    if (*(u16*)src == 0x1A) {
+    if (src->areaId == 0x1A) {
         if (GameFlag_GetNibble(0xBA) == 0) {
-            if (src->field_5 == 0) {
-                Gp_SetNibbleIf(src->field_6, 2);
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(src->flagId, 2);
                 Gp_RunCapCmd1(1);
             }
         } else {
-            if (src->field_5 == 0) {
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd(4, 0);
                 Task_SpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, 0x54090008, 0);
             }
         }
         return 0;
     }
-    if (*(u16*)src == 8) {
-        if (src->field_5 == 0) {
-            D_shelter_b1_elevator_hall_801849F8.field_2              = dst->prefix.bytes.field_0;
-            D_shelter_b1_elevator_hall_801849F8.field_4              = dst->field_2;
-            D_shelter_b1_elevator_hall_801849F8.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 8) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_shelter_b1_elevator_hall_801849F8.warp              = (u8)dst->areaId;
+            D_shelter_b1_elevator_hall_801849F8.field_4           = dst->warp;
+            ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1] = dst->room;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
         }
@@ -194,9 +194,9 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_shelter_b1_elevator_hall_801849F8.field_2;
-            Mc_SaveData[0].state.at4.loc.warp = (u8)D_shelter_b1_elevator_hall_801849F8.field_4;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_elevator_hall_801849F8.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_elevator_hall_801849F8.warp;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_elevator_hall_801849F8.field_4;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

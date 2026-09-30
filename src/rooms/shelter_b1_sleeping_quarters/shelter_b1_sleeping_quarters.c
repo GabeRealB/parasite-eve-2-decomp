@@ -66,7 +66,7 @@ TmdSource D_shelter_b1_sleeping_quarters_801804F4 = {
 };
 
 GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
-    { 5102, func_shelter_b1_sleeping_quarters_8017D670 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_sleeping_quarters_8017D670 },
     { 5105, func_shelter_b1_sleeping_quarters_8017D668 },
     { 5103, func_shelter_b1_sleeping_quarters_8017D770 },
     { 5104, func_shelter_b1_sleeping_quarters_8017D6FC },
@@ -100,13 +100,13 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMs
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed != 0xC) {
+    if (in->areaId != 0xC) {
         return 1;
     }
     if (GameFlag_GetNibble(0x7A) < 6) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
     Gp_RunCapCmd1(0xE);

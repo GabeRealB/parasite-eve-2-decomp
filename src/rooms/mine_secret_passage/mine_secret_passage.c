@@ -28,9 +28,9 @@
 
 #include "rooms/room_common.h"
 
-/// Staging save location this room's warp handler latches: `field_2` /
+/// Staging save location this room's warp handler latches: area /
 /// `field_4` / `field_1` take the three bytes the outgoing location carries.
-extern GpSaveLoc D_mine_secret_passage_80183448;
+extern RoomEventMsg D_mine_secret_passage_80183448;
 
 static void func_mine_secret_passage_8017D8C8(Task* arg0);
 static void func_mine_secret_passage_8017D914(Task* arg0);
@@ -45,7 +45,7 @@ static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
     taskKill,
 };
 
-GpSaveLoc D_mine_secret_passage_80183448;
+RoomEventMsg D_mine_secret_passage_80183448;
 
 /// Runs the room's save sequence. State 0 asks for the caption, state 1 waits
 /// for it and drops the periscope overlay, state 2 takes the confirm key or
@@ -104,9 +104,9 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_mine_secret_passage_80183448.field_2;
-            Mc_SaveData[0].state.at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_mine_secret_passage_80183448.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_mine_secret_passage_80183448.warp;
+            Mc_SaveData[0].state.at4.loc.warp = D_mine_secret_passage_80183448.field_4;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_mine_secret_passage_80183448.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -120,20 +120,20 @@ s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, GpMessageArg arg2, 
 
 /// Handler id 0x13EE of the room's `GpMsgEntry` table
 /// `D_mine_secret_passage_80180E8C`: copies the
-/// requested `GpSaveLoc` to `dst` and forwards both to `func_map_shelter_80179A04`. A
-/// stage-9 request latches the outgoing location's three bytes into the room's
-/// staging save location and starts the cutscene task; `field_5` set only
-/// suppresses that side effect. Returns 2 for a stage-9 request and 1 for
+/// requested `RoomEventMsg` to `dst` and forwards both to `func_map_shelter_80179A04`. A
+/// area-9 request latches the outgoing location's three bytes into the room's
+/// staging save location and starts the cutscene task; `queryOnly` set only
+/// suppresses that side effect. Returns 2 for a area-9 request and 1 for
 /// every other one.
-s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (*(u16*)src == 9) {
-        if (src->field_5 == 0) {
-            D_mine_secret_passage_80183448.field_2              = dst->prefix.bytes.field_0;
-            D_mine_secret_passage_80183448.field_4              = dst->field_2;
-            D_mine_secret_passage_80183448.prefix.bytes.field_1 = dst->field_3;
+    if (src->areaId == 9) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_mine_secret_passage_80183448.warp              = (u8)dst->areaId;
+            D_mine_secret_passage_80183448.field_4           = dst->warp;
+            ((u8*)&D_mine_secret_passage_80183448.areaId)[1] = dst->room;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_mine_secret_passage_80180EBC, 0, 0, 0);
         }

@@ -79,7 +79,7 @@ static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
 
 void func_neo_ark_pyramid_8017D600(Task*);
 s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_pyramid_8017DA44(Task*, s32, GpMsg13EF*, GpMessageArg);
 
@@ -90,7 +90,7 @@ extern GpObj4C        D_neo_ark_pyramid_80181478[7];
 extern GpRoomCoordSet D_neo_ark_pyramid_80181298[1];
 
 GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
-    { 5102, func_neo_ark_pyramid_8017D9F8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
     { 5105, func_neo_ark_pyramid_8017D9F0 },
     { 5103, func_neo_ark_pyramid_8017DA44 },
     { 5104, func_neo_ark_pyramid_8017DA3C },
@@ -628,7 +628,7 @@ s32 func_neo_ark_pyramid_8017D9F0(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// Handler for message 0x13EE in the room's message table: copies the
 /// incoming save-location record onto the outgoing one and forwards both to
 /// `func_map_neo_ark_80179B14`. Always answers 1.
-s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

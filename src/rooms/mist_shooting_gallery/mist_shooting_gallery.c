@@ -159,7 +159,7 @@ static const char                       D_mist_shooting_gallery_8017D844[];
 static const char                       D_mist_shooting_gallery_8017D850[];
 
 extern void func_8014A398(void);
-extern s32  func_8014AA54(GpSaveLoc* loc);
+extern s32  func_8014AA54(RoomEventMsg* loc);
 extern void func_8014AB6C(void);
 extern void func_8014AF0C(void);
 extern void func_8014C5E0(s32, s32, s32);
@@ -266,7 +266,7 @@ extern const char D_mist_shooting_gallery_8017DAA4[18];
 extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
 s32               func_mist_shooting_gallery_8017FEB0(Task*, s32, s32, s32);
-s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, GpMessageArg);
 s32               func_mist_shooting_gallery_8018008C(Task*, s32, GpMsg13EF*, GpMessageArg);
 void              func_mist_shooting_gallery_8017E234(Task*);
@@ -736,7 +736,7 @@ TaskDesc D_mist_shooting_gallery_801850D0 = { 0, 192, func_mist_shooting_gallery
 TaskDesc D_mist_shooting_gallery_801850DC = { 0, 192, func_mist_shooting_gallery_8017FDD0, { .model = NULL } };
 
 GpMsgEntry D_mist_shooting_gallery_801850E8[5] = {
-    { 5102, func_mist_shooting_gallery_8017FEB8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
     { 5105, func_mist_shooting_gallery_8017FEB0 },
     { 5103, func_mist_shooting_gallery_8018008C },
     { 5104, func_mist_shooting_gallery_80180000 },
@@ -1968,26 +1968,26 @@ s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (*(u16*)src == 0x13 && src->field_5 == 0) {
+    if (src->areaId == 0x13 && src->queryOnly == ROOM_EVENT_EXECUTE) {
         if (GameFlag_GetNibble(0x7A) != 0) {
-            dst->field_3 += 2;
+            dst->room += 2;
         }
     }
-    if (*(u16*)src == 0x14) {
-        if (dst->field_2 == 5 && func_8014AA54(src) == 2) {
+    if (src->areaId == 0x14) {
+        if (dst->warp == 5 && func_8014AA54(src) == 2) {
             return 2;
         }
-        if (src->field_5 == 0) {
-            if (dst->field_2 == 6) {
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (dst->warp == 6) {
                 Mc_SaveData[0].state.sceneEvent = 2;
                 Player_Status.field_26          = 4;
                 gGameSession->hideHud           = 1;
                 Gp_ResetInventory();
             }
-            if (dst->field_2 == 5) {
+            if (dst->warp == 5) {
                 Mc_SaveData[0].state.sceneEvent = 1;
                 Player_Status.field_26          = 3;
                 gGameSession->hideHud           = 1;

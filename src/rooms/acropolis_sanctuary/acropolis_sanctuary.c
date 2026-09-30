@@ -317,7 +317,7 @@ AnimationSet D_acropolis_sanctuary_801807F4 = {
 };
 
 GpMsgEntry D_acropolis_sanctuary_8018081C[5] = {
-    { 5102, func_acropolis_sanctuary_8017D73C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_sanctuary_8017D73C },
     { 5104, func_acropolis_sanctuary_8017D810 },
     { 5105, func_acropolis_sanctuary_8017D808 },
     { 5103, func_acropolis_sanctuary_8017D848 },
@@ -1643,29 +1643,29 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 
 /// Message gate for the sanctuary's second hotspot: copies the incoming record
 /// to the outgoing one, then answers message 0xB. The first time the message is
-/// seen for real (`field_5` == 0) it latches nibble 7 to 2 and raises the room's
-/// 0x13 bit-2 flag; the answer written back into `field_3` is 1 while nibble 2
+/// seen for real (`queryOnly` == 0) it latches nibble 7 to 2 and raises the room's
+/// 0x13 bit-2 flag; the answer written back into `room` is 1 while nibble 2
 /// is still clear and 2 once it is set.
 s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 nib;
 
     *out = *in;
-    if (in->prefix.packed == 0xB) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 0xB) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(7) == 0) {
                 GameFlag_SetNibble(7, 2);
                 Gp_SetCurBit2Flag(0x13, 2);
             }
         }
-        if (in->prefix.packed == 0xB && in->field_5 == 0) {
+        if (in->areaId == 0xB && in->queryOnly == ROOM_EVENT_EXECUTE) {
             nib = GameFlag_GetNibble(2);
             if (nib == 0) {
                 nib = 1;
             } else {
                 nib = 2;
             }
-            out->field_3 = nib;
+            out->room = nib;
         }
     }
     return 1;
@@ -1691,7 +1691,7 @@ s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, GpMessageA
 /// this handler only ever consumes the message (returns 0).
 s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->field_2 == 1 && GameFlag_GetNibble(7) == 0) {
+    if (in->warp == 1 && GameFlag_GetNibble(7) == 0) {
         GameFlag_SetNibble(7, 1);
         Task_SpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
     }

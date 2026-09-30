@@ -57,7 +57,7 @@ extern GpObj4C      D_shelter_b2_pod_bottom_80186FA8[20];
 extern GpRoomCoordSet D_shelter_b2_pod_bottom_80186F90[1];
 
 GpMsgEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
-    { 5102, func_shelter_b2_pod_bottom_8017D5F4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_bottom_8017D5F4 },
     { 5105, func_shelter_b2_pod_bottom_8017D5EC },
     { 5103, func_shelter_b2_pod_bottom_8017D640 },
     { 5104, func_shelter_b2_pod_bottom_8017D638 },

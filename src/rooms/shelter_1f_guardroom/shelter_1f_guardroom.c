@@ -55,7 +55,7 @@ extern GpObj4C        D_shelter_1f_guardroom_8017DED4[3];
 extern GpRoomBoundVec D_shelter_1f_guardroom_8017DFB8[4];
 extern GpRoomCoordSet D_shelter_1f_guardroom_8017DE24[1];
 s32                   func_shelter_1f_guardroom_8017D73C(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_shelter_1f_guardroom_8017D744(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32                   func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                   func_shelter_1f_guardroom_8017D788(Task*, s32, s32, GpMessageArg);
 s32                   func_shelter_1f_guardroom_8017D7E8(Task*, s32, GpMessageArg, GpMessageArg);
 s32                   func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, GpMessageArg);
@@ -63,7 +63,7 @@ void                  func_shelter_1f_guardroom_8017D5E8(Task*);
 void                  func_shelter_1f_guardroom_8017D8D8(Task*);
 
 GpMsgEntry D_shelter_1f_guardroom_8017DA30[6] = {
-    { 5102, func_shelter_1f_guardroom_8017D744 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_guardroom_8017D744 },
     { 5105, func_shelter_1f_guardroom_8017D73C },
     { 5103, func_shelter_1f_guardroom_8017D7E8 },
     { 5104, func_shelter_1f_guardroom_8017D788 },
@@ -261,9 +261,9 @@ s32 func_shelter_1f_guardroom_8017D73C(Task* task, s32 msgId, GpMessageArg arg2,
     return 0;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
+/// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
 /// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
-s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

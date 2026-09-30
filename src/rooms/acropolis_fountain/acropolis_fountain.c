@@ -37,7 +37,7 @@ s32  func_acropolis_fountain_8017D7F4(Task*, s32, s32, s32);
 void func_acropolis_fountain_8017D868(Task*);
 
 GpMsgEntry D_acropolis_fountain_8017E764[5] = {
-    { 5102, func_acropolis_fountain_8017D604 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fountain_8017D604 },
     { 5104, func_acropolis_fountain_8017D77C },
     { 5105, func_acropolis_fountain_8017D774 },
     { 5106, func_acropolis_fountain_8017D7F4 },
@@ -50,7 +50,7 @@ TaskDesc D_acropolis_fountain_8017E78C[2] = {
 };
 
 /// Message gate for the fountain's hotspot: copies the incoming record to the
-/// outgoing one, then edits the copy's `field_3` (the answer the caller acts
+/// outgoing one, then edits the copy's `room` (the answer the caller acts
 /// on) according to the message id and the room's progress nibbles. Message 3
 /// before nibble 0 reaches 5 hands the record's first two bytes to
 /// `D_acropolis_fountain_80183BB0`/`BB1` and spawns the room's own task,
@@ -60,32 +60,32 @@ s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     s32 msgId;
 
     *out  = *in;
-    msgId = in->prefix.packed;
+    msgId = in->areaId;
     if (msgId == 3) {
         if (GameFlag_GetNibble(0) < 5) {
-            if (in->field_5 == 0) {
-                D_acropolis_fountain_80183BB0 = in->field_2;
-                D_acropolis_fountain_80183BB1 = in->field_3;
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                D_acropolis_fountain_80183BB0 = in->warp;
+                D_acropolis_fountain_80183BB1 = in->room;
                 Task_SpawnFromTable(D_acropolis_fountain_8017E78C, 0, 0, 0);
             }
             return 0;
         }
-        if (in->prefix.packed == msgId && in->field_5 == 0) {
+        if (in->areaId == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0) < 2) {
                 if (GameFlag_GetNibble(0x21) < 2) {
-                    out->field_3 = 1;
+                    out->room = 1;
                 } else {
-                    out->field_3 = 2;
+                    out->room = 2;
                 }
             } else {
-                out->field_3 = msgId;
+                out->room = msgId;
             }
         }
     } else if (msgId == 9) {
         if (GameFlag_GetNibble(9) & 1) {
-            out->field_3 = 2;
+            out->room = 2;
         }
-        if (in->field_5 == 0 && GameFlag_GetNibble(0x13) == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x13) == 0) {
             GameFlag_SetNibble(0x13, 1);
         }
     }

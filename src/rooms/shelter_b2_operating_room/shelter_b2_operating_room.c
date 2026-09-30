@@ -138,7 +138,7 @@ TaskDesc D_shelter_b2_operating_room_80180904 = { 0, 32, func_shelter_b2_operati
 TaskDesc D_shelter_b2_operating_room_80180910 = { 0, 32, func_shelter_b2_operating_room_8017D8FC, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_operating_room_8018091C[5] = {
-    { 5102, func_shelter_b2_operating_room_8017DA94 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_operating_room_8017DA94 },
     { 5105, func_shelter_b2_operating_room_8017DC9C },
     { 5103, func_shelter_b2_operating_room_8017DD0C },
     { 5104, func_shelter_b2_operating_room_8017DCA4 },
@@ -939,7 +939,7 @@ static void           func_shelter_b2_operating_room_8017DD58(Task* task);
 /// is needed), sets the flag, records `msg` and `req`, spawns the transition
 /// task and returns 2; if the item is missing, runs cap command `req->field_4`
 /// and returns 0. The spawn and the cap command happen only when
-/// `msg->field_5` is 0.
+/// `msg->queryOnly` is 0.
 static s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
@@ -963,7 +963,7 @@ static s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventM
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b2_operating_room_8018421C       = *msg;
                 D_shelter_b2_operating_room_80184238.value = *req;
                 id                                         = req->flagId;
@@ -980,9 +980,9 @@ static s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventM
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -1033,9 +1033,9 @@ void func_shelter_b2_operating_room_8017D78C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018421C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018421C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_operating_room_8018421C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018421C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018421C.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_operating_room_8018421C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1084,9 +1084,9 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018422C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018422C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_operating_room_8018422C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018422C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018422C.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_operating_room_8018422C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1095,13 +1095,13 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
+/// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_operating_room_80184234[0] = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b2_operating_room_8018422C = *dst;
             D_shelter_b2_operating_room_80184258 = *event;
             if (event->flagId != 0) {
@@ -1118,7 +1118,7 @@ static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEve
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Message 0x1E goes through the exit gate
 /// `func_shelter_b2_operating_room_8017D628` on flag 0xA8. Message 0x1C, while nibble 0xAA is clear, answers 0 and - unless
-/// `in->field_5` asks for a dry run - passes `in->field_6` to `Gp_SetNibbleIf`
+/// `in->queryOnly` asks for a dry run - passes `in->flagId` to `Gp_SetNibbleIf`
 /// and runs cap command 3; once the nibble is set it starts the room event on
 /// flag 0x13A instead. Message 0x1F starts the event on flag 0x13B; any other
 /// message answers 1.
@@ -1129,7 +1129,7 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x1E) {
+    if (in->areaId == 0x1E) {
         req.field_0 = 2;
         req.field_4 = 1;
         req.field_8 = 0x541D0007;
@@ -1138,21 +1138,21 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
         req.itemId  = 0;
         return func_shelter_b2_operating_room_8017D628(&req, out);
     }
-    if (in->prefix.packed == 0x1C && GameFlag_GetNibble(0xAA) == 0) {
-        if (in->field_5 == 0) {
-            Gp_SetNibbleIf(in->field_6, 2);
+    if (in->areaId == 0x1C && GameFlag_GetNibble(0xAA) == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(3);
         }
         return 0;
     }
-    if (in->prefix.packed == 0x1C) {
+    if (in->areaId == 0x1C) {
         event.capCmd   = 0xE;
         event.stageSnd = 0x541D0001;
         event.flagId   = 0x13A;
         event.fade     = 0;
         return _operatingRoomStartEvent(out, &event);
     }
-    if (in->prefix.packed == 0x1F) {
+    if (in->areaId == 0x1F) {
         event.capCmd   = 0xD;
         event.stageSnd = 0x541D0005;
         event.flagId   = 0x13B;

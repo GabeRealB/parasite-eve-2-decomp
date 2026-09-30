@@ -72,7 +72,7 @@ extern SVECTOR          D_shelter_1f_bulwark_80180378[];
 extern SVECTOR          D_shelter_1f_bulwark_80180398[];
 extern GpFadeWork       D_shelter_1f_bulwark_80180EBC;
 extern GpFadeWork       D_shelter_1f_bulwark_80180EC0;
-extern GpSaveLoc        D_shelter_1f_bulwark_80180EC4;
+extern RoomEventMsg     D_shelter_1f_bulwark_80180EC4;
 extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
@@ -88,7 +88,7 @@ extern GpObj4C        D_shelter_1f_bulwark_80180A8C[2];
 extern GpObj4C        D_shelter_1f_bulwark_80180B24[8];
 extern GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1];
 
-s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, GpMessageArg, GpMessageArg);
@@ -100,7 +100,7 @@ void func_shelter_1f_bulwark_8017DE04(Task*);
 TaskDesc D_shelter_1f_bulwark_80180320 = { 0, 32, func_shelter_1f_bulwark_8017D61C, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_bulwark_8018032C[5] = {
-    { 5102, func_shelter_1f_bulwark_8017D7B4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
     { 5105, func_shelter_1f_bulwark_8017DBBC },
     { 5103, func_shelter_1f_bulwark_8017DBCC },
     { 5104, func_shelter_1f_bulwark_8017DBC4 },
@@ -301,7 +301,7 @@ GpFadeWork D_shelter_1f_bulwark_80180EBC = { 0 };
 
 GpFadeWork D_shelter_1f_bulwark_80180EC0 = { 0 };
 
-GpSaveLoc D_shelter_1f_bulwark_80180EC4 = { 0 };
+RoomEventMsg D_shelter_1f_bulwark_80180EC4 = { 0 };
 
 s8 D_shelter_1f_bulwark_80180ECC[4] = {
     0,
@@ -312,7 +312,7 @@ s8 D_shelter_1f_bulwark_80180ECC[4] = {
 
 RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
-static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_1f_bulwark_8017DF00(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
 /// The room's event task, spawned by its message handler for a latched event.
@@ -358,20 +358,20 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_bulwark_80180EC4.prefix.bytes.field_0;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
+            Mc_SaveData[0].state.at4.loc.area = (u8)D_shelter_1f_bulwark_80180EC4.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_bulwark_80180EC4.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
     }
 }
 
-static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
+static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_bulwark_80180ECC_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_1f_bulwark_80180EC4 = *dst;
             D_shelter_1f_bulwark_80180ED0 = *event;
             if (event->flagId != 0) {
@@ -385,19 +385,19 @@ static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event
     return 1;
 }
 
-s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     RoomLatchedEvent event;
 
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    if (*(u16*)src == 4) {
+    if (src->areaId == 4) {
         if (GameFlag_GetNibble(0x15D) == 0) {
             Gp_SpawnIfCapIdle(1, 0);
             return 2;
         }
         if (GameFlag_GetNibble(0x7A) < 6) {
-            if (src->field_5 == 0) {
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 GameFlag_SetNibble(0x7A, 6);
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
@@ -410,7 +410,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSa
         event.fade     = 1;
         return Bulwark_StartEvent(dst, &event);
     }
-    if (*(u16*)src == 2) {
+    if (src->areaId == 2) {
         event.capCmd   = 6;
         event.stageSnd = 0x55030001;
         event.flagId   = 0x15C;

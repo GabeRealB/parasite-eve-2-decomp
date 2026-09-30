@@ -276,7 +276,7 @@ GpEvsCmd D_shelter_r36_8017E8BC[8] = {
 };
 
 GpMsgEntry D_shelter_r36_8017E97C[5] = {
-    { 5102, func_shelter_r36_8017D8D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r36_8017D8D0 },
     { 5105, func_shelter_r36_8017D8C8 },
     { 5103, func_shelter_r36_8017D91C },
     { 5104, func_shelter_r36_8017D914 },

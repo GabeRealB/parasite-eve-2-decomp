@@ -519,7 +519,7 @@ static void func_dryfield_breezeway_8017DE60(Task* task);
 /// command and answers 0; otherwise the request and message are latched into
 /// `D_dryfield_breezeway_801843AC` / `D_dryfield_breezeway_8018439C`, the flag
 /// nibble is written, the event task is spawned and
-/// `D_dryfield_breezeway_801843A4` is raised, for 2. A non-zero `field_5` on
+/// `D_dryfield_breezeway_801843A4` is raised, for 2. A non-zero `queryOnly` on
 /// the message asks what would happen and suppresses all of those effects.
 static s32 func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -544,7 +544,7 @@ static s32 func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_breezeway_8018439C = *msg;
                 D_dryfield_breezeway_801843AC = *req;
                 id                            = req->flagId;
@@ -561,9 +561,9 @@ static s32 func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -614,9 +614,9 @@ void func_dryfield_breezeway_8017D79C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_breezeway_8018439C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_breezeway_8018439C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_breezeway_8018439C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_breezeway_8018439C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_breezeway_8018439C.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_breezeway_8018439C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -636,7 +636,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// `GpMsgEntry` handler for message 0x13EE, the room's own progress gate. It
-/// answers message 0x17 by writing 1 or 2 into the outgoing record's `field_3`
+/// answers message 0x17 by writing 1 or 2 into the outgoing record's `room`
 /// from the room's progress nibble 0x47, and - when the message id still reads
 /// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
 /// item 0x15) to the room's event gate `func_dryfield_breezeway_8017D638`,
@@ -649,15 +649,15 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     s32          ret;
 
     *out = *in;
-    if (in->prefix.packed == 0x17) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 0x17) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0x47) == 0) {
-                out->field_3 = 1;
+                out->room = 1;
             } else {
-                out->field_3 = 2;
+                out->room = 2;
             }
         }
-        if (in->prefix.packed == 0x17) {
+        if (in->areaId == 0x17) {
             req.field_0 = 4;
             req.field_4 = 2;
             req.field_8 = 0x52160006;
@@ -729,7 +729,7 @@ s32 func_dryfield_breezeway_8017DBA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// answers 0 and never edits the outgoing copy.
 s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (GameFlag_GetNibble(0x5D) == 0 && in->field_2 == 1) {
+    if (GameFlag_GetNibble(0x5D) == 0 && in->warp == 1) {
         GameFlag_SetNibble(0x5D, 1);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 1, 0, 0);
     }

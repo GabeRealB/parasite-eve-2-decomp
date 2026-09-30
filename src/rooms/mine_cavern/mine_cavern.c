@@ -223,12 +223,12 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     *out = *in;
     func_map_shelter_80179A04(in, out);
 
-    if (in->prefix.packed == 8) {
+    if (in->areaId == 8) {
         if (GameFlag_GetNibble(0xBB) != 1) {
-            if (in->field_5 != 0) {
+            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
             }
-            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_SetNibbleIf(in->flagId, 2);
             if (Gp_StateF0.prefix.bytes.field_0 == 1 && gGameSession->at4.loc.variant == Gp_StateF0.prefix.bytes.field_0) {
                 Gp_RunCapCmd1(9);
                 return 0;
@@ -240,17 +240,17 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
             GameFlag_SetNibble(0x11A, 1);
             return 0;
         }
-        if (in->field_5 == 0 && GameFlag_GetNibble(0x11A) != 2) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x11A) != 2) {
             GameFlag_SetNibble(0x11A, 2);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0);
         }
     }
 
-    if (in->prefix.packed == 5) {
+    if (in->areaId == 5) {
         if (gGameSession->at4.loc.variant == 1 || gGameSession->at4.loc.variant == 4) {
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-                if (in->field_5 == 0) {
+                if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_RunCapCmd1(0xB);
                 }
                 return 0;

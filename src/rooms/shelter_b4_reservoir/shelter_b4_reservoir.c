@@ -154,7 +154,7 @@ extern SVECTOR                  D_shelter_b4_reservoir_8018509C[];
 extern SVECTOR                  D_shelter_b4_reservoir_801850AC[];
 extern GpAreaApplyRec           D_shelter_b4_reservoir_801874A0[];
 extern GpFadeWork               D_shelter_b4_reservoir_80187500;
-extern GpSaveLoc                D_shelter_b4_reservoir_80187508;
+extern RoomEventMsg             D_shelter_b4_reservoir_80187508;
 extern s32                      D_shelter_b4_reservoir_80187510;
 extern u8*                      D_shelter_b4_reservoir_80187630;
 extern SVECTOR                  D_shelter_b4_reservoir_80187634[];
@@ -205,7 +205,7 @@ extern TaskDesc       D_80147E48;
 extern TaskDesc       D_801575F0;
 
 s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b4_reservoir_8017E264(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b4_reservoir_8017E354(Task*, s32, s32, GpMessageArg);
 s32  func_shelter_b4_reservoir_8017E3C4(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_b4_reservoir_8017E3CC(Task*, s32, s32, GpMessageArg);
@@ -257,7 +257,7 @@ TmdSource D_shelter_b4_reservoir_80184898 = {
 };
 
 GpMsgEntry D_shelter_b4_reservoir_801848BC[6] = {
-    { 5102, func_shelter_b4_reservoir_8017E264 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_reservoir_8017E264 },
     { 5105, func_shelter_b4_reservoir_8017E25C },
     { 5103, func_shelter_b4_reservoir_8017E3C4 },
     { 5104, func_shelter_b4_reservoir_8017E354 },
@@ -985,7 +985,7 @@ GpFadeWork D_shelter_b4_reservoir_80187500 = { 0 };
 
 OverlayWaveCtx* D_shelter_b4_reservoir_80187504 = NULL;
 
-GpSaveLoc D_shelter_b4_reservoir_80187508 = { 0 };
+RoomEventMsg D_shelter_b4_reservoir_80187508 = { 0 };
 
 s32 D_shelter_b4_reservoir_80187510 = 0;
 
@@ -1262,9 +1262,9 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             break;
         case 5:
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_reservoir_80187508.warp;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_reservoir_80187508.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -1276,21 +1276,21 @@ s32 func_shelter_b4_reservoir_8017E25C(Task* task, s32 msgId, GpMessageArg arg2,
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (*(u16*)src == 0x2C) {
+    if (src->areaId == 0x2C) {
         if (GameFlag_GetNibble(0xB7) == 1) {
-            if (src->field_5 == 0) {
-                Gp_SetNibbleIf(src->field_6, 2);
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(src->flagId, 2);
                 Gp_RunCapCmd1(2);
             }
         } else {
-            if (src->field_5 == 0) {
-                D_shelter_b4_reservoir_80187508.field_2              = dst->prefix.bytes.field_0;
-                D_shelter_b4_reservoir_80187508.field_4              = dst->field_2;
-                D_shelter_b4_reservoir_80187508.prefix.bytes.field_1 = dst->field_3;
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+                D_shelter_b4_reservoir_80187508.warp              = (u8)dst->areaId;
+                D_shelter_b4_reservoir_80187508.field_4           = dst->warp;
+                ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1] = dst->room;
                 Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 3, 0xB, 0);
             }
         }

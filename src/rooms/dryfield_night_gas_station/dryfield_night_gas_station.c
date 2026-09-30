@@ -308,7 +308,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task*);
 #include "../../shared/telephone_data.inc.c"
 
 DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
-    { 5102, { .call2 = func_dryfield_night_gas_station_8017F544 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_night_gas_station_8017F544 } },
     { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
     { 5103, { .call1 = func_dryfield_night_gas_station_8017F990 } },
     { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
@@ -2578,11 +2578,11 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 }
 
 /// Answers the room message `in`, copying it to `out` first. For message 2 it
-/// reports in `out->field_3` how far nibble 0x61 has advanced (3 once nibble
+/// reports in `out->room` how far nibble 0x61 has advanced (3 once nibble
 /// 0x7A reaches 4). Message 3 returns 2 when the session sits at stage 3,
 /// place 1 with `Gp_StateF0` agreeing, and 0 while nibble 0x3B is clear;
 /// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
-/// write that go with those answers run only when `in->field_5` is clear.
+/// write that go with those answers run only when `in->queryOnly` is clear.
 /// Every other case returns 1.
 s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -2590,34 +2590,34 @@ s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* i
     s32 val;
 
     *out = *in;
-    if (in->prefix.packed == 2 && in->field_5 == 0) {
+    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;
         } else {
             val = GameFlag_GetNibble(0x61) + 1;
         }
-        out->field_3 = val;
+        out->room = val;
     }
-    if (in->prefix.packed == 3) {
-        if ((gGameSession->at4.loc.stage == in->prefix.packed) && (gGameSession->at4.loc.variant == 1) &&
+    if (in->areaId == 3) {
+        if ((gGameSession->at4.loc.stage == in->areaId) && (gGameSession->at4.loc.variant == 1) &&
             (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant)) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x15);
             }
             return 2;
         }
         if (GameFlag_GetNibble(0x3B) == 0) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(7);
-                Gp_SetNibbleIf(in->field_6, 2);
+                Gp_SetNibbleIf(in->flagId, 2);
             }
             return 0;
         }
     }
-    if (in->prefix.packed == 2) {
+    if (in->areaId == 2) {
         if (GameFlag_GetNibble(0x45) == 1) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(8);
             }
             return 0;

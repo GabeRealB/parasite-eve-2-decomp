@@ -322,7 +322,7 @@ RECT D_dryfield_dilapidated_house_80183E7C = { 0, 0, 320, 240 };
 RECT D_dryfield_dilapidated_house_80183E84 = { 0, 0, 16, 240 };
 
 GpMsgEntry D_dryfield_dilapidated_house_80183E8C[5] = {
-    { 5102, func_dryfield_dilapidated_house_8017E574 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_dilapidated_house_8017E574 },
     { 5105, func_dryfield_dilapidated_house_8017E56C },
     { 5103, func_dryfield_dilapidated_house_8017E68C },
     { 5104, func_dryfield_dilapidated_house_8017E684 },
@@ -2151,7 +2151,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, GpMessageArg
 
 /// Message gate for the room's second hotspot. It copies the incoming record to
 /// the outgoing one and then writes the answer the caller acts on to the copy's
-/// `field_3`, returning 0 when the message was consumed and 1 when it was not.
+/// `room`, returning 0 when the message was consumed and 1 when it was not.
 ///
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
 /// checks. While the session is in the room (`gGameSession->at4.loc.stage` is 2), a
@@ -2166,24 +2166,24 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     *out = *in;
     s1   = gGameSession->at4.loc.stage;
     if (s1 == 2) {
-        if (in->prefix.packed == 7) {
-            if (in->field_5 == 0) {
+        if (in->areaId == 7) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3C) == 0) {
-                    out->field_3 = 1;
+                    out->room = 1;
                 } else {
-                    out->field_3 = s1;
+                    out->room = s1;
                 }
             }
         }
     }
-    if ((in->prefix.packed == 7) && (Gp_StateF0.prefix.bytes.field_0 == 1)) {
-        if (in->field_5 == 0) {
+    if ((in->areaId == 7) && (Gp_StateF0.prefix.bytes.field_0 == 1)) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SpawnIfCapIdle(0x14, 0);
         }
         return 0;
     }
-    if (in->prefix.packed == 5) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 5) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SpawnIfCapIdle(0x13, 0);
         }
         return 0;

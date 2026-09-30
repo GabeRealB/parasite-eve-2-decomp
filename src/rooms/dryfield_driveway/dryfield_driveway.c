@@ -187,7 +187,7 @@ GpEvsCmd D_dryfield_driveway_8017E67C[9] = {
 };
 
 GpMsgEntry D_dryfield_driveway_8017E754[6] = {
-    { 5102, func_dryfield_driveway_8017D77C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_driveway_8017D77C },
     { 5105, func_dryfield_driveway_8017DCC0 },
     { 5103, func_dryfield_driveway_8017DDB8 },
     { 5104, func_dryfield_driveway_8017DDB0 },
@@ -671,9 +671,9 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_driveway_80180688.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_driveway_80180688.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_dryfield_driveway_80180688.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_driveway_80180688.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_driveway_80180688.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_dryfield_driveway_80180688.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -693,27 +693,27 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
     s32               fl;
 
     *out = *in;
-    if (in->prefix.packed == 0x17 && in->field_5 == 0) {
-        fl           = GameFlag_GetNibble(0x47) == 0;
-        out->field_3 = fl ? 1 : 2;
+    if (in->areaId == 0x17 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        fl        = GameFlag_GetNibble(0x47) == 0;
+        out->room = fl ? 1 : 2;
     }
-    if (in->prefix.packed == 0x20 && in->field_5 == 0) {
-        fl           = GameFlag_GetNibble(0x51) == 0;
-        out->field_3 = fl ? 2 : 1;
+    if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        fl        = GameFlag_GetNibble(0x51) == 0;
+        out->room = fl ? 2 : 1;
         if (GameFlag_GetNibble(0x53) != 0) {
-            out->field_3 = out->field_3 + 2;
+            out->room = out->room + 2;
         }
     }
-    if (in->prefix.packed == 2 && GameFlag_GetNibble(0x61) != 0) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 2 && GameFlag_GetNibble(0x61) != 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(6);
-            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_SetNibbleIf(in->flagId, 2);
         }
         return 2;
     }
-    if (in->prefix.packed == 0x20) {
+    if (in->areaId == 0x20) {
         if (GameFlag_GetNibble(0x3A) != 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gGameSession->at4.loc.stage == 2) {
                     if (gGameSession->at4.loc.variant == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
@@ -730,14 +730,14 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
             }
             return 0;
         }
-        if (in->field_5 == 0 && GameFlag_GetNibble(0x4B) == 1) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 1) {
             GameFlag_SetNibble(0x4B, 2);
         }
     }
-    if (in->prefix.packed == 0x17) {
+    if (in->areaId == 0x17) {
         if (GameFlag_GetNibble(0x30) == 1) {
-            if (in->field_5 == 0) {
-                Gp_SetNibbleIf(in->field_6, 2);
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(2);
                 return 2;
             }
@@ -750,7 +750,7 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
         p                                  = &req;
         D_dryfield_driveway_80180690_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
-            if (out->field_5 == 0) {
+            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_driveway_80180688 = *out;
                 D_dryfield_driveway_80180694 = req;
                 if (p->flagId != 0) {

@@ -32,7 +32,7 @@ extern u8 D_80114CDE;
 
 extern s16 D_80114CE0;
 
-extern GpSaveLoc Gp_WarpLoc;
+extern RoomEventMsg Gp_WarpLoc;
 
 extern u16 Gp_DirFadeLevel;
 

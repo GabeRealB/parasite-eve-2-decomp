@@ -55,7 +55,7 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, GpMessageArg
 s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
-    { 5102, func_shelter_b1_control_room_access_tunnel_8017D5EC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_access_tunnel_8017D5EC },
     { 5105, func_shelter_b1_control_room_access_tunnel_8017D5E4 },
     { 5103, func_shelter_b1_control_room_access_tunnel_8017D638 },
     { 5104, func_shelter_b1_control_room_access_tunnel_8017D630 },

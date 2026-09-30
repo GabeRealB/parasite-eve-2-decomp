@@ -52,7 +52,7 @@ extern GpMsgEntry D_neo_ark_woodland_path_80181650[];
 extern Task* D_neo_ark_woodland_path_80181680;
 
 s32 func_neo_ark_woodland_path_8017E888(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_woodland_path_8017E890(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_woodland_path_8017E890(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_neo_ark_woodland_path_8017E8DC(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8017E910(Task*, s32, s32, s32);
@@ -71,7 +71,7 @@ TaskDesc D_neo_ark_woodland_path_80181638 = { 0, 192, func_neo_ark_woodland_path
 TaskDesc D_neo_ark_woodland_path_80181644 = { 0, 192, func_neo_ark_woodland_path_8017E2E8, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_woodland_path_80181650[6] = {
-    { 5102, func_neo_ark_woodland_path_8017E890 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_woodland_path_8017E890 },
     { 5105, func_neo_ark_woodland_path_8017E888 },
     { 5103, func_neo_ark_woodland_path_8017E8DC },
     { 5104, func_neo_ark_woodland_path_8017E8D4 },
@@ -1481,7 +1481,7 @@ s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, GpMessageArg arg2
 /// Room message handler for the path's save location: copies the incoming
 /// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Always
 /// answers 1.
-s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

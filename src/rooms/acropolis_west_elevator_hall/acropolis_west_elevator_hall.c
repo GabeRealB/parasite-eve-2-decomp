@@ -132,7 +132,7 @@ static const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 
 
 s32 func_acropolis_west_elevator_hall_8017F470(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_west_elevator_hall_8017F498(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -317,7 +317,7 @@ s32 D_acropolis_west_elevator_hall_801849C8 = 0;
 GpMsgEntry D_acropolis_west_elevator_hall_801849CC[5] = {
     { 5100, func_acropolis_west_elevator_hall_8017F470 },
     { 5101, func_acropolis_west_elevator_hall_8017F498 },
-    { 5102, func_acropolis_west_elevator_hall_8017F4C0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_west_elevator_hall_8017F4C0 },
     { 5105, func_acropolis_west_elevator_hall_8017F560 },
     { 0x7FFFFFFF, NULL },
 };
@@ -1006,13 +1006,13 @@ s32 func_acropolis_west_elevator_hall_8017F498(Task* task, s32 msgId, GpMessageA
     return 0;
 }
 
-s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (*(u16*)src == 1 && GameFlag_GetNibble(0x21) == 0 && src->field_5 == 0) {
+    if (src->areaId == 1 && GameFlag_GetNibble(0x21) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
         GameFlag_SetNibble(0x21, 1);
         Mc_SaveData[0].state.sceneEvent = 1;
-        dst->field_2                    = 7;
+        dst->warp                       = 7;
     }
     return 1;
 }

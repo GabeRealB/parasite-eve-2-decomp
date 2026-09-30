@@ -263,7 +263,7 @@ TaskDesc D_dryfield_night_factory_80186E4C[2] = {
 };
 
 GpMsgEntry D_dryfield_night_factory_80186E64[6] = {
-    { 5102, func_dryfield_night_factory_80180574 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_factory_80180574 },
     { 5105, func_dryfield_night_factory_8018080C },
     { 5104, func_dryfield_night_factory_80180814 },
     { 5106, func_dryfield_night_factory_80180914 },
@@ -857,7 +857,7 @@ static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 ar
 /// The room's event gate: answers 1 when the request's flag says the event
 /// already happened, 0 (after running the request's cap command) when its
 /// item prerequisite is missing, and otherwise latches the request, writes
-/// the flag and spawns the room's event task, for 2. A non-zero `field_5` on
+/// the flag and spawns the room's event task, for 2. A non-zero `queryOnly` on
 /// the message only asks for the answer.
 static s32 func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -882,7 +882,7 @@ static s32 func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg*
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_night_factory_8018A7D4 = *msg;
                 D_dryfield_night_factory_8018A7EC = *req;
                 id                                = req->flagId;
@@ -899,9 +899,9 @@ static s32 func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg*
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -950,9 +950,9 @@ void func_dryfield_night_factory_801802C8(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_factory_8018A7D4.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_factory_8018A7D4.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_factory_8018A7D4.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_factory_8018A7D4.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_factory_8018A7D4.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_factory_8018A7D4.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1010,50 +1010,50 @@ s32 func_dryfield_night_factory_80180574(Task* arg0, s32 arg1, RoomEventMsg* in,
     u8           variant;
 
     *out = *in;
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         variant = gGameSession->at4.loc.stage;
         if (variant == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->field_3 = variant;
+                    out->room = variant;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
             }
-        } else if (in->field_5 == 0) {
-            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
         }
     }
-    if (in->prefix.packed == 0x18) {
-        if (in->field_5 == 0) {
+    if (in->areaId == 0x18) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0x7A) < 4) {
-                out->field_3 = 1;
+                out->room = 1;
             } else {
-                out->field_3 = 2;
+                out->room = 2;
             }
         }
-        if (in->prefix.packed == 0x18) {
+        if (in->areaId == 0x18) {
             if (GameFlag_GetNibble(0x4A) != 2) {
-                if (in->field_5 != 0) {
+                if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                     return 0;
                 }
                 Gp_StartCapSlot(4, 1, 0);
-                Gp_SetNibbleIf(in->field_6, 2);
+                Gp_SetNibbleIf(in->flagId, 2);
                 return 0;
             }
         }
     }
-    if (in->prefix.packed == 0x16) {
+    if (in->areaId == 0x16) {
         if (GameFlag_GetNibble(0x37) == 0) {
-            if (in->field_5 != 0) {
+            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
             }
-            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(0xD);
             return 0;
         }
     }
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         req.field_0 = 0xE;
         req.field_4 = 0xE;
         req.field_8 = 0x52170013;

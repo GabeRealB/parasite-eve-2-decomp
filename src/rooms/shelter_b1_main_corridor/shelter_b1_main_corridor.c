@@ -154,7 +154,7 @@ TaskDesc D_shelter_b1_main_corridor_8018308C = { 0, 32, func_shelter_b1_main_cor
 TaskDesc D_shelter_b1_main_corridor_80183098 = { 0, 32, func_shelter_b1_main_corridor_8017D8F4, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_main_corridor_801830A4[6] = {
-    { 5102, func_shelter_b1_main_corridor_8017DA8C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },
     { 5105, func_shelter_b1_main_corridor_8017DCEC },
     { 5103, func_shelter_b1_main_corridor_8017DCFC },
     { 5104, func_shelter_b1_main_corridor_8017DCF4 },
@@ -731,7 +731,7 @@ static void           func_shelter_b1_main_corridor_8017F488(GfxCoord* arg0, s16
 /// or clear for a negative `flagId`) answers 1. A missing collected-bit
 /// prerequisite answers 0 and runs the request's CAP command. Otherwise the
 /// message and request are latched, the nibble is written and the event task
-/// is spawned, for 2. A non-zero `field_5` on the message only asks for the
+/// is spawned, for 2. A non-zero `queryOnly` on the message only asks for the
 /// answer and suppresses every side effect.
 static s32 func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -756,7 +756,7 @@ static s32 func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMs
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b1_main_corridor_80185D2C       = *msg;
                 D_shelter_b1_main_corridor_80185D48.value = *req;
                 id                                        = req->flagId;
@@ -773,9 +773,9 @@ static s32 func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMs
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -825,9 +825,9 @@ void func_shelter_b1_main_corridor_8017D784(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D2C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D2C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D2C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D2C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D2C.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D2C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -876,9 +876,9 @@ void func_shelter_b1_main_corridor_8017D8F4(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D3C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D3C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D3C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D3C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D3C.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D3C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -887,13 +887,13 @@ void func_shelter_b1_main_corridor_8017D8F4(Task* arg0)
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
+/// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_main_corridor_80185D44[0] = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b1_main_corridor_80185D3C = *dst;
             D_shelter_b1_main_corridor_80185D68 = *event;
             if (event->flagId != 0) {
@@ -920,30 +920,30 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0xD) {
+    if (in->areaId == 0xD) {
         event.capCmd   = 3;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0xEE;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->prefix.packed == 0xE) {
+    if (in->areaId == 0xE) {
         event.capCmd   = 4;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0xEF;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->prefix.packed == 0x10) {
+    if (in->areaId == 0x10) {
         event.capCmd   = 6;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0x12C;
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->prefix.packed == 9) {
+    if (in->areaId == 9) {
         if (GameFlag_GetNibble(0x7A) >= 6) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(5);
             }
             return 0;
@@ -956,10 +956,10 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         req.itemId  = 0;
         return func_shelter_b1_main_corridor_8017D620(&req, out);
     }
-    if (in->prefix.packed == 0x18) {
+    if (in->areaId == 0x18) {
         if (GameFlag_GetNibble(0xAC) == 0) {
-            if (in->field_5 == 0) {
-                Gp_SetNibbleIf(in->field_6, 2);
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(1);
             }
             return 2;
@@ -970,7 +970,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         event.fade     = 0;
         return _corridorStartEvent(out, &event);
     }
-    if (in->prefix.packed == 0x19) {
+    if (in->areaId == 0x19) {
         event.capCmd   = 7;
         event.stageSnd = 0x540F0001;
         event.flagId   = 0x12D;

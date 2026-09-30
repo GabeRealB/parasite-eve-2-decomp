@@ -124,7 +124,7 @@ TaskDesc D_shelter_b1_access_tunnel_8017E704 = { 0, 32, func_shelter_b1_access_t
 TaskDesc D_shelter_b1_access_tunnel_8017E710 = { 0, 32, func_shelter_b1_access_tunnel_8017D8D0, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
-    { 5102, func_shelter_b1_access_tunnel_8017DA68 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },
     { 5105, func_shelter_b1_access_tunnel_8017DCA4 },
     { 5103, func_shelter_b1_access_tunnel_8017DCB4 },
     { 5104, func_shelter_b1_access_tunnel_8017DCAC },
@@ -569,7 +569,7 @@ static s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMs
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b1_access_tunnel_8017FF54       = *msg;
                 D_shelter_b1_access_tunnel_8017FF70.value = *req;
                 id                                        = req->flagId;
@@ -586,9 +586,9 @@ static s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMs
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -637,9 +637,9 @@ void func_shelter_b1_access_tunnel_8017D760(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -688,9 +688,9 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -699,13 +699,13 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
+/// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_access_tunnel_8017FF6C[0] = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b1_access_tunnel_8017FF64 = *dst;
             D_shelter_b1_access_tunnel_8017FF90 = *event;
             if (event->flagId != 0) {
@@ -723,7 +723,7 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
 /// `func_map_shelter_80179A04`. Messages 0x12 and 0x18, while nibble 0x113 is between 1
 /// and 3 and this is not a dry run, apply the room's area records and set the
 /// nibble to 4. Message 0x15, while nibble 0xE5 is clear, answers 0 and -
-/// unless `in->field_5` asks for a dry run - passes `in->field_6` to
+/// unless `in->queryOnly` asks for a dry run - passes `in->flagId` to
 /// `Gp_SetNibbleIf` and runs cap command 1. Otherwise message 0x12 goes through
 /// the rooms' event gate on flag 0xAD, message 0x14 starts the room event on
 /// flag 0x13F, and any other message answers 1.
@@ -734,20 +734,20 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x12 || in->prefix.packed == 0x18) {
-        if (in->field_5 == 0 && GameFlag_GetNibble(0x113) > 0 && GameFlag_GetNibble(0x113) < 4) {
+    if (in->areaId == 0x12 || in->areaId == 0x18) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x113) > 0 && GameFlag_GetNibble(0x113) < 4) {
             Gp_ApplyAreaRecs(D_shelter_b1_access_tunnel_8017FF44);
             GameFlag_SetNibble(0x113, 4);
         }
     }
-    if (in->prefix.packed == 0x15 && GameFlag_GetNibble(0xE5) == 0) {
-        if (in->field_5 == 0) {
-            Gp_SetNibbleIf(in->field_6, 2);
+    if (in->areaId == 0x15 && GameFlag_GetNibble(0xE5) == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(1);
         }
         return 0;
     }
-    if (in->prefix.packed == 0x12) {
+    if (in->areaId == 0x12) {
         req.field_0 = 3;
         req.field_4 = 1;
         req.field_8 = 0x54130009;
@@ -756,7 +756,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         req.itemId  = 0;
         return func_shelter_b1_access_tunnel_8017D5FC(&req, out);
     }
-    if (in->prefix.packed == 0x14) {
+    if (in->areaId == 0x14) {
         event.capCmd   = 4;
         event.stageSnd = 0x54130005;
         event.flagId   = 0x13F;

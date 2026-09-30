@@ -64,7 +64,7 @@ static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
 };
 
 s32 func_neo_ark_south_promenade_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_south_promenade_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_neo_ark_south_promenade_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -75,7 +75,7 @@ extern GpObj4C        D_neo_ark_south_promenade_801806B0[6];
 extern GpRoomCoordSet D_neo_ark_south_promenade_801804D0[1];
 
 GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {
-    { 5102, func_neo_ark_south_promenade_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
     { 5105, func_neo_ark_south_promenade_8017D5D0 },
     { 5103, func_neo_ark_south_promenade_8017D624 },
     { 5104, func_neo_ark_south_promenade_8017D61C },
@@ -361,7 +361,7 @@ s32 func_neo_ark_south_promenade_8017D5D0(Task* task, s32 msgId, GpMessageArg ar
 /// Message handler the room's message table names for one of its entries:
 /// copies the incoming message onto the outgoing one, passes both to
 /// `func_map_neo_ark_80179B14` and returns 1.
-s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

@@ -57,7 +57,7 @@ extern GpRoomBoundVec D_dryfield_night_souvenir_shop_8017F228[4];
 extern GpRoomCoordSet D_dryfield_night_souvenir_shop_8017F178[1];
 
 GpMsgEntry D_dryfield_night_souvenir_shop_8017E03C[5] = {
-    { 5102, func_dryfield_night_souvenir_shop_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_souvenir_shop_8017D5D8 },
     { 5105, func_dryfield_night_souvenir_shop_8017D5D0 },
     { 5103, func_dryfield_night_souvenir_shop_8017D608 },
     { 5104, func_dryfield_night_souvenir_shop_8017D600 },

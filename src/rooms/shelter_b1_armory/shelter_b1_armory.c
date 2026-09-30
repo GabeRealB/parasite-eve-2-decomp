@@ -186,7 +186,7 @@ TaskDesc D_shelter_b1_armory_801824E8[2] = {
 };
 
 GpMsgEntry D_shelter_b1_armory_80182500[5] = {
-    { 5102, func_shelter_b1_armory_801805A8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_armory_801805A8 },
     { 5105, func_shelter_b1_armory_80180468 },
     { 5103, func_shelter_b1_armory_801806F8 },
     { 5104, func_shelter_b1_armory_80180698 },
@@ -228,7 +228,7 @@ static s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b1_armory_80185584 = *msg;
                 D_shelter_b1_armory_80185590 = *req;
                 id                           = req->flagId;
@@ -245,9 +245,9 @@ static s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -296,9 +296,9 @@ void func_shelter_b1_armory_801800A4(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_armory_80185584.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_armory_80185584.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -437,7 +437,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0xB) {
+    if (in->areaId == 0xB) {
         req.field_0 = 4;
         req.field_4 = 1;
         req.field_8 = 0x540D0005;
@@ -446,14 +446,14 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
         req.itemId  = 0;
         return func_shelter_b1_armory_8017FF40(&req, out);
     }
-    if (in->prefix.packed != 0xD) {
+    if (in->areaId != 0xD) {
         return 1;
     }
     if (GameFlag_GetNibble(0xF0) != 0) {
         return 1;
     }
-    if (in->field_5 == 0) {
-        Gp_SetNibbleIf(in->field_6, 2);
+    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+        Gp_SetNibbleIf(in->flagId, 2);
         Gp_RunCapCmd1(0xD);
     }
     return 0;

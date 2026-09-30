@@ -133,7 +133,7 @@ TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
 };
 
 GpMsgEntry D_shelter_b2_elevator_8017DFA0[7] = {
-    { 5102, func_shelter_b2_elevator_8017DA64 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_8017DA64 },
     { 5105, func_shelter_b2_elevator_8017DA5C },
     { 5103, func_shelter_b2_elevator_8017DAB0 },
     { 5104, func_shelter_b2_elevator_8017DAA8 },
@@ -487,15 +487,15 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            msg.field_5       = 0;
-            msg.prefix.packed = Mc_SaveData[0].state.at4.loc.area;
-            msg.field_2       = Mc_SaveData[0].state.at4.loc.warp;
-            msg.field_3       = Mc_SaveData[0].state.at4.loc.room;
-            msg2              = msg;
+            msg.queryOnly = ROOM_EVENT_EXECUTE;
+            msg.areaId    = Mc_SaveData[0].state.at4.loc.area;
+            msg.warp      = Mc_SaveData[0].state.at4.loc.warp;
+            msg.room      = Mc_SaveData[0].state.at4.loc.room;
+            msg2          = msg;
             func_map_shelter_80179A04(&msg, &msg2);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
-            Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
+            Mc_SaveData[0].state.at4.loc.warp = msg2.warp;
+            Mc_SaveData[0].state.at4.loc.room = msg2.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

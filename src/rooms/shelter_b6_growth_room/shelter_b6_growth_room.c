@@ -28,12 +28,12 @@ extern void func_801327A8(void);
 extern void func_80132834(void);
 
 s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b6_growth_room_8017D634(Task*, s32, s32, GpMessageArg);
 s32 func_shelter_b6_growth_room_8017D6C8(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 GpMsgEntry D_shelter_b6_growth_room_8017F16C[5] = {
-    { 5102, func_shelter_b6_growth_room_8017D5F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_growth_room_8017D5F0 },
     { 5105, func_shelter_b6_growth_room_8017D5E8 },
     { 5103, func_shelter_b6_growth_room_8017D6C8 },
     { 5104, func_shelter_b6_growth_room_8017D634 },
@@ -49,9 +49,9 @@ s32 func_shelter_b6_growth_room_8017D5E8(Task* task, s32 msgId, GpMessageArg arg
     return 0;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
+/// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
 /// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
-s32 func_shelter_b6_growth_room_8017D5F0(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_shelter_b6_growth_room_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -76,10 +76,10 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, GpMessa
 
 s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (arg2->warp == 1) {
         func_801327A8();
     }
-    if (arg2->field_2 == 2) {
+    if (arg2->warp == 2) {
         func_80132834();
     }
     return 0;

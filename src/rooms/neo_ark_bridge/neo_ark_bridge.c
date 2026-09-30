@@ -39,7 +39,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 extern GpMsgEntry D_neo_ark_bridge_80181F30[];
 
 s32 func_neo_ark_bridge_8017E82C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_bridge_8017E834(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_bridge_8017E834(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_bridge_8017E878(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_neo_ark_bridge_8017E880(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -51,7 +51,7 @@ TaskDesc D_neo_ark_bridge_80181F18 = { 0, 192, func_neo_ark_bridge_8017D638, { .
 TaskDesc D_neo_ark_bridge_80181F24 = { 0, 192, func_neo_ark_bridge_8017E28C, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_bridge_80181F30[5] = {
-    { 5102, func_neo_ark_bridge_8017E834 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_bridge_8017E834 },
     { 5105, func_neo_ark_bridge_8017E82C },
     { 5103, func_neo_ark_bridge_8017E880 },
     { 5104, func_neo_ark_bridge_8017E878 },
@@ -777,7 +777,7 @@ s32 func_neo_ark_bridge_8017E82C(Task* task, s32 msgId, GpMessageArg arg2, GpMes
 /// Room message handler for the bridge's save location: copies the incoming
 /// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Always
 /// answers 1.
-s32 func_neo_ark_bridge_8017E834(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_bridge_8017E834(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

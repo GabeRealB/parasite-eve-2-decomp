@@ -63,7 +63,7 @@ STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 /// Staging save location the room commits when the tunnel's save is taken:
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
 /// later copies into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
-extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
+extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
 /// The staged event descriptor, read by the task spawned above.
 extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
@@ -414,7 +414,7 @@ GpRoomParamRec* D_neo_ark_eve_access_tunnel_80180780[8] = {
     D_neo_ark_eve_access_tunnel_80180768,
 };
 
-GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
+RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
 RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
@@ -680,9 +680,9 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             return;
         case 4:
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
+            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -700,27 +700,27 @@ s32 func_neo_ark_eve_access_tunnel_8017DC64(Task* task, s32 msgId, GpMessageArg 
 /// the tunnel (nibble 0xB9 still clear) or, once that nibble is set, latches the
 /// save location the outgoing message carries and starts the cutscene that
 /// leads to the EVE encounter. The two `switch`es are load-bearing: the
-/// equivalent `if` / `else` chain makes reorg fill the second field_5 branch's
+/// equivalent `if` / `else` chain makes reorg fill the second queryOnly branch's
 /// delay slot from the return block instead of the fall-through.
-s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
-    switch (*(u16*)src) {
+    switch (src->areaId) {
         case 9:
             switch (GameFlag_GetNibble(0xB9)) {
                 case 0:
-                    if (src->field_5 == 0) {
-                        Gp_SetNibbleIf(src->field_6, 2);
+                    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+                        Gp_SetNibbleIf(src->flagId, 2);
                         Gp_RunCapCmd1(1);
                     }
                     break;
                 default:
-                    if (src->field_5 == 0) {
-                        Mc_SaveData[0].state.sceneEvent                           = 0x18;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_2              = dst->prefix.bytes.field_0;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_4              = dst->field_2;
-                        D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1 = dst->field_3;
+                    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+                        Mc_SaveData[0].state.sceneEvent                        = 0x18;
+                        D_neo_ark_eve_access_tunnel_801807A0.warp              = (u8)dst->areaId;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_4           = dst->warp;
+                        ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = dst->room;
                         Gp_MsgPlayerWeapon(0);
                         Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
                     }

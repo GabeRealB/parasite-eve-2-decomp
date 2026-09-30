@@ -205,7 +205,7 @@ AnimationSet D_neo_ark_observatory_80181184 = {
 TaskDesc D_neo_ark_observatory_801811AC = { 0, 192, func_neo_ark_observatory_8017FB1C, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_observatory_801811B8[5] = {
-    { 5102, func_neo_ark_observatory_8017FBE8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_observatory_8017FBE8 },
     { 5105, func_neo_ark_observatory_8017FBE0 },
     { 5103, func_neo_ark_observatory_8017F6F8 },
     { 5104, func_neo_ark_observatory_8017FCA0 },
@@ -1890,7 +1890,7 @@ s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
     if ((GameFlag_GetNibble(0xD1) == 3) && (GameFlag_GetNibble(0x4C) == 9) &&
-        ((in->prefix.packed == 0xA) || (in->prefix.packed == 0x13)) && (in->field_5 == 0)) {
+        ((in->areaId == 0xA) || (in->areaId == 0x13)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
         GameFlag_SetNibble(0x4C, 0);
         Gp_ApplyAreaRecs(D_neo_ark_observatory_80187A28);
     }

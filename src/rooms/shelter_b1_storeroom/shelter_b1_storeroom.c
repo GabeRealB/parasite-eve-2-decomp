@@ -34,7 +34,7 @@ s32 func_shelter_b1_storeroom_8017D6E8(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_shelter_b1_storeroom_8017D6F0(Task*, s32, s32, GpMessageArg);
 
 GpMsgEntry D_shelter_b1_storeroom_80184968[6] = {
-    { 5102, func_shelter_b1_storeroom_8017D604 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_storeroom_8017D604 },
     { 5105, func_shelter_b1_storeroom_8017D5FC },
     { 5103, func_shelter_b1_storeroom_8017D6E8 },
     { 5104, func_shelter_b1_storeroom_8017D6E0 },
@@ -51,21 +51,21 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0xD && GameFlag_GetNibble(0xA6) == 0) {
-        if (in->field_5 != 0) {
+    if (in->areaId == 0xD && GameFlag_GetNibble(0xA6) == 0) {
+        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_SetNibbleIf(in->field_6, 2);
+        Gp_SetNibbleIf(in->flagId, 2);
         Gp_RunCapCmd1(1);
         return 0;
     }
-    if (in->prefix.packed != 0xC && in->prefix.packed != 0xA) {
+    if (in->areaId != 0xC && in->areaId != 0xA) {
         return 1;
     }
     if (GameFlag_GetNibble(0x7A) < 6) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
     Gp_RunCapCmd1(0xE);

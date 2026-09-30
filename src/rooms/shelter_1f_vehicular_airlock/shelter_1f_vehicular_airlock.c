@@ -139,7 +139,7 @@ TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
 TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { 0, 32, func_shelter_1f_vehicular_airlock_8017D644, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
-    { 5102, func_shelter_1f_vehicular_airlock_8017D7DC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },
     { 5105, func_shelter_1f_vehicular_airlock_8017D988 },
     { 5103, func_shelter_1f_vehicular_airlock_8017D9F4 },
     { 5104, func_shelter_1f_vehicular_airlock_8017D990 },
@@ -402,9 +402,9 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_vehicular_airlock_80182AA8.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_vehicular_airlock_80182AA8.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_vehicular_airlock_80182AA8.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_vehicular_airlock_80182AA8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -415,7 +415,7 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
 {
     D_shelter_1f_vehicular_airlock_80182AB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_1f_vehicular_airlock_80182AA8 = *dst;
             D_shelter_1f_vehicular_airlock_80182AB4 = *event;
             if (event->flagId != 0) {
@@ -435,10 +435,10 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
 
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->prefix.packed == 3) {
+    if (in->areaId == 3) {
         if (GameFlag_GetNibble(0xB2) == 0) {
-            if (in->field_5 == 0) {
-                Gp_SetNibbleIf(in->field_6, 2);
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(2);
             }
             return 0;
@@ -449,7 +449,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
         event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
-    if (in->prefix.packed == 5) {
+    if (in->areaId == 5) {
         event.capCmd   = 6;
         event.stageSnd = 0x55020001;
         event.flagId   = 0x15A;

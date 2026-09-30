@@ -242,7 +242,7 @@ TaskDesc D_acropolis_square_801837A0[3] = {
 };
 
 GpMsgEntry D_acropolis_square_801837C4[6] = {
-    { 5102, func_acropolis_square_80181794 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
     { 5103, func_acropolis_square_801820D8 },
     { 5105, func_acropolis_square_80182108 },
     { 5104, func_acropolis_square_801819BC },
@@ -1351,20 +1351,20 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
     key.stage = 1;
     key.area  = 4;
     *arg3     = *arg2;
-    if (arg2->prefix.packed == 9) {
-        if ((D_acropolis_square_8018382C != 0) && (arg2->field_5 == 0)) {
+    if (arg2->areaId == 9) {
+        if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 2);
         }
-        if (arg2->prefix.packed == 9) {
+        if (arg2->areaId == 9) {
             if (GameFlag_GetNibble(9) & 1) {
-                arg3->field_3 = 2;
+                arg3->room = 2;
             }
         }
         return 1;
     }
-    if (arg2->prefix.packed == 2) {
-        if ((D_acropolis_square_8018382C != 0) && (arg2->field_5 == 0)) {
+    if (arg2->areaId == 2) {
+        if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 2);
         }
@@ -1372,40 +1372,40 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
             return 1;
         }
         if ((GameFlag_GetNibble(0) == 2) || (GameFlag_GetNibble(0) >= 3)) {
-            if (arg2->field_5 == 0) {
+            if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
                 do {
-                    Gp_SetNibbleIf(arg2->field_6, 2);
+                    Gp_SetNibbleIf(arg2->flagId, 2);
                     Gp_RunCapCmd1(1);
                 } while (0);
             }
             return 0;
         }
     }
-    if (arg2->prefix.packed == 0x11) {
+    if (arg2->areaId == 0x11) {
         if (GameFlag_GetNibble(0) < 2) {
             return 1;
         }
         if ((GameFlag_GetNibble(0) == 2) || (GameFlag_GetNibble(0) >= 3)) {
-            if (arg2->field_5 == 0) {
+            if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
                 do {
-                    Gp_SetNibbleIf(arg2->field_6, 2);
+                    Gp_SetNibbleIf(arg2->flagId, 2);
                     Gp_RunCapCmd1(1);
                 } while (0);
             }
             return 0;
         }
     }
-    temp_s1 = arg2->prefix.packed;
+    temp_s1 = arg2->areaId;
     if (temp_s1 == 3) {
-        if (arg2->field_5 == 0) {
+        if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0) < 2) {
                 if (GameFlag_GetNibble(0x21) < 2) {
-                    arg3->field_3 = 1;
+                    arg3->room = 1;
                 } else {
-                    arg3->field_3 = 2;
+                    arg3->room = 2;
                 }
             } else {
-                arg3->field_3 = temp_s1;
+                arg3->room = temp_s1;
             }
         }
     }

@@ -98,7 +98,7 @@ s32 func_neo_ark_north_promenade_8017D66C(Task*, s32, GpMessageArg, GpMessageArg
 s32 func_neo_ark_north_promenade_8017D674(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_neo_ark_north_promenade_80181D68[5] = {
-    { 5102, func_neo_ark_north_promenade_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_north_promenade_8017D5D8 },
     { 5105, func_neo_ark_north_promenade_8017D5D0 },
     { 5103, func_neo_ark_north_promenade_8017D674 },
     { 5104, func_neo_ark_north_promenade_8017D66C },
@@ -419,16 +419,16 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->prefix.packed != 0xB) {
+    if (in->areaId != 0xB) {
         return 1;
     }
     if (GameFlag_GetNibble(0xF6) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_SetNibbleIf(in->flagId, 2);
     Gp_RunCapCmd1(1);
     return 0;
 }

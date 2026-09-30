@@ -30,7 +30,7 @@ s32 func_shelter_1f_heliport_s4_8017D61C(Task*, s32, GpMessageArg, GpMessageArg)
 s32 func_shelter_1f_heliport_s4_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
-    { 5102, func_shelter_1f_heliport_s4_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_s4_8017D5D8 },
     { 5105, func_shelter_1f_heliport_s4_8017D5D0 },
     { 5103, func_shelter_1f_heliport_s4_8017D624 },
     { 5104, func_shelter_1f_heliport_s4_8017D61C },

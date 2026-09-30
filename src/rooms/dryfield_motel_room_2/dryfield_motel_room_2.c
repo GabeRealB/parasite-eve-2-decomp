@@ -40,7 +40,7 @@ extern GpObj4C      D_dryfield_motel_room_2_8017FF78[6];
 extern GpRoomCoordSet D_dryfield_motel_room_2_80180398[1];
 
 GpMsgEntry D_dryfield_motel_room_2_8017D6BC[5] = {
-    { 5102, func_dryfield_motel_room_2_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_2_8017D5D8 },
     { 5105, func_dryfield_motel_room_2_8017D5D0 },
     { 5103, func_dryfield_motel_room_2_8017D608 },
     { 5104, func_dryfield_motel_room_2_8017D600 },

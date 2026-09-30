@@ -203,7 +203,7 @@ TmdSource D_acropolis_promenade_80180E50 = {
 };
 
 AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
-    { 5102, { .call0 = func_acropolis_promenade_8017D70C } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call0 = func_acropolis_promenade_8017D70C } },
     { 5104, { .call0 = func_acropolis_promenade_8017D8E0 } },
     { 5103, { .call3 = func_acropolis_promenade_8017D930 } },
     { 5105, { .call0 = func_acropolis_promenade_8017D8D8 } },
@@ -1568,55 +1568,55 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// to the outgoing one, then edits the copy according to the message id and the
 /// game's progress nibbles.
 ///
-/// Message 0xA answers with the `field_2` refusal code 1 while the disc has no
+/// Message 0xA answers with the `warp` refusal code 1 while the disc has no
 /// stream file open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`) or nibble 1 is
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
 /// script to pick up, and arms `Mc_SaveData[0].state.sceneEvent` with 4. Message 0xE spawns the
 /// capsule sequence the first time (nibble 2 still 0) and afterwards reports
-/// through `field_3` whether nibble 2 has reached 3.
+/// through `room` whether nibble 2 has reached 3.
 ///
-/// `field_5` non-zero means "report only", which suppresses every side effect.
+/// `queryOnly` non-zero means "report only", which suppresses every side effect.
 s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventMsg unused;
     u16          msgId;
 
     *out = *in;
-    if (in->prefix.packed == 0xA && in->field_5 == 0) {
+    if (in->areaId == 0xA && in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
-            out->field_2 = 1;
+            out->warp = 1;
         }
         if (GameFlag_GetNibble(1) == 4) {
             GameFlag_SetNibble(1, 5);
         } else {
-            out->field_2 = 1;
+            out->warp = 1;
         }
     }
-    if (in->prefix.packed == 0xC && GameFlag_GetNibble(2) == 0) {
-        if (in->field_5 == 0) {
-            out->field_2                    = 3;
+    if (in->areaId == 0xC && GameFlag_GetNibble(2) == 0) {
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->warp                       = 3;
             D_acropolis_promenade_801862D0  = *out;
             Mc_SaveData[0].state.sceneEvent = 4;
         }
         return 1;
     }
-    msgId = in->prefix.packed;
+    msgId = in->areaId;
     if (msgId == 0xE) {
         if (GameFlag_GetNibble(2) == 0) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SpawnIfCapIdle(2, 1);
-                Gp_SetNibbleIf(in->field_6, 2);
+                Gp_SetNibbleIf(in->flagId, 2);
             }
             return 0;
         }
-        if (in->prefix.packed == msgId) {
-            if (in->field_5 == 0) {
+        if (in->areaId == msgId) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(2) == 3) {
-                    out->field_3 = 2;
+                    out->room = 2;
                 } else {
-                    out->field_3 = 1;
+                    out->room = 1;
                 }
             }
         }

@@ -183,7 +183,7 @@ extern SVECTOR D_acropolis_security_room_801855B0;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+        s32  (*call0)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32  (*call1)(Task*, s32, s32, s32);
         void (*call2)(Task*, s32, GpMsg13EF*);
     } handler;
@@ -327,13 +327,13 @@ extern GpSprtElem  D_acropolis_security_room_801841F0[18];
 extern GpSprtElem  D_acropolis_security_room_80184390[10];
 extern GpSprtElem  D_acropolis_security_room_80184470[2];
 
-s32  func_acropolis_security_room_8017D6AC(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_acropolis_security_room_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
 s32  func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
 void func_acropolis_security_room_8017D740(Task*, s32, GpMsg13EF*);
 
 AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
-    { 5102, { .call0 = func_acropolis_security_room_8017D6AC } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call0 = func_acropolis_security_room_8017D6AC } },
     { 5103, { .call2 = func_acropolis_security_room_8017D740 } },
     { 5104, { .call1 = func_acropolis_security_room_8017D708 } },
     { 5105, { .call1 = func_acropolis_security_room_8017D6D4 } },
@@ -1902,7 +1902,7 @@ static void func_acropolis_security_room_80182574(Task* task);
 
 /// Message 0x13EE handler: copies the incoming location record onto the
 /// outgoing one and answers 1.
-s32 func_acropolis_security_room_8017D6AC(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_acropolis_security_room_8017D6AC(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

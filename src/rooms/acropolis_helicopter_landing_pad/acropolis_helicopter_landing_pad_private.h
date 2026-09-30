@@ -44,7 +44,7 @@ extern GpRoomCoordSet D_acropolis_helicopter_landing_pad_80186AE8[1];
 
 extern SVECTOR D_acropolis_helicopter_landing_pad_80187F88;
 
-extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
+extern RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90;
 
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5];
 
@@ -88,7 +88,7 @@ void func_acropolis_helicopter_landing_pad_8017E0F8(Task*);
 
 void func_acropolis_helicopter_landing_pad_8017E270(Task*);
 
-s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_acropolis_helicopter_landing_pad_8017E49C(Task*, s32, GpMessageArg, GpMessageArg);
 

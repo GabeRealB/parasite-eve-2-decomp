@@ -60,7 +60,7 @@ s32  func_neo_ark_shrine_8017D7F0(Task*, s32, GpMsg13EF*, GpMessageArg);
 void func_neo_ark_shrine_8017D84C(Task*);
 
 GpMsgEntry D_neo_ark_shrine_80181E34[5] = {
-    { 5102, func_neo_ark_shrine_8017D6AC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_shrine_8017D6AC },
     { 5105, func_neo_ark_shrine_8017D6A4 },
     { 5103, func_neo_ark_shrine_8017D7F0 },
     { 5104, func_neo_ark_shrine_8017D740 },
@@ -270,16 +270,16 @@ s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->prefix.packed != 0x11) {
+    if (in->areaId != 0x11) {
         return 1;
     }
     if (GameFlag_GetNibble(0xDB) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_SetNibbleIf(in->flagId, 2);
     Gp_RunCapCmd1(4);
     return 0;
 }

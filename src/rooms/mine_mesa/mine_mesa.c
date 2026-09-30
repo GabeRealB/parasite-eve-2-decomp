@@ -78,7 +78,7 @@ extern GpGridParams D_mine_mesa_801864A4;
 
 extern GpGridParams D_mine_mesa_8018700C;
 
-extern GpSaveLoc D_mine_mesa_80189B40;
+extern RoomEventMsg D_mine_mesa_80189B40;
 
 extern s8 D_mine_mesa_80189B48;
 
@@ -291,7 +291,7 @@ s32                             func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                            func_mine_mesa_80181894(Task*);
 
 s32  func_mine_mesa_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_mine_mesa_8017D8F8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_mine_mesa_8017DA7C(Task*, s32, s32, GpMessageArg);
 s32  func_mine_mesa_8017DABC(Task*, s32, GpMsg13EF*, s32);
 s32  func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
@@ -300,7 +300,7 @@ void func_mine_mesa_8017D670(Task*);
 TaskDesc D_mine_mesa_801818F8 = { 0, 32, func_mine_mesa_8017D670, { .model = NULL } };
 
 GpMsgEntry D_mine_mesa_80181904[6] = {
-    { 5102, func_mine_mesa_8017D8F8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
     { 5105, func_mine_mesa_8017D8F0 },
     { 5103, func_mine_mesa_8017DABC },
     { 5104, func_mine_mesa_8017DA7C },
@@ -2557,7 +2557,7 @@ TaskDesc D_mine_mesa_80189B2C = { 0, 32, func_mine_mesa_80181894, { .model = NUL
 
 RoomFadeStorage D_mine_mesa_80189B38 = { 0 };
 
-GpSaveLoc D_mine_mesa_80189B40 = { 0 };
+RoomEventMsg D_mine_mesa_80189B40 = { 0 };
 
 s8 D_mine_mesa_80189B48 = 0;
 
@@ -2581,7 +2581,7 @@ GpEnemy* D_mine_mesa_80189B74[2] = {
 };
 
 static void           func_mine_mesa_8017D808(Task* task);
-static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
+static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_mine_mesa_8017DC80(Task* arg0);
 static void           func_mine_mesa_80181358(Task* arg0);
 static void           func_mine_mesa_80181848(Task* arg0);
@@ -2630,9 +2630,9 @@ void func_mine_mesa_8017D670(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_mine_mesa_80189B40.prefix.bytes.field_0;
-            Mc_SaveData[0].state.at4.loc.warp = D_mine_mesa_80189B40.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_mine_mesa_80189B40.field_3;
+            Mc_SaveData[0].state.at4.loc.area = (u8)D_mine_mesa_80189B40.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_mine_mesa_80189B40.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_mine_mesa_80189B40.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -2666,11 +2666,11 @@ s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageA
     return 0;
 }
 
-static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
+static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_mine_mesa_80189B48 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_mine_mesa_80189B40 = *dst;
             D_mine_mesa_80189B60 = *event;
             if (event->flagId != 0) {
@@ -2692,14 +2692,14 @@ static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* even
 /// without side effects while the request is already in flight (`field_9` is 1
 /// and `Gp_StateF0.prefix.bytes.field_0` agrees with it), 2 for a stage-3 request and 1 for
 /// every other one.
-s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
     u8               field9;
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (*(u16*)in != 3) {
+    if (in->areaId != 3) {
         return 1;
     }
     field9 = gGameSession->at4.loc.variant;

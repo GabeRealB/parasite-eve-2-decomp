@@ -67,7 +67,7 @@ extern DryfieldNightMotelRoom2SpotLightStorage D_dryfield_night_motel_room_2_801
 extern GpPointLight                            D_dryfield_night_motel_room_2_801805F8[4];
 
 GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
-    { 5102, func_dryfield_night_motel_room_2_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_motel_room_2_8017D5D8 },
     { 5105, func_dryfield_night_motel_room_2_8017D5D0 },
     { 5103, func_dryfield_night_motel_room_2_8017D668 },
     { 5104, func_dryfield_night_motel_room_2_8017D660 },
@@ -1062,7 +1062,7 @@ s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, GpMessageAr
 }
 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply and, for a message 2 that is not report-only (`field_5 == 0`),
+/// reply and, for a message 2 that is not report-only (`queryOnly == 0`),
 /// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
 /// once it has reached 4. Returns 1.
 s32 func_dryfield_night_motel_room_2_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -1071,14 +1071,14 @@ s32 func_dryfield_night_motel_room_2_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg
     s32 n;
 
     *out = *in;
-    if (in->prefix.packed == 2 && in->field_5 == 0) {
+    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;
         } else {
             val = GameFlag_GetNibble(0x61) + 1;
         }
-        out->field_3 = val;
+        out->room = val;
     }
     return 1;
 }

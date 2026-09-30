@@ -766,9 +766,9 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863A8.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863A8.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863A8.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863A8.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863A8.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863A8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -779,7 +779,7 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
 /// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One
 /// whose prerequisite item has not been collected runs the request's CAP
 /// command and answers 0. Otherwise the gate answers 2 and - unless the
-/// message's `field_5` asks for a dry run - latches the message and the
+/// message's `queryOnly` asks for a dry run - latches the message and the
 /// request, writes the flag nibble and spawns the event task.
 static s32 func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req, RoomEventMsg* msg)
 {
@@ -804,7 +804,7 @@ static s32 func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req,
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_shelter_b2_north_maintenance_walkway_801863B8 = *msg;
                 D_shelter_b2_north_maintenance_walkway_801863D4 = *req;
                 id                                              = req->flagId;
@@ -821,9 +821,9 @@ static s32 func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req,
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -873,9 +873,9 @@ void func_shelter_b2_north_maintenance_walkway_8017D918(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863B8.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863B8.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863B8.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863B8.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863B8.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863B8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -884,13 +884,13 @@ void func_shelter_b2_north_maintenance_walkway_8017D918(Task* task)
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
+/// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_north_maintenance_walkway_801863B0.value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b2_north_maintenance_walkway_801863A8       = *dst;
             D_shelter_b2_north_maintenance_walkway_801863C4.value = *event;
             if (event->flagId != 0) {
@@ -917,7 +917,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x1D) {
+    if (in->areaId == 0x1D) {
         req.field_0 = 3;
         req.field_4 = 1;
         req.field_8 = 0x541E0003;
@@ -933,7 +933,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
         }
         return result;
     }
-    if (in->prefix.packed != 0x20) {
+    if (in->areaId != 0x20) {
         return 1;
     }
     event.capCmd   = 4;
@@ -953,13 +953,13 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC4C(Task* task, s32 msgId, Gp
     return 0;
 }
 
-/// Room message handler. On the visit whose sub-id (`field_2`) is 1, agrees with
+/// Room message handler. On the visit whose sub-id (`warp`) is 1, agrees with
 /// the session's own sub-id and has not yet latched nibble 0x84, it starts the
 /// cutscene pair, runs `func_800E3FAC(0xA2, 0x20)`, latches the nibble and
 /// applies the room's area records. The outgoing record is never written.
 s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    u8 subId = in->field_2;
+    u8 subId = in->warp;
 
     if (subId == 1 && GameFlag_GetNibble(0x84) == 0 && gGameSession->at4.loc.variant == subId) {
         func_800E8634(&D_80165354, 0, &D_80165834);

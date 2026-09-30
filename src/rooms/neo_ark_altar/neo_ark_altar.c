@@ -47,14 +47,14 @@ static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
 
 void func_neo_ark_altar_8017D668(Task*);
 s32  func_neo_ark_altar_8017D8BC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_altar_8017D8C4(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32  func_neo_ark_altar_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_altar_8017D908(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_altar_8017D910(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskDesc D_neo_ark_altar_8017EF8C = { 0, 32, func_neo_ark_altar_8017D668, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_altar_8017EF98[5] = {
-    { 5102, func_neo_ark_altar_8017D8C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_altar_8017D8C4 },
     { 5105, func_neo_ark_altar_8017D8BC },
     { 5103, func_neo_ark_altar_8017D910 },
     { 5104, func_neo_ark_altar_8017D908 },
@@ -149,9 +149,9 @@ s32 func_neo_ark_altar_8017D8BC(Task* task, s32 msgId, GpMessageArg arg2, GpMess
 }
 
 /// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `GpSaveLoc` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
+/// `RoomEventMsg` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
 /// Always returns 1.
-s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -172,8 +172,8 @@ s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, GpMessageArg arg2, GpMess
 /// consumes the message.
 s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->field_2 == 1) {
-        if (gGameSession->at4.loc.room == in->field_2) {
+    if (in->warp == 1) {
+        if (gGameSession->at4.loc.room == in->warp) {
             Gp_RunCapCmd1(3);
         } else {
             Task_SpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);

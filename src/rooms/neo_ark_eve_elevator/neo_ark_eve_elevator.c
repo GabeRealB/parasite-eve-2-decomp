@@ -48,7 +48,7 @@ extern GpObj4C        D_neo_ark_eve_elevator_8017DBC8[1];
 extern GpRoomCoordSet D_neo_ark_eve_elevator_8017DBB0[1];
 
 GpMsgEntry D_neo_ark_eve_elevator_8017D724[5] = {
-    { 5102, func_neo_ark_eve_elevator_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_elevator_8017D5D8 },
     { 5105, func_neo_ark_eve_elevator_8017D5D0 },
     { 5103, func_neo_ark_eve_elevator_8017D670 },
     { 5104, func_neo_ark_eve_elevator_8017D668 },
@@ -182,18 +182,18 @@ s32 func_neo_ark_eve_elevator_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2,
 /// outgoing one and passes both to `func_map_neo_ark_80179B14`. It returns 1 unless the
 /// record's `msgId` is 0x18 and `CdCmd_IsIdle` returns 0; in that case it
 /// returns 0, first starting cap event 1 through `Gp_SpawnIfCapIdle` when the
-/// record's `field_5` is 0.
+/// record's `queryOnly` is 0.
 s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
-    if (in->prefix.packed != 0x18) {
+    if (in->areaId != 0x18) {
         return 1;
     }
     if (CdCmd_IsIdle() != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
     Gp_SpawnIfCapIdle(1, 1);

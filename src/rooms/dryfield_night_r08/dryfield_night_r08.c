@@ -22,12 +22,12 @@ extern s32 D_801341E0;
 extern GpMsgEntry D_dryfield_night_r08_80180544[];
 
 s32 func_dryfield_night_r08_8017D5F0(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_r08_8017D5F8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_dryfield_night_r08_8017D5F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_r08_8017D620(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_dryfield_night_r08_8017D628(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_dryfield_night_r08_80180544[5] = {
-    { 5102, func_dryfield_night_r08_8017D5F8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_r08_8017D5F8 },
     { 5105, func_dryfield_night_r08_8017D5F0 },
     { 5103, func_dryfield_night_r08_8017D628 },
     { 5104, func_dryfield_night_r08_8017D620 },
@@ -46,7 +46,7 @@ s32 func_dryfield_night_r08_8017D5F0(Task* task, s32 msgId, GpMessageArg arg2, G
 
 /// Handler for message 0x13EE in the room's message table: copies the location
 /// record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     return 1;

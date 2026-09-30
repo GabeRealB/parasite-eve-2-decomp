@@ -52,7 +52,7 @@ static void func_shelter_1f_airlock_8017E0F0(SVECTOR* worldPoint, s32 radiusScal
 
 // Indexed views below share one contiguous table.
 s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_1f_airlock_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_shelter_1f_airlock_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
 
@@ -63,7 +63,7 @@ extern GpObj4C        D_shelter_1f_airlock_8017F5F8[4];
 extern GpRoomCoordSet D_shelter_1f_airlock_8017F418[1];
 
 GpMsgEntry D_shelter_1f_airlock_8017E494[5] = {
-    { 5102, func_shelter_1f_airlock_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
     { 5105, func_shelter_1f_airlock_8017D5D0 },
     { 5103, func_shelter_1f_airlock_8017D624 },
     { 5104, func_shelter_1f_airlock_8017D61C },
@@ -401,7 +401,7 @@ s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, G
 
 /// The room's handler for message 0x13EE: copies the incoming save location
 /// onto the outgoing one, passes both to `func_map_neo_ark_80179B14` and returns 1.
-s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

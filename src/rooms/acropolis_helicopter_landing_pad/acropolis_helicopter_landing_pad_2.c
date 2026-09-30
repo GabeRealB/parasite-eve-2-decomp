@@ -762,7 +762,7 @@ s32 D_acropolis_helicopter_landing_pad_80187F84 = 0;
 
 SVECTOR D_acropolis_helicopter_landing_pad_80187F88 = { 0, 0, 0, 0 };
 
-GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90 = { { .bytes = { 0, 0 } }, 0, 0, 0, 0, 0 };
+RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90 = { 0, 0, 0, 0, 0, 0 };
 
 /// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
 /// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData[0].state.at4.loc.variant`), stamps
@@ -1061,23 +1061,23 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
     }
 }
 
-/// Message 0x13EE handler: copies the requested `GpSaveLoc` to `dst`. For a
+/// Message 0x13EE handler: copies the requested `RoomEventMsg` to `dst`. For a
 /// warp into stage 0xF it consults the room's phase
 /// (`D_acropolis_helicopter_landing_pad_80184D9C`): phase 0 queues sound
 /// event 0x1E and refuses the warp (returns 1); phase 2 starts cap slot 9
-/// first. `field_5` set skips the side effect either way.
-s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+/// first. `queryOnly` set skips the side effect either way.
+s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    if (*(u16*)src == 0xF) {
+    if (src->areaId == 0xF) {
         if (D_acropolis_helicopter_landing_pad_80184D9C == 0) {
-            if (src->field_5 == 0) {
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 SndEvt_EnqueueType7(-1, 0x1E);
             }
             return 1;
         }
         if (D_acropolis_helicopter_landing_pad_80184D9C == 2) {
-            if (src->field_5 == 0) {
+            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_StartCapSlot(9, 1, 0);
             }
             return 0;

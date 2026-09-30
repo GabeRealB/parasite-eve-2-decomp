@@ -140,9 +140,9 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_pod_access_tunnel_80185700.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_pod_access_tunnel_80185700.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_pod_access_tunnel_80185700.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -153,7 +153,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
 {
     D_shelter_b2_pod_access_tunnel_80185708_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b2_pod_access_tunnel_80185700 = *dst;
             D_shelter_b2_pod_access_tunnel_8018570C = *event;
             if (event->flagId != 0) {
@@ -173,18 +173,18 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed == 0x30) {
+    if (in->areaId == 0x30) {
         if (GameFlag_GetNibble(0xB4) == 0) {
-            if (in->field_5 == 0) {
-                Gp_SetNibbleIf(in->field_6, 2);
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+                Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(GameFlag_GetNibble(0x7A) < 6 ? 2 : 6);
             }
             return 0;
         }
     }
-    if (in->prefix.packed == 0x22) {
+    if (in->areaId == 0x22) {
         if (GameFlag_GetNibble(0x118) == 2) {
-            if (in->field_5 == 0) {
+            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(4);
             }
             return 2;

@@ -33,7 +33,7 @@ s32 func_shelter_r49_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_shelter_r49_8017D640(Task*, s32, GpMessageArg, GpMessageArg);
 
 GpMsgEntry D_shelter_r49_8017D9D8[5] = {
-    { 5102, func_shelter_r49_8017D5F4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r49_8017D5F4 },
     { 5105, func_shelter_r49_8017D5EC },
     { 5103, func_shelter_r49_8017D640 },
     { 5104, func_shelter_r49_8017D638 },

@@ -59,7 +59,7 @@ u32 D_shelter_b2_breeding_room_801803C4[11] = {
 TmdSource D_shelter_b2_breeding_room_801803F0 = { 0, 40, 0, 1, D_shelter_b2_breeding_room_801803A0, D_shelter_b2_breeding_room_801803A4, &D_shelter_b2_breeding_room_801803A4[4], D_shelter_b2_breeding_room_8018037C, D_shelter_b2_breeding_room_801803C4 };
 
 GpMsgEntry D_shelter_b2_breeding_room_80180414[6] = {
-    { 5102, func_shelter_b2_breeding_room_8017D660 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_breeding_room_8017D660 },
     { 5105, func_shelter_b2_breeding_room_8017D658 },
     { 5103, func_shelter_b2_breeding_room_8017D750 },
     { 5104, func_shelter_b2_breeding_room_8017D6A4 },

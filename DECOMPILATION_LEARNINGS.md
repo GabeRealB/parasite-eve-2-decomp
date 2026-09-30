@@ -37246,13 +37246,13 @@ picks the register the compare uses.
 Two adjacent stores to different fields of the same object are order-free for
 the scheduler — both orders emit the same instruction sequence in that arm —
 but they are *not* free for the allocator. In `Gp_SetupDirWarp` the last case of
-the `switch` writes `GpSaveLoc.field_2` and `field_6`; the asm shows `sh` of
-`field_6` first, so that is the order the reading suggests. Writing it that way
+the `switch` writes `RoomEventMsg.warp` and `flagId`; the asm shows `sh` of
+`flagId` first, so that is the order the reading suggests. Writing it that way
 left the whole function one `$s`/`$t` register off: `s2`/`s3` swapped between
 the room index and the slot-7 task, and the inlined 0x38-byte struct copy used
 `t2..t5` instead of `t1..t4` because the `li 1` constant pseudo took `t1` rather
 than reusing the dead copy pointer in `t0`. Swapping the two source statements
-to `field_2` then `field_6` (against what the emitted order suggests) made all
+to `warp` then `flagId` (against what the emitted order suggests) made all
 of it fall into place at 100%.
 
 The practical rule: when the only remaining diffs are register numbering that
@@ -44776,8 +44776,8 @@ CSE forwards a constant store to a stack slot into the very next load of that
 slot, so
 
 ```c
-loc.field_5 = 0;
-if (loc.field_5 == 0) { ... }
+loc.queryOnly = 0;
+if (loc.queryOnly == 0) { ... }
 ```
 
 folds away entirely: no `lbu`, no branch. The target may still contain
@@ -44799,17 +44799,17 @@ frame-relative `lbu` the target wants:
 ```c
 s = &loc;
 *(u16*)&loc = 0x26;
-loc.field_5 = 0;
-if (s->field_5 == 0) { ... }
+loc.queryOnly = 0;
+if (s->queryOnly == 0) { ... }
 ```
 
 The mirror image is useful too: *writes* through such a pointer keep an
 `addiu $sN, $sp, K` base and print as `sb v0, 3(sN)`, while direct member
 writes print as `sb v0, 0x1b(sp)`. A target that mixes both forms for one
 local is describing exactly that mix in C — write the plain assignments as
-`d->field_3 = …` and the read-modify-write as `dst.field_3 = dst.field_3 + 2`.
+`d->room = …` and the read-modify-write as `dst.room = dst.room + 2`.
 
-`Room_Script01` is the example: a `GpSaveLoc` src/dst pair (the `0x13EE`
+`Room_Script01` is the example: a `RoomEventMsg` src/dst pair (the `0x13EE`
 message payload, see `Gp_WarpLoc`) built on the stack. Unlike the `volatile`
 recipes above, no qualifier is needed — the pointer local alone is the barrier.
 
@@ -54474,7 +54474,7 @@ Register 84 used  3 times across  10 insns;  → 1* 3/ 10 = 0.3000
 
 so the temp (84) was served first and took `$s0`. The margin is ~2%, and no
 amount of restructuring the *tail* moved it: making the temp `s32`, folding the
-`== 3` and `field_5` tests into one `&&`, reordering the declarations and
+`== 3` and `queryOnly` tests into one `&&`, reordering the declarations and
 splitting the store all leave 3 refs / 10 insns exactly.
 
 **Fix.** The lever is the *other* allocno's `live_length`, and any construct
@@ -54484,9 +54484,9 @@ a block the source duplicates (here the two identical
 together after register allocation) in `do { … } while (0)` was enough:
 
 ```c
-if (arg2->field_5 == 0) {
+if (arg2->queryOnly == 0) {
     do {
-        Gp_SetNibbleIf(arg2->field_6, 2);
+        Gp_SetNibbleIf(arg2->flagId, 2);
         Gp_RunCapCmd1(1);
     } while (0);
 }
@@ -89230,8 +89230,8 @@ for the handler's address little-endian prints the id in the word just before it
 which here named the message (`0x13EF`) and so pointed at the two already-matched
 twins in `acropolis_sanctuary` and `acropolis_observatory`: both are
 `(s32 index, s32 value, RoomEventMsg* in, RoomEventMsg* out)` and both read
-`in->field_2 == 1` with the same `lbu`. That settles the third parameter's type
-too - `RoomEventMsg.field_2` is the `u8` at offset 2, which is why the load is
+`in->warp == 1` with the same `lbu`. That settles the third parameter's type
+too - `RoomEventMsg.warp` is the `u8` at offset 2, which is why the load is
 `lbu`; the room's own 4-byte `DbwMsg7DA` payload has an `s16` there and would
 have compiled to `lh`.
 
@@ -89241,7 +89241,7 @@ shape:
 ```c
 s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (GameFlag_GetNibble(0x5D) == 0 && in->field_2 == 1) { ... }
+    if (GameFlag_GetNibble(0x5D) == 0 && in->warp == 1) { ... }
 ```
 
 100.000% on the first build, all penalties zero. The tell to watch for is a
@@ -89800,7 +89800,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s3
 
 This contradicts the type given for the same id in the breezeway entry below,
 which concluded `RoomEventMsg* in, RoomEventMsg* out` from two matched twins.
-`RoomEventMsg` (8 bytes, `include/rooms/room_common.h`) belongs to the other
+`RoomEventMsg` (8 bytes, `include/gameplay/message.h`) belongs to the other
 mechanism - `RoomsShared8017d638(RoomEventReq* req, RoomEventMsg* msg)`, the
 room requisites gate - and nothing in that gate re-dispatches to a table
 handler. Both records carry a `u8` at offset 2, which is why the `lbu` that
@@ -91000,12 +91000,12 @@ m2c has no `lwl`/`lwr` decomposition to emit, so it renders all eight
 instructions as `M2C_FIELD(arg3, u8 *, 3) = M2C_UNALIGNED32(M2C_ERROR(...))`, and
 because the copy is untyped it leaves the parameters as `void *`. The seed scored
 58.6% with `regs=17 delete=13 insert=5 branch=2` - no penalty names the cause.
-Writing the copy as `*dst = *src;` against the family's `GpSaveLoc *` (an 8-byte
+Writing the copy as `*dst = *src;` against the family's `RoomEventMsg *` (an 8-byte
 struct carrying `STATIC_ASSERT_SIZEOF`) produces exactly those eight
 instructions, and the rest of the function then follows the sibling
 `func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `func_80179B14(src,
-dst)`, a dispatch on `*(u16*)src`, the same three `dst->field_0/2/3` stores into
-the overlay's staging `GpSaveLoc`, `Gp_MsgPlayerWeapon(0)`, then
+dst)`, a dispatch on `src->areaId`, the same three `(u8)dst->areaId`, `dst->warp`, and `dst->room` stores into
+the overlay's staging `RoomEventMsg`, `Gp_MsgPlayerWeapon(0)`, then
 `Task_SpawnFromTable`. That port scored 100.00% with every penalty zero on the
 first build.
 
@@ -91022,7 +91022,7 @@ the epilogue.
 Every room event handler in this port has the shape
 `s32 f(s32 index, s32 value, RoomEventMsg* in, RoomEventMsg* out)`. When the body
 touches only `$a2` — the common case, since a handler that just latches a flag
-reads `in->field_2` and never writes `out` — m2c emits a *single* parameter and
+reads `in->warp` and never writes `out` — m2c emits a *single* parameter and
 names it after the register it saw: `s32 func(void *arg2)`. Naming it `arg2`
 makes the seed read correctly and compile cleanly, so nothing in the source
 looks wrong, but the parameter is the function's first and the compiler puts it
@@ -91865,7 +91865,7 @@ s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     if (GameFlag_GetNibble(0x54) != 0) {
         return 1;
     }
-    if (in->field_5 != 0) {
+    if (in->queryOnly != 0) {
         return 0;
     }
     GameFlag_SetNibble(0x54, 1);
@@ -91876,15 +91876,15 @@ s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 
 `func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
 and this one differ only in `msgId`, the nibble index and the cap command (and, in
-the shrine and incinerator, a `Gp_SetNibbleIf(in->field_6, 2)` where this one has a
+the shrine and incinerator, a `Gp_SetNibbleIf(in->flagId, 2)` where this one has a
 plain `GameFlag_SetNibble`). Two of the three carry the required duplicated
-`return 0;` already - both the `field_5` early return and a trailing one - which is
+`return 0;` already - both the `queryOnly` early return and a trailing one - which is
 what the entry above ("A duplicated `return 0;`...") shows the third delay slot
 needs. Transplant the sibling, change the constants, done.
 
 The gate itself varies too, so read the family as the `*out = *in` plus
 `RoomEventMsg` skeleton rather than the nibble specifically:
-`func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `field_5` tests but
+`func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `queryOnly` tests but
 gates on `CdCmd_IsIdle()` and answers with `Gp_SpawnIfCapIdle(1, 1)`, where the
 siblings latch a nibble and run a cap command. `func_80179B14` is the shared
 forwarder the shrine, garden, observatory and elevator forms all call with
@@ -92431,7 +92431,7 @@ A room handler whose body never returns anything:
 ```c
 s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
 {
-    if ((msg->field_2 == 2) && (gGameSession->at4.loc.variant != 1)) {
+    if ((msg->warp == 2) && (gGameSession->at4.loc.variant != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);
     }
 }
@@ -94349,15 +94349,15 @@ Every room overlay carries one handler per entry of its own `GpMsgEntry` table,
 and they are all the same body with three substitutions:
 
 ```c
-s32 func_<room>_<addr>(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_<room>_<addr>(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
     func_80179A04(src, dst);          /* or func_80179B14 */
-    if (*(u16*)src == <msg>) {        /* the message id, an immediate */
-        if (src->field_5 == 0) {
-            D_<room>_<addr2>.field_2 = dst->field_0;   /* the room's staging GpSaveLoc */
-            D_<room>_<addr2>.field_4 = dst->field_2;
-            D_<room>_<addr2>.field_1 = dst->field_3;
+    if (src->areaId == <area>) {        /* the area id, an immediate */
+        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_<room>_<addr2>.warp = (u8)dst->areaId; /* saved-location byte order */
+            D_<room>_<addr2>.field_4 = dst->warp;
+            ((u8*)&D_<room>_<addr2>.areaId)[1] = dst->room;
             Task_SpawnFromTable(&D_<room>_<addr3>, 0, 0, 0);
         }
         return 0;                     /* or 1 / 2, and optional Gp_MsgPlayerWeapon(0) */
@@ -94367,7 +94367,7 @@ s32 func_<room>_<addr>(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 ```
 
 **Symptom.** `overlay_dup_index.py find <fn>` reports no copies, so the shared-body
-route looks closed. It compares splat's disassembly *text*, and the message id is
+route looks closed. It compares splat's disassembly *text*, and the area id is
 an immediate in the `lhu`/`addiu` pair while the latched location and the spawned
 table are different data symbols in every room — enough to make each room's
 handler textually unique even though the body is identical.
@@ -94376,7 +94376,7 @@ handler textually unique even though the body is identical.
 with operands dropped (`fields` compares load/store displacements, `shape` the
 opcode order). A `fields` score of 1.00 on a room handler means: read that
 sibling's C and transplant it, changing only the message constant, the latched
-`GpSaveLoc` and the spawned `TaskDesc` — and check the *return value*, which
+`RoomEventMsg` and the spawned `TaskDesc` — and check the *return value*, which
 varies (island returns 0 for its message, `shelter_1f_bulwark` 2 for one branch,
 the observatory's event handler always 1) independently of the rest.
 
@@ -94386,7 +94386,7 @@ the observatory's event handler always 1) independently of the rest.
 
 Sizing the two data symbols is the one thing to check first: on this overlay the
 spawned `D_..._801818AC` is 0xC bytes (`TaskDesc`) and the latched
-`D_..._80185924` is 8 zero bytes (`GpSaveLoc`), confirmed in
+`D_..._80185924` is 8 zero bytes (`RoomEventMsg`), confirmed in
 `asm/USA/rooms/data/<room>_data.data.s`.
 
 Input `base_1.c`
@@ -94447,7 +94447,7 @@ v = 3;
 if (GameFlag_GetNibble(0x7A) < 4) {
     v = GameFlag_GetNibble(0x61) + 1;
 }
-arg3->field_3 = v;
+arg3->room = v;
 ```
 
 -- scores 93.34% with `regs=32` and one extra saved register (`$s2`, frame
@@ -95088,8 +95088,8 @@ call, and re-reads a byte it has just stored:
 ```
 li   v0,0x26
 sh   v0,0x10(sp)     /* *(u16*)&src = 0x26 */
-sb   zero,0x15(sp)   /* src.field_5 = 0 */
-lbu  v0,0x15(sp)     /* s->field_5  -- the store is not forwarded */
+sb   zero,0x15(sp)   /* src.queryOnly = 0 */
+lbu  v0,0x15(sp)     /* s->queryOnly  -- the store is not forwarded */
 addiu s0,sp,0x18     /* d = &dst */
 bnez v0,<end>
 ```
@@ -95112,7 +95112,7 @@ task wrapper: start from `src/rooms/lib/room_script01.c` (the pointer-parameter
 twin is `room_script09.c`), keep the declarations in their order - `src` before
 `dst`, so the slots land as above - and change only the tail (this one publishes
 `gGameSession->at4.loc.room` / `D_8007216D` and sets `field_76`, where the script
-saves `Mc_SaveData.field_5` and kills the task). m2c's `? sp18` seed scores
+saves `Mc_SaveData.queryOnly` and kills the task). m2c's `? sp18` seed scores
 55.833%; this is 100.000% / zero penalties on the first rewrite.
 
 Input `base_1.c`
@@ -118273,7 +118273,7 @@ frame is one callee-saved slot short (`sw ra,0x28(sp)`, no `$s2`), and the
 of sitting just before its `beqz`. Moving the tail into
 
 ```c
-static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, MineMesaEvent* event)
+static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, MineMesaEvent* event)
 {
     D_mine_mesa_80189B48 = 0;
     if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
@@ -119000,7 +119000,7 @@ lwl/lwr pairs as two unaligned 32-bit *stores of unknown values* and emits
 `M2C_FIELD(arg3, ..., 3) = M2C_UNALIGNED32(M2C_ERROR(...))`, which compiles to
 `sw zero,3(a1); sw zero,7(a1)` - two stores where the target has an 8-byte copy, the
 second landing after the `jal` because it fills the call's shadow. `RoomEventMsg`
-(`include/rooms/room_common.h`) is 8 bytes at *alignment 1*, which is why the copy is
+(`include/gameplay/message.h`) is 8 bytes at *alignment 2*, which is why the copy is
 unaligned at all: a plain 8-byte struct assignment.
 
 Two more tells in the same prologue: `$a0`/`$a1` are dead because m2c's two-argument
@@ -119013,7 +119013,7 @@ exit's delay slot. Real `return 1;` statements reproduce the target (see the
 Read the two matched templates before the seed: `Room_Util02`
 (`src/rooms/lib/room_util02.c`) is the bare copy-and-forward, `func_mine_gorge_8017D6E8`
 (`src/rooms/mine_gorge/mine_gorge.c`) is the "check `msgId`, act, `return 1`/`0`" tail
-with the same `Gp_SetNibbleIf(in->field_6, 2)` / `Gp_RunCapCmd1` shape. Between them the
+with the same `Gp_SetNibbleIf(in->flagId, 2)` / `Gp_RunCapCmd1` shape. Between them the
 whole prologue and the tail's constant materialisation are pinned. Here the m2c seed
 already had the block topology right (score 81.049%, `branch=13 insert=6 delete=13`),
 and the single rewrite that fixed the copy and the returns scored 100.000% with all
@@ -120216,12 +120216,12 @@ which is exactly where moving the two labels puts them:
 That one move took the score to 94.52% with `branch=0 reorder=0`, leaving only
 `insert=2 delete=2` — case 4's `Mc_SaveData` stores, which were still
 `M2C_FIELD(&Mc_SaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
-idiom (`src/gameplay/1A8.c`'s `Mc_SaveData.field_6 = Gp_WarpLoc.field_0;`) and
-using the `GpSaveLoc`/`McSaveData` struct fields instead fixed those and the
+idiom (`src/gameplay/1A8.c`'s `Mc_SaveData.field_6 = (u8)Gp_WarpLoc.areaId;`) and
+using the `RoomEventMsg`/`McSaveData` struct fields instead fixed those and the
 function:
 
 ```c
-        Mc_SaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.field_2;
+        Mc_SaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.warp;
 ```
 
 Diagnostic to reuse: the `.jump` dump prints `;; Start of basic block N` in
@@ -140174,7 +140174,7 @@ the target's `j` into the common call.
 
 **Symptom.** The target tests two neighbouring `u8` fields with two loads and two
 branches (`lbu v1,2(s0)` / `bne ...,0xa` then `lbu v1,3(s0)` / `bne ...,1`), but
-`if (msg->field_2 == 0xA && msg->field_3 == 1 && ...)` compiles to a single
+`if (msg->warp == 0xA && msg->room == 1 && ...)` compiles to a single
 `lhu v1,2(s0)` against `0x10a`, shifting every branch after it.
 
 **Cause.** `fold_truthop` (`fold-const.c`) merges `&&`/`||` comparisons of
@@ -140185,12 +140185,12 @@ the same `TRUTH_ANDIF_EXPR`.
 **Fix.** Nest the test so the two comparisons are separate statements:
 
 ```c
-if (msg->field_2 == 0xA) {
-    if ((u8)msg->field_3 == 1 && gGameSession->at4.loc.room < 7) { ... }
+if (msg->warp == 0xA) {
+    if ((u8)msg->room == 1 && gGameSession->at4.loc.room < 7) { ... }
 }
 ```
 
-The `(u8)` was a separate issue: the shared `RoomEventMsg.field_3` is `s8`
+The `(u8)` was a separate issue: the shared `RoomEventMsg.room` is `s8`
 (loads `lb`), while this site loads `lbu`, so the cast is applied at the use
 rather than retyping the shared field.
 

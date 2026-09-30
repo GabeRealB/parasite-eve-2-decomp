@@ -155,7 +155,7 @@ AnimationSet D_shelter_b2_septic_tank_80182F18 = {
 TaskDesc D_shelter_b2_septic_tank_80182F40 = { 0, 32, func_shelter_b2_septic_tank_8017D614, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_septic_tank_80182F4C[5] = {
-    { 5102, func_shelter_b2_septic_tank_8017D7B4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
     { 5105, func_shelter_b2_septic_tank_8017D7AC },
     { 5103, func_shelter_b2_septic_tank_8017D90C },
     { 5104, func_shelter_b2_septic_tank_8017D904 },
@@ -1190,13 +1190,13 @@ static void           func_shelter_b2_septic_tank_8017DA74(Task* task);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
+/// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_septic_tank_80187044 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->field_5 == 0) {
+        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b2_septic_tank_8018703C = *dst;
             D_shelter_b2_septic_tank_80187048 = *event;
             if (event->flagId != 0) {
@@ -1253,9 +1253,9 @@ void func_shelter_b2_septic_tank_8017D614(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_septic_tank_8018703C.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_septic_tank_8018703C.field_2;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_septic_tank_8018703C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_septic_tank_8018703C.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_septic_tank_8018703C.warp;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_septic_tank_8018703C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1276,7 +1276,7 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in,
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->prefix.packed != 0x21) {
+    if (in->areaId != 0x21) {
         return 1;
     }
     event.capCmd   = 3;
@@ -1296,7 +1296,7 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
     u8  kind;
     s32 flag;
 
-    kind = arg2->field_2;
+    kind = arg2->warp;
     if (kind == 2) {
         flag = GameFlag_GetNibble(0xEB);
         if (flag == 1 && D_shelter_b2_septic_tank_80187045 == flag) {

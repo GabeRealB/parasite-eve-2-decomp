@@ -73,7 +73,7 @@ static void func_neo_ark_submarine_tunnel_8017F414(Task* task);
 
 s32 func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, GpMessageArg);
 s32 func_neo_ark_submarine_tunnel_8017F27C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_submarine_tunnel_8017F284(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_submarine_tunnel_8017F284(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 
 void func_neo_ark_submarine_tunnel_8017E828(Task*);
@@ -146,7 +146,7 @@ TaskDesc D_neo_ark_submarine_tunnel_80181A34[2] = {
 s32 D_neo_ark_submarine_tunnel_80181A4C = 256;
 
 GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
-    { 5102, func_neo_ark_submarine_tunnel_8017F284 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_tunnel_8017F284 },
     { 5105, func_neo_ark_submarine_tunnel_8017F27C },
     { 5103, func_neo_ark_submarine_tunnel_8017F064 },
     { 5104, func_neo_ark_submarine_tunnel_8017F2C8 },
@@ -1089,7 +1089,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
     u8 temp_s0_3;
     u8 temp_s0_4;
 
-    temp_s0 = arg2->field_2;
+    temp_s0 = arg2->warp;
     if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->at4.loc.variant == 3)) {
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
@@ -1097,27 +1097,27 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
         Mc_SaveData[0].state.sceneEvent = 0x1A;
         func_800E8634(&D_80135220, 0, &D_80135FD0);
     }
-    if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
+    if ((arg2->warp == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
         temp_s0_2 = gGameSession->at4.loc.variant;
         if (temp_s0_2 == 1) {
             func_800E8614(D_neo_ark_submarine_tunnel_80181AF0, 0);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
         }
     }
-    temp_s0_3 = arg2->field_2;
+    temp_s0_3 = arg2->warp;
     if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->at4.loc.variant == temp_s0_3)) {
         GameFlag_SetNibble(0xFF, 1);
         func_800E8614(&D_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
-    if ((arg2->field_2 == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
+    if ((arg2->warp == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
         temp_s0_4 = gGameSession->at4.loc.warp;
         if (temp_s0_4 == 1) {
             Gp_MsgPlayerWeapon(1);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
         }
     }
-    if ((arg2->field_2 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2)) {
+    if ((arg2->warp == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2)) {
         Gp_MsgPlayerWeapon(1);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
@@ -1130,9 +1130,9 @@ s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, GpMessageArg a
     return 0;
 }
 
-/// Save-location message handler: copies the incoming `GpSaveLoc` onto the
+/// Save-location message handler: copies the incoming `RoomEventMsg` onto the
 /// outgoing one, forwards both to `func_map_neo_ark_80179B14` and answers 1.
-s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

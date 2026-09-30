@@ -107,7 +107,7 @@ extern GpSprtElem  D_dryfield_saloon_g_r_8017FAF4[14];
 TaskDesc D_dryfield_saloon_g_r_8017ECB0 = { 0, 32, func_dryfield_saloon_g_r_8017D74C, { .model = NULL } };
 
 GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
-    { 5102, func_dryfield_saloon_g_r_8017D8BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_saloon_g_r_8017D8BC },
     { 5105, func_dryfield_saloon_g_r_8017D994 },
     { 5103, func_dryfield_saloon_g_r_8017D9C4 },
     { 5104, func_dryfield_saloon_g_r_8017D99C },
@@ -739,7 +739,7 @@ static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* ms
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
 /// `req->itemId` has been collected or is 0, it returns 2 and - unless
-/// `msg->field_5` asks for a dry run - latches `msg` and `req`, sets the
+/// `msg->queryOnly` asks for a dry run - latches `msg` and `req`, sets the
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`.
 static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
@@ -765,7 +765,7 @@ static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* ms
     if (got == 0) {
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
-            if (msg->field_5 == 0) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_dryfield_saloon_g_r_80181BDC = *msg;
                 D_dryfield_saloon_g_r_80181BE8 = *req;
                 id                             = req->flagId;
@@ -782,9 +782,9 @@ static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* ms
             return ret;
         }
         ret = 0;
-        if (msg->field_5 == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->field_6, 2);
+            Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }
         return ret;
@@ -833,9 +833,9 @@ void func_dryfield_saloon_g_r_8017D74C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_saloon_g_r_80181BDC.prefix.packed;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_saloon_g_r_80181BDC.field_2;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_saloon_g_r_80181BDC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_saloon_g_r_80181BDC.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_saloon_g_r_80181BDC.warp;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_saloon_g_r_80181BDC.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -852,7 +852,7 @@ static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
 
 /// Handler for message 0x13EE in the room's message table, which filters a
 /// warp request: copies `in` to `out`, and for area 0xF picks the destination
-/// room from game-flag nibble 0x61 (unless `in->field_5` asks for a dry run),
+/// room from game-flag nibble 0x61 (unless `in->queryOnly` asks for a dry run),
 /// then passes the warp through the event gate with the room's own request -
 /// nibble 0x35, no item, cap command 2 and two stage sound ids. Any other area
 /// answers 1.
@@ -862,12 +862,12 @@ s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     u16          msgId;
 
     *out  = *in;
-    msgId = in->prefix.packed;
+    msgId = in->areaId;
     if (msgId == 0xF) {
-        if (in->field_5 == 0) {
-            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
         }
-        if (in->prefix.packed == msgId) {
+        if (in->areaId == msgId) {
             req.field_0 = 2;
             req.field_4 = 2;
             req.field_8 = Gp_PackStageSndId(0x52120005);

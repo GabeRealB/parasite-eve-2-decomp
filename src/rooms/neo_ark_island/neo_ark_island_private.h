@@ -4,7 +4,6 @@
 #include "types.h"
 
 #include "gameplay/collision.h"
-#include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
@@ -31,7 +30,7 @@ void func_neo_ark_island_8017E844(Task*);
 
 s32 func_neo_ark_island_8017E960(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_neo_ark_island_8017E968(Task*, s32, GpSaveLoc*, GpSaveLoc*);
+s32 func_neo_ark_island_8017E968(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_neo_ark_island_8017EA24(Task*, s32, GpMessageArg, GpMessageArg);
 
