@@ -97,7 +97,6 @@ extern TmdSource D_actor_160700_8013C6FC;
 extern TmdSource D_actor_160700_8013C8F8;
 s32              func_actor_160700_801325F0(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_160700_8013265C(Task*, s32, s32);
-s32              func_actor_160700_801326C0(Task*, s32, ActorTransform* placement);
 s32              func_actor_160700_80132738(void);
 void             func_actor_160700_8013233C(Task*);
 void             func_actor_160700_80132808(Task*);
@@ -1365,7 +1364,7 @@ AnimationSet D_actor_160700_80141650 = {
 Actor160700MessageEntry D_actor_160700_80141678[6] = {
     { 2003, { .call1 = func_actor_160700_801325F0 } },
     { 2005, { .call3 = func_actor_160700_8013265C } },
-    { 2004, { .call2 = func_actor_160700_801326C0 } },
+    { 2004, { .call2 = pacedWalkPlace } },
     { 2011, { .call0 = func_actor_160700_80132738 } },
     { 2013, { .call2 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1657,25 +1656,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Script opcode: yaws the actor's root coordinate to `placement->rot.vy`,
-/// caching the yaw in the work block, and moves it to `placement->pos`.
-s32 func_actor_160700_801326C0(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/paced_walk_place.inc.c"
 
 /// Script opcode (message 0x7DB) that does nothing.
 s32 func_actor_160700_80132738(void)

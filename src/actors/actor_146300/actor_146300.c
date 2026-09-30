@@ -124,7 +124,6 @@ void             func_actor_146300_80132B1C(Task*);
 
 s32 func_actor_146300_8013299C(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_146300_80132A2C(Task*, s32, s32);
-s32 func_actor_146300_80132A98(Task*, s32, ActorTransform* placement);
 s32 func_actor_146300_80132B14(void);
 
 extern AnimationPlayRequest D_actor_146300_80137A20;
@@ -1249,7 +1248,7 @@ s16 gScriptedWalkBlendFrames = 8;
 Actor146300MsgEntry D_actor_146300_801427A0[5] = {
     { 2003, { .call1 = func_actor_146300_8013299C } },
     { 2005, { .call3 = func_actor_146300_80132A2C } },
-    { 2004, { .call2 = func_actor_146300_80132A98 } },
+    { 2004, { .call2 = scriptedWalkPlace } },
     { 2011, { .call0 = func_actor_146300_80132B14 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1679,23 +1678,7 @@ s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Message 0x7D4 handler: turns the model root to `placement`'s yaw
-/// (recorded in the work block's `yaw`), moves it to `placement`'s position and
-/// marks the coordinate for recomputation. Only the Y rotation is applied.
-s32 func_actor_146300_80132A98(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gScriptedWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/scripted_walk_place.inc.c"
 
 /// Message 0x7DB handler: accepts the message and does nothing.
 s32 func_actor_146300_80132B14(void)

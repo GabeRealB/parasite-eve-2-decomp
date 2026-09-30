@@ -119,7 +119,6 @@ void             func_actor_260400_8014A6F8(Task*);
 
 s32 func_actor_260400_8014A908(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_260400_8014A998(Task*, s32, s32);
-s32 func_actor_260400_8014AA28(Task*, s32, ActorTransform* placement);
 s32 func_actor_260400_8014AAA4(Task*, s32, ActorCommand* msg);
 
 extern AnimationPlayRequest D_actor_260400_8014C4D8;
@@ -885,7 +884,7 @@ s16 gScriptedWalkBlendFrames = 8;
 Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
     { 2003, { .call0 = func_actor_260400_8014A908 } },
     { 2005, { .call4 = func_actor_260400_8014A998 } },
-    { 2004, { .call2 = func_actor_260400_8014AA28 } },
+    { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260400_8014AAA4 } },
     { 2013, { .call3 = scriptedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1202,23 +1201,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message 0x7D4 (placement): turns the model to the placement's yaw, keeping
-/// that yaw in the work block, and moves it to the placement's position. Only
-/// the Y rotation is applied.
-s32 func_actor_260400_8014AA28(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gScriptedWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/scripted_walk_place.inc.c"
 
 /// Message 0x7DB: the payload's halfword at 0x2 selects the action. Case 0
 /// starts a turn of 0x14 steps; case 1 enables and shows the helper's model,

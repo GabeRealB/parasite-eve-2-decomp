@@ -27,4 +27,6 @@ void pacedWalkResetAnim(Task* task);
 void pacedWalkBlendAnim(Task* task);
 s32  pacedWalkTo(Task* task, s32 arg1, ActorTransform* target);
 
+s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
+
 #endif /* SRC_SHARED_PACED_WALK_H */

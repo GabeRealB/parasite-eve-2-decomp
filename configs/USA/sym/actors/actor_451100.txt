@@ -258,3 +258,4 @@ gFootstepWalkMode = 0x8014E74C; // size:0x2 defined:True
 footstepWalkTickAnim = 0x801323DC; // type:func
 footstepWalkTo = 0x801326B0; // type:func
 walkerDrawShadowShaded = 0x8013280C; // type:func
+footstepWalkPlace = 0x80132610; // type:func

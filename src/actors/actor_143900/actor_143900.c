@@ -155,7 +155,6 @@ void             func_actor_143900_80132FB0(Task*);
 
 s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_143900_801326B4(Task*, s32, s32);
-s32  func_actor_143900_801326FC(Task*, s32, ActorTransform* placement);
 s32  func_actor_143900_80132778(Task*, s32, ActorCommand* msg);
 void func_actor_143900_80132324(Task*);
 
@@ -700,7 +699,7 @@ s16 gScriptedWalkBlendFrames = 8;
 Actor143900MsgEntry D_actor_143900_801413BC[6] = {
     { 2003, { .call0 = func_actor_143900_80132624 } },
     { 2005, { .call4 = func_actor_143900_801326B4 } },
-    { 2004, { .call2 = func_actor_143900_801326FC } },
+    { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80132778 } },
     { 2013, { .call3 = scriptedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1337,24 +1336,7 @@ s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message 0x7D4 handler of the first variant: seeds the task's `TmdObject`
-/// coordinate frame from `placement`. Only the yaw is used, remembered in the
-/// work block and applied with `Gfx_RotMatrixY`, then the three longs become
-/// the coordinate's translation.
-s32 func_actor_143900_801326FC(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gScriptedWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/scripted_walk_place.inc.c"
 
 /// Message 0x7DB handler of the first variant: when the payload's halfword at
 /// 0x2 is zero, starts a 0x14-step turn, which the update performs while the
@@ -1587,24 +1569,12 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message 0x7D4 handler of the second variant: seeds the task's `TmdObject`
-/// coordinate frame from `placement`. Only the yaw is used, remembered in the
-/// work block and applied with `Gfx_RotMatrixY`, then the three longs become
-/// the coordinate's translation.
-s32 func_actor_143900_801332E4(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                           = task->extra.tmd->coords;
-    D_actor_143900_801496C4->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// The second walker's copy.
+#define scriptedWalkPlace func_actor_143900_801332E4
+#define gScriptedWalkWork D_actor_143900_801496C4
+#include "../../shared/scripted_walk_place.inc.c"
+#undef scriptedWalkPlace
+#undef gScriptedWalkWork
 
 /// Message 0x7DB handler of the second variant: the payload's halfword at 0x2
 /// picks which of the two helper tasks' models is shown - 0 shows the second

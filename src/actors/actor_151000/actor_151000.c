@@ -96,7 +96,6 @@ void             func_actor_151000_801323F4(Task*);
 
 s32 func_actor_151000_80132738(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_151000_801327C8(Task*, s32, s32);
-s32 func_actor_151000_80132810(Task*, s32, ActorTransform* placement);
 s32 func_actor_151000_8013288C(Task*, s32, ActorCommand* msg);
 
 extern AnimationPlayRequest D_actor_151000_801333F0;
@@ -659,7 +658,7 @@ s16 gFootstepWalkBlendFrames = 8;
 Actor151000MsgEntry gFootstepWalkMsgTable[6] = {
     { 2003, { .call0 = func_actor_151000_80132738 } },
     { 2005, { .call4 = func_actor_151000_801327C8 } },
-    { 2004, { .call2 = func_actor_151000_80132810 } },
+    { 2004, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_151000_8013288C } },
     { 2013, { .call3 = footstepWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -935,23 +934,7 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Placement opcode: yaws the model's root coordinate to `placement->rot.vy`,
-/// caching that yaw in the work block, then drops the placement translation
-/// into the matrix and marks it dirty.
-s32 func_actor_151000_80132810(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gFootstepWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/footstep_walk_place.inc.c"
 
 /// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
 /// frames, message 1 sets `footsteps`, which turns the footsteps on. Anything else does nothing.

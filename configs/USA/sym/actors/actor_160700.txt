@@ -282,3 +282,4 @@ pacedWalkResetAnim = 0x80132514; // type:func
 pacedWalkBlendAnim = 0x8013258C; // type:func
 pacedWalkTo = 0x80132740; // type:func
 walkerDrawShadow = 0x8013243C; // type:func
+pacedWalkPlace = 0x801326C0; // type:func

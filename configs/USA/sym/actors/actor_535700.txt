@@ -185,3 +185,4 @@ footstepWalkBlendAnim = 0x80132730; // type:func
 footstepWalkTo = 0x80132960; // type:func
 footstepWalkExit = 0x80132558; // type:func
 walkerDrawShadowShaded = 0x80132ABC; // type:func
+footstepWalkPlace = 0x80132894; // type:func

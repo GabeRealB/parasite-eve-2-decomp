@@ -151,7 +151,6 @@ extern AnimationPlayRequest D_actor_460200_801360B8;
 extern AnimationPlayRequest D_actor_460200_801360CC;
 s32                         func_actor_460200_80132B2C(Task*, s32, AnimationPlayRequest*);
 s32                         func_actor_460200_80132B98(Task*, s32, s32);
-s32                         func_actor_460200_80132C14(Task*, s32, ActorTransform* placement);
 s32                         func_actor_460200_80132C8C(Task*, s32, ActorCommand* args);
 void                        func_actor_460200_801327B4(Task*);
 
@@ -1309,7 +1308,7 @@ AnimationSet D_actor_460200_8013FC28 = {
 Actor460200MessageEntry D_actor_460200_8013FC50[6] = {
     { 2003, { .call1 = func_actor_460200_80132B2C } },
     { 2005, { .call4 = func_actor_460200_80132B98 } },
-    { 2004, { .call3 = func_actor_460200_80132C14 } },
+    { 2004, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80132C8C } },
     { 2013, { .call3 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -2495,26 +2494,7 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Script opcode "place at": yaws the actor's root coordinate to
-/// `placement->rot.vy`, caching that yaw in the work block, then drops the
-/// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_80132C14(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/paced_walk_place.inc.c"
 
 /// Script opcode: raise the work block's `effects`, which lets the per-frame
 /// state spawn its effect, when the payload is exactly 1. Any other payload is
@@ -2744,26 +2724,10 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Script opcode "place at": yaws the actor's root coordinate to
-/// `placement->rot.vy`, caching that yaw in the work block, then drops the
-/// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_801334F0(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor161500Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor161500Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// The second walker's copy.
+#define pacedWalkPlace func_actor_460200_801334F0
+#include "../../shared/paced_walk_place.inc.c"
+#undef pacedWalkPlace
 
 /// Script opcode: set the work block's `turnUp`, which selects whether the
 /// per-frame state blends the model toward the `gameGetPtrSlot(3)` task or away
@@ -2977,26 +2941,10 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Script opcode "place at": yaws the actor's root coordinate to
-/// `placement->rot.vy`, caching that yaw in the work block, then drops the
-/// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_80133D4C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+/// The third walker's copy.
+#define pacedWalkPlace func_actor_460200_80133D4C
+#include "../../shared/paced_walk_place.inc.c"
+#undef pacedWalkPlace
 
 s32 func_actor_460200_80133DC4(void)
 {

@@ -160,7 +160,6 @@ void             func_actor_450800_80132958(Task*);
 
 s32 func_actor_450800_80132B44(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_450800_80132BB0(Task*, s32, s32);
-s32 func_actor_450800_80132C68(Task*, s32, ActorTransform* placement);
 s32 func_actor_450800_80132CE0(Task*, s32, ActorCommand* msg, s32);
 s32 func_actor_450800_80132D74(Task*, s32, VECTOR*, s32);
 
@@ -2269,7 +2268,7 @@ TmdSource D_actor_450800_8014AC34 = {
 Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
     { 2003, { .call1 = func_actor_450800_80132B44 } },
     { 2005, { .call6 = func_actor_450800_80132BB0 } },
-    { 2004, { .call3 = func_actor_450800_80132C68 } },
+    { 2004, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_450800_80132CE0 } },
     { 2013, { .call5 = func_actor_450800_80132D74 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -3038,27 +3037,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message handler 0x7D4 of `D_actor_450800_8014AC58`, the placement opcode:
-/// yaws the actor's root coordinate to `placement->rot.vy`, caching that yaw in
-/// `Actor450800Work::yaw`, then drops the placement translation into the matrix
-/// and marks it dirty.
-s32 func_actor_450800_80132C68(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor450800Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor450800Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/paced_walk_place.inc.c"
 
 /// Message handler 0x7DB of `D_actor_450800_8014AC58`: recolour this actor's
 /// body (or spawn its 0x6002B burst) according to the message's selector.

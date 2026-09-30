@@ -103,7 +103,6 @@ void             func_actor_535700_80132478(Task*);
 
 s32 func_actor_535700_801327BC(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_535700_8013284C(Task*, s32, s32);
-s32 func_actor_535700_80132894(Task*, s32, ActorTransform* placement);
 s32 func_actor_535700_80132910(Task*, s32, ActorCommand* msg);
 
 extern TmdSource D_actor_535700_80142E58;
@@ -756,7 +755,7 @@ s16 gFootstepWalkBlendFrames = 8;
 Actor535700MsgEntry gFootstepWalkMsgTable[6] = {
     { 2003, { .call2 = func_actor_535700_801327BC } },
     { 2005, { .call7 = func_actor_535700_8013284C } },
-    { 2004, { .call4 = func_actor_535700_80132894 } },
+    { 2004, { .call4 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_535700_80132910 } },
     { 2013, { .call6 = footstepWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1263,23 +1262,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Placement opcode of the first enemy: yaws the model's root coordinate to
-/// `placement->rot.vy`, caching that yaw in the work block's `st.yaw`, then
-/// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_80132894(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gFootstepWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/footstep_walk_place.inc.c"
 
 /// Message handler of the first enemy: message 0 arms the turn countdown
 /// `turnFrames` at 0x14 frames, message 1 sets `footsteps`, which turns the

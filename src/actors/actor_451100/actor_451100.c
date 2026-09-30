@@ -108,7 +108,6 @@ s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*);
 
 s32  func_actor_451100_80132538(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_451100_801325C8(Task*, s32, s32);
-s32  func_actor_451100_80132610(Task*, s32, ActorTransform* placement);
 s32  func_actor_451100_8013268C(Task*, s32, ActorCommand* msg);
 void func_actor_451100_801322D4(Task*);
 
@@ -900,7 +899,7 @@ s16 D_actor_451100_8013F700 = 8;
 Actor451100MsgEntry D_actor_451100_8013F704[6] = {
     { 2003, { .call1 = func_actor_451100_80132538 } },
     { 2005, { .call6 = func_actor_451100_801325C8 } },
-    { 2004, { .call3 = func_actor_451100_80132610 } },
+    { 2004, { .call3 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_451100_8013268C } },
     { 2013, { .call5 = footstepWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1668,24 +1667,7 @@ s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message 0x7D4 handler of `D_actor_451100_8013F704`, the placement opcode:
-/// yaws the task's root coordinate to `placement->rot.vy`, caching that yaw in
-/// the published work block, then drops the placement translation into the
-/// matrix and marks it dirty.
-s32 func_actor_451100_80132610(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gFootstepWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/footstep_walk_place.inc.c"
 
 /// Message 0x7DB handler of `D_actor_451100_8013F704`: a zero payload
 /// halfword sets the published block's `turnFrames` to 0x14, the count of frames

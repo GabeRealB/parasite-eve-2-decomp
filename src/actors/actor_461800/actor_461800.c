@@ -109,11 +109,9 @@ static void func_actor_461800_80133B98(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80132E14(Task*, s32, s32);
-s32  func_actor_461800_80132EA4(Task*, s32, ActorTransform* placement);
 s32  func_actor_461800_80132F20(Task*, s32, ActorCommand* request, s32);
 s32  func_actor_461800_80133898(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80133928(Task*, s32, s32);
-s32  func_actor_461800_80133970(Task*, s32, ActorTransform* placement);
 s32  func_actor_461800_801339EC(Task*, s32, ActorCommand* msg, s32);
 void func_actor_461800_801329B0(Task*);
 void func_actor_461800_80132B74(Task*);
@@ -413,7 +411,7 @@ s16 gScriptedWalkBlendFrames = 8;
 Actor461800MessageEntry D_actor_461800_80139F5C[6] = {
     { 2003, { .call0 = func_actor_461800_80132D84 } },
     { 2005, { .call4 = func_actor_461800_80132E14 } },
-    { 2004, { .call2 = func_actor_461800_80132EA4 } },
+    { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_80132F20 } },
     { 2013, { .call3 = scriptedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -823,7 +821,7 @@ s16 gFootstepWalkBlendFrames = 8;
 Actor461800MessageEntry gFootstepWalkMsgTable[6] = {
     { 2003, { .call0 = func_actor_461800_80133898 } },
     { 2005, { .call4 = func_actor_461800_80133928 } },
-    { 2004, { .call2 = func_actor_461800_80133970 } },
+    { 2004, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_801339EC } },
     { 2013, { .call3 = footstepWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1237,23 +1235,7 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
-/// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
-/// then the three longs become the coordinate's translation.
-s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gScriptedWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/scripted_walk_place.inc.c"
 
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
@@ -1349,23 +1331,7 @@ s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
-/// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
-/// then the three longs become the coordinate's translation.
-s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord* coord;
-    u16       yaw;
-
-    coord                     = task->extra.tmd->coords;
-    gFootstepWalkWork->st.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/footstep_walk_place.inc.c"
 
 /// Message handler: the message id selects how the second work block is
 /// reseeded -- 0 arms the reset argument, 1 remembers the id in the byte the

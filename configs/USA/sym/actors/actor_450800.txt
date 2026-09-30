@@ -471,3 +471,4 @@ func_shelter_b6_nursery_80182D14 = 0x80182D14; // absolute:True
 pacedWalkTickAnim = 0x80132A1C; // type:func
 pacedWalkResetAnim = 0x80132A68; // type:func
 walkerDrawShadowShaded = 0x801328BC; // type:func
+pacedWalkPlace = 0x80132C68; // type:func

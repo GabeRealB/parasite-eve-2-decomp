@@ -137,7 +137,6 @@ extern AnimationPlayRequest D_actor_161500_80136E74;
 extern GpCopyArg            D_actor_161500_80136E08;
 s32                         func_actor_161500_80132A28(Task*, s32, AnimationPlayRequest*);
 s32                         func_actor_161500_80132A94(Task*, s32, s32);
-s32                         func_actor_161500_80132B10(Task*, s32, ActorTransform* placement);
 s32                         func_actor_161500_80132B88(Task*, s32, ActorCommand* args);
 s32                         func_actor_161500_80132BA0(Task*, s32, ActorTransform* target);
 void                        func_actor_161500_80132210(void);
@@ -1354,7 +1353,7 @@ AnimationSet D_actor_161500_80140158 = {
 Actor161500MessageEntry D_actor_161500_80140180[6] = {
     { 2003, { .call0 = func_actor_161500_80132A28 } },
     { 2005, { .call3 = func_actor_161500_80132A94 } },
-    { 2004, { .call2 = func_actor_161500_80132B10 } },
+    { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_161500_80132B88 } },
     { 2013, { .call2 = func_actor_161500_80132BA0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1773,26 +1772,7 @@ s32 func_actor_161500_80132A94(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Script opcode "place at": yaws the actor's root coordinate to
-/// `placement->rot.vy`, caching that yaw in the work block, then drops the
-/// placement translation into the matrix and marks it dirty.
-s32 func_actor_161500_80132B10(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor161500Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor161500Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/paced_walk_place.inc.c"
 
 /// Script opcode: sets the work block's `turnUp`, which selects whether the
 /// per-frame body turns the actor's head toward the player or away, to the

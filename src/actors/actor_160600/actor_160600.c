@@ -82,7 +82,6 @@ void             func_actor_160600_801321B4(Task*);
 
 s32 func_actor_160600_8013252C(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_160600_80132598(Task*, s32, s32);
-s32 func_actor_160600_80132614(Task*, s32, ActorTransform* placement);
 s32 func_actor_160600_8013268C(Task*, s32, ActorCommand* args);
 
 extern AnimationPlayRequest D_actor_160600_80134E8C;
@@ -1104,7 +1103,7 @@ AnimationSet D_actor_160600_8013DF48 = {
 Actor160600MessageEntry D_actor_160600_8013DF70[6] = {
     { 2003, { .call0 = func_actor_160600_8013252C } },
     { 2005, { .call3 = func_actor_160600_80132598 } },
-    { 2004, { .call2 = func_actor_160600_80132614 } },
+    { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_160600_8013268C } },
     { 2013, { .call2 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1364,26 +1363,7 @@ s32 func_actor_160600_80132598(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-/// Script opcode "place at": yaws the actor's root coordinate to
-/// `placement->rot.vy`, caching that yaw in the work block, then drops the
-/// placement translation into the matrix and marks it dirty.
-s32 func_actor_160600_80132614(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/paced_walk_place.inc.c"
 
 /// Script opcode: sets the work block's `effects`, which enables the
 /// per-frame effect spawns, when the payload is exactly 1; any other payload
