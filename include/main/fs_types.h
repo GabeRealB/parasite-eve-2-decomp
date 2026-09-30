@@ -7,19 +7,63 @@
 
 #include "main/stream_types.h"
 
-/// One slot in the CD load command ring (`CdCmd_Enqueue`).
+/// Request opcodes stored in `CdCmdEntry.cmd`; the high nibble selects a handler.
+enum {
+    CD_COMMAND_EMPTY                     = 0,
+    CD_COMMAND_LOAD_FILE                 = 0x21,
+    CD_COMMAND_MOUNT_STAGE               = 0x54,
+    CD_COMMAND_READ_STAGE_HEADER         = 0x55,
+    CD_COMMAND_CONTINUE_STREAM           = 0x62,
+    CD_COMMAND_PLAY_STREAM_AT_OFFSET     = 0x71,
+    CD_COMMAND_RESET_STREAM_AT_OFFSET    = 0x72,
+    CD_COMMAND_RESUME_STREAM_AT_POSITION = 0x73,
+    CD_COMMAND_PLAY_SCENE_AUDIO          = 0x81,
+    CD_COMMAND_START_SCENE_AUDIO         = 0x82,
+};
+
+/// File-load policies stored in `CdCmdEntry.args.file.loadMode`.
+enum {
+    CD_COMMAND_LOAD_DEFAULT         = 0,
+    CD_COMMAND_LOAD_SEEK_ONLY       = 1,
+    CD_COMMAND_LOAD_INIT_SOUND      = 2,
+    CD_COMMAND_LOAD_RELOCATE_IMAGES = 3,
+    CD_COMMAND_LOAD_SKIP_BACKGROUND = 4,
+    CD_COMMAND_LOAD_IMAGES_ONLY     = 5,
+    CD_COMMAND_LOAD_SKIP_SOUND      = 6,
+};
+
+/// An eight-byte CD request, used in the ring and its active/replacement slots.
 ///
-/// File identity is packed as base-100 digits (`idB2*10000 + idB1*100 + idB0`).
-/// `cmd` selects the operation (0x21 load file, 0x54 mount stage, 0x55 parse HED).
-typedef struct _CdCmdEntry {
-    u8 idB0;   // ones digit / a2[0]
-    u8 idB1;   // hundreds digit / a2[1]
-    u8 idB2;   // ×10000 / category / a2[2]
-    u8 idB3;   // a2[3]
-    u8 cmd;    // command opcode
-    u8 param0; // a1[3]
-    u8 param1; // a1[2]
-    u8 param2; // a1[0]
+/// `args` preserves all four bytes of the enqueue API's second parameter block.
+/// File commands interpret them as an ID component and load options; stream
+/// commands interpret them as a slot and, for 0x71/0x72, a signed 16-bit sector
+/// offset packed high byte first. The other bytes are copied without interpreting
+/// them when a request is saved or requeued.
+///
+/// Stage-zero file IDs are `fileGroup*10000 + args.file.fileIdHundreds*100 +
+/// fileIndex`. Stages 1..5 use folder `fileGroup*100 + args.file.fileIdHundreds`
+/// and `fileIndex` within it. `stage` also selects the CDF for mount commands.
+/// A zero `cmd` marks an empty or retired record. Iterator pointers borrow ring
+/// storage and must be copied before queue operations can overwrite the slot.
+typedef struct {
+    union {
+        u8 bytes[4];             // Exact second parameter block, including bytes unused by an opcode
+        struct {
+            u8 fileIdHundreds;   // Stage-zero hundreds component; otherwise the folder-number suffix
+            s8 loadMode;         // Load policy (0 normal, 1 seek, 2 sound setup, 3 relocate images, 4 skip background, 5 images only, 6 skip sound)
+            s8 imageXPageOffset; // Signed strip X shift in 64-word VRAM pages (y >= 256 or load mode 3)
+            s8 imageYOffset;     // Signed vertical image shift in VRAM rows, applied to image headers with y=245..255
+        } file;
+        struct {
+            s8 slotIndex;        // Stream-slot index (0..14); negative values are invalid
+            u8 sectorOffsetHigh; // High byte of the signed sector offset for 0x71/0x72
+            u8 sectorOffsetLow;  // Low byte of that offset; the fourth argument byte is unused by stream handlers
+        } stream;
+    } args;
+    u8 cmd;       // Request opcode (0 empty); high nibble identifies the command family
+    u8 stage;     // CDF index (0 global library, 1..5 room folders); mount selector for 0x54
+    u8 fileGroup; // Stage-zero file category; otherwise the folder-number hundreds component
+    u8 fileIndex; // Stage-zero file-ID low component; otherwise the file index within the folder
 } CdCmdEntry;
 STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
 

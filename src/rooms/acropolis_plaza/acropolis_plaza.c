@@ -2796,8 +2796,9 @@ static u16             func_acropolis_plaza_8017FB50(Task* task);
 /// Per-frame service step for the plaza's streamed cutscene commands.
 ///
 /// Only runs while the slot `CdCmd_Queue.readIdx` selects holds one of the
-/// stream opcodes 0x71..0x73; the entry packs the stream slot in `idB0` and a
-/// 16-bit argument in `idB1:idB2`. Step 0 waits for `CdCmd_PollStatus`: status
+/// stream opcodes 0x71..0x73; the entry packs the slot in `args.stream.slotIndex`
+/// and a signed sector offset in `args.stream.sectorOffsetHigh:sectorOffsetLow`.
+/// Step 0 waits for `CdCmd_PollStatus`: status
 /// 0 keeps waiting, status 2 flushes the drive first, and status 1 (or 2)
 /// promotes a 0x72 entry to 0x71 -- clearing the MDEC strip counters -- kicks
 /// the decoder, primes `Stream_PollPlayback` and advances to step 1. Step 1 polls
@@ -2805,21 +2806,21 @@ static u16             func_acropolis_plaza_8017FB50(Task* task);
 void func_acropolis_plaza_8017D6D4(void)
 {
     CdCmdQueue* q;
-    CdCmdEntry* e;
+    CdCmdEntry* entry;
     s16         slot;
-    s16         arg;
+    s16         sectorOffset;
     s32         cmd;
 
-    q    = &CdCmd_Queue;
-    e    = &q->entries[q->readIdx];
-    cmd  = e->cmd;
-    slot = (s8)e->idB0;
-    arg  = e->idB2 | (e->idB1 << 8);
+    q            = &CdCmd_Queue;
+    entry        = &q->entries[q->readIdx];
+    cmd          = entry->cmd;
+    slot         = entry->args.stream.slotIndex;
+    sectorOffset = entry->args.stream.sectorOffsetLow | (entry->args.stream.sectorOffsetHigh << 8);
 
-    if (cmd != 0) {
+    if (cmd != CD_COMMAND_EMPTY) {
         if (cmd >= 0) {
-            if (cmd < 0x74) {
-                if (cmd >= 0x71) {
+            if (cmd < CD_COMMAND_RESUME_STREAM_AT_POSITION + 1) {
+                if (cmd >= CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                     switch (q->step) {
                         case 0:
                             switch ((s16)CdCmd_PollStatus(0, 0)) {
@@ -2829,15 +2830,15 @@ void func_acropolis_plaza_8017D6D4(void)
                                     CdFlush();
                                     /* fallthrough */
                                 case 1:
-                                    if (q->entries[q->readIdx].cmd == 0x72) {
+                                    if (q->entries[q->readIdx].cmd == CD_COMMAND_RESET_STREAM_AT_OFFSET) {
                                         D_8005EAEC                 = 0;
                                         D_8005EAEE                 = 0;
-                                        q->entries[q->readIdx].cmd = 0x71;
+                                        q->entries[q->readIdx].cmd = CD_COMMAND_PLAY_STREAM_AT_OFFSET;
                                     }
                                     Stream_KickDecode(slot & 0xFFFF);
-                                    if (q->entries[q->readIdx].cmd == 0x71) {
-                                        Stream_PollPlayback(0, arg);
-                                    } else if (q->entries[q->readIdx].cmd == 0x73) {
+                                    if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
+                                        Stream_PollPlayback(0, sectorOffset);
+                                    } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
                                         Stream_PollPlayback(1, q->field_48);
                                     }
                                     q->step++;
@@ -2848,11 +2849,11 @@ void func_acropolis_plaza_8017D6D4(void)
                             break;
                         case 1:
                         poll:
-                            if (q->entries[q->readIdx].cmd == 0x71) {
-                                if (Stream_PollPlayback(0, arg) != 0) {
+                            if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
+                                if (Stream_PollPlayback(0, sectorOffset) != 0) {
                                     CdCmd_AdvanceRead();
                                 }
-                            } else if (q->entries[q->readIdx].cmd == 0x73) {
+                            } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
                                 if (Stream_PollPlayback(1, q->field_48) != 0) {
                                     CdCmd_AdvanceRead();
                                 }

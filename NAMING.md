@@ -748,7 +748,7 @@ in general documentation.
 When loading via `Fs_LoadFile` / `CdCmd_Enqueue` (cmd `0x21`):
 
 ```text
-fileId = idB2 * 10000 + idB1 * 100 + idB0
+fileId = entry->fileGroup * 10000 + entry->args.file.fileIdHundreds * 100 + entry->fileIndex
 ```
 
 Category tables:

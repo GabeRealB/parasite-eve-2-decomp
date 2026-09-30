@@ -16,17 +16,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-typedef struct {
-    s8 idB0;
-    s8 idB1;
-    s8 idB2;
-    s8 idB3;
-    u8 cmd;
-    u8 param0;
-    u8 param1;
-    u8 param2;
-} CdCmdEntryS;
-
 extern const char Gp_StrSelectTitle[];
 
 extern char Gp_StrDetachArmorHelp[];
@@ -388,16 +377,16 @@ void Gp_EquipSelectMenuTask(Task* arg0)
 
 void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
 {
-    s32          flags[3];
-    CdCmdEntry   saved[3];
-    CdCmdQueue*  queue;
-    CdCmdEntryS* entry;
-    s32          type;
-    s32          index;
-    s32          nibble;
-    s32          hi;
-    s32          lo;
-    s32          i;
+    s32         flags[3];
+    CdCmdEntry  saved[3];
+    CdCmdQueue* queue;
+    CdCmdEntry* entry;
+    s32         type;
+    s32         index;
+    s32         nibble;
+    s32         hi;
+    s32         lo;
+    s32         i;
 
     queue = &CdCmd_Queue;
     if (arg0 == 0) {
@@ -452,21 +441,22 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     flags[0] = -1;
     CdCmd_ResetEntryIter();
 
-    while ((entry = (CdCmdEntryS*)CdCmd_NextEntry()) != NULL) {
-        if (entry->idB1 == 3 && entry->idB2 == -8 && entry->idB3 == -3) {
-            saved[0] = *(CdCmdEntry*)entry;
+    // Preserve requests for the other preview destinations before dropping work.
+    while ((entry = CdCmd_NextEntry()) != NULL) {
+        if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == -8 && entry->args.file.imageYOffset == -3) {
+            saved[0] = *entry;
             flags[0] = 0;
-        } else if (entry->idB1 == 0 && entry->idB2 == 0 && entry->idB3 == -2) {
-            saved[1] = *(CdCmdEntry*)entry;
+        } else if (entry->args.file.loadMode == CD_COMMAND_LOAD_DEFAULT && entry->args.file.imageXPageOffset == 0 && entry->args.file.imageYOffset == -2) {
+            saved[1] = *entry;
             flags[1] = 0;
-        } else if (entry->idB1 == 3 && entry->idB2 == 0 && entry->idB3 == -2) {
-            saved[2] = *(CdCmdEntry*)entry;
+        } else if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == 0 && entry->args.file.imageYOffset == -2) {
+            saved[2] = *entry;
             flags[2] = 0;
         }
     }
     flags[arg1 & 0xFF] = -1;
     CdCmd_DropPending();
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < (s32)ARRAY_SIZE(saved); i++) {
         if (flags[i] != -1) {
             cdCmdEnqueueEntry(&saved[i]);
         }

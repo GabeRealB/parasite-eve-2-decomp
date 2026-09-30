@@ -40,8 +40,10 @@ same `.pe2pkg` as code (or *instead* of code). Textures are sibling `.pe2img`
 | **STAGE0** | Flat library, ids encoded as base-100 digits | Global swap-ins: gameplay/title, Aya, weapons, actors, maps, menus |
 | **STAGE1–5** | **Folders** (one room each) | Per-room script overlay at a single address |
 
-`CdCmd` file identity is `idB2 * 10000 + idB1 * 100 + idB0`
-(`CdCmdEntry` in `fs.h`). `Fs_LoadFile` switches on `req[2]` (the 10000s
+For stage zero, a `CdCmdEntry` in `include/main/fs_types.h` identifies a file as
+`fileGroup * 10000 + args.file.fileIdHundreds * 100 + fileIndex`.
+The other three `args.file` bytes hold the load mode and signed image offsets.
+`Fs_LoadFile` switches on `req[2]` (the 10000s
 place / category). Categories `0`–`5` and `90` have dedicated tables;
 everything else (`10`, `20`, `30`, `40`, `80`, `90` as a *file id prefix*,
 …) goes through `Fs_FileTable` with

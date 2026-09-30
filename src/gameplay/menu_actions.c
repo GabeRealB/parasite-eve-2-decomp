@@ -143,7 +143,7 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
 
 static void func_800CEE5C(UiObject* arg0);
 
-static s32 func_800CF204(CdCmdEntry* arg0);
+static s32 func_800CF204(CdCmdEntry* entry);
 
 static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
@@ -597,9 +597,9 @@ void func_800CF148(UiObject* arg0, Task* arg1)
     }
 }
 
-static s32 func_800CF204(CdCmdEntry* arg0)
+static s32 func_800CF204(CdCmdEntry* entry)
 {
-    return cdCmdEnqueueEntry(arg0);
+    return cdCmdEnqueueEntry(entry);
 }
 
 s32 Gp_GetPreviewItem(void)

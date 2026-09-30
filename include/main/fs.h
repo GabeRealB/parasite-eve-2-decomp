@@ -91,13 +91,13 @@ static inline s32 cdCmdEnqueueEntry(CdCmdEntry* entry)
     u8 paramA[8];
     u8 paramB[8];
 
-    paramA[3] = entry->param0;
-    paramA[2] = entry->param1;
-    paramA[0] = entry->param2;
-    paramB[0] = entry->idB0;
-    paramB[1] = entry->idB1;
-    paramB[2] = entry->idB2;
-    paramB[3] = entry->idB3;
+    paramA[3] = entry->stage;
+    paramA[2] = entry->fileGroup;
+    paramA[0] = entry->fileIndex;
+    paramB[0] = entry->args.bytes[0];
+    paramB[1] = entry->args.bytes[1];
+    paramB[2] = entry->args.bytes[2];
+    paramB[3] = entry->args.bytes[3];
     return CdCmd_Enqueue(entry->cmd, paramA, paramB);
 }
 

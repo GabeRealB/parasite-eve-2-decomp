@@ -177,21 +177,22 @@ static void CdCmd_HandleStreamDecode(void)
     CdCmdQueue* p;
     CdCmdEntry* entry;
     s16         ret;
-    s32         idB0;
+    s32         slotIndex;
     s32         cmd;
     s32         busy;
 
-    state = &CdCmd_Queue;
-    idB0  = *(volatile u8*)&state->entries[state->readIdx].idB0;
-    cmd   = state->entries[state->readIdx].cmd;
-    idB0  = (s8)idB0;
-    if (cmd == 0) {
+    // Keep the unsigned slot-byte load separate from its signed interpretation.
+    state     = &CdCmd_Queue;
+    slotIndex = *(volatile u8*)&state->entries[state->readIdx].args.bytes[0];
+    cmd       = state->entries[state->readIdx].cmd;
+    slotIndex = (s8)slotIndex;
+    if (cmd == CD_COMMAND_EMPTY) {
         return;
     }
     if (cmd < 0) {
         return;
     }
-    if (cmd >= 0x63) {
+    if (cmd >= CD_COMMAND_CONTINUE_STREAM + 1) {
         return;
     }
     if (cmd < CD_COMMAND_PLAY_STREAM) {
@@ -220,10 +221,10 @@ static void CdCmd_HandleStreamDecode(void)
             if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
                 D_8005EAEC = 0;
                 D_8005EAEE = 0;
-            } else if (entry->cmd == 0x62) {
+            } else if (entry->cmd == CD_COMMAND_CONTINUE_STREAM) {
                 entry->cmd = CD_COMMAND_PLAY_STREAM;
             }
-            if ((s16)Stream_InitializePlayback(idB0 & 0xFFFF) != 0) {
+            if ((s16)Stream_InitializePlayback(slotIndex & 0xFFFF) != 0) {
                 p                = &CdCmd_Queue;
                 busy             = p->busy;
                 state->field_1FA = 1;
@@ -237,9 +238,9 @@ static void CdCmd_HandleStreamDecode(void)
                 p->pausePlayClock = 0;
                 p->field_242      = 0;
                 if (p->readIdx != p->writeIdx) {
-                    p->entries[p->readIdx].cmd = 0;
+                    p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                     p->readIdx                 = p->readIdx + 1;
-                    p->readIdx                 = p->readIdx % 8;
+                    p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
                 }
                 goto end_check;
             }
@@ -260,9 +261,9 @@ static void CdCmd_HandleStreamDecode(void)
                 p->pausePlayClock = 0;
                 p->field_242      = 0;
                 if (p->readIdx != p->writeIdx) {
-                    p->entries[p->readIdx].cmd = 0;
+                    p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                     p->readIdx                 = p->readIdx + 1;
-                    p->readIdx                 = p->readIdx % 8;
+                    p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
                 }
             }
             return;
@@ -278,11 +279,12 @@ static void CdCmd_HandleFileLoad(void)
     u8          req[4];
     u8          mode;
 
+    // The file key's hundreds/folder-suffix byte is stored with the load options.
     state  = &CdCmd_Queue;
-    req[3] = state->entries[state->readIdx].param0;
-    req[2] = state->entries[state->readIdx].param1;
-    req[0] = state->entries[state->readIdx].param2;
-    req[1] = state->entries[state->readIdx].idB0;
+    req[3] = state->entries[state->readIdx].stage;
+    req[2] = state->entries[state->readIdx].fileGroup;
+    req[0] = state->entries[state->readIdx].fileIndex;
+    req[1] = state->entries[state->readIdx].args.file.fileIdHundreds;
 
     switch (state->step) {
         case 0:
@@ -311,7 +313,7 @@ static void CdCmd_HandleFileLoad(void)
             }
             mode = 0xA0;
             CdControlB(CdlSetmode, &mode, NULL);
-            if ((s8)state->entries[state->readIdx].idB1 != 0) {
+            if (state->entries[state->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT) {
                 state->step = 4;
                 goto do_load;
             }
@@ -410,9 +412,9 @@ static void CdCmd_HandleFileLoad(void)
         do_load:
             Fs_LoadFile(
                 req,
-                state->entries[state->readIdx].idB1,
-                (s8)state->entries[state->readIdx].idB2,
-                (s8)state->entries[state->readIdx].idB3);
+                (u8)state->entries[state->readIdx].args.file.loadMode,
+                state->entries[state->readIdx].args.file.imageXPageOffset,
+                state->entries[state->readIdx].args.file.imageYOffset);
         increment_step:
             state->step = state->step + 1;
             goto end_check;
@@ -468,9 +470,9 @@ static void CdCmd_HandleFileLoad(void)
                     p->pausePlayClock = 0;
                     p->field_242      = 0;
                     if (p->readIdx != p->writeIdx) {
-                        p->entries[p->readIdx].cmd = 0;
+                        p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                         p->readIdx                 = p->readIdx + 1;
-                        p->readIdx                 = p->readIdx % 8;
+                        p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
                     }
                     goto end_check;
                 case 0x10:
@@ -512,27 +514,27 @@ static void CdCmd_HandleMount(void)
 
     state = &CdCmd_Queue;
     cmd   = state->entries[state->readIdx].cmd;
-    if (cmd < 0x54) {
+    if (cmd < CD_COMMAND_MOUNT_STAGE) {
         return;
     }
     switch (cmd) {
-        case 0x54: {
+        case CD_COMMAND_MOUNT_STAGE: {
             CdCmdEntry* entry;
-            s32         field5;
+            s32         stageIndex;
             s32         step;
 
-            entry  = &state->entries[state->readIdx];
-            status = *(volatile u8*)&entry->param0;
-            field5 = status;
-            step   = state->step;
-            field5 = (s8)field5;
+            entry      = &state->entries[state->readIdx];
+            status     = *(volatile u8*)&entry->stage;
+            stageIndex = status;
+            step       = state->step;
+            stageIndex = (s8)stageIndex;
             switch (step) {
                 case 0:
                     if (state->busy == 0) {
                         state->busy          = 1;
                         gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                     }
-                    Fs_SelectStage(field5 & 0xFF);
+                    Fs_SelectStage(stageIndex & 0xFF);
                     goto increment_step;
                 case 1:
                     if (CdSync(1, NULL) == CdlDiskError) {
@@ -594,12 +596,12 @@ static void CdCmd_HandleMount(void)
                         }
                         CdFlush();
                     }
-                    Fs_InitFolderTable(field5 & 0xFF);
+                    Fs_InitFolderTable(stageIndex & 0xFF);
                     goto cleanup;
             }
             return;
         }
-        case 0x55:
+        case CD_COMMAND_READ_STAGE_HEADER:
             status = Fs_CdOpStatus;
             if (status != 0xFF) {
                 goto case55_cont;
@@ -614,9 +616,9 @@ static void CdCmd_HandleMount(void)
             state->pausePlayClock = 0;
             state->field_242      = 0;
             if (state->readIdx != state->writeIdx) {
-                (state->entries + state->readIdx)->cmd = 0;
+                (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
                 state->readIdx                         = state->readIdx + 1;
-                state->readIdx                         = state->readIdx % 8;
+                state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
             }
             return;
         case55_cont:
@@ -648,16 +650,16 @@ s32 CdCmd_ActivatePhase1(void)
 
     p   = &CdCmd_Queue;
     cmd = p->entries[p->readIdx].cmd;
-    if (cmd != 0) {
-        p->field_40.cmd    = cmd;
-        p->field_40.param0 = p->entries[p->readIdx].param0;
-        p->field_40.param1 = p->entries[p->readIdx].param1;
-        p->field_40.param2 = p->entries[p->readIdx].param2;
-        p->field_40.idB0   = p->entries[p->readIdx].idB0;
-        p->field_40.idB1   = p->entries[p->readIdx].idB1;
-        p->field_40.idB2   = p->entries[p->readIdx].idB2;
-        p->field_40.idB3   = p->entries[p->readIdx].idB3;
-        p->field_4c        = 1;
+    if (cmd != CD_COMMAND_EMPTY) {
+        p->field_40.cmd           = cmd;
+        p->field_40.stage         = p->entries[p->readIdx].stage;
+        p->field_40.fileGroup     = p->entries[p->readIdx].fileGroup;
+        p->field_40.fileIndex     = p->entries[p->readIdx].fileIndex;
+        p->field_40.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
+        p->field_40.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
+        p->field_40.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
+        p->field_40.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
+        p->field_4c               = 1;
         return 1;
     }
     if ((u16)p->field_20E != 0) {
@@ -739,9 +741,9 @@ static void CdCmd_ProcessPhase1(void)
                 q->pausePlayClock = 0;
                 q->field_242      = 0;
                 if (q->readIdx != q->writeIdx) {
-                    q->entries[q->readIdx].cmd = 0;
+                    q->entries[q->readIdx].cmd = CD_COMMAND_EMPTY;
                     q->readIdx                 = q->readIdx + 1;
-                    q->readIdx                 = q->readIdx % 8;
+                    q->readIdx                 = q->readIdx % ARRAY_SIZE(q->entries);
                 }
             }
             return;
@@ -783,7 +785,7 @@ static void CdCmd_ProcessPhase1(void)
             case8_cleanup:
                 p = &CdCmd_Queue;
                 Mem_Set(&p->field_40, 0, 0x10);
-                p->field_50.cmd = 0;
+                p->field_50.cmd = CD_COMMAND_EMPTY;
                 p->field_244    = 0;
                 p->field_20E    = 0;
                 Gp_ApplySndBankMasks(p->field_190->data.scene.soundBankMask);
@@ -797,9 +799,9 @@ static void CdCmd_ProcessPhase1(void)
                 p->pausePlayClock = 0;
                 p->field_242      = 0;
                 if (p->readIdx != p->writeIdx) {
-                    p->entries[p->readIdx].cmd = 0;
+                    p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                     p->readIdx                 = p->readIdx + 1;
-                    p->readIdx                 = p->readIdx % 8;
+                    p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
                 }
             }
             return;
@@ -820,21 +822,21 @@ u16 CdCmd_ActivatePhase2(void)
     }
     cmd = p->entries[p->readIdx].cmd;
     if ((cmd >> 4) != 8) {
-        if (cmd != 0) {
+        if (cmd != CD_COMMAND_EMPTY) {
             goto do_work;
         }
     }
     return 0;
 do_work:
-    p->field_40.cmd    = cmd;
-    p->field_40.param0 = p->entries[p->readIdx].param0;
-    p->field_40.param1 = p->entries[p->readIdx].param1;
-    p->field_40.param2 = p->entries[p->readIdx].param2;
-    p->field_40.idB0   = p->entries[p->readIdx].idB0;
-    p->field_40.idB1   = p->entries[p->readIdx].idB1;
-    p->field_40.idB2   = p->entries[p->readIdx].idB2;
-    p->field_40.idB3   = p->entries[p->readIdx].idB3;
-    p->field_4c        = 2;
+    p->field_40.cmd           = cmd;
+    p->field_40.stage         = p->entries[p->readIdx].stage;
+    p->field_40.fileGroup     = p->entries[p->readIdx].fileGroup;
+    p->field_40.fileIndex     = p->entries[p->readIdx].fileIndex;
+    p->field_40.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
+    p->field_40.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
+    p->field_40.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
+    p->field_40.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
+    p->field_4c               = 2;
     return 1;
 }
 
@@ -913,7 +915,7 @@ static void CdCmd_ProcessPhase2(void)
                     p2->busy             = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                Mem_Set(p2, 0, 0x40);
+                Mem_Set(p2->entries, 0, sizeof(p2->entries));
                 p2->writeIdx  = 0;
                 p2->readIdx   = 0;
                 p2->step      = 0;
@@ -938,21 +940,21 @@ static inline s32 _cdCmdEnqueue(s32 cmd, u8* paramA, u8* paramB)
     u16         writeIdx;
     u16         next;
 
-    p             = &CdCmd_Queue;
-    entry         = &p->entries[p->writeIdx];
-    entry->cmd    = cmd;
-    entry->param0 = paramA[3];
-    entry->param1 = paramA[2];
-    entry->param2 = paramA[0];
-    entry->idB0   = paramB[0];
-    entry->idB1   = paramB[1];
-    entry->idB2   = paramB[2];
-    entry->idB3   = paramB[3];
-    writeIdx      = p->writeIdx;
-    next          = writeIdx + 1;
-    p->writeIdx   = next;
-    next          = p->writeIdx % 8;
-    p->writeIdx   = next;
+    p                    = &CdCmd_Queue;
+    entry                = &p->entries[p->writeIdx];
+    entry->cmd           = cmd;
+    entry->stage         = paramA[3];
+    entry->fileGroup     = paramA[2];
+    entry->fileIndex     = paramA[0];
+    entry->args.bytes[0] = paramB[0];
+    entry->args.bytes[1] = paramB[1];
+    entry->args.bytes[2] = paramB[2];
+    entry->args.bytes[3] = paramB[3];
+    writeIdx             = p->writeIdx;
+    next                 = writeIdx + 1;
+    p->writeIdx          = next;
+    next                 = p->writeIdx % ARRAY_SIZE(p->entries);
+    p->writeIdx          = next;
     return writeIdx;
 }
 
@@ -989,13 +991,13 @@ u16 CdCmd_EnqueueFollowUp(void)
         case 7:
             switch (p->field_1d2) {
                 case 0:
-                    params[3] = p->field_40.param0;
-                    params[2] = p->field_40.param1;
-                    params[0] = p->field_40.param2;
+                    params[3] = p->field_40.stage;
+                    params[2] = p->field_40.fileGroup;
+                    params[0] = p->field_40.fileIndex;
                     if ((p->field_40.cmd >> 4) == 6) {
-                        _cdCmdEnqueue(0x62, params, (u8*)&p->field_40);
+                        _cdCmdEnqueue(CD_COMMAND_CONTINUE_STREAM, params, p->field_40.args.bytes);
                     } else if ((p->field_40.cmd >> 4) == 7) {
-                        _cdCmdEnqueue(0x73, params, (u8*)&p->field_40);
+                        _cdCmdEnqueue(CD_COMMAND_RESUME_STREAM_AT_POSITION, params, p->field_40.args.bytes);
                     }
                     p->field_1d2++;
                     return 0;
@@ -1032,7 +1034,7 @@ u16 CdCmd_IsIdle(void)
 
 u16 CdCmd_IsSlotEmpty(s16 arg0)
 {
-    return CdCmd_Queue.entries[arg0].cmd == 0;
+    return CdCmd_Queue.entries[arg0].cmd == CD_COMMAND_EMPTY;
 }
 
 void CdCmd_BuildVlcIfStream(void)
@@ -1062,17 +1064,17 @@ s32 CdCmd_DropPending(void)
     }
 
     i = p->readIdx + 1;
-    i = i % 8;
+    i = i % ARRAY_SIZE(p->entries);
     if (i != writeIdx) {
         do {
-            p->entries[i].cmd = 0;
+            p->entries[i].cmd = CD_COMMAND_EMPTY;
             i                 = i + 1;
-            i                 = i % 8;
+            i                 = i % ARRAY_SIZE(p->entries);
         } while (i != p->writeIdx);
     }
 
     p->writeIdx = p->readIdx + 1;
-    p->writeIdx = p->writeIdx % 8;
+    p->writeIdx = p->writeIdx % ARRAY_SIZE(p->entries);
     return 0;
 }
 
@@ -1124,7 +1126,7 @@ void CdCmd_UnusedStub0(void)
 
 void CdCmd_CancelReplaceAndActivate(void)
 {
-    CdCmd_Queue.field_50.cmd = 0;
+    CdCmd_Queue.field_50.cmd = CD_COMMAND_EMPTY;
     CdCmd_ActivatePhase1();
     Gp_RestoreStreamRng();
 }
@@ -1150,7 +1152,7 @@ void CdCmd_EnqueueOverlay81(void)
     if (p->field_21A >= 0) {
         sp10         = p->field_21A;
         p->field_20E = 2;
-        CdCmd_Enqueue(0x81, 0, &sp10);
+        CdCmd_Enqueue(CD_COMMAND_PLAY_SCENE_AUDIO, 0, &sp10);
     } else {
         p->field_20E = 1;
     }
@@ -1164,7 +1166,7 @@ static void CdCmd_EnqueueReplaceOverlay81(void)
     p = &CdCmd_Queue;
     if (p->field_21A >= 0) {
         sp10 = p->field_21A;
-        CdCmd_EnqueueReplace(0x81, 0, &sp10);
+        CdCmd_EnqueueReplace(CD_COMMAND_PLAY_SCENE_AUDIO, 0, &sp10);
     }
 }
 
@@ -1177,7 +1179,7 @@ void CdCmd_EnqueueOverlay82(void)
     if (p->field_21A >= 0) {
         sp10         = p->field_21A;
         p->field_20E = 2;
-        CdCmd_Enqueue(0x82, 0, &sp10);
+        CdCmd_Enqueue(CD_COMMAND_START_SCENE_AUDIO, 0, &sp10);
     }
 }
 
@@ -1189,7 +1191,7 @@ void CdCmd_EnqueueReplaceOverlay82(void)
     p = &CdCmd_Queue;
     if (p->field_21A >= 0) {
         sp10 = p->field_21A;
-        CdCmd_EnqueueReplace(0x82, 0, &sp10);
+        CdCmd_EnqueueReplace(CD_COMMAND_START_SCENE_AUDIO, 0, &sp10);
     }
 }
 
@@ -1198,16 +1200,16 @@ void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB)
     CdCmdQueue* p;
     CdCmdEntry* entry;
 
-    p             = &CdCmd_Queue;
-    entry         = &p->field_50;
-    entry->cmd    = cmd;
-    entry->param0 = paramA[3];
-    entry->param1 = paramA[2];
-    entry->param2 = paramA[0];
-    entry->idB0   = paramB[0];
-    entry->idB1   = paramB[1];
-    entry->idB2   = paramB[2];
-    entry->idB3   = paramB[3];
+    p                    = &CdCmd_Queue;
+    entry                = &p->field_50;
+    entry->cmd           = cmd;
+    entry->stage         = paramA[3];
+    entry->fileGroup     = paramA[2];
+    entry->fileIndex     = paramA[0];
+    entry->args.bytes[0] = paramB[0];
+    entry->args.bytes[1] = paramB[1];
+    entry->args.bytes[2] = paramB[2];
+    entry->args.bytes[3] = paramB[3];
 }
 
 s32 CdCmd_CommitReplace(void)
@@ -1220,33 +1222,33 @@ s32 CdCmd_CommitReplace(void)
     u8*         paramB;
 
     p = &CdCmd_Queue;
-    if (*(volatile u8*)&p->field_50.cmd == 0) {
+    if (*(volatile u8*)&p->field_50.cmd == CD_COMMAND_EMPTY) {
         return -1;
     }
 
-    paramA[3] = p->field_50.param0;
-    paramA[2] = p->field_50.param1;
-    paramA[0] = p->field_50.param2;
+    paramA[3] = p->field_50.stage;
+    paramA[2] = p->field_50.fileGroup;
+    paramA[0] = p->field_50.fileIndex;
 
-    writeIdx      = p->writeIdx;
-    entry         = &p->entries[writeIdx];
-    entry->cmd    = p->field_50.cmd;
-    entry->param0 = paramA[3];
-    entry->param1 = paramA[2];
-    entry->param2 = paramA[0];
+    writeIdx         = p->writeIdx;
+    entry            = &p->entries[writeIdx];
+    entry->cmd       = p->field_50.cmd;
+    entry->stage     = paramA[3];
+    entry->fileGroup = paramA[2];
+    entry->fileIndex = paramA[0];
 
-    paramB      = (u8*)&p->field_50;
-    entry->idB0 = paramB[0];
-    entry->idB1 = paramB[1];
-    entry->idB2 = paramB[2];
-    entry->idB3 = paramB[3];
+    paramB               = p->field_50.args.bytes;
+    entry->args.bytes[0] = paramB[0];
+    entry->args.bytes[1] = paramB[1];
+    entry->args.bytes[2] = paramB[2];
+    entry->args.bytes[3] = paramB[3];
 
-    p->field_50.cmd = 0;
+    p->field_50.cmd = CD_COMMAND_EMPTY;
 
     writeIdx    = p->writeIdx;
     next        = writeIdx + 1;
     p->writeIdx = next;
-    next        = p->writeIdx % 8;
+    next        = p->writeIdx % ARRAY_SIZE(p->entries);
     p->writeIdx = next;
     return (s16)writeIdx;
 }
@@ -1282,7 +1284,7 @@ CdCmdEntry* CdCmd_NextEntry(void)
         return NULL;
     }
     CdCmd_EntryIter = index + 1;
-    CdCmd_EntryIter = CdCmd_EntryIter % 8;
+    CdCmd_EntryIter = CdCmd_EntryIter % ARRAY_SIZE(p->entries);
     return entry;
 }
 
@@ -1307,7 +1309,7 @@ static void CdCmd_ResetRing(void)
     CdCmdQueue* state;
 
     state = &CdCmd_Queue;
-    Mem_Set(state, 0, 0x40);
+    Mem_Set(state->entries, 0, sizeof(state->entries));
     state->writeIdx  = 0;
     state->readIdx   = 0;
     state->step      = 0;
@@ -1329,20 +1331,20 @@ void CdCmd_EnqueueUnlessStream(s32 cmd, u8* paramA, u8* paramB)
 
     p = &CdCmd_Queue;
     if ((p->entries[p->readIdx].cmd >> 4) != 8) {
-        entry         = &p->entries[p->writeIdx];
-        entry->cmd    = cmd;
-        entry->param0 = paramA[3];
-        entry->param1 = paramA[2];
-        entry->param2 = paramA[0];
-        entry->idB0   = paramB[0];
-        entry->idB1   = paramB[1];
-        entry->idB2   = paramB[2];
-        entry->idB3   = paramB[3];
-        writeIdx      = p->writeIdx;
-        next          = writeIdx + 1;
-        p->writeIdx   = next;
-        next          = p->writeIdx % 8;
-        p->writeIdx   = next;
+        entry                = &p->entries[p->writeIdx];
+        entry->cmd           = cmd;
+        entry->stage         = paramA[3];
+        entry->fileGroup     = paramA[2];
+        entry->fileIndex     = paramA[0];
+        entry->args.bytes[0] = paramB[0];
+        entry->args.bytes[1] = paramB[1];
+        entry->args.bytes[2] = paramB[2];
+        entry->args.bytes[3] = paramB[3];
+        writeIdx             = p->writeIdx;
+        next                 = writeIdx + 1;
+        p->writeIdx          = next;
+        next                 = p->writeIdx % ARRAY_SIZE(p->entries);
+        p->writeIdx          = next;
     }
 }
 
@@ -1360,9 +1362,9 @@ void CdCmd_AdvanceRead(void)
     state->pausePlayClock = 0;
     state->field_242      = 0;
     if (state->readIdx != state->writeIdx) {
-        state->entries[state->readIdx].cmd = 0;
+        state->entries[state->readIdx].cmd = CD_COMMAND_EMPTY;
         state->readIdx                     = state->readIdx + 1;
-        state->readIdx                     = state->readIdx % 8;
+        state->readIdx                     = state->readIdx % ARRAY_SIZE(state->entries);
     }
 }
 
@@ -1370,15 +1372,15 @@ void CdCmd_LoadActiveEntry(void)
 {
     CdCmdQueue* p;
 
-    p                  = &CdCmd_Queue;
-    p->field_40.cmd    = p->entries[p->readIdx].cmd;
-    p->field_40.param0 = p->entries[p->readIdx].param0;
-    p->field_40.param1 = p->entries[p->readIdx].param1;
-    p->field_40.param2 = p->entries[p->readIdx].param2;
-    p->field_40.idB0   = p->entries[p->readIdx].idB0;
-    p->field_40.idB1   = p->entries[p->readIdx].idB1;
-    p->field_40.idB2   = p->entries[p->readIdx].idB2;
-    p->field_40.idB3   = p->entries[p->readIdx].idB3;
+    p                         = &CdCmd_Queue;
+    p->field_40.cmd           = p->entries[p->readIdx].cmd;
+    p->field_40.stage         = p->entries[p->readIdx].stage;
+    p->field_40.fileGroup     = p->entries[p->readIdx].fileGroup;
+    p->field_40.fileIndex     = p->entries[p->readIdx].fileIndex;
+    p->field_40.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
+    p->field_40.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
+    p->field_40.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
+    p->field_40.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
 }
 
 void CdCmd_Dispatch(void)

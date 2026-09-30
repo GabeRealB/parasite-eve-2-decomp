@@ -529,16 +529,16 @@ void Gp_StepCdAudioCmd(void)
     {
         s32 cmd;
         cmd = p->entries[p->readIdx].cmd;
-        if (cmd == 0) {
+        if (cmd == CD_COMMAND_EMPTY) {
             goto end_check;
         }
         if (cmd < 0) {
             goto end_check;
         }
-        if (cmd >= 0x83) {
+        if (cmd >= CD_COMMAND_START_SCENE_AUDIO + 1) {
             goto end_check;
         }
-        if (cmd < 0x81) {
+        if (cmd < CD_COMMAND_PLAY_SCENE_AUDIO) {
             goto end_check;
         }
     }
@@ -649,12 +649,12 @@ void Gp_StepCdAudioCmd(void)
             one          = 1;
             p->field_212 = one;
             cmd          = p->entries[p->readIdx].cmd;
-            if (cmd == 0x82) {
+            if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
                 CdCmd_LoadActiveEntry();
                 CdCmd_AdvanceRead();
                 break;
             }
-            if (cmd != 0x81) {
+            if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
                 break;
             }
             save23       = Mc_SaveData[0].state.demoScene;
@@ -687,7 +687,7 @@ void Gp_StepCdAudioCmd(void)
             }
             Mem_Set(&p->field_40, 0, 0x10);
             sceneStream     = p->field_190;
-            p->field_50.cmd = 0;
+            p->field_50.cmd = CD_COMMAND_EMPTY;
             if (sceneStream->data.scene.resumeSectorOffset != 0) {
                 CdAudio_JumpToSector(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
                 p->field_242 = 1;

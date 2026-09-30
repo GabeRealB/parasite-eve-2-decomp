@@ -12534,24 +12534,24 @@ slot, pointer in `$a1` instead of `$a0`) and breaks the
 
 ## Route a `volatile u8` load through an existing `s32` temp for s-reg order
 
-When `(s8)entry->field_5` must live in `$s3` while the constant `1` lives in
-`$s2`, a direct `field5 = (s8)*(volatile u8*)&entry->field_5` often steals
-`$s2` for `field5`. Assigning through an already-live `s32` first flips the
+When `(s8)entry->stage` must live in `$s3` while the constant `1` lives in
+`$s2`, a direct `stageIndex = (s8)*(volatile u8*)&entry->stage` often steals
+`$s2` for `stageIndex`. Assigning through an already-live `s32` first flips the
 colors:
 
 ```c
-status = *(volatile u8*)&entry->field_5; /* existing s32, used later too */
-field5 = status;
+status = *(volatile u8*)&entry->stage; /* existing s32, used later too */
+stageIndex = status;
 step   = state->field_1d0;
-field5 = (s8)field5;
+stageIndex = (s8)stageIndex;
 ```
 
 The volatile load still yields `lbu` + `sll 24` / `sra 24` (not `lb`), and
-`field5` lands in `$s3`. `CdCmd_HandleMount` needs this for the case-0x54 prologue.
+`stageIndex` lands in `$s3`. `CdCmd_HandleMount` needs this for the case-0x54 prologue.
 
 ## Force `addu v0, v0, s0` (scaled-index + base) for `entries[i]`
 
-Plain `state->entries[idx].field_4 = 0` often emits `addu v0, s0, v0` (base
+Plain `state->entries[idx].cmd = 0` often emits `addu v0, s0, v0` (base
 first). When the target has the accumulate form after `move`/`sll`:
 
 ```
@@ -12567,7 +12567,7 @@ build the address explicitly so the add folds onto the shifted temp:
 u32 t;
 t = state->field_1ca << 3;
 t += (u32)state;
-((CdCmdEntry*)t)->field_4 = 0;
+((CdCmdEntry*)t)->cmd = 0;
 ```
 
 `CdCmd_HandleMount` cleanup needs this; prefer struct indexing when the operand
@@ -14208,8 +14208,8 @@ t = *(volatile u8*)&p->field_13; /* lbu, may schedule early */
 t = (s8)t;                       /* sll; sra */
 ```
 
-Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->param0` followed by
-`field5 = (s8)field5`. `SndVoice_SetVolumeRamp` needs this for `SndScript.field_13`.
+Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->stage` followed by
+`stageIndex = (s8)stageIndex`. `SndVoice_SetVolumeRamp` needs this for `SndScript.field_13`.
 
 ## Three-way sign with `<= 0` outer for `bgtz` fall-through
 
@@ -16967,7 +16967,7 @@ entry->cmd = p->field_50.cmd;   /* second load now materializes */
 ```
 
 (The cast can sit on either access.) Same shape already used in `cdcmd.c` for
-`entry->param0`. `CdCmd_CommitReplace` (commit `field_50` into the ring) is the pure
+`entry->stage`. `CdCmd_CommitReplace` (commit `field_50` into the ring) is the pure
 example; pair with `(s16)writeIdx` when the return needs `sll`/`sra 16`
 sign-extend rather than Enqueue's `andi …, 0xffff` zero-extend.
 
