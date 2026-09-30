@@ -25,7 +25,15 @@
 /// free it. The display code owns and clears the backing storage before drawing.
 extern u_long* gGpuCurrentOt;
 
-/// Aligned byte-offset mask for the 1024 depth-sorted tags (0 through 4092 bytes).
+/// Four-byte-aligned byte-offset mask for the 1024 depth-sorted ordering-table tags.
+///
+/// Callers scale a sorting depth by `otDepthShift`, shift that value right by
+/// two, and apply this mask. It keeps bits 2..11, so the result is a
+/// byte offset from 0 through 4092 and selects tag 0 through 1023 relative to
+/// the current ordering-table base. Bits above that window wrap into it.
+/// Foreground packets use negative tag indices instead. The 64-tag display
+/// tables are a separate extent. Dividing the masked offset by the tag size
+/// selects that same tag.
 enum { GPU_ORDERING_TABLE_DEPTH_BYTE_MASK = 0xFFC };
 
 /// Tag bits for the next packet's 24-bit DMA address and the packet's word count.
@@ -36,10 +44,11 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 ///
 /// `byteOffset` counts bytes from `gGpuCurrentOt`, not tags or camera depth. It
 /// must be nonnegative and a multiple of the tag size (4 bytes on PlayStation).
-/// Depth callers align and bound it with `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK`;
-/// this accessor neither masks nor clamps it. Signed tag indices, including
-/// reserved foreground entries, use `gGpuCurrentOt + index` instead: division
-/// by unsigned `sizeof` would convert a negative byte offset to unsigned.
+/// Depth callers pass an offset already wrapped with
+/// `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK`; this accessor neither masks nor clamps
+/// it. Signed tag indices, including reserved foreground entries, use
+/// `gGpuCurrentOt + index` instead: division by unsigned `sizeof` would
+/// convert a negative byte offset to unsigned.
 ///
 /// The selected table must contain the tag, including any subsequent pointer
 /// adjustment in tags. The pointer borrows the current table's lifetime and
