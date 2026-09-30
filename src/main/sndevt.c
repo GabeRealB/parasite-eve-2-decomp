@@ -156,13 +156,18 @@ static SndEvt* _gSndEvtHead;
 /// list; a pass that consumes the last event clears it with the head.
 static SndEvt* _gSndEvtTail;
 
-/// The slots the deferred sound events live in: 0x40 of them, one per queued
-/// command.
+/// Maximum number of simultaneous sound-event reservations, queued or unqueued.
+enum { SOUND_EVENT_POOL_CAPACITY = 64 };
+
+/// Fixed resident storage for deferred MIDI and sound-script commands.
 ///
-/// `sndEvtAlloc` takes a free slot and `SndEvt_Free` marks it free again, so
-/// this array's length is how many events can be pending at once; an enqueue
-/// that finds no free slot reports the failure rather than allocating.
-static SndEvt _gSndEvtPool[0x40];
+/// `sndEvtAlloc` reserves the first free slot, or returns `NULL` when all slots
+/// are taken; unqueued reservations count against the same capacity. Dispatch
+/// releases each slot for reuse. Allocation and release retain payload bytes,
+/// so producers must initialize every argument their command reads.
+/// Reset and invalid-command recovery zero the entire array, discarding queued
+/// commands and unqueued reservations together.
+static SndEvt _gSndEvtPool[SOUND_EVENT_POOL_CAPACITY];
 
 static u8 D_8007F2F0;
 
@@ -469,7 +474,7 @@ void SndEvt_Process(void)
     SndEvt* nextEvent;
     SndEvt* event;
     u32     i;
-    s32*    ptr;
+    s32*    poolWord;
 
     if (_gSndEvtProcessEnabled == false) {
         return;
@@ -482,14 +487,14 @@ void SndEvt_Process(void)
         event = _gSndEvtHead;
         // Unsigned narrowing rejects negative stored commands as well as high ones.
         if ((u16)event->command >= (u32)ARRAY_SIZE(SndEvt_Handlers)) {
-            // Invalid dispatch discards every slot, including unqueued reservations.
-            ptr = (s32*)_gSndEvtPool;
-            i   = 0;
+            // Clear every slot as words, including payloads and unqueued reservations.
+            poolWord = (s32*)_gSndEvtPool;
+            i        = 0;
             do {
-                *ptr = 0;
+                *poolWord = 0;
                 i++;
-                ptr++;
-            } while (i < sizeof(_gSndEvtPool) / sizeof(*ptr));
+                poolWord++;
+            } while (i < sizeof(_gSndEvtPool) / sizeof(*poolWord));
             _gSndEvtHead           = NULL;
             _gSndEvtTail           = NULL;
             _gSndEvtProcessEnabled = true;
@@ -511,15 +516,16 @@ void SndEvt_Process(void)
 void SndEvt_Reset(void)
 {
     u32  i;
-    s32* ptr;
+    s32* poolWord;
 
-    ptr = (s32*)_gSndEvtPool;
-    i   = 0;
+    // Clear reservations, payloads and queue links through a whole-pool word view.
+    poolWord = (s32*)_gSndEvtPool;
+    i        = 0;
     do {
-        *ptr = 0;
+        *poolWord = 0;
         i++;
-        ptr++;
-    } while (i < sizeof(_gSndEvtPool) / sizeof(*ptr));
+        poolWord++;
+    } while (i < sizeof(_gSndEvtPool) / sizeof(*poolWord));
     _gSndEvtHead           = NULL;
     _gSndEvtTail           = NULL;
     _gSndEvtProcessEnabled = true;
