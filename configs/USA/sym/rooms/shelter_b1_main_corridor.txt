@@ -7,7 +7,7 @@ D_shelter_b1_main_corridor_80183144 = 0x80183144; // size:0x90 defined:True
 D_shelter_b1_main_corridor_8018308C = 0x8018308C; // size:0xC defined:True
 D_shelter_b1_main_corridor_80183098 = 0x80183098; // size:0xC defined:True
 D_shelter_b1_main_corridor_801830A4 = 0x801830A4; // size:0x30 defined:True
-D_shelter_b1_main_corridor_801831D4 = 0x801831D4; // size:0x14 defined:True
+RoomFx_HaloShades = 0x801831D4; // size:0x14 defined:True
 D_shelter_b1_main_corridor_801831F8 = 0x801831F8; // size:0x4 defined:True
 D_shelter_b1_main_corridor_801831FC = 0x801831FC; // size:0x2 defined:True
 D_shelter_b1_main_corridor_80183200 = 0x80183200; // size:0x150 defined:True
@@ -73,7 +73,7 @@ D_shelter_b1_main_corridor_80185D3C = 0x80185D3C; // size:0x8 defined:True
 D_shelter_b1_main_corridor_80185D44 = 0x80185D44; // size:0x4 defined:True
 D_shelter_b1_main_corridor_80185D48 = 0x80185D48; // size:0x20 defined:True
 D_shelter_b1_main_corridor_80185D68 = 0x80185D68; // size:0xC defined:True
-D_shelter_b1_main_corridor_801831E8 = 0x801831E8; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x801831E8; // size:0x10 defined:True
 
 func_shelter_b1_main_corridor_8017DDF0 = 0x8017DDF0; // type:func
 
@@ -90,3 +90,13 @@ func_shelter_b1_main_corridor_8017F81C = 0x8017F81C; // type:func
 func_shelter_b1_main_corridor_8017FBB4 = 0x8017FBB4; // type:func
 
 func_shelter_b1_main_corridor_80180FC4 = 0x80180FC4; // type:func
+RoomFx_DrawMote = 0x8017EDA0; // type:func
+RoomFx_DrawHaloRing = 0x8017F064; // type:func
+RoomFx_DrawHaloDisc = 0x8017F488; // type:func
+RoomFx_DrawBurstGlow = 0x8017FD60; // type:func
+RoomFx_DrawGroundQuad = 0x8018028C; // type:func
+RoomFx_DrawFlashStar = 0x80180604; // type:func
+RoomFx_DrawFlashRing = 0x8018139C; // type:func
+RoomFx_DrawFlashDisc = 0x801817C8; // type:func
+RoomFx_DrawTwinTrail = 0x8018204C; // type:func
+RoomFx_DrawBurstStar = 0x801826CC; // type:func
