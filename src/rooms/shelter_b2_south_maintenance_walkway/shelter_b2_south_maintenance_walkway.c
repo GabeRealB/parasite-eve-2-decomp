@@ -60,7 +60,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 // The flag symbol carries seven unproven bytes after the flag.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
@@ -94,7 +94,7 @@ extern RoomEventReqStorage gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
-extern RoomEventActiveStorage gRoomEventActive;
+extern RoomEventStartStorage gRoomEventActive;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
@@ -453,7 +453,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-RoomEventActiveStorage gRoomEventActive = { 0 };
+RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 

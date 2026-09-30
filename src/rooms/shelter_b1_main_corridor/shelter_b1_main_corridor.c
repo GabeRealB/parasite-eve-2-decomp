@@ -63,7 +63,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 // The flag symbol carries seven unproven bytes after the flag.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
@@ -78,7 +78,7 @@ extern u8 D_shelter_b1_main_corridor_80185D44[4];
 extern RoomEventMsg        gRoomEventMsg;
 extern RoomEventReqStorage gRoomEventReq;
 /// Set once the gate has latched an event and spawned its task.
-extern RoomEventActiveStorage gRoomEventActive;
+extern RoomEventStartStorage gRoomEventActive;
 /// Spawn descriptor of the event task, `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
@@ -676,7 +676,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-RoomEventActiveStorage gRoomEventActive = { 0 };
+RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 

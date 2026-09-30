@@ -53,7 +53,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 // The flag symbol carries seven unproven bytes after the flag.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
@@ -86,7 +86,7 @@ extern RoomEventMsg gRoomEventMsg;
 
 /// Set by `roomEventGate` when the event it gates has
 /// just fired, clear otherwise.
-extern RoomEventActiveStorage gRoomEventActive;
+extern RoomEventStartStorage gRoomEventActive;
 
 extern RoomEventMsg gRoomEventStagedMsg;
 
@@ -508,7 +508,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-RoomEventActiveStorage gRoomEventActive = { 0 };
+RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 

@@ -64,18 +64,9 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
-extern RoomEventMsg gRoomEventStagedMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value;
-    u8 retained[7];
-} ShelterB2NorthMaintenanceWalkwayStorage63B0;
-STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63B0, 8);
-
-extern ShelterB2NorthMaintenanceWalkwayStorage63B0 D_shelter_b2_north_maintenance_walkway_801863B0;
-extern RoomLatchedEventStorage                     gRoomEventLatched;
+extern RoomEventMsg            gRoomEventStagedMsg;
+extern RoomEventStartStorage   D_shelter_b2_north_maintenance_walkway_801863B0;
+extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -697,7 +688,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-ShelterB2NorthMaintenanceWalkwayStorage63B0 D_shelter_b2_north_maintenance_walkway_801863B0 = { 0 };
+RoomEventStartStorage D_shelter_b2_north_maintenance_walkway_801863B0 = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
@@ -723,7 +714,7 @@ static void           func_shelter_b2_north_maintenance_walkway_8017DD80(Task* t
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b2_north_maintenance_walkway_801863B0.value = 0;
+    D_shelter_b2_north_maintenance_walkway_801863B0.eventStarted = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg     = *dst;
@@ -732,7 +723,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b2_north_maintenance_walkway_80183B48, 0, 0, 0);
-            D_shelter_b2_north_maintenance_walkway_801863B0.value = 1;
+            D_shelter_b2_north_maintenance_walkway_801863B0.eventStarted = 1;
         }
         return 2;
     }

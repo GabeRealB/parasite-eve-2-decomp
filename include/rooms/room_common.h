@@ -144,15 +144,18 @@ typedef struct {
 } RoomEventActiveBytes;
 STATIC_ASSERT_SIZEOF(RoomEventActiveBytes, 4);
 
-/// A room's `gRoomEventActive` when that symbol is eight bytes.
+/// Eight-byte room storage for an event-start indication.
 ///
-/// `raised` is the same flag. The seven bytes after it are zero in every
-/// room with this extent. Their role is unproven.
+/// `eventStarted` records whether the latest call to the corresponding event
+/// gate latched an event and spawned its task. Each call clears it first,
+/// including queries; an eligible query leaves it clear even when it returns 2.
+/// The event task does not update it. The seven trailing zero bytes have no
+/// recovered access; their role and grouping are unproven.
 typedef struct {
-    u8 raised;     // Nonzero after the gate latches an event and spawns its task
-    u8 unknown[7]; // Role unproven; zero, with no recovered access
-} RoomEventActiveStorage;
-STATIC_ASSERT_SIZEOF(RoomEventActiveStorage, 8);
+    u8 eventStarted; // Latest gate call spawned an event (0 no, 1 yes)
+    u8 unknown[7];   // Zero image bytes; role and grouping unproven
+} RoomEventStartStorage;
+STATIC_ASSERT_SIZEOF(RoomEventStartStorage, 8);
 
 /// A room's `gRoomEventReq` when that symbol is thirty-two bytes.
 ///

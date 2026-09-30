@@ -365,6 +365,10 @@ one-centre projection block, are declared in `include/rooms/room_common.h`. If a
 subsystem have similar names, distinguish actual ownership and linkage before
 introducing a qualifier; do not assume that they are one API.
 
+`roomEvent` owns the included room event gates, latched event records and event
+tasks. Its implementation interface is `src/shared/room_events.h`; record types
+used by several room overlays are declared in `include/rooms/room_common.h`.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

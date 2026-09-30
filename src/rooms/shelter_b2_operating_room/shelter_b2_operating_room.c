@@ -60,7 +60,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 // The flag symbol carries seven unproven bytes after the flag.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
@@ -91,9 +91,9 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and request of the exit the gate last accepted, latched for
 /// the transition task, and the flag saying the gate spawned it.
-extern RoomEventMsg           gRoomEventMsg;
-extern RoomEventActiveStorage gRoomEventActive;
-extern RoomEventReqStorage    gRoomEventReq;
+extern RoomEventMsg          gRoomEventMsg;
+extern RoomEventStartStorage gRoomEventActive;
+extern RoomEventReqStorage   gRoomEventReq;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag saying the handler spawned it.
@@ -885,7 +885,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-RoomEventActiveStorage gRoomEventActive = { 0 };
+RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 

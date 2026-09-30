@@ -31,8 +31,8 @@
  *
  *   ROOM_EVENT_ACTIVE   lvalue `u8`. Default `gRoomEventActive`, the byte
  *                       itself. `RoomEventActiveBytes` rooms bind
- *                       `.eventStarted`; `RoomEventActiveStorage` rooms
- *                       bind `.raised`.
+ *                       `.eventStarted`; `RoomEventStartStorage` rooms
+ *                       bind `.eventStarted`.
  *   ROOM_EVENT_REQ      lvalue `RoomEventReq`. Default `gRoomEventReq`.
  *                       `RoomEventReqStorage` rooms bind `.request`.
  *   ROOM_EVENT_LATCHED  lvalue `RoomLatchedEvent`. Default `gRoomEventLatched`.
@@ -45,7 +45,7 @@
  *                       symbol is the `ScreenFade` itself binds `gRoomEventFade`.
  *
  * Each binding names an object the room defines. The wider objects are
- * `RoomEventActiveBytes`, `RoomEventActiveStorage`, `RoomEventReqStorage`
+ * `RoomEventActiveBytes`, `RoomEventStartStorage`, `RoomEventReqStorage`
  * and `RoomLatchedEventStorage`.
  */
 
