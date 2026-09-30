@@ -593,7 +593,7 @@ static void SndEvt_HandleAllocVoice(SndEvt* event)
 {
     SndEvtScriptArgs* args;
 
-    args = &event->args.voice;
+    args = &event->args.script;
     SndVoice_AllocSlot(args->soundId, args->panOffset, args->level.attenuation, args->bankSlot, args->entryControls);
 }
 
@@ -601,18 +601,18 @@ static void SndEvt_HandleType7(SndEvt* event)
 {
     SndEvtScriptArgs* args;
 
-    args = &event->args.voice;
+    args = &event->args.script;
     SndScript_StopMatching(args->soundId, args->stopControl);
 }
 
 static void SndEvt_HandleFadeMatchingOn(SndEvt* event)
 {
-    SndVoice_FadeMatching(event->args.voice.soundId, 1);
+    SndVoice_FadeMatching(event->args.script.soundId, 1);
 }
 
 static void SndEvt_HandleFadeMatchingOff(SndEvt* event)
 {
-    SndVoice_FadeMatching(event->args.voice.soundId, 0);
+    SndVoice_FadeMatching(event->args.script.soundId, 0);
 }
 
 static void SndEvt_HandlePanRamp(SndEvt* event)
@@ -620,7 +620,7 @@ static void SndEvt_HandlePanRamp(SndEvt* event)
     s32               temp_v0;
     SndEvtScriptArgs* args;
 
-    args    = &event->args.voice;
+    args    = &event->args.script;
     temp_v0 = SndVoice_FindById(args->soundId);
     if (temp_v0 >= 0) {
         SndVoice_SetPanRamp(temp_v0, args->panOffset, args->level.attenuation);
@@ -632,7 +632,7 @@ static void SndEvt_HandleVolumeRamp(SndEvt* event)
     s32               temp_v0;
     SndEvtScriptArgs* args;
 
-    args    = &event->args.voice;
+    args    = &event->args.script;
     temp_v0 = SndVoice_FindById(args->soundId);
     if (temp_v0 >= 0) {
         SndVoice_SetVolumeRamp(temp_v0, args->level.volumeScale);

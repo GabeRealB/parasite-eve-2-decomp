@@ -250,17 +250,20 @@ typedef struct {
 } SndEvtScriptArgs;
 STATIC_ASSERT_SIZEOF(SndEvtScriptArgs, 0x10);
 
-/// Arguments of a `SndEvt`, one arm per family of handlers.
+/// Deferred MIDI-sequence or sound-script arguments selected by `SndEvt::handlerIdx`.
 ///
-/// An event owns a single argument slot, and the two arms are the layouts its
-/// commands read it under: the sequence commands, which address a `MidiSong`,
-/// read `midi`, and the script commands, which address a bank entry and the
-/// instances playing it, read `voice`. The slot is as large as the larger of
-/// the two, and a command fills in only the fields its own handler reads, so
-/// the rest of the slot still holds what its previous occupant left there.
+/// Commands 1..5 read `midi`: start, stop, mute, unmute and volume.
+/// Commands 6..11 read `script`: start, stop, mute, unmute, pan/attenuation
+/// and volume. Commands 0 and 12..15 do not read either arm.
+///
+/// The event slot owns this storage until processing releases it for reuse.
+/// Allocation and release do not clear the arguments; producers must initialize
+/// every field their command reads, and consumers must not read the remaining
+/// bytes or the other arm. Script-start pointers borrow bank-slot and script-image
+/// data that must remain valid through deferred processing and script playback.
 typedef union {
-    SndEvtMidiArgs   midi;
-    SndEvtScriptArgs voice;
+    SndEvtMidiArgs   midi;   // Sequence selection, gain and fade timing (commands 1..5)
+    SndEvtScriptArgs script; // Script-instance selection and playback/mix controls (commands 6..11)
 } SndEvtArgs;
 STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 
