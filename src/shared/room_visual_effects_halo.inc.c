@@ -190,7 +190,7 @@ static inline void RoomFx_HaloTask(Task* arg0)
     s32         shift;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -277,7 +277,7 @@ static inline void RoomFx_OrangeBurstTask(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {

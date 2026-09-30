@@ -3090,7 +3090,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                     vec.vz             = 0;
                     vec.vx             = 0;
                     vec.vy             = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002220, &vec);
                     }
                     return 0x40010002;
@@ -3109,7 +3109,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vz             = 0;
                         vec.vx             = 0;
                         vec.vy             = 0x2BC;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002220, &vec);
                         }
                         return 0x40010001;
@@ -3128,7 +3128,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vz              = 0;
                         vec.vx              = 0;
                         vec.vy              = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80002220, &vec);
                         }
                         return 0x40010002;
@@ -3147,7 +3147,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vz              = 0;
                         vec.vx              = 0;
                         vec.vy              = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80002220, &vec);
                         }
                         return 0x40010001;
@@ -3168,7 +3168,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                     vec.vz             = 0;
                     vec.vx             = 0;
                     vec.vy             = 0;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, task->extra.tmd->coords, 0x80004A00, &vec);
                     }
                     return 0x40010005;
@@ -3216,13 +3216,13 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                     vec.vz             = 0;
                     vec.vx             = 0;
                     vec.vy             = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80003200, &vec);
                     }
                     vec.vz = 0;
                     vec.vx = 0;
                     vec.vy = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80003200, &vec);
                     }
                     return 0;
@@ -3241,13 +3241,13 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vz             = 0;
                         vec.vx             = 0;
                         vec.vy             = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80004480, &vec);
                         }
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80004480, &vec);
                         }
                         return 0;
@@ -3266,27 +3266,27 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vz             = 0;
                         vec.vx             = 0;
                         vec.vy             = 0x2BC;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002200, &vec);
                         }
                         CSE_STEER(steer);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x2BC;
-                        if (steer == 0 && Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (steer == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002240, &vec);
                         }
                         CSE_STEER(steer);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
-                        if (steer == 0 && Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (steer == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80003300, &vec);
                         }
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80003340, &vec);
                         }
                         return 0;
@@ -3305,13 +3305,13 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vz             = 0;
                         vec.vx             = 0;
                         vec.vy             = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80002200, &vec);
                         }
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
-                        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80002300, &vec);
                         }
                         return 0;
@@ -3616,7 +3616,7 @@ static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             ofs.vz     = 0;
             p->vx      = 0;
             p->vy      = 0x2BC;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002400, p);
             }
             break;
@@ -3626,7 +3626,7 @@ static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             ofs.vz     = 0;
             p->vx      = 0;
             p->vy      = 0x2BC;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002400, p);
             }
             id  = ((enemy->placeKey >> 12) << 8) | 0x4001000E;
@@ -3639,7 +3639,7 @@ static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             ofs.vz     = 0;
             p->vx      = 0;
             p->vy      = 0x258;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80003600, p);
             }
             break;
@@ -3649,13 +3649,13 @@ static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             ofs.vz     = 0;
             p->vx      = 0;
             p->vy      = 0x258;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80004500, p);
             }
             ofs.vz = 0;
             p->vx  = 0;
             p->vy  = 0x2BC;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002480, p);
             }
             ofs2.vy = 0x3E8;
@@ -3902,7 +3902,7 @@ static void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2)
             break;
     }
 
-    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
+    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
         Gp_SpawnEff(0x60054, &task->extra.tmd->coords[arg1], arg2 | 0x80000000, &sp10);
     }
 }

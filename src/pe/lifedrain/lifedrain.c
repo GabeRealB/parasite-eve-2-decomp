@@ -81,7 +81,7 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
-/// it. Cancelling (`Gp_StateC08.field_3 == -2` or `Gp_State1C->peEffectControl >= 4`) releases
+/// it. Cancelling (`Gp_StateC08.field_3 == -2` or `gRoomEffectState->peEffectControl >= 4`) releases
 /// the work block, and states 0 and 1 first cash the banked `Gp_StateF0.field_14` into
 /// `Player_Status.hp`, clamped to the max in `field_1a`.
 ///
@@ -109,7 +109,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         if ((arg0->state < 2) && (arg0->spawnArg1.value != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
             if (Player_Status.hp > Player_Status.hpMax) {
@@ -383,7 +383,7 @@ void func_lifedrain_8012F9A8(Task* arg0)
 
 /// Runs one frame of a life-drain mote. Any state releases the work block once
 /// the player is dying (`Gp_StateC08.field_3 == -2`) or the room is fading
-/// (`Gp_State1C->peEffectControl >= 4`).
+/// (`gRoomEffectState->peEffectControl >= 4`).
 ///
 /// State 0 reparents the mote onto the cast's collector task
 /// `D_lifedrain_80130B0C`, hands it this task's `spawnArg1`, and draws a random
@@ -412,7 +412,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
@@ -631,7 +631,7 @@ void func_lifedrain_801308C0(Task* arg0)
     s32        scale;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->peEffectControl;
+    flag  = gRoomEffectState->peEffectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {

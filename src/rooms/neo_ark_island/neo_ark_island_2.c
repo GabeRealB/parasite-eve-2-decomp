@@ -80,14 +80,14 @@ GpWarpRec D_neo_ark_island_80181BB4[2] = {
     { { .words = { 0x7FFE, 5300, 0, -1900 } }, { 0, 0, 0, 0 }, { .words = { 0x7FFE, 5300, 0, -1900 } }, { 0, 0, 0, 0 }, 0x550E0004, 0, 0, 4, 2, 0 },
 };
 
-/// `Gp_State1C` effect task drawing a growing, fading quad through
+/// Room-effect task drawing a growing, fading quad through
 /// `waterDrawSplash`. The first frame sets the brightness to
 /// 0x40, takes the size from the spawn parameter's low 12 bits and turns the
 /// coordinate to a random Y rotation. Every frame then grows the size by
 /// 0x20, draws, and dims by 2, releasing the effect once the brightness falls
 /// under 2. The coordinate is never rebuilt, so it keeps the frame the spawner
-/// left. Once the room's event state leaves zero it only draws, and releases
-/// at state 4.
+/// left. Once `gRoomEffectState->effectControl` leaves running it only draws,
+/// and releases at cancellation.
 void func_neo_ark_island_8017EB68(Task* task)
 {
     GpEffWork* work;
@@ -95,9 +95,9 @@ void func_neo_ark_island_8017EB68(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         waterDrawSplash(coord, work->angle, work->scale);
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -121,15 +121,16 @@ void func_neo_ark_island_8017EB68(Task* task)
 
 #include "../../shared/water_splash.inc.c"
 
-/// `Gp_State1C` effect task that plays an eight-frame sprite animation. The
+/// Room-effect task that plays an eight-frame sprite animation. The
 /// first frame takes the angle from the spawn parameter's low 12 bits, the
 /// frame step from bits 12-15 and, from the top nibble, which of the two
 /// sprite drawers to use; a zero velocity is seeded from the spawn kind
 /// (random scatter, the stored direction, or none) and scaled to the requested
 /// speed. Each later frame draws the sprite, moves the coordinate under a
 /// constant downward pull while the speed is non-zero, and advances the frame
-/// every `step` ticks, releasing the effect after the eighth. Once the room's
-/// event state leaves zero it only draws, and releases at state 4.
+/// every `step` ticks, releasing the effect after the eighth. Once
+/// `gRoomEffectState->effectControl` leaves running it only draws, and releases
+/// at cancellation.
 void func_neo_ark_island_8017EFE8(Task* task)
 {
     GpEffWork* work;
@@ -142,13 +143,13 @@ void func_neo_ark_island_8017EFE8(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
             waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
         } else {
             waterDrawTileU16(coord, (u16)work->index, work->scale);
         }
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

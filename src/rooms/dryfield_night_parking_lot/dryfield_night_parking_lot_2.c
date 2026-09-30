@@ -44,7 +44,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
-/// The room's per-view table: `Gp_State1C->roomEffectMode` latches the entry the
+/// The room's per-view table: `gRoomEffectState->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.
 extern u16 D_dryfield_night_parking_lot_8017EDBC[];
 
@@ -617,7 +617,7 @@ GpRoomParamRec* D_dryfield_night_parking_lot_8018153C[8] = {
 };
 
 /// Parking-lot room draw: latches the view's entry of the room's per-view table
-/// into `Gp_State1C->roomEffectMode`, then queues the props of the room phase
+/// into `gRoomEffectState->roomEffectMode`, then queues the props of the room phase
 /// `gGameSession->location.loc.view` selects - 2, 4 and 5 several points each, 3 and 6 a
 /// single one. Every phase ends with the same semi-transparent sprite call,
 /// which `jump.c` cross-jumps into one tail block after the last case.
@@ -625,8 +625,8 @@ void func_dryfield_night_parking_lot_8017DC88(Task* unused)
 {
     u8 view;
 
-    view                       = Gp_GetViewIndex();
-    Gp_State1C->roomEffectMode = D_dryfield_night_parking_lot_8017EDBC[view - 1];
+    view                             = Gp_GetViewIndex();
+    gRoomEffectState->roomEffectMode = D_dryfield_night_parking_lot_8017EDBC[view - 1];
     switch (gGameSession->location.loc.view) {
         case 2: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDCC;

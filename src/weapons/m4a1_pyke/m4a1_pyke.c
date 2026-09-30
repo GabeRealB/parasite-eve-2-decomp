@@ -81,7 +81,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 
 /// Per-frame beam task for the M4A1 Pyke. Nothing runs while the player model
 /// is hidden (`field_C & 0x80`) or effects are hidden
-/// (`Gp_State1C->effectControl >= 2`). State 0 hangs the task's own coordinate off
+/// (`gRoomEffectState->effectControl >= 2`). State 0 hangs the task's own coordinate off
 /// `field_8` at the fixed muzzle offset with an identity rotation; state 1 then
 /// dispatches on `spawnArg1`:
 ///
@@ -93,7 +93,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 ///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
-/// While `Gp_State1C->effectControl` is non-zero the two drawing sub-states wind
+/// While `gRoomEffectState->effectControl` is non-zero the two drawing sub-states wind
 /// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
@@ -114,7 +114,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     if ((gameGetPtrSlot(3)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
-    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+    if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
     work->age++;
@@ -139,7 +139,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                 case 0:
                     break;
                 case 1:
-                    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
                         func_m4a1_pyke_8011D548(
                             MATRIX_TRANS(&coord->workm), work->age, 0x80);
@@ -161,7 +161,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     work->scale         = 0x40;
                     break;
                 case 2:
-                    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
                         break;
                     }
@@ -275,10 +275,10 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 }
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
-/// `Gp_State1C` work block holding the dart's velocity (`move` / `move.vy`
+/// `GpEffWork` holding the dart's velocity (`move` / `move.vy`
 /// / `move.vz`), its age (`age`), its flare width (`scale`) and its
 /// spin angle (`angle`); `Task::extra` reaches the coordinate the dart flies
-/// on. Everything stops on cancellation (`Gp_State1C->effectControl >=
+/// on. Everything stops on cancellation (`gRoomEffectState->effectControl >=
 /// 4`); with nonzero control below that threshold the dart is only redrawn.
 ///
 /// - State 0 allocates the `M4a1PykeBeam` list node, aims the dart by rotating
@@ -306,7 +306,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
 
     beam          = (M4a1PykeBeam*)task->work;
     work          = task->spawnArg2.pointer;
-    effectControl = Gp_State1C->effectControl;
+    effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (task->state != 0) {
@@ -375,7 +375,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
                                     work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTraceEnabled != 0 &&
+            if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_m4a1_pyke_8011E168(MATRIX_TRANS(&ground.workm),
                                         (s16)((work->scale * 2) / 3));
@@ -566,7 +566,7 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
-/// linked, and releases the `Gp_State1C` block in `Task::spawnArg2`.
+/// linked, and releases the `GpEffWork` in `Task::spawnArg2`.
 /// Hypervelocity carries an identical copy.
 static void func_m4a1_pyke_8011E4AC(Task* task)
 {

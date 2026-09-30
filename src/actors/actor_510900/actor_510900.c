@@ -1141,8 +1141,8 @@ void func_actor_510900_80131F24(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     base  = &Gp_RoomCoords[2];
     slot  = &base->light;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             base->framesLeft = 0;
         }
         if (arg0->spawnArg1.value == 4) {
@@ -1435,7 +1435,7 @@ void func_actor_510900_80132D4C(Task* arg0)
     s32              x2;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1521,7 +1521,7 @@ void func_actor_510900_80132D4C(Task* arg0)
             }
         }
         SCRATCH_STACK_RELEASE_BYTES(0x1C);
-        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         x = mem->period;
@@ -1548,7 +1548,7 @@ void func_actor_510900_801332EC(Task* arg0)
     s32              amt;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
@@ -1615,7 +1615,7 @@ void func_actor_510900_801332EC(Task* arg0)
                     prim);
         }
         SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
-        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         x = mem->period;
@@ -1644,7 +1644,7 @@ void func_actor_510900_8013371C(Task* arg0)
     s32              amt;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
@@ -1716,7 +1716,7 @@ void func_actor_510900_8013371C(Task* arg0)
                     prim);
         }
         SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
-        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         if (mem->period != 0) {
@@ -1744,7 +1744,7 @@ void func_actor_510900_80133C84(Task* arg0)
     s32              amt;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
@@ -1808,7 +1808,7 @@ void func_actor_510900_80133C84(Task* arg0)
                     prim);
         }
         SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
-        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         x = mem->period;
@@ -1841,7 +1841,7 @@ void func_actor_510900_801340E8(Task* arg0)
     eff   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     ext   = &base->light;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_ReleaseState1CMem(eff, arg0);
         return;
     }
@@ -1894,7 +1894,7 @@ void func_actor_510900_80134284(Task* arg0)
     SCRATCH_PUSH_BYTES(sizeof(Actor510900TrailScratch));
     block = SCRATCH_STACK_CURSOR(Actor510900TrailScratch);
     eff   = arg0->spawnArg2.pointer;
-    mode  = Gp_State1C->effectControl;
+    mode  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
         if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1979,7 +1979,7 @@ void func_actor_510900_801346D4(Task* arg0)
     s16        mode;
 
     eff   = arg0->spawnArg2.pointer;
-    mode  = Gp_State1C->effectControl;
+    mode  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
         if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN || arg0->state == 4) {
@@ -2032,7 +2032,7 @@ void func_actor_510900_8013482C(Task* arg0)
     s32        n;
 
     eff   = arg0->spawnArg2.pointer;
-    mode  = Gp_State1C->effectControl;
+    mode  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
         if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {

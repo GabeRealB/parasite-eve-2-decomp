@@ -673,13 +673,13 @@ void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
             func_shelter_b2_pod_access_tunnel_8017ED5C(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

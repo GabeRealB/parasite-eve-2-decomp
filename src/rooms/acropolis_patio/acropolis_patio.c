@@ -1979,7 +1979,7 @@ void func_acropolis_patio_8017E100(Task* task)
 }
 
 /// Draws one frame of a flickering sprite at the task's own coordinate frame.
-/// Nothing is drawn once `Gp_State1C->effectControl` reaches 4, nor for a camera
+/// Nothing is drawn once `gRoomEffectState->effectControl` reaches 4, nor for a camera
 /// view whose bit is clear in the anchor mask `D_acropolis_patio_80182E4C`,
 /// indexed by the low nibble of `Task::spawnArg1`.
 ///
@@ -2004,7 +2004,7 @@ void func_acropolis_patio_8017E324(Task* task)
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = SCRATCH_STACK_CURSOR_SLOT;
@@ -2076,7 +2076,7 @@ void func_acropolis_patio_8017E324(Task* task)
 ///
 /// The puff only exists for the camera views its anchor's mask in
 /// `D_acropolis_patio_80182E4C` names, and the whole draw stops once
-/// `Gp_State1C->effectControl` reaches 4 (effects are cancelled).
+/// `gRoomEffectState->effectControl` reaches 4 (effects are cancelled).
 ///
 /// `GpEffWork::index` is the puff's mode and the per-frame step in
 /// `GpEffWork.move` is its velocity. In drift mode (0) the velocity is
@@ -2103,7 +2103,7 @@ void func_acropolis_patio_8017E730(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
         sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
         Gp_UpdateCoord(coord);

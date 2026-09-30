@@ -209,8 +209,8 @@ s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, TaskMessageArg ar
     return 0;
 }
 
-/// Native call in the power-on event script: pulses `Gp_State1C` and sets bit
-/// 0 of `Gp_StateC08.field_6`.
+/// Native call in the power-on event script: requests all-effect cancellation on
+/// `gRoomEffectState` and sets bit 0 of `Gp_StateC08.field_6`.
 void func_neo_ark_power_plant_1_8017D8D0(void)
 {
     Gp_PulseState1C();

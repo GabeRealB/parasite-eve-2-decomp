@@ -1087,7 +1087,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
 
 /// Per-frame task for the room's view-dependent effects. In state 0 it switches
 /// on the camera view: some views draw glows at fixed points of the position
-/// table, view 6 pulses `Gp_State1C` once, view 14 moves the task to state 1,
+/// table, view 6 requests all-effect cancellation on `gRoomEffectState` once, view 14 moves the task to state 1,
 /// and views 20-24 set `spawnArg1` and, while no event runs, place one or two
 /// points on a random circle (12-bit angle, radius 0x100-0x2FF) around fixed
 /// centres and spawn effect 0x60070 at each. In state 1 it spawns effect
@@ -1143,7 +1143,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
                         glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
                         task->spawnArg1.value = 1;
-                        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
                             u32      hi;
                             u32      hiShift;
@@ -1173,7 +1173,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         break;
                     case 21:
                         task->spawnArg1.value = 1;
-                        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
                             u32      hi;
                             u32      hiShift;
@@ -1198,7 +1198,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                     case 22:
                         glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1.value = 1;
-                        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
                             u32      hi;
                             u32      hiShift;
@@ -1223,7 +1223,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                     case 23:
                         glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                         task->spawnArg1.value = 1;
-                        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
                             u32      hi;
                             u32      hiShift;
@@ -1254,7 +1254,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                     case 24:
                         glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1.value = 1;
-                        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
                             u32      hi;
                             u32      hiShift;
@@ -1287,7 +1287,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     } else {
         switch (Gp_GetViewIndex() & 0xFF) {
             case 14:
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 8; i < 0x10; i += 4) {
                         idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
                         Gp_SpawnEff(0x6017D, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
@@ -1295,7 +1295,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 15:
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 4; i < 0x10; i += 4) {
                         if (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) {
                             idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
@@ -1305,7 +1305,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 16:
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0; i < 0x40; i += 4) {
                         if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
                             idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
@@ -1316,7 +1316,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 break;
             case 11:
                 glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x4C], 0x300, 0x800);
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 4; i < 0x10; i += 4) {
                             if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
@@ -1330,7 +1330,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
             case 10:
                 glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x4D], 0x300, 0x800);
                 glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x4E], 0x300, 0x800);
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 0; i < 0xC; i += 4) {
                             if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
@@ -1342,7 +1342,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 17:
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0xC; i < 0x40; i += 0x10) {
                         idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
                         Gp_SpawnEff(0x6017D, coord, idx + 0x1800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
@@ -1350,7 +1350,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 18:
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0xC; i < 0x40; i += 0x10) {
                         idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
                         Gp_SpawnEff(0x6017D, coord, idx + 0x1000000, &D_shelter_b1_sterilization_room_8018909C[idx]);
@@ -1398,7 +1398,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
             work->move.vz -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
             task->state    = 1;
         case 1:
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;

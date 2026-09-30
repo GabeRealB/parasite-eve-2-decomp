@@ -658,13 +658,13 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// The room's light draw: sets `Gp_State1C->roomEffectMode` to 2, then draws
+/// The room's light draw: sets `gRoomEffectState->roomEffectMode` to 2, then draws
 /// the lights the current camera view (`gGameSession->location.loc.view`) can see.
 /// View 2 draws a sprite and a beam; view 3 draws a beam and then everything
 /// view 4 draws, a pulsing star and a second beam. Other views draw nothing.
 void func_dryfield_night_breezeway_8017E5BC(Task* unused)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
             glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);

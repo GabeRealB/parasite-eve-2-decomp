@@ -1278,8 +1278,8 @@ void func_shelter_b4_reservoir_8017E780(s32 arg0)
     func_shelter_b4_reservoir_80182B04(10, arg0, 0x140);
 }
 
-/// Callback the room's event tables name: requests the 0x100 pulse from
-/// `Gp_State1C`.
+/// Callback the room's event tables name: requests all-effect cancellation
+/// (`ROOM_EFFECT_CANCEL_ALL`) on `gRoomEffectState`.
 void func_shelter_b4_reservoir_8017E7A8(void)
 {
     Gp_PulseState1C();
@@ -1699,7 +1699,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             D_shelter_b4_reservoir_801850AC[i].vz = c->workm.t[2];
         }
     }
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         if (GameFlag_GetNibble(0xB7) != 0) {
             if (gGameSession->waterY < root->coord.t[1] && work->field_22 != 0) {
                 for (i = 0; i < 2; i++) {
@@ -1824,9 +1824,9 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
     s16        f2a;
     u32        rng;
 
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

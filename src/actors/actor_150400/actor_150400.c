@@ -586,7 +586,7 @@ static void func_actor_150400_801324B8(Task* task)
 /// Draws the actor's ground shadow under its root part, unless the model is
 /// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
 /// world translation, staged on the scratchpad stack, and the shade follows the
-/// room's current `Gp_State1C` level.
+/// room's current `gRoomEffectState->groundShadowShade`.
 static void func_actor_150400_801324E0(Task* task)
 {
     TmdObject* obj;
@@ -600,7 +600,7 @@ static void func_actor_150400_801324E0(Task* task)
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShadowShade);
+        Gp_DrawEffGroundQuad(vec, 0x200, gRoomEffectState->groundShadowShade);
         SCRATCH_STACK_RELEASE_BYTES(0x18);
     }
 }

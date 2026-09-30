@@ -540,13 +540,13 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Sets `Gp_State1C->roomEffectMode` to 2, then draws the quads the current
+/// Sets `gRoomEffectState->roomEffectMode` to 2, then draws the quads the current
 /// camera view shows, one `glowDrawFlare` call per
 /// position with UV column 0 or 1 and half-extent 0x300 (0x200 for view 6's
 /// second quad). Other views draw nothing.
 void func_mine_tunnel_entrance_8017D720(Task* unused)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB18;

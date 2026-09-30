@@ -73,7 +73,8 @@ static s32 D_combustion_801309A4 = 0;
 /// while drifting the flame overlay by the `D_combustion_80130980` row for the
 /// current intensity. State 1 spawns, state 2 (past `field_4`) only unwinds
 /// the yaw the ignition applied, and either state ends as soon as the player
-/// is dying (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the
+/// is dying (`Gp_StateC08.field_3`), parasite-energy effects are cancelled
+/// (`gRoomEffectState->peEffectControl`) or the
 /// row's `field_6` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
 {
@@ -120,7 +121,7 @@ void func_combustion_8012EF34(Task* arg0)
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 goto release;
             }
             mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].field_0;
@@ -137,7 +138,7 @@ void func_combustion_8012EF34(Task* arg0)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
+            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (mem->age > D_combustion_80130980[mem->index].field_6)) {
             release:
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -159,7 +160,8 @@ void func_combustion_8012EF34(Task* arg0)
 /// `index < 2` picks the small draw helper, otherwise the large one - and
 /// one frame in four spawn a trailing ember that adopts this task as its
 /// parent. Either state releases the effect once the player is dying
-/// (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the flame has lived
+/// (`Gp_StateC08.field_3`), parasite-energy effects are cancelled
+/// (`gRoomEffectState->peEffectControl`) or the flame has lived
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
 {
@@ -212,7 +214,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_801305F8(coord, mem->age, mem->scale);
             }
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -234,7 +236,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_80130184(coord, mem->age, mem->scale * 4, 0);
             }
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }

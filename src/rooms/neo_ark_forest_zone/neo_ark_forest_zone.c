@@ -338,12 +338,12 @@ void leafDraw(GfxCoord* arg0, s32 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
-/// Keeps `Gp_State1C->roomEffectMode` at 2 every frame and, on its first run,
+/// Keeps `gRoomEffectState->roomEffectMode` at 2 every frame and, on its first run,
 /// stores 0x601D9, 0x601F5 and 0x60211 in three gameplay globals; the values
 /// have the form `Gp_SpawnEff` takes as effect ids.
 void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (arg0->state == 0) {
         D_80115758  = 0x601D9;
         D_8011572C  = 0x601F5;

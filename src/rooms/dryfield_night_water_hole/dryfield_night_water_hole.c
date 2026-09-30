@@ -1487,7 +1487,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
             }
             break;
         case 1:
-            if (GameFlag_GetNibble(0xB8) == 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING &&
+            if (GameFlag_GetNibble(0xB8) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING &&
                 gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {

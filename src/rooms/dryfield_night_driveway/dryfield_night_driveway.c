@@ -1178,7 +1178,7 @@ void func_dryfield_night_driveway_8017DD8C(Task* task)
 /// and 7 the second, 5 the third, and 3 and 10 both the first and second.
 void func_dryfield_night_driveway_8017E5CC(Task* unused)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
         case 9:

@@ -364,7 +364,7 @@ Gp_GridParams = 0x80115448; // absolute:True
 Gp_PendingObj4C = 0x8011556C; // absolute:True
 Gp_CapFile = 0x8011568C; // absolute:True
 D_801156F9 = 0x801156F9; // absolute:True
-Gp_State1C = 0x80115740; // absolute:True
+gRoomEffectState = 0x80115740; // absolute:True
 Gp_ActorSlots = 0x80115760; // absolute:True
 D_80115768 = 0x80115768; // absolute:True
 

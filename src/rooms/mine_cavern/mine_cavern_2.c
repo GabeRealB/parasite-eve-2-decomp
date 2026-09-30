@@ -2229,12 +2229,12 @@ void func_mine_cavern_8017E474(Task* arg0)
     u32 rnd;
 
     if (arg0->state == 0) {
-        D_80115728                 = 0x60244;
-        D_80115744                 = 0x60250;
-        D_8011573C                 = 0x6023F;
-        D_80115720                 = 0x60267;
-        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                = 1;
+        D_80115728                       = 0x60244;
+        D_80115744                       = 0x60250;
+        D_8011573C                       = 0x6023F;
+        D_80115720                       = 0x60267;
+        gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+        arg0->state                      = 1;
     }
 
     if (GameFlag_GetNibble(0xC4) == 1) {

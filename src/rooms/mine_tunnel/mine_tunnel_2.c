@@ -537,7 +537,7 @@ GpRoomParamRec* D_mine_tunnel_8018032C[8] = {
     D_mine_tunnel_8018031C,
 };
 
-/// Room effect tick: sets `Gp_State1C->roomEffectMode` to 2 and draws the
+/// Room effect tick: sets `gRoomEffectState->roomEffectMode` to 2 and draws the
 /// light anchors the current view index shows - anchor 2 in view 2, all five
 /// in view 3, anchors 2 and 3 in view 4, anchors 1 and 4 in view 5, none
 /// otherwise.
@@ -545,8 +545,8 @@ void func_mine_tunnel_8017D7D4(Task* unused)
 {
     s32 idx;
 
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    idx                        = Gp_GetViewIndex() & 0xFF;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    idx                              = Gp_GetViewIndex() & 0xFF;
 
     switch (idx) {
         case 2:

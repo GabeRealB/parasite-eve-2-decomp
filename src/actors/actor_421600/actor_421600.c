@@ -2787,13 +2787,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[17], 0x80002280, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[9], 0x80002120, &offset);
                     }
                     return 0x40010002;
@@ -2808,13 +2808,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[14], 0x80002220, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[7], 0x80002120, &offset);
                     }
                     return 0x40010001;
@@ -2831,7 +2831,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x0;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[0], 0x80004A00, &offset);
                     }
                     return 0x40010005;
@@ -2868,13 +2868,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[9], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[7], 0x80003200, &offset);
                     }
                     return 0x40010011;
@@ -2889,13 +2889,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[17], 0x80004480, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[14], 0x80004480, &offset);
                     }
                     return 0x40010011;
@@ -2911,28 +2911,28 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[9], 0x80002200, &offset);
                     }
                     CSE_STEER(steer);
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x2BC;
-                    if (steer == 0 && Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (steer == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[7], 0x80002240, &offset);
                     }
                     CSE_STEER(steer);
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (steer == 0 && Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (steer == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[17], 0x80003300, &offset);
                     }
 
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[14], 0x80003340, &offset);
                     }
                     return 0x40010011;
@@ -2949,13 +2949,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[9], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[7], 0x80003200, &offset);
                     }
                     return 0x40010001;
@@ -2970,13 +2970,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[9], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[17], 0x80003200, &offset);
                     }
                     return 0x40010001;
@@ -2991,13 +2991,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[14], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[17], 0x80003200, &offset);
                     }
                     return 0x40010002;
@@ -3014,13 +3014,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[9], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[7], 0x80003200, &offset);
                     }
                     return 0x40010001;
@@ -3035,13 +3035,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x2BC;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[7], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[14], 0x80003200, &offset);
                     }
                     return 0x40010001;
@@ -3056,13 +3056,13 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                     offset.vz          = 0;
                     offset.vx          = 0;
                     offset.vy          = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[14], 0x80003200, &offset);
                     }
                     offset.vz = 0;
                     offset.vx = 0;
                     offset.vy = 0x258;
-                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[17], 0x80003200, &offset);
                     }
                     return 0x40010002;
@@ -3878,7 +3878,7 @@ static void func_actor_421600_80135F6C(Task* arg0)
             offset.vz = 0;
             offset.vx = 0;
             offset.vy = 0x2BC;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, arg0->extra.tmd->coords + 7, 0x80002300, &offset);
             }
         }
@@ -3886,7 +3886,7 @@ static void func_actor_421600_80135F6C(Task* arg0)
             offset.vz = 0;
             offset.vx = 0;
             offset.vy = 0x2BC;
-            if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+            if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                 Gp_SpawnEff(0x60054, arg0->extra.tmd->coords + 7, 0x80003400, &offset);
             }
         }
@@ -4754,7 +4754,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                 effectFlags = 1;
                 break;
         }
-        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
             scratchHead = SCRATCH_HEAD_ADDR;
             if (spawnEffect == 1) {
                 Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[effectJoint], effectFlags | 0x80000000, &effect);
@@ -4841,7 +4841,7 @@ static void func_actor_421600_8013848C(Task* arg0)
         sound    = (((u16)ctx->placeKey >> 0xC) << 8) | 0x4001000A;
         eventPan = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
             Gp_SpawnEff(0x60054, player->extra.tmd->coords + 1, 0x80003A00, NULL);
         }
     }
@@ -5839,7 +5839,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                 part        = 0;
                 break;
         }
-        if ((Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) && (spawnEffect == 1)) {
+        if ((gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) && (spawnEffect == 1)) {
             Gp_SpawnEff(0x60054, arg0->extra.tmd->coords + part, effectFlags | 0x80000000, &effect);
         }
     }
@@ -7232,7 +7232,7 @@ static void func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags)
             break;
     }
 
-    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
+    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[part], flags | 0x80000000, &sp10);
     }
 }

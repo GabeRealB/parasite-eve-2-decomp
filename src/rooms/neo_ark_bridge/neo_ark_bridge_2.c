@@ -734,7 +734,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
             view = Gp_GetViewIndex() & 0xFF;
             if (view < 7) {
                 if (view >= 5) {
-                    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         rnd         = Gp_LcgState * 5 + 0x71357911;
                         Gp_LcgState = rnd;
                         if (((rnd >> 16) & 3) == 0) {

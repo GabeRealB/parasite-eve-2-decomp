@@ -690,15 +690,15 @@ void func_neo_ark_pyramid_8017DB98(Task* task)
 }
 
 /// One-shot task: on its first tick stores 0x601E2, 0x601FE and 0x6021A into
-/// three gameplay globals and sets `Gp_State1C` room effect mode 2.
+/// three gameplay globals and enables `gRoomEffectState->roomEffectMode`.
 void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758                 = 0x601E2;
-        D_8011572C                 = 0x601FE;
-        D_80115750                 = 0x6021A;
-        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                = 1;
+        D_80115758                       = 0x601E2;
+        D_8011572C                       = 0x601FE;
+        D_80115750                       = 0x6021A;
+        gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+        arg0->state                      = 1;
     }
 }
 

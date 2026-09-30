@@ -1212,7 +1212,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
         return;
     }
     {
-        effectControl = Gp_State1C->effectControl;
+        effectControl = gRoomEffectState->effectControl;
         if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
             if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 Gp_ReleaseState1CMem(work, task);
@@ -1563,7 +1563,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
     s16        effectControl;
 
     work          = task->spawnArg2.pointer;
-    effectControl = Gp_State1C->effectControl;
+    effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {

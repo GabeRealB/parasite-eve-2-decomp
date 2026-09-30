@@ -1317,7 +1317,7 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
 /// Draws the first enemy's ground shadow quad under its model root, unless the
 /// model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
-/// the room's current `Gp_State1C` level.
+/// the room's current `gRoomEffectState->groundShadowShade`.
 static void func_actor_535700_80132ABC(Task* task)
 {
     TmdObject* obj;
@@ -1331,7 +1331,7 @@ static void func_actor_535700_80132ABC(Task* task)
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShadowShade);
+        Gp_DrawEffGroundQuad(vec, 0x200, gRoomEffectState->groundShadowShade);
         SCRATCH_STACK_RELEASE_BYTES(0x18);
     }
 }
@@ -1466,7 +1466,7 @@ static void func_actor_535700_80132FF8(Task* task)
 /// Draws the second enemy's ground shadow quad under its model root, unless
 /// the model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
-/// the room's current `Gp_State1C` level.
+/// the room's current `gRoomEffectState->groundShadowShade`.
 static void func_actor_535700_80133020(Task* task)
 {
     TmdObject* obj;
@@ -1480,7 +1480,7 @@ static void func_actor_535700_80133020(Task* task)
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShadowShade);
+        Gp_DrawEffGroundQuad(vec, 0x200, gRoomEffectState->groundShadowShade);
         SCRATCH_STACK_RELEASE_BYTES(0x18);
     }
 }

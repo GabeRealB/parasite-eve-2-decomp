@@ -15,7 +15,7 @@
 /// `field_2` on last-ref release (also written as `Gp_StateF0.field_3` by
 /// `Gp_SetStateF0Byte3`). `field_4` holds the scene's actors: 0 lets them
 /// run, 1 freezes them so they only redraw, 2 hides them. Gameplay raises it
-/// around event views and copies it into `Gp_State1C->effectControl` /
+/// around event views and copies it into `gRoomEffectState->effectControl` /
 /// `peEffectControl` every frame. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
 /// when it claims a contact record. `field_6` is a u16
 /// refcount incremented by `Gp_IncStateF0Ref` and decremented by

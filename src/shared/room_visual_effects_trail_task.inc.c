@@ -24,7 +24,7 @@ coords   = task->work;
 work     = (GpEffWork*)task->spawnArg2.pointer;
 objCoord = task->extra.coordBody->coord;
 
-if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
+if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
     work->age++;
     switch (task->state) {
         case 0:

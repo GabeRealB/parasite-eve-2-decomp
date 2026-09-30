@@ -1411,10 +1411,10 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     } else if (mask & 0x20) {
         func_dryfield_breezeway_80180858(coord, D_dryfield_breezeway_80183164, 0x600, 0x10);
     }
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (GameFlag_GetNibble(0x5D) == 0) {
         if (gGameSession->location.loc.view == 2) {
             limit        = (player->coord.t[0] - 5856) >> 7;
@@ -1716,8 +1716,8 @@ void func_dryfield_breezeway_80181264(Task* task)
     SVECTOR    pos;
     u8         color[3];
 
-    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -1761,7 +1761,7 @@ void func_dryfield_breezeway_80181264(Task* task)
             task->state         = 1;
             break;
         case 1:
-            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age--;
             } else {
                 work->pos.vz += work->period;
@@ -1825,7 +1825,7 @@ void func_dryfield_breezeway_80181264(Task* task)
             }
             break;
         case 2:
-            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age--;
             }
             if (work->age < 30) {

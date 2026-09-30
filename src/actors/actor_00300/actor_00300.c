@@ -1984,7 +1984,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
             work->field_680 =
                 ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                 0xFFF;
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
@@ -2041,7 +2041,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                     work->field_654 = NULL;
                 }
             }
-            if (((s16)work->field_672 < 0xE) && (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
+            if (((s16)work->field_672 < 0xE) && (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
                 effectRandom2 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom2;
                 if (!((effectRandom2 >> 0x10) & 3)) {
@@ -2187,7 +2187,7 @@ static void Actor00300_Fn028D0(Task* arg0)
     coord = obj->coords;
     switch (state) {
         case 0:
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom0 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom0;
                 if (!((effectRandom0 >> 0x10) & 3)) {
@@ -2229,7 +2229,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                     work->field_654 = NULL;
                 }
             }
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
@@ -2453,7 +2453,7 @@ static void Actor00300_Fn030B8(Task* arg0)
             work->field_66E = 3;
             return;
         case 1:
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState  = (s32)effectRandom;
                 if (!((effectRandom >> 0x10) & 3)) {

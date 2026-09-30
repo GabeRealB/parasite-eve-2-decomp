@@ -53,8 +53,8 @@ void func_gunblade_8011D1E4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        keep = Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN;
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        keep = gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN;
     } else {
         work->age++;
         switch (task->state) {
@@ -165,8 +165,8 @@ void func_gunblade_8011DAA4(Task* task)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

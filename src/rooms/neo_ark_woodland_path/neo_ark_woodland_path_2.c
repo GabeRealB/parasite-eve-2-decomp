@@ -334,8 +334,8 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             D_neo_ark_woodland_path_80181684[i].vz = part->workm.t[2];
         }
     }
-    Gp_State1C->roomEffectMode = (root->coord.t[1] < 0x11) * ROOM_EFFECT_VIEW_ENABLED;
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING && root->coord.t[1] >= 0x12C) {
+    gRoomEffectState->roomEffectMode = (root->coord.t[1] < 0x11) * ROOM_EFFECT_VIEW_ENABLED;
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && root->coord.t[1] >= 0x12C) {
         for (i = 0; i < 2; i++) {
             part               = &owner->extra.tmd->coords[i * 3 + 15];
             obj->chance        = ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vx, part->workm.t[0]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vy, part->workm.t[1]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vz, part->workm.t[2]) + 0x20;

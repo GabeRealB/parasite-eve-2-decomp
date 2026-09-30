@@ -885,5 +885,5 @@ void func_dryfield_driveway_8017DE14(Task* task)
 /// Sets the room effect mode to 2.
 void func_dryfield_driveway_8017DE6C(Task* unused)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

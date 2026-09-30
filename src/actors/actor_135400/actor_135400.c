@@ -717,7 +717,7 @@ static void func_actor_135400_801322A8(Task* task)
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
+            Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
@@ -986,7 +986,7 @@ static void func_actor_135400_801329B0(Task* task)
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[0].workm), &pos) != 0)) {
-        Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->groundShadowShade);
+        Gp_DrawEffGroundQuad(&pos, 0x180, gRoomEffectState->groundShadowShade);
     }
     count               = task->killCountdown + 1;
     task->killCountdown = count;

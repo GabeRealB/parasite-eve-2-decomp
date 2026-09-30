@@ -604,10 +604,10 @@ void func_dryfield_parking_lot_8017DB54(Task* task)
 }
 
 /// Publishes the value the current camera view maps to: stores
-/// `D_dryfield_parking_lot_8017DC34[view - 1]` into `Gp_State1C`'s
+/// `D_dryfield_parking_lot_8017DC34[view - 1]` into `gRoomEffectState`'s
 /// `roomEffectMode`. Nothing in the room calls it; gameplay's data holds its
 /// address.
 void func_dryfield_parking_lot_8017DBAC(Task* unused)
 {
-    Gp_State1C->roomEffectMode = D_dryfield_parking_lot_8017DC34[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_parking_lot_8017DC34[(Gp_GetViewIndex() & 0xFF) - 1];
 }

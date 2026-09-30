@@ -45,7 +45,8 @@ static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 /// long the spray has run. Either state then redraws the nozzle, flashes the
 /// screen at the current brightness and draws the six cone quads. The effect
 /// ends after nine frames, or immediately if the player is dying
-/// (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
+/// (`Gp_StateC08.field_3`) or parasite-energy effects are cancelled
+/// (`gRoomEffectState->peEffectControl`).
 
 void func_pepper_spray_8012EF34(Task* arg0)
 {
@@ -65,7 +66,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     slot  = &base->light;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
+    if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);
         Gp_ReleaseState1CMem(mem, arg0);
         return;

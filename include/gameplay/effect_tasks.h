@@ -19,7 +19,7 @@ extern GpQuadCorner D_80111E38[4];
 /// are the unit corner table scaled by `size` and rotated by `gGfxViewCoord.workm`,
 /// centred on `pos`, and drawn with subtractive blending. `shade` is the
 /// vertex colour, with 0 drawing the texture unmodulated and a negative value
-/// drawing nothing; nothing is drawn either once `Gp_State1C->effectControl`
+/// drawing nothing; nothing is drawn either once `gRoomEffectState->effectControl`
 /// reaches 2.
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade);
 

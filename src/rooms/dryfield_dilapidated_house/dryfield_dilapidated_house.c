@@ -157,7 +157,7 @@ STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 /// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
 /// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one
 /// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is the
-/// per-frame tick the task rolls back while the `Gp_State1C` fade is armed;
+/// per-frame tick the task rolls back while `gRoomEffectState->effectControl` is not running;
 /// `field_20` and `field_28` are a third ramp value the two `80182744` states
 /// seed from one `Gp_LcgState` draw and hand to the same draw routine.
 typedef struct DdhEffWork {
@@ -3322,7 +3322,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
 /// frames every frame, writes them into slot `field_22 & 7`, re-runs the whole
 /// ring so the older slots follow their parents, and hands the ribbon to
 /// `func_dryfield_dilapidated_house_801823B8`. The task frees itself once
-/// `age` reaches spawn arg 1. It idles whole while `Gp_State1C->effectControl`
+/// `age` reaches spawn arg 1. It idles whole while `gRoomEffectState->effectControl`
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
@@ -3336,7 +3336,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -3487,9 +3487,9 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// fade quad), maps the task's own coordinate onto
 /// `Gp_RoomCoords[0]` and spawns the ring of `0x60275` flame effects, then
 /// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
-/// and runs two more draws against the same coordinate. While the
-/// `Gp_State1C` fade is armed the frame counter is rolled back and the work
-/// block is released as soon as the fade reaches 4 or the angle passes
+/// and runs two more draws against the same coordinate. While
+/// `gRoomEffectState->effectControl` is not running the frame counter is rolled back and the work
+/// block is released at cancellation or once the angle passes
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
@@ -3515,9 +3515,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->field_22 = tick;
-                if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+                if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 return;
@@ -3558,9 +3558,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             task->state = 1;
             return;
         case 1:
-            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->field_22 = tick;
-                if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+                if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 return;
@@ -3882,11 +3882,11 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 }
 
 /// Per-frame handler that runs the `DdhEffWork` effect block one step further:
-/// an early out while `Gp_State1C` is armed. It counts frames in `field_22`,
+/// an early out while `gRoomEffectState->effectControl` is not running. It counts frames in `field_22`,
 /// seeds the 0xC0 / 0x100 scale/angle pair on the first frame, feeds the pair to
 /// `func_dryfield_dilapidated_house_80182A18` and then steps the scale by -0x10
 /// and the angle by +0x40. Once the scale falls below 0x10 - and immediately
-/// when the state word has already reached 4 - it releases the work block.
+/// when effect control has reached cancellation - it releases the work block.
 void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 {
     DdhEffWork* mem;
@@ -3895,7 +3895,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
     s32         angle;
 
     mem  = arg0->spawnArg2.pointer;
-    flag = Gp_State1C->effectControl;
+    flag = gRoomEffectState->effectControl;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -3922,12 +3922,12 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 }
 
 /// Per-frame handler of the effect family whose work block is `DdhEffWork`
-/// (`task->spawnArg2.pointer`). While the `Gp_State1C` state word at 0x4 is clear it
+/// (`task->spawnArg2.pointer`). While `gRoomEffectState->effectControl` is running it
 /// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
 /// clears the task coordinate's update flag, refreshes the coordinate and feeds
 /// the angle/scale pair to `func_dryfield_dilapidated_house_80183728`, stepping
 /// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
-/// immediately when that state word has already reached 4 - it releases the work
+/// immediately when effect control has reached cancellation - it releases the work
 /// block through `Gp_ReleaseState1CMem`.
 void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 {
@@ -3938,7 +3938,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     s32         angle;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {

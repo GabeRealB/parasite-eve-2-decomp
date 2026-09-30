@@ -1901,7 +1901,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     view  = Gp_GetViewIndex();
-    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
     work->age++;

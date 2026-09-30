@@ -9,7 +9,7 @@ void fireballSpawnEmber(GfxCoord* arg0, s32 arg1)
     SVECTOR sp18;
     s32     ang;
 
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

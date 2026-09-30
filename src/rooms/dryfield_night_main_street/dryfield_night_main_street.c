@@ -1929,7 +1929,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
             glowDrawFlare(&D_dryfield_night_main_street_801821A8[i], 1, 0x380);
         }
     }
-    Gp_State1C->roomEffectMode = D_dryfield_night_main_street_80182178[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_night_main_street_80182178[(Gp_GetViewIndex() & 0xFF) - 1];
     if ((Gp_GetViewIndex() & 0xFF) == 8 || (Gp_GetViewIndex() & 0xFF) == 0x13) {
         if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
             for (i = 0; i < 0x30; i++) {

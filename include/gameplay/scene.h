@@ -41,7 +41,7 @@ enum {
 /// Room-owned counts, drawing controls, and cancellation state for gameplay effects.
 ///
 /// Allocated on the primary heap as the room effect controller's `Task::work`;
-/// consumers borrow it through `Gp_State1C` until that task is destroyed.
+/// consumers borrow it through `gRoomEffectState` until that task is destroyed.
 /// Each update snapshots the scene actor and battle modes and consumes pending
 /// cancellations. Rooms supply the ground and view settings; effect tasks
 /// maintain the counts and visual-effect claims. The two control fields include

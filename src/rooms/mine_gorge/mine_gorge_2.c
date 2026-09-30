@@ -34,7 +34,7 @@
 #include "../../shared/glow_draw.h"
 
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
-/// the room publishes as its `Gp_State1C->roomEffectMode` variant index.
+/// the room publishes as its `gRoomEffectState->roomEffectMode` variant index.
 extern u16 D_mine_gorge_8017E760[];
 
 /// The gorge's per-view prop placements, one `SVECTOR` per position, 8 bytes
@@ -1082,7 +1082,7 @@ GpRoomParamRec* D_mine_gorge_80183644[8] = {
 /// same call, which the compiler merges into one shared tail.
 void func_mine_gorge_8017D9F8(Task* unused)
 {
-    Gp_State1C->roomEffectMode = D_mine_gorge_8017E760[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_mine_gorge_8017E760[(Gp_GetViewIndex() & 0xFF) - 1];
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_gorge_8017E798;

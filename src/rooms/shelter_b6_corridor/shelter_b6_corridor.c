@@ -653,7 +653,7 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
     }
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and pulses `Gp_State1C`.
+/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
 void func_shelter_b6_corridor_8017E204(void)
 {
     Gp_StateC08.field_6 |= 1;
@@ -700,7 +700,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
     u32       shade;
 
     coord = task->extra.tmd->coords + 1;
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         shade  = ((gDisplayState.animFrame & 1) << 4) + 0x40;
         rgb[0] = shade;
         rgb[1] = shade;
@@ -723,7 +723,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     u8         rgb[3];
 
     mem           = task->spawnArg2.pointer;
-    effectControl = Gp_State1C->effectControl;
+    effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {

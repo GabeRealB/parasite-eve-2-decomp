@@ -1759,7 +1759,7 @@ static void func_actor_800300_80162064(Task* arg0)
     actor->field_88[2].motionDirection.vz = sc->vec.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&coord->workm), (VECTOR3*)sc) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)sc, 0x200, Gp_State1C->groundShadowShade);
+            Gp_DrawEffGroundQuad((VECTOR3*)sc, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);

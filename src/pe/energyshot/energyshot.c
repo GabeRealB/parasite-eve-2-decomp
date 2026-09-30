@@ -67,7 +67,7 @@ static s16 D_energyshot_80130128[16];
 
 /// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
 /// reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2` or
-/// `Gp_State1C->peEffectControl >= 4`) releases the work block.
+/// `gRoomEffectState->peEffectControl >= 4`) releases the work block.
 ///
 /// State 0 parents the coordinate, seeds 16 texture-frame offsets and 16 wedge
 /// yaws from `Gp_LcgState`, and plays the combo-indexed cue. State 1 grows
@@ -85,7 +85,7 @@ void func_energyshot_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((state->field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
@@ -107,7 +107,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 state->field_6           |= 8;
-                effectState               = Gp_State1C;
+                effectState               = gRoomEffectState;
                 effectState->burstRequest = false;
                 effectState->peFxFlags   &= (u16)~ROOM_EFFECT_PE_ENERGY_SHOT_AURA;
                 arg0->state               = 1;

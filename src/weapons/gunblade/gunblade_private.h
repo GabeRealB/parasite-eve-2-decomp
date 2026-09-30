@@ -16,7 +16,7 @@ extern GfxCoord gBladeTrailTip[8];
 
 /// The running beam task and its `GpEffWork`, cached on entry to state 0 so
 /// `func_gunblade_8011E008` can reach them from outside the task. The work
-/// pointer is cleared again when the `Gp_State1C` block is released.
+/// pointer is cleared again when that `GpEffWork` is released.
 extern Task* D_gunblade_8012E244;
 
 extern GpEffWork* D_gunblade_8012E248;

@@ -266,13 +266,13 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
             Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
             D_shelter_b2_pod_bottom_80188790[2][i] = (Gp_LcgState >> 16) & 0xFF;
         }
-        task->state                    = 1;
-        Gp_State1C->groundTraceEnabled = false;
+        task->state                          = 1;
+        gRoomEffectState->groundTraceEnabled = false;
     }
     if ((Gp_GetViewIndex() & 0xFF) == 0xF) {
-        Gp_State1C->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
+        gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
     } else {
-        Gp_State1C->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
+        gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
     }
 }
 
@@ -298,13 +298,13 @@ void func_shelter_b2_pod_bottom_8017D850(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
             func_shelter_b2_pod_bottom_8017DECC(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             func_shelter_b2_pod_bottom_8017E334(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -675,7 +675,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         tick                = work->age;
         work->age           = tick + 1;
@@ -694,7 +694,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
                 if (work->scale < 9) {
                     break;
                 }
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     work->scale  -= 8;
                     work->angle  += 0x80;
                     work->period -= 0x20;
@@ -839,7 +839,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -857,7 +857,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                 Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
                 work->index         = (Gp_LcgState >> 16) % 18;
             case 1:
-                if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     work->age--;
                     rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
                     rgb[1] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][1];
@@ -895,7 +895,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                 rgb[2] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][2];
                 Gp_DrawRing(coord, work->angle, rgb);
                 Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     work->scale -= 0x10;
                     work->index  = (Gp_LcgState >> 16) % 18;
@@ -1039,7 +1039,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1059,7 +1059,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
                     D_shelter_b2_pod_bottom_801887F0[i] = (i << 9) + ((Gp_LcgState >> 16) & 0x1FF);
                 }
             case 1:
-                if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     work->age--;
                     rgb[0] = work->scale;
                     rgb[1] = work->scale;
@@ -1100,7 +1100,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
                 for (i = 0; i < 8; i++) {
                     func_shelter_b2_pod_bottom_801805A0(coord, (s16)((u16)work->angle * 2), D_shelter_b2_pod_bottom_801887F0[i], rgb);
                 }
-                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     work->scale -= 0x10;
                     work->index  = (Gp_LcgState >> 16) % 18;
@@ -1186,8 +1186,8 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
             return;
         }
@@ -1315,8 +1315,8 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 
     work  = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             rnd         = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = rnd;
             func_shelter_b2_pod_bottom_8018101C(coord, 0x100, (rnd >> 16) & 0x777, 0x10);
@@ -1477,7 +1477,7 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0)
     GfxCoord* coord;
     u32       rnd;
 
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
         coord       = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
@@ -1495,7 +1495,7 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
     GfxCoord* coord;
     u32       rnd;
 
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
         coord       = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
@@ -1516,7 +1516,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
 
     work  = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, arg0);
         return;
     }
@@ -1529,7 +1529,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
             arg0->state = 1;
         case 1:
             func_shelter_b2_pod_bottom_8017E788(coord, work->angle, work->scale);
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 work->angle += 0x60;
                 y            = work->scale - 0x18;
                 work->scale  = y;

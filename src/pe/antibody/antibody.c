@@ -95,7 +95,7 @@ static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
 /// Runs one frame of an antibody cast. `Task::spawnArg2` is the `GpEffWork`
 /// block and `Task::extra` reaches the effect coordinate. Cancel
-/// (`Gp_StateC08.field_3 == -2` or `Gp_State1C->peEffectControl >= 4`) releases the
+/// (`Gp_StateC08.field_3 == -2` or `gRoomEffectState->peEffectControl >= 4`) releases the
 /// work block.
 ///
 /// State 0 parents the coordinate with an identity rotation at the origin,
@@ -120,7 +120,7 @@ void func_antibody_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((state->field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
@@ -138,11 +138,11 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                Gp_State1C->peFxFlags &= (u16)~ROOM_EFFECT_PE_ANTIBODY_AURA;
-                state->field_6        |= 8;
-                arg0->state            = 1;
-                mem->index             = (Gp_StateC08.field_0 % 10) - 1;
-                i                      = 0;
+                gRoomEffectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_ANTIBODY_AURA;
+                state->field_6              |= 8;
+                arg0->state                  = 1;
+                mem->index                   = (Gp_StateC08.field_0 % 10) - 1;
+                i                            = 0;
                 if (D_antibody_80130BD4[mem->index].field_0 > 0) {
                     do {
                         s16* dst;

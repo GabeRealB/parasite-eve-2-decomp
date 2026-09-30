@@ -2036,8 +2036,8 @@ static void func_mist_shooting_gallery_801847D4(u8 arg0);
 /// `GpEffWork` holds the tracer's endpoint (`pos`), its spin angle (`angle`)
 /// and its brightness ramp (`scale`); the handwritten GTE
 /// routines below draw the beam and its glow from the task's own coordinate.
-/// While `Gp_State1C` is fading (`field_4 != 0`) the effect only redraws; once
-/// the fade is over it seeds a random endpoint around the coordinate's world
+/// While `gRoomEffectState->effectControl` is not running the effect only redraws;
+/// once control is running again it seeds a random endpoint around the coordinate's world
 /// position, then fades out by 8 per frame and releases its pool block.
 void func_mist_shooting_gallery_80182064(Task* task)
 {
@@ -2051,7 +2051,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);
         func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x600);
         rgb[0] = work->scale >> 1;

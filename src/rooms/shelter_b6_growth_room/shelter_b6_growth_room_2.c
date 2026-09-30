@@ -462,7 +462,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
     s32     i;
     s32     z;
 
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->spawnArg1.value < 0x130 && !(gDisplayState.animFrame & 7)) {
             task->spawnArg1.value++;
         }

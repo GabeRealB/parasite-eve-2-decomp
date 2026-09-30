@@ -921,7 +921,7 @@ GpRoomParamRec* D_dryfield_night_water_tower_80182C30[8] = {
 /// light shaft between the two lower rungs.
 void func_dryfield_night_water_tower_8017DB80(Task* unused)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
             glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);

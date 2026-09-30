@@ -1668,7 +1668,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
             }
             break;
         case 1:
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
                     part = &ctl->extra.tmd->coords[14 + i * 3];

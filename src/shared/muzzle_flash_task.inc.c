@@ -8,7 +8,8 @@
 /// the core (`muzzleFlashDrawCore`), a full-screen fade at the current
 /// brightness and the four streaks, decays the light's range by 0x190 and
 /// releases the pool block after seven frames. Nothing runs at all once
-/// `Gp_State1C` is fading out (`field_4 >= 2`).
+/// effects are hidden (`gRoomEffectState->effectControl` >=
+/// `ROOM_EFFECT_CONTROL_HIDDEN`).
 static inline void muzzleFlashTask(Task* task)
 {
     GpEffWork*    work;
@@ -23,7 +24,7 @@ static inline void muzzleFlashTask(Task* task)
     base  = &Gp_RoomCoords[0];
     slot  = &base->light;
 
-    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+    if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
 

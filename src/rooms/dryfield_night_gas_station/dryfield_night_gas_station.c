@@ -3310,7 +3310,7 @@ void func_dryfield_night_gas_station_80180B5C(Task* arg0)
     }
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and pulses `Gp_State1C`.
+/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
 void func_dryfield_night_gas_station_80180BEC(void)
 {
     Gp_StateC08.field_6 |= 1;
@@ -3456,10 +3456,10 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     coord = task->extra.coordBody->coord;
     mask  = 1 << Gp_GetViewIndex();
     if (task->state == 0) {
-        D_80115758                 = 0x60006;
-        D_8011572C                 = 0x60008;
-        D_80115750                 = 0x60009;
-        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+        D_80115758                       = 0x60006;
+        D_8011572C                       = 0x60008;
+        D_80115750                       = 0x60009;
+        gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     }
     for (i = 0; i < 10; i += 2) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
@@ -3477,7 +3477,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     }
     if (GameFlag_GetNibble(0x63) == 0) {
         work->active = 1;
-        if (Gp_State1C->battleState != ROOM_EFFECT_BATTLE_ENGAGED && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             for (i = 19; i < 21; i++) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 work->kind   = (Gp_LcgState >> 16) % 3;
@@ -3498,7 +3498,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
                 }
             }
         }
-    } else if (work->active != 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    } else if (work->active != 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         for (i = 19; i < 21; i++) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)((Gp_LcgState >> 16) % 3) == 0) {

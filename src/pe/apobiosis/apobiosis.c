@@ -127,7 +127,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
@@ -368,7 +368,8 @@ static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 
 /// One shard of the apobiosis burst. Every frame it ticks the shard's life
 /// counter `GpEffWork.age` and bails out - handing the work block back -
-/// once the player is dying (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`)
+/// once the player is dying (`Gp_StateC08.field_3`), parasite-energy effects are
+/// cancelled (`gRoomEffectState->peEffectControl`)
 /// or the shard has outlived its state. State 0 reparents the shard onto the
 /// cast task and splits on `spawnArg1`: a non-zero arg pins the shard to the
 /// cast's coordinate at the origin (state 1), a zero arg gives it a random
@@ -384,7 +385,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((Gp_StateC08.field_3 != -2) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:

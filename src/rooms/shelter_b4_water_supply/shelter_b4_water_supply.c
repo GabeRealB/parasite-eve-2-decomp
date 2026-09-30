@@ -1358,7 +1358,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             D_shelter_b4_water_supply_801826E0[i].vy = part->workm.t[1];
             D_shelter_b4_water_supply_801826E0[i].vz = part->workm.t[2];
         }
-    } else if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
+    } else if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
         i = 0;
         for (; i < 2; i++) {
             part = &ctl->extra.tmd->coords[14 + i * 3];

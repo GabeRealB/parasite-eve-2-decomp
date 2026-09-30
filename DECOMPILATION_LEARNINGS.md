@@ -5588,7 +5588,7 @@ leftover is pure `reorder=2`.
 A new `u8* color` assigned *before* `COPY_REG_EC`, or `USE_REG(rgb)`
 (volatile, input-only) after it, treats the empty asm as a call boundary
 and saves `&rgb` in a callee-saved (`addiu s2, sp, 0x10` / `move a3, s2`),
-stealing `$s2` from `%hi(Gp_State1C)`. Assign the pointer *after* the
+stealing `$s2` from `%hi(gRoomEffectState)`. Assign the pointer *after* the
 earlyclobber copy and pin it with the non-volatile form, then pass `color`
 to the call:
 
@@ -9995,7 +9995,7 @@ its table as `jtbl_<overlay>_<addr>`, so the `jtbl_{f['unit']}_` clause fires on
 every such body - matched or not (`f['unit']` is the *overlay*, not the unit).
 The compiled object has no such undefined symbol; GCC regenerates the table as
 local `.rodata`. `func_actor_421600_8013E700` (0x48 bytes of table, 18 words)
-built with only `Gp_State1C` and `Gp_SpawnEff` undefined, both gameplay imports,
+built with only `gRoomEffectState` and `Gp_SpawnEff` undefined, both gameplay imports,
 and still got "cannot be shared - the body references its own overlay's code or
 data (USA/actors/actor_323400, USA/actors/actor_421600)". So a
 `promote`-refusal naming an overlay says nothing about whether a switch body can
@@ -23791,7 +23791,7 @@ treats that load as ready to interleave:
 void* mem;
 
 mem = arg0->spawnArg2.pointer;
-Gp_State1C->effectCount--;
+gRoomEffectState->effectCount--;
 memFree(mem);
 taskKill(arg0);
 ```
@@ -35585,7 +35585,7 @@ entry `beqz` delay:
 ```c
 base = Gp_RoomCoords;
 slot = &base->light;
-st   = Gp_State1C;
+st   = gRoomEffectState;
 if (st->effectControl < 2) {
     slot->head.color.r = 0xC00;
     ...
@@ -35595,8 +35595,8 @@ if (st->effectControl < 2) {
 }
 ```
 
-A local `RoomEffectState* st = Gp_State1C` interleaves `lui s6, %hi(Gp_RoomCoords)`
-with the `Gp_State1C` load so `addiu a0, s6, %lo(Gp_RoomCoords)` stays in
+A local `RoomEffectState* st = gRoomEffectState` interleaves `lui s6, %hi(Gp_RoomCoords)`
+with the `gRoomEffectState` load so `addiu a0, s6, %lo(Gp_RoomCoords)` stays in
 the prologue. `Gp_EffCtlTask6B` is the example.
 
 Zero `coord->composeStamp` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
@@ -45437,7 +45437,7 @@ re-split so splat drops the now-moved `INCLUDE_RODATA` line itself.
 ## Duplicate the tail call instead of an `else` when statement order can only fix one of scheduling and allocation
 
 `func_hypervelocity_8011F270` reads three things at the top — `mem =
-arg0->spawnArg2`, `flag = Gp_State1C->effectControl`, `coord =
+arg0->spawnArg2`, `flag = gRoomEffectState->effectControl`, `coord =
 ((GameActorExt*)arg0->extra)->field_8` — and ends with one shared
 `Gp_ReleaseState1CMem(mem, index)` reached both from the early
 `flag`-dispatch arm and from the fall-through of the body. Written with the
@@ -54679,7 +54679,7 @@ reporting its own lowering, not evidence about the source.
 
 ## Room effect task prologue: read `body->coord` before `spawnArg2`, and both before `state`
 
-A room's `Gp_State1C` effect task opens by unpacking three `Task` fields, and
+A room's `gRoomEffectState` effect task opens by unpacking three `Task` fields, and
 m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
 
 ```
@@ -55612,7 +55612,7 @@ slot  = &base->light;
 if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
     return;
 }
-if (Gp_State1C->effectControl >= 2) {
+if (gRoomEffectState->effectControl >= 2) {
     return;
 }
 ```
@@ -57409,7 +57409,7 @@ that `j` — and therefore the branch polarity — follows the source: the *then
 arm falls through, the *else* arm is the one merged into the shared tail.
 
 `func_acropolis_bridge_80182694` ends its state-1 case with a decrement or a
-`Gp_ReleaseState1CMem` that the early `Gp_State1C->effectControl >= 4` path also
+`Gp_ReleaseState1CMem` that the early `gRoomEffectState->effectControl >= 4` path also
 reaches. Writing the release as the *then* arm inlines the `jal` in the middle
 of the function (`branch=1 insert=6 delete=5`, 84%):
 
@@ -88919,7 +88919,7 @@ once:
 
 ```c
 extern u16 D_dryfield_water_tank_801868CC[];
-    Gp_State1C->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
 ```
 
 `lhu` at the read says 2 bytes, so `u16` — and 100.000% followed on the first
@@ -89392,12 +89392,12 @@ Inputs: `base.c` (listing order, 77.778%)
 
 ## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (func_dryfield_water_tower_80180348, 2026-09-15)
 
-`Gp_State1C->roomEffectMode = D_..._801827A0[(Gp_GetViewIndex() & 0xFF) - 1]` - one
+`gRoomEffectState->roomEffectMode = D_..._801827A0[(Gp_GetViewIndex() & 0xFF) - 1]` - one
 call, one table read, one halfword store. The target keeps the subtraction on
 the *index*:
 
 ```
-lui   a0,%hi(Gp_State1C)
+lui   a0,%hi(gRoomEffectState)
 lui   v1,%hi(D_..._801827A0)
 addiu v1,v1,%lo(D_..._801827A0)     # symbol unbias
 andi  v0,v0,0xff
@@ -89424,7 +89424,7 @@ ARRAY_REF's base expands before its index, so the address insns are born with
 
 ```c
 view = (Gp_GetViewIndex() & 0xFF) - 1;
-Gp_State1C->roomEffectMode = D_...[view];
+gRoomEffectState->roomEffectMode = D_...[view];
 ```
 
 - emits the identical instruction *set*, in the wrong order (`andi`,`addiu`
@@ -91480,7 +91480,7 @@ allowed to happen, and a seed that hand-writes the shared block prevents it
 landing where the ROM puts it.
 
 The same seed also carried m2c's `M2C_UNK` element-size bug (see the
-`func_dryfield_water_tank_8017F084` entry above - same `Gp_State1C->roomEffectMode`
+`func_dryfield_water_tank_8017F084` entry above - same `gRoomEffectState->roomEffectMode`
 view-table shape). Retyping the view table `u16` and the drawn arrays `SVECTOR`
 together with duplicating the calls took 71.8% to 100.000%, all penalties zero,
 on the first build. The per-arm pointer reset (`SVECTOR* p = D_x;` inside each
@@ -119068,7 +119068,7 @@ All three in one rewrite: 62.684% with `regs=57 insert=17 delete=15` to
 
 ## A nested `if`'s comparison lands in the outer branch's delay slot: read the branch as testing the *earlier* value
 
-`func_mine_cavern_80180320` gates on `Gp_State1C`'s `effectControl` the way the whole
+`func_mine_cavern_80180320` gates on `gRoomEffectState`'s `effectControl` the way the whole
 room-effect family does - 1-3 parks the effect, 4 or more tears the work block
 down - and the target tests it twice off one load:
 
@@ -119092,8 +119092,8 @@ Nothing special is needed in the C to get this - write the nesting plainly and
 let CSE merge the two reads into one load and one pseudo:
 
 ```c
-if (Gp_State1C->effectControl != 0) {
-    if (Gp_State1C->effectControl >= 4) {
+if (gRoomEffectState->effectControl != 0) {
+    if (gRoomEffectState->effectControl >= 4) {
         Gp_ReleaseState1CMem(work, task);
     }
 } else {
@@ -120041,7 +120041,7 @@ promotion and are already matched in their own overlay.
 ## Identical early-exit blocks the target *keeps*: jump2's chain loop only runs when the first comparison fails (func_dryfield_dilapidated_house_80182744, 2026-09-17)
 
 The mirror image of the entry above. Two switch cases each open with
-`if (Gp_State1C->effectControl != 0) { work->field_22 = tick; keep = Gp_State1C->effectControl < 4;
+`if (gRoomEffectState->effectControl != 0) { work->field_22 = tick; keep = gRoomEffectState->effectControl < 4;
 break; }` and both `break` to one shared `if (!keep) Gp_ReleaseState1CMem(...)`.
 Written that way the two then-blocks are byte-identical and the target keeps
 *both*: the case-0 test is `beqz $v0, <main body>` with the early block as its
@@ -120077,7 +120077,7 @@ the cheapest RTL-only difference:
 ```c
         s32 fade;
         work->field_22 = tick;
-        fade           = Gp_State1C->effectControl; /* the reload the target has anyway */
+        fade           = gRoomEffectState->effectControl; /* the reload the target has anyway */
         SOFT_USE_REG(fade);                     /* between the `lh` and the `slti` */
         keep = fade < 4;
 ```

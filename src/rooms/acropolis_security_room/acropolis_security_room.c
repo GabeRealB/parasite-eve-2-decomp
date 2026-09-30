@@ -3780,8 +3780,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
 /// Per-frame draw for the security-room's flash sprite: refreshes the task's
 /// coordinate frame, loads it into the GTE, then queues one 128x128 textured
 /// quad from `D_acropolis_security_room_80183970` -- picked by the low two bits
-/// of `Task::spawnArg1` -- into the current OT before releasing the effect's
-/// `Gp_State1C` work block.
+/// of `Task::spawnArg1` -- into the current OT before releasing its `GpEffWork`.
 void func_acropolis_security_room_80180E34(Task* arg0)
 {
     GpEffWork* mem;

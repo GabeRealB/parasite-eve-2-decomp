@@ -529,15 +529,15 @@ void func_neo_ark_savanna_zone_8017D954(Task* task)
 
 /// Room effect task: on its first run stores 0x601DD, 0x601F9 and 0x60215 in
 /// three gameplay globals - values of the form `Gp_SpawnEff` takes as effect
-/// ids - and sets `Gp_State1C->roomEffectMode` to 2.
+/// ids - and sets `gRoomEffectState->roomEffectMode` to 2.
 void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758                 = 0x601DD;
-        D_8011572C                 = 0x601F9;
-        D_80115750                 = 0x60215;
-        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                = 1;
+        D_80115758                       = 0x601DD;
+        D_8011572C                       = 0x601F9;
+        D_80115750                       = 0x60215;
+        gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+        arg0->state                      = 1;
     }
 }
 

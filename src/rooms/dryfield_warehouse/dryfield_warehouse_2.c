@@ -981,7 +981,7 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 
 /// Per-frame effect on the room's coordinate task: draws the room geometry for the
 /// current stage visit, then publishes variant 2 as the room's
-/// `Gp_State1C->roomEffectMode` index. `Task::extra.coordBody->coord` is the
+/// `gRoomEffectState->roomEffectMode` index. `Task::extra.coordBody->coord` is the
 /// coordinate every draw shares. The stage-visit byte
 /// `gGameSession->location.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
 /// pose through `func_dryfield_warehouse_8017E414`, bit 2 (`4`) also drives
@@ -1010,5 +1010,5 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
         func_dryfield_warehouse_8017ED34(coord, 4, 8);
         func_dryfield_warehouse_8017ED34(coord, 6, 8);
     }
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

@@ -65,9 +65,10 @@ static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
 /// Per-frame task for the hammer's charge flare. `Task::spawnArg2` is the
-/// `Gp_State1C` work block, `Task::extra` reaches the coordinate the flare
+/// `GpEffWork`, `Task::extra` reaches the coordinate the flare
 /// hangs on, and `Task::spawnArg1` is the charge phase the firing code drives.
-/// Any room fade of 2 or more, and the player being in the state flagged by
+/// Hidden effects (`gRoomEffectState->effectControl` >=
+/// `ROOM_EFFECT_CONTROL_HIDDEN`), and the player being in the state flagged by
 /// `TmdObject::flags & 0x80`, freeze the task outright.
 ///
 /// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed offset
@@ -100,7 +101,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     light = &base->light.head.transform.coord;
     slot  = &base->light;
 
-    if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
+    if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age = work->age + 1;
         switch (task->state) {
             case 0:
@@ -128,7 +129,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                     case 0:
                         break;
                     case 1:
-                        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
                                 func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
@@ -159,7 +160,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         work->index         = 0;
                         return;
                     case 2:
-                        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
                                 func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period,

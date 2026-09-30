@@ -557,12 +557,12 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 /// took the triangle below the floor (`t[1] > 0`), in which case the move is
 /// undone and the velocity halved with Y reflected. The first bounce enters
 /// state 2, where the shade also fades by 4 a frame and the task frees itself
-/// once it drops below 5. The task idles while `Gp_State1C->effectControl` is 2
+/// once it drops below 5. The task idles while `gRoomEffectState->effectControl` is 2
 /// or 3 and frees itself at 4 or more.
 void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2.pointer;
-    s16                           ev    = Gp_State1C->effectControl;
+    s16                           ev    = gRoomEffectState->effectControl;
     GfxCoord*                     coord = task->extra.coordBody->coord;
     SVECTOR                       step;
 

@@ -1386,7 +1386,7 @@ void func_dryfield_main_street_8017E4B0(Task* task)
         D_80115750  = 0x60295;
         task->state = 1;
     }
-    Gp_State1C->roomEffectMode = D_dryfield_main_street_80181B94[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_main_street_80181B94[(Gp_GetViewIndex() & 0xFF) - 1];
     if ((Gp_GetViewIndex() & 0xFF) == 8) {
         if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
             for (i = 0; i < 0x30; i++) {

@@ -2516,7 +2516,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (Gp_StateF0.field_4 == 1) {
             return;
         }
@@ -2648,7 +2648,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (Gp_StateF0.field_4 == 1) {
             return;
         }

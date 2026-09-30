@@ -439,7 +439,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             } else {
                 work->soundDelay--;
             }
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 rnd         = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
@@ -479,7 +479,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             }
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[2]);
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[3]);
-            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 rnd         = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {

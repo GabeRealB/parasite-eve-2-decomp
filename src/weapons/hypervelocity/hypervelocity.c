@@ -128,13 +128,13 @@ static void func_hypervelocity_8011F694(Task* arg0);
 static void func_hypervelocity_8011F724(Task* arg0);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
-/// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift
+/// `Task::spawnArg2` is the `GpEffWork` holding the flare's drift
 /// (`move` / `move.vy` / `move.vz`), its age (`age`), the ring
 /// brightness (`scale`), the ring radius (`angle`), the arc brightness
 /// (`period`) and the per-frame brightness step (`step`);
 /// `Task::extra` reaches the coordinate it hangs on and `Task::spawnArg1` is
 /// the charge counter the firing code drives. Nonzero effect control
-/// (`Gp_State1C->effectControl`) freezes the task; cancellation at 4 or more restarts
+/// (`gRoomEffectState->effectControl`) freezes the task; cancellation at 4 or more restarts
 /// it at state 1.
 ///
 /// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed muzzle
@@ -174,8 +174,8 @@ void func_hypervelocity_8011D1E8(Task* task)
     slot  = &base->light;
     coord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             task->state = 1;
         }
         return;
@@ -315,11 +315,11 @@ void func_hypervelocity_8011D1E8(Task* task)
 }
 
 /// Per-frame task for the hypervelocity round in flight. `Task::spawnArg2` is
-/// the `Gp_State1C` work block holding the round's velocity (`move` /
+/// the `GpEffWork` holding the round's velocity (`move` /
 /// `move.vy` / `move.vz`), its age (`age`), the trail brightness
 /// (`scale`), the ring spin (`angle`) and the ring's start angle
 /// (`period`); `Task::extra` reaches the coordinate it flies on. Nonzero effect control
-/// (`Gp_State1C->effectControl`) winds the age back down instead of advancing, and
+/// (`gRoomEffectState->effectControl`) winds the age back down instead of advancing, and
 /// tears the round down at the cancellation threshold of 4.
 ///
 /// - State 0 allocates the `HyperBeam` list node, copies the player's rotation
@@ -360,9 +360,9 @@ void func_hypervelocity_8011D830(Task* task)
     light = &base->light.head.transform.coord;
     slot  = &base->light;
 
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         work->age = work->age - 1;
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state != 0) {
                 Gp_UnlinkObj(&beam->obj);
             }
@@ -459,7 +459,7 @@ void func_hypervelocity_8011D830(Task* task)
             Gp_DrawRing(coord, work->angle, rgb);
             func_hypervelocity_8011DF34(coord, work->age, work->angle, 0);
             func_hypervelocity_8011DF34(coord, work->age, work->angle, 1);
-            if (Gp_State1C->groundTraceEnabled != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
+            if (gRoomEffectState->groundTraceEnabled != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_hypervelocity_8011E8A0(&ground, work->angle);
             }
             if (work->age < 0x15) {
@@ -865,7 +865,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
-/// linked, and releases the `Gp_State1C` block in `Task::spawnArg2`. M4A1 Pyke
+/// linked, and releases the `GpEffWork` in `Task::spawnArg2`. M4A1 Pyke
 /// carries an identical copy.
 static void func_hypervelocity_8011F11C(Task* task)
 {
@@ -887,7 +887,7 @@ void func_hypervelocity_8011F168(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -925,7 +925,7 @@ void func_hypervelocity_8011F270(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {

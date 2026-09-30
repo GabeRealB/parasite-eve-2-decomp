@@ -3,7 +3,7 @@
 /// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
 /// intensity, projects `coord` and draws two `POLY_FT4` glow billboards around
 /// it, the outer one half again as large as `size`; when
-/// `Gp_State1C->groundTraceEnabled` is set, traces the ground below and draws the
+/// `gRoomEffectState->groundTraceEnabled` is set, traces the ground below and draws the
 /// ground quad there at twice the outer size.
 void fireballDrawGlow(GfxCoord* coord, s16 size)
 {
@@ -111,7 +111,7 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        if (Gp_State1C->groundTraceEnabled != 0) {
+        if (gRoomEffectState->groundTraceEnabled != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                 fireballDrawGroundGlow(&ground, (s32)(s16)(outerSize * 2));
             }

@@ -3230,7 +3230,7 @@ void func_mine_mesa_8017EA24(void)
     }
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and pulses `Gp_State1C`.
+/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
 void func_mine_mesa_8017EA78(void)
 {
     Gp_StateC08.field_6 |= 1;
@@ -3302,7 +3302,7 @@ void func_mine_mesa_8017EB54(s32 arg0)
     }
 }
 
-/// Publishes the mesa's three effect ids as `Gp_State1C->roomEffectMode` variant `2`
+/// Publishes the mesa's three effect ids as `gRoomEffectState->roomEffectMode` variant `2`
 /// on the task's first tick, then draws every emitter the current camera view
 /// shows: one `glowDrawFlare` quad per position, texture column 1
 /// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
@@ -3310,11 +3310,11 @@ void func_mine_mesa_8017EB54(s32 arg0)
 void func_mine_mesa_8017ED08(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758                 = 0x600E9;
-        D_8011572C                 = 0x600EB;
-        D_80115750                 = 0x600EC;
-        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                = 1;
+        D_80115758                       = 0x600E9;
+        D_8011572C                       = 0x600EB;
+        D_80115750                       = 0x600EC;
+        gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+        arg0->state                      = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

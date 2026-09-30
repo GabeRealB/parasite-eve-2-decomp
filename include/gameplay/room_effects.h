@@ -32,7 +32,13 @@ extern s32 D_80115738;
 
 extern s32 D_8011573C;
 
-extern RoomEffectState* Gp_State1C;
+/// The room-effect controller's live `RoomEffectState`.
+///
+/// Allocated on the primary heap when the controller starts and stored both
+/// here and as that task's work. Gameplay and the room, actor, weapon and PE
+/// overlays borrow it for the controller's lifetime. Callers do not test it
+/// for `NULL`, and destroying the task does not clear it.
+extern RoomEffectState* gRoomEffectState;
 
 extern s32 D_80115744;
 

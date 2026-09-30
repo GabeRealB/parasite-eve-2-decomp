@@ -441,7 +441,7 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
         D_8011572C = 0x60097;
         D_80115750 = 0x600E4;
     }
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 3:
             glowDrawFlare(&D_dryfield_night_back_street_8018037C[0], 1, 0x300);

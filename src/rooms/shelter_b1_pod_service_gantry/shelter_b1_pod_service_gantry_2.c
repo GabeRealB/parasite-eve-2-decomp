@@ -89,7 +89,7 @@ GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11] = {
 
 s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
 
-/// Per-frame driver of an animated sprite effect, a `Gp_State1C` effect task
+/// Per-frame driver of an animated sprite effect, a room-effect task
 /// drawn through `func_shelter_b1_pod_service_gantry_8017DF70` (state 1) or,
 /// when the spawn argument is negative,
 /// `func_shelter_b1_pod_service_gantry_8017E400` (state 2). The first tick
@@ -114,13 +114,13 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
             func_shelter_b1_pod_service_gantry_8017DF70(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             func_shelter_b1_pod_service_gantry_8017E400(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -614,7 +614,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Per-frame driver of a rising sprite effect, a `Gp_State1C` effect task.
+/// Per-frame driver of a rising sprite effect, a room-effect task.
 ///
 /// On its first frame it seeds the rise speed (`move.vy`, 0x10-0x4F from
 /// the LCG, negated when bit 16 of `Task::spawnArg1` is set), a random spin
@@ -631,8 +631,8 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
             return;
         }

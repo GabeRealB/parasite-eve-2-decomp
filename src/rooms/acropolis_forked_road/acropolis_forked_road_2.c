@@ -1483,7 +1483,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
 
 /// Draws one frame of a forked-road wall lamp: a flickering, screen-aligned
 /// sprite at the task's own coordinate frame. The lamp is skipped entirely
-/// when effects are cancelled (`Gp_State1C->effectControl` at 4 or more) and on
+/// when effects are cancelled (`gRoomEffectState->effectControl` at 4 or more) and on
 /// the days whose bit is clear in `D_acropolis_forked_road_801821E8`, indexed
 /// by the low nibble of `Task::spawnArg1`.
 ///
@@ -1510,7 +1510,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = SCRATCH_STACK_CURSOR_SLOT;

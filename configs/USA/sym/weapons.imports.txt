@@ -71,7 +71,7 @@ func_80106518 = 0x80106518; // absolute:True
 func_80106550 = 0x80106550; // absolute:True
 Gp_RoomParamTables = 0x8010CBB8; // absolute:True
 Gp_RoomCoords = 0x80114F30; // absolute:True
-Gp_State1C = 0x80115740; // absolute:True
+gRoomEffectState = 0x80115740; // absolute:True
 
 // --- still unnamed in their own overlay (12)
 D_8007218A = 0x8007218A; // absolute:True

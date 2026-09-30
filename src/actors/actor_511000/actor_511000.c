@@ -2141,7 +2141,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8((VECTOR3*)(arg0->extra.tmd)->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->groundShadowShade);
+            Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
@@ -2314,7 +2314,7 @@ static void func_actor_511000_80132480(Task* task)
     extra->flags         = flags;
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShadowShade);
+            Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
     work->field_4C4 = Task_SpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
@@ -3205,7 +3205,7 @@ static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
         pos->vz = coord->workm.t[2];
         out     = pos + 1;
         if (func_800EA1A8((VECTOR3*)pos, (VECTOR3*)out) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)out, 0x400, Gp_State1C->groundShadowShade);
+            Gp_DrawEffGroundQuad((VECTOR3*)out, 0x400, gRoomEffectState->groundShadowShade);
         }
     } else {
         if ((s16)(work->field_480 % 3) == 0) {

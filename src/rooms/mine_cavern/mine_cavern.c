@@ -511,7 +511,7 @@ void func_mine_cavern_8017E2D8(void)
     SndEvt_EnqueueType2(0, 0x64);
 }
 
-/// Sets bit 0 of `Gp_StateC08.field_6` and pulses `Gp_State1C`.
+/// Sets bit 0 of `Gp_StateC08.field_6` and requests all-effect cancellation on `gRoomEffectState`.
 void func_mine_cavern_8017E2FC(void)
 {
     Gp_StateC08.field_6 |= 1;

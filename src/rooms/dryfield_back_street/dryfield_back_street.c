@@ -473,7 +473,7 @@ void func_dryfield_back_street_8017D970(Task* task)
         D_80115750  = 0x60298;
         task->state = 1;
     }
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }
 
 #include "../../shared/room_visual_effects.inc.c"

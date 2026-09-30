@@ -57,7 +57,7 @@ void Gp_EffAttachTask37(Task* arg0)
     mem    = arg0->spawnArg2.pointer;
     coord  = extra->coords;
     player = (gameGetPtrSlot(3))->extra.tmd->coords;
-    flag   = Gp_State1C->effectControl;
+    flag   = gRoomEffectState->effectControl;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;

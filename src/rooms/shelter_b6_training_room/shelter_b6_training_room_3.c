@@ -493,7 +493,7 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
+    flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -545,7 +545,7 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -555,7 +555,7 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
                 D_shelter_b6_training_room_80185C90 = NULL;
                 work->step                          = 0x80 / task->spawnArg1.value;
             case 1:
-                if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     rgb[0] = work->scale >> 1;
                     rgb[1] = work->scale >> 2;
                     rgb[2] = work->scale;
@@ -582,7 +582,7 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
                 }
                 break;
             case 2:
-                if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     rgb[0] = work->scale >> 1;
                     rgb[1] = work->scale >> 2;
                     rgb[2] = work->scale;
@@ -897,7 +897,7 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -916,7 +916,7 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
                 }
                 task->state = 1;
             case 1:
-                if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 1;
                     rgb[2] = work->scale >> 2;
@@ -954,7 +954,7 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
                     rgb[2] = work->scale >> 2;
                     Gp_DrawRing(coord, work->angle, rgb);
                     Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         work->scale -= 4;
                     }
                     Gp_DrawFadeQuad(rgb, 1);
@@ -975,9 +975,9 @@ void func_shelter_b6_training_room_801811AC(Task* task)
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
-        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -1134,7 +1134,7 @@ void func_shelter_b6_training_room_80181930(Task* task)
     u32       shade;
 
     coord = task->extra.tmd->coords + 1;
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         D_shelter_b6_training_room_80185C94 = coord;
         shade                               = ((gDisplayState.animFrame & 1) << 4) + 0x40;
         rgb[0]                              = shade;
@@ -1157,7 +1157,7 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         mem->age++;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (task->state == 0) {
@@ -1341,7 +1341,7 @@ void func_shelter_b6_training_room_8018245C(Task* task)
     u8         rgb[3];
 
     mem           = task->spawnArg2.pointer;
-    effectControl = Gp_State1C->effectControl;
+    effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1383,7 +1383,7 @@ void func_shelter_b6_training_room_801825C0(Task* task)
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         mem->age++;
         if (task->state == 0) {
             mem->move.vx = 0;
@@ -1415,7 +1415,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         mem->age++;
         if (task->state == 0) {
             mem->move.vy = 0x20;
@@ -1450,7 +1450,7 @@ void func_shelter_b6_training_room_80182804(Task* task)
         Gp_ReleaseState1CMem(mem, task);
         return;
     }
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         mem->age++;
         Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
         mem->scale  += ((Gp_LcgState >> 16) & 0x1FF) + 0x200;
@@ -1463,7 +1463,7 @@ void func_shelter_b6_training_room_80182804(Task* task)
 
 void func_shelter_b6_training_room_8018294C(Task* task)
 {
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if (((Gp_LcgState >> 16) & 7) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

@@ -1739,5 +1739,5 @@ void func_dryfield_junk_yard_8017DCB4(Task* task)
 /// Sets the room effect mode to 2.
 void func_dryfield_junk_yard_8017DD0C(Task* unused)
 {
-    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

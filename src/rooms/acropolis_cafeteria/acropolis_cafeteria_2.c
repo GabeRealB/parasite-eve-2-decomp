@@ -1203,7 +1203,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
 
     obj   = task->extra.tmd;
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    state = Gp_State1C->effectControl;
+    state = gRoomEffectState->effectControl;
     coord = obj->coords;
     if (state >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
