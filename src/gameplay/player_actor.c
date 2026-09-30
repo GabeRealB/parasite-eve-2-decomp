@@ -4492,14 +4492,14 @@ static void Gp_InitPlayerWork(Task* arg0)
     extra = arg0->extra.tmd;
     coord = extra->coords;
     arg0->state++;
-    arg0->msgTable         = Gp_PlayerMsgTable;
-    arg0->exitCallback     = Gp_TeardownSlot0;
-    actor->field_938       = 0x13;
-    Gp_ActorSlots[0]       = arg0;
-    Player_Status.coordMtx = &coord->coord;
-    coord->parent          = &gGfxViewCoord;
-    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    extra->flags           = 0;
+    arg0->msgTable                              = Gp_PlayerMsgTable;
+    arg0->exitCallback                          = Gp_TeardownSlot0;
+    actor->field_938                            = 0x13;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = arg0;
+    Player_Status.coordMtx                      = &coord->coord;
+    coord->parent                               = &gGfxViewCoord;
+    coord->composeStamp                         = GRAPHICS_COORD_DIRTY;
+    extra->flags                                = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     Gp_BindActorAnim(arg0);
 
@@ -4714,10 +4714,10 @@ static void Gp_TeardownSlot0(Task* arg0)
     volatile GameActor* inner;
     Task*               task;
 
-    inner              = arg0->work;
-    arg0->exitCallback = NULL;
-    Gp_ActorSlots[0]   = NULL;
-    task               = inner->field_914;
+    inner                                       = arg0->work;
+    arg0->exitCallback                          = NULL;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = NULL;
+    task                                        = inner->field_914;
     if (task != NULL) {
         taskKill(task);
     }

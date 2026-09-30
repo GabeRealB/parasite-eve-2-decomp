@@ -106,7 +106,7 @@ typedef struct Actor107600Work {
     /* 0x148 */ s16  field_148; // waypoint index into the D_actor_107600_80135624 path
     /* 0x14A */ u8   field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
     /* 0x14B */ s8   field_14B; // scale percent applied to the model root coord.m[1][1]
-    /* 0x14C */ s32  field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
+    /* 0x14C */ s32  field_14C; // XZ distance to the gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] actor's coord
     /* 0x150 */ s16  field_150; // Gp_GetIdParam2 of the last hit's id
     /* 0x152 */ byte pad_152[0x2];
     /* 0x154 */ u16  field_154; // countdown before the sub-state's sound cue
@@ -2254,7 +2254,7 @@ static void func_actor_107600_80134D70(Task* arg0)
 }
 
 /// Measures the XZ offset from this model's own attach coordinate to the one on
-/// the `Gp_ActorSlots[0]` actor's model, in a 0x10-byte `VECTOR` carved off
+/// the `gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]` actor's model, in a 0x10-byte `VECTOR` carved off
 /// the scratch stack the way `func_actor_107600_80134E5C` carves its block, and
 /// leaves the distance in `Actor107600Work.field_14C`. With no slot-0 actor the
 /// carve is undone and nothing is measured. The distance is only stored once the
@@ -2276,11 +2276,11 @@ static void func_actor_107600_80134D9C(Task* arg0)
     head                           = SCRATCH_HEAD_AT(scratch, void);
     block                          = (VECTOR*)(head - 0x10);
     SCRATCH_HEAD_AT(scratch, void) = block;
-    if (Gp_ActorSlots[0] == NULL) {
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] == NULL) {
         SCRATCH_HEAD_AT(scratch, void) = head;
         return;
     }
-    target    = Gp_ActorSlots[0]->extra.tmd->coords;
+    target    = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     block->vx = target->coord.t[0] - self->coord.t[0];
     block->vy = target->coord.t[1] - self->coord.t[1];
     block->vz = target->coord.t[2] - self->coord.t[2];

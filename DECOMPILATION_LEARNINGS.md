@@ -26,10 +26,10 @@ code. Evidence: scratch `func_dryfield_motel_balcony_8017F470-dehack/base_3`,
 ## Decode the index before forming the invariant table address (Actor00700_Fn00334, 2026-09-27)
 
 The remaining `TOUCH_REG(slots)` prevented `loop.c` from hoisting
-`Gp_ActorSlots` in the contact loop. Direct `Gp_ActorSlots[(id >> 7) & 1]`
+`gPlayerActorTasks` in the contact loop. Direct `gPlayerActorTasks[(id >> 7) & 1]`
 expands the address before both index operations: its high-half lifetime is
 five, savings two, and the 266-insn loop hoists it (98.807%). Writing
-`slot = id >> 7;` followed by `Gp_ActorSlots[slot & 1]` shortens that lifetime
+`slot = id >> 7;` followed by `gPlayerActorTasks[slot & 1]` shortens that lifetime
 to four; `.loop` reports `not desirable`. Combine then folds the index
 operations to `id >> 5` and `& 4` after the address setup, retaining the target
 schedule and registers without the barrier (100.000%, all penalties zero).
@@ -9306,7 +9306,7 @@ extra = e;
 `lui v0,%hi(Table)` / `addiu v0,v0,%lo(Table)` / `lw v0,4(v0)`. The target's
 two-instruction `lui v0,%hi(Table+4)` / `lw v1,%lo(Table+4)(v0)` needs a
 non-volatile read; `((T**)Table)[1]` produces it without changing the
-declaration other callers rely on. `Gp_DebugPanTask` reading `Gp_ActorSlots[1]`
+declaration other callers rely on. `Gp_DebugPanTask` reading `gPlayerActorTasks[1]`
 is the example.
 
 ## Dummy pin that outlives a short constant (Ui_SpawnTextBlock)
@@ -23614,7 +23614,7 @@ Task*               task;
 
 inner          = work->actor;
 work->field_18 = NULL; /* must precede the global */
-Gp_ActorSlots[0]  = NULL; /* declare as T* volatile, not volatile T* */
+gPlayerActorTasks[0]  = NULL; /* declare as T* volatile, not volatile T* */
 task           = inner->field_914;
 if (task != NULL) {
     taskKill(task);
@@ -37319,10 +37319,10 @@ it follows source order even though the final listing is reordered:
 ```c
 pad  = (PadState*)&Pad_States[0];   /* lui v0 ; addiu s1,v0 */
 cfg  = &Player_Status;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
-work = Gp_ActorSlots[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
+work = gPlayerActorTasks[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
 ```
 
-Putting the volatile `Gp_ActorSlots[0]` load *between* the other two lets its
+Putting the volatile `gPlayerActorTasks[0]` load *between* the other two lets its
 `lui` reuse `$v0` and forces the third `%hi` onto `$v1`; listing `work` second
 gives all three `$v0` and leaves a one-instruction diff that nothing else fixes.
 This was the last diff in `Gp_UpdatePadInput` (99.97% → 100%). When a lone
@@ -44676,16 +44676,16 @@ chasing the name in `dist.py`'s score.
 
 ## Constant non-zero index into a `T* volatile[]` global splits the address
 
-`Gp_ActorSlots` is declared `Task* volatile Gp_ActorSlots[2]`. Index 0
+`gPlayerActorTasks` is declared `Task* volatile gPlayerActorTasks[2]`. Index 0
 folds into one addressing mode, but a constant non-zero index does not: GCC
 2.8.1 materializes the base and then adds the element offset as a *separate*
 address computation, and `-fschedule-insns` is free to hoist the now-independent
 `lui` into an earlier load-delay slot.
 
 ```
-lui    v0, %hi(Gp_ActorSlots)   /* hoisted into the lw delay slot */
+lui    v0, %hi(gPlayerActorTasks)   /* hoisted into the lw delay slot */
 lw     s1, 0x910(s0)
-addiu  v0, v0, %lo(Gp_ActorSlots)
+addiu  v0, v0, %lo(gPlayerActorTasks)
 sw     zero, 4(v0)
 ```
 
@@ -44693,19 +44693,19 @@ Cast the volatility away at the point of use so the store is a plain
 `%lo(sym+off)` reference again, which keeps the `lui` welded to its `sw`:
 
 ```c
-((Task**)Gp_ActorSlots)[1] = NULL;
+((Task**)gPlayerActorTasks)[1] = NULL;
 ```
 
 ```
 nop                             /* delay slot no longer fillable */
 lw     s1, 0x910(s0)
-lui    v0, %hi(Gp_ActorSlots)
-sw     zero, %lo(Gp_ActorSlots+4)(v0)
+lui    v0, %hi(gPlayerActorTasks)
+sw     zero, %lo(gPlayerActorTasks+4)(v0)
 ```
 
-`src/gameplay/3A34.c` already uses the same `((Task**)Gp_ActorSlots)[1]`
+`src/gameplay/3A34.c` already uses the same `((Task**)gPlayerActorTasks)[1]`
 cast for the *load* side. Splat names that address `D_80115764`, so the scratch
-diff still shows a name mismatch against `%lo(Gp_ActorSlots+4)` — see
+diff still shows a name mismatch against `%lo(gPlayerActorTasks+4)` — see
 "`%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction"; the bytes are
 identical and the full build verifies.
 
@@ -66643,9 +66643,9 @@ the second `lhu`, which hoists it and the first store above them with the
 span, which is what flipped its `t6`/`t7` home against the `0xA0` constant.
 
 **A `volatile` array declaration costs an `addiu` on `arr[1]`.** With
-`extern T* volatile Gp_ActorSlots[2]`, `Gp_ActorSlots[1]` compiles to
+`extern T* volatile gPlayerActorTasks[2]`, `gPlayerActorTasks[1]` compiles to
 `addiu v0,v0,%lo(sym); lw v0,4(v0)`; the target's
-`lw v0,%lo(Gp_ActorSlots+4)(v0)` needs a non-volatile object. Three files had
+`lw v0,%lo(gPlayerActorTasks+4)(v0)` needs a non-volatile object. Three files had
 been casting the qualifier away to match; the declaration was the artefact.
 
 ## Replay Bonus: control the reload's insertion point with a direct field store
@@ -92832,8 +92832,8 @@ parameter `s32`.
 
 `Actor00400_Fn01454` reads the actor's root coordinate, snapshots three
 translation components into the work block, then picks the nearer of
-`Gp_ActorSlots[0..1]`. Written the obvious way - stores first, `if
-(Gp_ActorSlots[0] != NULL)` after - the CFG, predicates and call sites all
+`gPlayerActorTasks[0..1]`. Written the obvious way - stores first, `if
+(gPlayerActorTasks[0] != NULL)` after - the CFG, predicates and call sites all
 match (`blocks=9/9`, `predicates_match=True`) and the score stops at 90.6%
 with three stray load-delay `nop`s at the top and `regs=25`. Two separate
 block-boundary effects, neither of which the scheduler can fix:
@@ -92845,16 +92845,16 @@ Retail's block 0 is
 lw   $v0, 0x2C($a0)
 lw   $s0, 0x1C($a0)
 lw   $v1, 0x8($v0)
-lw   $a2, %lo(Gp_ActorSlots)($a1)   <- before the three sh
+lw   $a2, %lo(gPlayerActorTasks)($a1)   <- before the three sh
 lhu  $v0, 0x18($v1)
 ```
 
-so the `lw` of `Gp_ActorSlots` fills the delay slots of the `lhu`/`sh` pairs
+so the `lw` of `gPlayerActorTasks` fills the delay slots of the `lhu`/`sh` pairs
 that follow. `sched1` will not move it there on its own: 2.8.1's
 `memrefs_conflict_p` cannot disambiguate `MEM(symbol_ref)` from
 `MEM(plus(pseudo, 0x54C))` and conservatively reports a conflict, so the load
 is pinned below every `work->field_xxx = ...` store. Binding it to a local
-*before* the stores - `player = Gp_ActorSlots[0];` - is what puts it in range;
+*before* the stores - `player = gPlayerActorTasks[0];` - is what puts it in range;
 that one change was 90.6% -> 97.4%.
 
 **`sched1` is a basic-block scheduler, so an insn retail emits before the
@@ -92865,7 +92865,7 @@ scheduling or allocation edit can produce that, because the insn is in the
 other block; the source has to compute the address unconditionally:
 
 ```c
-player = Gp_ActorSlots[0];
+player = gPlayerActorTasks[0];
 joint  = &coord[1];          /* dead when player == NULL, and still hoisted */
 work->field_54C = coord->coord.t[0];
 ...
@@ -94306,7 +94306,7 @@ copy instead of a raw constant:
 
 ```c
     s32 mode;
-    if (Gp_ActorSlots[0] != NULL) {
+    if (gPlayerActorTasks[0] != NULL) {
         mode = 4;
         if (gGameSession->location.loc.variant != mode && gGameSession->battleResetPending != 0) {
             gGameSession->location.loc.variant = mode;
@@ -103273,7 +103273,7 @@ Scratch `nonmatchings/Actor01600_Fn06974-vacuum`.
 
 ## Both arms storing to the *same* stack offsets is one reused local, not two (Actor01600_Fn052C4, 2026-09-16)
 
-`Actor01600_Fn052C4` measures the XZ distance to each of the two `Gp_ActorSlots`
+`Actor01600_Fn052C4` measures the XZ distance to each of the two `gPlayerActorTasks`
 actors and returns which slot is nearer. Writing the two branches with their own
 scratch vector — `SVECTOR d0; SVECTOR d1;`, one per branch — scored 99.304% with
 `regs=11` and every emitted instruction correct. The diff was six lines: the
@@ -117085,15 +117085,15 @@ load-delay slot the retail's own `lui` fills.
 ## A global read moved above a run of field stores relocates the whole `%hi` group
 
 `func_actor_206100_8014B698` is the same shape `ActorsShared801662ec` has: three
-`coord.t[]` halves stored into work fields, then `Gp_ActorSlots[0]` read and
-tested, then the `Gp_ActorSlots[1]` read inside the `else`. The `lui`/`lw` pair
+`coord.t[]` halves stored into work fields, then `gPlayerActorTasks[0]` read and
+tested, then the `gPlayerActorTasks[1]` read inside the `else`. The `lui`/`lw` pair
 for slot 0 and the `addiu` for slot 1's `%lo` (CSE'd back into the entry block)
 all tie on `INSN_LUID` with the three store groups, so the tie-break is source
 order -- and because the whole entry block is one scheduling unit, where that
 group lands decides the entry block's length, every later branch target and the
 register the pointer gets.
 
-Written with `player = Gp_ActorSlots[0];` *after* the three stores the group
+Written with `player = gPlayerActorTasks[0];` *after* the three stores the group
 schedules last: 91.870%, `regs=4 insert=7 delete=4 branch=2`, and the group's
 `lui`/`lw`/`nop`/`beqz` trail the stores by twelve bytes. Moved above them,
 with nothing else changed, 100.000% -- the group leads the block right after the
@@ -117891,7 +117891,7 @@ same global").
 
 **Symptom.** The goto-shaped port of a matched sibling (`func_actor_300700_801637E4`,
 walking `contactWork += 0x18` with labels) reached 99.64% with one leftover:
-the target builds `Gp_ActorSlots` as `lui t2` / `addiu t2` *after* the
+the target builds `gPlayerActorTasks` as `lui t2` / `addiu t2` *after* the
 `srl`/`andi` index, where the candidate used `$v1` before it.
 
 **Cause.** `$t2` is the reload spill register (the same one the `mflo t2` of a
@@ -119482,9 +119482,9 @@ difference.
 ## Splitting a pointer chain around a store is what lets the scheduler reach into a load-delay slot (func_neo_ark_altar_8017DF0C, 2026-09-17)
 
 The entry block's `lw $s1, 0x1C($s0)` is followed in the target by the
-`lw $v0, %lo(Gp_ActorSlots)($v0)` of the *next* statement, filling the load-delay
+`lw $v0, %lo(gPlayerActorTasks)($v0)` of the *next* statement, filling the load-delay
 slot, and only then by `lhu $v1, 8($s1)`. Written as one expression --
-`coord = (*Gp_ActorSlots)->extra->coords;` after `work->field_6 =
+`coord = (*gPlayerActorTasks)->extra->coords;` after `work->field_6 =
 work->field_8;` -- sched1 cannot do that: **the scheduler will not move a load
 above a store** (no aliasing information), so the `%hi`/`%lo` pair stays behind
 the `sh` and the delay slot keeps its `nop`. The store's value also gets `$v0`,
@@ -119494,7 +119494,7 @@ Reading the first link into a local splits the chain around the store, and the
 target's schedule follows:
 
 ```c
-    actor         = *Gp_ActorSlots;
+    actor         = *gPlayerActorTasks;
     work->field_6 = work->field_8;
     coord         = actor->extra->coords;
 ```
@@ -133361,7 +133361,7 @@ the resulting 100% port passed the unscoped build-and-verify.sh.
 2. Plain constant/address asm inputs can fold to CONST_INT/SYMBOL_REF and be
    materialized only at reload, losing the connection to later argument homes.
    That failed probe generated t0/t1 inputs and duplicate setup. The successful
-   case-1 helper reads Gp_ActorSlots[0] through an m operand, emits zero then lw,
+   case-1 helper reads gPlayerActorTasks[0] through an m operand, emits zero then lw,
    and forwards the message id and position pointer via read/write operands.
    Those forwarded variables feed the later call and position stores. The
    matching dump has a1=id, v1=position HIGH, a2=position address, s0=slot HIGH,
@@ -136425,7 +136425,7 @@ in `tools/compiler_evidence/2026-09-20-actor800100-66f50.json`.
 
 The retry seed reproduced 97.784% after field-name repairs. Its entry published
 `D_80115764 = index` early, taking v0 and pushing the scratchpad address into a1.
-The symbol map identifies this address as `Gp_ActorSlots[1]`. Baseline UID 61 is
+The symbol map identifies this address as `gPlayerActorTasks[1]`. Baseline UID 61 is
 `mem:SI` and depends only on its address producer; the fixed-scalar/varying-struct
 exemptions in `sched.c:807-906` remove its memory edges. This is a dependency
 problem, not an unexplained equal-priority scheduler tie: the backward schedule
@@ -136443,8 +136443,8 @@ obj2 too. A second preplanned edit gave obj3 its own `third` temporary; both
 coordinate values became local in v0 and all instructions matched. No pins or
 asm helpers were needed. Exact quantity ranking was not traced.
 
-Canonical `Gp_ActorSlots[1]` scores 99.960% only because the object scorer treats
-`Gp_ActorSlots+4` and `D_80115764` as different relocation names. A scratch array
+Canonical `gPlayerActorTasks[1]` scores 99.960% only because the object scorer treats
+`gPlayerActorTasks+4` and `D_80115764` as different relocation names. A scratch array
 view `D_80115764[0]` scored 100.000% with all penalties zero. The production
 source uses the canonical array and passed unscoped `./tools/build-and-verify.sh`.
 
@@ -142250,7 +142250,7 @@ callee-saved register it has in the ROM (`s2`) to `work`.
   Writing kinds 1 and 3 as two identical case bodies counts every mention
   twice, loop-weighted, until jump2 cross-jumps them after reload. A shared
   `case 1: case 3:` body cannot give the frame that priority.
-- One allocation is still steered. The ROM computes `Gp_ActorSlots` in the
+- One allocation is still steered. The ROM computes `gPlayerActorTasks` in the
   damage block, so local-alloc gives it `v1` and the loop-top key lands in
   `a0`. The natural loop lets `loop.c` hoist it (savings 2 x life 5). In this
   function a 273-insn loop hoisted and a padded 281-insn one did not, so the
@@ -142261,7 +142261,7 @@ callee-saved register it has in the ROM (`s2`) to `work`.
 **Symptom.** A contact loop `switch (key >> 16)` whose ROM layout is the kind-2
 body followed by one shared body for kinds 1 and 3. Written in layout order
 (`case 2`, `case 0`, `case 1`, `case 3`, 1 and 3 duplicated) everything matched
-except `Gp_ActorSlots` in the kind-2 body: the `lui`/`addiu` came out hoisted
+except `gPlayerActorTasks` in the kind-2 body: the `lui`/`addiu` came out hoisted
 (`-dL`: `Insn 200 ... (life 5), move-insn savings 2  moved`, 29 × 2 × 5 = 290
 >= 270 insns), rematerialised as `lui t0` after the index, where the ROM keeps
 `lui v1` before it and the key in `a0`.
@@ -142269,7 +142269,7 @@ except `Gp_ActorSlots` in the kind-2 body: the `lui`/`addiu` came out hoisted
 **Cause.** jump2 cross-jumps the kind-1 copy into the kind-3 copy, so only the
 *last* copy survives and the layout says nothing about where the first one sat.
 Written in plain case order `0, 1, 2, 3`, the kind-1 copy is first in the RTL,
-its invariant `scratch + 16` is scanned and hoisted before the `Gp_ActorSlots`
+its invariant `scratch + 16` is scanned and hoisted before the `gPlayerActorTasks`
 movable, and `threshold -= 3` leaves 26 × 10 = 260 < 270: the address stays in
 the loop. The emitted layout (2 then the merged 1/3) is identical either way.
 

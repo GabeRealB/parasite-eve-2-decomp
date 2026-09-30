@@ -499,7 +499,7 @@ static void func_actor_300700_801637E4(Task* actor)
                 break;
             case 2:
                 if (work->field_378 == 0) {
-                    target        = Gp_ActorSlots[((u32)work->field_22C.contacts.recs[i].key.value >> 7) & 1]->extra.tmd->coords;
+                    target        = gPlayerActorTasks[((u32)work->field_22C.contacts.recs[i].key.value >> 7) & 1]->extra.tmd->coords;
                     scratch->vx.w = target->coord.t[0] - coord->coord.t[0];
                     scratch->vy.w = target->coord.t[1] - coord->coord.t[1];
                     scratch->vz.w = target->coord.t[2] - coord->coord.t[2];
@@ -578,7 +578,7 @@ static void func_actor_300700_801637E4(Task* actor)
         Gp_ClearRec18Occupied(work->attackContacts);
     }
     if (Gp_CountRec18Hi(work->sensorContacts, 0x10000) != 0) {
-        target           = Gp_ActorSlots[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
+        target           = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
         work->field_394  = 1;
         work->field_1FA &= 0x7FFF;
         work->field_33C  = target;

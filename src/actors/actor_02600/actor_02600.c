@@ -810,7 +810,7 @@ static void Actor02600_Fn0006C(Task* arg0)
                 }
             }
             if ((result != one) || (work->field_3B2 == 0)) {
-                src                 = Gp_ActorSlots[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                src                 = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
                 dx                  = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vx.w = dx;
                 dy                  = src->coord.t[1] - coord->coord.t[1];

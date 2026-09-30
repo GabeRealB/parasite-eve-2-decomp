@@ -1278,7 +1278,7 @@ static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, Wor
         if (work->field_7B4 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
+        src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -2899,7 +2899,7 @@ static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, Wor
         if (work->field_158 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
+        src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -3719,7 +3719,7 @@ static void func_actor_503500_80139A20(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         Gp_ComposeParentWorld(coord, &mtx, &pos);
-        src  = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
+        src  = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;

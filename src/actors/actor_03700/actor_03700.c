@@ -914,7 +914,7 @@ move_done:
                 }
                 break;
             case 2:
-                src                 = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
+                src                 = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
                 ex                  = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vx.w = ex;
                 ey                  = src->coord.t[1] - coord->coord.t[1];

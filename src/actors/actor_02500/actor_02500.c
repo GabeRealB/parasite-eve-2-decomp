@@ -776,7 +776,7 @@ static void Actor02500_Fn00494(Task* actor)
         switch ((u32)work->field_1C4[i].key.value >> 16) {
             case 2:
                 if (work->field_334 == 0) {
-                    target            = Gp_ActorSlots[((u32)work->field_1C4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                    target            = gPlayerActorTasks[((u32)work->field_1C4[i].key.value >> 7) & 1]->extra.tmd->coords;
                     frame->delta.vx.w = target->coord.t[0] - coord->coord.t[0];
                     frame->delta.vy.w = target->coord.t[1] - coord->coord.t[1];
                     frame->delta.vz.w = target->coord.t[2] - coord->coord.t[2];

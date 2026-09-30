@@ -2351,7 +2351,7 @@ static void Actor04400_Fn0304C(Task* arg0)
 }
 
 /// Latch the model root position into `field_60`, then aim at the nearer of
-/// the two `Gp_ActorSlots` actors (distance measured in XZ): its offset goes
+/// the two `gPlayerActorTasks` actors (distance measured in XZ): its offset goes
 /// to `field_88`..`field_8C`, the distance to `field_43A`, and its heading
 /// relative to `field_7A` to `field_444`. Nothing is written when slot 0 is
 /// empty.
@@ -2368,7 +2368,7 @@ static void Actor04400_Fn031B8(Task* arg0)
 
     work              = (Actor104400Work*)arg0->work;
     coord             = arg0->extra.tmd->coords;
-    player            = Gp_ActorSlots[0];
+    player            = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     work->field_60.vx = coord->coord.t[0];
     work->field_60.vy = coord->coord.t[1];
     work->field_60.vz = coord->coord.t[2];
@@ -2378,8 +2378,8 @@ static void Actor04400_Fn031B8(Task* arg0)
         d0.vy = other->coord.t[1] - coord->coord.t[1];
         d0.vz = other->coord.t[2] - coord->coord.t[2];
         dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
-        if (Gp_ActorSlots[1] != NULL) {
-            other = Gp_ActorSlots[1]->extra.tmd->coords;
+        if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
+            other = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
             d1.vx = other->coord.t[0] - coord->coord.t[0];
             d1.vy = other->coord.t[1] - coord->coord.t[1];
             d1.vz = other->coord.t[2] - coord->coord.t[2];

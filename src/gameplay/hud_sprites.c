@@ -812,7 +812,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
     GameActor*       actor;
     WorldTargetNode* node;
 
-    work   = Gp_ActorSlots[0];
+    work   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     target = NULL;
     if (work != NULL) {
         actor = work->work;
@@ -1059,7 +1059,7 @@ static s32 func_800A7E5C(s32 arg0)
     s32           flag;
 
     flag = 0;
-    work = Gp_ActorSlots[0];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor = work->work;
         p     = &Player_Status;

@@ -22,7 +22,7 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-Task* Gp_ActorSlots[2];
+Task* gPlayerActorTasks[PLAYER_ACTOR_TASK_COUNT];
 
 /// Unreferenced halfword table following the item-grant scan.
 static u16 D_8010CA30[];
@@ -69,8 +69,8 @@ void Gp_AreaEnterTask(Task* arg0)
         stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
         stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
         Stage_InitPrimBufOnce();
-        for (i = 0; i < 2; i++) {
-            slot = Gp_ActorSlots[i];
+        for (i = 0; i < PLAYER_ACTOR_TASK_COUNT; i++) {
+            slot = gPlayerActorTasks[i];
             if (slot != NULL) {
                 ((GameActor*)slot->work)->field_90C = NULL;
             }

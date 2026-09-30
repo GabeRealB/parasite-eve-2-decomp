@@ -2227,7 +2227,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     s32                  pan;
 
     work = (Actor405800Work*)arg0->work;
-    if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
+    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
         func_actor_405800_801379F8(arg0);
         work3            = (Actor405800Work*)arg0->work;
         work3->field_846 = 2;
@@ -2301,7 +2301,7 @@ static void func_actor_405800_80134314(Task* arg0)
     work               = (Actor405800Work*)arg0->work;
     coord              = arg0->extra.tmd->coords;
     enemy              = (Enemy*)arg0->spawnArg2.pointer;
-    player             = Gp_ActorSlots[0]->extra.tmd->coords;
+    player             = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     work->field_84    += -(s16)work->field_84 >> 2;
     coord->coord.t[0] += (player->coord.t[0] - coord->coord.t[0]) >> 2;
     coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
@@ -2335,7 +2335,7 @@ static void func_actor_405800_80134314(Task* arg0)
         return;
     }
     if ((s16)work->field_842 == 1 || (s16)work->field_842 == 0x10 || (s16)work->field_842 == 0x25) {
-        root = &Gp_ActorSlots[0]->extra.tmd->coords[4];
+        root = &gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords[4];
         Gp_SpawnPadLerp(0xA, 0xC0, 8);
         id = 0x40050009;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
@@ -2374,7 +2374,7 @@ static void func_actor_405800_8013471C(Task* arg0)
 
     work            = (Actor405800Work*)arg0->work;
     coord           = arg0->extra.tmd->coords;
-    player          = Gp_ActorSlots[0]->extra.tmd->coords;
+    player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     work->field_84 += -(s16)work->field_84 >> 2;
     work->field_842++;
     if ((s16)work->field_842 >= 8) {
@@ -2986,7 +2986,7 @@ static void func_actor_405800_801361F8(Task* arg0)
 
     work              = (Actor405800Work*)arg0->work;
     coord             = arg0->extra.tmd->coords;
-    arg0              = Gp_ActorSlots[0];
+    arg0              = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     work->field_70.vx = coord->coord.t[0];
     work->field_70.vy = coord->coord.t[1];
     work->field_70.vz = coord->coord.t[2];

@@ -256,7 +256,7 @@ typedef struct Actor01600YawScratch {
 } Actor01600YawScratch;
 STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
 
-/// Index of the `Gp_ActorSlots` actor nearer to `arg0`, or 0 when slot 0 is
+/// Index of the `gPlayerActorTasks` actor nearer to `arg0`, or 0 when slot 0 is
 /// empty (or slot 1 is at least as far). The distance is planar: the Y
 /// difference is computed into the scratch vector but never enters the sum.
 static s32 Actor01600_Fn052C4(Task* arg0);
@@ -1714,7 +1714,7 @@ static void Actor01600_Fn00BAC(Task* actor)
         coord->coord.t[2] = work->field_4C4;
     }
 mode_end:
-    slots = Gp_ActorSlots;
+    slots = gPlayerActorTasks;
     if (work->field_51C != 0) {
         if (--work->field_51C <= 0)
             work->field_51C = 0;
@@ -3186,7 +3186,7 @@ static void Actor01600_Fn03A60(Task* arg0)
 
     work                                       = arg0->work;
     coord                                      = arg0->extra.tmd->coords;
-    slots                                      = Gp_ActorSlots;
+    slots                                      = gPlayerActorTasks;
     slot                                       = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
     allocated                                  = SCRATCH_STACK_CURSOR(Actor01600RotScratch);
     allocated                                 -= 1;
@@ -3525,7 +3525,7 @@ static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     MATRIX*               matrix;
     s32                   angle;
 
-    other   = Gp_ActorSlots[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
+    other   = gPlayerActorTasks[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
     coord   = arg0->extra.tmd->coords;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor01600AimScratch);
     vec     = &scratch->dir;
@@ -3565,7 +3565,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
     task  = work->field_4D4;
     other = task->extra.tmd->coords;
     coord = arg0->extra.tmd->coords;
-    if (((GameActor*)Gp_ActorSlots[work->field_53E]->work)->field_954 != 2) {
+    if (((GameActor*)gPlayerActorTasks[work->field_53E]->work)->field_954 != 2) {
         if (Actor01600_D12870 != 1) {
             difference = Actor01600_Fn045A8(arg0, &distance);
             if (difference < 0) {
@@ -3625,8 +3625,8 @@ static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
 
     work  = actor->work;
     coord = actor->extra.tmd->coords;
-    other = (*Gp_ActorSlots)->extra.tmd->coords;
-    if (((GameActor*)Gp_ActorSlots[flags]->work)->field_954 != 2) {
+    other = (*gPlayerActorTasks)->extra.tmd->coords;
+    if (((GameActor*)gPlayerActorTasks[flags]->work)->field_954 != 2) {
         if (Actor01600_D12870 == 0) {
             otherY     = other->coord.t[1];
             tmp        = coord->coord.t[1];
@@ -3659,7 +3659,7 @@ static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
                         work->field_506 = 0x1C;
                         work->field_52C = 0;
                         work->field_53E = flags;
-                        work->field_4D4 = Gp_ActorSlots[flags];
+                        work->field_4D4 = gPlayerActorTasks[flags];
                         return 1;
                     }
                     return 0;
@@ -3983,14 +3983,14 @@ static s32 Actor01600_Fn052C4(Task* arg0)
     s32       dist;
 
     coord = arg0->extra.tmd->coords;
-    if (Gp_ActorSlots[0] != NULL) {
-        other = Gp_ActorSlots[0]->extra.tmd->coords;
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
+        other = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         d.vx  = (u16)other->coord.t[0] - (u16)coord->coord.t[0];
         d.vy  = (u16)other->coord.t[1] - (u16)coord->coord.t[1];
         d.vz  = (u16)other->coord.t[2] - (u16)coord->coord.t[2];
         dist  = SquareRoot0((d.vx * d.vx) + (d.vz * d.vz));
-        if (Gp_ActorSlots[1] != NULL) {
-            other = Gp_ActorSlots[1]->extra.tmd->coords;
+        if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
+            other = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
             d.vx  = (u16)other->coord.t[0] - (u16)coord->coord.t[0];
             d.vy  = (u16)other->coord.t[1] - (u16)coord->coord.t[1];
             d.vz  = (u16)other->coord.t[2] - (u16)coord->coord.t[2];

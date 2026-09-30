@@ -1433,7 +1433,7 @@ static void func_actor_403600_8013A444(Task* arg0)
     temp_s3  = (Actor403600Work*)arg0->work;
     temp_s7  = arg0->spawnArg2.pointer;
     temp_a0  = temp_s3->field_73E;
-    temp_s6  = Gp_ActorSlots[0]->extra.tmd->coords;
+    temp_s6  = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     switch (temp_a0) {
         case 0x0:
             temp_s3->field_736 = 1U;
@@ -1638,7 +1638,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                         func_actor_403600_8013E7D4(arg0, 1);
                                         temp_s3->field_762 = -0x64;
                                     }
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                                    Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                                     var_s2             = 2;
                                     temp_s3->field_760 = 0;
                                 } else if (sp10 < 0x9C4U) {
@@ -1646,7 +1646,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                     D_actor_403600_80160568.animationId = 1;
                                     func_actor_403600_8013E7D4(arg0, 1);
                                     temp_s3->field_762 = -0x190;
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                                    Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                                     var_s2             = 3;
                                     temp_s3->field_760 = 0;
                                 }
@@ -1656,7 +1656,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_7 = (s8)Gp_GetObjPan(temp_s6);
                                 temp_v0_7 = gpGetObjDepth(temp_s6);
                                 SndEvt_EnqueueType6(temp_s4, temp_s0_7, (s32)(((temp_v0_7 >> 0x1F) + temp_v0_7) << 0x17) >> 0x18);
-                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
                             }
                         }
                         temp_s0_8 = &temp_s3->field_4B8;
@@ -1951,17 +1951,17 @@ static void func_actor_403600_8013A444(Task* arg0)
                             if (var_v0_8 >= 0x401) {
                                 temp_s3->field_762       = 0x28;
                                 temp_s0_msg->animationId = 4;
-                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s0_msg, 0);
+                                Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s0_msg, 0);
                             } else {
                                 temp_s3->field_762       = -0x28;
                                 temp_s0_msg->animationId = 3;
-                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s0_msg, 0);
+                                Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s0_msg, 0);
                             }
                             temp_s4    = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                             temp_s0_17 = (s8)Gp_GetObjPan(temp_s6);
                             temp_v0_19 = gpGetObjDepth(temp_s6);
                             SndEvt_EnqueueType6(temp_s4, temp_s0_17, (s32)(((temp_v0_19 >> 0x1F) + temp_v0_19) << 0x17) >> 0x18);
-                            Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 0), 0);
+                            Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 0), 0);
                         }
                     }
                     if (temp_s1 < 0x3E9) {
@@ -2113,13 +2113,13 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 D_actor_403600_801606A4.power    = (u16)D_actor_403600_80150EAC;
                                 func_actor_403600_8013E7D4(arg0, 1);
                                 temp_s3->field_762 = -0x190;
-                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
+                                Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 temp_s3->field_760 = 0;
                                 temp_s4            = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                                 temp_s0_21         = (s8)Gp_GetObjPan(temp_s6);
                                 temp_v0_22         = gpGetObjDepth(temp_s6);
                                 SndEvt_EnqueueType6(temp_s4, temp_s0_21, (s32)(((temp_v0_22 >> 0x1F) + temp_v0_22) << 0x17) >> 0x18);
-                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
                             } else {
                                 Gp_SpawnPadLerp(0x14, 0xB0, 0x50);
                                 temp_s3->field_760 = 0;
@@ -2130,17 +2130,17 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 if (var_v0_10 >= 0x401) {
                                     temp_s3->field_762     = 0x28;
                                     temp_s1_3->animationId = 4;
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
+                                    Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 } else {
                                     temp_s3->field_762     = -0x28;
                                     temp_s1_3->animationId = 3;
-                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
+                                    Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 }
                                 temp_s4    = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                                 temp_s0_22 = (s8)Gp_GetObjPan(temp_s6);
                                 temp_v0_23 = gpGetObjDepth(temp_s6);
                                 SndEvt_EnqueueType6(temp_s4, temp_s0_22, (s32)(((temp_v0_23 >> 0x1F) + temp_v0_23) << 0x17) >> 0x18);
-                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 4), 0);
+                                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 4), 0);
                                 temp_s3->field_734 = (s16)temp_s3->field_782;
                             }
                             temp_s3->field_792 = 0x96;
@@ -2359,9 +2359,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_26         = (s8)Gp_GetObjPan(temp_s6);
                         temp_v0_31         = gpGetObjDepth(temp_s6);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_26, (s32)(((temp_v0_31 >> 0x1F) + temp_v0_31) << 0x17) >> 0x18);
-                        Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
+                        Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
                         D_actor_403600_80160568.animationId = 4;
-                        Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                        Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                         temp_v0_32   = temp_wip->mp - 0xFB;
                         temp_wip->mp = temp_v0_32;
                         if ((temp_v0_32 << 0x10) <= 0) {
@@ -2370,7 +2370,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_76C = -1;
                         temp_s3->field_760 = 0;
                         temp_s3->field_762 = 0x28;
-                        temp_s0_27         = Gp_ActorSlots[0]->extra.tmd->coords;
+                        temp_s0_27         = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
                         temp_s4            = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54160003;
                         temp_s0_28         = (s8)Gp_GetObjPan(temp_s0_27);
                         temp_v0_33         = gpGetObjDepth(temp_s0_27);
@@ -2984,7 +2984,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         Gp_PulseState1C80();
         gGameSession->eventState            = 1;
         D_actor_403600_80160568.animationId = 0;
-        Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
+        Gp_DispatchMsg(*gPlayerActorTasks, 0x3F1, 0, 0);
         temp_v0_3            = arg0->work;
         temp_v0_3->field_756 = 8;
         temp_v0_3->field_776 = 0xA;
@@ -3304,7 +3304,7 @@ static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
     Actor403600BearingScratch* scratch;
 
     head            = SCRATCH_STACK_CURSOR(void);
-    coord           = (*Gp_ActorSlots)->extra.tmd->coords;
+    coord           = (*gPlayerActorTasks)->extra.tmd->coords;
     head[-1].rel.vx = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     vec             = &head[-1].rel;
     vec->vy         = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
@@ -3340,7 +3340,7 @@ static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
     Actor403600BearingScratch* head;
 
     head                       = SCRATCH_STACK_CURSOR(void);
-    coord                      = (*Gp_ActorSlots)->extra.tmd->coords;
+    coord                      = (*gPlayerActorTasks)->extra.tmd->coords;
     SCRATCH_STACK_CURSOR(void) = &head[-1];
     head[-1].rel.vx            = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
     vec                        = &head[-1].rel;
@@ -3371,7 +3371,7 @@ static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
     s32       var_s4;
     s32       var_v1;
 
-    temp_s7 = *Gp_ActorSlots;
+    temp_s7 = *gPlayerActorTasks;
     temp_s3 = temp_s7->extra.tmd->coords;
     temp_s1 = D_actor_403600_801605E4.vx - temp_s3->coord.t[0];
     temp_s0 = D_actor_403600_801605E4.vz - temp_s3->coord.t[2];
@@ -3664,13 +3664,13 @@ static void func_actor_403600_8013F0C0(Task* arg0)
     Actor403600Work* temp_a1_3;
     Actor403600Work* temp_s3;
 
-    temp_s4 = Gp_ActorSlots[0]->extra.tmd->coords;
+    temp_s4 = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     temp_s3 = arg0->work;
     switch (D_actor_403600_80160568.animationId) {
         case 1:
             temp_s3->field_760++;
             temp_a1 = arg0->work;
-            temp_a0 = Gp_ActorSlots[0]->extra.tmd->coords;
+            temp_a0 = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
             temp_a0->coord.t[0] +=
                 (temp_a0->coord.m[0][2] * temp_a1->field_762) >> 0xC;
             temp_a0->coord.t[2] +=
@@ -3684,7 +3684,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 }
                 D_actor_403600_80160568.animationId = 2;
                 Gp_StateC08.field_6                |= 1;
-                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
             break;
@@ -3705,13 +3705,13 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s0_2 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
                                     (s8)gpGetObjDepth(temp_s4));
-                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9,
+                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9,
                                Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
             if ((s16)temp_s3->field_760 >= 0x66) {
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 0;
-                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
+                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F1, 0, 0);
             }
             break;
 
@@ -3723,7 +3723,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s3->field_762 = 0;
             }
             temp_a1_2 = arg0->work;
-            temp_a0_2 = Gp_ActorSlots[0]->extra.tmd->coords;
+            temp_a0_2 = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
             temp_a0_2->coord.t[0] +=
                 (temp_a0_2->coord.m[0][2] * temp_a1_2->field_762) >> 0xC;
             temp_a0_2->coord.t[2] +=
@@ -3741,7 +3741,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 Gp_StateC08.field_6                |= 1;
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 5;
-                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
             break;
@@ -3754,7 +3754,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s3->field_762 = 0;
             }
             temp_a1_3 = arg0->work;
-            temp_a0_3 = Gp_ActorSlots[0]->extra.tmd->coords;
+            temp_a0_3 = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
             temp_a0_3->coord.t[0] +=
                 (temp_a0_3->coord.m[0][2] * temp_a1_3->field_762) >> 0xC;
             temp_a0_3->coord.t[2] +=
@@ -3772,7 +3772,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 Gp_StateC08.field_6                |= 1;
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 6;
-                Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
             break;
@@ -3784,7 +3784,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             if ((s16)temp_v0_2 >= 0x28) {
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 0;
-                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
+                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F1, 0, 0);
             }
             break;
     }
@@ -3814,7 +3814,7 @@ static void func_actor_403600_8013F608(Task* arg0)
             var_s1          = 1;
             work->field_768 = 0;
             do {
-                Gp_SpawnEff(0x60080, (*Gp_ActorSlots)->extra.tmd->coords + var_s1, 0x400, NULL);
+                Gp_SpawnEff(0x60080, (*gPlayerActorTasks)->extra.tmd->coords + var_s1, 0x400, NULL);
                 var_s1 += 1;
             } while (var_s1 < 0x13);
         }
@@ -3839,7 +3839,7 @@ static void func_actor_403600_8013F608(Task* arg0)
             temp_arg2   = work->field_76A;
             Gp_LcgState = temp_v0_5;
             Gp_SpawnEff(0x60080,
-                        &(*Gp_ActorSlots)->extra.tmd->coords[(temp_t0 % 19) & 0xFFFF],
+                        &(*gPlayerActorTasks)->extra.tmd->coords[(temp_t0 % 19) & 0xFFFF],
                         temp_arg2, NULL);
             work->field_768 = 0;
         }
@@ -4378,15 +4378,15 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             D_actor_403600_801606E0.value.pos.vx = 0x1E8D;
             D_actor_403600_801606E0.value.pos.vy = -0xF9F;
             D_actor_403600_801606E0.value.pos.vz = 0x1AC6;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
+            Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3E9, &D_actor_403600_801606E0.value, 0);
             D_actor_403600_80160568.animationId = 9;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+            Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             break;
         case 2:
             work->field_736                     = 0x15;
             work->field_738                     = 0;
             D_actor_403600_80160568.animationId = 0xA;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+            Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             break;
         case 3:
             work->field_77A = 0x3E8;
@@ -4394,7 +4394,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             break;
         case 4:
             D_actor_403600_801606B0 = Task_SpawnFromTable(&D_8016E468, 0, 0, 0);
-            Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F3, 0, 0);
+            Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F3, 0, 0);
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_4B4         = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 2, 0, 0);
@@ -4406,9 +4406,9 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             D_actor_403600_801606E0.value.pos.vx = 0;
             D_actor_403600_801606E0.value.pos.vy = 0;
             D_actor_403600_801606E0.value.pos.vz = 0;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
+            Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3E9, &D_actor_403600_801606E0.value, 0);
             D_actor_403600_80160568.animationId = 0xB;
-            Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+            Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             childWork                               = work->field_4B4->task->work;
             childObject                             = work->field_4B4->task->extra.tmd;
             childWork->field_730                    = 0xD;
@@ -4561,7 +4561,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
             }
         }
         if (work->field_73A == 0x2A8) {
-            Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F3, 1, 0);
+            Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F3, 1, 0);
         }
         if (work->field_73A >= 0x2A8 && work->field_73A < 0x385 && (work->field_73A & 3) == 3) {
             Gp_SpawnEff(0x601BF, &work->field_4B8, 0x10800, NULL);
@@ -4572,7 +4572,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
         D_actor_403600_801606E0.value.pos.vy  = 0x3E8;
         D_actor_403600_801606E0.value.pos.vz  = -0x1F4;
         D_actor_403600_801606E0.value.rot.vy += 0x38;
-        Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
+        Gp_DispatchMsgPtr(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3E9, &D_actor_403600_801606E0.value, 0);
         if (work->field_73A >= 0x2BC && work->field_73A < 0x385) {
             s16 angle;
             s16 radius;

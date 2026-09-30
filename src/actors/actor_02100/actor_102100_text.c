@@ -607,7 +607,7 @@ static void Actor02100_Fn004C4(Task* arg0)
             if (work->field_60.key.value & 0x8000) {
                 func_800DA6E8(&enemy->node, 0, 0);
             } else if ((((u32)work->field_60.key.value >> 8) & 0x3F) < 0x21U) {
-                src             = Gp_ActorSlots[((u32)work->field_60.key.value >> 7) & 1]->extra.tmd->coords;
+                src             = gPlayerActorTasks[((u32)work->field_60.key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
                 scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
                 scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];

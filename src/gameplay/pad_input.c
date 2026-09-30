@@ -133,7 +133,7 @@ void Gp_UpdatePadInput(void)
 
     pad  = &Pad_States[0];
     cfg  = &Player_Status;
-    work = Gp_ActorSlots[0];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work == NULL) {
         return;
     }

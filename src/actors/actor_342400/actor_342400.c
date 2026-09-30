@@ -407,7 +407,7 @@ static void func_actor_342400_80162324(Task* arg0)
 
 static s16 func_actor_342400_801624A4(void)
 {
-    GfxCoord* coord = (*Gp_ActorSlots)->extra.tmd->coords;
+    GfxCoord* coord = (*gPlayerActorTasks)->extra.tmd->coords;
     s16       x     = coord->coord.t[0];
     s16       z     = coord->coord.t[2];
 

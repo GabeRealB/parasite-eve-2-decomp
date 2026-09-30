@@ -1500,7 +1500,7 @@ static void Actor00400_Fn00C84(Task* arg0)
     u8               frame;
 
     actor  = arg0;
-    player = Gp_ActorSlots[0];
+    player = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     work   = actor->work;
     coord  = actor->extra.tmd->coords;
     if (work->field_628 != 4) {
@@ -1582,7 +1582,7 @@ static void Actor00400_Fn01454(Task* arg0)
 
     work            = arg0->work;
     coord           = arg0->extra.tmd->coords;
-    player          = Gp_ActorSlots[0];
+    player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     joint           = &coord[1];
     work->field_54C = coord->coord.t[0];
     work->field_54E = coord->coord.t[1];
@@ -1597,13 +1597,13 @@ static void Actor00400_Fn01454(Task* arg0)
         delta0.vy = c0->coord.t[1] - view.vy;
         delta0.vz = c0->coord.t[2] - view.vz;
         dist0     = SquareRoot0(delta0.vx * delta0.vx + delta0.vz * delta0.vz);
-        if (Gp_ActorSlots[1] == NULL) {
+        if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] == NULL) {
             work->field_5E4.vx = c0->coord.t[0];
             work->field_5E4.vy = c0->coord.t[1];
             work->field_5E4.vz = c0->coord.t[2];
             work->field_640    = dist0;
         } else {
-            c1        = Gp_ActorSlots[1]->extra.tmd->coords;
+            c1        = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
             delta1.vx = c1->coord.t[0] - view.vx;
             delta1.vy = c1->coord.t[1] - view.vy;
             delta1.vz = c1->coord.t[2] - view.vz;

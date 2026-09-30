@@ -1038,7 +1038,7 @@ static __inline__ s32 hudSwapReady(void)
     s32           ret;
 
     flag = 0;
-    work = Gp_ActorSlots[0];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor = work->work;
         p     = &Player_Status;
@@ -1445,7 +1445,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 goto after;
             }
             hit  = 0;
-            work = Gp_ActorSlots[0];
+            work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
             if (work != NULL) {
                 GameActor*    actor;
                 PlayerStatus* p;

@@ -1070,7 +1070,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                 break;
             case 2:
                 if (work->field_34E == 0) {
-                    sourceCoord       = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
+                    sourceCoord       = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
                     frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];

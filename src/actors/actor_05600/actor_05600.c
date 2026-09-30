@@ -1303,7 +1303,7 @@ static void Actor05600_Fn000A4(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
+                other               = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];

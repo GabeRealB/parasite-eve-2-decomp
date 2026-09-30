@@ -1549,7 +1549,7 @@ static void Actor00300_Fn00E54(Task* arg0)
                     case 9:
                         break;
                 }
-                other               = Gp_ActorSlots[(u8)work->rec4F0[i].key.value >> 7]->extra.tmd->coords;
+                other               = gPlayerActorTasks[(u8)work->rec4F0[i].key.value >> 7]->extra.tmd->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];

@@ -3679,9 +3679,9 @@ static void func_actor_403100_80132528(Task* arg0)
     GfxCoord*  coords;
 
     anim                               = D_actor_403100_80155808->field_5DE;
-    playerCoord                        = (*Gp_ActorSlots)->extra.tmd->coords;
+    playerCoord                        = (*gPlayerActorTasks)->extra.tmd->coords;
     coords                             = arg0->extra.tmd->coords;
-    player                             = (*Gp_ActorSlots)->work;
+    player                             = (*gPlayerActorTasks)->work;
     angle                              = D_actor_403100_80155808->field_5E2;
     savedAngle                         = (u16)D_actor_403100_80155808->field_5E2;
     D_actor_403100_80155808->field_5E2 = angle * 2;
@@ -3909,8 +3909,8 @@ static void func_actor_403100_801331D4(Task* arg0)
 
     coords = arg0->extra.tmd->coords;
     joint  = &coords[3];
-    if (*Gp_ActorSlots != NULL) {
-        playerCoord                        = (*Gp_ActorSlots)->extra.tmd->coords;
+    if (*gPlayerActorTasks != NULL) {
+        playerCoord                        = (*gPlayerActorTasks)->extra.tmd->coords;
         D_actor_403100_80155808->field_90  = (u16)playerCoord->coord.t[0];
         D_actor_403100_80155808->field_92  = (u16)playerCoord->coord.t[1];
         D_actor_403100_80155808->field_94  = (u16)playerCoord->coord.t[2];
@@ -5376,7 +5376,7 @@ static void func_actor_403100_80136830(Task* arg0)
     GfxCoord*       playerCoord;
 
     obj           = arg0->extra.tmd;
-    player        = *Gp_ActorSlots;
+    player        = *gPlayerActorTasks;
     stateHandlers = D_actor_403100_80131F34;
     armTimer      = D_actor_403100_80155808->field_5E6;
     if (armTimer != 0) {
@@ -5692,7 +5692,7 @@ static void func_actor_403100_801376D8(Task* arg0)
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-                ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
+                ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
             }
         }
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -5756,7 +5756,7 @@ static void func_actor_403100_801379B4(Task* arg0)
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-                ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
+                ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
             }
         }
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -6104,7 +6104,7 @@ static void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-            ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
+            ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
         }
     }
     func_actor_403100_8013C7B4(arg0);
@@ -6150,7 +6150,7 @@ static void func_actor_403100_80138AB4(Task* task)
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-            ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
+            ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
         }
     }
     if (Actor403100_TestFlags104()) {
@@ -6219,7 +6219,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
     Task*            player;
     Actor403100Work* work;
 
-    player                             = Gp_ActorSlots[0];
+    player                             = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     D_actor_403100_80155808->field_5EC = (u16)(D_actor_403100_80155808->field_5EC + 1);
     if ((func_actor_403100_80133928() << 0x10) == 0) {
         if ((s16)D_actor_403100_80155808->field_5EC < 0x101) {
@@ -6519,7 +6519,7 @@ static void func_actor_403100_80139818(Task* arg0)
     GfxCoord*        part;
     GfxCoord*        coords;
 
-    playerTask = *Gp_ActorSlots;
+    playerTask = *gPlayerActorTasks;
     coords     = arg0->extra.tmd->coords;
     part       = coords + 6;
     config     = &Player_Status;
@@ -6706,7 +6706,7 @@ static void func_actor_403100_8013A064(Task* arg0)
     u16        frame;
     s32        depth;
 
-    actor                              = (*Gp_ActorSlots)->work;
+    actor                              = (*gPlayerActorTasks)->work;
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0x3C) {
@@ -6757,7 +6757,7 @@ static void func_actor_403100_8013A254(Task* task)
     s32              depth;
     s32              depth2;
 
-    actor                              = *Gp_ActorSlots;
+    actor                              = *gPlayerActorTasks;
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xB) {
@@ -6973,7 +6973,7 @@ static void func_actor_403100_8013AC04(Task* task)
     u8               completed;
     Actor403100Work* work;
 
-    player   = *Gp_ActorSlots;
+    player   = *gPlayerActorTasks;
     actor    = (GameActor*)player->work;
     finished = 0;
     if ((s16)D_actor_403100_80155808->field_5EC == 0) {
@@ -7025,7 +7025,7 @@ static void func_actor_403100_8013AE28(Task* task)
     s32   depth;
     u16   frame;
 
-    player                             = *Gp_ActorSlots;
+    player                             = *gPlayerActorTasks;
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xA) {
@@ -7591,7 +7591,7 @@ static void func_actor_403100_8013C214(Task* arg0)
     s32              sound3, pan3;
     s32              depth3;
 
-    playerTask = *Gp_ActorSlots;
+    playerTask = *gPlayerActorTasks;
     coords     = arg0->extra.tmd->coords + 6;
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if (D_actor_403100_80155808->field_638 != 0) {
@@ -7752,7 +7752,7 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     GfxCoord* coords;
     GfxCoord* second;
 
-    playerCoord = (*Gp_ActorSlots)->extra.tmd->coords;
+    playerCoord = (*gPlayerActorTasks)->extra.tmd->coords;
     savedAngle  = (u16)D_actor_403100_80155808->field_5E2;
     coords      = arg0->extra.tmd->coords;
     second      = coords + 7;

@@ -1578,13 +1578,13 @@ static void func_actor_800100_80163214(Task* arg0)
     extra                      = arg0->extra.tmd;
     coord                      = extra->coords;
     arg0->state++;
-    arg0->msgTable      = D_actor_800100_80167130;
-    arg0->exitCallback  = func_actor_800100_80163C04;
-    actor->field_938    = 0x14;
-    Gp_ActorSlots[1]    = arg0;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
+    arg0->msgTable                                 = D_actor_800100_80167130;
+    arg0->exitCallback                             = func_actor_800100_80163C04;
+    actor->field_938                               = 0x14;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
+    coord->parent                                  = &gGfxViewCoord;
+    coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
+    extra->flags                                   = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     func_8010BFCC(arg0);
     actor->field_985 = 0x10;
@@ -1879,10 +1879,10 @@ static void func_actor_800100_80163C04(Task* arg0)
     GpActorD4* d4;
     Task*      task;
 
-    actor            = arg0->work;
-    d4               = actor->field_910;
-    Gp_ActorSlots[1] = NULL;
-    task             = actor->field_914;
+    actor                                          = arg0->work;
+    d4                                             = actor->field_910;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
+    task                                           = actor->field_914;
     if (task != NULL) {
         taskKill(task);
     }

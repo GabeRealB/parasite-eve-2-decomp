@@ -232,7 +232,7 @@ void Gp_SetupDirWarp(void)
                 pos.vx     = -0x5C1;
                 pos.vy     = 0;
                 pos.vz     = 0x9C1;
-                msg.rot.vy = Gp_YawToPosXZ(Gp_ActorSlots[0], (GpPosXZ*)&pos);
+                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos);
             } else if (rec.player.words.field_0 == 0x7FFE) {
                 msg.rot.vy = actor->field_52;
             }
@@ -274,7 +274,7 @@ void Gp_SetupDirWarp(void)
                 pos2.vx    = -0x5C1;
                 pos2.vy    = 0;
                 pos2.vz    = 0x9C1;
-                msg.rot.vy = Gp_YawToPosXZ(Gp_ActorSlots[0], (GpPosXZ*)&pos2);
+                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos2);
             } else if (rec.player.words.field_0 == 0x7FFE) {
                 msg.rot.vy = actor->field_52;
             }

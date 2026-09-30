@@ -3793,7 +3793,7 @@ static void func_actor_421600_80136138(Task* arg0)
         func_actor_421600_80134604(arg0);
         return;
     }
-    playerZone = Actor421600_Zone(Gp_ActorSlots[0]->extra.tmd->coords);
+    playerZone = Actor421600_Zone(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords);
     zone       = Actor421600_Zone(arg0->extra.tmd->coords);
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     if (playerZone == zone) {
@@ -6091,7 +6091,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
         func_actor_421600_80134604(arg0);
         work->field_6   = 0;
         work->field_8   = 0;
-        zoneCoord       = Gp_ActorSlots[0]->extra.tmd->coords;
+        zoneCoord       = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         scratch->zone   = Actor421600_RouteZone(zoneCoord->coord.t[0], zoneCoord->coord.t[2]);
         coord           = arg0->extra.tmd->coords;
         head[-1].vec.vx = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
@@ -6169,7 +6169,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
             Gfx_RotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x2EE, 1);
             work->field_14 = 0;
         }
-        zoneCoord     = Gp_ActorSlots[0]->extra.tmd->coords;
+        zoneCoord     = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         scratch->zone = Actor421600_RouteZone(zoneCoord->coord.t[0], zoneCoord->coord.t[2]);
         if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
             work->field_C[0].x = D_actor_421600_801511D4[scratch->zone][0];

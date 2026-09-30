@@ -1153,7 +1153,7 @@ static void Gp_DebugPanTask(Task* arg0)
         }
     }
 
-    work = Gp_ActorSlots[1];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION];
     if (work != NULL) {
         TmdObject* model;
 

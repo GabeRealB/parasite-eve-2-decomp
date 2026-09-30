@@ -732,7 +732,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
     s16              found;
 
     work          = (NeoArkAltarWork*)task->work;
-    actor         = *Gp_ActorSlots;
+    actor         = *gPlayerActorTasks;
     work->field_6 = work->field_8;
     grow          = 0;
     coord         = actor->extra.tmd->coords;

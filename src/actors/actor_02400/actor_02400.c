@@ -488,7 +488,7 @@ move_done:
                 }
                 switch (kind) {
                     case 0:
-                        src                 = Gp_ActorSlots[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
+                        src                 = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
@@ -509,7 +509,7 @@ move_done:
                         work->field_134 = 0;
                         break;
                     case 1:
-                        src                 = Gp_ActorSlots[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
+                        src                 = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
@@ -527,7 +527,7 @@ move_done:
                         }
                         break;
                     case 2:
-                        src                 = Gp_ActorSlots[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
+                        src                 = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];

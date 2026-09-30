@@ -870,7 +870,7 @@ static void Actor00700_Fn00334(Task* actor)
             case 2:
                 if (work->field_378 == 0) {
                     slot              = id >> 7;
-                    sourceCoord       = Gp_ActorSlots[slot & 1]->extra.tmd->coords;
+                    sourceCoord       = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
                     frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];
@@ -973,7 +973,7 @@ static void Actor00700_Fn00334(Task* actor)
     }
     contactRec = work->sensorContacts;
     if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
-        sourceCoord      = Gp_ActorSlots[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
+        sourceCoord      = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
         work->field_394  = 1;
         work->field_1FA &= 0x7FFF;
         work->field_33C  = sourceCoord;
@@ -2055,7 +2055,7 @@ static void Actor00700_Fn02414(Task* arg0)
             break;
         case 2:
             arg0->state = (s32)state;
-            target      = Gp_ActorSlots[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
+            target      = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
             dx          = target->coord.t[0] - coord->coord.t[0];
             delta->vx.w = dx;
             dy          = target->coord.t[1] - coord->coord.t[1];

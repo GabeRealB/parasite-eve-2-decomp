@@ -2432,10 +2432,10 @@ static __inline__ s32 _actor01100BearingToPlayer(GfxCoord* self)
     ActorBearingScratch* blk;
     s32                  angle;
 
-    if (Gp_ActorSlots[0] == NULL) {
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] == NULL) {
         angle = 0;
     } else {
-        other = Gp_ActorSlots[0]->extra.tmd->coords;
+        other = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
         angle = actorBearingInFrame(blk, self, other);
         SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
@@ -3794,7 +3794,7 @@ static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 }
 
 /// Angle from `arg0`'s coordinate to the coordinate at
-/// `Gp_ActorSlots[arg1]->extra->field_8`, measured in `arg0`'s own frame. The
+/// `gPlayerActorTasks[arg1]->extra->field_8`, measured in `arg0`'s own frame. The
 /// three translation components, target minus self, are written into the
 /// 8-byte scratch vector at `head - 0x40`, `TransposeMatrix` builds the inverse
 /// of `arg0->workm` into the 0x20 bytes above it, `mvmva` rotates the delta
@@ -3816,7 +3816,7 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
     ActorBearingScratch* blk;
     MATRIX*              matrix;
 
-    actor = Gp_ActorSlots[arg1];
+    actor = gPlayerActorTasks[arg1];
     if (actor == NULL) {
         return 0;
     }

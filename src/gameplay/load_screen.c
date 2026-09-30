@@ -136,8 +136,8 @@ void func_800AA548(s32 arg0)
             Mc_SaveData[0].state.location.loc.view = gGameSession->location.loc.view = rec.field_34;
         }
     }
-    Gp_ActorSlots[0] = NULL;
-    Gp_ActorSlots[1] = NULL;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]    = NULL;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     if (gDisplayState.control.flags.pendingPlayerPos == 1) {
         // Restore the captured signed coordinates instead of the warp's start.
         savedPos                 = &(&Player_Status)[Mc_SaveData[0].state.characterId - 1].pos;

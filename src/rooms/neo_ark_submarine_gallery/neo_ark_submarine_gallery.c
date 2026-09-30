@@ -293,7 +293,7 @@ static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
 {
     s32 mode;
-    if (Gp_ActorSlots[0] != NULL) {
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
         mode = 4;
         if (gGameSession->location.loc.variant != mode && gGameSession->battleResetPending != 0) {
             gGameSession->location.loc.variant = mode;

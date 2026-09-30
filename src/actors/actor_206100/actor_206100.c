@@ -337,7 +337,7 @@ typedef struct Actor206100Work {
     /* 0x524 */ s16 field_524;
     /* 0x526 */ u16 field_526;
     /// XZ distance to the walk target the yaw above was taken from, the
-    /// shorter of the two `Gp_ActorSlots` distances.
+    /// shorter of the two `gPlayerActorTasks` distances.
     /* 0x528 */ s16 field_528;
     /// Hit flag `func_actor_206100_8014BAA8` raises on the frame it applies a
     /// record's damage, which also stops its walk, and clears again for the
@@ -1667,13 +1667,13 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             break;
     }
 }
-/// Latches the actor's position and picks the nearer of the two `Gp_ActorSlots`
+/// Latches the actor's position and picks the nearer of the two `gPlayerActorTasks`
 /// actors as its walk target: it stores the standing post in `field_434` /
 /// `field_438`, then measures the XZ distance to each slot from the root
 /// coordinate, keeping the closer one's position in `field_4D0` / `field_4D4`
 /// and its distance in `field_528`.
 ///
-/// Two details are load-bearing.  `Gp_ActorSlots[0]` is read *before* the three
+/// Two details are load-bearing.  `gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]` is read *before* the three
 /// post stores: written after them the scheduler moves the whole `lui` / `lw`
 /// group below the stores, which costs twelve bytes of schedule and shifts
 /// every later branch target.  And the player delta `d0` is normalised and fed
@@ -1693,7 +1693,7 @@ static void func_actor_206100_8014B698(Task* task)
 
     work            = (Actor206100Work*)task->work;
     coord           = task->extra.tmd->coords;
-    player          = Gp_ActorSlots[0];
+    player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     work->field_434 = (u16)coord->coord.t[0];
     work->field_436 = (u16)coord->coord.t[1];
     work->field_438 = (u16)coord->coord.t[2];
@@ -1703,13 +1703,13 @@ static void func_actor_206100_8014B698(Task* task)
         d0.vy = (u16)c0->coord.t[1] - (u16)coord->coord.t[1];
         d0.vz = (u16)c0->coord.t[2] - (u16)coord->coord.t[2];
         dist0 = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
-        if (Gp_ActorSlots[1] == NULL) {
+        if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] == NULL) {
             work->field_4D0 = c0->coord.t[0];
             work->field_4D2 = c0->coord.t[1];
             work->field_4D4 = c0->coord.t[2];
             work->field_528 = dist0;
         } else {
-            c1    = Gp_ActorSlots[1]->extra.tmd->coords;
+            c1    = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
             d1.vx = (u16)c1->coord.t[0] - (u16)coord->coord.t[0];
             d1.vy = (u16)c1->coord.t[1] - (u16)coord->coord.t[1];
             d1.vz = (u16)c1->coord.t[2] - (u16)coord->coord.t[2];

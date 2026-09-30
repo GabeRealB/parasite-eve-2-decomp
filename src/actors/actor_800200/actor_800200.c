@@ -934,13 +934,13 @@ static void func_actor_800200_80162088(Task* arg0)
     addr                       = &extra->coords;
     coord                      = *addr;
     arg0->state++;
-    arg0->msgTable      = D_actor_800200_80169EF0;
-    arg0->exitCallback  = &func_actor_800200_801626A0;
-    actor->field_938    = 0x13;
-    Gp_ActorSlots[1]    = arg0;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
+    arg0->msgTable                                 = D_actor_800200_80169EF0;
+    arg0->exitCallback                             = &func_actor_800200_801626A0;
+    actor->field_938                               = 0x13;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
+    coord->parent                                  = &gGfxViewCoord;
+    coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
+    extra->flags                                   = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     func_8010BFCC(arg0);
     actor->field_985 = 0x10;
@@ -1094,15 +1094,15 @@ static void func_actor_800200_80162694(Task* arg0)
 }
 
 /// Teardown of the actor's main task, run both as its exit callback and as
-/// the last entry of its state table: clears the second `Gp_ActorSlots` slot,
+/// the last entry of its state table: clears the second `gPlayerActorTasks` slot,
 /// unlinks the two collision objects the set-up state linked, and kills the
 /// task.
 static void func_actor_800200_801626A0(Task* task)
 {
     GameActor* actor;
 
-    actor            = (GameActor*)task->work;
-    Gp_ActorSlots[1] = NULL;
+    actor                                          = (GameActor*)task->work;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     Gp_UnlinkObj((WorldCollisionBody*)actor->field_AC);
     Gp_UnlinkObj((WorldCollisionBody*)actor->field_CC);
     taskKill(task);

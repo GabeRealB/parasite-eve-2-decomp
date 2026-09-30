@@ -1459,7 +1459,7 @@ void func_actor_403600_80134398(Task* arg0)
 
     coord  = arg0->extra.coordBody->coord;
     sp10   = D_actor_403600_80131E24;
-    player = Gp_ActorSlots[0];
+    player = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (player == NULL) {
         Task_CallExit(arg0);
         return;

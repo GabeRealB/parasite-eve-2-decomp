@@ -1263,7 +1263,7 @@ Gp_NewGameFlagsStg4 = 0x801140F8; // size:0x5C defined:True
 Gp_NewGameFlagsStg5 = 0x80114154; // size:0x44 defined:True
 Gp_AreaIdBits               = 0x80114D00; // size:0x8 defined:True
 gWorldTargetListHead = 0x80115268; // size:0x4 defined:True
-Gp_ActorSlots               = 0x80115760; // size:0x8 defined:True
+gPlayerActorTasks               = 0x80115760; // size:0x8 defined:True
 
 // Gameplay naming pass 4 (inventory, obj lists, view-count)
 Gp_ViewCountTables = 0x8010CB40; // size:0x14 defined:True

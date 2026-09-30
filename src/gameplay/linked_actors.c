@@ -752,7 +752,7 @@ void func_800A57B0(GpIdMapC* arg0)
         Ui_InsertDrawTPage(-2, 0);
     }
 
-    if (Gp_ActorSlots[1] != NULL) {
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
         if (Mc_SaveData[0].state.companionType != 2) {
             Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData[0].state.companionHp, Mc_SaveData[0].state.companionHpMax, 0);
         }
