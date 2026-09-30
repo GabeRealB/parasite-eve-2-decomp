@@ -28,8 +28,12 @@ that is the only place a name has to mean one thing: placeholder and shared
 names are reused for different bodies in different overlays. A conflict found
 in several images is reported once. PATH_PREFIX restricts which translation
 units are scanned (`src/pe`). --strict exits non-zero on anything in
-the first two classes. With --across-images, each external spelling is also
-compared across the entire build. Use check_symbols.py alongside it to establish
+the first two classes. With --across-images, an external spelling that one
+image defines and another only declares is also compared across the build, so
+an imported interface cannot disagree with its definition. A name that every
+mentioning image defines itself is overlay-local storage reused per image
+(the room-event objects are the usual case) and is not one object; it is left
+to the per-image comparison. Use check_symbols.py alongside it to establish
 that imports and definitions name the same owned object; a shared load address
 alone does not establish symbol identity.
 """
@@ -86,11 +90,17 @@ def _scan(rel: str):
         if where.startswith(".."):
             continue
         ty = cur.type.get_canonical()
+        # `T x;` at file scope is a tentative definition. Clang does not mark
+        # it is_definition(); `extern T x;` is the declaration that is not.
+        is_def = cur.is_definition()
+        if (not is_def and cur.kind == ci.CursorKind.VAR_DECL
+                and cur.storage_class != ci.StorageClass.EXTERN):
+            is_def = True
         decls.append((
             cur.spelling,
             _norm(ty),
             ty.spelling,
-            cur.is_definition(),
+            is_def,
             cur.kind == ci.CursorKind.FUNCTION_DECL and ty.kind == ci.TypeKind.FUNCTIONNOPROTO,
             f"{where}:{cur.location.line}",
         ))
@@ -120,7 +130,8 @@ def main() -> int:
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 4)
     ap.add_argument("--strict", action="store_true", help="exit 1 on definition or declaration mismatches")
     ap.add_argument("--across-images", action="store_true",
-                    help="also compare externally linked names across overlays; use check_symbols.py to verify their ownership")
+                    help="also compare imported external names across overlays; "
+                         "a name defined by every image that mentions it stays per-image")
     args = ap.parse_args()
 
     root = os.path.abspath(args.root)
@@ -139,6 +150,27 @@ def main() -> int:
             for name, loc in calls:
                 implicit[name].add(loc)
 
+    # A name defined in every image that mentions it is that image's own
+    # object. Across-image comparison is for an import, whose declaring image
+    # has no definition.
+    image_local: set[str] = set()
+    if "<all images>" in images:
+        tu_images: dict[str, set[str]] = collections.defaultdict(set)
+        for image, members in images.items():
+            if image == "<all images>":
+                continue
+            for rel in members:
+                tu_images[rel].add(image)
+        mentions: dict[str, set[str]] = collections.defaultdict(set)
+        definers: dict[str, set[str]] = collections.defaultdict(set)
+        for rel, decls in per_tu.items():
+            for image in tu_images.get(rel, ()):
+                for name, _norm, _full, is_def, _noproto, _loc in decls:
+                    mentions[name].add(image)
+                    if is_def:
+                        definers[name].add(image)
+        image_local = {name for name, imgs in mentions.items() if imgs and imgs <= definers[name]}
+
     # An image decides whether a name conflicts; the report then gathers every
     # conflicting image's declarations of that name into one entry, so a shared
     # header or unit is listed once rather than once per carrier.
@@ -148,6 +180,8 @@ def main() -> int:
         seen: dict[str, dict[str, set]] = collections.defaultdict(lambda: collections.defaultdict(set))
         for rel in members:
             for name, norm, full, is_def, noproto, loc in per_tu.get(rel, ()):
+                if image == "<all images>" and name in image_local:
+                    continue
                 seen[name][norm].add((is_def, noproto, loc, full))
         for name, by_type in seen.items():
             if len(by_type) < 2:
