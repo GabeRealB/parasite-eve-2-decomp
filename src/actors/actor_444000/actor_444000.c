@@ -5829,10 +5829,12 @@ static void func_actor_444000_8013A77C(Task* task)
 /// whether the model buffers are (re)allocated first.
 ///
 /// 0 brings the group back with buffers and the 0x80 flag, 1 clears the flag
-/// before making sure the buffers exist, 2 raises bit 2 and reports it back
-/// through the flag word, and 3 clears the word, pushes the clear, then raises
-/// bit 2 on the host alone. The two that end with a cleared flag word also
-/// reset the work block's state index.
+/// before making sure the buffers exist, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER`
+/// and, finding that bit set, stores 3 in `field_7F3` and replaces the flag
+/// word with `TMD_OBJECT_SKIP_ACTIVE_DRAW`. 3 clears the word, pushes the
+/// clear, then sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on the host alone. Cases 0
+/// and 2 also reset `field_0`. Case 2 tests the bit it just set, so that test
+/// is always true.
 s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
 {
     TmdObject*       tmd;
@@ -5899,7 +5901,7 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
             tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             flags       = tmd->flags;
             escorts     = task->work;
-            if (flags & 4) {
+            if (flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
                 escorts->field_7F3     = 3;
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {

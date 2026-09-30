@@ -1700,9 +1700,10 @@ static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, ActorTransform
 
 /// `Task::msgTable` handler for message id 0x7D5: switches the draw and
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
-/// clear bit 0x80 - hiding and showing the model - and leave bit 0x4 clear so
-/// the model keeps its buffers, mode 1 reinstating them through
-/// `Tmd_AllocBuffers` first. Modes 2 and 3 set 0x4 instead, skipping that
+/// clear bit 0x80 - hiding and showing the model - and leave
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` clear so the model keeps its buffers, mode 1
+/// reinstating them through `Tmd_AllocBuffers` first. Modes 2 and 3 set
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` instead, skipping that
 /// allocation; mode 2 also stores itself in the work block's lifetime counter,
 /// `MineForkedTunnelWork::field_44`, which `func_mine_forked_tunnel_8017D724`
 /// counts down before freeing the child. Any other mode touches nothing and

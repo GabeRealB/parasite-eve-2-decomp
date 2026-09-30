@@ -1,9 +1,10 @@
 /* Part of the model placement library; see model_placement.h. */
 
 /// Tick state of the child in the second state table: copies the spawner's
-/// model flag bits 0x80 (hidden) and 0x4 (draw buffers allocated) onto this
-/// task's model, rebuilding the buffers through `Tmd_AllocBuffers` when the
-/// spawner's are gone.
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW` and `TMD_OBJECT_SKIP_AUTO_BUFFER` onto this
+/// task's model. When the spawner's skip bit is clear, the child clears its
+/// own and `Tmd_AllocBuffers` fills a missing buffer; a set bit is copied and
+/// the child's buffer is left alone.
 void modelPlacementMirrorParent(Task* task)
 {
     TmdObject* parentObject;

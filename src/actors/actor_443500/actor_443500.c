@@ -2724,12 +2724,13 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
 
 /// Message-0x7D5 handler: the four-way switch on `mode` over the `TmdObject`
 /// parked in `Task::extra`. `mode` drives `TmdObject::flags`: bit 0x80 marks
-/// the actor hidden and bit 0x4 the display buffers being live.
+/// the actor hidden, and `TMD_OBJECT_SKIP_AUTO_BUFFER` opts it out of
+/// missing-buffer recovery.
 ///
-///   mode 0  hide, drop 0x4
-///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
-///   mode 2  hide, latch `mode` in the work block's `field_4BC`, raise 0x4
-///   mode 3  show, raise 0x4
+///   mode 0  hide, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  show, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 2  hide, latch `mode` in the work block's `field_4BC`, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 3  show, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
 /// Any other mode returns 1; the four known ones return 0. Either way the
 /// resulting flags are mirrored onto `Actor443500Work::field_4C0`, the slot

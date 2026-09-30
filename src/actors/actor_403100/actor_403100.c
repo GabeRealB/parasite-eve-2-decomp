@@ -8126,7 +8126,7 @@ void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
             object->flags                      = flags;
             return;
         case 3:
-            flags         = (object->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
+            flags         = (object->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
             object->flags = flags;
             return;
     }

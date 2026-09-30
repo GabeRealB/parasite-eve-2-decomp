@@ -889,10 +889,10 @@ static void func_actor_350700_80162764(Task* arg0)
 /// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.
 /// Mode 0 sets the 0x80 flag, under which the tick skips the shadow and the
-/// part update, and clears the 4 flag; 1 clears 0x80, allocates the model
-/// buffers and clears 4; 2 sets 0x80 and 4 and latches the mode into the
+/// part update, and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 clears 0x80, allocates the model
+/// buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 sets 0x80 and `TMD_OBJECT_SKIP_AUTO_BUFFER` and latches the mode into the
 /// `freeCountdown` countdown, which frees the buffers when it runs out; 3 clears
-/// 0x80 and sets 4. Anything else returns 1 and leaves the object alone; the
+/// 0x80 and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else returns 1 and leaves the object alone; the
 /// handled modes return 0.
 s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
 {

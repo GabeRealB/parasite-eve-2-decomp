@@ -1323,14 +1323,14 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
 #include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Display handler: `mode` sets or clears bit 0x80 of `TmdObject::flags`
-/// (hidden) and sets or clears bit 0x4:
+/// (hidden) and sets or clears `TMD_OBJECT_SKIP_AUTO_BUFFER`:
 ///
-///   mode 0  set 0x80, clear 0x4
-///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear 0x4
+///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 2  set 0x80, store 2 in the countdown `Actor113000Work::field_4C8`
 ///           that `func_actor_113000_80132070` ends in `Tmd_FreeBuffers`,
-///           set 0x4
-///   mode 3  clear 0x80, set 0x4
+///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
 /// Any other mode returns 1; the four known ones return 0. `arg3` is unused.
 s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)

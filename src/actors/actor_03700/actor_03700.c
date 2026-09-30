@@ -734,7 +734,7 @@ static const GpEnemyTaskFuncTable3 Actor03700_D00004 = {
 /// model at its light/colour matrices and links the enemy node. The model
 /// variant (`AreaPlacement::mode`) picks the mode: tens digit 0 allocates
 /// the model buffers and takes the units digit (0..2) as the pose, nudging the
-/// root coordinate for poses 1 and 2; 1..3 set model flag 4 and mode 7 or 10.
+/// root coordinate for poses 1 and 2; 1..3 set `TMD_OBJECT_SKIP_AUTO_BUFFER` and mode 7 or 10.
 /// The animation slots then get a shared random phase, and the collision object
 /// is linked with its four records before the task moves to state 1.
 static void Actor03700_Fn000A4(Enemy* arg0, Task* task)

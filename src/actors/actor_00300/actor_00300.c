@@ -2905,7 +2905,7 @@ static __inline__ void Actor00300_UpdateTransform(Enemy* arg0, Task* arg1)
             flags      = ((work->field_678 & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags = flags;
             if (work->field_678 & 2) {
-                obj->flags = flags | 4;
+                obj->flags = flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
         }
         scale = work->field_676;
@@ -3157,7 +3157,7 @@ static void Actor00300_Fn048D4(Enemy* arg0, Task* arg1)
         flags      = ((work->field_678 & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
         obj->flags = flags;
         if (work->field_678 & 2) {
-            obj->flags = flags | 4;
+            obj->flags = flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
     }
     Actor00300_Fn04ED4(arg1);

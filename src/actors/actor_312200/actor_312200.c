@@ -526,7 +526,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 
 /// Id 0x7D5 command handler, listed first in `D_actor_312200_80169F5C`. `arg2`
 /// is the mode: 0 sets the model's `TmdObject::flags` to exactly 0x80, 1 clears
-/// them, 2 raises bit 0x4, and 3 clears them and then raises bit 0x4. Modes 0
+/// them, 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 clears them and then raises `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0
 /// and 1 re-run `Tmd_AllocBuffers` on the model, and every mode except 1 resets
 /// the work block's `field_0` state word. `arg1` is unused.
 s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)

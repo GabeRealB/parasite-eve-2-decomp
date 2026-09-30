@@ -752,9 +752,9 @@ void func_actor_120500_80132920(void)
 }
 
 /// Message 0x7D5 handler: shows or hides the task's model. Payload 0 hides it
-/// (sets `TmdObject` flag 0x80), 1 shows it and clears flag 0x4, and 2 hides
-/// it and sets 0x4, which keeps `Tmd_AllocMissingBuffers` from giving it
-/// buffers again. Payload 2 sets 0x4 and falls into payload 0, rather than
+/// (sets `TmdObject` flag 0x80), 1 shows it and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 2 hides
+/// it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, which keeps `Tmd_AllocMissingBuffers` from giving it
+/// buffers again. Payload 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and falls into payload 0, rather than
 /// setting both bits at once, and the branch layout follows that. `arg1` is
 /// the message id.
 void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)

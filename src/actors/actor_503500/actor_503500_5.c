@@ -1911,7 +1911,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1924,7 +1924,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
             ext->flags                                    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

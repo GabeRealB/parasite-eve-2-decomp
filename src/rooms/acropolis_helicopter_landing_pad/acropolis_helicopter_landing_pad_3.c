@@ -1591,9 +1591,10 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Task step of an item-pickup model: hides the mesh with flag 4 when the
-/// item's 2-bit flag reads 2, otherwise resets its flags and draw offset and
-/// allocates its TMD buffers. The view index is fetched and ignored.
+/// Task step of an item-pickup model: when the item's 2-bit flag reads 2 it
+/// sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, otherwise it selects the flagged draw
+/// pass, clears the draw offset and allocates the buffers. The view index is
+/// fetched and ignored.
 void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
 {
     GpItemObj8* obj;

@@ -1210,10 +1210,11 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
     return -1;
 }
 
-/// Applies a `Tmd_Create` flag word to the three model objects this actor owns:
+/// Sets `TmdObject.flags` on the three model objects this actor owns:
 /// the one on its own task and the two helper tasks' models in the work block.
-/// `arg2 & 1` picks the base value -- 0x80 normally, 0 when set -- and
-/// `arg2 & 2` ORs bit 0x4 in on top of it.
+/// `arg2 & 1` shows them (flags 0); otherwise each gets `TMD_OBJECT_SKIP_ACTIVE_DRAW`.
+/// `arg2 & 2` also sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on each. These are object
+/// flags, not `Tmd_Create`'s buffer-flag argument.
 s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* own    = D_actor_461800_80143898->extra.tmd;

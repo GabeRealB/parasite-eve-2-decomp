@@ -1562,10 +1562,10 @@ static void func_actor_503500_80135644(Task* arg0)
     }
 }
 
-/// Copies bits 0x80, 2 and 4 of the parent task's model `field_C` onto
-/// `arg0`'s model, unless that model is attached to `gGfxViewCoord`.
-/// Clearing bit 4 reallocates the model's buffers; setting it writes 2 to
-/// `*arg1`.
+/// Copies bits 0x80 and 2, and `TMD_OBJECT_SKIP_AUTO_BUFFER`, from the parent
+/// model's flags onto `arg0`'s model, unless that model is attached to
+/// `gGfxViewCoord`. Clearing `TMD_OBJECT_SKIP_AUTO_BUFFER` also calls
+/// `Tmd_AllocBuffers`; setting it writes 2 to `*arg1`.
 void func_actor_503500_80135828(Task* arg0, s8* arg1)
 {
     TmdObject* obj;
@@ -1593,13 +1593,13 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
             obj->flags = flags2 | 2;
         }
         flags2 = obj->flags;
-        if (flags2 & 4) {
+        if (flags2 & TMD_OBJECT_SKIP_AUTO_BUFFER) {
             if (!(pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-                obj->flags = flags2 & ~4;
+                obj->flags = flags2 & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
                 Tmd_AllocBuffers(obj);
             }
         } else if (pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
-            obj->flags = flags2 | 4;
+            obj->flags = flags2 | TMD_OBJECT_SKIP_AUTO_BUFFER;
             *arg1      = 2;
         }
     }
@@ -2536,7 +2536,7 @@ s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2549,7 +2549,7 @@ s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode)
             ext->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

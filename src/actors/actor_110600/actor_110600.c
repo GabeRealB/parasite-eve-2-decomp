@@ -4014,13 +4014,17 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Display-object handler: `arg2` selects the mode and `Enemy.spawnState` -- the occupancy tag
-/// `Gp_SaveEnemyPose` writes -- decides whether mode 1 shows the object again.
-/// Mode 0 hides it (bit 0x80 of `TmdObject.flags`) and reinstates its buffers;
-/// 1 hides it and restarts the work block's `field_0` while the tag reads 4, and
-/// otherwise clears `field_C` and reinstates the buffers; 2 only sets bit 0x4;
-/// 3 clears `field_C`, restarts `field_0` and then sets bit 0x4. `arg1` is
-/// unused; it exists because the dispatch passes three arguments.
+/// Display-object handler: `arg2` selects the mode. `Enemy.spawnState`, the
+/// occupancy tag `Gp_SaveEnemyPose` writes, chooses the flag word in modes 1
+/// and 3.
+///
+/// Mode 0 hides the model with `TMD_OBJECT_SKIP_ACTIVE_DRAW`, allocates its
+/// buffers and restarts `field_0`. Mode 1 shows it and allocates the buffers
+/// unless the tag is 4, in which case it hides the model and restarts
+/// `field_0`. Mode 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and restarts `field_0`.
+/// Mode 3 hides the model when the tag is 4 and otherwise clears the flag word,
+/// then restarts `field_0` and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. `arg1` is
+/// unused; the dispatch passes three arguments.
 s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject*       obj;

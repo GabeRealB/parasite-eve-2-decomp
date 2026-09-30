@@ -3721,7 +3721,7 @@ static void func_actor_521100_80135B80(Enemy* arg0, Task* task)
         mode       = ((work->field_692 & 1) == 0) << 7;
         obj->flags = mode;
         if (work->field_692 & 2) {
-            obj->flags = mode | 4;
+            obj->flags = mode | TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
         if (work->field_694 != 0) {
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

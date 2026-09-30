@@ -811,14 +811,14 @@ static void func_actor_317000_80162950(Task* arg0)
 
 /// Message 0x7D5 handler of `D_actor_317000_8016CF50`, also called directly by
 /// the spawn state `func_actor_317000_8016267C` with mode 0. `mode` sets or
-/// clears bit 0x80 of `TmdObject::flags` and sets or clears bit 0x4:
+/// clears bit 0x80 of `TmdObject::flags` and sets or clears `TMD_OBJECT_SKIP_AUTO_BUFFER`:
 ///
-///   mode 0  set 0x80, clear 0x4
-///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear 0x4
+///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 2  set 0x80, store 2 in the countdown `Actor317000Work::field_4C8`
 ///           that `func_actor_317000_80161E68` ends in `Tmd_FreeBuffers`,
-///           set 0x4
-///   mode 3  clear 0x80, set 0x4
+///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
 /// Any other mode returns 1; the four known ones return 0. `arg3` is unused.
 s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)

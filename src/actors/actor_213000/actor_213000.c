@@ -828,10 +828,11 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
 #include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 display handler, switching on the message's mode word. Mode
-/// 0 hides the model and clears flag 0x4; 1 shows it, reallocates its buffers
-/// through `Tmd_AllocBuffers` and clears 0x4; 2 hides it, sets 0x4 and starts
+/// 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers
+/// through `Tmd_AllocBuffers` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
 /// the work block's countdown at 2, after which the tick frees the buffers; 3
-/// shows it and sets 0x4. The handled modes return 0; any other mode changes
+/// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
 /// nothing and returns 1.
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block.

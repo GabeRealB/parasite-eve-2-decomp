@@ -444,8 +444,9 @@ void func_acropolis_hallway_8017E120(Task* task)
 }
 
 /// Model task step for a pickup's mesh: when the pickup's 2-bit flag reads 2
-/// it sets mesh flag 4, otherwise it resets the mesh flags and draw offset and
-/// allocates the mesh's TMD buffers. The view index is fetched but unused.
+/// it sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, otherwise it selects the flagged draw
+/// pass, clears the draw offset and allocates the mesh's buffers. The view
+/// index is fetched but unused.
 static void func_acropolis_hallway_8017E1C0(Task* task)
 {
     GpItemObj8* obj;

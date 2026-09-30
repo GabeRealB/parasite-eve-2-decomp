@@ -7615,8 +7615,8 @@ void func_actor_403000_8013D260(void)
 
 /// Handler for message 0x7D5 in the actor's message table. `arg2` picks the
 /// display mode: 0 hides the model (flag 0x80) and 1 shows it again, both
-/// re-running `Tmd_AllocBuffers`; 2 sets flag 0x4 on top of the current flags
-/// and 3 replaces them with just 0x4. Every mode but 1 resets the animation
+/// re-running `Tmd_AllocBuffers`; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags
+/// and 3 replaces them with just `TMD_OBJECT_SKIP_AUTO_BUFFER`. Every mode but 1 resets the animation
 /// state `field_0`. `arg1` is unused.
 s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
 {

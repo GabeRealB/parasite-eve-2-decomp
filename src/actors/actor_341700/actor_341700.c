@@ -4768,7 +4768,7 @@ static void func_actor_341700_8016A568(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-/// On frame 3 frees the model's buffers and sets model flag 4; after 0x24
+/// On frame 3 frees the model's buffers and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`; after 0x24
 /// frames destroys the enemy.
 static void func_actor_341700_8016A630(Task* arg0)
 {

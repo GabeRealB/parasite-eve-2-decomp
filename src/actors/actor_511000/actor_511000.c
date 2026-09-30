@@ -2334,10 +2334,11 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
-/// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 shows
-/// the model (`field_C` bit 0x80) and clears the 4 flag, 1 hides it, frees the
-/// aux buffers and clears the flag, 2 does both plus latching the mode into the
-/// work block's `field_480`, and 3 hides it while setting the flag. Anything
+/// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 hides
+/// the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it, allocates the
+/// buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it, sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and latches the mode into `field_480`, and 3
+/// shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything
 /// else returns 1 and leaves the object alone; the handled modes return 0.
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
@@ -3188,7 +3189,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* prese
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
 /// Visibility message handler: bit 0 of `arg2` shows the model (flags 0)
-/// instead of hiding it (0x80); bit 1 also sets flag 0x4.
+/// instead of hiding it (0x80); bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
 s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;

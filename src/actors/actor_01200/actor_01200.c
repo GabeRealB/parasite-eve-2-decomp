@@ -1585,7 +1585,8 @@ static const GpEnemyTaskFuncTable3 Actor01200_D0010C = {
 
 /// Display mode handler for the model (`Task::extra`), selected by `arg2`:
 /// 0 hides it and 1 shows it, both reinstating its buffers and moving to
-/// state 7; 2 sets its flag 0x4 and 3 replaces its flags with 0x4, both moving
+/// state 7; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and 3 replaces its flags with
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`, both moving
 /// to state 0. `arg1` is unused.
 s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
 {

@@ -2,8 +2,8 @@
 
 /// Applies a model-visibility request to the actor: 0 hides the model and
 /// rebuilds its buffers, 1 shows it and rebuilds them with the state set to
-/// 0x18, 2 sets model flag 4 on top of the current flags, and 3 clears every
-/// other flag before setting 4. All but 1 reset the state to 0.
+/// 0x18, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags, and
+/// 3 clears every other flag before setting it. All but 1 reset the state to 0.
 s32 actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject*      obj;

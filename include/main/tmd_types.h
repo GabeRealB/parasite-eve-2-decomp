@@ -146,11 +146,25 @@ STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 
 /// Established `TmdObject.flags` bits; these do not describe Tmd_Create's flags.
 enum {
-    TMD_OBJECT_SEMI_TRANS       = 0x02, // Select semi-transparent forms in handlers that test the object flags
-    TMD_OBJECT_SKIP_AUTO_BUFFER = 0x04, // Suppress missing-buffer recovery; explicit allocation/release still applies
-    TMD_OBJECT_FLAGGED_PASS     = 0x08, // Select the flagged draw pass independently of active-pass exclusion
-    TMD_OBJECT_REVERSE_CULLING  = 0x10, // Reverse facing tests in handlers that support mirrored geometry
+    TMD_OBJECT_SEMI_TRANS      = 0x02, // Select semi-transparent forms in handlers that test the object flags
+    TMD_OBJECT_FLAGGED_PASS    = 0x08, // Select the flagged draw pass independently of active-pass exclusion
+    TMD_OBJECT_REVERSE_CULLING = 0x10, // Reverse facing tests in handlers that support mirrored geometry
 };
+
+/// Suppresses the sweep that allocates a primitive buffer for each attached
+/// model whose buffer is NULL.
+///
+/// This is a bit mask in the u16 `TmdObject.flags`, not a creation flag.
+/// While it is set, that sweep leaves the NULL buffer in place. Setting the
+/// bit does not release a buffer that is already present, and clearing it
+/// does not allocate one. Explicit allocation and release ignore the bit,
+/// including the pass that fills every attached model and returns it to the
+/// active draw.
+///
+/// Creation sets the bit when its separate buffer-flag argument has
+/// `TMD_CREATE_SKIP_AUTO_BUFFER`. That argument is a different word, and its
+/// bit value is 1 rather than this mask.
+enum { TMD_OBJECT_SKIP_AUTO_BUFFER = 0x04 };
 
 /// Excludes a model from the active draw pass.
 ///

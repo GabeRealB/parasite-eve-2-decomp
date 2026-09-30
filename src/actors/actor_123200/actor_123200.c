@@ -995,8 +995,8 @@ static const GpEnemyTaskFuncTable3 D_actor_123200_80131E30 = {
 
 /// Message handler (id 0x7D5 in `D_actor_123200_80137214`). `arg2` selects the
 /// mode: 0 hides the model (`TmdObject.flags` bit 0x80), 1 clears its flags and
-/// so shows it, 2 sets bit 0x4, and 3 and 4 both clear the flags and then set
-/// bit 0x4. Modes 0 and 1 reinstate the model's buffers through
+/// so shows it, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 and 4 both clear
+/// the flags and then set `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0 and 1 reinstate the model's buffers through
 /// `Tmd_AllocBuffers` and set the work block's display mode `field_0` to 1;
 /// modes 2, 3 and 4 set it to 0. `arg1` is unused. Always returns 0.
 s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)

@@ -2299,8 +2299,9 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args)
 }
 
 /// Script opcode: sets the visibility flags of the actor's model and of the
-/// model of the enemy spawned alongside it. `flags` bit 0 hides both
-/// (`TmdObject::flags` 0) and its absence restores 0x80; bit 1 also sets 0x4.
+/// model of the enemy spawned alongside it. `flags` bit 0 shows both
+/// (`TmdObject::flags` 0) and its absence hides them with
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW`. Bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
 /// The middle argument is the one every opcode of the table receives.
 s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
 {
