@@ -127,18 +127,23 @@ typedef struct {
 } SndVoiceParams;
 STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
 
-/// Header of the sound-bank image held by a `SndBankSlot`.
+/// Header and entry-offset table of an `hONE` sound-script bank image.
 ///
-/// The image is one allocation: this header, then the table of entry offsets
-/// declared below, then each entry's `SndVoiceParams` block and the `oneA` /
-/// `oneE` chunks, all addressed by byte offset from the header. An entry is
-/// selected by the low byte of a sound request id and its offset is where that
-/// entry's block begins.
+/// The eight-byte fixed header is followed by `entryCount` unsigned 16-bit
+/// offsets. A request's low byte selects a table slot below `entryCount`;
+/// zero means no entry, and multiple slots may share an entry. Nonzero offsets
+/// address `SndVoiceParams` (`oneC`) blocks relative to the image's start.
+/// Scripts and their optional `oneA` / `oneE` chunks occupy the same image.
+/// The complete table and every referenced block must fit its loaded byte extent;
+/// `sizeof(SndBankHdr)` covers only the fixed header, not that extent.
+///
+/// A completed load transfers the sound-heap image to its `SndBankSlot`.
+/// Entry and chunk pointers remain valid until the image is released or reloaded.
 typedef struct {
-    u8  unknown_0[4];
-    u16 bankId;          // Supplies the high half of a 0x1xxx request id
-    u16 entryCount;      // Entries in the offset table below
-    u16 entryOffsets[0]; // Byte offsets to each entry's `SndVoiceParams`, relative to this header
+    u32 magic;           // Serialized hONE FourCC (0x454E4F68); not validated by playback
+    u16 bankId;          // Serialized bank id; remapping places it in a request's high 16 bits
+    u16 entryCount;      // Number of table slots, including slots with no entry
+    u16 entryOffsets[0]; // Image-relative byte offsets to oneC blocks (0 absent)
 } SndBankHdr;
 STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
 

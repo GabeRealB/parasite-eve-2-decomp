@@ -696,6 +696,7 @@ loop:
 
 s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
+    enum { SOUND_BANK_ENTRY_ABSENT = 0 };
     s32              orig;
     SndBankSlot*     bank;
     SndBankHdr*      header;
@@ -724,10 +725,9 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     if (index >= header->entryCount) {
         return -2;
     }
-    // Pointer form: a subscript would emit the addition base-first, and the
-    // target adds the index first.
+    // Entry offsets address tagged scripts within the same loaded image.
     offset = *(header->entryOffsets + index);
-    if (offset == 0) {
+    if (offset == SOUND_BANK_ENTRY_ABSENT) {
         return -3;
     }
     entry = (SndVoiceParams*)((u8*)header + offset);
@@ -1357,8 +1357,7 @@ static s32 SndScript_Exec(SndScript* script)
             goto done;
         case 0x43656E6F:
             header = script->field_44->image;
-            // Pointer form: a subscript would emit the addition base-first, and
-            // the target adds the index first.
+            // Reload this entry's controls before executing its first voice command.
             script->field_4C = (SndVoiceParams*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
             script->field_48 = script->field_48 + sizeof(SndVoiceParams);
         case 0x56656E6F:

@@ -1927,7 +1927,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     }
     obj->bankId  = bank->bankId;
     obj->bank    = bank;
-    obj->image   = (SndBankHdr*)load->imageBuffer;
+    obj->image   = load->imageBuffer;
     obj->spuAddr = bank->spuAddr;
     i            = load->payload.header.noteCount;
     spuAddr      = bank->spuAddr;
