@@ -70,6 +70,7 @@
 #include "rooms/room_common.h"
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.value
 #include "../../shared/room_cutscene.h"
+#include "../../shared/glow_draw.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -1566,7 +1567,6 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 static void func_dryfield_trailer_coach_801826A0(Task* task);
 static void func_dryfield_trailer_coach_80182794(Task* task);
-static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 #include "../../shared/shop.inc.c"
@@ -1840,95 +1840,7 @@ void func_dryfield_trailer_coach_80182950(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws a pulsing light shaft at a point in `arg0`'s space. `arg1` is rotated
-/// by the coordinate's `workm` and offset by its translation, then projected
-/// through `GsWSMATRIX` into a 0x14-byte scratch stack block; nothing is
-/// drawn when `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
-/// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
-/// point, whose vertex pulses cyan as `rsin(animFrame * arg2) / 34 + 0x78`.
-static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
-{
-    void**            scratch;
-    u8*               head;
-    RoomShaftScratch* block;
-    POLY_G4*          prim;
-    LINE_G3*          line;
-    s32               i;
-    s32               color;
-    s32               pulse;
-    s32               twice;
-    s32               t;
-    s32               t2;
-
-    Gp_UpdateCoord(arg0);
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x14;
-    block    = (RoomShaftScratch*)(head - 0x14);
-
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg1);
-    gte_rtv0();
-    gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
-    block->vec.vx = (u16)block->vec.vx + (u16)arg0->workm.t[0];
-    block->vec.vy = (u16)block->vec.vy + (u16)arg0->workm.t[1];
-    block->vec.vz = (u16)block->vec.vz + (u16)arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
-    gte_rtps();
-    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
-    gte_stszotz(&block->otz);
-    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        pulse            = rsin(gDisplayState.animFrame * (s16)arg2);
-        i                = 0;
-        block->halfWidth = ((s16)arg3 << 5) / ((RoomShaftScratch*)(head - 0x14))->otz;
-        color            = pulse / 34 + 0x78;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->halfWidth;
-            prim->x1 = prim->x2 = block->sx;
-            prim->x3            = block->sx + (u16)block->halfWidth;
-            prim->y0 = prim->y2 = prim->y3 = block->sy;
-            twice                          = i << 1;
-            prim->y1                       = (block->sy - (u16)block->halfWidth) + block->halfWidth * twice;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            i++;
-        } while (i < 2);
-
-        i = 0;
-        do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, 0, color, color);
-            setRGB2(line, 0, 0, 0);
-            t        = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->sx + (block->halfWidth * t);
-            line->y0 = block->sy - (block->halfWidth * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->halfWidth * t);
-            line->y2 = block->sy + (block->halfWidth * t2);
-            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
-                    line);
-            Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
-            i = t2;
-        } while (i < 2);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-}
+#include "../../shared/glow_draw_star_local.inc.c"
 
 /// Draws a pulsing glow at `data` in `coord`'s space: the point is projected
 /// through `GsWSMATRIX`, and nothing is drawn when its `otz` is 16 or less.
@@ -2086,7 +1998,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
 
 /// Picks the trailer's shaft drawer for the current camera view. The
 /// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: views 2
-/// and 8 (bits 2 and 8, `0x104`) take `func_dryfield_trailer_coach_801829A8`
+/// and 8 (bits 2 and 8, `0x104`) take `glowDrawStarLocal`
 /// with the tall half-extent 0xC0, and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
 /// with 0x30. `Task::extra` is the task's `TmdObject`, so `coords` is the
 /// coordinate both draws share.
@@ -2098,7 +2010,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     coord = arg0->extra.coordBody->coord;
     if (mask & 0x104) {
-        func_dryfield_trailer_coach_801829A8(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
+        glowDrawStarLocal(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
         return;
     }
     if (mask & 0x400) {
