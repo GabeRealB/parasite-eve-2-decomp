@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_warehouse.
 D_dryfield_warehouse_801821B4 = 0x801821B4; // size:0x4 defined:True
 D_dryfield_warehouse_801821B8 = 0x801821B8; // size:0x4 defined:True
-D_dryfield_warehouse_8017FB2C = 0x8017FB2C; // size:0x80 defined:True
+gGlowPrismCorners = 0x8017FB2C; // size:0x80 defined:True
 D_dryfield_warehouse_80181618 = 0x80181618; // size:0x10 defined:True
 D_dryfield_warehouse_80181628 = 0x80181628; // size:0x10 defined:True
 D_dryfield_warehouse_80181638 = 0x80181638; // size:0x6C defined:True
@@ -75,3 +75,4 @@ func_dryfield_warehouse_8017F494 = 0x8017F494; // type:func
 
 func_dryfield_warehouse_8017D9F8 = 0x8017D9F8; // type:func
 screenFadeInTask = 0x8017E22C; // type:func
+glowDrawGreyPrism = 0x8017E414; // type:func

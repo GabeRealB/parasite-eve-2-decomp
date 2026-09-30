@@ -35,6 +35,7 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];
@@ -42,7 +43,7 @@ extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];
 /// Prism corners in the space of the coordinate drawn under, eight per prism:
 /// the lit ring, then the far ring. The room draws the prisms at `[0..7]` and
 /// `[8..15]`.
-extern SVECTOR D_dryfield_souvenir_shop_8017E03C[];
+extern SVECTOR gGlowPrismCorners[];
 
 s32 func_dryfield_souvenir_shop_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -62,7 +63,7 @@ GpMsgEntry D_dryfield_souvenir_shop_8017E014[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-SVECTOR D_dryfield_souvenir_shop_8017E03C[16] = {
+SVECTOR gGlowPrismCorners[16] = {
     { 2315, -1960, -3930, 0 },
     { 1685, -1960, -3930, 0 },
     { 1680, -1000, -3930, 0 },
@@ -372,7 +373,6 @@ GpRoomParamRec* D_dryfield_souvenir_shop_8017F640[8] = {
 
 static void func_dryfield_souvenir_shop_8017D610(Task* task);
 static void func_dryfield_souvenir_shop_8017D654(Task* task);
-static void func_dryfield_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_souvenir_shop_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -429,124 +429,7 @@ void func_dryfield_souvenir_shop_8017D65C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws one prism from `D_dryfield_souvenir_shop_8017E03C[arg1..]` as five
-/// gouraud `POLY_G4`: four sides joining the lit ring `[0..3]` to the far ring
-/// `[4..7]`, then a cap over the lit ring. Each corner is rotated by `coord`'s
-/// `workm` and moved by its translation before projection through
-/// `GsWSMATRIX`. The lit corners share a grey of 0x18 plus a small pulse; the
-/// far corners are black.
-static void func_dryfield_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1)
-{
-    RoomQuadScratch* blk;
-    POLY_G4*         prim;
-    s32              i;
-    s32              next;
-    s32              far;
-    s32              farNext;
-    u8               shade;
-
-    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
-    blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
-    for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + i]);
-        gte_rtv0();
-        gte_stsv(&blk->v[0]);
-        blk->v[0].vx = (u16)blk->v[0].vx + (u16)coord->workm.t[0];
-        blk->v[0].vy = (u16)blk->v[0].vy + (u16)coord->workm.t[1];
-        blk->v[0].vz = (u16)blk->v[0].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        next = (i + 1) & 3;
-        gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + next]);
-        gte_rtv0();
-        gte_stsv(&blk->v[1]);
-        blk->v[1].vx = (u16)blk->v[1].vx + (u16)coord->workm.t[0];
-        blk->v[1].vy = (u16)blk->v[1].vy + (u16)coord->workm.t[1];
-        blk->v[1].vz = (u16)blk->v[1].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        far = i + 4;
-        gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + far]);
-        gte_rtv0();
-        gte_stsv(&blk->v[2]);
-        blk->v[2].vx = (u16)blk->v[2].vx + (u16)coord->workm.t[0];
-        blk->v[2].vy = (u16)blk->v[2].vy + (u16)coord->workm.t[1];
-        blk->v[2].vz = (u16)blk->v[2].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        farNext = next + 4;
-        gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + farNext]);
-        gte_rtv0();
-        gte_stsv(&blk->v[3]);
-        blk->v[3].vx = (u16)blk->v[3].vx + (u16)coord->workm.t[0];
-        blk->v[3].vy = (u16)blk->v[3].vy + (u16)coord->workm.t[1];
-        blk->v[3].vz = (u16)blk->v[3].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->v[0]);
-        gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG4(prim);
-        gte_stsxy(&prim->x0);
-        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt();
-        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&blk->otz);
-        setRGB0(prim, shade, shade, shade);
-        setRGB1(prim, shade, shade, shade);
-        setRGB2(prim, 0, 0, 0);
-        setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    }
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1]);
-    gte_rtv0();
-    gte_stsv(&blk->v[0]);
-    blk->v[0].vx = (u16)blk->v[0].vx + (u16)coord->workm.t[0];
-    blk->v[0].vy = (u16)blk->v[0].vy + (u16)coord->workm.t[1];
-    blk->v[0].vz = (u16)blk->v[0].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + 1]);
-    gte_rtv0();
-    gte_stsv(&blk->v[1]);
-    blk->v[1].vx = (u16)blk->v[1].vx + (u16)coord->workm.t[0];
-    blk->v[1].vy = (u16)blk->v[1].vy + (u16)coord->workm.t[1];
-    blk->v[1].vz = (u16)blk->v[1].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + 3]);
-    gte_rtv0();
-    gte_stsv(&blk->v[2]);
-    blk->v[2].vx = (u16)blk->v[2].vx + (u16)coord->workm.t[0];
-    blk->v[2].vy = (u16)blk->v[2].vy + (u16)coord->workm.t[1];
-    blk->v[2].vz = (u16)blk->v[2].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_souvenir_shop_8017E03C[arg1 + 2]);
-    gte_rtv0();
-    gte_stsv(&blk->v[3]);
-    blk->v[3].vx = (u16)blk->v[3].vx + (u16)coord->workm.t[0];
-    blk->v[3].vy = (u16)blk->v[3].vy + (u16)coord->workm.t[1];
-    blk->v[3].vz = (u16)blk->v[3].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->v[0]);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt();
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->otz);
-    setRGB0(prim, shade, shade, shade);
-    setRGB1(prim, shade, shade, shade);
-    setRGB2(prim, shade, shade, shade);
-    setRGB3(prim, shade, shade, shade);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
-}
+#include "../../shared/glow_draw_grey_prism.inc.c"
 
 /// Per-frame effect on the room's coordinate task: both prisms are drawn under
 /// the single coordinate in `Task::extra.coordBody->coord`.
@@ -554,6 +437,6 @@ void func_dryfield_souvenir_shop_8017DFD4(Task* task)
 {
     GfxCoord* coord = task->extra.coordBody->coord;
 
-    func_dryfield_souvenir_shop_8017D6B4(coord, 0);
-    func_dryfield_souvenir_shop_8017D6B4(coord, 8);
+    glowDrawGreyPrism(coord, 0);
+    glowDrawGreyPrism(coord, 8);
 }

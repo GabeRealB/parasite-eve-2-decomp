@@ -50,4 +50,6 @@ void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2);
 void glowDrawFlameStar(GfxCoord* arg0, s16 arg1, s16 arg2);
 void glowDrawFlameRing(GfxCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
 
+void glowDrawGreyPrism(GfxCoord* coord, s16 arg1);
+
 #endif /* SRC_SHARED_GLOW_DRAW_H */

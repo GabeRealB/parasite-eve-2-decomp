@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_souvenir_shop.
-D_dryfield_souvenir_shop_8017E03C = 0x8017E03C; // size:0x80 defined:True
+gGlowPrismCorners = 0x8017E03C; // size:0x80 defined:True
 D_dryfield_souvenir_shop_8017E014 = 0x8017E014; // size:0x28 defined:True
 D_dryfield_souvenir_shop_8017E0BC = 0x8017E0BC; // size:0x10 defined:True
 D_dryfield_souvenir_shop_8017E0CC = 0x8017E0CC; // size:0x4 defined:True
@@ -38,3 +38,4 @@ D_80153E28 = 0x80153E28; // absolute:True
 D_map_dryfield_8017AF04 = 0x8017AF04; // absolute:True
 
 func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func
+glowDrawGreyPrism = 0x8017D6B4; // type:func
