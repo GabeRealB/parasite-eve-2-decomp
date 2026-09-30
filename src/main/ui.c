@@ -70,7 +70,7 @@ typedef struct _DialogListCtx {
 
 /// Context at Task::spawnArg1 for the Ui_ListTaskCallback UI path.
 /// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
-/// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an
+/// the selected index from `UiObject::resultValue` on confirm/cancel; field_8 is an
 /// optional string passed to Ui_DrawText.
 typedef struct _SelectMenuCtx {
     /* 0x00 */ u8    field_0;
@@ -2795,14 +2795,14 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
     Text_DrawPrompt(object, list->field_18, list->field_1A, var_a3->text, list->field_1C, 1, 0);
     if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            temp             = 6;
-            object->field_2C = (s8)(u8)list->field_8 + 1;
-            object->field_2E = temp;
+            temp                = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = (s8)(u8)list->field_8 + 1;
+            object->result      = temp;
             return;
         }
         if ((temp_s3->field_C & 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
-            object->field_2C = -1;
-            object->field_2E = -1;
+            object->resultValue = -1;
+            object->result      = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
@@ -2818,10 +2818,10 @@ static void Ui_ListTaskCallback(Task* task)
     Task*          parent;
     Task*          child;
 
-    obj           = (UiObject*)task->spawnArg2.pointer;
-    ctx           = task->spawnArg1.pointer;
-    menu          = &Ui_DialogLineList;
-    obj->field_2E = 0;
+    obj         = (UiObject*)task->spawnArg2.pointer;
+    ctx         = task->spawnArg1.pointer;
+    menu        = &Ui_DialogLineList;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         base            = ctx->field_0;
         menu->field_5.u = base;
@@ -2836,9 +2836,9 @@ static void Ui_ListTaskCallback(Task* task)
     }
     Ui_UpdateListRows(menu, &(obj)->panel, 0);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        status = obj->field_2E;
-        if ((status == 6) || (status == -1)) {
-            ctx->field_2 = obj->field_2C;
+        status = obj->result;
+        if ((status == USER_INTERFACE_RESULT_CONFIRM) || (status == USER_INTERFACE_RESULT_CANCEL)) {
+            ctx->field_2 = obj->resultValue;
             parent       = obj->owner;
             child        = parent->firstChild;
             if (child != NULL) {

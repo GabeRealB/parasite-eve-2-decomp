@@ -42,7 +42,7 @@ typedef struct _McWork {
 } McWork;
 STATIC_ASSERT_SIZEOF(McWork, 0xA34);
 
-struct _UiObject;
+struct UiObject;
 
 extern u8 McText_Yes[];
 
@@ -79,7 +79,7 @@ extern const char McText_Replay[];
 
 /// Render the selected memory-card slot and its saved statistics.
 /// Draws the selected slot's place, play time, clear count and saved statistics.
-void Mc_DrawSlotDetails(struct _UiObject* obj, McWork* work, s32 slot, s32 x, s32 y);
+void Mc_DrawSlotDetails(struct UiObject* obj, McWork* work, s32 slot, s32 x, s32 y);
 
 void Mc_DispatchStateTable(Task* task);
 

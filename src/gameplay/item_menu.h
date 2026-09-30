@@ -25,14 +25,14 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1);
 
 /// Move action in `Gp_ItemActionFns`. Draws `Gp_StrMove2`, checks destination
 /// capacity and item/equipment restrictions, then opens a prompt or quantity
-/// selector, or transfers the selected stack and sets `field_2E = 6`.
+/// selector, or transfers the selected stack and sets `result` to confirm.
 void func_800BD6DC(UiList* arg0, UiObject* arg1);
 
 /// List-item confirm for `Gp_ItemActionFns`. Draws `Gp_StrSwitch`, then on confirm
 /// looks up the selected inventory row and inlines `Gp_ItemUseRestricted` against
 /// `owner->parent->flags`. A true result opens prompt `0x1E`; dest inventory
 /// (`spawnArg1 == 1`) plus an equipped weapon/armor (`field_21+0x7F` /
-/// `field_23+0x5F`) opens prompt `7`; otherwise `field_2E = 0x23`.
+/// `field_23+0x5F`) opens prompt `7`; otherwise `result = 0x23`.
 void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1);
 
 /// First state of the `D_80096E70` dispatcher. Copies `field_8` /

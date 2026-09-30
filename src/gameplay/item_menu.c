@@ -118,7 +118,7 @@ static const VECTOR D_80093DB0;
 /// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `Mc_SaveData[0].state.carriedItems`
 /// into `Gp_MoveScanSrc` / `Gp_MoveScanDst`, spawns the `D_8010D6F4` pair
 /// (plus `[9]` when `spawnArg1 == 1`), then walks children through
-/// `Gp_ItemMoveChild`. Always writes `field_2C = 0x34`.
+/// `Gp_ItemMoveChild`. Always writes `resultValue = 0x34`.
 void Gp_ItemMoveTask(Task* arg0);
 
 /// Task callback for one `Gp_InvLists` inventory pane. `spawnArg1 >= 0x100`
@@ -126,7 +126,7 @@ void Gp_ItemMoveTask(Task* arg0);
 /// `Gp_StrBattleField` ("Battle Field") instead of `Gp_StrItemBox` ("Item Box");
 /// dest (`spawnArg1 != 0`) uses `Gp_StrPlayerItem` ("Player Item"). Seeds the
 /// list from `Gp_MoveScanSrc[spawnArg1].rowCount` (visible rows capped at 10).
-/// First-state confirm/cancel is `field_2E = -1`; later states write
+/// First-state confirm/cancel is `result = USER_INTERFACE_RESULT_CANCEL`; later states write
 /// `0x24`. Circle (src) / Square (dest) / mask 3 switch panes (`0xA`)
 /// and play type-6 sound 2. Walks children through `Gp_CloseItemPane`.
 void Gp_ItemPaneTask(Task* arg0);
@@ -134,9 +134,9 @@ void Gp_ItemPaneTask(Task* arg0);
 /// Task callback for the `Gp_ItemActionList` item list. On first run it copies
 /// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls
 /// `Gp_FillItemActions` and `Ui_LayoutListPanel`. Confirm (`Pad_MaskMenu`) is
-/// cancel (`field_2E = -1`) when `owner->flags` is 0, else 6; cancel
-/// (`Pad_MaskCancel`) is 6. Child `field_2E` -1 / 9 / 6 closes, remaps to
-/// 6, or teardowns.
+/// cancel (`result = USER_INTERFACE_RESULT_CANCEL`) when `owner->flags` is 0, else
+/// confirm; cancel (`Pad_MaskCancel`) is confirm. Child `result` of cancel, dismiss
+/// or confirm closes, remaps dismiss to confirm, or tears the child down.
 void Gp_ItemActionListTask(Task* arg0);
 
 /// Ammo quantity selector. Adjusts source/destination stacks within the
@@ -144,9 +144,9 @@ void Gp_ItemActionListTask(Task* arg0);
 void func_800BDF6C(Task* task);
 
 /// List-item callback for All / Select / Discard / End. Draws
-/// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `field_2E = 0x26`, Select → 6,
+/// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `result = 0x26`, Select → confirm,
 /// Discard zeroes loaded ammunition quantities whose item is absent from
-/// `Mc_SaveData[0].state.carriedItems` and sets `field_2E = 0x27`. Cancel once sets
+/// `Mc_SaveData[0].state.carriedItems` and sets `result = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
 void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1);
@@ -180,10 +180,10 @@ static void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 
 static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
 
-/// Child closer for the `Gp_InvLists` inventory panes. `-1` tears down and
-/// either restores parent status or sets parent `field_2E = -1` when the
-/// parent owner has no flags; `6` / `0x23` / `38` / `39` copy those codes
-/// onto the parent (`6` also restores status).
+/// Child closer for the `Gp_InvLists` inventory panes. Cancel tears down and
+/// either restores parent status or sets the parent `result` to cancel when the
+/// parent owner has no flags; confirm / `0x23` / `38` / `39` copy those codes
+/// onto the parent (confirm also restores status).
 static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
 
 UiList         Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
@@ -241,7 +241,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 
     obj = arg1->parent->spawnArg2.pointer;
     mem = (GpItemMoveState*)arg1->parent->work;
-    switch (arg0->field_2E) {
+    switch (arg0->result) {
         case 0x26:
             scanSrc = &Gp_MoveScanSrc;
             tbl     = Gp_GetItemTable(scanSrc);
@@ -259,14 +259,14 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 } while (i < scanSrc->rowCount);
             }
             /* fallthrough */
-        case -1:
+        case USER_INTERFACE_RESULT_CANCEL:
             flag = 0;
             if (mem->objs[0]->owner->status != 0) {
                 flag = Gp_CountScanItems(&Gp_MoveScanSrc) > 0;
             }
             mem->objs[mem->field_8]->owner->state     = 1;
             mem->objs[mem->field_8 ^ 1]->owner->state = 1;
-            if ((arg0->field_2E != 0x26) && flag) {
+            if ((arg0->result != 0x26) && flag) {
                 val = Gp_CanMoveItems();
                 SndEvt_EnqueueType6(4, 0, 0);
                 mem->field_8 = 0;
@@ -276,9 +276,9 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             /* fallthrough */
         case 0x27:
             gGameSession->uiOpen = 0;
-            obj->field_2E        = -1;
+            obj->result          = USER_INTERFACE_RESULT_CANCEL;
             break;
-        case 6:
+        case USER_INTERFACE_RESULT_CONFIRM:
             Ui_TeardownTree(arg0, arg1);
             mem->objs[mem->field_8]->owner->state       = 1;
             mem->objs[mem->field_8 ^ 1]->owner->state   = 1;
@@ -381,8 +381,8 @@ void Gp_ItemMoveTask(Task* arg0)
     Task*                head;
     void                 (*cb)(UiObject*, Task*);
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         Wip_UiHolder = NULL;
         D_80067634   = NULL;
@@ -390,8 +390,8 @@ void Gp_ItemMoveTask(Task* arg0)
         mem = memCalloc(0x1C, 0);
         i   = 0;
         if (mem == NULL) {
-            code                    = -1;
-            obj->field_2E           = code;
+            code                    = USER_INTERFACE_RESULT_CANCEL;
+            obj->result             = code;
             code                    = 0x34;
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             goto end;
@@ -445,7 +445,7 @@ void Gp_ItemMoveTask(Task* arg0)
     }
     code = 0x34;
 end:
-    obj->field_2C = code;
+    obj->resultValue = code;
 }
 
 void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
@@ -529,7 +529,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 Gp_ItemMoveWork->field_18 = arg0->field_8;
-                arg1->field_2E            = 0x25;
+                arg1->result              = 0x25;
             }
         }
     }
@@ -556,9 +556,9 @@ void Gp_ItemPaneTask(Task* arg0)
     Task*               head;
     void                (*cb)(UiObject*, Task*);
 
-    menu          = &Gp_InvLists[(u8)arg0->spawnArg1.value];
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    menu        = &Gp_InvLists[(u8)arg0->spawnArg1.value];
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value >= 0x100) {
             arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFF;
@@ -622,10 +622,10 @@ void Gp_ItemPaneTask(Task* arg0)
         if (arg0->state == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->field_2E           = -1;
+                obj->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->field_2E           = -1;
+                obj->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
                 if (arg0->spawnArg1.value == 0) {
                     if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
@@ -642,25 +642,25 @@ void Gp_ItemPaneTask(Task* arg0)
                 }
             do_snd:
                 SndEvt_EnqueueType6(2, 0, 0);
-                obj->field_2E = 0xA;
+                obj->result = 0xA;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-            obj->field_2E = 0x24;
+            obj->result = 0x24;
         } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (arg0->spawnArg1.value == 0) {
                 if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
-                    obj->field_2E = 0xA;
+                    obj->result = 0xA;
                     goto children;
                 }
             }
             if (arg0->spawnArg1.value == status) {
                 if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-                    obj->field_2E = 0xA;
+                    obj->result = 0xA;
                     goto children;
                 }
             }
             if (Pad_CheckButtons(0, 1, 3) != 0) {
-                obj->field_2E = 0xA;
+                obj->result = 0xA;
             }
         }
     }
@@ -763,7 +763,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
         } else {
             Gp_RemoveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value)), rec, qty);
             Gp_GiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item, qty);
-            arg1->field_2E = 6;
+            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -815,10 +815,10 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
                     Gp_SpawnItemPrompt(arg1, 7, 0, 0);
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
-                    arg1->field_2E = 0x23;
+                    arg1->result = 0x23;
                 }
             } else {
-                arg1->field_2E = 0x23;
+                arg1->result = 0x23;
             }
         }
     }
@@ -873,9 +873,9 @@ void Gp_ItemActionListTask(Task* arg0)
     s32       flag;
     Task*     parent;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
-    menu          = &Gp_ItemActionList;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    menu        = &Gp_ItemActionList;
     if (arg0->state == 0) {
         parent = arg0->parent;
         if (parent != NULL) {
@@ -892,28 +892,28 @@ void Gp_ItemActionListTask(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             if (obj->owner->status != 0) {
-                obj->field_2E = 6;
+                obj->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->field_2E           = -1;
+                obj->result             = USER_INTERFACE_RESULT_CANCEL;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
     childTask = arg0->firstChild;
     if (childTask != NULL) {
         child = childTask->spawnArg2.pointer;
-        flag  = child->field_2E;
+        flag  = child->result;
         switch (flag) {
-            case -1:
+            case USER_INTERFACE_RESULT_CANCEL:
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->field_2E           = flag;
+                obj->result             = flag;
                 break;
-            case 9:
-                obj->field_2E = 6;
+            case USER_INTERFACE_RESULT_DISMISS:
+                obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 break;
-            case 6:
+            case USER_INTERFACE_RESULT_CONFIRM:
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 Ui_TeardownTree(child, child->owner);
                 break;
@@ -970,14 +970,14 @@ void func_800BDF6C(Task* task)
     InventoryItemRange* dstScan;
     GpAmmoSplitState*   state;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    width         = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) - 0x50;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    width       = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) - 0x50;
     Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
     if (task->state == 0) {
         state = (GpAmmoSplitState*)memCalloc(0x18U, 0);
         if (state == NULL) {
-            obj->field_2E = 9;
+            obj->result = USER_INTERFACE_RESULT_DISMISS;
             return;
         }
         task->work      = state;
@@ -1103,7 +1103,7 @@ void func_800BDF6C(Task* task)
                 consumeScan = sourceScan + 1;
                 goto consume_transfer;
             }
-            result = 9;
+            result = USER_INTERFACE_RESULT_DISMISS;
             if (transferQty < 0) {
                 transferQty = -transferQty;
                 dstScan     = &Gp_MoveScanDst;
@@ -1111,21 +1111,21 @@ void func_800BDF6C(Task* task)
                 consumeScan = dstScan - 1;
             consume_transfer:
                 Gp_ConsumeScanQty(consumeScan, task->spawnArg1.value, transferQty);
-                result = 9;
+                result = USER_INTERFACE_RESULT_DISMISS;
             }
             goto set_result;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            result                  = -1;
+            result                  = USER_INTERFACE_RESULT_CANCEL;
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             goto set_result;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            result = 9;
+            result = USER_INTERFACE_RESULT_DISMISS;
         set_result:
-            obj->field_2E = result;
+            obj->result = result;
         }
     }
     destQty = state->dstQty;
@@ -1257,23 +1257,23 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
             switch (arg0->field_8) {
                 case 0:
                     SndEvt_EnqueueType6(3, 0, 0);
-                    arg1->field_2E = 0x26;
+                    arg1->result = 0x26;
                     break;
                 case 1:
                     SndEvt_EnqueueType6(3, 0, 0);
-                    arg1->field_2E = 6;
+                    arg1->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
                 case 2:
                     SndEvt_EnqueueType6(4, 0, 0);
                     _gpDropOrphanedWeaponLoads();
-                    arg1->field_2E = 0x27;
+                    arg1->result = 0x27;
                     break;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
             if (arg0->field_10 == 2) {
                 _gpDropOrphanedWeaponLoads();
-                arg1->field_2E = 0x27;
+                arg1->result = 0x27;
             } else {
                 arg0->field_22 = 0x21;
                 arg0->field_10 = 2;
@@ -1521,37 +1521,37 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     return ret;
 }
 
-/// Child closer for the `Gp_InvLists` inventory panes. `-1` tears down and
-/// either restores parent status or sets parent `field_2E = -1` when the
-/// parent owner has no flags; `6` / `0x23` / `38` / `39` copy those codes
-/// onto the parent (`6` also restores status).
+/// Child closer for the `Gp_InvLists` inventory panes. Cancel tears down and
+/// either restores parent status or sets the parent `result` to cancel when the
+/// parent owner has no flags; confirm / `0x23` / `38` / `39` copy those codes
+/// onto the parent (confirm also restores status).
 static void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
 {
     UiObject* parent;
 
     parent = arg1->parent->spawnArg2.pointer;
-    switch (arg0->field_2E) {
-        case -1:
+    switch (arg0->result) {
+        case USER_INTERFACE_RESULT_CANCEL:
             if (parent->owner->status) {
                 parent->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 Ui_TeardownTree(arg0, arg0->owner);
             } else {
                 Ui_TeardownTree(arg0, arg0->owner);
                 parent->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                parent->field_2E           = -1;
+                parent->result             = USER_INTERFACE_RESULT_CANCEL;
             }
             break;
-        case 6:
+        case USER_INTERFACE_RESULT_CONFIRM:
             parent->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             Ui_TeardownTree(arg0, arg0->owner);
             break;
         case 0x23:
             Ui_TeardownTree(arg0, arg0->owner);
-            parent->field_2E = 0x23;
+            parent->result = 0x23;
             break;
         case 38:
         case 39:
-            parent->field_2E = arg0->field_2E;
+            parent->result = arg0->result;
             break;
     }
 }
@@ -1561,9 +1561,9 @@ void Gp_ItemMenuListTask(Task* arg0)
     UiObject* obj;
     UiList*   menu;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
-    menu          = &Gp_ItemMenuList;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    menu        = &Gp_ItemMenuList;
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
         if (arg0->spawnArg1.value == 0) {
@@ -1585,8 +1585,8 @@ void Gp_HolderPromptTask(Task* arg0)
     s32       one;
     u8*       text;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         Wip_UiHolder = obj;
         arg0->state += 1;

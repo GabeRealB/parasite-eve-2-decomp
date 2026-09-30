@@ -10,7 +10,6 @@
 #include "main/task_types.h"
 
 struct _UiList;
-struct _UiObject;
 
 /// A UI halfword with signed and unsigned numeric views of the same 16 bits.
 ///
@@ -110,14 +109,37 @@ typedef struct {
 } UiPanel;
 STATIC_ASSERT_SIZEOF(UiPanel, 0x28);
 
-/// A task-owned panel, with its owner and teardown/selection results.
-/// Panel helpers also accept standalone UiPanel values, so only paths known
-/// to operate on task-owned panels may recover the parent with PARENT_OF.
-typedef struct _UiObject {
-    /* 0x00 */ UiPanel panel;
-    /* 0x28 */ Task*   owner;
-    /* 0x2C */ s16     field_2C;
-    /* 0x2E */ s16     field_2E;
+/// Outcome codes published in `UiObject.result`.
+///
+/// A content task clears the field to none at the start of a frame, then writes
+/// a code when input or a child produces an outcome. Confirm carries the
+/// selection or answer in `resultValue`. Dismiss acknowledges a notice; a parent
+/// may propagate that code or treat it as confirm. Any other stored code is a
+/// menu command interpreted by the task that reads it.
+enum {
+    USER_INTERFACE_RESULT_CANCEL  = -1, // Closed without accepting
+    USER_INTERFACE_RESULT_NONE    = 0,  // No outcome yet this frame
+    USER_INTERFACE_RESULT_CONFIRM = 6,  // Accepted
+    USER_INTERFACE_RESULT_DISMISS = 9   // Acknowledged
+};
+
+/// A task-owned user-interface node.
+///
+/// The node is allocated with its task. `owner` is that task, and the task's
+/// second spawn argument points back at the node. The owner's child tasks are
+/// this node's children, each with its own node. `panel` is the drawing and
+/// input state. Helpers that only need those fields take a `UiPanel`; recover
+/// this node with `PARENT_OF` only when that panel is known to be embedded here.
+///
+/// `result` and `resultValue` are the outcome the node publishes for its parent.
+/// While `panel.control` is focus-transfer, `resultValue` instead holds the
+/// screen Y used to choose the destination row, and is cleared when the
+/// transfer completes.
+typedef struct UiObject {
+    UiPanel panel;       // Drawing bounds, input mode and lifecycle
+    Task*   owner;       // Task that allocated this node
+    s16     resultValue; // Selection, item, prompt or answer published with `result`; screen Y during focus transfer
+    s16     result;      // Outcome code (none, cancel, confirm, dismiss, or a menu command)
 } UiObject;
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
 STATIC_ASSERT(OFFSET_OF(UiObject, owner) == 0x28, ui_object_owner_offset);
@@ -156,7 +178,7 @@ typedef struct TextBlockDesc {
 } TextBlockDesc;
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
-typedef void (*UiListItemFunc)(struct _UiList* arg0, struct _UiObject* arg1);
+typedef void (*UiListItemFunc)(struct _UiList* arg0, UiObject* arg1);
 
 /// UI list/menu object (data symbols Mc_SaveSlotList, Mc_LoadSlotList, Mc_YesNoList,
 /// Mc_OkList, Mc_YesList, Ui_DialogLineList; size 0x24).
@@ -170,9 +192,9 @@ typedef void (*UiListItemFunc)(struct _UiList* arg0, struct _UiObject* arg1);
 /// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
 /// height when computing visible rows (Ui_ComputeVisibleRows / Ui_ComputeVisibleRowsEx; the latter
 /// also writes field_17 from its third argument). field_20 is the selected
-/// item id (`lhu`; copied to UiObject::field_2C by `Gp_YesNoMenuTask`). field_22
+/// item id (`lhu`; copied to `UiObject::resultValue` by `Gp_YesNoMenuTask`). field_22
 /// is a selected action code polled by list-task handlers (`Gp_ItemCmdMenuTask`:
-/// 0x20 skips pad input, 0x23 is copied to UiObject::field_2E; 6 is confirm
+/// 0x20 skips pad input, 0x23 is copied to `UiObject::result`; 6 is confirm
 /// in `Gp_YesNoMenuTask`; same values UiList handlers write to
 /// UiList::field_22).
 typedef struct _UiList {

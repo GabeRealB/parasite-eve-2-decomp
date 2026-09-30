@@ -243,8 +243,8 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
             arg0->field_22 = 0x41;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            arg1->field_2C = 0xC;
-            arg1->field_2E = 6;
+            arg1->resultValue = 0xC;
+            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -285,8 +285,8 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             obj = (UiObject*)arg1->owner->spawnArg2.pointer;
             SndEvt_EnqueueType6(3, 0, 0);
-            obj->field_2C = 0x24;
-            obj->field_2E = 6;
+            obj->resultValue = 0x24;
+            obj->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -316,7 +316,7 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
 
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            arg1->field_2E = -1;
+            arg1->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
@@ -380,7 +380,7 @@ void Gp_WeaponSummaryTask(Task* arg0)
         Ui_SpawnFromDesc(desc + 1, 0, 0, 0, obj);
         arg0->state = arg0->state + 1;
     }
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Gp_DrawEquipSummary(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, 0);
     Ui_DrawTitle(&(obj)->panel, Gp_StrWeaponTitle);
 }
@@ -477,13 +477,13 @@ static void func_800CEE5C(UiObject* arg0)
         mask  = (u32)~USER_INTERFACE_PANEL_DIMMED;
         do {
             obj  = child->spawnArg2.pointer;
-            flag = obj->field_2E;
+            flag = obj->result;
             next = child->nextSibling;
             switch (flag) {
-                case -1:
-                    arg0->field_2E = flag;
+                case USER_INTERFACE_RESULT_CANCEL:
+                    arg0->result = flag;
                     break;
-                case 6:
+                case USER_INTERFACE_RESULT_CONFIRM:
                     Ui_TeardownTree(obj, obj->owner);
                     arg0->panel.control.word = one;
                     arg0->panel.style       &= mask;
@@ -571,16 +571,16 @@ void func_800CF148(UiObject* arg0, Task* arg1)
         val = 6;
         do {
             childObj = child->spawnArg2.pointer;
-            flag     = childObj->field_2E;
+            flag     = childObj->result;
             next     = child->nextSibling;
             switch (flag) {
-                case 9:
-                    arg0->field_2E = flag;
+                case USER_INTERFACE_RESULT_DISMISS:
+                    arg0->result = flag;
                     break;
-                case -1:
-                    arg0->field_2E = flag;
+                case USER_INTERFACE_RESULT_CANCEL:
+                    arg0->result = flag;
                     break;
-                case 6:
+                case USER_INTERFACE_RESULT_CONFIRM:
                     Ui_TeardownTree(childObj, childObj->owner);
                     arg0->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
@@ -988,9 +988,9 @@ void Gp_MapTaskState2(Task* arg0)
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel | 0x100) != 0) {
-            obj->field_2C = 0x101;
+            obj->resultValue = 0x101;
             func_800D1F90(arg0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
@@ -999,7 +999,7 @@ void Gp_MapTaskState2(Task* arg0)
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             func_800D1F90(arg0);
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
@@ -1049,13 +1049,13 @@ void Gp_MapTaskState2(Task* arg0)
     }
     if (arg0->firstChild != NULL) {
         child = arg0->firstChild->spawnArg2.pointer;
-        if (child->field_2E == 6) {
+        if (child->result == USER_INTERFACE_RESULT_CONFIRM) {
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             Ui_TeardownTree(child, child->owner);
         }
-        if (child->field_2E == -1) {
+        if (child->result == USER_INTERFACE_RESULT_CANCEL) {
             func_800D1F90(arg0);
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
@@ -1667,8 +1667,8 @@ void Gp_HelpPanelTask(Task* arg0)
     UiObject* obj;
     s32       status;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrHelp);
     switch (arg0->state) {
         case 0:
@@ -1686,11 +1686,11 @@ void Gp_HelpPanelTask(Task* arg0)
             status = obj->panel.control.word;
             if (status == 1) {
                 if (Pad_CheckButtons(0, 1, Pad_MaskCancel | 0x10) != 0) {
-                    obj->field_2C = status;
-                    obj->field_2E = 6;
+                    obj->resultValue = status;
+                    obj->result      = USER_INTERFACE_RESULT_CONFIRM;
                     SndEvt_EnqueueType6(4, 0, 0);
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-                    obj->field_2E = -1;
+                    obj->result = USER_INTERFACE_RESULT_CANCEL;
                     SndEvt_EnqueueType6(4, 0, 0);
                 }
             }
@@ -1883,10 +1883,10 @@ void Gp_PeMenuListTask(Task* arg0)
     UiObject* childObj;
     s32       flag;
 
-    obj           = arg0->spawnArg2.pointer;
-    owner         = obj->owner;
-    obj->field_2E = 0;
-    menu          = &D_8010F5D0;
+    obj         = arg0->spawnArg2.pointer;
+    owner       = obj->owner;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    menu        = &D_8010F5D0;
     if (owner->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
         owner->state = owner->state + 1;
@@ -1895,9 +1895,9 @@ void Gp_PeMenuListTask(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
     head = owner->firstChild;
@@ -1905,18 +1905,18 @@ void Gp_PeMenuListTask(Task* arg0)
         child = head;
         do {
             childObj = child->spawnArg2.pointer;
-            flag     = childObj->field_2E;
+            flag     = childObj->result;
             next     = child->nextSibling;
             switch (flag) {
-                case 6:
+                case USER_INTERFACE_RESULT_CONFIRM:
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     Ui_TeardownTree(childObj, childObj->owner);
                     break;
-                case 9:
-                    obj->field_2E = 6;
+                case USER_INTERFACE_RESULT_DISMISS:
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
-                case -1:
-                    obj->field_2E = flag;
+                case USER_INTERFACE_RESULT_CANCEL:
+                    obj->result = flag;
                     break;
             }
             child = next;
@@ -1994,8 +1994,8 @@ void Gp_PeCommandMenuTask(Task* arg0)
             Gp_SetPreviewItem(arg0->spawnArg1.value + 1, 0);
         }
     }
-    owner         = obj->owner;
-    obj->field_2E = 0;
+    owner       = obj->owner;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (owner->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
         owner->state = owner->state + 1;
@@ -2004,9 +2004,9 @@ void Gp_PeCommandMenuTask(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
     head = owner->firstChild;
@@ -2014,18 +2014,18 @@ void Gp_PeCommandMenuTask(Task* arg0)
         child = head;
         do {
             childObj = child->spawnArg2.pointer;
-            flag     = childObj->field_2E;
+            flag     = childObj->result;
             next     = child->nextSibling;
             switch (flag) {
-                case 6:
+                case USER_INTERFACE_RESULT_CONFIRM:
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     Ui_TeardownTree(childObj, childObj->owner);
                     break;
-                case 9:
-                    obj->field_2E = 6;
+                case USER_INTERFACE_RESULT_DISMISS:
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
-                case -1:
-                    obj->field_2E = flag;
+                case USER_INTERFACE_RESULT_CANCEL:
+                    obj->result = flag;
                     break;
             }
             child = next;
@@ -2048,9 +2048,9 @@ void Gp_DiscardWarnTask(Task* arg0)
     rec = Gp_SelItemRec;
     id  = rec->itemId;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
-    mode          = 0x10;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    mode        = 0x10;
     if (Gp_ItemDescs[id].field_3 & 1) {
         mode = 1;
     } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, id) > 0)) {
@@ -2078,9 +2078,9 @@ void Gp_DiscardWarnTask(Task* arg0)
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        if (childObj->field_2E == 6) {
+        if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
             parentObj = arg0->parent->spawnArg2.pointer;
-            if (childObj->field_2C == 0x33) {
+            if (childObj->resultValue == 0x33) {
                 if ((u32)(id - 0x80) < 0x20U) {
                     EquipmentWeaponLoad* slot;
                     PlayerStatus*        cfg;
@@ -2120,7 +2120,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                 }
                 Gp_RemoveItem(&Mc_SaveData[0].state.carriedItems, rec, -1);
             }
-            parentObj->field_2E = 6;
+            parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -2225,9 +2225,9 @@ void func_800D29B0(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (menu->field_22 == 3 && !(arg0->spawnArg1.value & 1)) {
             UiObject* verticalObj;
             UiList*   verticalMenu;
@@ -2285,12 +2285,12 @@ void func_800D29B0(Task* arg0)
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        flag     = childObj->field_2E;
-        if (flag == 6) {
+        flag     = childObj->result;
+        if (flag == USER_INTERFACE_RESULT_CONFIRM) {
             Ui_TeardownTree(childObj, childObj->owner);
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-        } else if (flag == -1) {
-            obj->field_2E = flag;
+        } else if (flag == USER_INTERFACE_RESULT_CANCEL) {
+            obj->result = flag;
         }
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_FOCUS_TRANSFER) {
@@ -2340,8 +2340,8 @@ void Gp_NoticePanelTask(Task* arg0)
     u8*       text;
     s32       color;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrNotice3);
 
     color = 0x606060;
@@ -2359,16 +2359,16 @@ void Gp_NoticePanelTask(Task* arg0)
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
         if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            obj->field_2E       = 6;
+            obj->result         = USER_INTERFACE_RESULT_CONFIRM;
             arg0->killCountdown = 0x7FFF;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 
     if ((s16)(arg0->spawnArg1.value >> 16) == 0) {
-        if (obj->field_2E == 6) {
-            obj->field_2E = 9;
+        if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
+            obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
 }
@@ -2402,9 +2402,9 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     PlayerStatus* cfg;
     s32           price;
 
-    obj           = arg0->spawnArg2.pointer;
-    id            = arg0->spawnArg1.value;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    id          = arg0->spawnArg1.value;
+    obj->result = USER_INTERFACE_RESULT_NONE;
 
     if (arg0->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(2) + 1);
@@ -2484,8 +2484,8 @@ void Gp_PeUpgradePanelTask(Task* arg0)
             row3     = ((id + 1) & 0x30) >> 4;
             col3     = ((id + 1) & 0xC) >> 2;
             lvl3     = (id + 1) & 3;
-            if (childObj->field_2E == 6) {
-                if (childObj->field_2C == 0x33) {
+            if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
+                if (childObj->resultValue == 0x33) {
                     cfg   = &Player_Status;
                     price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].field[0];
                     if (Mc_SaveData[0].state.gameMode > 0) {
@@ -2508,13 +2508,13 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         Gp_RecalcMaxMp();
                         cfg->mp             = cfg->mpMax;
                         Gp_HpMpWork.field_4 = cfg->mp;
-                        obj->field_2E       = 9;
+                        obj->result         = USER_INTERFACE_RESULT_DISMISS;
                     }
                 } else {
-                    obj->field_2E = 9;
+                    obj->result = USER_INTERFACE_RESULT_DISMISS;
                 }
-            } else if (childObj->field_2E == 9) {
-                obj->field_2E = 9;
+            } else if (childObj->result == USER_INTERFACE_RESULT_DISMISS) {
+                obj->result = USER_INTERFACE_RESULT_DISMISS;
             }
             child = next;
         } while (child != arg0->firstChild);
@@ -2778,9 +2778,9 @@ void Gp_MapMenuListTask(Task* arg0)
     s32       y;
     s32       flag;
 
-    obj           = arg0->spawnArg2.pointer;
-    menu          = &D_8010F81C;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    menu        = &D_8010F81C;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
         x = 0x96 - ((s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w);
@@ -2796,18 +2796,18 @@ void Gp_MapMenuListTask(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        flag     = childObj->field_2E;
-        if ((flag == -1) || (flag == 6)) {
-            obj->field_2E = childObj->field_2E;
+        flag     = childObj->result;
+        if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
+            obj->result = childObj->result;
         }
     }
 }
@@ -2832,7 +2832,7 @@ void Gp_MapScreenTask(Task* arg0)
         D_80114E88           = 0;
         arg0->state          = arg0->state + 1;
     } else if (arg0->state == 1) {
-        if ((obj->field_2E == -1) || (obj->field_2E == 6)) {
+        if ((obj->result == USER_INTERFACE_RESULT_CANCEL) || (obj->result == USER_INTERFACE_RESULT_CONFIRM)) {
             Ui_TeardownTree(obj, obj->owner);
             arg0->killCountdown = 0xA;
             arg0->state         = 2;
@@ -3177,8 +3177,8 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            arg1->field_2C = 6;
-            arg1->field_2E = 6;
+            arg1->resultValue = 6;
+            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3209,8 +3209,8 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            arg1->field_2C = 8;
-            arg1->field_2E = 6;
+            arg1->resultValue = 8;
+            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3251,7 +3251,7 @@ void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            arg1->field_2E = 6;
+            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3282,8 +3282,8 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            arg1->field_2C = 0x100;
-            arg1->field_2E = 6;
+            arg1->resultValue = 0x100;
+            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3325,10 +3325,10 @@ static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3)
     arg1->killCountdown--;
     if (arg0->panel.control.word == one) {
         if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->field_2E      = 6;
+            arg0->result        = USER_INTERFACE_RESULT_CONFIRM;
             arg1->killCountdown = 0x7FFF;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            arg0->field_2E = -1;
+            arg0->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
@@ -3354,10 +3354,10 @@ static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1)
     arg1->killCountdown--;
     if (arg0->panel.control.word == one) {
         if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->field_2E      = 6;
+            arg0->result        = USER_INTERFACE_RESULT_CONFIRM;
             arg1->killCountdown = 0x7FFF;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            arg0->field_2E = -1;
+            arg0->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
@@ -3373,7 +3373,7 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     obj                     = arg0->spawnArg2.pointer;
     spawnArg                = arg0->spawnArg1.value;
     saved                   = obj->panel.control.word;
-    obj->field_2E           = 0;
+    obj->result             = USER_INTERFACE_RESULT_NONE;
     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     Ui_DrawText(&(obj)->panel, Gp_StrNextLevel);
     obj->panel.control.word = saved;
@@ -3389,8 +3389,8 @@ void func_800D573C(Task* arg0)
 {
     UiObject* obj;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Gp_UseHealItemPanel(obj, arg0, arg0->spawnArg1.value);
 }
 
@@ -3400,9 +3400,9 @@ void Gp_DrawSpecsCmd(Task* arg0)
     s32       spawnArg;
     u8*       text;
 
-    obj           = arg0->spawnArg2.pointer;
-    spawnArg      = arg0->spawnArg1.value;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    spawnArg    = arg0->spawnArg1.value;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrSpecs2);
     if ((spawnArg & 3) == 0) {
         spawnArg += 1;
@@ -3414,9 +3414,9 @@ void Gp_DrawSpecsCmd(Task* arg0)
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel | 0x10) != 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
@@ -3445,8 +3445,8 @@ void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1)
     if (confirm == one) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            D_80114E88     = confirm;
-            arg1->field_2E = 6;
+            D_80114E88   = confirm;
+            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3478,9 +3478,9 @@ void func_800D5A48(Task* arg0)
     UiObject* obj;
     s32       flags;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
-    flags         = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    flags       = 0;
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value == 0) {
             Ui_UpdateLayoutSize(&(obj)->panel, 0x84, 0x64);

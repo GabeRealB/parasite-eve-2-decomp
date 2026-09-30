@@ -5,10 +5,10 @@
 
 #include "main/task_types.h"
 
-struct _UiObject;
+struct UiObject;
 
 /// Callback for UiObject + Task state handlers (e.g. entries in `Gp_ItemMenuStates`).
-typedef void (*UiObjectTaskFunc)(struct _UiObject* arg0, Task* arg1);
+typedef void (*UiObjectTaskFunc)(struct UiObject* arg0, Task* arg1);
 
 /// Fixed-size table of `UiObjectTaskFunc` callbacks. Copied onto the stack by
 /// `Gp_ItemMenuTask` so the call uses a local jump table.

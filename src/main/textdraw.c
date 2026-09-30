@@ -1034,7 +1034,7 @@ static void Text_UiTaskCallback(Task* task)
         }
     } else if (task->state == 1) {
         obj = task->spawnArg2.pointer;
-        if (obj->field_2E == -1 || obj->field_2E == 6) {
+        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             task->killCountdown = 0xA;
             task->state         = task->state + 1;
             Ui_TeardownTree(obj, obj->owner);

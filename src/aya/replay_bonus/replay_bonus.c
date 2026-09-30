@@ -347,16 +347,16 @@ void func_replay_bonus_80115ED0(Task* arg0)
     s32                  bonus_i;
     u8                   nxt;
 
-    list          = &D_replay_bonus_80119130;
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    list        = &D_replay_bonus_80119130;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, D_replay_bonus_80115774);
     if (arg0->state == 0) {
         cfg        = &Player_Status;
         mem        = Mem_Malloc(0x258, 0);
         arg0->work = mem;
         if (mem == NULL) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
         Gp_ClearPreviewItems();
@@ -494,7 +494,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         remaining           = (u16)arg0->killCountdown - 1;
         arg0->killCountdown = remaining;
         if ((remaining << 0x10) <= 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 
@@ -543,7 +543,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     sum = _replayBonusTotalBp(list, obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
-        obj->field_2E = 6;
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
@@ -575,7 +575,7 @@ void func_replay_bonus_801166AC(Task* arg0)
         arg0->killCountdown = 0xBC;
         arg0->state         = arg0->state + 1;
     }
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, D_replay_bonus_801157A8);
     } else {
@@ -621,21 +621,21 @@ void func_replay_bonus_801166AC(Task* arg0)
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 arg0->state             = arg0->state + 1;
             } else {
-                obj->field_2E = 6;
+                obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         }
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        flag     = childObj->field_2E;
-        if (flag == 6) {
-            obj->field_2E = flag;
+        flag     = childObj->result;
+        if (flag == USER_INTERFACE_RESULT_CONFIRM) {
+            obj->result = flag;
         }
     }
 }
@@ -652,11 +652,11 @@ void func_replay_bonus_80116964(Task* arg0)
     u16       copied;
     s32       color;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, "WARNING");
     if (arg0->state == 0) {
-        obj->field_2C = 0x34;
+        obj->resultValue = 0x34;
         Ui_SizeFromText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) + 4);
         arg0->state = arg0->state + 1;
@@ -673,11 +673,11 @@ void func_replay_bonus_80116964(Task* arg0)
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        flag     = childObj->field_2E;
-        if ((flag == -1) || (flag == 6)) {
-            copied        = childObj->field_2C;
-            obj->field_2E = 6;
-            obj->field_2C = copied;
+        flag     = childObj->result;
+        if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
+            copied           = childObj->resultValue;
+            obj->result      = USER_INTERFACE_RESULT_CONFIRM;
+            obj->resultValue = copied;
         }
     }
 }
@@ -744,11 +744,11 @@ void func_replay_bonus_80116AC0(Task* arg0)
     s32       dt;
     UiObject* obj;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         if (D_replay_bonus_80119284 < 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
         arg0->extraState.value = arg0->spawnArg1.value;
@@ -761,7 +761,7 @@ void func_replay_bonus_80116AC0(Task* arg0)
     remaining           = (u16)arg0->killCountdown - dt;
     arg0->killCountdown = remaining;
     if ((remaining << 0x10) <= 0) {
-        obj->field_2E       = 6;
+        obj->result         = USER_INTERFACE_RESULT_CONFIRM;
         arg0->killCountdown = 0x7FFF;
     }
 }
@@ -800,7 +800,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     arg0->killCountdown = remaining;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (((remaining << 0x10) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }

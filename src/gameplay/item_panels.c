@@ -506,9 +506,9 @@ void Gp_ItemCmdMenuTask(Task* arg0)
     s32               val;
     s32               sel;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
-    menu          = &D_8010EA30;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    menu        = &D_8010EA30;
     if (arg0->state == 0) {
         ptr = Gp_SelItemRec;
         val = 0;
@@ -528,29 +528,29 @@ void Gp_ItemCmdMenuTask(Task* arg0)
             sel = menu->field_22;
             if (sel != 0x20) {
                 if (sel == 0x23) {
-                    obj->field_2E = sel;
+                    obj->result = sel;
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-                    obj->field_2E = -1;
+                    obj->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
                     SndEvt_EnqueueType6(4, 0, 0);
-                    obj->field_2E = 6;
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
         }
         childTask = arg0->firstChild;
         if (childTask != NULL) {
             child = childTask->spawnArg2.pointer;
-            flag  = child->field_2E;
+            flag  = child->result;
             switch (flag) {
-                case -1:
-                    obj->field_2E = flag;
+                case USER_INTERFACE_RESULT_CANCEL:
+                    obj->result = flag;
                     break;
-                case 6:
+                case USER_INTERFACE_RESULT_CONFIRM:
                     Ui_TeardownTree(child, child->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
-                case 9:
-                    obj->field_2E = 6;
+                case USER_INTERFACE_RESULT_DISMISS:
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
             }
         }
@@ -567,8 +567,8 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     s32           w;
     s32           h;
 
-    cfg            = &Player_Status;
-    arg0->field_2E = 0;
+    cfg          = &Player_Status;
+    arg0->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(arg0)->panel, Gp_StrStatus);
     if (arg1->state == 0) {
         Ui_UpdateLayoutSize(&(arg0)->panel, 0xB0, 0x2F);
@@ -643,7 +643,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (arg1->killCountdown < 0)) {
             Gp_HpMpWork.field_0 = cfg->hp;
             Gp_HpMpWork.field_4 = cfg->mp;
-            arg0->field_2E      = 9;
+            arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
         }
     }
@@ -927,12 +927,12 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         cd                  = arg1->killCountdown - 1;
         arg1->killCountdown = cd;
         if ((((s32)(cd << 0x10)) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->field_2E      = 9;
+            arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
             return;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            arg0->field_2E      = -1;
+            arg0->result        = USER_INTERFACE_RESULT_CANCEL;
             arg1->killCountdown = 0x7FFF;
         }
     }
@@ -986,9 +986,9 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     arg1->killCountdown--;
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            arg0->field_2E = -1;
+            arg0->result = USER_INTERFACE_RESULT_CANCEL;
         } else if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->field_2E      = 9;
+            arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
         }
     }
@@ -1031,9 +1031,9 @@ void Gp_YesNoMenuTask(Task* arg0)
     s32       mode;
     s32       sel;
 
-    obj           = arg0->spawnArg2.pointer;
-    menu          = &D_8010EA74;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    menu        = &D_8010EA74;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         mode = arg0->spawnArg1.value & 0xF;
         switch (mode) {
@@ -1075,8 +1075,8 @@ void Gp_YesNoMenuTask(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         sel = menu->field_22;
         if (sel == 6) {
-            obj->field_2E = sel;
-            obj->field_2C = menu->field_20.unsignedValue;
+            obj->result      = sel;
+            obj->resultValue = menu->field_20.unsignedValue;
         }
     }
 }
@@ -1102,8 +1102,8 @@ void Gp_PeListPanelTask(Task* arg0)
     s32           y;
     s32           flag;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Gp_StrPeList);
     if (arg0->state == 0) {
         desc = D_8010F718;
@@ -1172,16 +1172,16 @@ void Gp_PeListPanelTask(Task* arg0)
         child = head;
         do {
             childObj = child->spawnArg2.pointer;
-            flag     = childObj->field_2E;
+            flag     = childObj->result;
             child    = child->nextSibling;
-            if (flag != -1) {
-                if (flag == 6) {
-                    obj->field_2C = 1;
+            if (flag != USER_INTERFACE_RESULT_CANCEL) {
+                if (flag == USER_INTERFACE_RESULT_CONFIRM) {
+                    obj->resultValue = 1;
                     goto store_flag;
                 }
             } else {
             store_flag:
-                obj->field_2E = flag;
+                obj->result = flag;
             }
         } while (child != arg0->firstChild);
     }
@@ -1203,8 +1203,8 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     s32                 y;
     s32                 y2;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
         Ui_SetState4(obj, obj->owner);
     } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
@@ -1254,8 +1254,8 @@ void Gp_PickupTask(Task* arg0)
     s32           flag;
     s32           one;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         desc = D_8010F02C;
         Ui_SpawnFromDesc(desc, 0, 0, 1, obj);
@@ -1265,7 +1265,7 @@ void Gp_PickupTask(Task* arg0)
             one     = 1;
             spawned = Ui_SpawnFromDesc(desc + 3, Gp_PubItemLoc | 0x10000, one, one, obj);
             if (spawned != NULL) {
-                spawned->field_2C = 0x33;
+                spawned->resultValue = 0x33;
             }
         } else if (Gp_CanAddItem(&Mc_SaveData[0].state.carriedItems, Gp_PubItemLoc) != 0) {
             one = 1;
@@ -1281,16 +1281,16 @@ void Gp_PickupTask(Task* arg0)
         child = head;
         do {
             childObj = child->spawnArg2.pointer;
-            flag     = childObj->field_2E;
+            flag     = childObj->result;
             next     = child->nextSibling;
-            if (flag != -1) {
-                if (flag == 6) {
+            if (flag != USER_INTERFACE_RESULT_CANCEL) {
+                if (flag == USER_INTERFACE_RESULT_CONFIRM) {
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     Ui_TeardownTree(childObj, childObj->owner);
                 }
             } else {
-                obj->field_2E = flag;
-                obj->field_2C = childObj->field_2C;
+                obj->result      = flag;
+                obj->resultValue = childObj->resultValue;
             }
             child = next;
         } while (child != arg0->firstChild);
@@ -1306,11 +1306,11 @@ void func_800CCDC8(Task* arg0)
     s32*        table;
     s32         i;
 
-    item          = Gp_PubItemLoc;
-    obj           = arg0->spawnArg2.pointer;
-    queue         = &CdCmd_Queue;
-    obj->field_2E = 0;
-    flags         = 0x10;
+    item        = Gp_PubItemLoc;
+    obj         = arg0->spawnArg2.pointer;
+    queue       = &CdCmd_Queue;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    flags       = 0x10;
     if (arg0->state == 0) {
         table    = Gp_PreviewItems;
         table[2] = -1;
@@ -1374,9 +1374,9 @@ void Gp_PickupTitleTask(Task* arg0)
     s32         textY;
     s32         item;
 
-    item          = Gp_PubItemLoc;
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    item        = Gp_PubItemLoc;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (item < 0x100) {
         Ui_DrawTitle(&(obj)->panel, Gp_StrItemHdr);
     } else {
@@ -1425,14 +1425,14 @@ void Gp_PickupAskTask(Task* arg0)
     s32                 one;
     s32                 flag;
 
-    obj           = arg0->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
-            obj->field_2C                        = 0;
+            obj->resultValue                     = 0;
             obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         arg0->state = arg0->state + 1;
@@ -1444,35 +1444,35 @@ void Gp_PickupAskTask(Task* arg0)
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        flag     = childObj->field_2E;
-        if (flag != -1) {
-            if (flag == 6) {
+        flag     = childObj->result;
+        if (flag != USER_INTERFACE_RESULT_CANCEL) {
+            if (flag == USER_INTERFACE_RESULT_CONFIRM) {
                 if (arg0->state == one) {
-                    if (childObj->field_2C == 0x33) {
+                    if (childObj->resultValue == 0x33) {
                         if (Gp_PubItemLoc < 0xC0U) {
                             scan = &Mc_SaveData[0].state.carriedItems;
                             if (Gp_CanAddItem(scan, Gp_PubItemLoc) != 0) {
                                 Gp_GiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
-                                childObj->field_2C = 0x34;
+                                childObj->resultValue = 0x34;
                             }
                         } else if (Gp_PubItemLoc < 0x200U) {
                             Gp_SetCollectedBit(Gp_PubItemLoc);
                         }
                     }
-                    obj->field_2C = childObj->field_2C;
-                    if (obj->field_2C == 0x33) {
+                    obj->resultValue = childObj->resultValue;
+                    if (obj->resultValue == 0x33) {
                         Ui_SpawnFromDesc(&D_8010F080, (s32)(Gp_PubItemLoc), 1, 1, obj);
                         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                         Ui_TeardownTree(childObj, childObj->owner);
                         arg0->state = arg0->state + 1;
                     } else {
-                        obj->field_2E = -1;
+                        obj->result = USER_INTERFACE_RESULT_CANCEL;
                     }
                 }
             }
         } else {
-            obj->field_2E = flag;
+            obj->result = flag;
         }
     }
 }
@@ -1488,13 +1488,13 @@ void Gp_PickupFullTask(Task* arg0)
 
     obj = arg0->spawnArg2.pointer;
     Ui_DrawTextColored(&(obj)->panel, Gp_StrWarning);
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
-            obj->field_2C                        = 0;
+            obj->resultValue                     = 0;
             obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         arg0->state = arg0->state + 1;
@@ -1506,9 +1506,9 @@ void Gp_PickupFullTask(Task* arg0)
     childTask = arg0->firstChild;
     if (childTask != NULL) {
         childObj = childTask->spawnArg2.pointer;
-        if (childObj->field_2E == 6) {
-            obj->field_2E = -1;
-            obj->field_2C = 0x34;
+        if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
+            obj->result      = USER_INTERFACE_RESULT_CANCEL;
+            obj->resultValue = 0x34;
         }
     }
 }
@@ -1523,9 +1523,9 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     s32       one;
     u8*       text;
 
-    obj           = arg0->spawnArg2.pointer;
-    item          = (u16)arg0->spawnArg1.value;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    item        = (u16)arg0->spawnArg1.value;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrNotice);
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
@@ -1549,7 +1549,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
         if ((arg0->killCountdown <= 0) ||
             (((arg0->spawnArg1.value & 0x10000) == 0) &&
              (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
-            obj->field_2E       = -1;
+            obj->result         = USER_INTERFACE_RESULT_CANCEL;
             arg0->killCountdown = 0x7FFF;
         }
     }
@@ -1563,7 +1563,7 @@ static UiObject* func_800CD704(UiObject* arg0)
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->field_2C                   = 0;
+        arg0->resultValue                = 0;
         arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
@@ -1577,7 +1577,7 @@ static UiObject* func_800CD78C(UiObject* arg0)
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->field_2C                   = 0;
+        arg0->resultValue                = 0;
         arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
@@ -1591,7 +1591,7 @@ UiObject* func_800CD814(UiObject* arg0)
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->field_2C                   = 0;
+        arg0->resultValue                = 0;
         arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
@@ -1605,7 +1605,7 @@ UiObject* func_800CD89C(UiObject* arg0)
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->field_2C                   = 0;
+        arg0->resultValue                = 0;
         arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
@@ -1802,16 +1802,16 @@ void Gp_PickupResultTask(Task* arg0)
 
     obj  = arg0->spawnArg1.pointer;
     work = arg0->spawnArg2.pointer;
-    switch (obj->field_2E) {
-        case -1:
-            if (obj->field_2C == 0x33) {
+    switch (obj->result) {
+        case USER_INTERFACE_RESULT_CANCEL:
+            if (obj->resultValue == 0x33) {
                 work->field_A = 0;
             }
-        case 6:
+        case USER_INTERFACE_RESULT_CONFIRM:
             switch (Gp_PubItemLoc >> 8) {
                 case 0:
                 case 1:
-                    if (obj->field_2C == 0x33) {
+                    if (obj->resultValue == 0x33) {
                         if (Gp_GetCurBit2Flag(work->field_8) != 3) {
                             Gp_SetCurBit2Flag(work->field_8, 2);
                         }

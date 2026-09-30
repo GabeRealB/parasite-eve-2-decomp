@@ -486,7 +486,7 @@ void func_800A087C(Task* arg0)
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }

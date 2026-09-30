@@ -1048,7 +1048,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             Gp_GiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
             Gp_EquipRelatedItem(scan, item, ammo, -1);
             Gp_FillHpMp();
-            arg1->field_2E = 6;
+            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
             SndEvt_EnqueueType6(0x16, 0, 0);
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
@@ -1082,9 +1082,9 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     s32       i;
     s32       count;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    list          = &D_mist_shooting_gallery_80184F4C;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    list        = &D_mist_shooting_gallery_80184F4C;
     Ui_DrawText(&obj->panel, D_mist_shooting_gallery_8017D5D8);
     if (task->state == 0) {
         count  = 0;
@@ -1118,7 +1118,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     child = task->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        if (childObj->field_2E == -1 || childObj->field_2E == 6) {
+        if (childObj->result == USER_INTERFACE_RESULT_CANCEL || childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
             Ui_TeardownTree(childObj, childObj->owner);
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
         }
@@ -1271,14 +1271,14 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req6.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req6, "TOTAL");
 
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "Result");
 
     if (task->state == 0) {
         if (gGameSession->battleResetPending == 1) {
             Ui_SetState4(obj, obj->owner);
-            obj->field_2E = 6;
-            task->state   = 0x100;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            task->state = 0x100;
             return;
         }
         gGameSession->battleResetPending = 1;
@@ -1303,22 +1303,22 @@ void func_mist_shooting_gallery_8017E234(Task* task)
                     Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018501C, total, 1, 1, obj);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
-                    obj->field_2E = 6;
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             } else {
-                obj->field_2E = 6;
+                obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 
     child = task->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        result   = childObj->field_2E;
-        if (result == 6) {
-            obj->field_2E = result;
+        result   = childObj->result;
+        if (result == USER_INTERFACE_RESULT_CONFIRM) {
+            obj->result = result;
         }
     }
 }
@@ -1343,7 +1343,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     obj   = task->spawnArg2.pointer;
     score = task->spawnArg1.value;
 
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "BONUS");
     if (task->state == 0) {
         bonus = func_mist_shooting_gallery_80184470(score);
@@ -1403,7 +1403,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     Text_DrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
 
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-        obj->field_2E = 6;
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 static const char D_mist_shooting_gallery_8017D6A0[] = "Replay Mode";
@@ -1421,7 +1421,7 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
     UiObject* obj  = task->spawnArg2.pointer;
     UiList*   list = &D_mist_shooting_gallery_8018503C;
 
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "SELECT");
     if (task->state == 0) {
         if (Mc_SaveData[0].state.replayRank == 0) {
@@ -1449,7 +1449,7 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
     Ui_UpdateListNoAnim(list, obj);
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
         SndEvt_EnqueueType6(3, 0, 0);
-        obj->field_2E = 6;
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 void func_mist_shooting_gallery_8017EC58(Task* task)
@@ -1471,7 +1471,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     obj = task->spawnArg2.pointer;
     Ui_DrawTitle(&(obj)->panel, "STATUS");
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(4));
         task->state = task->state + 1;
@@ -1621,7 +1621,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     Ui_DrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
 
     col               = obj->panel.contentLeft.signedValue;
-    obj->field_2E     = 0;
+    obj->result       = USER_INTERFACE_RESULT_NONE;
     x                 = col + 0xB;
     row               = obj->panel.contentTop.signedValue;
     label0.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1712,7 +1712,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
 /// panel and stashes the player's `Player_Status` BP (`field_8`) and experience
 /// (`field_C`) totals in `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
-/// State 1 waits for the panel to confirm (`field_2E == 6`), then writes both
+/// State 1 waits for the panel to confirm (`result == USER_INTERFACE_RESULT_CONFIRM`), then writes both
 /// totals back scaled down by the bonus mode - the same divisor table as
 /// `func_mist_shooting_gallery_8017FA38`, clamped to 999999. Once the kill
 /// countdown runs out the task exits and the stage is flagged as ended.
@@ -1736,7 +1736,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         }
     } else if (task->state == 1) {
         obj = task->spawnArg2.pointer;
-        if (obj->field_2E == 6) {
+        if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             task->killCountdown = 0xA;
             Ui_TeardownTree(obj, obj->owner);
             Gp_RecalcMaxHp();
@@ -1841,7 +1841,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
     UiObject*                    obj   = task->spawnArg2.pointer;
     MistShootingGalleryModeTexts texts = D_mist_shooting_gallery_8017D708;
 
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) + 1);
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
@@ -2261,7 +2261,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
     obj  = task->spawnArg2.pointer;
     menu = &D_mist_shooting_gallery_80185338;
 
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, D_mist_shooting_gallery_8017DB04);
     if (task->state == 0) {
         task->spawnArg1.value = -1;
@@ -2326,7 +2326,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
                 if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
-                    obj->field_2E = 6;
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
         }
@@ -2336,7 +2336,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
             SndEvt_EnqueueType6(0x3B, 0, 0);
             if (task->status != 0xFE) {
                 if (task->status == 0xFF) {
-                    obj->field_2E = 6;
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
                     Ui_SetState4(obj, obj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -2367,7 +2367,7 @@ void func_mist_shooting_gallery_80180A00(Task* task)
 
     if (task->state == 1) {
         obj = task->spawnArg2.pointer;
-        if (obj->field_2E == -1 || obj->field_2E == 6) {
+        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
             task->state         = 2;

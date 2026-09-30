@@ -7,8 +7,8 @@ static void Telephone_PromptTask(Task* task)
 {
     UiObject* obj;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         Wip_UiHolder       = obj;
         task->exitCallback = Telephone_ClosePrompt;
@@ -97,9 +97,9 @@ static void Telephone_PlayDataTask(Task* task)
     UiObject* obj;
     UiList*   list;
 
-    list          = &Telephone_Data_80181C44;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
+    list        = &Telephone_Data_80181C44;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Telephone_Data_8017D610);
     if (task->state == 0) {
         Ui_SpawnFromDesc(&Telephone_Data_80181C90, 0, 0, 1, obj);
@@ -111,7 +111,7 @@ static void Telephone_PlayDataTask(Task* task)
     }
     Ui_UpdateListNoAnim(list, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
@@ -166,7 +166,7 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        obj->field_2E           = 6;
+        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->owner->state       = sel;
     }
 }
@@ -179,7 +179,7 @@ static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CAC, 0, 1, 1, obj);
-        obj->field_2E           = 6;
+        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         obj->owner->state       = 2;
     }
@@ -194,7 +194,7 @@ static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 0, 1, 1, obj);
-        obj->field_2E           = 6;
+        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         obj->owner->state       = 2;
     }
@@ -209,7 +209,7 @@ static void Telephone_PeDataRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 1, 1, 1, obj);
-        obj->field_2E           = 6;
+        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         obj->owner->state       = 2;
     }

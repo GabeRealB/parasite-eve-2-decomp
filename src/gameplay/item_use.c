@@ -477,7 +477,7 @@ void func_800D6334(Task* task)
     scan                               = NULL;
     armor                              = Player_Status.armor + 0x5F;
     panel                              = task->spawnArg2.pointer;
-    panel->field_2E                    = 0;
+    panel->result                      = USER_INTERFACE_RESULT_NONE;
     panel->panel.bounds.unsignedRect.y = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout(&(panel)->panel, 0, 0, 0);
     Ui_DrawText(&(panel)->panel, (char*)D_80097440);
@@ -586,8 +586,8 @@ void func_800D6334(Task* task)
                 }
                 if (Gp_ApplyItemUse(useRec)) {
                     SndEvt_EnqueueType6(3, 0, 0);
-                    panel->field_2E = -1;
-                    task->state     = 2;
+                    panel->result = USER_INTERFACE_RESULT_CANCEL;
+                    task->state   = 2;
                 }
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000)) {
@@ -604,8 +604,8 @@ void func_800D6334(Task* task)
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu)) {
             SndEvt_EnqueueType6(4, 0, 0);
-            panel->field_2E = -1;
-            task->state     = 2;
+            panel->result = USER_INTERFACE_RESULT_CANCEL;
+            task->state   = 2;
         }
     }
 }

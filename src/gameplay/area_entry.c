@@ -132,7 +132,7 @@ void Gp_AreaEnterTask(Task* arg0)
         obj = arg0->spawnArg2.pointer;
         if (gStageMusicLoadState == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
-                if (obj->field_2E == 6) {
+                if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
                     Ui_TeardownTree(obj, obj->owner);
                     if (arg0->status != 0) {
                         Gp_PubItemLoc           = 0x700;
@@ -149,7 +149,7 @@ void Gp_AreaEnterTask(Task* arg0)
         UiObject* obj;
 
         obj = arg0->spawnArg2.pointer;
-        if ((obj->field_2E == 6) || (obj->field_2E == -1)) {
+        if ((obj->result == USER_INTERFACE_RESULT_CONFIRM) || (obj->result == USER_INTERFACE_RESULT_CANCEL)) {
             Ui_TeardownTree(obj, obj->owner);
             arg0->killCountdown = 0xA;
             arg0->state         = 0x10;

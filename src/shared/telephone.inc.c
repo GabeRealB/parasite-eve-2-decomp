@@ -637,9 +637,9 @@ static void Telephone_UsageTask(Task* task)
     UiObject* childObj;
     void*     work;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    list          = &Telephone_Data_80181C6C;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    list        = &Telephone_Data_80181C6C;
     if (task->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, Telephone_Data_8017D624);
     } else {
@@ -664,14 +664,14 @@ static void Telephone_UsageTask(Task* task)
     }
     Ui_UpdateListNoAnim(list, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
     if (task->firstChild != NULL) {
         child = task->firstChild;
         do {
             childObj = child->spawnArg2.pointer;
             next     = child->nextSibling;
-            if (childObj->field_2E == -1 || childObj->field_2E == 6) {
+            if (childObj->result == USER_INTERFACE_RESULT_CANCEL || childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
                 Ui_TeardownTree(childObj, childObj->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
@@ -698,11 +698,11 @@ static inline void Telephone_MenuTask(Task* task)
     s32       mode;
     s32       one;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    ready         = Mc_SaveData[0].state.demoScene == 1;
-    list          = &Telephone_Data_80181CF4;
-    one           = 1;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    ready       = Mc_SaveData[0].state.demoScene == 1;
+    list        = &Telephone_Data_80181CF4;
+    one         = 1;
     if (Mc_SaveData[0].state.clearCount > 0) {
         ready = one;
     }
@@ -727,8 +727,8 @@ static inline void Telephone_MenuTask(Task* task)
         Ui_DrawText(&(obj)->panel, Telephone_Data_8017D638);
         Ui_UpdateListNoAnim(list, obj);
     }
-    if (obj->field_2E == 6) {
-        obj->field_2E = 0;
+    if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
+        obj->result = USER_INTERFACE_RESULT_NONE;
         Ui_SetState4(obj, task);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
@@ -737,17 +737,17 @@ static inline void Telephone_MenuTask(Task* task)
             SndEvt_EnqueueType6(0x3B, 0, 0);
         }
         gGameSession->uiOpen = 0;
-        obj->field_2E        = -1;
-        obj->field_2C        = 0x34;
+        obj->result          = USER_INTERFACE_RESULT_CANCEL;
+        obj->resultValue     = 0x34;
     }
     child = task->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        sel      = childObj->field_2E;
+        sel      = childObj->result;
         switch (sel) {
-            case 6:
+            case USER_INTERFACE_RESULT_CONFIRM:
                 if (task->state == 1) {
-                    kind = childObj->field_2C;
+                    kind = childObj->resultValue;
                     Ui_TeardownTree(childObj, childObj->owner);
                     mode = 0xF;
                     if (kind == 0x33) {
@@ -760,8 +760,8 @@ static inline void Telephone_MenuTask(Task* task)
                         task->state = 2;
                     }
                 } else if (task->state == 3) {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
+                    obj->result      = USER_INTERFACE_RESULT_CANCEL;
+                    obj->resultValue = 0x34;
                 } else {
                     Ui_TeardownTree(childObj, childObj->owner);
                     SndEvt_EnqueueType6(0x3B, 0, 0);
@@ -769,9 +769,9 @@ static inline void Telephone_MenuTask(Task* task)
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
                 break;
-            case -1:
+            case USER_INTERFACE_RESULT_CANCEL:
                 if (task->state == 1) {
-                    kind = childObj->field_2C;
+                    kind = childObj->resultValue;
                     Ui_TeardownTree(childObj, childObj->owner);
                     mode = 0xF;
                     if (kind == 0x33) {
@@ -784,8 +784,8 @@ static inline void Telephone_MenuTask(Task* task)
                         task->state = 2;
                     }
                 } else {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
+                    obj->result      = USER_INTERFACE_RESULT_CANCEL;
+                    obj->resultValue = 0x34;
                 }
                 break;
         }

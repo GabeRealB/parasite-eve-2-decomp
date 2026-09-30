@@ -557,8 +557,8 @@ static void Shop_ItemListTask(Task* task)
     s32           x;
     s32           y;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6D0);
     if (task->state == 0) {
         mem = memCalloc(sizeof(RoomShopList), 0);
@@ -595,10 +595,10 @@ static void Shop_ItemListTask(Task* task)
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 
@@ -607,15 +607,15 @@ static void Shop_ItemListTask(Task* task)
         child = head;
         do {
             childObj = child->spawnArg2.pointer;
-            code     = childObj->field_2E;
+            code     = childObj->result;
             next     = child->nextSibling;
-            if (code != -1) {
-                if (code == 6) {
+            if (code != USER_INTERFACE_RESULT_CANCEL) {
+                if (code == USER_INTERFACE_RESULT_CONFIRM) {
                     Ui_TeardownTree(childObj, childObj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
-                obj->field_2E = code;
+                obj->result = code;
             }
             child = next;
         } while (child != task->firstChild);
@@ -638,7 +638,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
         one = 1;
         Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, Shop_Data_80181A04, prompt->field_1C, one, 0);
         if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
         return;
     }
@@ -698,9 +698,9 @@ static void Shop_CategoryListTask(Task* task)
     UiObject* childObj;
     s32       code;
 
-    obj           = task->spawnArg2.pointer;
-    list          = &Shop_Data_80181AE0;
-    obj->field_2E = 0;
+    obj         = task->spawnArg2.pointer;
+    list        = &Shop_Data_80181AE0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6DC);
     if (task->state == 0) {
         Gp_ClearPreviewItems();
@@ -716,7 +716,7 @@ static void Shop_CategoryListTask(Task* task)
     }
     Ui_UpdateListNoAnim(list, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-        obj->field_2E = -1;
+        obj->result = USER_INTERFACE_RESULT_CANCEL;
     }
 
     head = task->firstChild;
@@ -724,16 +724,16 @@ static void Shop_CategoryListTask(Task* task)
         child = head;
         do {
             childObj = child->spawnArg2.pointer;
-            code     = childObj->field_2E;
+            code     = childObj->result;
             next     = child->nextSibling;
-            if (code != -1) {
-                if (code == 6) {
+            if (code != USER_INTERFACE_RESULT_CANCEL) {
+                if (code == USER_INTERFACE_RESULT_CONFIRM) {
                     Ui_TeardownTree(childObj, childObj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
-                Wip_UiHolder  = NULL;
-                obj->field_2E = code;
+                Wip_UiHolder = NULL;
+                obj->result  = code;
             }
             child = next;
         } while (child != task->firstChild);
@@ -849,7 +849,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
             } else {
                 cfg->bp -= price;
                 Gp_GiveItem(scan, itemId, -1);
-                obj->field_2E = 6;
+                obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
             Ui_SpawnFromDesc(&Shop_Data_80181BA0, 0, 1, 1, obj);
@@ -882,7 +882,7 @@ static void Shop_NoticeTask(Task* task)
     }
 
     Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6EC);
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         Ui_SizeFromTextPlain(&(obj)->panel, text);
         task->killCountdown = 0xBC;
@@ -892,12 +892,12 @@ static void Shop_NoticeTask(Task* task)
     task->killCountdown -= gDisplayState.frameTicks;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
         if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            ((UiObject*)task->parent->spawnArg2.pointer)->field_2E = 6;
-            task->killCountdown                                    = 0x7FFF;
+            ((UiObject*)task->parent->spawnArg2.pointer)->result = USER_INTERFACE_RESULT_CONFIRM;
+            task->killCountdown                                  = 0x7FFF;
         }
     }
 }
@@ -922,8 +922,8 @@ static void Shop_ChargeTask(Task* task)
     s32                  status;
     s16                  countdown;
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6F4);
 
     if (task->state == 0) {
@@ -934,7 +934,7 @@ static void Shop_ChargeTask(Task* task)
         slotId                = Gp_NextMappedSlot(task->spawnArg1.value);
         task->spawnArg1.value = slotId;
         if (slotId < 0) {
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else {
             map                = Gp_GetItemMap(slotId);
             Shop_Data_8018762C = map;
@@ -1152,10 +1152,10 @@ static void Shop_QuantityTask(Task* task)
                 Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
-            parentObj->field_2E = 6;
+            parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            parentObj->field_2E = 6;
+            parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -1176,7 +1176,7 @@ static void Shop_MessageRow(UiList* prompt, UiObject* obj)
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        obj->field_2E = 6;
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
@@ -1190,9 +1190,9 @@ static void Shop_BuyPromptTask(Task* task)
     UiObject* childObj;
     s16       code;
 
-    list          = &Shop_Data_80181B0C;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
+    list        = &Shop_Data_80181B0C;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
         Ui_SetListScrollFlag(list, 1);
@@ -1202,30 +1202,30 @@ static void Shop_BuyPromptTask(Task* task)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 
     child = task->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
-        code     = childObj->field_2E;
-        if (code != -1) {
-            if (code == 6) {
+        code     = childObj->result;
+        if (code != USER_INTERFACE_RESULT_CANCEL) {
+            if (code == USER_INTERFACE_RESULT_CONFIRM) {
                 Ui_TeardownTree(childObj, childObj->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
         } else {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
 
 /// Opens the panel `Shop_Data_80181B30` with the task's
 /// `spawnArg1` as its parameter, setting frame timing 0 and the session's UI
-/// flag while it is open; once the panel reports -1 or 6 it is torn down, and
+/// flag while it is open; once the panel reports cancel or confirm it is torn down, and
 /// ten frames later frame timing 1 and the flag are restored and the task
 /// kills itself.
 static void Shop_SessionTask(Task* task)
@@ -1246,7 +1246,7 @@ static void Shop_SessionTask(Task* task)
 
     if (task->state == 1) {
         obj = task->spawnArg2.pointer;
-        if (obj->field_2E == -1 || obj->field_2E == 6) {
+        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
             task->state         = 2;

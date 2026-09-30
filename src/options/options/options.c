@@ -468,29 +468,29 @@ static void func_options_801D4B64(Task* task)
             obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         }
     }
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "Option");
     Ui_UpdateListNoAnim(list, obj);
     status = obj->panel.control.word;
     if (status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2C = status;
-            obj->field_2E = 6;
+            obj->resultValue = status;
+            obj->result      = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
     if (task->firstChild != NULL) {
         child  = task->firstChild->spawnArg2.pointer;
-        result = child->field_2E;
+        result = child->result;
         switch (result) {
-            case 6:
+            case USER_INTERFACE_RESULT_CONFIRM:
                 Ui_TeardownTree(child, child->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
-            case -1:
-                obj->field_2E = result;
+            case USER_INTERFACE_RESULT_CANCEL:
+                obj->result = result;
                 break;
         }
     }
@@ -551,7 +551,7 @@ static void func_options_801D4D0C(Task* task)
     if (walkMode == one) {
         runWalk = D_options_801D5C14;
     }
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "Key Configuration");
     if (task->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(9) + 6);
@@ -883,9 +883,9 @@ static void func_options_801D4D0C(Task* task)
             Mc_SaveData[0].state.buttonLayout = ((s8)(Mc_SaveData[0].state.buttonLayout + 2)) % 3;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            obj->field_2E = 6;
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }

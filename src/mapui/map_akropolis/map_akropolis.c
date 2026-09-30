@@ -219,8 +219,8 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
 
 /// Per-frame handler for the Akropolis key-item map panel: draws the "Key Item"
 /// heading, lays the key-item list out over the panel on the first frame, then
-/// updates it. Cancel/menu asks the parent to close (field_2E = -1); once the
-/// spawned item-detail child reports -1 or 6 the child tree is torn down and the
+/// updates it. Cancel/menu asks the parent to close (`result` cancel); once the
+/// spawned item-detail child reports cancel or confirm the child tree is torn down and the
 /// panel goes back to its active state.
 static void func_map_akropolis_80179D78(Task* task)
 {
@@ -229,9 +229,9 @@ static void func_map_akropolis_80179D78(Task* task)
     UiObject* child;
     s32       result;
 
-    list          = &D_map_akropolis_8017A9C0;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
+    list        = &D_map_akropolis_8017A9C0;
+    obj         = task->spawnArg2.pointer;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, D_map_akropolis_8017997C);
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
@@ -241,18 +241,18 @@ static void func_map_akropolis_80179D78(Task* task)
     }
     Ui_UpdateListNoAnim(list, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-        obj->field_2E = -1;
+        obj->result = USER_INTERFACE_RESULT_CANCEL;
     }
     if (task->firstChild != NULL) {
         child  = task->firstChild->spawnArg2.pointer;
-        result = child->field_2E;
+        result = child->result;
         switch (result) {
-            case 6:
+            case USER_INTERFACE_RESULT_CONFIRM:
                 Ui_TeardownTree(child, child->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
-            case -1:
-                obj->field_2E = result;
+            case USER_INTERFACE_RESULT_CANCEL:
+                obj->result = result;
                 break;
         }
     }
@@ -260,7 +260,7 @@ static void func_map_akropolis_80179D78(Task* task)
 
 /// Task driving the Akropolis key-item map screen: spawns the UI tree
 /// `D_map_akropolis_8017A9E4`, freezes the game's frame timing while it is up,
-/// then tears it down and releases the screen once the tree reports -1 or 6.
+/// then tears it down and releases the screen once the tree reports cancel or confirm.
 static void func_map_akropolis_80179E8C(Task* task)
 {
     UiObject* obj;
@@ -281,8 +281,8 @@ static void func_map_akropolis_80179E8C(Task* task)
 
     if (task->state == 1) {
         obj    = task->spawnArg2.pointer;
-        result = obj->field_2E;
-        if ((result == -1) || (result == 6)) {
+        result = obj->result;
+        if ((result == USER_INTERFACE_RESULT_CANCEL) || (result == USER_INTERFACE_RESULT_CONFIRM)) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 0xA;
             task->state         = 2;

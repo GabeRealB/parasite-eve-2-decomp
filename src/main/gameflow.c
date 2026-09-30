@@ -285,7 +285,7 @@ static void GameFlow_WaitMenuDone(Task* task)
     UiObject* obj;
 
     obj = task->spawnArg2.pointer;
-    if (obj->field_2E == -1) {
+    if (obj->result == USER_INTERFACE_RESULT_CANCEL) {
         Ui_TeardownTree(obj, obj->owner);
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;

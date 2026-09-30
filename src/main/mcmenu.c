@@ -110,16 +110,16 @@ void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
     if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            object->field_2E = 6;
-            var_v0           = (s8)(u8)list->field_8;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
+            var_v0         = (s8)(u8)list->field_8;
             goto block_5;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            object->field_2E = 6;
-            var_v0           = -1;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
+            var_v0         = -1;
         block_5:
-            object->field_2C = var_v0;
+            object->resultValue = var_v0;
         }
     }
 }
@@ -188,8 +188,8 @@ static void McMenu_ConfirmDialog(UiList* list, UiObject* object)
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            object->field_2E = 6;
-            object->field_2C = temp;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = temp;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x15, 0, 0);
             list->field_B  = temp;
@@ -207,8 +207,8 @@ static void McMenu_ConfirmDialogAlt(UiList* list, UiObject* object)
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            object->field_2E = 6;
-            object->field_2C = temp;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = temp;
         }
     }
 }
@@ -222,8 +222,8 @@ static void McMenu_ConfirmYes(UiList* list, UiObject* object)
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            object->field_2E = 6;
-            object->field_2C = temp;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = temp;
         }
     }
 }
@@ -234,8 +234,8 @@ static void McMenu_ConfirmNo(UiList* list, UiObject* object)
     if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            object->field_2E = 6;
-            object->field_2C = -1;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = -1;
         }
     }
 }

@@ -21,7 +21,7 @@
 /// `Task::spawnArg2` payload of `func_800B65B0`, the pickup-confirm task.
 /// field_0 is the `GpBit2Rec` item id passed to `Gp_LookupBit2Item`;
 /// field_2 is set to 1 when the task finishes, field_3 to 1 when the player
-/// confirmed (`UiObject.field_2C == 0x33`), and field_4 is the spawn mode
+/// confirmed (`UiObject.resultValue == 0x33`), and field_4 is the spawn mode
 /// (0 when `D_80114DDE` bit 9 is set, else 1; passed inverted to
 /// `Ui_SpawnFromDesc`).
 typedef struct _GpPickupWork {
@@ -112,11 +112,11 @@ void func_800B65B0(Task* task)
         child = task->firstChild;
         if (child != NULL) {
             ui = child->spawnArg2.pointer;
-            if (ui->field_2E == -1 || ui->field_2E == 6) {
+            if (ui->result == USER_INTERFACE_RESULT_CANCEL || ui->result == USER_INTERFACE_RESULT_CONFIRM) {
                 switch (Gp_PubItemLoc >> 8) {
                     case 0:
                     case 1:
-                        if (ui->field_2C == 0x33) {
+                        if (ui->resultValue == 0x33) {
                             id      = work->field_0;
                             current = Gp_Bit2Banks[gGameSession->location.loc.stage].field_4 + (id >> 4);
                             shift   = (id & 0xF) * 2;
@@ -131,7 +131,7 @@ void func_800B65B0(Task* task)
                         }
                         break;
                     case 8:
-                        if (ui->field_2C == 0x33) {
+                        if (ui->resultValue == 0x33) {
                             work->field_3 = 1;
                         } else {
                             work->field_3 = 0;

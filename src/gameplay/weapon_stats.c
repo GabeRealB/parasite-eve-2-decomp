@@ -523,7 +523,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     }
 
     if (prompt->field_C == 1) {
-        obj->field_2C = item;
+        obj->resultValue = item;
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value == 0) {
                 SndEvt_EnqueueType6(0xA, 0, 0);
@@ -550,8 +550,8 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
         }
     } else if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
         if (prompt->field_8 == 0) {
-            if (obj->field_2C == 0) {
-                obj->field_2C = item;
+            if (obj->resultValue == 0) {
+                obj->resultValue = item;
             }
         }
     }
@@ -569,10 +569,10 @@ void Gp_AmmoListTask(Task* arg0)
     UiObject* childObj;
     s32       flag;
 
-    obj           = arg0->spawnArg2.pointer;
-    spawnArg      = arg0->spawnArg1.value;
-    obj->field_2E = 0;
-    menu          = &D_8010E9A4;
+    obj         = arg0->spawnArg2.pointer;
+    spawnArg    = arg0->spawnArg1.value;
+    obj->result = USER_INTERFACE_RESULT_NONE;
+    menu        = &D_8010E9A4;
     if (arg0->state == 0) {
         Gp_CountAmmoRows(menu, spawnArg);
         Ui_LayoutListPanel(menu, &(obj)->panel);
@@ -602,10 +602,10 @@ void Gp_AmmoListTask(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == one) {
             if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
-                obj->field_2E = -1;
+                obj->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType6(4, 0, 0);
-                obj->field_2E = 6;
+                obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         }
         child = arg0->firstChild;
@@ -613,16 +613,16 @@ void Gp_AmmoListTask(Task* arg0)
             one = 6;
             do {
                 childObj = child->spawnArg2.pointer;
-                flag     = childObj->field_2E;
+                flag     = childObj->result;
                 next     = child->nextSibling;
                 switch (flag) {
-                    case 9:
-                        obj->field_2E = flag;
+                    case USER_INTERFACE_RESULT_DISMISS:
+                        obj->result = flag;
                         break;
-                    case -1:
-                        obj->field_2E = flag;
+                    case USER_INTERFACE_RESULT_CANCEL:
+                        obj->result = flag;
                         break;
-                    case 6:
+                    case USER_INTERFACE_RESULT_CONFIRM:
                         Ui_TeardownTree(childObj, childObj->owner);
                         obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                         break;
@@ -643,11 +643,11 @@ void Gp_AmmoListTask(Task* arg0)
     Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, one, 0);
     arg0->killCountdown--;
     if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-        obj->field_2E = -1;
+        obj->result = USER_INTERFACE_RESULT_CANCEL;
         return;
     }
     if ((arg0->killCountdown == 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-        obj->field_2E       = 9;
+        obj->result         = USER_INTERFACE_RESULT_DISMISS;
         arg0->killCountdown = 0x7FFF;
     }
 }
@@ -703,9 +703,9 @@ draw:
     func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
     func_800C7DA8(obj, val, 1, 0);
     Gp_AmmoListTask(arg0);
-    obj->field_2C = 0;
-    if (obj->field_2E == 9) {
-        obj->field_2E = 6;
+    obj->resultValue = 0;
+    if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
+        obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 

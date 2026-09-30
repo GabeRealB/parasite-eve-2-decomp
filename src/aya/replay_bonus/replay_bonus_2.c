@@ -89,10 +89,10 @@ static void func_replay_bonus_80117194(Task* arg0)
     s16       flag;
 
     obj  = arg0->spawnArg2.pointer;
-    flag = obj->field_2E;
-    if ((flag == -1) || (flag == 6)) {
+    flag = obj->result;
+    if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
         owner  = obj->owner;
-        copied = obj->field_2C;
+        copied = obj->resultValue;
         Ui_TeardownTree(obj, owner);
         switch (arg0->state) {
             case 2:

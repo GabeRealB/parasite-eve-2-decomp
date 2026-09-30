@@ -254,7 +254,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                     }
                 }
                 rec->attachSlot = menu->field_10 + 1;
-                obj->field_2E   = 9;
+                obj->result     = USER_INTERFACE_RESULT_DISMISS;
             } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
@@ -296,7 +296,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                         break;
                     }
                 }
-                obj->field_2E = 9;
+                obj->result = USER_INTERFACE_RESULT_DISMISS;
             }
         }
     }
@@ -334,9 +334,9 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     s32               val;
     Task*             parent;
 
-    obj           = arg0->spawnArg2.pointer;
-    menu          = &D_8010E8D4;
-    obj->field_2E = 0;
+    obj         = arg0->spawnArg2.pointer;
+    menu        = &D_8010E8D4;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrSelectTitle);
     val = 0;
     if (arg0->state == 0) {
@@ -361,16 +361,16 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     Gp_ItemRowSelect(menu, obj, val, 2);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
+            obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 9;
+            obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
     func_800CF148(obj, arg0);
     if (arg0->spawnArg1.value == 0) {
-        if (obj->field_2E == 9) {
-            obj->field_2E = 6;
+        if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
+            obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }

@@ -492,7 +492,7 @@ void Gp_MenuRootTask(Task* arg0)
             UiObject* obj;
 
             obj = arg0->spawnArg2.pointer;
-            if ((obj->field_2E != 6) && (obj->field_2E != -1)) {
+            if ((obj->result != USER_INTERFACE_RESULT_CONFIRM) && (obj->result != USER_INTERFACE_RESULT_CANCEL)) {
                 return;
             }
             Ui_TeardownTree(obj, obj->owner);
@@ -647,19 +647,19 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
     childTask = arg1->firstChild;
     if (childTask != NULL) {
         child = childTask->spawnArg2.pointer;
-        flag  = child->field_2E;
-        if (flag == -1) {
-            arg0->field_2E = flag;
-            Wip_UiHolder   = NULL;
-        } else if (flag == 6) {
-            arg0->field_2C = child->field_2C;
+        flag  = child->result;
+        if (flag == USER_INTERFACE_RESULT_CANCEL) {
+            arg0->result = flag;
+            Wip_UiHolder = NULL;
+        } else if (flag == USER_INTERFACE_RESULT_CONFIRM) {
+            arg0->resultValue = child->resultValue;
             Ui_TeardownTree(child, child->owner);
             Ui_SetState4(arg0, arg0->owner);
             arg1->killCountdown = 0x10;
             *map                = 0;
             GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             arg1->state = arg1->state + 1;
-            if (arg0->field_2C == 0x101) {
+            if (arg0->resultValue == 0x101) {
                 SndEvt_EnqueueType6(4, 0, 0);
             }
         }

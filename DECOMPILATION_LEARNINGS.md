@@ -7002,13 +7002,13 @@ so `table[id]` is `sll v1, s4, 1` and `&actor->field_32C` is `addiu v0, s1, 0x32
 
 `menu = &D_8010E9CC` with `menu` pinned to `$s0` emits `lui s0` / `addiu s0, s0`.
 The target wants the two-register form so the `lui` can sit between
-`lhu val` and `sh field_2E = 0`, and the `addiu` can fill the `bnez state`
+`lhu val` and `sh result = 0`, and the `addiu` can fill the `bnez state`
 delay slot:
 
 ```
 lhu    s2, spawnArg1
 lui    v0, 0x8011          # adjusted %hi(D_8010E9CC)
-sh     zero, field_2E(s1)
+sh     zero, result(s1)
 lw     v1, state
 nop
 bnez   v1, not_zero
@@ -7028,7 +7028,7 @@ register char* hi asm("v0");
 register UiList* menu asm("s0");
 
 asm volatile("lui %0, 0x8011" : "=r"(hi) : "r"(val));
-obj->field_2E = 0;
+obj->result = 0;
 state = task->state;
 menu = (UiList*)(hi + (s16)0xE9CC);
 if (state == 0) {
@@ -15568,7 +15568,7 @@ store:
 ## Reload pointer into a0 with halfword temp for dual end stores
 
 When the target ends like Mc_StateCloseReturn but also copies a halfword from
-a second arg before setting `field_2E = -1`:
+a second arg before setting `result = -1`:
 
 ```
 lw    a0, 0x20(s3)       /* reload Task::field_20 */
@@ -15593,8 +15593,8 @@ arg0->field_30 = K;
 flag = arg0->field_20;
 if (flag != NULL) {
     val            = arg1->field_A18; /* s32→s16 emits lhu */
-    flag->field_2E = -1;
-    flag->field_2C = val;
+    flag->result = -1;
+    flag->resultValue = val;
 }
 ```
 
@@ -16421,7 +16421,7 @@ result; found = result`) so `$t0`/`$t1`/`$t2` match that assignment chain.
 
 When the target loads a constant into `$v1` in a branch delay slot, then
 `lbu`/`sll`/`sra` a signed-byte field into `$v0`, then `sh` both halfwords
-(`field_2E = 6` then `field_2C = field_8 + 1`), writing the constant store
+(`result = 6` then `resultValue = field_8 + 1`), writing the constant store
 first forces `li $v0, 6; sh $v0` and leaves a nop after the later `lbu`.
 
 Hold the constant in an `s16` temporary, write the `(s8)(u8)` halfword first,
@@ -16432,13 +16432,13 @@ s16 temp;
 
 if (Pad_CheckButtons(0, 1, mask) != 0) {
     temp           = 6;
-    arg1->field_2C = (s8)(u8)arg0->field_8 + 1;
-    arg1->field_2E = temp;
+    arg1->resultValue = (s8)(u8)arg0->field_8 + 1;
+    arg1->result = temp;
     return;
 }
 ```
 
-`li $v1, 6` fills the `beqz` delay slot; `lbu` reuses `$v0`; `sh $v1, field_2E`
+`li $v1, 6` fills the `beqz` delay slot; `lbu` reuses `$v0`; `sh $v1, result`
 sits between the load and the sign-extend. `Ui_DrawDialogLine` is the example.
 
 ## Array re-index each iteration to keep struct base as IV
@@ -18340,10 +18340,10 @@ if (p == NULL) {
     return 0;
 }
 p = ((Task*)p)->field_20;
-if (p->field_2E == 6) {
+if (p->result == 6) {
     /* ...; Ui_TeardownTree(p, p->field_28) keeps p in $a0 */
 }
-return obj->field_2C;
+return obj->resultValue;
 ```
 
 `Mc_PromptDialogChoice` is the pure example (~97.5% → 100% with only this change).
@@ -26644,13 +26644,13 @@ of the null check) and is reused for another arm's store of the same constant.
 ```c
 s32 flag;
 
-flag = child->field_2E; /* lh v1 */
+flag = child->result; /* lh v1 */
 switch (flag) {
     case -1:
-        obj->field_2E = flag; /* sh v1, not a second lhu */
+        obj->result = flag; /* sh v1, not a second lhu */
         break;
     case 9:
-        obj->field_2E = 6; /* sh a1 — same 6 as the case-6 compare */
+        obj->result = 6; /* sh a1 — same 6 as the case-6 compare */
         break;
 }
 ```
@@ -26709,7 +26709,7 @@ slot after `sw zero` and before `li K`:
 obj->status = 0;
 y = cursor.unk2;     /* lhu v1, 0x1A(sp) */
 child->status = 0x17; /* li v0, 0x17; sw v0 */
-child->field_2C = y;  /* sh v1 */
+child->resultValue = y;  /* sh v1 */
 ```
 
 `Gp_ItemDestCursorTask` is the example.
@@ -27624,13 +27624,13 @@ if (sel != 0x20) {
     ...
 }
 child = arg0->firstChild; /* lw a0 */
-flag  = child->field_2E;  /* lh v1 */
+flag  = child->result;  /* lh v1 */
 switch (flag) {
 case 6:
     Ui_TeardownTree(child, child->owner); /* a0 already child */
     ...
 case 9:
-    obj->field_2E = 6; /* sh a1 */
+    obj->result = 6; /* sh a1 */
 }
 ```
 
@@ -28233,10 +28233,10 @@ task->killCountdown--;
 if (obj->status == one) {
     if ((task->killCountdown <= 0) ||
         (Pad_CheckButtons(0, one, maskA | maskB) != 0)) {
-        obj->field_2E      = 6;
+        obj->result      = 6;
         task->killCountdown = 0x7FFF;
     } else if (Pad_CheckButtons(0, 1, maskCancel) != 0) {
-        obj->field_2E = -1;
+        obj->result = -1;
     }
 }
 ```
@@ -29071,19 +29071,19 @@ delay. `Gp_CanMoveItems` is the example.
 
 ## Extra store before the shared assignment so `sh` merges
 
-Two pad paths both write `obj->field_2E`, and the cancel arm also writes
-`obj->status`. `field_2E = -1` *before* `status = 0` emits the `sh` in
+Two pad paths both write `obj->result`, and the cancel arm also writes
+`obj->status`. `result = -1` *before* `status = 0` emits the `sh` in
 the else and jumps past the shared store (`j` delay = `sw status`).
-Write `status = 0` first so both arms end on the `field_2E` assignment;
-GCC merges them with the later `field_2E = 6` into one `sh v0, 0x2E`
+Write `status = 0` first so both arms end on the `result` assignment;
+GCC merges them with the later `result = 6` into one `sh v0, 0x2E`
 (`j` delay = `sw status`).
 
 ```c
 if (obj->owner->flags != 0) {
-    obj->field_2E = 6;
+    obj->result = 6;
 } else {
     obj->status   = 0;
-    obj->field_2E = -1;
+    obj->result = -1;
 }
 ```
 
@@ -29244,7 +29244,7 @@ Write the store first. The store is allowed in the delay slot because
 the callee still sees the new value:
 
 ```c
-obj->field_2E = 0;
+obj->result = 0;
 Ui_DrawText(&obj->panel, text);
 ```
 
@@ -29811,9 +29811,9 @@ beq   a0, v1, store
 Assign the compare to an `s32` local, then reload for the store:
 
 ```c
-flag = childObj->field_2E;
+flag = childObj->result;
 if ((flag == -1) || (flag == 6)) {
-    obj->field_2E = childObj->field_2E;
+    obj->result = childObj->result;
 }
 ```
 
@@ -30471,7 +30471,7 @@ child    = head;
 six      = 6;
 one      = 1;
 do {
-    flag = childObj->field_2E;
+    flag = childObj->result;
     next = child->nextSibling;
     if (flag == minusOne) {
         goto case_m1;
@@ -30481,7 +30481,7 @@ do {
     }
     goto loop_cont;
 case_m1:
-    obj->field_2E = flag;
+    obj->result = flag;
     goto loop_cont;
 case_6:
     Ui_TeardownTree(childObj, childObj->owner);
@@ -30986,7 +30986,7 @@ load `spawnArg2` into a new object pointer:
 spawned = (UiObject*)arg0->firstChild;
 if (spawned != NULL) {
     childObj = ((Task*)spawned)->spawnArg2;
-    if (childObj->field_2E == 6) {
+    if (childObj->result == 6) {
 ```
 
 `Gp_PickupFullTask` is the example. Same first-child cast as `Gp_UiPromptUpdate`.
@@ -31570,7 +31570,7 @@ if (arg0->spawnArg1 & 0x10) {
 
 ## Reuse the `field_22` temp so confirm copies `lh` / `sh` without a reload
 
-`if (menu->field_22 == 6) { obj->field_2E = menu->field_22; }` reloads
+`if (menu->field_22 == 6) { obj->result = menu->field_22; }` reloads
 the halfword for the store (`lhu a0` plus `li v1, 6`). The target
 hoists `6` into the status `bne` delay as `li v0, 6`, loads once, and
 stores that register:
@@ -31590,8 +31590,8 @@ Keep the load in a temp and assign that temp:
 ```c
 sel = menu->field_22;
 if (sel == 6) {
-    obj->field_2E = sel;
-    obj->field_2C = menu->field_20;
+    obj->result = sel;
+    obj->resultValue = menu->field_20;
 }
 ```
 
@@ -32128,7 +32128,7 @@ if ((val & 0xFFFF) != 0) {
 
 ## List identical switch cases separately, unique case last, so stores cross-jump
 
-A child-flag switch whose `-1` and `9` arms both do `obj->field_2E = flag`,
+A child-flag switch whose `-1` and `9` arms both do `obj->result = flag`,
 with a different `6` arm (`Ui_TeardownTree` / `status = 1`), wants one
 shared `j cont / sh flag` and only `6` hoisted into a callee-saved
 register (`li s2, 6`).
@@ -32139,7 +32139,7 @@ Writing them as one body:
 switch (flag) {
     case 9:
     case -1:
-        obj->field_2E = flag;
+        obj->result = flag;
         break;
     case 6:
         Ui_TeardownTree(childObj, childObj->owner);
@@ -32158,10 +32158,10 @@ arm last:
 ```c
 switch (flag) {
     case 9:
-        obj->field_2E = flag;
+        obj->result = flag;
         break;
     case -1:
-        obj->field_2E = flag;
+        obj->result = flag;
         break;
     case 6:
         Ui_TeardownTree(childObj, childObj->owner);
@@ -33323,7 +33323,7 @@ dest++` stuck at 98.6% with only that `la` two instructions early.
 
 ## Pin fail `-1` and shared `0x34` through `$v0` so the store is a phi
 
-A fail path that writes `field_2E = -1` then shares `field_2C = 0x34`
+A fail path that writes `result = -1` then shares `resultValue = 0x34`
 with the success tail wants:
 
 ```
@@ -33339,7 +33339,7 @@ sh    v0, 0x2c(s3)
 ```
 
 A named `s32 code` without a pin takes `$v1` and is hoisted *before*
-the `-1` store. `obj->field_2C = 0x34` on both arms does not share the
+the `-1` store. `obj->resultValue = 0x34` on both arms does not share the
 `sh`. Route both constants through one `$v0` pin so the fail path
 overwrites the same register after the first store:
 
@@ -33348,7 +33348,7 @@ register s32 code asm("v0");
 
 if (mem == NULL) {
     code          = -1;
-    obj->field_2E = code;
+    obj->result = code;
     code          = 0x34;
     obj->status   = 0;
     goto end;
@@ -33356,7 +33356,7 @@ if (mem == NULL) {
 ...
 code = 0x34;
 end:
-obj->field_2C = code;
+obj->resultValue = code;
 ```
 
 `Gp_ItemMoveTask` is the example. Unpinned `code` stuck at 98.8% (`li v1,
@@ -39910,7 +39910,7 @@ do {
     row3     = ((id + 1) & 0x30) >> 4;   /* fresh locals */
     col3     = ((id + 1) & 0xC) >> 2;
     lvl3     = (id + 1) & 3;
-    if (childObj->field_2E == 6) { ... Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3] ... }
+    if (childObj->result == 6) { ... Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3] ... }
 ```
 
 `loop.c` hoists those three single-set invariants into the preheader, then cse2
@@ -40029,10 +40029,10 @@ if (arg0->firstChild != NULL) {
 `Player_Status.exp` accessed directly from inside a loop body gets its
 `lui`/`addiu` hoisted to the preheader, costing a callee-saved register there
 and shifting every other allocation. The target computes it inside the
-`if (childObj->field_2C == 0x33)` arm instead. Writing
+`if (childObj->resultValue == 0x33)` arm instead. Writing
 
 ```c
-if (childObj->field_2C == 0x33) {
+if (childObj->resultValue == 0x33) {
     cfg = &Player_Status;
     ... cfg->field_8 ...
 ```
@@ -51133,13 +51133,13 @@ if (code != -1) {
         obj->status = 1;
     }
 } else {
-    obj->field_2E = -1;       /* X, laid out last */
+    obj->result = -1;       /* X, laid out last */
 }
 ```
 
 The store of `-1` reuses the compare's `$v1` because GCC knows the register
 already holds `-1` on that edge — do **not** "help" it by storing the loaded
-local (`obj->field_2E = code`), which makes the short-to-short move a second
+local (`obj->result = code`), which makes the short-to-short move a second
 memory read and emits `lh` for the compare plus `lhu` for the store off the same
 address. `func_mist_parking_8017FE74` is the example (92.8% as the plain chain,
 `insert=2 delete=2 reorder=2`; 100% inverted).
@@ -51248,9 +51248,9 @@ zero-extended for the store:
 
 ```c
 s16 code;
-code = childObj->field_2E;      /* lh  v0, 0x2e(a0) */
+code = childObj->result;      /* lh  v0, 0x2e(a0) */
 if (code != -1) { ... }         /*  ↑ used by beq/bne          */
-else obj->field_2E = code;      /* lhu v1, 0x2e(a0) ; sh v1, … */
+else obj->result = code;      /* lhu v1, 0x2e(a0) ; sh v1, … */
 ```
 
 The target has one `lh` feeding both the branches and the `sh`. Widening the
@@ -51259,7 +51259,7 @@ truncates the SImode register.
 
 ```c
 s32 code;
-code = childObj->field_2E;      /* lh v1, 0x2e(a0) — the only load */
+code = childObj->result;      /* lh v1, 0x2e(a0) — the only load */
 ```
 
 `func_mist_parking_8017ED7C` is the example (94.6% -> 98.8% on this change
@@ -51281,7 +51281,7 @@ if (head != NULL) {
     child = head;                    /* move a1, v0 */
     do {
         childObj = child->spawnArg2;
-        code     = childObj->field_2E;
+        code     = childObj->result;
         next     = child->nextSibling;   /* lw s0, 0x10(a1) after the lh */
         ...
         child = next;                    /* move a1, s0 */
@@ -67871,8 +67871,8 @@ fifth. Here the loser had 32 references and the source held two identical tails:
 
 ```c
 if (task->spawnArg1 & 0x10000) {
-    if (task->state == 2) { obj->field_2E = 6; } else { obj->field_2E = 9; }
-} else { obj->field_2E = 9; }
+    if (task->state == 2) { obj->result = 6; } else { obj->result = 9; }
+} else { obj->result = 9; }
 ```
 
 Folding them to `if ((task->spawnArg1 & 0x10000) && (task->state == 2))` is the

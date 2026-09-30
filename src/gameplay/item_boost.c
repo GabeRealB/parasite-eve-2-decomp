@@ -378,10 +378,10 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     if (arg0->panel.control.word == one) {
         arg1->killCountdown--;
         if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->field_2E      = 9;
+            arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            arg0->field_2E      = -1;
+            arg0->result        = USER_INTERFACE_RESULT_CANCEL;
             arg1->killCountdown = 0x7FFF;
         }
     }

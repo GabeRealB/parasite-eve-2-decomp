@@ -2275,7 +2275,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     obj  = task->spawnArg2.pointer;
     menu = &D_dryfield_night_saloon_g_r_80185028;
 
-    obj->field_2E = 0;
+    obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
     if (task->state == 0) {
         task->spawnArg1.value = -1;
@@ -2340,7 +2340,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
                 if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
-                    obj->field_2E = 6;
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
         }
@@ -2350,7 +2350,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
             SndEvt_EnqueueType6(0x3B, 0, 0);
             if (task->status != 0xFE) {
                 if (task->status == 0xFF) {
-                    obj->field_2E = 6;
+                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
                     Ui_SetState4(obj, obj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -2382,7 +2382,7 @@ void func_dryfield_night_saloon_g_r_8017E564(Task* task)
 
     if (task->state == 1) {
         obj = task->spawnArg2.pointer;
-        if (obj->field_2E == -1 || obj->field_2E == 6) {
+        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
             task->state         = 2;
