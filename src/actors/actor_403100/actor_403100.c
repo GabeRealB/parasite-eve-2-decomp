@@ -5387,7 +5387,7 @@ static void func_actor_403100_80136830(Task* arg0)
     }
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             if (player == NULL) {
@@ -5481,7 +5481,7 @@ static void func_actor_403100_80136830(Task* arg0)
             Gp_UpdateCoord(coordinates + 8);
             Gp_UpdateCoord(side);
             _actor403100UpdateColor(arg0, center);
-            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
@@ -8150,19 +8150,19 @@ void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
     object = arg0->extra.tmd;
     switch (arg2) {
         case 0:
-            object->flags = (object->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            object->flags = (object->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
         case 1:
-            object->flags = object->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            object->flags = object->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            object->flags                      = object->flags | TMD_OBJECT_HIDDEN;
+            object->flags                      = object->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
             D_actor_403100_80155808->field_658 = arg2;
             flags                              = object->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             object->flags                      = flags;
             return;
         case 3:
-            flags         = (object->flags & (u16)~TMD_OBJECT_HIDDEN) | 4;
+            flags         = (object->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
             object->flags = flags;
             return;
     }
@@ -8811,7 +8811,7 @@ static void func_actor_403100_8013F0A8(Task* arg0)
     TmdObject* obj;
 
     obj                           = arg0->extra.tmd;
-    obj->flags                   |= TMD_OBJECT_HIDDEN;
+    obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     D_actor_403100_8014762C.bp    = 0;
     D_actor_403100_8014762C.mp    = 0;
     D_actor_403100_8014762C.exp >>= 1;

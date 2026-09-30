@@ -2239,7 +2239,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
         return;
     }
     arg1->work          = work;
-    obj->flags          = TMD_OBJECT_HIDDEN;
+    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;

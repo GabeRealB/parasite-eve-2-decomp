@@ -3420,8 +3420,8 @@ case0:
     arg0->node.state.b.flags             = 8;
     goto default_body;
 case2:
-    temp_a1->flags                       = TMD_OBJECT_HIDDEN;
-    temp_s1->field_654->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+    temp_a1->flags                       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    temp_s1->field_654->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags             = one;
     return;
 default_body:
@@ -3725,7 +3725,7 @@ static void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
             obj->flags = mode | 4;
         }
         if (work->field_694 != 0) {
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 }

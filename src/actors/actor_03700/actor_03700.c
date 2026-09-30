@@ -1783,7 +1783,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
             _actor03700UpdateColor(task);
             return;
         case 2:
-            task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
         default:
@@ -1796,7 +1796,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                     Gp_UnlinkObj(&work->obj);
                     Gp_UnlinkNode(&enemy->node);
                     Gp_ReleaseStateF0Add(task, 0x25);
-                    model->flags = TMD_OBJECT_HIDDEN;
+                    model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     sound        = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     if (work->field_262 != 0) {
@@ -1881,7 +1881,7 @@ static void Actor03700_Fn025C8(Task* task)
     spawn                     = (GpEnemy*)task->spawnArg2.pointer;
     obj                       = ext;
     work->obj.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    obj->flags               |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    obj->flags               |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     spawn->node.state.b.flags = 1;
 
     switch (work->field_250) {
@@ -1989,7 +1989,7 @@ static void Actor03700_Fn029C0(Task* task)
     switch (mode) {
         case 0:
             work->obj.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            obj->flags             |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            obj->flags             |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = 1;
             if (Gp_StateF0.field_1A == 0) {
                 work->field_250    = 1;
@@ -2098,7 +2098,7 @@ case0:
     enemy->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               |= TMD_OBJECT_HIDDEN;
+    obj->flags               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     enemy->node.state.b.flags = one;
     return;
 default_body:

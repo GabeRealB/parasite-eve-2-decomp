@@ -4901,7 +4901,7 @@ static void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
         work->anim.blend       = armed;
         work->anim.blendFrames = 9;
         Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
-        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (work->field_1AC >= 9) {
@@ -5753,7 +5753,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             }
             escorts                = (Actor403200Work*)task->work;
             escorts->field_7F3     = 0;
-            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (i = 0; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -5781,7 +5781,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
         case 2:
             work->field_7F3        = 0;
             escorts                = work;
-            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (i = 0; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -5793,7 +5793,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             i                      = 0;
             escorts                = (Actor403200Work*)task->work;
             escorts->field_7F3     = 0;
-            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -7068,11 +7068,11 @@ static void func_actor_403200_8013B23C(Task* arg0)
     work = (Actor403200Work*)arg0->work;
     tmd  = arg0->extra.tmd;
     if (work->field_4 != 0) {
-        tmd->flags             = TMD_OBJECT_HIDDEN;
+        tmd->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         escorts                = (Actor403200Work*)arg0->work;
         i                      = 0;
         escorts->field_7F3     = 0;
-        arg0->extra.tmd->flags = (flag = 0x80);
+        arg0->extra.tmd->flags = (flag = TMD_OBJECT_SKIP_ACTIVE_DRAW);
         for (; i < 7; i++) {
             if (escorts->field_ECC[i] != NULL) {
                 escorts->field_ECC[i]->task->extra.tmd->flags =
@@ -7083,9 +7083,9 @@ static void func_actor_403200_8013B23C(Task* arg0)
         return;
     }
     if (work->field_6 == 2) {
-        tmd->flags             = TMD_OBJECT_HIDDEN;
+        tmd->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         escorts                = (Actor403200Work*)arg0->work;
-        modelFlag              = 0x80;
+        modelFlag              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         i                      = 0;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = (flag = modelFlag);
@@ -9081,7 +9081,7 @@ static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
 
     dying = (Actor403200Work*)arg1->work;
     if (dying->field_7F3 != 0) {
-        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         dying->field_7F3--;
         if (dying->field_7F3 == 0) {
             tmd         = arg1->extra.tmd;
@@ -9132,7 +9132,7 @@ static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
     if (((Gp_GetViewIndex() & 0xFF) == 0x1E) || ((Gp_GetViewIndex() & 0xFF) == 0x1D)) {
         vis                    = (Actor403200Work*)arg1->work;
         vis->field_7F3         = 0;
-        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         for (j = 0; j < 7; j++) {
             if (vis->field_ECC[j] != NULL) {
                 vis->field_ECC[j]->task->extra.tmd->flags =
@@ -9797,7 +9797,7 @@ void func_actor_403200_80141564(Task* arg0)
             arg0->extra.tmd->flags = 0;
             return;
         case 2:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -9831,7 +9831,7 @@ void func_actor_403200_80141670(Task* arg0)
             arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             return;
         case 2:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -9902,7 +9902,7 @@ void func_actor_403200_80141868(Task* arg0)
             arg0->extra.tmd->flags = 0;
             return;
         case 2:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -9931,7 +9931,7 @@ s32 func_actor_403200_80141974(Task* task)
 
     if (((GpEnemy*)task->spawnArg2.pointer)->hp <= 0) {
         flags = task->extra.tmd->flags;
-        if (flags & 0x80) {
+        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return 0;
         }
         if (flags & 2) {

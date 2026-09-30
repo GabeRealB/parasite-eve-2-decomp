@@ -2142,7 +2142,7 @@ static void func_actor_511000_80131E78(Task* arg0)
             }
         }
     }
-    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8((VECTOR3*)(arg0->extra.tmd)->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->groundShadowShade);
         }
@@ -2268,10 +2268,10 @@ static void func_actor_511000_80132284(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_HIDDEN;
+    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
-        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -2301,10 +2301,10 @@ static void func_actor_511000_80132390(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
-        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        object->flags |= TMD_OBJECT_HIDDEN;
+        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -2322,10 +2322,10 @@ void func_actor_511000_80132428(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Spawn handler: allocates the work block, seeds its head, mirrors the
-/// deferred-kill bit into the model, draws the ground shadow under the model's
-/// second part, starts the actor's two child tasks and hands the model's
-/// matrices to the light/color rebuilder, then advances to the tick handler.
+/// Spawn handler: allocates the work block, seeds its head, excludes the model
+/// from active drawing, starts the actor's two child tasks and
+/// hands the model's matrices to the light/color rebuilder, then advances to the
+/// tick handler. The retained shadow branch cannot run with this bit set.
 static void func_actor_511000_80132480(Task* task)
 {
     Actor511000Work2* work;
@@ -2344,9 +2344,9 @@ static void func_actor_511000_80132480(Task* task)
     work->field_47C      = -1;
     work->field_4D2      = 0;
     work->field_480.word = -1;
-    flags                = extra->flags | TMD_OBJECT_HIDDEN;
+    flags                = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     extra->flags         = flags;
-    if (!(flags & 0x80)) {
+    if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShadowShade);
         }
@@ -2457,21 +2457,21 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags          |= TMD_OBJECT_HIDDEN;
+            obj->flags          |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_480.word = mode;
             obj->flags          |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
@@ -2506,7 +2506,7 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg)
         case 1:
             child = work->field_4C4;
             if (child != NULL) {
-                child->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+                child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             child = work->field_4C8;
             break;
@@ -2515,7 +2515,7 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg)
     }
 
     if (child != NULL) {
-        child->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
+        child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 out:
     return 0;
@@ -2587,10 +2587,10 @@ static void func_actor_511000_801329C4(Task* task)
     extra  = task->extra.tmd;
     coord  = extra->coords;
 
-    if (!(parent->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
-        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parent->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        extra->flags |= TMD_OBJECT_HIDDEN;
+        extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (gGameSession->at4.loc.view == 0x18) {
@@ -2784,7 +2784,7 @@ static void func_actor_511000_80133034(Task* task)
     }
     task->work    = work;
     work->field_8 = -1;
-    extra->flags |= TMD_OBJECT_HIDDEN;
+    extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     func_actor_511000_801337F0(task);
     do {
@@ -2814,7 +2814,7 @@ static void func_actor_511000_801330F0(Task* task)
     work  = (Actor511000Work*)task->work;
     coord = obj->coords;
 
-    if (!(obj->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         Gp_UpdateCoord(coord);
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
         func_actor_511000_80132E6C((Actor511000Work*)task->work);
@@ -2861,9 +2861,9 @@ static void func_actor_511000_80133240(Task* task)
     dest            = parentExtra->coords;
     extra->lightMtx = parentExtra->lightMtx;
     extra->colorMtx = parentExtra->colorMtx;
-    extra->flags    = TMD_OBJECT_HIDDEN;
+    extra->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord           = extra->coords;
-    if (!(parentExtra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(parentExtra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         extra->flags = 0;
     }
     func_actor_511000_80133760(task);
@@ -2888,8 +2888,8 @@ static void func_actor_511000_801332E4(Task* task)
     coord       = extra->coords;
     parentExtra = ((Task*)task->spawnArg2.pointer)->extra.tmd;
 
-    if (!(parentExtra->flags & TMD_OBJECT_HIDDEN)) {
-        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentExtra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
         switch (task->spawnArg1.value) {
             case 1:
@@ -2904,7 +2904,7 @@ static void func_actor_511000_801332E4(Task* task)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    extra->flags |= TMD_OBJECT_HIDDEN;
+    extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 static void func_actor_511000_801333A4(Task* task)
@@ -2930,9 +2930,9 @@ static void func_actor_511000_801333C4(Task* task)
     dest            = parentExtra->coords;
     extra->lightMtx = parentExtra->lightMtx;
     extra->colorMtx = parentExtra->colorMtx;
-    extra->flags    = TMD_OBJECT_HIDDEN;
+    extra->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord           = extra->coords;
-    if (!(parentExtra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(parentExtra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         extra->flags = 0;
     }
     func_actor_511000_80133760(task);
@@ -2976,7 +2976,7 @@ s32 func_actor_511000_801334C4(Task* task, s32 arg1, ActorTransform* args, s32 a
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags       &= (u16)~TMD_OBJECT_HIDDEN;
+    extra->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return 0;
 }
 
@@ -2993,21 +2993,21 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
     ret  = 0;
     switch (msg) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags   |= TMD_OBJECT_HIDDEN;
+            obj->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_8 = msg;
             obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
@@ -3018,7 +3018,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
         for (i = 1; i < 4; i++) {
             child = Task_SpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
             if (child != NULL) {
-                child->extra.tmd->flags &= ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                child->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             }
         }
         work->field_2F = 1;
@@ -3312,7 +3312,7 @@ s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
     }

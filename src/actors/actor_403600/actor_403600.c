@@ -2299,7 +2299,7 @@ void func_actor_403600_80135C28(Task* arg0)
     if (temp_v1->field_742 == 1) {
         temp_v0                 = temp_a0->extra.tmd;
         D_actor_403600_801606A0 = NULL;
-        temp_v0->flags          = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_HIDDEN);
+        temp_v0->flags          = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
         Task_CallExit(arg0);
         return;
     }
@@ -2363,7 +2363,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v0_9 == 0) {
                     temp_a0_5               = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = NULL;
-                    temp_a0_5->flags        = (u16)(temp_a0_5->flags | TMD_OBJECT_HIDDEN);
+                    temp_a0_5->flags        = (u16)(temp_a0_5->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
                 } else if (temp_v0_9 > 0) {
                     D_actor_403600_801606A0 = &temp_s0->field_90;
                     Gp_UpdateCoord(&temp_s0->field_90);
@@ -2375,7 +2375,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v1_10 == 0) {
                     temp_a1                 = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = &temp_s0->field_90;
-                    temp_a1->flags          = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_HIDDEN);
+                    temp_a1->flags          = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
                     Gp_UpdateCoord(&temp_s0->field_90);
                 } else if (temp_v1_10 >= -7) {
                     D_actor_403600_801606A0 = &temp_s0->field_90;

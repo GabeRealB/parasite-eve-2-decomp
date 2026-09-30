@@ -3246,7 +3246,7 @@ static void Actor00100_Fn04270(Task* arg0)
             Gp_SpawnEff(0x600A5, &gGfxViewCoord, 2, &work->field_8B0);
             break;
         case 0x3C:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 
@@ -4927,7 +4927,7 @@ static void Actor00100_Fn09310(Task* arg0)
     obj  = arg0->extra.tmd;
     if (work->field_4 != 0) {
         work->field_BE4          = 0;
-        obj->flags               = TMD_OBJECT_HIDDEN;
+        obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->objs[0].obj.radius = 0x19C;
         work->objs[2].obj.flags  = (u16)(work->objs[2].obj.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
         ctx->node.state.b.flags  = 1;
@@ -5163,7 +5163,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
                 ctx->recs         = 0;
                 ctx->hp           = 0;
                 hiddenObj         = arg0->extra.tmd;
-                hiddenObj->flags |= TMD_OBJECT_HIDDEN;
+                hiddenObj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             if ((s16)work->field_6 == 0x65) {
                 finishedObj         = arg0->extra.tmd;
@@ -5294,7 +5294,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
             }
             return;
         case 2:
-            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
     scratchHead = (SVECTOR**)SCRATCH_HEAD_ADDR;
@@ -5558,7 +5558,7 @@ s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -5586,7 +5586,7 @@ s32 Actor00100_Fn0B264(Task* task)
 
     if (((GpEnemy*)task->spawnArg2.pointer)->hp <= 0) {
         flags = task->extra.tmd->flags;
-        if (flags & 0x80) {
+        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return 0;
         }
         if (flags & 2) {
@@ -5674,7 +5674,7 @@ static void Actor00100_Fn0B4D8(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                             |= TMD_OBJECT_HIDDEN;
+        obj->flags                                             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->objs[2].obj.flags                                &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     }
 }

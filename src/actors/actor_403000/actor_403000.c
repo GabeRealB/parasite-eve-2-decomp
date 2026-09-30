@@ -5236,7 +5236,7 @@ static void func_actor_403000_8013603C(Task* arg0)
                 arg0->extra.tmd->clutRowOffset     = 4;
                 break;
             case 0x88:
-                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
         t = work->field_6;
@@ -5306,7 +5306,7 @@ static void func_actor_403000_801365D0(Task* arg0)
                 arg0->extra.tmd->clutRowOffset     = 4;
                 break;
             case 0x6A:
-                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
         t = work->field_6;
@@ -7465,7 +7465,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->recordsE98);
             return;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->objD18.rec);
             Gp_ClearRec18Occupied(work->objB50.rec);
             Gp_ClearRec18Occupied(work->objBE8.rec);
@@ -7682,7 +7682,7 @@ s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
     work = (Actor403000Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -7711,7 +7711,7 @@ s32 func_actor_403000_8013D324(Task* task)
         goto return_one;
     }
 
-    if ((task->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
+    if ((task->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return 0;
     }
 
@@ -7812,7 +7812,7 @@ static void func_actor_403000_8013D5F8(Task* arg0)
         obj                     = arg0->extra.tmd;
         enemy                   = arg0->spawnArg2.pointer;
         work->field_FCA         = 1;
-        obj->flags             |= TMD_OBJECT_HIDDEN;
+        obj->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->objD18.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->hp               = 0;
     }

@@ -414,7 +414,7 @@ void func_actor_150400_80131E24(Task* task)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (Mc_SaveData[0].state.at4.loc.view != 5) {
-        obj->flags = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         obj->flags    = 0;
         obj->otOffset = 0;
@@ -595,7 +595,7 @@ static void func_actor_150400_801324E0(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -690,8 +690,8 @@ s32 func_actor_150400_80132710(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (flags & 2) {

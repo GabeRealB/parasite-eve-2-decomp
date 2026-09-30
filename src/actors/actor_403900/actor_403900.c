@@ -2506,7 +2506,7 @@ static void func_actor_403900_80134968(Task* arg0)
     coord = obj->coords;
     switch (work->field_6DA) {
         case 0:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_6E2        = -1;
             work->field_49A       &= 0x7FFF;
             if (work->field_6B8 != 0) {
@@ -2642,7 +2642,7 @@ static void func_actor_403900_80134968(Task* arg0)
                     m->m11_m12              = 0x1000;
                     m->m20_m21              = 0;
                     m->m22                  = 0x1000;
-                    arg0->extra.tmd->flags  = TMD_OBJECT_HIDDEN;
+                    arg0->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }
             work->field_6E2 = -1;
@@ -3340,7 +3340,7 @@ static void func_actor_403900_801368E0(GpEnemy* arg0, Task* arg1)
             Actor403900_DrawShadow(arg1);
             return;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
     switch (work->field_6CE) {
@@ -3755,7 +3755,7 @@ case1:
     func_actor_403900_80138070(arg1);
     return;
 case2:
-    temp_a1->flags           = TMD_OBJECT_HIDDEN;
+    temp_a1->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:

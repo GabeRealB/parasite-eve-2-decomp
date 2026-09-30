@@ -3119,10 +3119,10 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     }
     task->work    = work;
     work->field_0 = 0;
-    flags         = obj->flags | TMD_OBJECT_HIDDEN;
+    flags         = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     obj->flags    = flags;
-    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
-        obj->flags = flags & 0xFF7F;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        obj->flags = flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     obj->otOffset       = 4;
     obj->flags         |= TMD_OBJECT_SEMI_TRANS;
@@ -3266,11 +3266,11 @@ static void func_dryfield_dilapidated_house_80181028(Task* task)
 
 static void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
 {
-    if (!(src->flags & TMD_OBJECT_HIDDEN)) {
-        dst->flags &= ~TMD_OBJECT_HIDDEN;
+    if (!(src->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        dst->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    dst->flags |= TMD_OBJECT_HIDDEN;
+    dst->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 /// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D61C`,
@@ -3305,7 +3305,7 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     arg0->work     = work;
     work->field_20 = 0x1000;
     work->mtx      = coord->coord;
-    obj->flags    |= TMD_OBJECT_HIDDEN;
+    obj->flags    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }

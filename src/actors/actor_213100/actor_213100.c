@@ -435,7 +435,7 @@ static void func_actor_213100_80149E3C(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
@@ -446,11 +446,11 @@ static void func_actor_213100_80149E3C(Task* task)
         func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         child = work->field_480->extra.tmd;
         if (D_actor_213100_801521E0[gGameSession->at4.loc.view] != 0) {
-            extra->flags &= ~TMD_OBJECT_HIDDEN;
-            child->flags &= ~TMD_OBJECT_HIDDEN;
+            extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            child->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
-            extra->flags |= TMD_OBJECT_HIDDEN;
-            child->flags |= TMD_OBJECT_HIDDEN;
+            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            child->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
     if (work->field_484 >= 0) {
@@ -564,9 +564,9 @@ static void func_actor_213100_8014A118(Task* arg0)
     }
     func_actor_213100_8014A23C(arg0);
     ext                         = arg0->extra.tmd;
-    ext->flags                 |= TMD_OBJECT_HIDDEN;
+    ext->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     ext                         = work->field_480->extra.tmd;
-    ext->flags                 |= TMD_OBJECT_HIDDEN;
+    ext->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     preset.source.index         = 0;
     preset.animationId          = 5;
     preset.blend                = ANIMATION_BLEND_RESET;
@@ -675,21 +675,21 @@ s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode)
     ret   = 0;
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_HIDDEN;
+            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_484 = mode;
             obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:

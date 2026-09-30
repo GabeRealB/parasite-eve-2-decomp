@@ -919,7 +919,7 @@ static void func_actor_503500_8013223C(Task* arg0)
         }
         work->field_40--;
     }
-    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         // Filled and never read: the original passes the matrix's own
@@ -950,7 +950,7 @@ static void func_actor_503500_80132430(Task* arg0)
     }
 
     arg0->work     = work;
-    ext->flags    |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    ext->flags    |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     work->field_44 = 0;
     func_actor_503500_801324EC(arg0);
     arg0->msgTable     = D_actor_503500_80146888;
@@ -1007,21 +1007,21 @@ s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                                  |= TMD_OBJECT_HIDDEN;
+            obj->flags                                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((Actor503500ColorMtx*)task->work)->field_44 = mode;
             obj->flags                                  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:

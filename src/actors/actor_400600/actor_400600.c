@@ -2143,7 +2143,7 @@ static void func_actor_400600_801332F4(Task* arg0)
         work->field_80    = 0;
         work->field_82    = 0xC00;
         work->field_84    = 0;
-        model->flags     &= (u16)~TMD_OBJECT_HIDDEN;
+        model->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_718   = 0;
         work->field_722   = 0;
         work->field_724   = 0;
@@ -2369,7 +2369,7 @@ static void func_actor_400600_801337A8(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
             break;
         case 0:
@@ -2395,7 +2395,7 @@ static void func_actor_400600_801337A8(Task* arg0)
             actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
             if (work->field_75C.b.field_75E == 0) {
-                model->flags &= ~TMD_OBJECT_HIDDEN;
+                model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 func_actor_400600_801387DC(arg0, -1);
             }
             break;
@@ -3041,7 +3041,7 @@ static void func_actor_400600_801356E0(Task* arg0)
     if (task != NULL) {
         obj               = task->extra.tmd;
         coord             = obj->coords;
-        obj->flags        = TMD_OBJECT_HIDDEN;
+        obj->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         coord->coord.t[0] = 0x200;
         coord->parent     = parent2;
         coord->coord.t[1] = 0;
@@ -3078,7 +3078,7 @@ static void func_actor_400600_801356E0(Task* arg0)
     if (task != NULL) {
         obj                    = task->extra.tmd;
         coord                  = obj->coords;
-        obj->flags             = TMD_OBJECT_HIDDEN;
+        obj->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         coord->parent          = parent;
         coord->coord.t[0]      = -0x200;
         coord->coord.t[1]      = 0;
@@ -3423,7 +3423,7 @@ static void func_actor_400600_80136558(Task* arg0)
             } else {
                 enemy->node.state.b.flags = 5;
             }
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
             work->field_740             = 0;
             work->field_75C.b.field_75F = 0;
@@ -4186,7 +4186,7 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
         work->field_75C.b.field_75E = 0;
         work->field_75C.b.field_75F = 1;
         work->field_740             = 0;
-        model2->flags               = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_HIDDEN;
+        model2->flags               = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
         enemy->node.state.b.flags = 4;
         func_actor_400600_801387DC(arg0, 0);
@@ -4302,7 +4302,7 @@ static void func_actor_400600_80137EF0(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->field_716++;
@@ -4490,7 +4490,7 @@ static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
     enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     if (arg1 != 0) {
         enemy->node.state.b.flags = 5;
-        model->flags             |= TMD_OBJECT_HIDDEN;
+        model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
         func_actor_400600_801387DC(arg0, 2);
         work->field_75C.b.field_75E = 1;
@@ -4552,7 +4552,7 @@ static void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
             work->field_75C.b.field_75E = 0;
             work->field_75C.b.field_75F = 1;
             work->field_740             = 0;
-            model->flags                = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_HIDDEN;
+            model->flags                = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
             enemy->node.state.b.flags = 4;
             func_actor_400600_801387DC(arg0, 0);
@@ -4575,7 +4575,7 @@ static void func_actor_400600_80138C34(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->field_716++;
@@ -4601,7 +4601,7 @@ static void func_actor_400600_80138D78(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->field_716++;
@@ -4627,7 +4627,7 @@ static void func_actor_400600_80138EA0(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->field_716++;
@@ -4653,7 +4653,7 @@ static void func_actor_400600_80138FD4(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->field_716++;
@@ -5125,7 +5125,7 @@ static void func_actor_400600_8013A170(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
             break;
         case 0:
@@ -5217,12 +5217,12 @@ static void func_actor_400600_8013A3C8(Task* arg0)
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UnlinkNode(&enemy->node);
     if (work->field_730 == 4) {
-        model->flags |= TMD_OBJECT_HIDDEN;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         func_actor_400600_801387DC(arg0, -1);
         work->field_718 = 0;
         func_actor_400600_8013CC04(arg0, 7);
     } else if (work->field_768 == 0) {
-        model->flags &= (u16)~TMD_OBJECT_HIDDEN;
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
         func_actor_400600_801387DC(arg0, 0);
         work->field_71C = work->field_71C + 1;
@@ -5314,7 +5314,7 @@ static void func_actor_400600_8013A6C4(Task* arg0)
         Gp_SpawnEff(0x600A5, coord, 4, &rot);
     }
     if ((s16)work->field_718 >= 0x11) {
-        model->flags |= TMD_OBJECT_HIDDEN;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         func_actor_400600_801387DC(arg0, -1);
         work->field_71C = work->field_71C + 1;
     }
@@ -5374,7 +5374,7 @@ static void func_actor_400600_8013A908(Task* arg0)
 
     model         = arg0->extra.tmd;
     work          = (Actor400600Work*)arg0->work;
-    model->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
     func_actor_400600_80139DB0(arg0, 9, 0x10, 2);
     work->field_722 = 0;
@@ -5468,7 +5468,7 @@ static void func_actor_400600_8013AB98(Task* arg0)
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    model->flags        |= TMD_OBJECT_HIDDEN;
+    model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_71C      = work->field_71C + 1;
 }
 
@@ -5490,7 +5490,7 @@ static void func_actor_400600_8013AC14(Task* arg0)
         work->field_80    = 0;
         work->field_82    = 0;
         work->field_84    = 0;
-        model->flags     &= (u16)~TMD_OBJECT_HIDDEN;
+        model->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_722   = 0;
         work->field_724   = 0;
         func_actor_400600_80139D98(arg0, 0x15, 0x10);
@@ -5573,7 +5573,7 @@ static void func_actor_400600_8013AE88(Task* arg0)
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    model->flags        |= TMD_OBJECT_HIDDEN;
+    model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_71C      = work->field_71C + 1;
 }
 
@@ -5594,7 +5594,7 @@ static void func_actor_400600_8013AF04(Task* arg0)
         work->field_80    = 0;
         work->field_82    = 0x400;
         work->field_84    = 0;
-        model->flags     &= (u16)~TMD_OBJECT_HIDDEN;
+        model->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_722   = 0;
         work->field_724   = 0;
         func_actor_400600_80139D98(arg0, 0x15, 0x10);
@@ -5655,7 +5655,7 @@ static void func_actor_400600_8013B0FC(Task* arg0)
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    model->flags        |= TMD_OBJECT_HIDDEN;
+    model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_71C      = work->field_71C + 1;
 }
 
@@ -5741,7 +5741,7 @@ static void func_actor_400600_8013B394(Task* arg0)
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    model->flags        |= TMD_OBJECT_HIDDEN;
+    model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_71C      = work->field_71C + 1;
 }
 
@@ -6503,7 +6503,7 @@ static void func_actor_400600_8013C874(Task* arg0)
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    model->flags        |= TMD_OBJECT_HIDDEN;
+    model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_71C      = work->field_71C + 1;
 }
 

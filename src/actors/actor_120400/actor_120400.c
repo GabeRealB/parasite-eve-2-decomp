@@ -1016,7 +1016,7 @@ static void func_actor_120400_80132050(Task* arg0)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
@@ -1174,10 +1174,10 @@ static void func_actor_120400_801325A4(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_HIDDEN;
+    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
-        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1206,10 +1206,10 @@ static void func_actor_120400_801326B0(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
-        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        object->flags |= TMD_OBJECT_HIDDEN;
+        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1446,21 +1446,21 @@ s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags         |= TMD_OBJECT_HIDDEN;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->freeCountdown = mode;
             obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:

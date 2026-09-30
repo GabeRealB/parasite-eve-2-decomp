@@ -1558,7 +1558,7 @@ static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
                 goto update;
             case 2:
                 obj                      = arg1->extra.tmd;
-                obj->flags              |= TMD_OBJECT_HIDDEN;
+                obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 arg0->node.state.b.flags = 1;
                 return;
             default:
@@ -3387,7 +3387,7 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
     }
     if (mode > 1) {
         if (mode == 2) {
-            obj->flags              |= TMD_OBJECT_HIDDEN;
+            obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
         }
@@ -3476,14 +3476,14 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
                     Gp_PulseState1C();
                     Gp_DispatchMsgPtr(gameGetPtrSlot(7), 0x13F4, arg1, 0);
                     work->field_502         = 0xFF;
-                    arg1->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+                    arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     break;
                 }
                 Gp_ReleaseStateF0Add(arg1, 0x10);
             }
             work->field_54E         = 0x3C;
-            arg1->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Actor01600_D12874--;
             arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_502         = 3;
@@ -4020,7 +4020,7 @@ static void Actor01600_Fn05400(Task* arg0)
             obj             = arg0->extra.tmd;
             obj->flags     &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj2            = arg0->extra.tmd;
-            obj2->flags    &= (u16)~TMD_OBJECT_HIDDEN;
+            obj2->flags    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_52E = 1;
             return;
         case 3:
@@ -4038,7 +4038,7 @@ static void Actor01600_Fn05400(Task* arg0)
 
         default:
             obj3                    = arg0->extra.tmd;
-            obj3->flags            |= TMD_OBJECT_HIDDEN;
+            obj3->flags            |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj4                    = arg0->extra.tmd;
             obj4->flags            |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_53C         = 1;
@@ -4150,7 +4150,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             obj             = arg0->extra.tmd;
             obj->flags     &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj2            = arg0->extra.tmd;
-            obj2->flags    &= (u16)~TMD_OBJECT_HIDDEN;
+            obj2->flags    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_4FE = 1;
             work->field_4FA = 0;
             work->field_508 = 0;
@@ -4181,7 +4181,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
                 }
                 goto running;
             }
-            if (arg0->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
+            if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
                 goto running;
             }
             Actor01600_Fn03D48(arg0);
@@ -4208,7 +4208,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             obj3            = arg0->extra.tmd;
             obj3->flags    &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj4            = arg0->extra.tmd;
-            obj4->flags    &= (u16)~TMD_OBJECT_HIDDEN;
+            obj4->flags    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_516 = 6;
             work->field_4FE = 1;
             work->field_4FA = 0;
@@ -4288,7 +4288,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
                     obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                     obj         = arg0->extra.tmd;
                 } while (0);
-                obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+                obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
         case 3:
@@ -4297,7 +4297,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
                 obj         = arg0->extra.tmd;
                 obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                 obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+                obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             if (variant == 1) {
                 work->field_506 = 9;
@@ -4344,7 +4344,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
                 obj         = arg0->extra.tmd;
                 obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                 obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+                obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             Gp_StateF0.field_1C = 3;
             break;
@@ -4353,7 +4353,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
             if ((u32)(variant - 1) < 4) {
             setFlags:
                 obj         = arg0->extra.tmd;
-                obj->flags |= TMD_OBJECT_HIDDEN;
+                obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 obj         = arg0->extra.tmd;
                 obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
@@ -4589,7 +4589,7 @@ static void Actor01600_Fn0646C(Task* arg0)
     }
     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x50, &Actor01600_D12868);
     obj          = arg0->extra.tmd;
-    obj->flags  |= TMD_OBJECT_HIDDEN;
+    obj->flags  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     obj2         = arg0->extra.tmd;
     obj2->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
@@ -4915,7 +4915,7 @@ static u8 Actor01600_Fn06F78(void)
     }
     iter = head;
     do {
-        if (iter->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
+        if (iter->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return 1;
         }
         iter = iter->nextSibling;
@@ -4933,7 +4933,7 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     obj         = arg0->extra.tmd;
     ctx         = arg0->spawnArg2.pointer;
     work        = arg0->work;
-    obj->flags  = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
+    obj->flags  = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
     obj2        = arg0->extra.tmd;
     obj2->flags = (u16)(obj2->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
     ctx->recs   = 0;

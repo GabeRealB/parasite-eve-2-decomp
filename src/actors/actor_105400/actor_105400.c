@@ -525,7 +525,7 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             break;
@@ -997,7 +997,7 @@ case1:
     func_actor_105400_801335B8(arg1);
     return;
 case2:
-    temp_a1->flags           = TMD_OBJECT_HIDDEN;
+    temp_a1->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:

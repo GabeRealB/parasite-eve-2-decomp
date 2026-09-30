@@ -540,7 +540,7 @@ static void func_actor_310600_80161FA0(Task* task)
             work->field_478++;
         }
     }
-    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
@@ -695,7 +695,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
     ret  = 0;
     switch (arg2) {
         case 0:
-            ext->flags |= TMD_OBJECT_HIDDEN;
+            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -704,7 +704,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            ext->flags &= ~TMD_OBJECT_HIDDEN;
+            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -714,7 +714,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags |= TMD_OBJECT_HIDDEN;
+            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -724,7 +724,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags &= ~TMD_OBJECT_HIDDEN;
+            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             p           = obj;
             for (i = 0; i <= 0; i++) {
                 p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -766,10 +766,10 @@ static void func_actor_310600_801627A4(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_HIDDEN;
+    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
-        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -800,10 +800,10 @@ static void func_actor_310600_801628B0(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
-        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        object->flags |= TMD_OBJECT_HIDDEN;
+        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;

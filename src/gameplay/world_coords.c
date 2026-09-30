@@ -1280,7 +1280,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
-    if ((!(extra->flags & TMD_OBJECT_HIDDEN) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
+    if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
         block = SCRATCH_PUSH(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {

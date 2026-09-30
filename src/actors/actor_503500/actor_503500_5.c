@@ -1732,7 +1732,7 @@ static void func_actor_503500_80145FDC(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         pos.vx = coord->workm.t[0];
@@ -1952,20 +1952,20 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | TMD_OBJECT_HIDDEN) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~4;
             break;
         case 1:
-            ext->flags &= ~TMD_OBJECT_HIDDEN;
+            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                                    |= TMD_OBJECT_HIDDEN;
+            ext->flags                                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
             ext->flags                                    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~TMD_OBJECT_HIDDEN) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
             break;
         default:
             ret = 1;

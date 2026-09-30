@@ -2331,7 +2331,7 @@ static void func_actor_215100_8014CB2C(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -2428,8 +2428,8 @@ s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (flags & 2) {

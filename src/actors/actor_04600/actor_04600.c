@@ -1081,7 +1081,7 @@ static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags             |= TMD_OBJECT_HIDDEN;
+            model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags = 1;
             break;
         case 0:
@@ -1092,7 +1092,7 @@ static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
                     work->field_2AC    -= 0x12C;
                     task->killCountdown--;
                     if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
-                        model->flags = TMD_OBJECT_HIDDEN;
+                        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     if (work->field_2B2 == 6) {
                         work->field_2B8 = 1;
@@ -1233,7 +1233,7 @@ static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
     arg1->work          = work;
     work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
     work->field_2D6     = (u16)arg1->spawnArg1.value;
-    obj->flags          = TMD_OBJECT_HIDDEN;
+    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
     obj->colorMtx       = &work->field_BC;
@@ -1337,7 +1337,7 @@ static void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
         case 2:
-            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -1497,7 +1497,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
                 }
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 0;
             work->objFC.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1515,7 +1515,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.b.flags = 1;
         work->objFC.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1583,7 +1583,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -1898,7 +1898,7 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     work->field_2A6          = 1;
     work->field_2A4          = 0x12;
     arg0->node.state.b.flags = 1;
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     seed                     = Gp_LcgState * 5 + 0x71357911;
     work->field_2A8          = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState              = seed;
@@ -2124,7 +2124,7 @@ static void Actor04600_Fn0346C(Task* arg0)
                 Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &Actor04600_D064B4);
                 Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &Actor04600_D064BC);
                 Gp_SpawnPadLerp(0xA, 0x60, 0x60);
-                obj->flags          = TMD_OBJECT_HIDDEN;
+                obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->field_2A0     = 0x500;
                 work->field_28C     = 1;
                 enemy->hp           = 0;
@@ -2157,7 +2157,7 @@ static void Actor04600_Fn0346C(Task* arg0)
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &Actor04600_D064B4);
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &Actor04600_D064B4);
                     Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &Actor04600_D064BC);
-                    obj->flags          = TMD_OBJECT_HIDDEN;
+                    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     work->field_2A0     = 0x1000;
                     work->field_2A6     = 1;
                     work->field_28C     = 1;
@@ -2228,7 +2228,7 @@ static void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 2:
-            obj->flags              |= TMD_OBJECT_HIDDEN;
+            obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -2307,7 +2307,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2438,7 +2438,7 @@ static void Actor04600_Fn03F30(Task* task)
             if (work->field_2A4 >= 0x12) {
                 work->field_2A4           = 0x12;
                 enemy->node.state.b.flags = 1;
-                obj->flags                = TMD_OBJECT_HIDDEN;
+                obj->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
     } else {

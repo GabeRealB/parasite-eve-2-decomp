@@ -1083,7 +1083,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = TMD_OBJECT_HIDDEN;
+    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 default_body:
     st = work->field_37C;
@@ -1204,7 +1204,7 @@ static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
             func_actor_300700_8016534C(arg1);
             return;
         case 2:
-            obj->flags               = TMD_OBJECT_HIDDEN;
+            obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
     }

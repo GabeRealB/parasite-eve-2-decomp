@@ -843,10 +843,10 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
             extra->flags = extra->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             /* fallthrough */
         case 0:
-            extra->flags = extra->flags | TMD_OBJECT_HIDDEN;
+            extra->flags = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

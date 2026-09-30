@@ -498,8 +498,8 @@ s32 func_actor_110300_801322E0(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (flags & 2) {

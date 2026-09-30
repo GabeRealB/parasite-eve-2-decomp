@@ -1189,9 +1189,9 @@ void func_actor_113000_80131F38(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Spawn handler: allocates the work block, seeds its head, mirrors the
-/// deferred-kill bit into the model, draws the ground shadow under the model's
-/// second part, then hands the model's matrices to the light/color rebuilder.
+/// Spawn handler: allocates the work block, seeds its head, excludes the model
+/// from active drawing, then hands the model's matrices to the
+/// light/color rebuilder. The retained shadow branch cannot run with this bit set.
 static void func_actor_113000_80131F90(Task* task)
 {
     Actor113000Work* work;
@@ -1210,9 +1210,9 @@ static void func_actor_113000_80131F90(Task* task)
     work->field_47C = -1;
     work->field_4C6 = 0;
     work->field_4C8 = -1;
-    flags           = extra->flags | TMD_OBJECT_HIDDEN;
+    flags           = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     extra->flags    = flags;
-    if (!(flags & 0x80)) {
+    if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShadowShade);
         }
@@ -1225,7 +1225,7 @@ static void func_actor_113000_80131F90(Task* task)
 
 /// Per-frame tick, run after the model has been published: ticks the animation
 /// slots while the preset bank `field_474` marks live, draws the ground shadow
-/// under model part 1 while the model is not deferred, rebuilds that part's
+/// under model part 1 while active drawing is enabled, rebuilds that part's
 /// world matrix while the session's 0x4D is set, runs the texture-upload
 /// state, and counts the buffer free at `field_4C8` down to zero.
 static void func_actor_113000_80132070(Task* task)
@@ -1243,7 +1243,7 @@ static void func_actor_113000_80132070(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
@@ -1362,21 +1362,21 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_HIDDEN;
+            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_4C8 = mode;
             obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:

@@ -4265,7 +4265,7 @@ static void func_actor_444000_80135448(Task* task)
                     }
                 }
             } else if (step == 0x28) {
-                work->field_ECC[2]->task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                work->field_ECC[2]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 Gp_SpawnEff(0x60196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
@@ -4316,7 +4316,7 @@ static void func_actor_444000_80135448(Task* task)
                     }
                 }
             } else if (step == 0x28) {
-                work->field_ECC[4]->task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                work->field_ECC[4]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 Gp_SpawnEff(0x60196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
@@ -4365,7 +4365,7 @@ static void func_actor_444000_80135448(Task* task)
                     }
                 }
             } else if (step == 0x28) {
-                work->field_ECC[3]->task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                work->field_ECC[3]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
     } else {
@@ -4383,7 +4383,7 @@ static void func_actor_444000_80135448(Task* task)
                                            (s16)(0x1000 - ((work->field_6 * 0x1000) / 40)));
                 work->field_ECC[0]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (work->field_6 == 0x28) {
-                work->field_ECC[0]->task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                work->field_ECC[0]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
 
@@ -4394,7 +4394,7 @@ static void func_actor_444000_80135448(Task* task)
                                            (s16)(0x1000 - ((step * 0x1000) / 40)));
                 work->field_ECC[1]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (step == 0x28) {
-                work->field_ECC[1]->task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                work->field_ECC[1]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
 
@@ -4405,7 +4405,7 @@ static void func_actor_444000_80135448(Task* task)
                                            (s16)(0x1000 - ((step * 0x1000) / 120)));
                 task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (step == 0x78) {
-                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
 
@@ -4450,7 +4450,7 @@ static void func_actor_444000_80135448(Task* task)
                 Actor444000_SquashRotation(work->field_ECC[3]->task->extra.tmd->coords,
                                            (s16)(0x800 - ((step * 0x800) / 90)));
             } else if (step == 0x5A) {
-                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
                 verts        = Gp_GridParams->field_8;
                 verts[24].vy = 0x1F4;
@@ -5030,7 +5030,7 @@ static void func_actor_444000_801389EC(GpEnemy* enemy, Task* task)
         work->anim.blend       = armed;
         work->anim.blendFrames = 9;
         Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
-        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (work->field_1AC >= 9) {
@@ -5914,7 +5914,7 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
             }
             escorts                = task->work;
             escorts->field_7F3     = 0;
-            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (i = 0; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -5951,7 +5951,7 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
             escorts     = task->work;
             if (flags & 4) {
                 escorts->field_7F3     = 3;
-                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
                 escorts->field_7F3     = 0;
                 task->extra.tmd->flags = flags;
@@ -7187,7 +7187,7 @@ static void func_actor_444000_8013D810(Task* arg0)
     if (work->field_4 != 0) {
         escorts                = arg0->work;
         work->field_7F3        = 3;
-        arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         for (i = 0; i < 7; i++) {
             if (escorts->field_ECC[i] != NULL) {
                 escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
@@ -9140,7 +9140,7 @@ static void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
 
     escorts = task->work;
     if (escorts->field_7F3 != 0) {
-        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (--escorts->field_7F3 == 0) {
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             Tmd_FreeBuffers(task->extra.tmd);
@@ -9178,7 +9178,7 @@ static void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
                 if (view == 9) {
                     flagged                = task->work;
                     flagged->field_7F3     = 0;
-                    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     for (i = 0; i < 7; i++) {
                         if (flagged->field_ECC[i] != NULL) {
                             flagged->field_ECC[i]->task->extra.tmd->flags =
@@ -9204,7 +9204,7 @@ static void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
                 if (view == 9) {
                     flagged                = task->work;
                     flagged->field_7F3     = 0;
-                    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     for (i = 0; i < 7; i++) {
                         if (flagged->field_ECC[i] != NULL) {
                             flagged->field_ECC[i]->task->extra.tmd->flags =
@@ -9238,7 +9238,7 @@ static void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         case 2:
             flagged                = task->work;
             flagged->field_7F3     = 0;
-            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (i = 0; i < 7; i++) {
                 if (flagged->field_ECC[i] != NULL) {
                     flagged->field_ECC[i]->task->extra.tmd->flags =
@@ -9815,7 +9815,7 @@ void func_actor_444000_80143960(Task* arg0)
             arg0->extra.tmd->flags = 0;
             return;
         case 2:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -9850,7 +9850,7 @@ void func_actor_444000_80143A6C(Task* arg0)
             arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             return;
         case 2:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -9921,7 +9921,7 @@ void func_actor_444000_80143C64(Task* arg0)
             arg0->extra.tmd->flags = 0;
             return;
         case 2:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 

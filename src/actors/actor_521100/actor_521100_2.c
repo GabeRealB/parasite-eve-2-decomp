@@ -425,7 +425,7 @@ s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
     obj  = arg0->extra.tmd;
     work = arg0->work;
     if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
     }
@@ -844,7 +844,7 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
     if (arg2 & 1) {
         obj->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (arg2 & 2) {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

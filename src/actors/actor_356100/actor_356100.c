@@ -2278,7 +2278,7 @@ static void func_actor_356100_80167358(Task* arg0)
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 39:
-                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
         cur = work->field_6;
@@ -3004,7 +3004,7 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
             }
             return;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
     SCRATCH_PUSH(Actor356100GroundCoord);
@@ -3083,7 +3083,7 @@ s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
     work = (Actor356100Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -3106,7 +3106,7 @@ s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
 }
 
 /// Whether the actor should keep acting: 1 while its enemy still has HP;
-/// once it is down, 0 when the model is flagged for teardown (0x80) or has
+/// once it is down, 0 when active drawing is excluded or the model has
 /// flag 2 set, 1 otherwise.
 s32 func_actor_356100_80169F24(Task* task)
 {
@@ -3114,7 +3114,7 @@ s32 func_actor_356100_80169F24(Task* task)
 
     if (((GpEnemy*)task->spawnArg2.pointer)->hp <= 0) {
         flags = task->extra.tmd->flags;
-        if (flags & 0x80) {
+        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return 0;
         }
         if (flags & 2) {
@@ -3221,7 +3221,7 @@ static void func_actor_356100_8016A1D8(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                             |= TMD_OBJECT_HIDDEN;
+        obj->flags                                             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 

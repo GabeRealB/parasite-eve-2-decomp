@@ -1485,7 +1485,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = TMD_OBJECT_HIDDEN;
+    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 default_body:
     st = work->field_37C;
@@ -1606,7 +1606,7 @@ static void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1)
             Actor00700_Fn01E9C(arg1);
             return;
         case 2:
-            obj->flags               = TMD_OBJECT_HIDDEN;
+            obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -1981,7 +1981,7 @@ case1:
     Actor00700_Fn03518(arg1);
     return;
 case2:
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2299,7 +2299,7 @@ static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
         default:
@@ -2344,7 +2344,7 @@ static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
                     if ((s16)(work->field_2E0 / 3) < 8) {
                         Actor00700_Fn0305C(arg1);
                     } else {
-                        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->field_2E0++;
                     if (work->field_2E0 >= 0x1E) {

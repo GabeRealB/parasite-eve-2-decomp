@@ -1375,7 +1375,7 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
         default:
@@ -1410,7 +1410,7 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
                     }
                     if ((s16)work->field_140 >= 60) {
                         work->field_13E = 2;
-                        obj->flags      = TMD_OBJECT_HIDDEN;
+                        obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     if (work->field_12A > 0x200) {
                         work->field_12A -= 0x50;
@@ -1635,7 +1635,7 @@ static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
             enemy->node.state.b.flags = 0;
             break;
         case 2:
-            obj->flags                = TMD_OBJECT_HIDDEN;
+            obj->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags = 1;
             return;
     }

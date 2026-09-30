@@ -1288,7 +1288,7 @@ void Gp_EffModelTask(Task* arg0)
     }
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
-        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
+        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         switch (arg0->spawnArg1.value) {
             case 1:
             default:
@@ -1546,7 +1546,7 @@ void Gp_EffModelTask(Task* arg0)
     }
     mem->age++;
     if (mem->angle < mem->age) {
-        extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & (u16)~TMD_OBJECT_HIDDEN : extra->flags | TMD_OBJECT_HIDDEN;
+        extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW : extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (mem->angle * 2 < mem->age) {
             goto release;
         }
@@ -3196,7 +3196,7 @@ void Gp_EffSprTask53(Task* arg0)
             Gp_UpdateCoord(coord);
             arg0->state = 1;
         } else if (Gp_State1C->groundShadowShade >= 0) {
-            if (!(slot->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
+            if (!(slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 Gp_UpdateCoord(coord);
                 if ((s16)func_800EA1A8(MATRIX_TRANS(&coord->workm), &vec) != 0) {
                     Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->groundShadowShade);

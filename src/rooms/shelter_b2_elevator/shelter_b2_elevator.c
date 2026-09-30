@@ -426,7 +426,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             if (gGameSession->at4.loc.view == 2) {
                 obj->flags = 0;
             } else {
-                obj->flags = TMD_OBJECT_HIDDEN;
+                obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);

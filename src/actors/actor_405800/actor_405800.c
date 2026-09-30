@@ -1884,7 +1884,7 @@ static void func_actor_405800_80132FE0(Task* arg0)
         Gp_SpawnEff(0x600A5, coord, 3, &rot);
     }
     if ((s16)work->field_842 >= 0x41) {
-        model->flags |= TMD_OBJECT_HIDDEN;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_846++;
     }
 }
@@ -2269,7 +2269,7 @@ static void func_actor_405800_80133800(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->field_840++;
@@ -2293,7 +2293,7 @@ static void func_actor_405800_80133800(Task* arg0)
             actorUpdateModelColor(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             Actor405800_ProjectPart(part);
-            model->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -2916,7 +2916,7 @@ static void func_actor_405800_80135780(Task* arg0)
     work->field_824   = task;
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    obj->flags        = TMD_OBJECT_HIDDEN;
+    obj->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->parent     = parent2;
     coord->coord.t[0] = 0x400;
     coord->coord.t[1] = 0;
@@ -2951,7 +2951,7 @@ static void func_actor_405800_80135780(Task* arg0)
     task = work->field_828 = Task_SpawnFromTable(D_actor_405800_801514B4, 1, 0, 0);
     obj                    = task->extra.tmd;
     coord                  = obj->coords;
-    obj->flags             = TMD_OBJECT_HIDDEN;
+    obj->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->parent          = parent;
     coord->coord.t[0]      = -0x400;
     coord->coord.t[1]      = 0;
@@ -3899,7 +3899,7 @@ static void func_actor_405800_801375C4(Task* task)
         angle                = (u16)work->field_87A + (-work->field_87A >> 3);
         work->field_87A      = angle;
         if (angle < 9) {
-            ((Actor405800Work*)task->work)->field_828->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            ((Actor405800Work*)task->work)->field_828->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             child                   = ((Actor405800Work*)task->work)->field_828;
             child->extra.tmd->flags = 0;
@@ -3954,7 +3954,7 @@ static void func_actor_405800_801375C4(Task* task)
         angle                = (u16)work->field_878 + (-work->field_878 >> 3);
         work->field_878      = angle;
         if (angle < 9) {
-            ((Actor405800Work*)task->work)->field_824->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            ((Actor405800Work*)task->work)->field_824->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             child                   = ((Actor405800Work*)task->work)->field_824;
             child->extra.tmd->flags = 0;
@@ -4399,7 +4399,7 @@ static void func_actor_405800_80138698(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            model->flags |= TMD_OBJECT_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             fns.funcs[(s16)work->field_846](arg0);
@@ -4493,7 +4493,7 @@ static void func_actor_405800_801388E4(Task* task)
     Gp_UnlinkNode(&enemy->node);
     if (work->field_85A == 4) {
         work->field_842 = 0;
-        model->flags   |= TMD_OBJECT_HIDDEN;
+        model->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         func_actor_405800_80139FB0(task, 7);
     } else if (work->field_890 == 0) {
         work->field_846 = work->field_846 + 1;

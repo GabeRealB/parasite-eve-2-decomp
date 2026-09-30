@@ -2669,7 +2669,7 @@ static void func_acropolis_bridge_8017DB08(Task* task)
     extra = task->extra.tmd;
     coord = extra->coords;
     if ((u32)(Gp_GetViewIndex() - 8) < 3U) {
-        extra->flags = TMD_OBJECT_HIDDEN;
+        extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         extra->flags = 0;
     }
@@ -5828,7 +5828,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
         reset:
             work->field_0 = 0;
         hide:
-            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 done:
@@ -6750,7 +6750,7 @@ void func_acropolis_bridge_80187310(Task* task)
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 34:
-                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
     }
@@ -6804,7 +6804,7 @@ void func_acropolis_bridge_801874DC(Task* task)
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 44:
-                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
     }
@@ -6933,7 +6933,7 @@ running:
                     if ((s32)work->field_292 == view) {
                         goto drop;
                     }
-                    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     goto resync;
                 case 22:
                     if (work->field_0 == 4) {
@@ -6967,7 +6967,7 @@ paused:
     return;
 
 hidden:
-    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->hitRecs[0]);
     return;
@@ -7026,7 +7026,7 @@ s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags)
 
     extra = task->extra.tmd;
     if (flags == 0) {
-        extra->flags = TMD_OBJECT_HIDDEN;
+        extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else if (flags & 1) {
         extra->flags = 0;
     } else if (flags & 2) {
@@ -7073,7 +7073,7 @@ void func_acropolis_bridge_80187D04(Task* task)
     if (work->field_4 != 0) {
         GpEnemy* enemy = (GpEnemy*)task->spawnArg2.pointer;
 
-        extra->flags              = TMD_OBJECT_HIDDEN;
+        extra->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->node.state.b.flags = 1;
         work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

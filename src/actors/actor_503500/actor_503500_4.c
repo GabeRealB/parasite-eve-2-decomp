@@ -2769,7 +2769,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
             func_actor_503500_80142310(arg0, 6);
             break;
         case 9:
-            tmd->flags |= TMD_OBJECT_HIDDEN;
+            tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_503500_80142310(arg0, 7);
             break;
         default:
@@ -2819,12 +2819,12 @@ static void func_actor_503500_8013FF0C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
+            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_801421A8(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= TMD_OBJECT_HIDDEN;
+            tmd->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags |= 1;
             break;
         default:
@@ -3809,7 +3809,7 @@ static void func_actor_503500_801423C8(Task* arg0)
     tmd->lightMtx       = parentTmd->lightMtx;
     tmd->colorMtx       = parentTmd->colorMtx;
     tmd->otOffset       = 0x13;
-    tmd->flags         |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    tmd->flags         |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     enemy->field_4            = &coord->coord;
@@ -4072,7 +4072,7 @@ static void func_actor_503500_80142980(Task* arg0)
                     coord[i].coord.m[2][2] = src[i].coord.m[2][2];
                 }
                 tmd         = arg0->extra.tmd;
-                tmd->flags &= (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                tmd->flags &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 Tmd_AllocBuffers(tmd);
                 rot.vx = 0;
                 rot.vy = 0;
@@ -4513,12 +4513,12 @@ static void func_actor_503500_80143EB4(Task* arg0)
     tmd   = arg0->extra.tmd;
     switch (mode) {
         case 1:
-            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
+            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_80143FFC(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= TMD_OBJECT_HIDDEN;
+            tmd->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags |= 1;
             break;
         default:

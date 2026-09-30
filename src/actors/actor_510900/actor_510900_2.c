@@ -2614,9 +2614,9 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             }
             break;
         case 2:
-            obj->flags                        = TMD_OBJECT_HIDDEN;
-            work->field_568->extra.tmd->flags = TMD_OBJECT_HIDDEN;
-            work->field_56C->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            obj->flags                        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->field_568->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->field_56C->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_5A4                   = 0;
             if (work->field_564 != NULL) {
                 work->field_564[0xD] = 4;
@@ -2681,7 +2681,7 @@ static void func_actor_510900_801395AC(GpEnemy* enemy, Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     if (work->field_586 < 0x1C) {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
     SCRATCH_PUSH_BYTES(0x20);
@@ -2894,7 +2894,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
             Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            tmd->flags = TMD_OBJECT_HIDDEN;
+            tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -2955,7 +2955,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         Gp_ClearRec18Occupied(&work->rec60);
         Gp_UnlinkObj(&work->obj78);
         work->field_C8         = 0;
-        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         snd                    = (((u16)((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x51100009;
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         task->state = 2;
@@ -2965,7 +2965,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_UnlinkObj(&work->obj78);
         work->field_C8         = 0;
-        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->state            = 2;
         work->field_CA         = 3;
     }
@@ -3000,7 +3000,7 @@ static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                     work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_UnlinkObj(&work->obj78);
                     work->field_C8         = 0;
-                    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     task->state            = 2;
                     work->field_CA         = 3;
                     return;
@@ -3021,7 +3021,7 @@ static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                         work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         Gp_UnlinkObj(&work->obj78);
                         work->field_C8         = 0;
-                        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         task->state            = 2;
                         work->field_CA         = 3;
                     }
@@ -3144,7 +3144,7 @@ static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         return;
     }
     task->work           = work;
-    tmd->flags           = TMD_OBJECT_HIDDEN;
+    tmd->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     tmd->lightMtx        = &work->lightMtx;
     tmd->colorMtx        = &work->colorMtx;
@@ -3249,7 +3249,7 @@ case0:
     arg0->node.state.b.flags = one;
     goto body;
 case2:
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 body:
@@ -3775,7 +3775,7 @@ static void func_actor_510900_8013B6A0(GpEnemy* arg0, Task* arg1)
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
-        temp_a1->flags           = TMD_OBJECT_HIDDEN;
+        temp_a1->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg0->node.state.b.flags = one;
         return;
     default_body:
@@ -4066,7 +4066,7 @@ s32 func_actor_510900_8013BE64(Task* task, s32 msgId, s32 arg2)
 
     tmd = task->extra.tmd;
     if (arg2 == 0) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags = 0;
     }
@@ -4099,7 +4099,7 @@ static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task)
     tmdProcessStream(obj);
     coord->parent       = &task->parent->extra.tmd->coords[12];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->flags          = TMD_OBJECT_HIDDEN;
+    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
     task->state         = 1;
@@ -4119,7 +4119,7 @@ static void func_actor_510900_8013BFE4(GpEnemy* enemy, Task* task)
 
     obj                 = task->extra.tmd;
     work                = (Actor510900Work*)task->parent->work;
-    obj->flags          = TMD_OBJECT_HIDDEN;
+    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     obj->coords->parent = &task->parent->extra.tmd->coords[8];
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
@@ -4147,7 +4147,7 @@ static void func_actor_510900_8013C0E4(GpEnemy* enemy, Task* task)
 
     obj                 = task->extra.tmd;
     work                = (Actor510900Work*)task->parent->work;
-    obj->flags          = TMD_OBJECT_HIDDEN;
+    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     obj->coords->parent = &task->parent->extra.tmd->coords[3];
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
@@ -4209,7 +4209,7 @@ static s32 func_actor_510900_8013C240(Task* task)
         return 1;
     }
 
-    obj->flags              = TMD_OBJECT_HIDDEN;
+    obj->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->obj2BC.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj2F4.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     ctx->node.state.b.flags = 1;

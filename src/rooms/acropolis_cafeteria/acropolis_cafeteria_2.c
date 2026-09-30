@@ -1218,7 +1218,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     Gp_UpdateCoord(coord);
     work->age++;
     if (task->state == 0) {
-        obj->flags &= ~TMD_OBJECT_HIDDEN;
+        obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (task->spawnArg1.value != 0) {
             work->period = 0xD90;
             work->angle  = 0;
@@ -2216,7 +2216,7 @@ void func_acropolis_cafeteria_801827C4(Task* task)
         tmd->colorMtx = &D_acropolis_cafeteria_8018D5A0;
         tmd->flags    = 0;
     } else {
-        tmd->flags |= TMD_OBJECT_HIDDEN;
+        tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     switch (Gp_GetViewIndex() & 0xFF) {
         case 0xC:
@@ -2240,7 +2240,7 @@ void func_acropolis_cafeteria_8018286C(Task* task)
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
     if (obj->field_8 == 0xA) {
@@ -2263,13 +2263,13 @@ static void func_acropolis_cafeteria_80182954(Task* task)
 
     tmd = task->extra.tmd;
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
     tmd->lightMtx = &D_acropolis_cafeteria_8018D640;
     tmd->colorMtx = &D_acropolis_cafeteria_8018D620;
     if (Gp_GetCurBit2Flag(0xA) == 2) {
-        tmd->flags |= TMD_OBJECT_HIDDEN;
+        tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
@@ -2291,11 +2291,11 @@ static void func_acropolis_cafeteria_80182A08(Task* task)
             tmd->colorMtx = &D_acropolis_cafeteria_8018D660;
             break;
         default:
-            tmd->flags |= TMD_OBJECT_HIDDEN;
+            tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
     if (Gp_GetCurBit2Flag(0xB) == 2) {
-        tmd->flags |= TMD_OBJECT_HIDDEN;
+        tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;

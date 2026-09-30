@@ -359,7 +359,7 @@ case1:
     func_actor_300700_801633B8(arg1);
     return;
 case2:
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -692,7 +692,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
         default:
@@ -737,7 +737,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     if ((s16)(work->field_2E0 / 3) < 8) {
                         func_actor_300700_80162EFC(arg1);
                     } else {
-                        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->field_2E0++;
                     if (work->field_2E0 >= 0x1E) {

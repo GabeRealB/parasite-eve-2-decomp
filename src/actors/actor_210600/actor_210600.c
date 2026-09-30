@@ -530,7 +530,7 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
     work = (Actor210600Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_890 = 1;
             break;

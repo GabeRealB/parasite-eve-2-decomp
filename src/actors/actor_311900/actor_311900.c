@@ -441,7 +441,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
         obj->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     func_actor_311900_80162100(task);
     task->state += 1;
@@ -467,7 +467,7 @@ static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
         obj->flags      = 0;
         work->field_4C6 = 1;
     } else {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if ((s16)work->field_4C6 == 1) {
         work->field_4C4++;
@@ -543,7 +543,7 @@ static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
     if ((Gp_GetViewIndex() & 0xFF) == 0xB) {
         obj->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     func_actor_311900_80162100(task);
 }

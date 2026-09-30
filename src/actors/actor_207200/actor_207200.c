@@ -258,7 +258,7 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     work->field_2A6          = 1;
     work->field_2A4          = 0x12;
     arg0->node.state.b.flags = 1;
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     seed                     = Gp_LcgState * 5 + 0x71357911;
     work->field_2A8          = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState              = seed;
@@ -484,7 +484,7 @@ static void func_actor_207200_8014A588(Task* arg0)
                 Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &D_actor_207200_8014E7BC);
                 Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &D_actor_207200_8014E7C4);
                 Gp_SpawnPadLerp(0xA, 0x60, 0x60);
-                obj->flags          = TMD_OBJECT_HIDDEN;
+                obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->field_2A0     = 0x500;
                 work->field_28C     = 1;
                 enemy->hp           = 0;
@@ -517,7 +517,7 @@ static void func_actor_207200_8014A588(Task* arg0)
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &D_actor_207200_8014E7BC);
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &D_actor_207200_8014E7BC);
                     Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &D_actor_207200_8014E7C4);
-                    obj->flags          = TMD_OBJECT_HIDDEN;
+                    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     work->field_2A0     = 0x1000;
                     work->field_2A6     = 1;
                     work->field_28C     = 1;
@@ -588,7 +588,7 @@ static void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 2:
-            obj->flags              |= TMD_OBJECT_HIDDEN;
+            obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -666,7 +666,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -802,7 +802,7 @@ static void func_actor_207200_8014B04C(Task* task)
             if (work->field_2A4 >= 0x12) {
                 work->field_2A4           = 0x12;
                 enemy->node.state.b.flags = 1;
-                obj->flags                = TMD_OBJECT_HIDDEN;
+                obj->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
     } else {

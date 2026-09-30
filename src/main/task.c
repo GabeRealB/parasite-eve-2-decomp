@@ -210,7 +210,7 @@ void taskKill(Task* task)
         goto def_case;
 
     case1:
-        task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->killCountdown     = TASK_MODEL_RELEASE_DELAY_TICKS;
         task->callback          = taskCountdownCallback;
         task->state             = 0;

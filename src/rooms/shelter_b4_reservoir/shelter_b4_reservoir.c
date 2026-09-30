@@ -1380,7 +1380,7 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
         coord->coord.t[1]  += 4;
     }
     if (Mc_SaveData[0].state.at4.loc.view != 8) {
-        obj->flags = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         obj->flags    = 0;
         obj->otOffset = 0;

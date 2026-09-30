@@ -1037,7 +1037,7 @@ static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
     Gp_UpdateActorColor(arg0, &block, 0, 0);
     switch (Gp_StateF0.field_4) {
         case 2:
-            arg1->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 1:
             return;
@@ -1072,7 +1072,7 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             break;
         case 1:
@@ -1232,7 +1232,7 @@ static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
         model                    = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
-        model->flags             = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        model->flags             = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
 }
 

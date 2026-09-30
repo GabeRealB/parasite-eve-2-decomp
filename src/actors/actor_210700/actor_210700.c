@@ -1177,7 +1177,7 @@ static void func_actor_210700_80149F90(Task* task)
     work->field_478 = -1;
     work->field_47C = -1;
     work->field_53E = -1;
-    extra->flags    = TMD_OBJECT_HIDDEN;
+    extra->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     args.pos.vx     = 0;
     args.pos.vy     = 0;
     args.pos.vz     = 0;
@@ -1315,7 +1315,7 @@ s32 func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 a
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags       &= (u16)~TMD_OBJECT_HIDDEN;
+    extra->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return 0;
 }
 
@@ -1338,21 +1338,21 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_HIDDEN;
+            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_53E = mode;
             obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:

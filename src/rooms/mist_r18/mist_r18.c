@@ -1657,7 +1657,7 @@ void func_mist_r18_8017E6D8(s32 idx)
         task  = Task_SpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
-            task->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 }
@@ -1778,7 +1778,7 @@ void func_mist_r18_8017EA98(Task* task)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         obj                 = task->extra.tmd;
         obj->otOffset       = -8;
-        obj->flags         &= (u16)~TMD_OBJECT_HIDDEN;
+        obj->flags         &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->state++;
     }
 }

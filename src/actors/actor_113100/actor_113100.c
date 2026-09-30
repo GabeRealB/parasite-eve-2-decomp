@@ -1308,7 +1308,7 @@ static void func_actor_113100_80132104(Task* task)
     s8                     mode;
     u16                    rate;
 
-    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
@@ -1346,7 +1346,7 @@ static void func_actor_113100_80132104(Task* task)
                 }
             }
         }
-        if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
+        if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
             Gp_ClearRec18Occupied(&work->field_4D8);
             mode = work->field_53C;
             switch (mode) {
@@ -1515,8 +1515,8 @@ static void func_actor_113100_8013264C(Task* task)
 /// literal, and a mode outside 0..3 is answered with 1, the "not handled"
 /// return the dispatch expects. All four modes lift the 0x8000 bit the setup
 /// handler raised on the work block's display node and then rewrite the
-/// actor's own `TmdObject::flags`, whose bit 0x80 is `taskKill`'s type-1
-/// deferred kill and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
+/// actor's own `TmdObject::flags`, whose `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit
+/// excludes active drawing and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
 /// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
 /// `Tmd_AllocBuffers` and clears 0x4; mode 2 hides it, latches 2 into
 /// `field_53D` -- the countdown `func_actor_113100_80132104` walks down to
@@ -1546,7 +1546,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 
     switch (mode) {
         case 0:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1555,7 +1555,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1565,7 +1565,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1575,7 +1575,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             node        = &work->obj;
             for (i = 0; i <= 0; i++) {
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1685,9 +1685,9 @@ static void func_actor_113100_80132B30(Task* task)
 
     Task_Reparent(parent, task);
     if (GameFlag_GetNibble(0xF1) == 0) {
-        model->flags &= (u16)~TMD_OBJECT_HIDDEN;
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        model->flags |= TMD_OBJECT_HIDDEN;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     task->state += 1;
 }
@@ -1746,10 +1746,10 @@ static void func_actor_113100_80132CF4(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_HIDDEN;
+    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
-        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1769,8 +1769,8 @@ static void func_actor_113100_80132CF4(Task* task)
 
 /// Tick state of the child task whose state table is
 /// `D_actor_113100_80131E30`: copies the parent's (`spawnArg2`) model flag bits
-/// 0x80 and 0x4 onto the child's own model. Bit 0x80 is the deferred-kill flag
-/// that hides the model; when the parent's bit 0x4 is clear the child's is
+/// 0x80 and 0x4 onto the child's own model. `TMD_OBJECT_SKIP_ACTIVE_DRAW`
+/// excludes active drawing; when the parent's bit 0x4 is clear the child's is
 /// cleared too and `Tmd_AllocBuffers` is called on the child's model.
 static void func_actor_113100_80132E00(Task* task)
 {
@@ -1780,10 +1780,10 @@ static void func_actor_113100_80132E00(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
-        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        object->flags |= TMD_OBJECT_HIDDEN;
+        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1987,8 +1987,8 @@ s32 func_actor_113100_8013333C(Task* task, s32 msgId, ActorTransform* args)
 
 /// Message 0x7DB handler, listed in `D_actor_113100_80144338` after the 0x7D3 /
 /// 0x7D5 / 0x7DD ones. The payload halfword selects one of four actions: 0 and
-/// 1 clear and raise bit 0x80 of the child task's `TmdObject::flags`, the
-/// deferred-kill flag that decides whether the model is drawn; 2 and 3 set the
+/// 1 clear and raise `TMD_OBJECT_SKIP_ACTIVE_DRAW` in the child task's
+/// `TmdObject::flags`, enabling and excluding active drawing; 2 and 3 set the
 /// work block's `field_53C` mode byte to 1 and 0. Nothing reads the opcode
 /// itself, hence `msgId`.
 s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg)
@@ -2002,14 +2002,14 @@ s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg)
         case 0:
             if (work->field_534 != NULL) {
                 model         = work->field_534->extra.tmd;
-                model->flags &= (u16)~TMD_OBJECT_HIDDEN;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
 
         case 1:
             if (work->field_534 != NULL) {
                 model         = work->field_534->extra.tmd;
-                model->flags |= TMD_OBJECT_HIDDEN;
+                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
 

@@ -1090,7 +1090,7 @@ void func_actor_800100_80161F20(Task* task)
     base  = &Gp_RoomCoords[3];
     light = &base->light.head.u.coord;
     slot  = &base->light;
-    if ((gameGetPtrSlot(10)->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
+    if ((gameGetPtrSlot(10)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
     if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
@@ -1788,7 +1788,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     actor->field_88[2].motionDirection.vy = scratch->vy;
     actor->field_88[2].motionDirection.vz = scratch->vz;
 
-    if (!(work->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(work->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         ground               = arg0->extra.tmd->coords + 1;
         ground->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(ground);

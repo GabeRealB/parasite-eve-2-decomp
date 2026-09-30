@@ -141,10 +141,19 @@ STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 enum {
     TMD_OBJECT_SEMI_TRANS       = 0x02, // Select semi-transparent forms in handlers that test the object flags
     TMD_OBJECT_SKIP_AUTO_BUFFER = 0x04, // Suppress missing-buffer recovery; explicit allocation/release still applies
-    TMD_OBJECT_FLAGGED_PASS     = 0x08, // Select the flagged draw pass independently of hidden state
+    TMD_OBJECT_FLAGGED_PASS     = 0x08, // Select the flagged draw pass independently of active-pass exclusion
     TMD_OBJECT_REVERSE_CULLING  = 0x10, // Reverse facing tests in handlers that support mirrored geometry
-    TMD_OBJECT_HIDDEN           = 0x80  // Exclude from the active draw pass; does not stop coordinate refresh
 };
+
+/// Excludes a model from the active draw pass.
+///
+/// This is a bit mask in the u16 `TmdObject.flags`, not a creation flag.
+/// Callers also test it to suppress visible-model effects such as ground shadows.
+/// Coordinate refresh and buffer allocation/release remain independent;
+/// `TMD_OBJECT_FLAGGED_PASS` can still select the model for the flagged pass.
+/// Creation sets this bit. Clearing it permits active drawing only when the
+/// model also has a primitive buffer; it does not allocate that buffer.
+enum { TMD_OBJECT_SKIP_ACTIVE_DRAW = 0x80 };
 
 /// Unit blend value for `TmdObject.shading.colorBlend` (12 fractional bits).
 enum { TMD_OBJECT_COLOR_BLEND_ONE = 0x1000 };

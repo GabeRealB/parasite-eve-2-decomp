@@ -77,7 +77,7 @@ static s32 Tmd_SumBufferBytes(void);
 
 static void Tmd_RewriteOpcodes(TmdSource* src);
 
-/// Marks every attached model as no longer drawn.
+/// Excludes every attached model from the active draw pass.
 static void Tmd_FlagAllNodes(Task* task);
 
 /// Releases the buffer of every attached model.
@@ -537,7 +537,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
     allocation = memCalloc((src->partCount * sizeof(allocation->coords[0])) + sizeof(*allocation), 0);
     obj        = allocation != NULL ? &allocation->object : NULL;
     if (obj != NULL) {
-        obj->flags             = TMD_OBJECT_HIDDEN;
+        obj->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         obj->partCount         = src->partCount;
         obj->coords            = allocation->coords;
         obj->nextBufferHalf    = 0;
@@ -747,14 +747,14 @@ static void Tmd_RewriteOpcodes(TmdSource* src)
     }
 }
 
-/// Marks every attached model as no longer drawn.
+/// Excludes every attached model from the active draw pass.
 static void Tmd_FlagAllNodes(Task* task)
 {
     TmdObject* node;
 
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
-        node->flags |= TMD_OBJECT_HIDDEN;
+        node->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         node         = PARENT_OF(node->link.next, TmdObject, link);
     }
     task->state++;
@@ -836,7 +836,7 @@ void Tmd_AllocNodeBuffers(Task* task)
             if (mem != NULL) {
                 node->buffer         = mem;
                 node->nextBufferHalf = 0;
-                node->flags         &= ~TMD_OBJECT_HIDDEN;
+                node->flags         &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 tmdProcessStream(node);
                 tmdProcessStream(node);
             }
@@ -861,7 +861,7 @@ void Tmd_DrawFlaggedNodes(TmdObject* node)
 void Tmd_DrawActiveNodes(TmdObject* node)
 {
     while (node != NULL) {
-        if (!(node->flags & TMD_OBJECT_HIDDEN)) {
+        if (!(node->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
             if (node->buffer != NULL) {
                 Tmd_SetupDraw(node);
             }

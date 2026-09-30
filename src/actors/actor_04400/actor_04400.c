@@ -1593,7 +1593,7 @@ static void Actor04400_Fn00D3C(Task* arg0)
     kind = flags & 0xF;
     two  = 2;
     if (kind == two) {
-        model->flags |= TMD_OBJECT_HIDDEN;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     obj                   = arg0->extra.tmd;
     w                     = (Actor104400Work*)arg0->work;
@@ -1656,7 +1656,7 @@ static void Actor04400_Fn00F7C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -1989,7 +1989,7 @@ static void Actor04400_Fn01E08(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -2012,7 +2012,7 @@ static void Actor04400_Fn01E08(Task* arg0)
             Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
             Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
             Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
@@ -2408,7 +2408,7 @@ static void Actor04400_Fn02E8C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -2465,7 +2465,7 @@ static void Actor04400_Fn0304C(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
     }
     if ((s16)work->field_412 > 0x20) {
-        obj->flags |= TMD_OBJECT_HIDDEN;
+        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_420++;
     }
 }
@@ -2575,7 +2575,7 @@ static void Actor04400_Fn03538(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -2603,7 +2603,7 @@ static void Actor04400_Fn03538(Task* arg0)
             Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
             Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
             Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
@@ -2864,7 +2864,7 @@ static void Actor04400_Fn03F8C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -2905,7 +2905,7 @@ static void Actor04400_Fn042C4(Task* arg0)
         work->field_451      = 1;
         work->obj_2AC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_2CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        obj->flags          &= (u16)~TMD_OBJECT_HIDDEN;
+        obj->flags          &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if ((arg0->spawnArg1.value & 0xF) != 2) {
             Tmd_AllocBuffers(obj);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -3536,7 +3536,7 @@ static void Actor04400_Fn058F4(Task* arg0)
     Gp_UnlinkObj(&objs->obj_3AC);
     Actor04400_SetTaskState(arg0, 5);
     Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 0, 0);
-    tmd->flags |= TMD_OBJECT_HIDDEN;
+    tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 /// Sub-state handler: slides the model's root toward `field_70` in x/z,
@@ -3657,7 +3657,7 @@ static void Actor04400_Fn05DE0(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -3673,7 +3673,7 @@ static void Actor04400_Fn05DE0(Task* arg0)
                 Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
                 Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
             }
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
@@ -3691,7 +3691,7 @@ static void Actor04400_Fn05FC8(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->field_442++;
@@ -4484,7 +4484,7 @@ static void Actor04400_Fn07530(Task* arg0)
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {
         work->field_412  = 0;
-        model->flags     = model->flags | TMD_OBJECT_HIDDEN;
+        model->flags     = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work2            = (Actor104400Work*)arg0->work;
         work2->field_420 = 7;
         work2->field_422 = 0;
@@ -5171,7 +5171,7 @@ static void Actor04400_Fn08718(Task* arg0)
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);
-    model->flags    = model->flags | TMD_OBJECT_HIDDEN;
+    model->flags    = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_420 = work->field_420 + 1;
 }
 
@@ -5384,7 +5384,7 @@ static void Actor04400_Fn08C64(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
     }
     if ((s16)work->field_412 >= 0x21) {
-        obj->flags      = obj->flags | TMD_OBJECT_HIDDEN;
+        obj->flags      = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_412 = 0;
         work->field_420 = work->field_420 + 1;
     }

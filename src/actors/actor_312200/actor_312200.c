@@ -825,7 +825,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
     work = (Actor312200Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -930,7 +930,7 @@ static void func_actor_312200_80163778(Task* task)
         obj                       = task->extra.tmd;
         enemy                     = (GpEnemy*)task->spawnArg2.pointer;
         enemy->node.state.b.flags = 1;
-        obj->flags               |= TMD_OBJECT_HIDDEN;
+        obj->flags               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->field_4D           = 0;
         work->field_8BC.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }

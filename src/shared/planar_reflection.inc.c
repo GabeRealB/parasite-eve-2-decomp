@@ -95,7 +95,7 @@ static void Reflection_InitPlayer(Task* task)
     work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
     work->field_4   = 1;
     work->configRev = -1;
-    extra->flags   |= TMD_OBJECT_HIDDEN;
+    extra->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_4   = 0;
     work->viewFlg   = -1;
     actor           = (GameActor*)owner->work;
@@ -212,15 +212,15 @@ static void Reflection_UpdatePlayer(Task* task)
                 if (area == 7) {
                     if (view >= 6 && view < 12 && gGameSession->at4.loc.room == 2) {
                         work->coord.coord.t[1] += 0x9B;
-                        extra->flags           &= ~TMD_OBJECT_HIDDEN;
+                        extra->flags           &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         work->field_8           = 0;
                     } else {
                         work->field_4 = 0;
-                        extra->flags |= TMD_OBJECT_HIDDEN;
+                        extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                 }
             } else if (area == 1) {
-                extra->flags |= TMD_OBJECT_HIDDEN;
+                extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 if (view == 9) {
                     work->field_4 = 0;
                 }
@@ -230,14 +230,14 @@ static void Reflection_UpdatePlayer(Task* task)
                 }
                 work->field_8 = 1;
                 if ((area == 0x11 && view == 5) || (area == 2 && (view == 7 || view == 5))) {
-                    extra->flags |= TMD_OBJECT_HIDDEN;
+                    extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
-                    extra->flags &= ~TMD_OBJECT_HIDDEN;
+                    extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }
         } else {
             model         = task->extra.tmd;
-            model->flags &= ~TMD_OBJECT_HIDDEN;
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             if (stage == 1) {
                 switch (area) {
                     case 0x11:
@@ -272,7 +272,7 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = 0;
                                 break;
                             default:
-                                model->flags |= TMD_OBJECT_HIDDEN;
+                                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                         }
                         break;
@@ -301,7 +301,7 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = 0x14B4;
                                 break;
                             default:
-                                model->flags |= TMD_OBJECT_HIDDEN;
+                                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                         }
                         break;
@@ -336,12 +336,12 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = -0x640;
                                 break;
                             default:
-                                model->flags |= TMD_OBJECT_HIDDEN;
+                                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                         }
                         break;
                     default:
-                        model->flags |= TMD_OBJECT_HIDDEN;
+                        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         break;
                 }
             } else if (view == 8 || view == 1) {
@@ -353,9 +353,9 @@ static void Reflection_UpdatePlayer(Task* task)
                 plane->offset.vy = 0;
                 plane->offset.vz = 0;
             } else {
-                model->flags |= TMD_OBJECT_HIDDEN;
+                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            if (!(model->flags & TMD_OBJECT_HIDDEN)) {
+            if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 plane->leastAbs = plane->normal.vx;
                 if (plane->leastAbs < 0) {
                     plane->leastAbs = -plane->leastAbs;
@@ -506,7 +506,7 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 
     extra->flags = work->field_C;
-    if (!(extra->flags & TMD_OBJECT_HIDDEN) && gGameSession->field_65 == 0) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->field_65 == 0) {
         parts   = task->extra.tmd->coords;
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];
@@ -628,7 +628,7 @@ static void Reflection_UpdatePlayer(Task* task)
                 addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);
             } else {
-                extra->flags |= TMD_OBJECT_HIDDEN;
+                extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             SCRATCH_POP_BYTES(0x34);
         }

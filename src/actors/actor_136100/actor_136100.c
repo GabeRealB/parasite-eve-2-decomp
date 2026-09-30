@@ -2429,10 +2429,10 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (arg2 != 0) {
-        obj->flags = obj->flags & (u16)~TMD_OBJECT_HIDDEN;
+        obj->flags = obj->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    obj->flags = obj->flags | TMD_OBJECT_HIDDEN;
+    obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 /// Places the task's model in the world frame: its coordinate is re-parented

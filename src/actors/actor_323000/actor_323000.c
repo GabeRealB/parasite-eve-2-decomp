@@ -3807,7 +3807,7 @@ s32 func_actor_323000_80164844(Task* task, s32 arg1, s32 arg2)
     work = (Actor323000Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -3837,7 +3837,7 @@ s32 func_actor_323000_80164904(Task* task)
 
     if (((GpEnemy*)task->spawnArg2.pointer)->hp <= 0) {
         flags = task->extra.tmd->flags;
-        if (flags & 0x80) {
+        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return 0;
         }
         if (flags & 2) {
@@ -3971,7 +3971,7 @@ static void func_actor_323000_80164C20(GpEnemy* arg0, Task* arg1)
     if (work->field_4 != 0) {
         obj                      = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
-        obj->flags              |= TMD_OBJECT_HIDDEN;
+        obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 

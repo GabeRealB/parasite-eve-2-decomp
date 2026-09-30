@@ -14,8 +14,8 @@
 /// sentinel itself is not a `TmdObject`.
 ///
 /// Successful attachment appends a body; creation alone does not link it.
-/// Hidden models and models without primitive buffers remain linked, including
-/// models awaiting delayed task release. Coordinate refresh visits every model;
+/// Models excluded from active drawing and models without buffers remain linked,
+/// including models awaiting delayed task release. Coordinate refresh visits every model;
 /// drawing and buffer management apply their own filters. Unlink a body before
 /// freeing it; the resident sentinel is never freed.
 ///
@@ -29,7 +29,7 @@ extern s32 D_80071210;
 
 void Tmd_InitLists(void);
 
-/// Creates a hidden model object with a mutable copy of its source skeleton.
+/// Creates a model excluded from active drawing, with a mutable source-skeleton copy.
 ///
 /// The object owns its per-part coordinate array and borrows `src`, which must
 /// remain alive until the object is released. The skeleton is read only during

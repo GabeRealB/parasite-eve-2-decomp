@@ -733,7 +733,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                     break;
 
                 case 0x50:
-                    arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                    arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     break;
 
                 case 0x104:
@@ -883,7 +883,7 @@ case2:
     if (work->field_4D6 != state) {
         work->field_4BC = obj->flags;
     }
-    actor->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+    actor->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     goto case1;
 
 case1:

@@ -1312,9 +1312,9 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
         model->flags = 0;
         twin->flags  = 0;
     } else {
-        actor->flags = TMD_OBJECT_HIDDEN;
-        model->flags = TMD_OBJECT_HIDDEN;
-        twin->flags  = TMD_OBJECT_HIDDEN;
+        actor->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        twin->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (arg2 & 2) {
         actor->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

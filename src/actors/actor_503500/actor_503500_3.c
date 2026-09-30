@@ -387,7 +387,7 @@ static void func_actor_503500_80133270(Task* arg0)
             if (work->field_7E4 == 0) {
                 SndEvt_EnqueueType8(0x40000000);
                 Tmd_AllocBuffers(tmd);
-                tmd->flags     &= (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                tmd->flags     &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->field_7E4 = mode;
                 work->field_7E5 = 0;
             }
@@ -402,7 +402,7 @@ static void func_actor_503500_80133270(Task* arg0)
             }
             if (work->field_7E5 == 0) {
                 SndEvt_EnqueueType8(0x40000000);
-                tmd->flags     |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                tmd->flags     |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->field_7D9 = 1;
                 work->field_7E4 = 0;
                 work->field_7E5 = 1;
@@ -420,7 +420,7 @@ static void func_actor_503500_80133270(Task* arg0)
                 work->field_7E7 = 1;
             }
             if (gGameSession->eventState == 0) {
-                tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
+                tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             if (work->field_7D9 >= 0) {
                 if (work->field_7D9 == 0) {
@@ -1579,12 +1579,12 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
     if (obj->coords->parent != &gGfxViewCoord) {
         flags = obj->flags;
         pobj  = arg0->parent->extra.tmd;
-        if (flags & 0x80) {
-            if (!(pobj->flags & TMD_OBJECT_HIDDEN)) {
-                obj->flags = flags & ~0x80;
+        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+            if (!(pobj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+                obj->flags = flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-        } else if (pobj->flags & TMD_OBJECT_HIDDEN) {
-            obj->flags = flags | 0x80;
+        } else if (pobj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+            obj->flags = flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
         flags2 = obj->flags;
         if (flags2 & 2) {
@@ -2538,20 +2538,20 @@ s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | TMD_OBJECT_HIDDEN) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~4;
             break;
         case 1:
-            ext->flags &= ~TMD_OBJECT_HIDDEN;
+            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                               |= TMD_OBJECT_HIDDEN;
+            ext->flags                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((Actor503500Work*)arg0->work)->field_7D9 = mode;
             ext->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~TMD_OBJECT_HIDDEN) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
             break;
         default:
             ret = 1;
@@ -2987,12 +2987,12 @@ static void func_actor_503500_8013815C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
+            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_801382F4(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= TMD_OBJECT_HIDDEN;
+            tmd->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags |= 1;
             break;
         default:
@@ -3252,12 +3252,12 @@ static void func_actor_503500_80138898(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
+            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_8013AAC0(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= TMD_OBJECT_HIDDEN;
+            tmd->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags |= 1;
             break;
         default:
@@ -3624,7 +3624,7 @@ static void func_actor_503500_801395BC(Task* arg0)
             }
             break;
         case 3:
-            arg0->extra.tmd->flags |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            arg0->extra.tmd->flags |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             work->field_2DE++;
             if (work->field_2DE >= 0x5B) {
                 func_actor_503500_8013611C(arg0->spawnArg1.value);

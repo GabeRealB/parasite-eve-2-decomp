@@ -2707,7 +2707,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
-        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
+        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -2828,7 +2828,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
             goto kill;
         }
         slot = gameGetPtrSlot(3);
-        if (slot->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
+        if (slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return;
         }
         Gp_UpdateCoord(coord);
@@ -2887,7 +2887,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
-        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
+        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
@@ -6091,21 +6091,21 @@ s32 func_80104684(Task* arg0, s32 arg1, s32 arg2)
     switch (arg2) {
         case 0:
             func         = Tmd_AllocBuffers;
-            extra->flags = (extra->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 2:
             func         = Tmd_FreeBuffers;
-            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 3:
-            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 4:
             func         = Tmd_AllocBuffers;
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     if (func != NULL) {

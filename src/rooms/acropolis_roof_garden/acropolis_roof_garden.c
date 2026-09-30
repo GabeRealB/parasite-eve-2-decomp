@@ -1783,11 +1783,11 @@ void func_acropolis_roof_garden_80180160(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     view = Gp_GetViewIndex();
     if (view >= 8) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else if (view < 5) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else if (flag == 2) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;

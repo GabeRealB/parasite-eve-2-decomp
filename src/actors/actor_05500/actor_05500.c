@@ -1486,7 +1486,7 @@ static void Actor05500_Fn01B30(Task* arg0)
         case 0:
             work->field_294.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_214.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-            obj->flags              = (u16)obj->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            obj->flags              = (u16)obj->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = one;
             if (Gp_StateF0.field_1E == one) {
                 if (work->field_3C2 == 0) {
@@ -1749,7 +1749,7 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
         default:
@@ -1773,7 +1773,7 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
                     work->field_39C = 1;
                     Gp_SetLightMode(arg0, 1);
                     if (work->field_3BA != 0) {
-                        obj->flags = TMD_OBJECT_HIDDEN;
+                        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->field_392 = 0xB;
                     _actor05500TickAnim(arg1);
@@ -1806,7 +1806,7 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
                     if (work->field_39E >= 0x3C) {
                         work->field_39C = 2;
                         work->field_39E = 0;
-                        obj->flags      = TMD_OBJECT_HIDDEN;
+                        obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     _actor05500TickAnim(arg1);
                     colorCoord = arg1->extra.tmd->coords;
@@ -2273,7 +2273,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:

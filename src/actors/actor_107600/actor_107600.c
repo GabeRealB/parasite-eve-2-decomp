@@ -1119,10 +1119,10 @@ static void func_actor_107600_80132930(Task* arg0)
             coord->coord.m[1][1] = work->field_14B * (coord->coord.m[1][1] / 100);
         case 1:
             func_actor_107600_80132B0C(arg0);
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 2:
-            ext->flags |= TMD_OBJECT_HIDDEN;
+            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -1399,10 +1399,10 @@ static void func_actor_107600_80133024(Task* arg0)
             }
         case 1:
             func_actor_107600_801349E0(arg0);
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     if (work->field_162 != 2) {
@@ -1983,7 +1983,7 @@ static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s3
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
-    if ((!(extra->flags & TMD_OBJECT_HIDDEN) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
+    if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
         block = SCRATCH_PUSH(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
@@ -2040,7 +2040,7 @@ static void func_actor_107600_80134904(Task* arg0)
 {
     TmdObject* obj = arg0->extra.tmd;
 
-    obj->flags |= TMD_OBJECT_HIDDEN;
+    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 static void func_actor_107600_80134920(Task* arg0)

@@ -1026,7 +1026,7 @@ void func_mist_parking_801831F0(s32 arg0)
         *slot = task;
         if (task != NULL) {
             obj         = task->extra.tmd;
-            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 }

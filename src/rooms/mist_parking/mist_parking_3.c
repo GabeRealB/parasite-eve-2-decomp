@@ -285,7 +285,7 @@ static void func_mist_parking_801839CC(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
-    obj->flags         &= (u16)~TMD_OBJECT_HIDDEN;
+    obj->flags         &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     task->killCountdown = -0x78;
     func_mist_parking_80183AC4(task, 0, &D_mist_parking_8018FC3C, 0);
     task->state = task->state + 1;

@@ -1433,7 +1433,7 @@ static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 
         enemy->recs            = &work->contacts[3][0];
         task->exitCallback     = Actor01100_Fn0668C;
-        task->extra.tmd->flags = (u16)(task->extra.tmd->flags & (u16)~TMD_OBJECT_HIDDEN);
+        task->extra.tmd->flags = (u16)(task->extra.tmd->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
         task->msgTable         = Actor01100_D15660;
         task->state++;
         enemy->reactionFlags = 0;
@@ -3472,7 +3472,7 @@ static void Actor01100_Fn05678(
         time            = work->field_B8C - 1;
         work->field_B8C = time;
         if (time == 0) {
-            task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+            task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_B8C         = 4;
             work->field_BA8++;
         }
@@ -3886,14 +3886,14 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
         if (work->field_BA0 == 0) {
-            model->flags             &= ~TMD_OBJECT_HIDDEN;
+            model->flags             &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags = work->field_BA1;
             obj                       = &work->objs[0];
             obj->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             obj                       = &work->objs[3];
             obj->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
         } else {
-            model->flags             |= TMD_OBJECT_HIDDEN;
+            model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_BA1           = enemy->node.state.b.flags;
             enemy->node.state.b.flags = 1;
             for (i = 0; i < 4; i++) {

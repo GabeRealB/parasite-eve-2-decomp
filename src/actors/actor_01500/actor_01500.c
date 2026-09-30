@@ -1675,7 +1675,7 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             sub = &coord[1];
             goto update;
         case 2:
-            model->flags             = TMD_OBJECT_HIDDEN;
+            model->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -1693,7 +1693,7 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             work->field_362 = 0;
             work->field_35C = 1;
             if (work->field_37E != 0) {
-                model->flags    = TMD_OBJECT_HIDDEN;
+                model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->field_35C = 3;
             }
             break;
@@ -1886,7 +1886,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:

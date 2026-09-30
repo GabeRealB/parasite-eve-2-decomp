@@ -2043,7 +2043,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = TMD_OBJECT_HIDDEN;
+    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 default_body:
     st = work->field_354;
@@ -2085,7 +2085,7 @@ death:
     Gp_ReleaseStateF0Add(arg1, 0x26);
     work->field_354 = 1;
     if (work->field_368 != 0) {
-        obj->flags      = TMD_OBJECT_HIDDEN;
+        obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_354 = 3;
     }
     _actor03800TickAnim(arg1);
@@ -2110,7 +2110,7 @@ dying:
     }
     if (work->field_356 >= 0x3C) {
         work->field_354 = 2;
-        obj->flags      = TMD_OBJECT_HIDDEN;
+        obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     _actor03800TickAnim(arg1);
     c      = ((Actor103800Work*)arg1->work)->field_344;
@@ -2273,7 +2273,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2394,7 +2394,7 @@ static void Actor03800_Fn034B0(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
     switch (Gp_StateF0.field_20) {
         case 0:
-            obj->flags              = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            obj->flags              = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = 1;
             return;
         case 1:

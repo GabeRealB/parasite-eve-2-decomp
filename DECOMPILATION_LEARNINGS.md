@@ -46090,7 +46090,7 @@ the destination of a store. `func_actor_341900_801633F8 1 attempt, base_1.c
 
 Model tasks carry `TmdObject` (`include/main/tmd_types.h`) in `Task.extra.tmd`:
 `coords` points to the owned part array, `flags` is the u16 halfword whose
-`TMD_OBJECT_HIDDEN` bit `taskKill` sets, and `buffer` is the storage
+`TMD_OBJECT_SKIP_ACTIVE_DRAW` bit `taskKill` sets, and `buffer` is the storage
 `Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. Coordinate-body tasks instead carry
 `ModelObjectCoordBody` in `Task.extra.coordBody`, with one node at `coord`.
 The shared pointer offset does not make these bodies interchangeable.
@@ -46137,7 +46137,7 @@ C: `0x22E0 / 8 = 0x45C`. Function
 `func_actor_510900_8013C0E4 1 attempt, base_1.c 100.00%`.
 
 The handler next door, `func_actor_510900_8013BFE4`, is that body exactly - same
-work-block pair, same `flags = TMD_OBJECT_HIDDEN`, same `task->state = 1` - except its
+work-block pair, same `flags = TMD_OBJECT_SKIP_ACTIVE_DRAW`, same `task->state = 1` - except its
 `addiu` on `TmdObject::coords` is `0x280`, i.e. `coords[8]`, where the sibling
 has `coords[3]` / `0xF0`. So a matched sibling one immediate away is a reason to
 recompute that immediate for *this* target (`0x280 / 0x50 = 8`), not to copy the

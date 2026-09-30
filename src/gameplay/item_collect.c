@@ -400,7 +400,7 @@ static void func_800BBB54(Task* arg0)
 
     extra = arg0->extra.tmd;
     if (arg0->state == 0) {
-        extra->flags = (TMD_OBJECT_HIDDEN | TMD_OBJECT_FLAGGED_PASS);
+        extra->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_FLAGGED_PASS);
         arg0->state += 1;
     }
     if (arg0->state == 1) {

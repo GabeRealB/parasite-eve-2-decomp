@@ -1146,7 +1146,7 @@ static void Actor02500_Fn012F0(Task* actor)
     scratch = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     switch (work->field_324) {
         case 0:
-            obj->flags                                               = TMD_OBJECT_HIDDEN;
+            obj->flags                                               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             dx                                                       = Player_Status.coordMtx->t[0] - work->field_314;
             scratch->delta.vy                                        = 0;
@@ -1161,7 +1161,7 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 1:
-            obj->flags                                               = TMD_OBJECT_HIDDEN;
+            obj->flags                                               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             if (Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 work->field_324 = 2;
@@ -1169,7 +1169,7 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 2:
-            obj->flags                                               = TMD_OBJECT_HIDDEN;
+            obj->flags                                               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             timer2                                                   = (u16)work->field_32E - 1;
             work->field_32E                                          = timer2;
@@ -1186,7 +1186,7 @@ static void Actor02500_Fn012F0(Task* actor)
             timer3          = (u16)work->field_32E - 1;
             work->field_32E = timer3;
             if (timer3 > 0) {
-                obj->flags = TMD_OBJECT_HIDDEN;
+                obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
                 Gp_SetLightMode(actor->spawnArg2.pointer, 0);
                 obj->flags                                 = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
@@ -1419,7 +1419,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = TMD_OBJECT_HIDDEN;
+    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 common:
     one = 1;
@@ -1464,7 +1464,7 @@ death:
         work->field_324 = one;
         return;
     }
-    obj->flags      = TMD_OBJECT_HIDDEN;
+    obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_324 = 3;
     return;
 dying:
@@ -1479,7 +1479,7 @@ dying:
         Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
     }
     if (work->field_32E >= 0x3C) {
-        obj->flags      = TMD_OBJECT_HIDDEN;
+        obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_324 = 2;
     }
     c      = arg1->extra.tmd->coords;
@@ -1561,7 +1561,7 @@ case1:
     Actor02500_Fn023D8(arg1);
     goto tail;
 case2:
-    temp_a1->flags           = TMD_OBJECT_HIDDEN;
+    temp_a1->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:

@@ -1847,7 +1847,7 @@ static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags             |= TMD_OBJECT_HIDDEN;
+            model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.b.flags = 1;
             break;
         case 0:
@@ -1858,7 +1858,7 @@ static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
                     work->field_2AC -= 0x12C;
                     task->killCountdown--;
                     if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
-                        model->flags = TMD_OBJECT_HIDDEN;
+                        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     if (work->field_2B2 == 6) {
                         work->field_2B8 = 1;
@@ -2001,7 +2001,7 @@ static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
     arg1->work          = work;
     work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
     work->field_2D6     = (u16)arg1->spawnArg1.value;
-    obj->flags          = TMD_OBJECT_HIDDEN;
+    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
     obj->colorMtx       = &work->field_BC;
@@ -2121,7 +2121,7 @@ static void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
         case 2:
-            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -2273,7 +2273,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
                 }
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 0;
             work->field_11A          |= 0x8000;
@@ -2291,7 +2291,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.b.flags = 1;
         work->field_11A          &= 0x7FFF;
@@ -2358,7 +2358,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2769,7 +2769,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = TMD_OBJECT_HIDDEN;
+    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -3325,7 +3325,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            obj->flags              |= TMD_OBJECT_HIDDEN;
+            obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -3351,7 +3351,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
                     if (work->field_394 == 0) {
                         Actor07000_Fn06088(arg1);
                     } else {
-                        obj->flags = TMD_OBJECT_HIDDEN;
+                        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->field_36E++;
                     if ((s16)work->field_36E >= 0x3D) {
@@ -3360,7 +3360,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
                     break;
                 case 2:
                     SndEvt_EnqueueType7(0xD, 1);
-                    obj->flags   = TMD_OBJECT_HIDDEN;
+                    obj->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     part->parent = coord;
                     arg1->state  = 3;
                     break;
@@ -3606,7 +3606,7 @@ case0:
 case1:
     return;
 case2:
-    part->flags = TMD_OBJECT_HIDDEN;
+    part->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 default_body:
     rec->point.vx       = -work->field_0;
@@ -3686,7 +3686,7 @@ static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     arg1->work          = work;
     work->field_366     = (u16)arg1->spawnArg1.value;
     work->field_364     = (s16)(arg1->spawnArg1.value >> 16);
-    obj->flags         |= TMD_OBJECT_HIDDEN;
+    obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_1BC;
     obj->colorMtx       = &work->field_19C;
@@ -3848,7 +3848,7 @@ static void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
             update_color(arg1->spawnArg2.pointer, &arg1->extra.tmd->coords[1]);
             return;
         case 2:
-            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
         case 0:
@@ -3999,7 +3999,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request)
                 coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 0;
             work->obj1.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -4015,7 +4015,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.b.flags = 1;
         work->obj1.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

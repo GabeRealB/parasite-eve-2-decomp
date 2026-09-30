@@ -1208,7 +1208,7 @@ static s32 func_actor_160900_80132844(Task* arg0)
     u16                    done;
 
     work = (Actor160900Child3Work*)arg0->work;
-    if (arg0->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
+    if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
         return 0;
     }
     for (i = 1; i < 0x14; i++) {
@@ -1346,7 +1346,7 @@ void func_actor_160900_80132C08(Task* task)
             Mem_Set(task->work, 0, 0x4BC);
             obj->lightMtx  = &work->light;
             obj->colorMtx  = &work->color;
-            obj->flags    |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            obj->flags    |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             task->msgTable = D_actor_160900_8013F200;
             place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x65) {
@@ -2196,10 +2196,10 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
         case 0:
             break;
         case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

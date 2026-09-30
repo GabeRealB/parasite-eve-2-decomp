@@ -1234,7 +1234,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 Mem_Set(mtx, 0, 0x58);
                 mtx->owner    = gameGetPtrSlot(3);
                 coord->parent = &gGfxViewCoord;
-                extra->flags  = TMD_OBJECT_HIDDEN;
+                extra->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 Tmd_AllocBuffers(extra);
                 extra->lightMtx = &mtx->light;
                 extra->colorMtx = &mtx->color;
@@ -1335,7 +1335,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
     work->field_50 = 0;
 }
 
-/// Hides the task's `TmdObject` (`flags & TMD_OBJECT_HIDDEN`) while `arg2` is zero,
+/// Excludes the task's `TmdObject` from active drawing while `arg2` is zero,
 /// and clears that bit otherwise. `arg1` is unused; the flag is the *third*
 /// argument, so the second slot is only there to place it in `$a2`. Byte for
 /// byte the actors library's `ActorsShared801346ec`, which toggles the same bit
@@ -1346,10 +1346,10 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (arg2 != 0) {
-        obj->flags = obj->flags & (u16)~TMD_OBJECT_HIDDEN;
+        obj->flags = obj->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    obj->flags = obj->flags | TMD_OBJECT_HIDDEN;
+    obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 /// Message 0x7D4 handler of the model task: copies `placement` onto the task's

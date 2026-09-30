@@ -2445,7 +2445,7 @@ static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     func_actor_460200_801325FC(task);
     func_actor_460200_80132978(task);
-    if ((work->effects != 0) && !(obj->flags & TMD_OBJECT_HIDDEN) && (obj->buffer != NULL)) {
+    if ((work->effects != 0) && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (obj->buffer != NULL)) {
         if (task->killCountdown & 1) {
             rng         = Gp_LcgState * 5 + 0x71357911;
             hi          = (rng >> 16) & 0x10FF;
@@ -2568,7 +2568,7 @@ static void func_actor_460200_80132978(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -2672,8 +2672,8 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (flags & 2) {
         self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -2888,7 +2888,7 @@ static void func_actor_460200_80133254(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -2991,8 +2991,8 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (flags & 2) {
         self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -3207,7 +3207,7 @@ static void func_actor_460200_80133AB0(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -3309,8 +3309,8 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (flags & 2) {
         self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;

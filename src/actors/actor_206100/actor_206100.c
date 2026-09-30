@@ -2401,7 +2401,7 @@ static void func_actor_206100_8014C458(Task* task)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
@@ -2529,7 +2529,7 @@ static void func_actor_206100_8014C458(Task* task)
             enemy->coord = &task->extra.tmd->coords[work->field_557];
         case 1:
             Actor206100_UpdateColor(task);
-            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     svp                = &scratch.gte.vec;
@@ -3162,8 +3162,8 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// State-2 tick: the `Gp_StateF0.field_4` effect mode 0 arm bumps the actor's two frame
 /// counters and runs the handler `funcs[(s16)field_520]` picks out of a
 /// two-entry local table, then drives the animation request and re-poses the
-/// actor; mode 1 is that tail alone and mode 2 is the deferred-kill bit of the
-/// model.  The table's entries are the ring stepper
+/// actor; mode 1 is that tail alone and mode 2 excludes the model from active
+/// drawing. The table's entries are the ring stepper
 /// `func_actor_206100_8014FAE4` and the companion tick
 /// `func_actor_206100_8014DD3C`, which is the `field_520` index the spawn state
 /// `func_actor_206100_8014C274` leaves at 0.
@@ -3219,7 +3219,7 @@ static void func_actor_206100_8014DA28(Task* task)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
@@ -3283,7 +3283,7 @@ static void func_actor_206100_8014DA28(Task* task)
             /* fallthrough */
         case 1:
             Actor206100_UpdateColor(task);
-            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
@@ -3652,7 +3652,7 @@ static void func_actor_206100_8014E228(Task* task)
 }
 
 /// Effect-mode tick of the `field_520` state table `D_actor_206100_80149EC0`,
-/// keyed on `Gp_StateF0.field_4`.  Mode 2 only sets the model's deferred-kill bit and
+/// keyed on `Gp_StateF0.field_4`. Mode 2 only excludes the model from active drawing and
 /// leaves; mode 0 runs the handler `field_520` selects, latches the animation
 /// slot's flags into `flags_514` and eases the root coordinate -- x and z to a
 /// sixteenth of their distance to zero, y the same fraction of the way to the
@@ -3676,7 +3676,7 @@ static void func_actor_206100_8014E7D4(Task* task)
     states = D_actor_206100_80149EC0;
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
             states.funcs[(s16)work->field_520](task, &states);

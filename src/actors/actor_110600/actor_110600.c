@@ -3342,7 +3342,7 @@ static void func_actor_110600_80136B20(Task* arg0)
             pos.vz = 0;
             break;
         case 0x258:
-            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     if (work->field_BE0 >= 0xE6) {
@@ -3419,7 +3419,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
         work->walker.field_5A     = 0;
         work->field_8A4           = 0;
         work->field_8A2           = 0;
-        obj->flags                = TMD_OBJECT_HIDDEN;
+        obj->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
         effect1 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[6], 0x200, NULL);
         if (effect1 != NULL) {
@@ -4011,7 +4011,7 @@ static void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->recs);
             return;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->recs_970);
             Gp_ClearRec18Occupied(work->recs_8D8);
             Gp_ClearRec18Occupied(work->recs);
@@ -4146,7 +4146,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
     work  = arg0->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -4155,7 +4155,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
                 obj->flags = 0;
                 Tmd_AllocBuffers(obj);
             } else if (enemy->spawnState == 4) {
-                obj->flags    = TMD_OBJECT_HIDDEN;
+                obj->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->field_0 = 0;
             } else {
                 obj->flags = 0;
@@ -4168,7 +4168,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
             break;
         case 3:
             if (enemy->spawnState == 4) {
-                obj->flags = TMD_OBJECT_HIDDEN;
+                obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
                 obj->flags = 0;
             }
@@ -4315,7 +4315,7 @@ static void func_actor_110600_801388A4(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                              = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
+        obj->flags                                              = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
         work->field_A90.flags                                   = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->field_950.flags                                   = (u16)(work->field_950.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }

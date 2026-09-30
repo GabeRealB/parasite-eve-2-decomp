@@ -573,10 +573,10 @@ void func_acropolis_hallway_8017E120(Task* task)
     if (Gp_GetViewIndex() == 5) {
         tmd->flags = TMD_OBJECT_FLAGGED_PASS;
     } else {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (flag == 2) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 

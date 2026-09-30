@@ -354,9 +354,9 @@ void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
     TmdObject* obj = task->extra.tmd;
 
     if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2.pointer)->flagId) == 2) {
-        obj->flags |= TMD_OBJECT_HIDDEN;
+        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags &= ~TMD_OBJECT_HIDDEN;
+        obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 

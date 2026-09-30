@@ -1213,7 +1213,7 @@ static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
             break;
         case 9:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 28:
             Gp_ReleaseStateF0Add(arg1, 0xC);
@@ -1347,7 +1347,7 @@ static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->eff1A8);
             break;
         case 8:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 25:
             Gp_ReleaseStateF0Add(arg1, 0xC);
@@ -1718,7 +1718,7 @@ static void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(&work->rec2E8);
             return;
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->rootContacts);
             Gp_ClearRec18Occupied(work->jointContacts);
             Gp_ClearRec18Occupied(&work->rec2E8);
@@ -1776,7 +1776,7 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
     work = task->work;
     switch (arg2) {
         case 0:
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
             work->field_0 = 7;
             break;
@@ -1898,7 +1898,7 @@ static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
     if (work->field_4 != 0) {
         obj                      = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
-        obj->flags               = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
+        obj->flags               = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
         work->obj2C8.flags       = (u16)(work->obj2C8.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->obj300.flags       = (u16)(work->obj300.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->obj338.flags       = (u16)(work->obj338.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));

@@ -520,7 +520,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
             }
         }
     }
-    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), (VECTOR3*)&vec) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->groundShadowShade);
         }
@@ -569,7 +569,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 
     switch (mode) {
         case 0:
-            extra->flags |= TMD_OBJECT_HIDDEN;
+            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
@@ -577,7 +577,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            extra->flags &= ~TMD_OBJECT_HIDDEN;
+            extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= 0x8000;
@@ -586,7 +586,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            extra->flags |= TMD_OBJECT_HIDDEN;
+            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
@@ -595,7 +595,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            extra->flags &= ~TMD_OBJECT_HIDDEN;
+            extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= 0x8000;
@@ -972,7 +972,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
     extra->layerClutRowOffset     = 4;
     extra->texturePageOffset      = 0;
     extra->shading.colorBlend     = TMD_OBJECT_COLOR_BLEND_ONE - 1;
-    extra->flags                 &= (u16)~TMD_OBJECT_HIDDEN;
+    extra->flags                 &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     tmdProcessStream(extra);
     tmdProcessStream(extra);
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);

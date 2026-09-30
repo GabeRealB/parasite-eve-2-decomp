@@ -1311,14 +1311,14 @@ void Gp_ItemPickupTilt(Task* arg0)
     rot     = coord + 2;
     room    = *&session->at4.loc.view;
     if (Gp_StateF0.field_4 == 2) {
-        extra->flags |= TMD_OBJECT_HIDDEN;
+        extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
+        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     mapId &= 0xFFFF0000;
     if (mapId == 0x4100000) {
         if ((u32)(room - 8) >= 2) {
-            extra->flags |= TMD_OBJECT_HIDDEN;
+            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     } else if (mapId == 0x41F0000) {
         check = 3;
@@ -1327,7 +1327,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         check = 0x11;
     compare_room:
         if (room != check) {
-            extra->flags |= TMD_OBJECT_HIDDEN;
+            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
     if (arg0->state == 0) {

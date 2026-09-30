@@ -2632,7 +2632,7 @@ void func_acropolis_sanctuary_80180264(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     view = Gp_GetViewIndex();
     if (view == 0xB || view == 0xD || flag == 2) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
@@ -2653,7 +2653,7 @@ static void func_acropolis_sanctuary_801802E0(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {
-        tmd->flags = TMD_OBJECT_HIDDEN;
+        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;

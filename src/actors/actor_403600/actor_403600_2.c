@@ -571,7 +571,7 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     Gp_UpdateCoord(temp_a0);
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(temp_s0);
-    temp_s2->flags        = TMD_OBJECT_HIDDEN;
+    temp_s2->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
     temp_s2->lightMtx     = &temp_v0->field_494;
     temp_s2->colorMtx     = &temp_v0->field_474;
@@ -713,7 +713,7 @@ case1:
     }
     return;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     arg0->node.state.b.flags = 9;
     return;
 default_body:
@@ -4072,7 +4072,7 @@ static void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
             _actor403600UpdateColor(arg0, arg1);
             return;
         case 2:
-            obj->flags               = TMD_OBJECT_HIDDEN;
+            obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 9;
             return;
         case 0:
@@ -4275,7 +4275,7 @@ static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1)
             }
             break;
         case 2:
-            object->flags           |= TMD_OBJECT_HIDDEN;
+            object->flags           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
         case 0:
@@ -4385,7 +4385,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
         case 4:
             D_actor_403600_801606B0 = Task_SpawnFromTable(&D_8016E468, 0, 0, 0);
             Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F3, 0, 0);
-            arg0->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_4B4         = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 2, 0, 0);
             break;
@@ -4420,7 +4420,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             Gp_UpdateCoord(&work->field_4B8);
             Tmd_AllocBuffers(arg0->extra.tmd);
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_732         = 0;
             break;
         case 7:
@@ -4439,11 +4439,11 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             RotMatrix(&angles, &work->field_4B8.coord);
             Tmd_AllocBuffers(arg0->extra.tmd);
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 8:
             work->field_730           = 0;
-            arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 1;
             break;
@@ -5059,7 +5059,7 @@ static void func_actor_403600_80141E78(GpEnemy* arg0, Task* arg1)
         obj          = arg1->extra.tmd;
         obj->flags  &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         obj2         = arg1->extra.tmd;
-        obj2->flags &= (u16)~TMD_OBJECT_HIDDEN;
+        obj2->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg1->state++;
         work->field_73A = 0;
         work->field_77C = 0;

@@ -3008,8 +3008,8 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags                        = TMD_OBJECT_HIDDEN;
-    work->field_43C->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+    obj->flags                        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->field_43C->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 common:
     switch (work->field_686) {
@@ -3027,7 +3027,7 @@ common:
             work->field_688 = 0;
             work->field_686 = 1;
             if (work->field_682 != 0) {
-                obj->flags      = TMD_OBJECT_HIDDEN;
+                obj->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->field_686 = 3;
             }
             c      = arg1->extra.tmd->coords;
@@ -3102,7 +3102,7 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
     work     = arg1->parent->work;
     if (disabled == 0) {
         if (gGameSession->eventState != 0) {
-            flags      = ((work->field_678 & 1) == 0) << 7;
+            flags      = ((work->field_678 & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
             obj->flags = flags;
             if (work->field_678 & 2) {
                 obj->flags = flags | 4;
@@ -3110,7 +3110,7 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
         }
         scale = work->field_676;
         if (scale <= 0) {
-            obj->flags = TMD_OBJECT_HIDDEN;
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         }
         head                            = SCRATCH_HEAD(ActorScaleScratch);
@@ -3354,8 +3354,8 @@ static void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
             Actor00300_Fn05008(arg1);
             return;
         case 2:
-            arg1->extra.tmd->flags            = TMD_OBJECT_HIDDEN;
-            work->field_43C->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags            = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->field_43C->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags          = 1;
             return;
     }
@@ -3375,7 +3375,7 @@ static void Actor00300_Fn048D4(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (gGameSession->eventState != 0) {
-        flags      = ((work->field_678 & 1) == 0) << 7;
+        flags      = ((work->field_678 & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
         obj->flags = flags;
         if (work->field_678 & 2) {
             obj->flags = flags | 4;
@@ -3780,7 +3780,7 @@ s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2)
     obj  = arg0->extra.tmd;
     work = arg0->work;
     if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
     }

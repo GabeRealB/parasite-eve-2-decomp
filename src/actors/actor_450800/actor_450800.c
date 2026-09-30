@@ -2942,7 +2942,7 @@ static void func_actor_450800_801328BC(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -3083,10 +3083,10 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
         second->flags = 0;
         third->flags  = 0;
     } else {
-        self->flags   = TMD_OBJECT_HIDDEN;
-        first->flags  = TMD_OBJECT_HIDDEN;
-        second->flags = TMD_OBJECT_HIDDEN;
-        third->flags  = TMD_OBJECT_HIDDEN;
+        self->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        first->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        second->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        third->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (arg2 & 2) {
         self->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -3095,7 +3095,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
         third->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     if (work->field_500 == 0) {
-        third->flags = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        third->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
     return 0;
 }
@@ -3148,7 +3148,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             break;
         case 2:
             work->field_500 = 0;
-            obj->flags      = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            obj->flags      = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     return 0;
@@ -3340,7 +3340,7 @@ static void func_actor_450800_80133364(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -3440,8 +3440,8 @@ s32 func_actor_450800_80133594(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_HIDDEN;
-        other->flags = TMD_OBJECT_HIDDEN;
+        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
     if (flags & 2) {

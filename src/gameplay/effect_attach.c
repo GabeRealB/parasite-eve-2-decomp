@@ -69,7 +69,7 @@ void Gp_EffAttachTask37(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
+            extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             mem->scale    = 0x100;
             if (arg0->spawnArg1.value & 0xFFF) {
                 temp = arg0->spawnArg1.halves.low & 0xFFF;

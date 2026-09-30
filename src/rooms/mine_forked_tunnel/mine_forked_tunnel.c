@@ -1523,7 +1523,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
         arg0->killCountdown++;
     }
 
-    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
+    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords->workm), &vec) != 0) {
             Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->groundShadowShade);
         }
@@ -1717,21 +1717,21 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags |= TMD_OBJECT_HIDDEN;
+            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            ext->flags &= ~TMD_OBJECT_HIDDEN;
+            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                                   |= TMD_OBJECT_HIDDEN;
+            ext->flags                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((MineForkedTunnelWork*)task->work)->field_44 = mode;
             ext->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags &= ~TMD_OBJECT_HIDDEN;
+            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ext->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
@@ -1780,7 +1780,7 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     ext->colorMtx       = parentExt->colorMtx;
     ext->otOffset       = -1;
     Task_Reparent(parent, task);
-    ext->flags = ext->flags & (u16)~TMD_OBJECT_HIDDEN;
+    ext->flags = ext->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
     dst               = task->extra.tmd->coords;
     dst->coord.t[0]   = D_mine_forked_tunnel_80181BA4.pos.vx;

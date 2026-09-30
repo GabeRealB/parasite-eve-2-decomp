@@ -3987,7 +3987,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     player = gameGetPtrSlot(3);
     switch (Gp_StateF0.field_4) {
         case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case 0:
         default:
@@ -4077,7 +4077,7 @@ found:
             if (!((blk->bits >> (u16)arg1->spawnArg1.value) & 1)) {
                 blk->bits |= 1 << (u16)arg1->spawnArg1.value;
                 GameFlag_SetNibble(0xE2, blk->bits);
-                arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+                arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             id  = ((arg0->placeKey >> 12) << 8) | 0x54020014;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
@@ -4187,7 +4187,7 @@ static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
     work = (MineCavernWork*)arg1->work;
 
-    arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+    arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
     state           = work->field_148;
     work->field_148 = state + 1;
@@ -4270,7 +4270,7 @@ static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
     func_800D7A9C(task->extra.tmd, &vec, 0, 3);
 
     if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1.value) & 1)) {
-        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         m                         = &work->coord.coord;
         *(s32*)&work->coord.coord = 0x1000;

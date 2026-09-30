@@ -2149,7 +2149,7 @@ static void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
             Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
             return;
         case 2:
-            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
+            arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -2797,7 +2797,7 @@ static void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            tmd->flags = TMD_OBJECT_HIDDEN;
+            tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
@@ -2828,7 +2828,7 @@ static void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
     }
     if (work->rec60[0].key.value != 0 || found || ++work->field_EA >= 0x5A) {
         Gp_SpawnEff(D_80115750, coord, (s32)(work->field_EE), NULL);
-        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
         sound                  = Actor05600_D162F4.value | (((u16)ctx->placeKey >> 0xC) << 8);
         pan                    = (s8)Gp_GetObjPan(coord);
@@ -3137,7 +3137,7 @@ static void Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor)
             _actor05600Draw(actor, coord);
             return;
         case 2:
-            model->flags            = TMD_OBJECT_HIDDEN;
+            model->flags            = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ctx->node.state.b.flags = 1;
             return;
     }

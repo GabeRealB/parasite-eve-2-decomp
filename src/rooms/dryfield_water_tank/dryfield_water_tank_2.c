@@ -1305,7 +1305,7 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
             break;
     }
     if (gGameSession->at4.loc.view == 7) {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
     }

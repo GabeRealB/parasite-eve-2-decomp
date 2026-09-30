@@ -344,7 +344,7 @@ s32 func_actor_110700_801320D8(Task* task, s32 msgId, s32 arg2)
 
     obj = task->extra.tmd;
     if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_HIDDEN;
+        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
     }

@@ -3094,7 +3094,7 @@ static void Actor00400_Fn040DC(Task* arg0)
     fns   = Actor00400_D0007C;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= TMD_OBJECT_HIDDEN;
+            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3239,7 +3239,7 @@ static void Actor00400_Fn04580(Task* arg0)
     fns = Actor00400_D000A8;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= TMD_OBJECT_HIDDEN;
+            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3307,7 +3307,7 @@ static void Actor00400_Fn04580(Task* arg0)
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
             Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
-            ctx->flags &= ~TMD_OBJECT_HIDDEN;
+            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -3409,7 +3409,7 @@ static void Actor00400_Fn04B48(Task* arg0)
     fns  = Actor00400_D000D0;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= TMD_OBJECT_HIDDEN;
+            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3515,7 +3515,7 @@ static void Actor00400_Fn04E18(Task* arg0)
     fns = Actor00400_D000F8;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= TMD_OBJECT_HIDDEN;
+            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3610,13 +3610,13 @@ static void Actor00400_Fn04E18(Task* arg0)
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
-            ctx->flags &= ~TMD_OBJECT_HIDDEN;
+            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     sess = &gGameSession->at4.loc;
     ctx3 = arg0->extra.tmd;
     if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->at4.loc.view - 0xA) < 2U) {
-        ctx3->flags |= TMD_OBJECT_HIDDEN;
+        ctx3->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
@@ -4249,7 +4249,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= TMD_OBJECT_HIDDEN;
+            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->flags_62C.hi.field_62E++;
@@ -4312,7 +4312,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
             Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
-            ctx->flags &= ~TMD_OBJECT_HIDDEN;
+            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -4429,7 +4429,7 @@ static void Actor00400_Fn070C0(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= TMD_OBJECT_HIDDEN;
+            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0:
             work->flags_62C.hi.field_62E++;
@@ -4492,7 +4492,7 @@ static void Actor00400_Fn070C0(Task* arg0)
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
-            ctx->flags &= ~TMD_OBJECT_HIDDEN;
+            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -4874,7 +4874,7 @@ static void Actor00400_Fn07EE8(Task* arg0)
     Actor100400Work* work;
 
     ctx             = arg0->extra.tmd;
-    ctx->flags     |= TMD_OBJECT_HIDDEN;
+    ctx->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work            = arg0->work;
     arg0->state     = 5;
     work->field_638 = 0;
@@ -4888,7 +4888,7 @@ static void Actor00400_Fn07F18(Task* arg0)
 
     ctx             = arg0->extra.tmd;
     work            = arg0->work;
-    ctx->flags     |= TMD_OBJECT_HIDDEN;
+    ctx->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_636 = 0;
     work->field_638++;
 }
@@ -5051,22 +5051,22 @@ void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2)
     switch (arg2) {
         case 0:
             Gp_StateF0.field_23 = 1;
-            ctx->flags         |= TMD_OBJECT_HIDDEN;
+            ctx->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_663     = 1;
             break;
         case 1:
             Gp_StateF0.field_23 = 0;
             state               = arg0->state;
             if (((state == 2) || (state == 4)) && (work->field_644 == 4)) {
-                ctx->flags |= TMD_OBJECT_HIDDEN;
+                ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else if ((arg0->state == 2) && ((work->field_638 == 4) || (work->field_638 == 5))) {
-                ctx->flags |= TMD_OBJECT_HIDDEN;
+                ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else if ((arg0->state == 4) && (work->field_638 == 6)) {
-                ctx->flags |= TMD_OBJECT_HIDDEN;
+                ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else if (arg0->state == 5) {
-                ctx->flags |= TMD_OBJECT_HIDDEN;
+                ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
-                ctx->flags &= ~TMD_OBJECT_HIDDEN;
+                ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             work->field_663 = 0;
             break;
@@ -5438,7 +5438,7 @@ static void Actor00400_Fn08E50(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
     }
     if (work->field_636 >= 0x21) {
-        ctx->flags |= TMD_OBJECT_HIDDEN;
+        ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_638++;
     }
 }
@@ -5460,7 +5460,7 @@ static void Actor00400_Fn08FC8(Task* arg0)
 
     ctx             = arg0->extra.tmd;
     work            = arg0->work;
-    ctx->flags     |= TMD_OBJECT_HIDDEN;
+    ctx->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->field_636 = 0;
     work->field_638++;
 }
