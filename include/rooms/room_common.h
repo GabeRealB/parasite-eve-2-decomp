@@ -93,8 +93,8 @@ STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 /// own TMD source and draws it through `coord`, which is `gGfxViewCoord` with
 /// one GTE rotation column negated.
 ///
-/// `viewFlg` caches `gGfxViewCoord.composeStamp & 0x7FFFFFFF` so the mirror only rebuilds
-/// its matrices when the view moves, and `field_4` marks the block as live;
+/// `viewFlg` caches `gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK` so the
+/// mirror only rebuilds its matrices when the view moves, and `field_4` marks the block as live;
 /// both are set to their "dirty" values (`-1` / `0`) as the task starts so the
 /// first frame always rebuilds. `light` and `color` are the matrices hung off
 /// the clone's `TmdObject`, `field_A0` is the screen-space clip rectangle

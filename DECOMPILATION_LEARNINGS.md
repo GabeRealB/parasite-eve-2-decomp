@@ -40918,7 +40918,7 @@ rotate with the `poly[1]` giv.
 
 ## Nested `a0`/`v0` temps so a pinned dest does not eat `lui 0x7FFF`
 
-Pinning `flag` to `$s4` makes `flag = D_80071210 & 0x7FFFFFFF` load the mask
+Pinning `flag` to `$s4` makes `flag = D_80071210 & GRAPHICS_COORD_STAMP_MASK` load the mask
 straight into `$s4` (`lui s4, 0x7fff`) and the BSS word into the other pinned
 dest (`lw s6, D_80071210`). The target keeps the mask in `$a0` and the load in
 `$v0`, then `and s4, v0, a0`. Compute both in a nested block whose temps are
@@ -40929,7 +40929,7 @@ register s32 flag asm("s4");
 {
     register s32 tmp asm("v0");
     register s32 mask asm("a0");
-    mask = 0x7FFFFFFF;
+    mask = GRAPHICS_COORD_STAMP_MASK;
     tmp  = D_80071210;
     flag = tmp & mask;
     bit  = tmp & 1;
@@ -53035,14 +53035,14 @@ appear:
 ```c
 work->field_4   = 1;                                /* 94.4%: regs=31 */
 work->configRev = -1;
-work->viewFlg   = gGfxViewCoord.composeStamp & 0x7FFFFFFF;
+work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
 ```
 
 Moving the masked store to the front - and changing nothing else - was the whole
 match:
 
 ```c
-work->viewFlg   = gGfxViewCoord.composeStamp & 0x7FFFFFFF;   /* 100% */
+work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;   /* 100% */
 work->field_4   = 1;
 work->configRev = -1;
 ```

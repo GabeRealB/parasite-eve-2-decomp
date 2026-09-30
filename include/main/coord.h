@@ -9,9 +9,17 @@
 /// Values used to invalidate and inspect a coordinate's composition cache.
 enum {
     GRAPHICS_COORD_DIRTY          = 0,
-    GRAPHICS_COORD_SUPPLIED_CACHE = 1, // Nonzero stamp preserving a caller-supplied cache on a parentless node
-    GRAPHICS_COORD_STAMP_MASK     = 0x7FFFFFFF
+    GRAPHICS_COORD_SUPPLIED_CACHE = 1 // Nonzero stamp preserving a caller-supplied cache on a parentless node
 };
+
+/// Mask selecting the low 31-bit composition rebuild stamp, excluding visit parity.
+///
+/// Applied to `GfxCoord::composeStamp`, this keeps the stamp of the last cache
+/// rebuild; visiting an unchanged node only updates bit 31. Compare masked
+/// stamps to detect stale child matrices or a rebuilt view without treating
+/// a parity change as a rebuild. Applied to the composition pass counter,
+/// this selects the stamp stored on a rebuild (0 through 0x7FFFFFFF).
+enum { GRAPHICS_COORD_STAMP_MASK = 0x7FFFFFFF };
 
 /// A graphics transform node with a local matrix and a cached composition through its ancestors.
 ///

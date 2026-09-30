@@ -215,7 +215,7 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
 {
     GfxCoord* parent;
 
-    // Clear the previous visit's parity without changing the cached rebuild stamp.
+    // Apply GRAPHICS_COORD_STAMP_MASK with shifts to avoid a hoisted mask register.
     parent              = coord->parent;
     coord->composeStamp = (coord->composeStamp << 1) >> 1;
     if (parent == root) {
