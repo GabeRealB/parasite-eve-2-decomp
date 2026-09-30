@@ -459,7 +459,7 @@ void tmdProcessStream(TmdObject* obj)
                 break;
             case 0x1C:
             case 0x1E:
-                handler = gpStreamPrimFt3;
+                handler = modelLightingStreamPrimFt3;
                 break;
             case 0x5C:
             case 0x5E:

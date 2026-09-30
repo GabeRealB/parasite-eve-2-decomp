@@ -202,6 +202,26 @@ u32 D_80114BAC = 0x10FF2220;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
+/// Copies a flat triangle's packed texture fields and applies encoded address displacements.
+///
+/// The packet and element are four-byte aligned. Packed stores preserve both
+/// U/V bytes together with the CLUT/page words; the last store spans only U2/V2
+/// and leaves the packet's trailing SDK halfword untouched.
+static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* element, const TmdStreamWorkspace* workspace)
+{
+    enum {
+        MODEL_LIGHTING_FT3_UV0_CLUT_WORD  = 2,
+        MODEL_LIGHTING_FT3_UV1_TPAGE_WORD = 3,
+        MODEL_LIGHTING_FT3_UV2_WORD       = 4
+    };
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = element[MODEL_LIGHTING_FT3_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = element[MODEL_LIGHTING_FT3_UV1_TPAGE_WORD];
+    *(u16*)&triangle->u2                    = (u16)element[MODEL_LIGHTING_FT3_UV2_WORD];
+    triangle->tpage                        += workspace->texturePageOffset;
+    triangle->clut                         += workspace->encodedClutOffset;
+}
+
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
@@ -2117,24 +2137,21 @@ u32* gpStreamPrimGt4Unlit(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimFt3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* modelLightingStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_FT3* poly;
+    POLY_FT3* triangle;
 
-    poly = (POLY_FT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    triangle = (POLY_FT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        // Seed persistent texture data before drawing transforms and links the packets.
         do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            _modelLightingInitFt3Texture(triangle, elements, workspace);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
