@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_460200.
-D_actor_460200_80148130 = 0x80148130; // size:0x30 defined:True
-D_actor_460200_80148118 = 0x80148118; // size:0x18 defined:True
-D_actor_460200_801480E8 = 0x801480E8; // size:0x30 defined:True
+gStrideWalkAnimParams = 0x80148130; // size:0x30 defined:True
+gStrideWalkTasks = 0x80148118; // size:0x18 defined:True
+gStrideWalkMessages = 0x801480E8; // size:0x30 defined:True
 D_actor_460200_80148160 = 0x80148160; // size:0x2D0 defined:True
 D_actor_460200_80148430 = 0x80148430; // size:0x50 defined:True
 D_actor_460200_80148480 = 0x80148480; // size:0xBA8 defined:True
@@ -389,3 +389,11 @@ pacedWalkSpawn = 0x80132808; // type:func
 pacedWalkPlayAnim = 0x80132B2C; // type:func
 pacedWalkShowPair = 0x80132B98; // type:func
 pacedWalkExit = 0x80132950; // type:func
+strideWalkSpawn = 0x80132D74; // type:func
+strideWalkUpdate = 0x80132F0C; // type:func
+strideWalkFrame = 0x8013311C; // type:func
+strideWalkPlay = 0x80133408; // type:func
+strideWalkSetVisibility = 0x80133474; // type:func
+strideWalkTo = 0x80133580; // type:func
+strideWalkSubModelTask = 0x8013364C; // type:func
+strideWalkExit = 0x8013322C; // type:func

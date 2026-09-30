@@ -33,6 +33,7 @@
 #include "rooms/shelter_1f_heliport.h"
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
+#include "../../shared/stride_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -60,8 +61,8 @@ STATIC_ASSERT_SIZEOF(Actor161500AnimCopy6D60, 48);
 
 extern Actor161500AnimCopy6D60 D_actor_161500_80136D60;
 
-extern TaskDesc      D_actor_161500_801401B0[];
-extern AnimationSet* D_actor_161500_801401C8[12];
+extern TaskDesc      gStrideWalkTasks[];
+extern AnimationSet* gStrideWalkAnimParams[12];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -74,7 +75,7 @@ typedef struct {
 } Actor161500MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor161500MessageEntry, 8);
 
-extern Actor161500MessageEntry D_actor_161500_80140180[6];
+extern Actor161500MessageEntry gStrideWalkMessages[6];
 
 extern GpEvsCmd*      D_actor_161500_80134920[8];
 extern GpEvsCmd*      D_actor_161500_80135288[8];
@@ -94,10 +95,6 @@ extern GpEvsCmd       D_actor_161500_801378D8[];
 extern GpEvsCmd       D_actor_161500_80137AB8[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
-static void func_actor_161500_8013252C(Task* task);
-static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
-static void func_actor_161500_8013284C(Task* task);
 
 extern AnimationPlayRequest D_actor_161500_80133F7C;
 extern AnimationPlayRequest D_actor_161500_80134020;
@@ -135,14 +132,10 @@ extern AnimationPlayRequest D_actor_161500_80136E38;
 extern AnimationPlayRequest D_actor_161500_80136E60;
 extern AnimationPlayRequest D_actor_161500_80136E74;
 extern GpCopyArg            D_actor_161500_80136E08;
-s32                         func_actor_161500_80132A28(Task*, s32, AnimationPlayRequest*);
-s32                         func_actor_161500_80132A94(Task*, s32, s32);
 s32                         func_actor_161500_80132B88(Task*, s32, ActorCommand* args);
-s32                         func_actor_161500_80132BA0(Task*, s32, ActorTransform* target);
 void                        func_actor_161500_80132210(void);
 void                        func_actor_161500_80132294(u8);
 void                        func_actor_161500_801326E8(Task*);
-void                        func_actor_161500_80132C6C(Task*);
 
 AnimationPackedPose D_actor_161500_80132CD4[3] = {
 #include "assets/actor_161500_animation_010D0_bank1.inc"
@@ -1350,21 +1343,21 @@ AnimationSet D_actor_161500_80140158 = {
     { NULL, D_actor_161500_8013FF90, NULL, NULL, D_actor_161500_8013FFA8, NULL, NULL, NULL },
 };
 
-Actor161500MessageEntry D_actor_161500_80140180[6] = {
-    { 2003, { .call0 = func_actor_161500_80132A28 } },
-    { 2005, { .call3 = func_actor_161500_80132A94 } },
+Actor161500MessageEntry gStrideWalkMessages[6] = {
+    { 2003, { .call0 = strideWalkPlay } },
+    { 2005, { .call3 = strideWalkSetVisibility } },
     { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_161500_80132B88 } },
-    { 2013, { .call2 = func_actor_161500_80132BA0 } },
+    { 2013, { .call2 = strideWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_161500_801401B0[2] = {
+TaskDesc gStrideWalkTasks[2] = {
     { (TASK_BODY_TMD | 0x100), 96, func_actor_161500_801326E8, { .model = &D_actor_161500_8013DEC0 } },
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_161500_80132C6C, { .model = &D_actor_161500_80138790 } },
+    { (TASK_BODY_TMD | 0x100), 96, strideWalkSubModelTask, { .model = &D_actor_161500_80138790 } },
 };
 
-AnimationSet* D_actor_161500_801401C8[12] = {
+AnimationSet* gStrideWalkAnimParams[12] = {
     NULL,
     &D_actor_161500_8013E138,
     &D_actor_161500_8013E93C,
@@ -1385,7 +1378,6 @@ static void func_actor_161500_80132038(void);
 static void func_actor_161500_80132110(void);
 static void func_actor_161500_801322A0(void);
 static void func_actor_161500_8013230C(void);
-static void func_actor_161500_80132394(GpEnemy* enemy, Task* task);
 
 static void func_actor_161500_80131E38(void)
 {
@@ -1559,97 +1551,9 @@ static void func_actor_161500_8013230C(void)
     }
 }
 
-/// The actor's spawn routine: allocates the work block, destroying the enemy
-/// if that fails, and installs the exit callback. With `Task::spawnArg1` set it
-/// spawns the paired enemy, reparents its own task under the pair's and starts
-/// on clip 2, otherwise on clip 1. It then lights the model, sets up the
-/// animation context and the task's message table, and runs the step body
-/// once with the plain reseed queued.
-static void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
-{
-    VECTOR           vec;
-    Actor161500Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    GpEnemy*         spawned;
+#include "../../shared/stride_walk_spawn.inc.c"
 
-    coord      = task->extra.tmd->coords;
-    obj        = task->extra.tmd;
-    work       = (Actor161500Work*)memCalloc(0x4FC, false);
-    task->work = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_161500_8013284C;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    work->enemy                      = enemy;
-    if (task->spawnArg1.value != 0) {
-        spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
-        Task_Reparent(task, spawned->task);
-        work->pairTask  = spawned->task;
-        work->st.animId = 2;
-    } else {
-        work->st.animId = 1;
-    }
-    work->turnUp     = 0;
-    work->turnWeight = 0;
-    obj->lightMtx    = &work->light;
-    obj->colorMtx    = &work->color;
-    vec.vx           = coord->workm.t[0];
-    vec.vy           = coord->workm.t[1] - 0x320;
-    vec.vz           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, D_actor_161500_801401C8, obj,
-                  work->rig.poses, work->rig.slots);
-    work->st.state = 2;
-    task->msgTable = D_actor_161500_80140180;
-    func_actor_161500_8013252C(task);
-    task->state += 1;
-}
-
-/// The actor's step body. States 1 and 2 reseed the animation slots (with and
-/// without `animArg`) and advance to 3; state 3 walks the root coordinate 30
-/// units per frame while the walk clip has `travel` left, and when it runs out
-/// queues a reseed into clip 1 with argument 0xA, then ticks the slots.
-static void func_actor_161500_8013252C(Task* task)
-{
-    Actor161500Work* work;
-    s16              animId;
-
-    work = (Actor161500Work*)task->work;
-    if (work->st.state == 1) {
-        pacedWalkBlendAnim(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        pacedWalkResetAnim(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0x1E);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->st.state  = 1;
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        pacedWalkTickAnim(task);
-        return;
-    }
-}
+#include "../../shared/stride_walk_update.inc.c"
 
 /// The actor's task body: dispatches on `Task::state` to the spawn routine
 /// (state 0) or the per-frame body (state 1), handing each the task's
@@ -1657,53 +1561,18 @@ static void func_actor_161500_8013252C(Task* task)
 void func_actor_161500_801326E8(Task* task)
 {
     void (*fns[2])(GpEnemy*, Task*) = {
-        func_actor_161500_80132394,
-        func_actor_161500_8013273C,
+        strideWalkSpawn,
+        strideWalkFrame,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// The actor's draw body: refreshes the model root's coordinate, lights the
-/// model at its world translation raised by 800 on y, then runs the step body.
-/// `turnWeight` is the head-tracking blend rate handed to `func_800B0928`,
-/// ramped toward 0x1000 in 0x200 steps while `turnUp` is 1 and back down to
-/// 0 otherwise, so the actor turns its head to the player and away again
-/// smoothly instead of snapping.
-static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
-{
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    Actor161500Work* work;
-    VECTOR           pos;
-
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = (Actor161500Work*)task->work;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 0x320;
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_161500_8013252C(task);
-    if (work->turnUp == 1) {
-        work->turnWeight += 0x200;
-        if (work->turnWeight > 0x1000) {
-            work->turnWeight = 0x1000;
-        }
-    } else {
-        work->turnWeight -= 0x200;
-        if (work->turnWeight < 0) {
-            work->turnWeight = 0;
-        }
-    }
-    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->turnWeight);
-    walkerDrawShadow(task);
-}
+#include "../../shared/stride_walk_frame.inc.c"
 
 /// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
-static void func_actor_161500_8013284C(Task* task)
+void strideWalkExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
@@ -1716,61 +1585,9 @@ static void func_actor_161500_8013284C(Task* task)
 
 #include "../../shared/paced_walk_blend_anim.inc.c"
 
-/// Starts the actor's scripted animation selected by the request.
-///
-/// Rejects ids 0xC and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_161500_80132A28(Task* task, s32 arg1, AnimationPlayRequest* args)
-{
-    Actor161500Work* work;
+#include "../../shared/stride_walk_play.inc.c"
 
-    work = (Actor161500Work*)task->work;
-    if (args->animationId < 0xC) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
-            work->animArg  = args->blendFrames;
-        } else {
-            work->st.state = 2;
-        }
-        work->st.field_6 = 0;
-        func_actor_161500_8013252C(task);
-        return 0;
-    }
-    return -1;
-}
-
-/// Script opcode: hides or shows this actor's model and the model of the pair
-/// task its spawn routine parked in `pairTask`. Without `flags` bit 0 both
-/// models get `TmdObject::flags` 0x80, which hides them; with it the flags are
-/// cleared. Bit 1 additionally ORs in 0x4. With no pair spawned
-/// (`Task::spawnArg1` == 0) the actor drives its own model twice.
-s32 func_actor_161500_80132A94(Task* task, s32 arg1, s32 flags)
-{
-    Actor161500Work* work;
-    TmdObject*       self;
-    TmdObject*       other;
-
-    self = task->extra.tmd;
-    work = (Actor161500Work*)task->work;
-    if (task->spawnArg1.value != 0) {
-        other = work->pairTask->extra.tmd;
-    } else {
-        other = self;
-    }
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
+#include "../../shared/stride_walk_visibility.inc.c"
 
 #include "../../shared/paced_walk_place.inc.c"
 
@@ -1783,53 +1600,6 @@ s32 func_actor_161500_80132B88(Task* task, s32 arg1, ActorCommand* args)
     return 0;
 }
 
-/// Script opcode "walk to": aims the actor's root coordinate at `target` by
-/// taking the yaw of the horizontal offset from the coordinate's own
-/// translation, caches that yaw in the work block and rebuilds the local
-/// matrix from it, then records the distance, in steps of 30, for the walk
-/// that follows.
-s32 func_actor_161500_80132BA0(Task* task, s32 arg1, ActorTransform* target)
-{
-    GfxCoord*        coord;
-    Actor161500Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
+#include "../../shared/stride_walk_to.inc.c"
 
-    coord        = task->extra.tmd->coords;
-    work         = (Actor161500Work*)task->work;
-    dx           = target->pos.vx - coord->coord.t[0];
-    dz           = target->pos.vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 30;
-    return 0;
-}
-
-/// Per-frame task of the actor's sub-model, with the sub-model's own
-/// `TmdObject` in `Task::extra` and the actor as `Task::parent`. The first
-/// frame lights the sub-model with the matrix pair at the front of the
-/// parent's work block and hangs its coordinate off the parent model's eighth
-/// coordinate; every frame marks the coordinate dirty.
-void func_actor_161500_80132C6C(Task* task)
-{
-    Task*      parent = task->parent;
-    TmdObject* obj    = task->extra.tmd;
-    GfxCoord*  coord  = obj->coords;
-    GfxCoord*  sub    = &parent->extra.tmd->coords[7];
-    MATRIX*    work   = (MATRIX*)parent->work;
-
-    switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            obj->lightMtx       = work;
-            obj->colorMtx       = work + 1;
-            coord->parent       = sub;
-            task->state++;
-            break;
-        case 1:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            break;
-    }
-}
+#include "../../shared/stride_walk_sub_model.inc.c"
