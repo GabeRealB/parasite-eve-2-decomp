@@ -5,15 +5,18 @@
 
 #include "main/task_types.h"
 
-/// Head of the main task list: the list the frame walk runs and the list a
-/// spawned task joins unless something has switched the active list away from
-/// it.
+/// Resident head of the scheduler's default priority-ordered execution list.
 ///
-/// It is a bare `TaskNode` rather than a task, so the head belongs to none of
-/// the elements it anchors. Tearing the task system down — at boot and at the
-/// start of a session — empties the list outright instead of draining it,
-/// because the tasks still on it are reclaimed by reinitializing the heaps
-/// they came from.
+/// The normal frame walk selects this head before dispatching callbacks.
+/// Ordinary spawns join the currently selected list; the default-list spawn
+/// helpers temporarily select this head even when called from another list.
+///
+/// Initialize with `Task_ResetDefaultList` before spawning. An empty list has
+/// `next == NULL` and `prev == &gTaskDefaultList`; zeroed BSS alone does not
+/// satisfy this invariant. The head has program lifetime and is never a `Task`.
+///
+/// Reset discards the links without invoking exit callbacks or releasing any
+/// allocations. Boot and session resets pair it with heap reinitialization.
 extern TaskNode gTaskDefaultList;
 
 /// Six task descriptors. Entry 5 is a model descriptor whose model is not

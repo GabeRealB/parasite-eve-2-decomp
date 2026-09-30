@@ -145,13 +145,18 @@ the request and then calls `exitCallback`.
 
 | List | Role |
 |------|------|
-| `gTaskDefaultList` | Main frame list. `Task_ResetDefaultList` on boot / world reset |
+| `gTaskDefaultList` | Resident head of the default priority-ordered execution list; initialized and selected on boot / session reset |
 | `_gTaskActiveList` | Private borrowed pointer selecting the head used for spawning and tail unlinking |
 | `gTaskDisplayList` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `_gTaskActiveList` |
 
 `Task_SpawnOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
 `_gTaskActiveList` to the default list so a spawn from inside another list
 still lands on the main frame walk.
+
+`gTaskDefaultList` needs initialization before spawning: its zeroed BSS has no
+self-pointing tail. Resetting it discards the links without invoking exit
+callbacks or freeing allocations. Boot and session resets pair this with heap
+reinitialization to reclaim the abandoned allocations.
 
 The selection borrows a live, initialized bare `TaskNode`; it owns neither the
 head nor its tasks. Before initialization the pointer is NULL. An empty list
