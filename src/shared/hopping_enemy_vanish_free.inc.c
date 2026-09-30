@@ -1,0 +1,22 @@
+/* Part of the hopping enemy library; see hopping_enemy.h. */
+
+/// On frame 3 frees the model's buffers and sets model flag 4; after 0x24
+/// frames destroys the enemy.
+void hopperVanishFree(Task* arg0)
+{
+    Actor341700Work* work;
+    TmdObject*       model;
+    u16              ticks;
+
+    work            = (Actor341700Work*)arg0->work;
+    model           = arg0->extra.tmd;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks == 3) {
+        Tmd_FreeBuffers(model);
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    }
+    if ((s16)work->field_412 >= 0x24) {
+        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
+    }
+}

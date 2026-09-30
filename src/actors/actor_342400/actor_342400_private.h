@@ -16,7 +16,7 @@ extern TmdSource D_actor_342400_8016D780;
 
 extern TmdSource D_actor_342400_80170560;
 
-extern EnemyParams D_actor_342400_80170588;
+extern EnemyParams gHopperEnemyParams;
 
 extern TaskDesc D_actor_342400_80173A54[2];
 

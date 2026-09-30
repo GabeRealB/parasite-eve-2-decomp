@@ -27,6 +27,7 @@
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/hopper_waves.h"
+#include "../../shared/hopping_enemy.h"
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
 /// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
@@ -271,7 +272,7 @@ DamageAttack D_actor_342400_80170584[1] = {
     { 22, 0 },
 };
 
-EnemyParams D_actor_342400_80170588 = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
+EnemyParams gHopperEnemyParams = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static void func_actor_342400_80162324(Task* arg0);
 static void func_actor_342400_801631DC(s16 arg0);

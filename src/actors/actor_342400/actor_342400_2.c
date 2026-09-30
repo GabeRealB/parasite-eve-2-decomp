@@ -65,7 +65,7 @@
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
 // the main enemy's `GpEnemy::param` record
-extern u8 D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
+extern u8 gHopperAnimBank[]; // animation bank handed to `func_800B3F84`
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -76,60 +76,24 @@ typedef struct {
 } Actor3424002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor3424002MessageEntry, 8);
 
-extern Actor3424002MessageEntry D_actor_342400_80173A3C[3]; // stored into `Task::msgTable` by func_actor_342400_80163C58
-extern u8                       D_actor_342400_80173A84[];  // per animation id (1-based): value for `field_44F`
-extern u8                       D_actor_342400_80173A98[];  // per animation id (1-based): the animation to follow it
+extern Actor3424002MessageEntry gHopperMsgTable[3];   // stored into `Task::msgTable` by hopperSpawn
+extern u8                       gHopperAnimStance[];  // per animation id (1-based): value for `field_44F`
+extern u8                       gHopperSettleAnims[]; // per animation id (1-based): the animation to follow it
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static void func_actor_342400_80163C58(Task* task);
-static void func_actor_342400_80163E70(Task* task);
 static void func_actor_342400_801640B0(Task* arg0);
-static void func_actor_342400_8016454C(Task* arg0);
-static void func_actor_342400_801646B8(Task* arg0);
-static void func_actor_342400_801648E4(Task* arg0);
-static void func_actor_342400_80164CA4(Task* arg0);
-static void func_actor_342400_80164DD4(Task* arg0);
-static void func_actor_342400_80164F3C(Task* arg0);
-static void func_actor_342400_8016513C(Task* arg0);
-static void func_actor_342400_801652A0(Task* arg0);
-static void func_actor_342400_801653DC(Task* arg0, s16 arg1);
-static void func_actor_342400_80165CC0(Task* arg0);
 static void func_actor_342400_80165FC0(Task* arg0);
-static void func_actor_342400_80166180(Task* arg0);
-static void func_actor_342400_801662EC(Task* arg0);
 static void func_actor_342400_8016666C(Task* arg0);
-static void func_actor_342400_80166B20(Task* arg0);
-static void func_actor_342400_80166C68(Task* arg0);
-static void func_actor_342400_80166DD4(Task* arg0);
-static void func_actor_342400_80166F54(Task* arg0);
 static void func_actor_342400_801670C0(Task* arg0);
-static void func_actor_342400_801673F8(Task* arg0);
-static void func_actor_342400_801676D4(Task* arg0);
-static void func_actor_342400_8016784C(Task* arg0);
-static void func_actor_342400_80167B70(Task* arg0);
-static void func_actor_342400_80167CDC(Task* arg0);
-static void func_actor_342400_80167E78(Task* arg0);
-static void func_actor_342400_80168010(Task* arg0);
-static void func_actor_342400_80168174(Task* arg0);
 static void func_actor_342400_80168394(Task* arg0);
-static void func_actor_342400_80168530(Task* arg0);
-static void func_actor_342400_80168A28(Task* arg0);
-static void func_actor_342400_80168B74(Task* arg0);
 static void func_actor_342400_80168F14(Task* arg0);
 static void func_actor_342400_801690FC(Task* arg0);
-static void func_actor_342400_801692E8(void);
 static void func_actor_342400_80169408(Task* arg0);
-static s16  func_actor_342400_8016945C(Task* arg0);
-static void func_actor_342400_801694A8(Task* arg0, s32 arg1);
-static s32  func_actor_342400_80169518(Task* arg0);
-static s32  func_actor_342400_80169728(Task* arg0, s16 arg1);
-static s16  func_actor_342400_8016974C(Task* arg0);
 void        func_actor_342400_8016978C(Task* arg0);
 void        func_actor_342400_80169810(Task* arg0);
 static void func_actor_342400_80169880(Task* arg0);
-static void func_actor_342400_801698D4(Task* arg0, s32 step);
 static void func_actor_342400_80169968(Task* arg0);
 static void func_actor_342400_8016997C(Task* arg0);
 static void func_actor_342400_80169990(Task* arg0);
@@ -142,65 +106,27 @@ static void func_actor_342400_80169BAC(Task* arg0);
 static void func_actor_342400_80169C00(Task* arg0);
 static void func_actor_342400_80169C84(Task* arg0);
 static void func_actor_342400_80169CF8(Task* arg0);
-static void func_actor_342400_80169D2C(Task* arg0);
-static void func_actor_342400_80169DA4(Task* arg0);
-static void func_actor_342400_80169E24(Task* arg0);
-static void func_actor_342400_80169EC4(Task* arg0);
-static void func_actor_342400_80169F30(Task* arg0);
-static void func_actor_342400_8016A084(Task* arg0);
-static void func_actor_342400_8016A184(Task* arg0);
 static void func_actor_342400_8016A240(Task* arg0);
-static void func_actor_342400_8016A280(Task* arg0);
-static void func_actor_342400_8016A2FC(Task* arg0);
-static void func_actor_342400_8016A370(Task* arg0);
-static void func_actor_342400_8016A494(Task* arg0);
 static void func_actor_342400_8016A4FC(Task* arg0);
-static void func_actor_342400_8016A538(Task* arg0);
-static void func_actor_342400_8016A664(Task* arg0);
-static void func_actor_342400_8016A724(Task* arg0);
-static void func_actor_342400_8016A804(Task* arg0);
-static void func_actor_342400_8016A950(Task* arg0);
 static void func_actor_342400_8016A9AC(Task* arg0);
 static void func_actor_342400_8016A9C4(Task* arg0);
 static void func_actor_342400_8016AA9C(Task* arg0);
-static void func_actor_342400_8016AAB8(Task* arg0);
-static void func_actor_342400_8016AB6C(Task* arg0);
-static void func_actor_342400_8016AC80(Task* arg0);
-static void func_actor_342400_8016AD94(Task* arg0);
 static void func_actor_342400_8016AE24(Task* arg0);
 static void func_actor_342400_8016AEAC(Task* arg0);
-static void func_actor_342400_8016AF34(Task* arg0);
 static void func_actor_342400_8016AFA8(Task* arg0);
 static void func_actor_342400_8016B038(Task* arg0);
-static void func_actor_342400_8016B104(Task* arg0);
-static void func_actor_342400_8016B1C8(Task* arg0);
-static void func_actor_342400_8016B21C(Task* arg0);
-static void func_actor_342400_8016B294(Task* arg0);
-static void func_actor_342400_8016B33C(Task* arg0);
-static void func_actor_342400_8016B370(Task* arg0);
-static void func_actor_342400_8016B414(Task* arg0);
-static void func_actor_342400_8016B48C(Task* arg0);
-static void func_actor_342400_8016B500(Task* arg0);
-static void func_actor_342400_8016B5B0(Task* arg0);
-static void func_actor_342400_8016B744(Task* arg0);
-static void func_actor_342400_8016B84C(Task* arg0);
-static void func_actor_342400_8016B914(Task* arg0);
-static void func_actor_342400_8016B9A4(Task* arg0);
-static void func_actor_342400_8016BA3C(Task* arg0);
 static void func_actor_342400_8016BAF4(Task* arg0);
 static void func_actor_342400_8016BBD0(Task* arg0);
 static void func_actor_342400_8016BBD8(Task* arg0);
 static void func_actor_342400_8016BD3C(Task* arg0);
-static void func_actor_342400_8016BD98(Task* arg0);
 static void func_actor_342400_8016BED8(Task* arg0);
-static s32  func_actor_342400_8016BEF0(Task* arg0);
 
 /// Six task-state handlers of the first enemy form, dispatched by
 /// `func_actor_342400_80169810` on `Task::state`.
 static const TaskFuncTable6 D_actor_342400_80161E68 = { {
-    func_actor_342400_80163C58,
+    hopperSpawn,
     func_actor_342400_8016666C,
-    func_actor_342400_80164F3C,
+    hopperDangleFrame,
     func_actor_342400_801640B0,
     func_actor_342400_80165FC0,
     func_actor_342400_80169880,
@@ -209,9 +135,9 @@ static const TaskFuncTable6 D_actor_342400_80161E68 = { {
 /// Ten task-state handlers of the second enemy form, dispatched by
 /// `func_actor_342400_8016978C` on `Task::state`.
 static const TaskFuncTable10 D_actor_342400_80161E80 = { {
-    func_actor_342400_80163E70,
+    hopperSpawnHidden,
     func_actor_342400_8016666C,
-    func_actor_342400_80164F3C,
+    hopperDangleFrame,
     func_actor_342400_801640B0,
     func_actor_342400_80165FC0,
     func_actor_342400_80169880,
@@ -239,48 +165,47 @@ static const TaskFuncTable11 D_actor_342400_80161EA8 = { {
 
 /// Sub-state handlers `func_actor_342400_80169C00` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161ED4 = { {
-    func_actor_342400_80169DA4,
-    func_actor_342400_80169E24,
-    func_actor_342400_80169EC4,
+    hopperKnockdownStart,
+    hopperKnockdownRise,
+    hopperKnockdownEnd,
 } };
 
 /// Sub-state handlers `func_actor_342400_801699A4` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161EE0 = { {
-    func_actor_342400_8016454C,
-    func_actor_342400_801646B8,
-    func_actor_342400_80169F30,
+    hopperWalkStart,
+    hopperWalkApproach,
+    hopperWalkFinish,
 } };
 
 /// Sub-state handlers `func_actor_342400_80169A2C` dispatches by `field_422`.
 static const TaskFuncTable5 D_actor_342400_80161EEC = { {
     hopperStartLeap,
-    func_actor_342400_801648E4,
-    func_actor_342400_80164CA4,
-    func_actor_342400_80164DD4,
-    func_actor_342400_8016A084,
+    hopperLeapAttack,
+    hopperLeapTurnAway,
+    hopperLeapRebound,
+    hopperLeapLand,
 } };
 
 /// Sub-state handlers `func_actor_342400_80169A98` dispatches by `field_422`.
 static const TaskFuncTable5 D_actor_342400_80161F00 = { {
-    func_actor_342400_8016A184,
+    hopperAlertCry,
     func_actor_342400_8016A240,
-    func_actor_342400_8016A280,
-    func_actor_342400_8016A2FC,
-    func_actor_342400_8016A370,
+    hopperAlertRelease,
+    hopperAlertCrouch,
+    hopperAlertSidestep,
 } };
 
-/// Sub-state handlers `func_actor_342400_8016A494` dispatches by `field_422`.
+/// Sub-state handlers `hopperDangleState` dispatches by `field_422`.
 static const TaskFuncTable4 D_actor_342400_80161F14 = { {
     func_actor_342400_8016A4FC,
-    func_actor_342400_8016A538,
-    func_actor_342400_8016513C,
-    func_actor_342400_801652A0,
+    hopperDangleSway,
+    hopperDangleFall,
+    hopperDangleLand,
 } };
 
 void func_actor_342400_8016978C(Task*);
 void func_actor_342400_80169810(Task*);
 
-void func_actor_342400_801695C0(Task*, s32, ActorCommand* request);
 void func_actor_342400_80169620(Task*, s16, VECTOR3*);
 
 AnimationPackedPose D_actor_342400_80170598[6] = {
@@ -701,7 +626,7 @@ AnimationSet D_actor_342400_801739C0 = {
     { NULL, D_actor_342400_80173840, NULL, NULL, D_actor_342400_8017387C, NULL, NULL, NULL },
 };
 
-u8 D_actor_342400_801739E8[84] = {
+u8 gHopperAnimBank[84] = {
     0,
     0,
     0,
@@ -788,9 +713,9 @@ u8 D_actor_342400_801739E8[84] = {
     0,
 };
 
-Actor3424002MessageEntry D_actor_342400_80173A3C[3] = {
+Actor3424002MessageEntry gHopperMsgTable[3] = {
     { 2004, { .call0 = func_actor_342400_80169620 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_342400_801695C0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = hopperCommandMsg } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -803,7 +728,7 @@ TaskDesc D_actor_342400_80173A6C = { TASK_BODY_COORD, 96, taskKill, { .model = N
 
 TaskDesc D_actor_342400_80173A78 = { TASK_BODY_TMD, 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
 
-u8 D_actor_342400_80173A84[20] = {
+u8 gHopperAnimStance[20] = {
     0,
     1,
     0,
@@ -826,7 +751,7 @@ u8 D_actor_342400_80173A84[20] = {
     0,
 };
 
-u8 D_actor_342400_80173A98[20] = {
+u8 gHopperSettleAnims[20] = {
     5,
     6,
     5,
@@ -853,95 +778,12 @@ u16 gHopperWaveEnemyCount = 0;
 
 extern void* D_800678F0[1];
 
-static void            func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
-static __inline__ void enter_state(Task* arg0, s32 state);
-static __inline__ void update_color(void* enemy, GfxCoord* coord);
 static __inline__ s16  take_hit(Task* arg0);
 static __inline__ void update_rotation(Task* arg0);
-static __inline__ void calc_push(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
-static __inline__ void set_state(Task* arg0, s32 state);
-static __inline__ s32  take_request(Task* arg0);
-static __inline__ s32  is_hit(Task* arg0);
-static void            func_actor_342400_801664C4(Task* arg0);
 static __inline__ s16  take_hit_nibble3(Task* arg0);
 static __inline__ void set_state_s16(Task* arg0, s16 state);
 
-/// Draws a flat textured quad at height `height` spanning the model parts
-/// `firstJoint` and `secondJoint`, `width` wide on each side of the line
-/// between them, tinted grey by `shade`. The working set lives in a frame
-/// carved off the scratchpad and released again; nothing is drawn when the
-/// two parts are the same or the quad is off screen.
-static void func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade)
-{
-    ActorsShared80163354Scratch* s;
-    s16                          angle;
-    GfxCoord*                    secondCoord;
-    GfxCoord*                    firstCoord;
-    s32                          offset0;
-    s32                          offset1;
-    s32                          offset2;
-    s32                          offset3;
-    GfxCoord*                    coords;
-    POLY_FT4*                    poly;
-
-    coords      = task->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
-    if (firstJoint != secondJoint) {
-        s = (ActorsShared80163354Scratch*)SCRATCH_PUSH_BYTES(sizeof(ActorsShared80163354Scratch));
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->first.vy                = (s16)height;
-        s->second.vy               = (s16)height;
-        s->first.vx                = s->firstMatrix.t[0];
-        s->first.vz                = s->firstMatrix.t[2];
-        s->second.vx               = s->secondMatrix.t[0];
-        s->second.vz               = s->secondMatrix.t[2];
-        angle                      = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
-        s->halfX                   = (s->first.vx - s->second.vx) / 2;
-        s->halfZ                   = (s->first.vz - s->second.vz) / 2;
-        offset0                    = rcos(angle) * width;
-        s->corner0.vy              = (s16)height;
-        s->corner0.vx              = s->halfX + (s->first.vx - (offset0 >> 0xC));
-        s->corner0.vz              = s->halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1                    = rcos(angle) * width;
-        s->corner1.vy              = (s16)height;
-        s->corner1.vx              = s->halfX + (s->first.vx + (offset1 >> 0xC));
-        s->corner1.vz              = s->halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2                    = rcos(angle) * width;
-        s->corner2.vy              = (s16)height;
-        s->corner2.vx              = (s->second.vx - (offset2 >> 0xC)) - s->halfX;
-        s->corner2.vz              = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        offset3                    = rcos(angle) * width;
-        s->corner3.vy              = (s16)height;
-        s->corner3.vx              = (s->second.vx + (offset3 >> 0xC)) - s->halfX;
-        s->corner3.vz              = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
-                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
-        if (s->flags >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code            = 0x2E;
-            PRIM_XY_WORD(poly, 0) = s->screen0;
-            PRIM_XY_WORD(poly, 1) = s->screen1;
-            PRIM_XY_WORD(poly, 2) = s->screen2;
-            PRIM_XY_WORD(poly, 3) = s->screen3;
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            poly->tpage = 0x48;
-            poly->clut  = 0x4283;
-            setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorsShared80163354Scratch));
-    }
-}
+#include "../../shared/hopping_enemy_limb_shadow.inc.c"
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
  * its effect's `TmdObject`. It is declared as a one-element array for the
@@ -994,203 +836,11 @@ void hopperSpawnGibs(Task* arg0)
 
 #include "../../shared/hopping_enemy_twist.inc.c"
 
-/// Main enemy init. Allocates the 0x454-byte `Actor341700Work`, points the
-/// model at the light / color matrices inside it, runs the animation context,
-/// links the collision objects and the enemy's list node, and enters state 2
-/// for spawn kind 1 (low nibble of `spawnArg1`), state 1 otherwise. The root
-/// coord is lifted by 0x3C and its translation kept as the spawn position.
-///
-/// `one` is a separate variable set before `Gp_IncStateF0Ref`: the ROM holds
-/// the constant in `$s0`, which GCC only picks for a pseudo that crosses a
-/// call (sched2 then sinks the `li` below the `jal`).
-static void func_actor_342400_80163C58(Task* task)
-{
-    GpEnemy*         enemy;
-    GfxCoord*        root;
-    Actor341700Work* work;
-    TmdObject*       obj;
-    Actor341700Work* w;
-    GpEnemy*         e;
-    GfxCoord*        coord;
-    Actor341700Work* w2;
-    Actor341700Work* w3;
-    Actor341700Work* w4;
-    s32              one;
+#include "../../shared/hopping_enemy_spawn.inc.c"
 
-    enemy      = task->spawnArg2.pointer;
-    root       = task->extra.tmd->coords;
-    task->work = memCalloc(0x454, 0);
-    work       = (Actor341700Work*)task->work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    func_actor_342400_801692E8();
-    obj                   = task->extra.tmd;
-    w                     = (Actor341700Work*)task->work;
-    e                     = task->spawnArg2.pointer;
-    coord                 = obj->coords;
-    task->msgTable        = D_actor_342400_80173A3C;
-    obj->lightMtx         = &w->lightMtx;
-    obj->colorMtx         = &w->colorMtx;
-    e->param              = &D_actor_342400_80170588;
-    e->recs               = w->rec_2EC;
-    w->eff_3FC.coord      = &task->extra.tmd->coords[1];
-    w->eff_3FC.spawnArgLo = 0x140;
-    w->eff_3FC.spawnArgHi = 2;
-    e->hp = e->hpMax = D_actor_342400_80170588.hpMax;
-    func_800B3F84(&w->anim, D_actor_342400_801739E8, obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor341700Work*)task->work;
-    w2->field_41C = 0x10;
-    w2->field_418 = 7;
-    w2->field_414 = 2;
-    func_actor_342400_80165CC0(task);
-    coord->parent = &gGfxViewCoord;
-    hopperLinkBodies(task);
-    w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
-    enemy       = task->spawnArg2.pointer;
-    Gp_LinkNode(&enemy->node);
-    enemy->field_4                = &task->extra.tmd->coords->coord;
-    enemy->field_48               = 0;
-    enemy->bodyPos.vx             = 0;
-    enemy->bodyPos.vy             = 0;
-    enemy->bodyPos.vz             = 0;
-    enemy->coord                  = &task->extra.tmd->coords[1];
-    enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
-    one                           = 1;
-    (Gp_IncStateF0Ref)(0);
-    if ((task->spawnArg1.value & 0xF) == one) {
-        w3            = (Actor341700Work*)task->work;
-        task->state   = 2;
-        w3->field_420 = 0;
-        w3->field_422 = 0;
-    } else {
-        w4            = (Actor341700Work*)task->work;
-        task->state   = one;
-        w4->field_420 = 0;
-        w4->field_422 = 0;
-    }
-    work->field_80    = root->coord.t[0];
-    root->coord.t[1] -= 0x3C;
-    work->field_82    = root->coord.t[1];
-    work->field_84    = root->coord.t[2];
-}
+#include "../../shared/hopping_enemy_spawn_hidden.inc.c"
 
-/// Variant of `func_actor_342400_80163C58`'s init: also destroys the enemy
-/// when bit 16 of `spawnArg1` is set,
-/// sets bit 0x80 of the model's `field_C` for spawn kind 2, and enters state 6
-/// with `field_451` set and the collision flags 0x8000 / 0x4000 cleared on
-/// `obj_2AC` / `obj_2CC`.
-///
-/// `two` is a variable for the same reason as `one` in the sibling: the ROM
-/// keeps the constant in `$s5` across the calls. `kind` has to be its own
-/// variable too - masking `flags` in place reuses `$v1` for the result.
-static void func_actor_342400_80163E70(Task* task)
-{
-    TmdObject*       model;
-    GpEnemy*         enemy;
-    GfxCoord*        root;
-    Actor341700Work* work;
-    TmdObject*       obj;
-    Actor341700Work* w;
-    GpEnemy*         e;
-    GfxCoord*        coord;
-    Actor341700Work* w2;
-    Actor341700Work* w3;
-    GpEnemy*         e2;
-    s32              flags;
-    s32              kind;
-    s32              two;
-
-    model      = task->extra.tmd;
-    enemy      = task->spawnArg2.pointer;
-    root       = model->coords;
-    task->work = memCalloc(0x454, 0);
-    work       = (Actor341700Work*)task->work;
-    if (work == NULL) {
-        goto destroy;
-    }
-    func_actor_342400_801692E8();
-    flags = task->spawnArg1.value;
-    if ((flags >> 16) & 1) {
-    destroy:
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    kind = flags & 0xF;
-    two  = 2;
-    if (kind == two) {
-        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    obj                   = task->extra.tmd;
-    w                     = (Actor341700Work*)task->work;
-    e                     = task->spawnArg2.pointer;
-    coord                 = obj->coords;
-    task->msgTable        = D_actor_342400_80173A3C;
-    obj->lightMtx         = &w->lightMtx;
-    obj->colorMtx         = &w->colorMtx;
-    e->param              = &D_actor_342400_80170588;
-    e->recs               = w->rec_2EC;
-    w->eff_3FC.coord      = &task->extra.tmd->coords[1];
-    w->eff_3FC.spawnArgLo = 0x140;
-    w->eff_3FC.spawnArgHi = two;
-    e->hp = e->hpMax = D_actor_342400_80170588.hpMax;
-    func_800B3F84(&w->anim, D_actor_342400_801739E8, obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor341700Work*)task->work;
-    w2->field_41C = 0x10;
-    w2->field_418 = 7;
-    w2->field_414 = two;
-    func_actor_342400_80165CC0(task);
-    coord->parent = &gGfxViewCoord;
-    hopperLinkBodies(task);
-    w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
-    (Gp_IncStateF0Ref)(0);
-    e2 = task->spawnArg2.pointer;
-    Gp_LinkNode(&e2->node);
-    e2->field_4                = &task->extra.tmd->coords->coord;
-    e2->field_48               = 0;
-    e2->bodyPos.vx             = 0;
-    e2->bodyPos.vy             = 0;
-    e2->bodyPos.vz             = 0;
-    e2->coord                  = &task->extra.tmd->coords[1];
-    e2->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    work->field_80             = root->coord.t[0];
-    root->coord.t[1]          -= 0x3C;
-    work->field_82             = root->coord.t[1];
-    work->field_84             = root->coord.t[2];
-    work->field_451            = 1;
-    work->obj_2AC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj_2CC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    w3                         = (Actor341700Work*)task->work;
-    task->state                = 6;
-    w3->field_420              = 0;
-    w3->field_422              = 0;
-}
-
-/// Moves the task to `state` with a fresh state machine.
-static __inline__ void enter_state(Task* arg0, s32 state)
-{
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-    arg0->state  = state;
-    w->field_420 = 0;
-    w->field_422 = 0;
-}
-
-/// Colours `enemy` from `coord`'s world position through a 0x10-byte
-/// `VECTOR` taken off the scratch stack. Inlined so each scratch-head access
-/// keeps its own `lui` instead of sharing a CSE'd register.
-static __inline__ void update_color(void* enemy, GfxCoord* coord)
-{
-    VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
-
-    block->vx                    = coord->workm.t[0];
-    block->vy                    = coord->workm.t[1];
-    SCRATCH_STACK_CURSOR(VECTOR) = block;
-    block->vz                    = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
+#include "../../shared/hopping_enemy_inlines.inc.c"
 
 /// Message 0x2C00 (see `field_44C`) consumes the message and restarts the
 /// state machine: low nibble 2 enters state 3 at state index 10 unless
@@ -1210,7 +860,7 @@ static __inline__ s16 take_hit(Task* arg0)
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
-            enter_state(arg0, 3);
+            hopperEnter_state(arg0, 3);
             w2            = (Actor341700Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
@@ -1218,7 +868,7 @@ static __inline__ s16 take_hit(Task* arg0)
         }
     } else if ((work->field_44C & 0xF) == 3) {
         work->field_44C = 0;
-        enter_state(arg0, 7);
+        hopperEnter_state(arg0, 7);
         return 1;
     }
     return 0;
@@ -1261,7 +911,7 @@ static __inline__ void update_rotation(Task* arg0)
 
 /// Per-frame callback for the main enemy, the eleven-state counterpart of
 /// `func_actor_342400_801670C0`. In mode 0 it aims at the nearest actor
-/// (`func_actor_342400_801662EC`), lets a pending hit (`take_hit`) replace the state
+/// (`hopperTrackPlayer`), lets a pending hit (`take_hit`) replace the state
 /// handler, eases `field_424` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `field_448` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
@@ -1280,11 +930,11 @@ static void func_actor_342400_801640B0(Task* arg0)
             return;
         case 0:
             work->field_442++;
-            func_actor_342400_801662EC(arg0);
+            hopperTrackPlayer(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            func_actor_342400_80165CC0(arg0);
+            hopperTickAnim(arg0);
             cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
             hopperTwistSpine(arg0);
@@ -1292,714 +942,61 @@ static void func_actor_342400_801640B0(Task* arg0)
                 hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             update_rotation(arg0);
-            func_actor_342400_801653DC(arg0, 0);
+            hopperApplyContacts(arg0, 0);
             if (work->field_44A != 0) {
                 work->field_44A--;
             }
             if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                enter_state(arg0, work->field_448);
+                hopperEnter_state(arg0, work->field_448);
             }
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                enter_state(arg0, 4);
+                hopperEnter_state(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                enter_state(arg0, 8);
+                hopperEnter_state(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                enter_state(arg0, 9);
+                hopperEnter_state(arg0, 9);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-            func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-            func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             return;
     }
 }
 
-/// Starts a walk: requests animation 7, plays the enemy's sound 1, draws a
-/// random 0..0x7FF into `field_410` and advances the sub-state. The animation
-/// speed and the turn step `field_436` grow with the distance to the nearer
-/// player actor in `field_43A`, in bands of 1000.
-static void func_actor_342400_8016454C(Task* arg0)
-{
-    Actor341700Work* work;
-    s32              soundId;
-    s32              pan;
-    s16              step;
+#include "../../shared/hopping_enemy_walk_start.inc.c"
 
-    work            = (Actor341700Work*)arg0->work;
-    work->field_426 = 8;
-    work->field_418 = 7;
-    work->field_41C = 0x10;
-    work->field_414 = 1;
-    work->field_422++;
-    soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0001;
-    pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_410 = (Gp_LcgState >> 0x10) & 0x7FF;
-    if (work->field_43A < 1000) {
-        work->field_41C = 0x10;
-        work->field_436 = 0x10;
-        return;
-    }
-    if (work->field_43A < 2000) {
-        work->field_41C = 0x14;
-        step            = 0x12;
-    } else if (work->field_43A < 3000) {
-        work->field_41C = 0x18;
-        step            = 0x14;
-    } else if (work->field_43A < 4000) {
-        work->field_41C = 0x1C;
-        step            = 0x16;
-    } else if (work->field_43A < 5000) {
-        work->field_41C = 0x20;
-        step            = 0x18;
-    } else {
-        work->field_41C = 0x40;
-        step            = 0x20;
-    }
-    work->field_436 = step;
-}
+#include "../../shared/hopping_enemy_walk_approach.inc.c"
 
-static void func_actor_342400_801646B8(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              dist;
-    s16              limit;
-    s16              step;
-    s16              angle;
-    s16              speed;
-    s32              soundId;
-    s32              pan;
+#include "../../shared/hopping_enemy_leap_attack.inc.c"
 
-    dist = work->field_43A;
-    if (dist < 1000) {
-        limit = 0x10;
-        step  = 0x10;
-    } else if (dist < 2000) {
-        step  = 0x12;
-        limit = 0x14;
-    } else if (dist < 3000) {
-        step  = 0x14;
-        limit = 0x18;
-    } else if (dist < 4000) {
-        step  = 0x16;
-        limit = 0x1C;
-    } else if (dist < 5000) {
-        limit = 0x20;
-        step  = 0x18;
-    } else {
-        limit = 0x40;
-        step  = 0x20;
-    }
-    if (work->field_41C < limit) {
-        work->field_41C = limit;
-        work->field_436 = step;
-    }
-    func_actor_342400_801698D4(arg0, work->field_436);
-    speed                                 = func_actor_342400_80169728(arg0, -0x10);
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (func_actor_342400_8016974C(arg0)) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0001;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if (work->field_43A < work->field_410 + 2000 && (work->field_43A < 1500 || work->field_44A == 0) &&
-        (u16)(((work->field_444 + 0x800) & 0xFFF) - 0x200) > 0xC00) {
-        work->field_422++;
-    }
-}
+#include "../../shared/hopping_enemy_leap_turn_away.inc.c"
 
-static void func_actor_342400_801648E4(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    GfxCoord*        root = arg0->extra.tmd->coords;
-    MATRIX           local;
-    s16              angle;
-    s32              soundId;
-    s32              pan;
-    s16              facing;
-    s16              speed;
+#include "../../shared/hopping_enemy_leap_rebound.inc.c"
 
-    if ((s16)++work->field_412 < 40) {
-        if ((s16)func_actor_342400_80169518(arg0)) {
-            return;
-        }
-    } else {
-        work->field_438 = 1;
-    }
-    if ((s16)work->field_412 == 43) {
-        GfxCoord* coords = arg0->extra.tmd->coords;
-        SVECTOR*  v;
+#include "../../shared/hopping_enemy_dangle_frame.inc.c"
 
-        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
-        coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&coords[6]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[6].workm, &local);
-        v                      = &work->field_98;
-        v->vx                  = local.t[0];
-        v->vy                  = local.t[1];
-        v->vz                  = local.t[2];
-        coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    if (work->field_412 >= 43 && work->field_412 <= 46) {
-        work->field_432 = 1;
-    } else {
-        work->field_432 = 0;
-    }
-    if ((s16)work->field_412 == 46) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0005;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if ((s16)work->field_412 == 45) {
-        facing = (work->field_444 + 0x800) & 0xFFF;
-        if (facing < 0x300) {
-            work->field_40C = (facing + work->field_7A) & 0xFFF;
-        } else if (facing >= 0xD00) {
-            work->field_40C = (facing + work->field_7A) & 0xFFF;
-        } else {
-            work->field_40C = work->field_7A;
-        }
-    }
-    if (work->field_412 >= 45 && work->field_412 <= 53) {
-        angle                                 = work->field_40C;
-        speed                                 = -250;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->obj_3AC.flags                  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    } else {
-        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    }
-    if (work->field_412 >= 45 && work->field_412 <= 48 && work->field_43A < 0x171) {
-        Actor341700Work* w;
+#include "../../shared/hopping_enemy_dangle_fall.inc.c"
 
-        work->field_428      = 0;
-        work->field_42A      = -200;
-        w                    = (Actor341700Work*)arg0->work;
-        w->field_426         = 2;
-        w->field_41C         = 0x10;
-        w->field_418         = 0x10;
-        w->field_414         = 1;
-        work->field_432      = 0;
-        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_422     += 2;
-        return;
-    }
-    if ((s16)work->field_412 >= 47) {
-        root->coord.t[1]     += work->field_42A;
-        work->obj_2CC.pos.vy += work->field_42A;
-        work->field_428      += 30;
-        work->field_42A      += work->field_428;
-        if (root->coord.t[1] >= (s16)work->field_92) {
-            Actor341700Work* w = (Actor341700Work*)arg0->work;
+#include "../../shared/hopping_enemy_dangle_land.inc.c"
 
-            w->field_426         = 2;
-            w->field_41C         = 0x10;
-            w->field_418         = 0x12;
-            w->field_414         = 1;
-            root->coord.t[1]     = (s16)work->field_92;
-            work->obj_2CC.pos.vy = 0;
-            work->field_412      = 0;
-            work->field_422++;
-        }
-    }
-}
+#include "../../shared/hopping_enemy_contacts.inc.c"
 
-/// Plays sound 4 on the first frame and, once the hit flags are set, turns
-/// the enemy around, draws a 0x5A..0xD9 cooldown into `field_44A`, requests
-/// animation 0xD and moves the task to state 1.
-static void func_actor_342400_80164CA4(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* work3;
-    s32              soundId;
-    s32              pan;
-    u32              rand;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0004;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if (func_actor_342400_8016974C(arg0) != 0) {
-        work->field_438  = 0;
-        rand             = Gp_LcgState * 5 + 0x71357911;
-        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
-        work->field_7A  += 0x800;
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xD;
-        work2->field_414 = 2;
-        work3            = (Actor341700Work*)arg0->work;
-        Gp_LcgState      = rand;
-        arg0->state      = 1;
-        work3->field_420 = 0;
-        work3->field_422 = 0;
-    }
-}
-
-/// Falls along the heading in `field_40C`: moves the root 0xC8 units a frame,
-/// adds the accelerating drop `field_42A` to its Y and to the second hit
-/// body, and once the root reaches the ground height saved in `field_92`
-/// requests landing animation 0x13 and advances the sub-state.
-static void func_actor_342400_80164DD4(Task* arg0)
-{
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
-
-    work                                  = (Actor341700Work*)arg0->work;
-    angle                                 = work->field_40C;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = 0xC8;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->obj_2CC.pos.vy                 += work->field_42A;
-    work->field_428                      += 0xE;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] >= (s16)work->field_92) {
-        anim                 = (Actor341700Work*)arg0->work;
-        anim->field_426      = 2;
-        anim->field_41C      = 0x10;
-        anim->field_418      = 0x13;
-        anim->field_414      = 1;
-        coord->coord.t[1]    = (s16)work->field_92;
-        work->obj_2CC.pos.vy = 0;
-        work->field_412      = 0;
-        work->field_422++;
-    }
-}
-
-/// Per-frame callback shaped like `func_actor_342400_80165FC0`, with a
-/// one-entry handler table. `Gp_StateF0.field_4` 2 hides the model; 0 runs the state
-/// handler and the follow-up steps, then moves the task to state 4 when
-/// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
-/// it, run `func_actor_342400_80163354` for three part pairs and unhide it. The work block is reloaded through its own local
-/// for the state reset, as the original does.
-static void func_actor_342400_80164F3C(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    GfxCoord*        coord = obj->coords;
-    TaskFunc         sp[1] = { func_actor_342400_8016A494 };
-
-    switch (Gp_StateF0.field_4) {
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case 0:
-            work->field_442++;
-            sp[(s16)work->field_420](arg0);
-            func_actor_342400_801653DC(arg0, 1);
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-                arg0->state  = work->field_448;
-                w->field_420 = 0;
-                w->field_422 = 0;
-            }
-            func_actor_342400_80165CC0(arg0);
-            if (work->field_432 == 1) {
-                hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_80);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-            func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-            func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-}
-
-/// Drops the model back to the ground: eases the pitch latched in
-/// `field_434` back to zero while keeping the heading, adds the accelerating
-/// drop to the root Y, and on landing requests animation 0xC and advances the
-/// sub-state.
-static void func_actor_342400_8016513C(Task* arg0)
-{
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    OverlayMat       rot;
-    OverlayMat*      src;
-    MATRIX*          dst;
-    Actor341700Work* anim;
-
-    work               = (Actor341700Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    work->field_434   += -work->field_434 >> 2;
-    RotMatrixX(work->field_434, &src->mat);
-    RotMatrixY(work->field_7A, &src->mat);
-    dst                = &coord->coord;
-    dst->m[0][0]       = src->mat.m[0][0];
-    dst->m[0][1]       = src->mat.m[0][1];
-    dst->m[0][2]       = src->mat.m[0][2];
-    dst->m[1][0]       = src->mat.m[1][0];
-    dst->m[1][1]       = src->mat.m[1][1];
-    dst->m[1][2]       = src->mat.m[1][2];
-    dst->m[2][0]       = src->mat.m[2][0];
-    dst->m[2][1]       = src->mat.m[2][1];
-    dst->m[2][2]       = src->mat.m[2][2];
-    work->field_428   += 2;
-    work->field_42A   += work->field_428;
-    coord->coord.t[1] += work->field_42A;
-    if (coord->coord.t[1] > 0) {
-        work->field_412   = 0;
-        coord->coord.t[1] = 0;
-        anim              = (Actor341700Work*)arg0->work;
-        anim->field_41C   = 0x20;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_422++;
-    }
-}
-
-/// Plays sounds 4 and 3 on the first two frames; once the hit flags are set,
-/// moves the task to state 3 with the state machine at state 3.
-static void func_actor_342400_801652A0(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* next;
-    Actor341700Work* next2;
-    u32              soundId;
-    s32              pan;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId   = (u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
-        soundId <<= 8;
-        soundId  |= 0x402C0004;
-        pan       = Gp_GetObjPan(arg0->extra.tmd->coords) << 24;
-        pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if ((s16)work->field_412 == 2) {
-        soundId   = (u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
-        soundId <<= 8;
-        soundId  |= 0x402C0003;
-        pan       = Gp_GetObjPan(arg0->extra.tmd->coords) << 24;
-        pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if (func_actor_342400_8016974C(arg0)) {
-        next             = (Actor341700Work*)arg0->work;
-        arg0->state      = 3;
-        next->field_420  = 0;
-        next->field_422  = 0;
-        next2            = (Actor341700Work*)arg0->work;
-        next2->field_420 = 3;
-        next2->field_422 = 0;
-    }
-}
-
-/// Push-out of the model from contact record `rec`: how far `coord` sits
-/// inside the record's radius (`depth`), along the direction from the
-/// record's centre to the root part, carried into grid space.
-///
-/// `rec` must stay an inline argument: `integrate.c` expands it with
-/// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void calc_push(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
-{
-    SVECTOR   pos;
-    VECTOR    d;
-    VECTOR    n;
-    GfxCoord* c2;
-    s32       t;
-    s32       pen;
-
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    c2     = arg0->extra.tmd->coords;
-    d.vx   = pos.vx - rec->point.vx;
-    d.vy   = 0;
-    d.vz   = pos.vz - rec->point.vz;
-    pen    = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen    = rec->distance - pen;
-    if (pen <= 0) {
-        t = 0;
-    } else {
-        t = pen;
-    }
-    pen  = t;
-    d.vx = c2->workm.t[0] - rec->point.vx;
-    d.vy = c2->workm.t[1] - rec->point.vy;
-    d.vz = c2->workm.t[2] - rec->point.vz;
-    VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
-    out->vx = (pen * d.vx) >> 12;
-    out->vy = 0;
-    out->vz = (pen * d.vz) >> 12;
-}
-
-/// Per-frame contact handling for the overlay's enemy. Walks the eight
-/// contact records: kind 1 (skipped when `arg1` is set) and kind 3 push the
-/// model out, kind 2 applies a hit - damage, status effects and the pending
-/// state request in `field_448` - unless `field_40E` is still cooling down.
-/// Then ticks the status flags, applies `func_800E0C10`'s collision step
-/// (snapping back to `field_60` when it reports a conflict) and moves the
-/// root by the combined step and push-out.
-static void func_actor_342400_801653DC(Task* arg0, s16 arg1)
-{
-    GpDeltaScratch   delta;
-    SVECTOR          push;
-    s16              maxX;
-    s16              maxZ;
-    s16              stepX;
-    s16              stepZ;
-    u8               blocked;
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-    GfxCoord*        coord;
-    s16              amount;
-    s32              dmg;
-    s32              tmp;
-    s16              tick;
-    s32              i;
-
-    stepZ   = 0;
-    maxX    = 0;
-    maxZ    = 0;
-    stepX   = 0;
-    blocked = 0;
-    work    = (Actor341700Work*)arg0->work;
-    coord   = arg0->extra.tmd->coords;
-    enemy   = arg0->spawnArg2.pointer;
-    SCRATCH_PUSH_BYTES(8);
-    work->field_41E = 0;
-    for (i = 0; i < 8; i++) {
-        switch (work->rec_2EC[i].key.value & 0xFFFF0000) {
-            case 0x10000:
-                if (arg1 != 0) {
-                    break;
-                }
-            case 0x30000:
-                calc_push(arg0, coord, &work->rec_2EC[i], &push);
-                if (ABS(maxX) < ABS(push.vx)) {
-                    maxX = push.vx;
-                }
-                if (ABS(maxZ) < ABS(push.vz)) {
-                    maxZ = push.vz;
-                }
-                break;
-            case 0x20000:
-                if (work->field_40E == 0) {
-                    work->field_41E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key.value, work->field_43A, 0, 0);
-                    amount          = dmg;
-                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key.value);
-                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key.value, 0) != 0) {
-                        amount = ((u32)dmg << 16) >> 14;
-                        Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
-                    }
-                    func_800E2C78(enemy, work->rec_2EC[i].key.value, amount, 0);
-                    func_800DA6E8(&enemy->node, amount, 0);
-                    enemy->hp -= amount;
-                    if (enemy->hp < 0) {
-                        enemy->hp = 0;
-                    }
-                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF,
-                                  &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
-                    if (amount >= 0x28) {
-                        work->field_448 = 2;
-                    } else {
-                        work->field_448 = 1;
-                    }
-                    switch (Gp_GetIdParam0(work->rec_2EC[i].key.value) & 0xFFFF) {
-                        case 0:
-                            break;
-                        case 1:
-                            Gp_SetObjFlag1(enemy);
-                            break;
-                        case 2:
-                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key.value, 0);
-                            break;
-                        case 3:
-                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key.value, 0);
-                            break;
-                        case 4:
-                            work->field_448 = 4;
-                            break;
-                        case 5:
-                            work->field_448 = 2;
-                            break;
-                        case 6:
-                            work->field_448 = 4;
-                            break;
-                        case 7:
-                            work->field_448 = 2;
-                            break;
-                        case 8:
-                            work->field_448 = 3;
-                            break;
-                        case 9:
-                            work->field_448 = 3;
-                            break;
-                    }
-                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF) == 0xD) {
-                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
-                }
-                break;
-        }
-    }
-
-    if (enemy->reactionFlags & 1) {
-        enemy->reactionFlags &= 0xFE;
-        work->field_448       = 5;
-    }
-    if (enemy->reactionFlags & 2) {
-        enemy->reactionFlags &= 0xFD;
-        work->field_448       = 3;
-    }
-    if (enemy->reactionFlags & 0xC) {
-        work->field_44E = 1;
-        tmp             = Gp_TickObjFlag4(enemy);
-        tick            = tmp;
-        if (tick != 0) {
-            enemy->hp -= tmp;
-            func_800DA6E8(&enemy->node, tick, 0);
-            if (enemy->hp < 0) {
-                enemy->hp = 0;
-            }
-            work->field_41E = 1;
-            work->field_448 = 2;
-        }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
-            enemy->reactionFlags &= 0xF3;
-        }
-    }
-
-    switch (func_800E0C10(work->rec_2EC, &delta, 8, NULL)) {
-        case 0:
-            break;
-        case 1:
-            stepZ = delta.vz.h.hi;
-            stepX = delta.vx.w >> 16;
-            if (delta.vx.w & 0xFFFF) {
-                if (delta.vx.w > 0) {
-                    stepX++;
-                } else {
-                    stepX--;
-                }
-            }
-            if (delta.vz.w & 0xFFFF) {
-                if (delta.vz.w > 0) {
-                    stepZ++;
-                } else {
-                    stepZ--;
-                }
-            }
-            break;
-        case 2:
-            coord->coord.t[0]   = work->field_60.vx;
-            coord->coord.t[2]   = work->field_60.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            blocked             = 1;
-            break;
-    }
-
-    Gp_ClearRec18Occupied(work->rec_2EC);
-    if (work->field_43E != 0) {
-        work->field_43E--;
-    }
-    if (work->field_40E > 0) {
-        work->field_40E--;
-    }
-    if (blocked == 0) {
-        work->field_80     += actorPickStep(stepX, maxX >> 3);
-        work->field_84     += actorPickStep(stepZ, maxZ >> 3);
-        coord->coord.t[0]  += actorPickStep(stepX, maxX >> 3);
-        coord->coord.t[2]  += actorPickStep(stepZ, maxZ >> 3);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
-
-/// Runs the animation request in `field_414` on animation slots 1..8: kind 1
-/// blends into animation `field_418` over `field_426` frames, kind 2 resets
-/// the slots straight to it, and either records it as applied and moves to
-/// kind 3, which counts frames in `field_41A`. Every frame each slot then
-/// ticks at speed `field_41C`.
-static void func_actor_342400_80165CC0(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* start;
-    s32              i;
-    s32              j;
-    s32              k;
-
-    work = (Actor341700Work*)arg0->work;
-    if (work->field_414 == 1) {
-        start = work;
-        if (start->field_416 == start->field_418) {
-            for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].rate = start->field_41C;
-                func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
-            }
-        } else {
-            for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].rate = start->field_41C;
-                func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
-            }
-            start->field_426 = 0;
-        }
-        goto advance;
-    }
-    if (work->field_414 == 2) {
-        start = work;
-        for (j = 1; j < 9; j++) {
-            Gp_AnimResetSlot(&start->anim, j, start->field_418);
-            (&start->slot_B4)[j].rate = start->field_41C;
-        }
-    advance:
-        start->field_416 = start->field_418;
-        work->field_414  = 3;
-        work->field_41A  = 0;
-    } else if (work->field_414 == 3) {
-        work->field_41A++;
-    }
-    for (k = 1; k < 9; k++) {
-        (&work->slot_B4)[k].rate = work->field_41C;
-        Gp_AnimTickIndex(&work->anim, k);
-    }
-}
+#include "../../shared/hopping_enemy_tick_anim.inc.c"
 
 #include "../../shared/hopping_enemy_bodies.inc.c"
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable9 D_actor_342400_80161F50 = { {
-    func_actor_342400_8016A664,
-    func_actor_342400_8016A724,
-    func_actor_342400_8016A804,
+    hopperDeathCry,
+    hopperDeathSettle,
+    hopperDeathWaitAnim,
     hopperBeginDeath,
-    func_actor_342400_8016A950,
-    func_actor_342400_80166180,
+    hopperDeathTurnTranslucent,
+    hopperShrinkWithDust,
     func_actor_342400_8016A9AC,
     func_actor_342400_8016A9C4,
     hopperBurst,
@@ -2007,7 +1004,7 @@ static const TaskFuncTable9 D_actor_342400_80161F50 = { {
 
 /// Per-frame callback of the main enemy. `Gp_StateF0.field_4` 2 hides the model,
 /// 0 runs the current state handler (then colours it), 1 only colours it.
-/// Unless `field_451` is set, it then runs `func_actor_342400_80163354` for
+/// Unless `field_451` is set, it then runs `hopperDrawLimbShadow` for
 /// three part pairs.
 static void func_actor_342400_80165FC0(Task* arg0)
 {
@@ -2025,204 +1022,35 @@ static void func_actor_342400_80165FC0(Task* arg0)
             sp.funcs[(s16)work->field_420](arg0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// Death shrink: restores the root matrix saved in `savedRootMtx`, scales it
-/// on Y by `field_430` (0x40 smaller each frame), spawns effect 0x600A5 on
-/// frame 4, sets the enemy's light mode 2 on frame 16, and after frame 32
-/// hides the model and advances the state.
-static void func_actor_342400_80166180(Task* arg0)
-{
-    Actor341700Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-    SVECTOR          ofs;
+#include "../../shared/hopping_enemy_shrink_dust.inc.c"
 
-    work             = (Actor341700Work*)arg0->work;
-    ident            = &m.ident;
-    obj              = arg0->extra.tmd;
-    coord            = obj->coords;
-    work->field_430 -= 0x40;
-    scale.vx         = 0x1000;
-    scale.vy         = (s16)work->field_430;
-    scale.vz         = 0x1000;
-    coord->coord     = work->savedRootMtx;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
-    ScaleMatrix(&m.mat, &scale);
-    MulMatrix(&coord->coord, &m.mat);
-    if ((s16)++work->field_412 == 4) {
-        ofs.vx = 0;
-        ofs.vy = 0;
-        ofs.vz = 0;
-        Gp_SpawnEff(0x600A5, coord, 3, &ofs);
-    }
-    if ((s16)work->field_412 == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
-    }
-    if ((s16)work->field_412 > 0x20) {
-        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_420++;
-    }
-}
+#include "../../shared/hopping_enemy_track_player.inc.c"
 
-/// Aims at the nearer of the two player actors: saves the root position in
-/// `field_60`, stores the offset to that actor in `field_88`..`field_8C` and
-/// its horizontal distance in `field_43A`, and its heading relative to
-/// `field_7A` in `field_444`. Nothing but the position is updated while
-/// player slot 0 is empty.
-static void func_actor_342400_801662EC(Task* arg0)
-{
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        other;
-    Task*            player;
-    SVECTOR          d0;
-    SVECTOR          d1;
-    s32              dist;
-    s32              dist2;
-
-    work              = (Actor341700Work*)arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    player            = Gp_ActorSlots[0];
-    work->field_60.vx = coord->coord.t[0];
-    work->field_60.vy = coord->coord.t[1];
-    work->field_60.vz = coord->coord.t[2];
-    if (player != NULL) {
-        other = player->extra.tmd->coords;
-        d0.vx = other->coord.t[0] - coord->coord.t[0];
-        d0.vy = other->coord.t[1] - coord->coord.t[1];
-        d0.vz = other->coord.t[2] - coord->coord.t[2];
-        dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
-        if (Gp_ActorSlots[1] != NULL) {
-            other = Gp_ActorSlots[1]->extra.tmd->coords;
-            d1.vx = other->coord.t[0] - coord->coord.t[0];
-            d1.vy = other->coord.t[1] - coord->coord.t[1];
-            d1.vz = other->coord.t[2] - coord->coord.t[2];
-            dist2 = SquareRoot0(d1.vx * d1.vx + d1.vz * d1.vz);
-            if (dist2 < dist) {
-                dist  = dist2;
-                d0.vx = d1.vx;
-                d0.vy = d1.vy;
-                d0.vz = d1.vz;
-            }
-        }
-        // The loop notes keep VectorNormalSS's argument setup below these stores.
-        do {
-            work->field_88  = d0.vx;
-            work->field_8A  = d0.vy;
-            work->field_8C  = d0.vz;
-            work->field_43A = dist;
-        } while (0);
-        VectorNormalSS(&d0, &d0);
-        work->field_444 = (ratan2(d0.vx, d0.vz) - work->field_7A) & 0xFFF;
-    }
-}
-
-/// Moves the state machine to `state` at sub-state 0, reloading the work
-/// block through the task as the original does.
-static __inline__ void set_state(Task* arg0, s32 state)
-{
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-    w->field_420 = state;
-    w->field_422 = 0;
-}
-
-/// Inlined copy of `func_actor_342400_80169518`: while `field_41E` is 1,
-/// consumes the request in `field_448` (1..5 jump to states 6, 7, 8, 7, 9)
-/// and returns 1; otherwise returns 0.
-static __inline__ s32 take_request(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    if (work->field_41E == 1) {
-        switch ((s16)(work->field_448 - 1)) {
-            case 0:
-                set_state(arg0, 6);
-                break;
-            case 1:
-                set_state(arg0, 7);
-                break;
-            case 2:
-                set_state(arg0, 8);
-                break;
-            case 3:
-                set_state(arg0, 7);
-                break;
-            case 4:
-                set_state(arg0, 9);
-                break;
-        }
-        work->field_448 = 0;
-        return 1;
-    }
-    return 0;
-}
-
-static __inline__ s32 is_hit(Task* arg0)
-{
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-    if ((w->flags_EC.half & 1) || (w->flags_EC.word & 0x102)) {
-        return 1;
-    }
-    return 0;
-}
-
-/// State handler: with `field_44F` 1, a pending request 1 while `field_41E`
-/// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
-/// request wins, and a hit moves to state 3. With `field_44F` clear, a hit
-/// calls `func_actor_342400_801694A8` and moves to state 5. The request test
-/// compares against the constant 1, which CSE folds into the `field_44F`
-/// register; writing `== work->field_44F` reloads the byte instead.
-static void func_actor_342400_801664C4(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    if (work->field_44F == 1) {
-        if (work->field_41E != 0 && work->field_448 == 1) {
-            work->field_41C = 0x20;
-            work->field_418 = 0xB;
-            work->field_414 = 2;
-            return;
-        }
-        if (take_request(arg0) == 0 && is_hit(arg0)) {
-            set_state(arg0, 3);
-        }
-    } else if (is_hit(arg0)) {
-        func_actor_342400_801694A8(arg0, 1);
-        set_state(arg0, 5);
-    }
-}
+#include "../../shared/hopping_enemy_recoil_recover.inc.c"
 
 /// The five state handlers of the second enemy form, indexed by
 /// `Actor341700Work::field_420`; copied to the stack before dispatch. It sits
-/// between `func_actor_342400_801664C4`'s jump table and this function's own.
+/// between `hopperRecoilRecover`'s jump table and this function's own.
 static const TaskFuncTable5 D_actor_342400_80161F8C = { {
     func_actor_342400_8016AE24,
     func_actor_342400_8016AEAC,
-    func_actor_342400_8016AF34,
+    hopperLurkRiseState,
     func_actor_342400_8016AFA8,
     func_actor_342400_8016B038,
 } };
 
 /// Per-frame callback for the second enemy form, the five-state counterpart
-/// of `func_actor_342400_801640B0`: in mode 0 it aims (`func_actor_342400_801662EC`),
+/// of `func_actor_342400_801640B0`: in mode 0 it aims (`hopperTrackPlayer`),
 /// lets a pending hit replace the state handler, rebuilds the root rotation,
 /// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
 /// state 3 after a consumed `field_448` request. Mode 1 only recolours; both
@@ -2241,30 +1069,30 @@ static void func_actor_342400_8016666C(Task* arg0)
             return;
         case 0:
             work->field_442++;
-            func_actor_342400_801662EC(arg0);
+            hopperTrackPlayer(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            func_actor_342400_80165CC0(arg0);
+            hopperTickAnim(arg0);
             hopperTwistSpine(arg0);
             update_rotation(arg0);
-            func_actor_342400_801653DC(arg0, 0);
+            hopperApplyContacts(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                enter_state(arg0, 4);
+                hopperEnter_state(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                enter_state(arg0, 8);
+                hopperEnter_state(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                enter_state(arg0, 9);
-            } else if (take_request(arg0)) {
+                hopperEnter_state(arg0, 9);
+            } else if (hopperTake_request(arg0)) {
                 work->field_438 = 0;
-                enter_state(arg0, 3);
+                hopperEnter_state(arg0, 3);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-            func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-            func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -2273,62 +1101,62 @@ static void func_actor_342400_8016666C(Task* arg0)
 /// Sub-state handlers `func_actor_342400_8016AE24` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FB4 = { {
     hopperStartHold,
-    func_actor_342400_8016B104,
-    func_actor_342400_8016B1C8,
+    hopperLurkWait,
+    hopperLurkIdleEnd,
 } };
 
 /// Sub-state handlers `func_actor_342400_8016AEAC` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FC0 = { {
-    func_actor_342400_8016B21C,
-    func_actor_342400_8016B294,
-    func_actor_342400_80166B20,
+    hopperLurkCrouch,
+    hopperLurkRaise,
+    hopperLurkLookAround,
 } };
 
-/// Sub-state handlers `func_actor_342400_8016AF34` dispatches by `field_422`.
+/// Sub-state handlers `hopperLurkRiseState` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FCC = { {
     hopperStartAlert,
-    func_actor_342400_8016B414,
-    func_actor_342400_80166C68,
+    hopperLurkBrace,
+    hopperLurkSidestepToCombat,
 } };
 
 /// Sub-state handlers `func_actor_342400_8016B038` dispatches by `field_422`.
 static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
-    func_actor_342400_8016B48C,
-    func_actor_342400_8016B500,
-    func_actor_342400_80166DD4,
-    func_actor_342400_80166F54,
+    hopperLurkShiftStart,
+    hopperLurkShiftBrace,
+    hopperLurkSidestepRight,
+    hopperLurkSidestepLeft,
 } };
 
 /// Ten state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable10 D_actor_342400_80161FE8 = { {
-    func_actor_342400_801673F8,
-    func_actor_342400_801676D4,
-    func_actor_342400_8016784C,
+    hopperEmergeAtSpot,
+    hopperEmergeBackflip,
+    hopperEmergeHopForward,
     hopperCreepUntilHit,
-    func_actor_342400_80167B70,
-    func_actor_342400_80167CDC,
-    func_actor_342400_80167E78,
-    func_actor_342400_80168010,
-    func_actor_342400_80168174,
+    hopperEmergeArcBack,
+    hopperEmergeHopBack,
+    hopperEmergeBackOff,
+    hopperEmergeHighArc,
+    hopperEmergeFlipOver,
     func_actor_342400_80168394,
 } };
 
 /// Sub-state handlers `func_actor_342400_80169C84` dispatches by `field_422`.
 static const TaskFuncTable6 D_actor_342400_80162010 = { {
-    func_actor_342400_8016B5B0,
-    func_actor_342400_8016B744,
-    func_actor_342400_80168530,
-    func_actor_342400_80168A28,
-    func_actor_342400_80168B74,
-    func_actor_342400_80168A28,
+    hopperPullStart,
+    hopperPullReact,
+    hopperPulledStruggle,
+    hopperPulledIn,
+    hopperPulledLimp,
+    hopperPulledIn,
 } };
 
 /// Five state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable5 D_actor_342400_80162028 = { {
-    func_actor_342400_8016B9A4,
-    func_actor_342400_8016BA3C,
+    hopperDeathCryUnlink,
+    hopperDeathSettleQuiet,
     func_actor_342400_8016BAF4,
     hopperDropBodies,
     func_actor_342400_8016BBD0,
@@ -2338,168 +1166,21 @@ static const TaskFuncTable5 D_actor_342400_80162028 = { {
 /// the stack before dispatch.
 static const TaskFuncTable7 D_actor_342400_8016203C = { {
     func_actor_342400_8016BBD8,
-    func_actor_342400_8016BA3C,
+    hopperDeathSettleQuiet,
     func_actor_342400_8016BAF4,
     hopperBeginShrink,
     func_actor_342400_8016BD3C,
-    func_actor_342400_8016BD98,
+    hopperShrink,
     func_actor_342400_8016BED8,
 } };
 
-/// Holds for `field_446` frames, then moves to state 2. Over the last 0x30
-/// frames the head yaw `field_424` eases back to zero; before that, while a
-/// player actor is within 0xDAC and roughly ahead, it turns toward it and
-/// after 16 such frames arms `Gp_StateF0` and moves to state 3, and
-/// otherwise it sways between two fixed yaws by bit 6 of `field_442`.
-static void func_actor_342400_80166B20(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    Actor341700Work* state;
-    Actor341700Work* state2;
-    s32              angle;
-    s32              cur;
-    s32              aim;
+#include "../../shared/hopping_enemy_lurk_look.inc.c"
 
-    if ((s16)++work->field_412 > work->field_446) {
-        state            = (Actor341700Work*)arg0->work;
-        state->field_420 = 2;
-        state->field_422 = 0;
-        return;
-    }
-    if (work->field_446 - 0x30 < (s16)work->field_412) {
-        cur             = (u16)work->field_424;
-        work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-        return;
-    }
-    if (work->field_43A < 0xDAC && (aim = (u16)work->field_444, (aim < 0x3C0 || aim > 0xC40))) {
-        angle           = (u16)work->field_424;
-        work->field_424 = angle + ((s16)((aim - angle) * 16) >> 6);
-        if (++work->field_42C >= 0x10) {
-            Gp_ArmStateF0(1);
-            state2            = (Actor341700Work*)arg0->work;
-            state2->field_420 = 3;
-            state2->field_422 = 0;
-        }
-    } else {
-        // Both arms are spelled out: the cross-jumped tail leaves each its own
-        // load of `field_424`, which a single update after an if/else lacks.
-        if (!(((u16)work->field_442 >> 6) & 1)) {
-            work->field_424 = (u16)work->field_424 + ((s16)(0x3800 - (u16)work->field_424 * 16) >> 9);
-        } else {
-            work->field_424 = (u16)work->field_424 + ((s16)(-0x3800 - (u16)work->field_424 * 16) >> 9);
-        }
-    }
-}
+#include "../../shared/hopping_enemy_lurk_sidestep_combat.inc.c"
 
-/// Side-steps to the right of the heading at a speed scaled by `field_41C`
-/// on frames 0x1D..0x29; once the hit flags are set, moves the task and the
-/// state machine to state 3.
-static void func_actor_342400_80166C68(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-    s32              scale;
+#include "../../shared/hopping_enemy_lurk_sidestep_right.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        scale                                 = 0x1E;
-        angle                                 = work->field_7A + 0x400;
-        speed                                 = (((Actor341700Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    work2 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_438 = 0;
-        enter_state(arg0, 3);
-        set_state(arg0, 3);
-    }
-}
-
-/// The same side-step as `func_actor_342400_80166C68`, but once the hit
-/// flags are set it requests animation 3 and advances the sub-state instead.
-static void func_actor_342400_80166DD4(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-    s32              scale;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        scale                                 = 0x1E;
-        angle                                 = work->field_7A + 0x400;
-        speed                                 = (((Actor341700Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    work2 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_438  = 0;
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 3;
-        work2->field_414 = 1;
-        work->field_412  = 0;
-        work->field_422++;
-    }
-}
-
-/// Unless `func_actor_342400_8016945C` takes over, side-steps to the left on
-/// frames 0x17..0x23 and, once the hit flags are set, returns the state
-/// machine to state 0.
-static void func_actor_342400_80166F54(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* next;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-    s32              scale;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((func_actor_342400_8016945C(arg0) << 0x10) == 0) {
-        if ((u16)(work->field_412++ - 0x17) < 0xD) {
-            scale                                 = -0x1E;
-            angle                                 = work->field_7A + 0x400;
-            speed                                 = (((Actor341700Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-            arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-        work2 = (Actor341700Work*)arg0->work;
-        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            work->field_438 = 0;
-            next            = (Actor341700Work*)arg0->work;
-            next->field_420 = 0;
-            next->field_422 = 0;
-        }
-    }
-}
+#include "../../shared/hopping_enemy_lurk_sidestep_left.inc.c"
 
 /// Message 0x2C00 with low nibble 3 (see `field_44C`) consumes the message and
 /// moves the task to state 7 with a fresh state machine; returns 1 when it did,
@@ -2526,7 +1207,7 @@ static __inline__ s16 take_hit_nibble3(Task* arg0)
 /// Per-frame callback, the ten-state counterpart of
 /// `func_actor_342400_80165FC0`: in mode 0 a pending hit (`take_hit_nibble3`) replaces
 /// the state handler, and the root rotation is rebuilt from 0x78..0x7C before
-/// `func_actor_342400_801653DC`.
+/// `hopperApplyContacts`.
 static void func_actor_342400_801670C0(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
@@ -2543,23 +1224,23 @@ static void func_actor_342400_801670C0(Task* arg0)
             if (take_hit_nibble3(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            func_actor_342400_80165CC0(arg0);
+            hopperTickAnim(arg0);
             update_rotation(arg0);
-            func_actor_342400_801653DC(arg0, 0);
+            hopperApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// `set_state` with an `s16` state. The narrower parameter is load-bearing:
-/// with the `s32` one, `func_actor_342400_801673F8` no longer matches. Each
+/// `hopperSet_state_s16` with an `s16` state. The narrower parameter is load-bearing:
+/// with the `s32` one, `hopperEmergeAtSpot` no longer matches. Each
 /// call site reloads `work`, and cross-jumping merges the identical stores,
 /// which is what leaves one `lw` per arm in front of a shared tail.
 static __inline__ void set_state_s16(Task* arg0, s16 state)
@@ -2570,648 +1251,34 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
     w->field_422 = 0;
 }
 
-/// Answers message 0x2C00 with low nibble 1 (latched in `field_44C`): shows
-/// the model and arms its hit bodies, places the root at the spawn point
-/// bits 8..11 pick from the current map's table (0x427 or 0x428, playing
-/// sound 6 on 0x427), requests animation 7 with an upward launch, and starts
-/// state 1, 4 or 7 by bits 4..7.
-static void func_actor_342400_801673F8(Task* arg0)
-{
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    TmdObject*       obj   = arg0->extra.tmd;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    GfxCoord*        coord = obj->coords;
-    Actor341700Work* w2;
-    s32              id;
-    s32              pan;
-    u32              stageAreaKey;
+#include "../../shared/hopping_enemy_emerge_at_spot.inc.c"
 
-    if ((work->field_44C & 0xF) == 1) {
-        work->field_451      = 1;
-        work->obj_2AC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj_2CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        obj->flags          &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        if ((arg0->spawnArg1.value & 0xF) != 2) {
-            Tmd_AllocBuffers(obj);
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        }
-        enemy->node.state.parts.flags = 0;
-        stageAreaKey                  = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
-        if (stageAreaKey == GAME_LOCATION_KEY(4, 39, 0, 0)) {
-            // The 7C store follows 7A here; written first, it schedules
-            // ahead of the heading load.
-            work->field_78    = 0;
-            work->field_7A    = (D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;
-            work->field_7C    = 0;
-            coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].x;
-            coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].y;
-            coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].z;
-            id                = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x54270006;
-            pan               = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        } else if (stageAreaKey == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-            work->field_78    = 0;
-            work->field_7A    = (D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;
-            work->field_7C    = 0;
-            coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].x;
-            coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].y;
-            coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].z;
-        }
-        work->field_428 = 0;
-        work->field_42A = 100;
-        w2              = (Actor341700Work*)arg0->work;
-        w2->field_41C   = 0x10;
-        w2->field_418   = 7;
-        w2->field_414   = 2;
-        switch ((work->field_44C >> 4) & 0xF) {
-            case 0:
-                set_state_s16(arg0, 1);
-                break;
-            case 1:
-                set_state_s16(arg0, 4);
-                break;
-            default:
-                set_state_s16(arg0, 7);
-                break;
-        }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
-        work->field_44C = 0;
-    }
-}
+#include "../../shared/hopping_enemy_emerge_backflip.inc.c"
 
-/// Flies backwards off the heading, pitching up toward 0x800, under the
-/// accelerating drop `field_42A`; on landing turns around, requests
-/// animation 0x11, launches again and advances the state.
-static void func_actor_342400_801676D4(Task* arg0)
-{
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
-
-    work                                  = (Actor341700Work*)arg0->work;
-    angle                                 = work->field_7A;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_78                       += (0x800 - work->field_78) >> 3;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 2;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        work->field_451   = 0;
-        work->field_412   = 0;
-        coord->coord.t[1] = -0x3C;
-        work->field_78    = 0;
-        work->field_7C    = 0;
-        work->field_7A   += 0x800;
-        anim              = (Actor341700Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0x11;
-        anim->field_414   = 2;
-        work->field_428   = 0;
-        work->field_42A   = -0x6E;
-        work->field_420++;
-    }
-}
-
-/// Plays sound 9 on the first frame and hops forward 0x50 units a frame
-/// under the accelerating drop; on landing advances the state.
-static void func_actor_342400_8016784C(Task* arg0)
-{
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s16              angle;
-    s16              speed;
-
-    work  = (Actor341700Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = 0x50;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 4;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
-        work->field_412   = 0;
-        work->field_420++;
-    }
-}
+#include "../../shared/hopping_enemy_emerge_hop_forward.inc.c"
 
 #include "../../shared/hopping_enemy_creep.inc.c"
 
-/// Flies backwards off the heading, pitching toward 0x200, under the
-/// accelerating drop; on landing levels out, requests animation 0xC,
-/// launches again and advances the state.
-static void func_actor_342400_80167B70(Task* arg0)
-{
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
+#include "../../shared/hopping_enemy_emerge_arc_back.inc.c"
 
-    work                                  = (Actor341700Work*)arg0->work;
-    angle                                 = work->field_7A;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_78                       += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 2;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        work->field_451   = 0;
-        work->field_412   = 0;
-        coord->coord.t[1] = -0x3C;
-        work->field_78    = 0;
-        work->field_7C    = 0;
-        anim              = (Actor341700Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_428   = 0;
-        work->field_42A   = -0x6E;
-        work->field_420++;
-    }
-}
+#include "../../shared/hopping_enemy_emerge_hop_back.inc.c"
 
-/// Plays sound 9 on the first frame and hops backwards 0x50 units a frame,
-/// easing the pitch back to zero, under the accelerating drop; on landing
-/// advances the state.
-static void func_actor_342400_80167CDC(Task* arg0)
-{
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s16              angle;
-    s16              speed;
+#include "../../shared/hopping_enemy_emerge_back_off.inc.c"
 
-    work  = (Actor341700Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    work->field_412++;
-    work->field_78 += -work->field_78 >> 5;
-    if ((s16)work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = -0x50;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 4;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
-        work->field_412   = 0;
-        work->field_420++;
-    }
-}
+#include "../../shared/hopping_enemy_emerge_high_arc.inc.c"
 
-/// Plays sound 9 on the first frame and backs off 0x14 units a frame; once
-/// the hit flags are set, disarms the outer hit body and moves the task to
-/// state 3 with the state machine at state 3.
-static void func_actor_342400_80167E78(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* next;
-    Actor341700Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = -0x14;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor341700Work*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (Actor341700Work*)arg0->work;
-        next2->field_420     = 3;
-        next2->field_422     = 0;
-    }
-}
-
-/// Flies backwards off the heading, pitching toward 0x200, under the
-/// accelerating drop; on landing requests animation 0xC, launches high
-/// (-0x12C) and advances the state.
-static void func_actor_342400_80168010(Task* arg0)
-{
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
-
-    work                                  = (Actor341700Work*)arg0->work;
-    angle                                 = work->field_7A;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_78                       += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 2;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        work->field_451   = 0;
-        work->field_412   = 0;
-        coord->coord.t[1] = -0x3C;
-        anim              = (Actor341700Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_428   = 0;
-        work->field_42A   = -0x12C;
-        work->field_420++;
-    }
-}
-
-/// Plays sounds 9 and 3 on the first frame and backs off 0x5A units a frame,
-/// pitching toward 0x800, under the accelerating drop; on landing levels
-/// out, turns around, requests animation 0x11 and advances the state.
-static void func_actor_342400_80168174(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* anim;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s32              soundId2;
-    s32              pan2;
-    s16              angle;
-    s16              speed;
-
-    work  = (Actor341700Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    work->field_412++;
-    work->field_78 += (0x800 - work->field_78) >> 3;
-    if ((s16)work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        soundId2 = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0003;
-        pan2     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId2, pan2, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = -0x5A;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 4;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
-        work->field_78    = 0;
-        work->field_7C    = 0;
-        work->field_7A   += 0x800;
-        anim              = (Actor341700Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0x11;
-        anim->field_414   = 2;
-        work->field_412   = 0;
-        work->field_420++;
-    }
-}
+#include "../../shared/hopping_enemy_emerge_flip_over.inc.c"
 
 /// The same creep as a second entry of the state table.
 #define hopperCreepUntilHit func_actor_342400_80168394
 #include "../../shared/hopping_enemy_creep.inc.c"
 #undef hopperCreepUntilHit
 
-/// Sub-state handler, the steering counterpart of `func_actor_342400_80168B74`:
-/// while the enemy lives it turns `field_7A` toward `field_70` and pushes the
-/// root back along it, then slides toward `field_70` accelerating with
-/// `field_42A`. Past 120 frames (or once dead) it eases y in and marks
-/// `field_438`; while alive a hit flag plays sound 1. Within 800 units it
-/// advances `field_422`, otherwise a dead enemy queues its follow-up animation.
-static void func_actor_342400_80168530(Task* arg0)
-{
-    TmdObject*       obj;
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-    GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           d;
-    SVECTOR          dir;
-    VECTOR           sq;
-    VECTOR*          out;
-    s16              angle;
-    s32              dist;
-    s32              cond;
-    s32              soundId;
-    s32              pan;
+#include "../../shared/hopping_enemy_pulled_struggle.inc.c"
 
-    obj   = arg0->extra.tmd;
-    work  = (Actor341700Work*)arg0->work;
-    coord = obj->coords;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    work->field_412++;
-    if (enemy->hp > 0) {
-        Actor341700Work* w;
-        s32              diff;
-        s32              k;
-        s32              step;
+#include "../../shared/hopping_enemy_pulled_in.inc.c"
 
-        if ((u32)(work->field_44F >> 1) < 0x40) {
-            work->field_41C = work->field_44F >> 2;
-            work->field_44F++;
-        } else {
-            work->field_41C = 0x40;
-        }
-        w      = (Actor341700Work*)arg0->work;
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->field_70.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        diff = (((u16)w->field_7A - ratan2(dir.vx, dir.vz)) << 20) >> 20;
-        if (diff > 0x100) {
-            w->field_7A -= 0x18;
-        } else if (diff < -0x100) {
-            w->field_7A += 0x18;
-        }
-        angle                                 = work->field_7A;
-        k                                     = -0x10;
-        step                                  = ((((Actor341700Work*)arg0->work)->field_41C * k) << 12) >> 16;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    work->field_428++;
-    work->field_42A += work->field_428;
-    {
-        s32 step = work->field_42A >> 6;
-
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->field_70.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    d.vx = coord->coord.t[0] - work->field_70.vx;
-    d.vy = coord->coord.t[1] - work->field_70.vy;
-    d.vz = coord->coord.t[2] - work->field_70.vz;
-    out  = &sq;
-    gte_ldlvl(&d);
-    gte_sqr0();
-    gte_stlvnl(out);
-    dist = SquareRoot0(sq.vx + sq.vy + sq.vz);
-    if ((s16)work->field_412 > 120) {
-        if (dist <= 3000) {
-            work->field_438    = 1;
-            coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 4;
-        } else {
-            work->field_438    = 1;
-            coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 5;
-        }
-    } else if (enemy->hp > 0) {
-        Actor341700Work* w2 = (Actor341700Work*)arg0->work;
-
-        if ((w2->flags_EC.half & 1) || (w2->flags_EC.word & 0x102)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0001;
-            pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        }
-    } else {
-        work->field_438    = 1;
-        coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 5;
-    }
-    if (dist < 800) {
-        work->field_422++;
-        return;
-    }
-    if (enemy->hp <= 0) {
-        if (work->field_448 != 4) {
-            work->field_438 = 1;
-            if (work->field_418 == 8) {
-                if (work->field_440 == 0) {
-                    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 5;
-                    w->field_414 = 1;
-                } else {
-                    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 6;
-                    w->field_414 = 1;
-                }
-            } else {
-                Actor341700Work* w;
-                s16              next;
-
-                next         = D_actor_342400_80173A98[work->field_418 - 1];
-                w            = (Actor341700Work*)arg0->work;
-                w->field_426 = 4;
-                w->field_41C = 0x10;
-                w->field_418 = next;
-                w->field_414 = 1;
-            }
-        } else {
-            work->field_438 = 0;
-        }
-    }
-}
-
-/// Death: plays sound 3 unless the enemy's HP is already negative, releases
-/// `Gp_StateF0`'s hold if it points at this enemy, unlinks the enemy node and
-/// its three hit bodies, moves the task to state 5, tells slot-4 task 0 with
-/// message 0x13F4, and hides the model.
-static void func_actor_342400_80168A28(Task* arg0)
-{
-    Actor341700Work* objs;
-    GpEnemy*         enemy;
-    TmdObject*       tmd;
-    Actor341700Work* work;
-    s32              soundId;
-    s32              pan;
-
-    work            = (Actor341700Work*)arg0->work;
-    enemy           = (GpEnemy*)arg0->spawnArg2.pointer;
-    tmd             = arg0->extra.tmd;
-    work->field_438 = 1;
-    if (enemy->hp >= 0) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0003;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
-        Gp_StateF0.field_1F = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    Gp_ReleaseStateF0Add(arg0, 0);
-    enemy->recs = 0;
-    objs        = (Actor341700Work*)arg0->work;
-    Gp_UnlinkObj(&objs->obj_2AC);
-    Gp_UnlinkObj(&objs->obj_2CC);
-    Gp_UnlinkObj(&objs->obj_3AC);
-    enter_state(arg0, 5);
-    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 0, 0);
-    tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-}
-
-/// Sub-state handler: slides the model's root toward `field_70` in x/z,
-/// accelerating with `field_42A`; after 90 frames it also eases y in and marks
-/// `field_438`. Within 800 units it advances `field_422`; if the enemy's HP is
-/// gone instead, it queues the follow-up animation (or clears `field_438` when
-/// state 4 is pending).
-static void func_actor_342400_80168B74(Task* arg0)
-{
-    TmdObject*       obj;
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-    GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           d;
-    SVECTOR          dir;
-    VECTOR           sq;
-    VECTOR*          out;
-    s16              angle;
-    s16              next;
-
-    obj   = arg0->extra.tmd;
-    work  = (Actor341700Work*)arg0->work;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    coord = obj->coords;
-    work->field_412++;
-    work->field_428++;
-    work->field_42A += work->field_428;
-    if ((s16)work->field_412 < 0x5A) {
-        s32 step = work->field_42A >> 6;
-
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->field_70.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    } else {
-        s32 step;
-
-        work->field_438 = 1;
-        step            = work->field_42A >> 5;
-        c               = arg0->extra.tmd->coords;
-        dir.vx          = work->field_70.vx - c->coord.t[0];
-        dir.vy          = 0;
-        dir.vz          = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[1]                    += (work->field_70.vy - coord->coord.t[1]) >> 4;
-    }
-    d.vx = coord->coord.t[0] - work->field_70.vx;
-    d.vy = coord->coord.t[1] - work->field_70.vy;
-    d.vz = coord->coord.t[2] - work->field_70.vz;
-    out  = &sq;
-    gte_ldlvl(&d);
-    gte_sqr0();
-    gte_stlvnl(out);
-    if (SquareRoot0(sq.vx + sq.vy + sq.vz) < 800) {
-        work->field_422++;
-        return;
-    }
-    if (enemy->hp <= 0) {
-        SndEvt_EnqueueType7(0x402C0002, 1);
-        if (work->field_448 != 4) {
-            work->field_438 = 1;
-            if (work->field_418 == 8) {
-                if (work->field_440 == 0) {
-                    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 5;
-                    w->field_414 = 1;
-                } else {
-                    Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 6;
-                    w->field_414 = 1;
-                }
-            } else {
-                Actor341700Work* w;
-
-                next         = D_actor_342400_80173A98[work->field_418 - 1];
-                w            = (Actor341700Work*)arg0->work;
-                w->field_426 = 4;
-                w->field_41C = 0x10;
-                w->field_418 = next;
-                w->field_414 = 1;
-            }
-        } else {
-            work->field_438 = 0;
-        }
-    }
-}
+#include "../../shared/hopping_enemy_pulled_limp.inc.c"
 
 /// Per-frame callback, the five-state counterpart of
 /// `func_actor_342400_801690FC`; unlike it, clears bit 0x80 of `field_C` on
@@ -3235,11 +1302,11 @@ static void func_actor_342400_80168F14(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -3268,66 +1335,24 @@ static void func_actor_342400_801690FC(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            update_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// Queues CD command 0x21 once, guarded by `Gp_StateF0.field_25`: the first parameter
-/// is 2 or 3 in place 1 or 2 of stage 4 areas 0x27/0x28 and 1 everywhere
-/// else.
-static void func_actor_342400_801692E8(void)
-{
-    u8 param1[8];
-    u8 param2[8];
-
-    if (Gp_StateF0.field_25 == 0) {
-        /* Each branch makes its own call; jump2's cross-jumping merges the
-         * identical tails after sched2, which is why the argument setup is
-         * duplicated per branch in the target. */
-        if (gGameSession->location.loc.stage == 4 && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 1) {
-            param1[2] = 0xA;
-            param1[0] = 2;
-            param1[3] = 0;
-            param2[0] = 0x2C;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
-        } else if (gGameSession->location.loc.stage == 4 && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 2) {
-            param1[2] = 0xA;
-            param1[0] = 3;
-            param1[3] = 0;
-            param2[0] = 0x2C;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
-        } else {
-            param1[2] = 0xA;
-            param1[0] = 1;
-            param1[3] = 0;
-            param2[0] = 0x2C;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
-        }
-        Gp_StateF0.field_25 = 1;
-    }
-}
+#include "../../shared/hopping_enemy_sound_bank.inc.c"
 
 static void func_actor_342400_80169408(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        func_actor_342400_8016B84C,
-        func_actor_342400_8016B914,
+        hopperVanish,
+        hopperVanishFree,
     };
 
     states[(s16)work->field_420](arg0);
@@ -3335,106 +1360,21 @@ static void func_actor_342400_80169408(Task* arg0)
 
 /// Once bit 7 of `Gp_StateF0.field_1F` is set, puts the task in state 3 with
 /// the state machine at state 5 and returns 1; otherwise returns 0.
-static s16 func_actor_342400_8016945C(Task* arg0)
+s16 hopperJoinAlert(Task* arg0)
 {
     if ((s8)Gp_StateF0.field_1F & 0x80) {
-        enter_state(arg0, 3);
-        set_state(arg0, 5);
+        hopperEnter_state(arg0, 3);
+        hopperSet_state_s16(arg0, 5);
         return 1;
     }
     return 0;
 }
 
-/// Claims or releases `Gp_StateF0`'s hold for this enemy. With `arg1` set it
-/// claims the hold (bit 7 plus the enemy's slot) unless one is already held;
-/// with `arg1` clear it releases the hold if it is this enemy's.
-static void func_actor_342400_801694A8(Task* arg0, s32 arg1)
-{
-    if ((arg1 << 0x10) != 0) {
-        if (!((s8)Gp_StateF0.field_1F & 0x80)) {
-            Gp_StateF0.field_1F = (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) | 0x80;
-        }
-    } else if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
-        Gp_StateF0.field_1F = 0;
-    }
-}
+#include "../../shared/hopping_enemy_alert_hold.inc.c"
 
-/// While `field_41E` is 1, consumes the pending request in `field_448`:
-/// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at
-/// sub-state 0, anything else is just cleared. Returns 1 when `field_41E` is 1
-/// and 0 otherwise. Each case reloads the work block through its own local;
-/// one shared local lands in `$a0` instead of `$v1`.
-static s32 func_actor_342400_80169518(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+#include "../../shared/hopping_enemy_take_request.inc.c"
 
-    if (work->field_41E == 1) {
-        switch ((s16)(work->field_448 - 1)) {
-            case 0: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 6;
-                w->field_422       = 0;
-                break;
-            }
-            case 1: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 7;
-                w->field_422       = 0;
-                break;
-            }
-            case 2: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 8;
-                w->field_422       = 0;
-                break;
-            }
-            case 3: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 7;
-                w->field_422       = 0;
-                break;
-            }
-            case 4: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 9;
-                w->field_422       = 0;
-                break;
-            }
-        }
-        work->field_448 = 0;
-        return 1;
-    }
-    return 0;
-}
-
-/// Message handler: on message 0x2C00 whose low nibble is 1..5, store the
-/// message halfword in `field_44C`. The five identical case bodies are
-/// cross-jumped into one, but only separate bodies keep the jump table; a
-/// single `case 1 ... 5` becomes a range test.
-void func_actor_342400_801695C0(Task* arg0, s32 arg1, ActorCommand* request)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    if (request->context.key == 0x2C00) {
-        switch (request->command & 0xF) {
-            case 1:
-                work->field_44C = request->command;
-                break;
-            case 2:
-                work->field_44C = request->command;
-                break;
-            case 3:
-                work->field_44C = request->command;
-                break;
-            case 4:
-                work->field_44C = request->command;
-                break;
-            case 5:
-                work->field_44C = request->command;
-                break;
-        }
-    }
-}
+#include "../../shared/hopping_enemy_command_msg.inc.c"
 
 /// Moves the model: writes `pos` into the root part's translation and marks
 /// the coordinate dirty. `part` is accepted but unused.
@@ -3452,14 +1392,14 @@ void func_actor_342400_80169620(Task* task, s16 part, VECTOR3* pos)
 #include "../../shared/hopping_enemy_pin_part.inc.c"
 
 /// Scales `arg1` by the animation speed `field_41C`, in 1/16 units.
-static s32 func_actor_342400_80169728(Task* arg0, s16 arg1)
+s32 hopperScaleBySpeed(Task* arg0, s16 arg1)
 {
     return (s32)((((Actor341700Work*)arg0->work)->field_41C * arg1) << 0xC) >> 0x10;
 }
 
 /// Returns 1 when the hit flags are set - bit 0 of the flag halfword or bits
 /// 0x102 of the word - and 0 otherwise.
-static s16 func_actor_342400_8016974C(Task* arg0)
+s16 hopperAnimEnded(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3491,35 +1431,13 @@ static void func_actor_342400_80169880(Task* arg0)
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_8016AA9C,
-        func_actor_342400_8016AAB8,
+        hopperDespawn,
     };
 
     states[(s16)work->field_420](arg0);
 }
 
-/// Turns the heading `field_7A` by `step` toward the nearer player actor
-/// (the offset in `field_88` / `field_8C`), leaving it alone within 0x100.
-static void func_actor_342400_801698D4(Task* arg0, s32 step)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    SVECTOR          vec;
-    s32              diff;
-    u16              angle;
-    s32              yaw;
-
-    vec.vx = work->field_88;
-    vec.vy = 0;
-    vec.vz = work->field_8C;
-    VectorNormalSS(&vec, &vec);
-    yaw   = ratan2(-vec.vx, -vec.vz);
-    angle = work->field_7A;
-    diff  = ((angle - yaw) << 20) >> 20;
-    if (diff > 0x100) {
-        work->field_7A = angle - step;
-    } else if (diff < -0x100) {
-        work->field_7A = angle + step;
-    }
-}
+#include "../../shared/hopping_enemy_turn_to_player.inc.c"
 
 static void func_actor_342400_80169968(Task* arg0)
 {
@@ -3545,7 +1463,7 @@ static void func_actor_342400_80169990(Task* arg0)
     work->field_422 = 0;
 }
 
-/// Unless `func_actor_342400_80169518` consumes a pending request, runs the
+/// Unless `hopperTakeHitRequest` consumes a pending request, runs the
 /// sub-state handler for `field_422` from a three-entry table.
 static void func_actor_342400_801699A4(Task* arg0)
 {
@@ -3554,7 +1472,7 @@ static void func_actor_342400_801699A4(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161EE0;
-    if ((func_actor_342400_80169518(arg0) << 0x10) == 0) {
+    if ((hopperTakeHitRequest(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -3585,8 +1503,8 @@ static void func_actor_342400_80169B04(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        func_actor_342400_8016AB6C,
-        func_actor_342400_801664C4,
+        hopperRecoilLight,
+        hopperRecoilRecover,
     };
 
     states[(s16)work->field_422](arg0);
@@ -3596,8 +1514,8 @@ static void func_actor_342400_80169B58(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        func_actor_342400_8016AC80,
-        func_actor_342400_8016AD94,
+        hopperRecoilHeavy,
+        hopperRecoilHeavyEnd,
     };
 
     states[(s16)work->field_422](arg0);
@@ -3608,7 +1526,7 @@ static void func_actor_342400_80169BAC(Task* arg0)
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_80169CF8,
-        func_actor_342400_80169D2C,
+        hopperStatusHold,
     };
 
     states[(s16)work->field_422](arg0);
@@ -3623,7 +1541,7 @@ static void func_actor_342400_80169C00(Task* arg0)
     sp   = D_actor_342400_80161ED4;
     sp.funcs[(s16)work->field_422](arg0);
     if (work->field_44F == 1) {
-        func_actor_342400_8016BEF0(arg0);
+        hopperTakeKnockdownRequest(arg0);
     }
 }
 
@@ -3649,172 +1567,21 @@ static void func_actor_342400_80169CF8(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-/// Once the hit flags are set, requests animation 0xB; once the enemy's
-/// flag-2 counter runs out, moves the state machine to state 3.
-static void func_actor_342400_80169D2C(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
+#include "../../shared/hopping_enemy_status_hold.inc.c"
 
-    if ((func_actor_342400_8016974C(arg0) << 0x10) != 0) {
-        work            = (Actor341700Work*)arg0->work;
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = 0xB;
-        work->field_414 = 1;
-    }
-    if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_420 = 3;
-        work2->field_422 = 0;
-    }
-}
+#include "../../shared/hopping_enemy_knockdown_start.inc.c"
 
-static void func_actor_342400_80169DA4(Task* arg0)
-{
-    Actor341700Work* work;
+#include "../../shared/hopping_enemy_knockdown_rise.inc.c"
 
-    work            = (Actor341700Work*)arg0->work;
-    work->field_44F = D_actor_342400_80173A84[work->field_418 - 1];
-    if (work->field_44F == 1) {
-        Actor341700Work* w = (Actor341700Work*)arg0->work;
+#include "../../shared/hopping_enemy_knockdown_end.inc.c"
 
-        w->field_426 = 6;
-        w->field_41C = 0x10;
-        w->field_418 = 6;
-        w->field_414 = 1;
-    } else {
-        Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-        w->field_426 = 6;
-        w->field_41C = 0x10;
-        w->field_418 = 5;
-        w->field_414 = 1;
-    }
-    work->field_422++;
-}
-
-/// Once the hit flags are set, requests animation 7 (when `field_44F` is 1)
-/// or 1, and advances the sub-state.
-static void func_actor_342400_80169E24(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* slow;
-    Actor341700Work* fast;
-
-    work = (Actor341700Work*)arg0->work;
-    if (func_actor_342400_8016974C(arg0) != 0) {
-        if (work->field_44F == 1) {
-            fast            = (Actor341700Work*)arg0->work;
-            fast->field_426 = 0x32;
-            fast->field_41C = 0x10;
-            fast->field_418 = 7;
-            fast->field_414 = 1;
-        } else {
-            slow            = (Actor341700Work*)arg0->work;
-            slow->field_426 = 0x1E;
-            slow->field_41C = 0x10;
-            slow->field_418 = 1;
-            slow->field_414 = 1;
-        }
-        work->field_422 = work->field_422 + 1;
-    }
-}
-
-/// Once the hit flags are set, moves the state machine to state 3 (when
-/// `field_44F` is 1) or 5.
-static void func_actor_342400_80169EC4(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    if (func_actor_342400_8016974C(arg0)) {
-        if (work->field_44F == 1) {
-            Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-            w->field_420 = 3;
-            w->field_422 = 0;
-        } else {
-            Actor341700Work* w = (Actor341700Work*)arg0->work;
-
-            w->field_420 = 5;
-            w->field_422 = 0;
-        }
-    }
-}
-
-static void func_actor_342400_80169F30(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              angle;
-    s16              speed;
-
-    func_actor_342400_801698D4(arg0, 0x10);
-    speed                                 = func_actor_342400_80169728(arg0, -0x10);
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (func_actor_342400_8016974C(arg0)) {
-        Actor341700Work* next = (Actor341700Work*)arg0->work;
-
-        next->field_420 = 4;
-        next->field_422 = 0;
-    }
-}
+#include "../../shared/hopping_enemy_walk_finish.inc.c"
 
 #include "../../shared/hopping_enemy_start_leap.inc.c"
 
-/// Plays sound 4 on the first frame; once the hit flags are set, draws a
-/// 0x5A..0xD9 cooldown into `field_44A` and moves the state machine to
-/// state 3.
-static void func_actor_342400_8016A084(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              soundId;
-    s32              pan;
-    u32              rand;
+#include "../../shared/hopping_enemy_leap_land.inc.c"
 
-    work            = (Actor341700Work*)arg0->work;
-    work->field_438 = 0;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0004;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    if (func_actor_342400_8016974C(arg0) != 0) {
-        rand             = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState      = rand;
-        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_420 = 3;
-        work2->field_422 = 0;
-    }
-}
-
-/// Requests animation 9, clears the frame counter, advances the sub-state
-/// and, while the enemy has HP left, plays sound 2.
-static void func_actor_342400_8016A184(Task* arg0)
-{
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-    s32              soundId;
-    s32              pan;
-
-    work            = (Actor341700Work*)arg0->work;
-    enemy           = (GpEnemy*)arg0->spawnArg2.pointer;
-    work->field_426 = 4;
-    work->field_41C = 0x10;
-    work->field_418 = 9;
-    work->field_414 = 1;
-    work->field_412 = 0;
-    work->field_422++;
-    if (enemy->hp > 0) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0002;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-}
+#include "../../shared/hopping_enemy_alert_cry.inc.c"
 
 /// Advances the sub-state once the frame counter has passed 0x50.
 static void func_actor_342400_8016A240(Task* arg0)
@@ -3830,70 +1597,14 @@ static void func_actor_342400_8016A240(Task* arg0)
     }
 }
 
-/// Once the hit flags are set, releases this enemy's `Gp_StateF0` hold,
-/// requests animation 0xF and advances the sub-state.
-static void func_actor_342400_8016A280(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
+#include "../../shared/hopping_enemy_alert_release.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    if ((func_actor_342400_8016974C(arg0) << 0x10) != 0) {
-        func_actor_342400_801694A8(arg0, 0);
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xF;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
-}
+#include "../../shared/hopping_enemy_alert_crouch.inc.c"
 
-/// Once the hit flags are set, marks the enemy busy (`field_438`), requests
-/// animation 4 and advances the sub-state.
-static void func_actor_342400_8016A2FC(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((func_actor_342400_8016974C(arg0) << 0x10) != 0) {
-        work->field_438  = 1;
-        work->field_412  = 0;
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 4;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
-}
-
-static void func_actor_342400_8016A370(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              angle;
-    s16              speed;
-
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        speed                                 = func_actor_342400_80169728(arg0, 0x1E);
-        angle                                 = work->field_7A + 0x400;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    if (func_actor_342400_8016974C(arg0)) {
-        Actor341700Work* next;
-
-        work->field_438 = 0;
-        next            = (Actor341700Work*)arg0->work;
-        next->field_420 = 3;
-        next->field_422 = 0;
-    }
-}
+#include "../../shared/hopping_enemy_alert_sidestep.inc.c"
 
 /// Runs the sub-state handler for `field_422` from a four-entry table.
-static void func_actor_342400_8016A494(Task* arg0)
+void hopperDangleState(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable4   sp;
@@ -3918,157 +1629,17 @@ static void func_actor_342400_8016A4FC(Task* arg0)
     work->field_422  = work->field_422 + 1;
 }
 
-/// Rebuilds the root rotation: pitches about X by a sine sway driven by
-/// `field_442`, turns by the heading `field_7A`, and copies the 3x3 into the
-/// root coordinate. When `field_41E` is 1, latches that pitch into
-/// `field_434`, clears the flag and three motion halfwords, and advances the
-/// sub-state.
-static void func_actor_342400_8016A538(Task* arg0)
-{
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    OverlayMat       rot;
-    OverlayMat*      src;
-    MATRIX*          dst;
-    s16              pitch;
+#include "../../shared/hopping_enemy_dangle_sway.inc.c"
 
-    work               = (Actor341700Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    pitch              = ((rsin(work->field_442 << 6) * 0x10) >> 7) - 0x400;
-    RotMatrixX(pitch, &src->mat);
-    RotMatrixY(work->field_7A, &src->mat);
-    dst          = &coord->coord;
-    dst->m[0][0] = src->mat.m[0][0];
-    dst->m[0][1] = src->mat.m[0][1];
-    dst->m[0][2] = src->mat.m[0][2];
-    dst->m[1][0] = src->mat.m[1][0];
-    dst->m[1][1] = src->mat.m[1][1];
-    dst->m[1][2] = src->mat.m[1][2];
-    dst->m[2][0] = src->mat.m[2][0];
-    dst->m[2][1] = src->mat.m[2][1];
-    dst->m[2][2] = src->mat.m[2][2];
-    if (work->field_41E == 1) {
-        work->field_41E = 0;
-        work->field_432 = 0;
-        work->field_428 = 0;
-        work->field_42A = 0;
-        work->field_434 = pitch;
-        work->field_422++;
-    }
-}
+#include "../../shared/hopping_enemy_death_cry.inc.c"
 
-/// Death cry: plays sound 2, releases this enemy's `Gp_StateF0` hold and
-/// unlinks the enemy node. A pending request 4 hides the model and jumps to
-/// state 7; otherwise the state advances.
-static void func_actor_342400_8016A664(Task* arg0)
-{
-    GpEnemy*         enemy;
-    Actor341700Work* work;
-    TmdObject*       model;
-    Actor341700Work* work2;
+#include "../../shared/hopping_enemy_death_settle.inc.c"
 
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    model = arg0->extra.tmd;
-    work  = (Actor341700Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> 0xC) << 8) | 0x402C0002, 0xF);
-    func_actor_342400_801694A8(arg0, 0);
-    Gp_UnlinkNode(&enemy->node);
-    if (work->field_448 == 4) {
-        work->field_412  = 0;
-        model->flags     = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_420 = 7;
-        work2->field_422 = 0;
-        return;
-    }
-    work->field_420 = work->field_420 + 1;
-}
-
-static void func_actor_342400_8016A724(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* work3;
-    Actor341700Work* work4;
-    s16              anim;
-    s16              next;
-
-    work = (Actor341700Work*)arg0->work;
-    Gp_ReleaseStateF0Add(arg0, 0);
-    anim = work->field_418;
-    if (anim == 8) {
-        if (work->field_440 == 0) {
-            work2            = (Actor341700Work*)arg0->work;
-            work2->field_426 = 4;
-            work2->field_41C = 0x10;
-            work2->field_418 = 5;
-            work2->field_414 = 1;
-        } else {
-            work3            = (Actor341700Work*)arg0->work;
-            work3->field_426 = 4;
-            work3->field_41C = 0x10;
-            work3->field_418 = 6;
-            work3->field_414 = 1;
-        }
-    } else {
-        next             = D_actor_342400_80173A98[anim - 1];
-        work4            = (Actor341700Work*)arg0->work;
-        work4->field_426 = 4;
-        work4->field_41C = 0x10;
-        work4->field_418 = next;
-        work4->field_414 = 1;
-    }
-    func_actor_342400_80165CC0(arg0);
-    work->field_420++;
-}
-
-/// Ticks the animation and, once the hit flags are set, advances the state.
-static void func_actor_342400_8016A804(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    func_actor_342400_80165CC0(arg0);
-    work2 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_420 = work->field_420 + 1;
-    }
-}
+#include "../../shared/hopping_enemy_death_wait_anim.inc.c"
 
 #include "../../shared/hopping_enemy_begin_death.inc.c"
 
-/// After 0x18 frames sets model flag 2, clears the frame counter, sets
-/// `field_451` and advances the state.
-static void func_actor_342400_8016A950(Task* arg0)
-{
-    u16              ticks;
-    Actor341700Work* work;
-    TmdObject*       model;
-
-    work            = (Actor341700Work*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 0x18) {
-        model->flags    = model->flags | TMD_OBJECT_SEMI_TRANS;
-        work->field_412 = 0U;
-        work->field_451 = 1;
-        work->field_420 = work->field_420 + 1;
-    }
-}
+#include "../../shared/hopping_enemy_death_translucent.inc.c"
 
 static void func_actor_342400_8016A9AC(Task* arg0)
 {
@@ -4105,106 +1676,13 @@ static void func_actor_342400_8016AA9C(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-/// After 0x24 frames destroys the enemy, first telling slot-4 task 0 with
-/// message 0x13F4 when in place 1 of stage 4 areas 0x27/0x28.
-static void func_actor_342400_8016AAB8(Task* arg0)
-{
-    Actor341700Work* work;
-    u16              ticks;
+#include "../../shared/hopping_enemy_despawn.inc.c"
 
-    work            = (Actor341700Work*)arg0->work;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 0x24) {
-        if ((gGameSession->location.loc.stage == 4) && ((u32)(gGameSession->location.loc.area - 0x27) < 2U) && (gGameSession->location.loc.variant == 1)) {
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 1, 0);
-        }
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
-    }
-}
+#include "../../shared/hopping_enemy_recoil_light.inc.c"
 
-static void func_actor_342400_8016AB6C(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              soundId;
-    s32              pan;
+#include "../../shared/hopping_enemy_recoil_heavy.inc.c"
 
-    work            = (Actor341700Work*)arg0->work;
-    work->field_44F = D_actor_342400_80173A84[work->field_418 - 1];
-    if (work->field_44F == 1) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xB;
-        work2->field_414 = 1;
-        SndEvt_EnqueueType7(0x402C0002, 1);
-    } else {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0x11;
-        work2->field_414 = 1;
-    }
-    soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0003;
-    pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    work->field_422++;
-}
-
-static void func_actor_342400_8016AC80(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              soundId;
-    s32              pan;
-
-    work            = (Actor341700Work*)arg0->work;
-    work->field_44F = D_actor_342400_80173A84[work->field_418 - 1];
-    if (work->field_44F == 1) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 2;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xC;
-        work2->field_414 = 1;
-        SndEvt_EnqueueType7(0x402C0002, 1);
-    } else {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0x11;
-        work2->field_414 = 1;
-    }
-    soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0003;
-    pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    work->field_422++;
-}
-
-static void func_actor_342400_8016AD94(Task* arg0)
-{
-    Actor341700Work* work;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        if (work->field_44F == 1) {
-            work            = (Actor341700Work*)arg0->work;
-            work->field_420 = 3;
-            work->field_422 = 0;
-        } else {
-            func_actor_342400_801694A8(arg0, 1);
-            work            = (Actor341700Work*)arg0->work;
-            work->field_420 = 5;
-            work->field_422 = 0;
-        }
-    }
-}
+#include "../../shared/hopping_enemy_recoil_heavy_end.inc.c"
 
 static void func_actor_342400_8016AE24(Task* arg0)
 {
@@ -4213,7 +1691,7 @@ static void func_actor_342400_8016AE24(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161FB4;
-    if ((func_actor_342400_8016945C(arg0) << 0x10) == 0) {
+    if ((hopperJoinAlert(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -4225,23 +1703,12 @@ static void func_actor_342400_8016AEAC(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161FC0;
-    if ((func_actor_342400_8016945C(arg0) << 0x10) == 0) {
+    if ((hopperJoinAlert(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
 
-static void func_actor_342400_8016AF34(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        func_actor_342400_8016B33C,
-        func_actor_342400_8016B370,
-    };
-
-    if (func_actor_342400_8016945C(arg0) == 0) {
-        states[(s16)work->field_422](arg0);
-    }
-}
+#include "../../shared/hopping_enemy_lurk_rise_state.inc.c"
 
 static void func_actor_342400_8016AFA8(Task* arg0)
 {
@@ -4250,7 +1717,7 @@ static void func_actor_342400_8016AFA8(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161FCC;
-    if ((func_actor_342400_8016945C(arg0) << 0x10) != 0) {
+    if ((hopperJoinAlert(arg0) << 0x10) != 0) {
         work->field_438 = 0;
         return;
     }
@@ -4270,116 +1737,16 @@ static void func_actor_342400_8016B038(Task* arg0)
 
 #include "../../shared/hopping_enemy_start_hold.inc.c"
 
-/// Once the hold in `field_446` runs out, picks state 4 or 1 at random.
-/// Before that, a player actor within 0xDAC moves the state machine to
-/// state 3 and one within 0x1388 advances the sub-state.
-static void func_actor_342400_8016B104(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              dist;
+#include "../../shared/hopping_enemy_lurk_wait.inc.c"
 
-    if (work->field_446 < (s16)work->field_412++) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
-            Actor341700Work* w = (Actor341700Work*)arg0->work;
+#include "../../shared/hopping_enemy_lurk_idle_end.inc.c"
 
-            w->field_420 = 4;
-            w->field_422 = 0;
-        } else {
-            Actor341700Work* w = (Actor341700Work*)arg0->work;
+#include "../../shared/hopping_enemy_lurk_crouch.inc.c"
 
-            w->field_420 = 1;
-            w->field_422 = 0;
-        }
-        return;
-    }
-    dist = work->field_43A;
-    if (dist < 0xDAC) {
-        Actor341700Work* next = (Actor341700Work*)arg0->work;
-
-        next->field_420 = 3;
-        next->field_422 = 0;
-        return;
-    }
-    if (dist < 0x1388) {
-        work->field_422++;
-    }
-}
-
-/// Once the hit flags are set, moves the state machine to state 1.
-static void func_actor_342400_8016B1C8(Task* arg0)
-{
-    Actor341700Work* work;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work            = (Actor341700Work*)arg0->work;
-        work->field_420 = 1;
-        work->field_422 = 0;
-    }
-}
-
-/// Once the hit flags are set, requests animation 0xD and advances the
-/// sub-state.
-static void func_actor_342400_8016B21C(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xD;
-        work2->field_414 = 1;
-        work->field_422++;
-    }
-}
-
-/// Once the hit flags are set, requests animation 0xE, clears the frame and
-/// turn counters, draws a 0xB0..0xEF frame hold into `field_446` and
-/// advances the sub-state.
-static void func_actor_342400_8016B294(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xE;
-        work2->field_414 = 1;
-        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-        work->field_412  = 0;
-        work->field_42C  = 0;
-        work->field_446  = ((Gp_LcgState >> 16) & 0x3F) + 0xB0;
-        work->field_422++;
-    }
-}
+#include "../../shared/hopping_enemy_lurk_raise.inc.c"
 
 /// Requests animation 0xF and advances the sub-state.
-static void func_actor_342400_8016B33C(Task* arg0)
+void hopperLurkRiseStart(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -4390,292 +1757,32 @@ static void func_actor_342400_8016B33C(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-/// Once the hit flags are set, returns the state machine to state 0.
-static void func_actor_342400_8016B370(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_420 = 0;
-        work2->field_422 = 0;
-    }
-}
+#include "../../shared/hopping_enemy_lurk_rise_end.inc.c"
 
 #include "../../shared/hopping_enemy_start_alert.inc.c"
 
-/// Once the hit flags are set, marks the enemy busy (`field_438`), requests
-/// animation 4 and advances the sub-state.
-static void func_actor_342400_8016B414(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
+#include "../../shared/hopping_enemy_lurk_brace.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_412  = 0;
-        work->field_438  = 1;
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 4;
-        work2->field_414 = 1;
-        work->field_422++;
-    }
-}
+#include "../../shared/hopping_enemy_lurk_shift_start.inc.c"
 
-/// Unless `func_actor_342400_8016945C` takes over, requests animation 0xF
-/// and advances the sub-state.
-static void func_actor_342400_8016B48C(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
+#include "../../shared/hopping_enemy_lurk_shift_brace.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    if (func_actor_342400_8016945C(arg0) == 0) {
-        work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xF;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
-}
+#include "../../shared/hopping_enemy_pull_start.inc.c"
 
-/// Unless `func_actor_342400_8016945C` takes over, waits for the hit flags,
-/// then marks the enemy busy, requests animation 4 and advances the
-/// sub-state.
-static void func_actor_342400_8016B500(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* work3;
-    s32              cond;
+#include "../../shared/hopping_enemy_pull_react.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    if ((func_actor_342400_8016945C(arg0) << 0x10) == 0) {
-        work2 = (Actor341700Work*)arg0->work;
-        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            work->field_412  = 0;
-            work->field_438  = 1;
-            work3            = (Actor341700Work*)arg0->work;
-            work3->field_426 = 4;
-            work3->field_41C = 0x10;
-            work3->field_418 = 4;
-            work3->field_414 = 1;
-            work->field_422  = work->field_422 + 1;
-        }
-    }
-}
+#include "../../shared/hopping_enemy_vanish.inc.c"
 
-static void func_actor_342400_8016B5B0(Task* arg0)
-{
-    Actor341700Work* work;
-    GfxCoord*        coords;
-    GfxCoord*        current;
-    SVECTOR*         pos;
-    SVECTOR          local;
-    VECTOR           result;
-    s32              flag;
+#include "../../shared/hopping_enemy_vanish_free.inc.c"
 
-    work   = (Actor341700Work*)arg0->work;
-    coords = arg0->extra.tmd->coords;
-    SndEvt_EnqueueType7(0x402C0002, 1);
-    work->field_90  = coords->coord.t[0];
-    work->field_92  = coords->coord.t[1];
-    work->field_94  = coords->coord.t[2];
-    work->field_412 = 0;
-    work->field_428 = 0;
-    work->field_42A = 0;
-    work->field_422++;
-    pos     = &work->field_70;
-    pos->vx = pos->vy = pos->vz = 0;
-    current                     = &Gp_LookupSlot4(0)->extra.tmd->coords[3];
-    local.vx                    = pos->vx;
-    local.vy                    = pos->vy;
-    local.vz                    = pos->vz;
-    while (1) {
-        if (current->parent == NULL) {
-            return;
-        }
-        if (current == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            return;
-        }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
-        gte_ldv0(&local);
-        gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        current  = current->parent;
-    }
-}
+#include "../../shared/hopping_enemy_death_cry_unlink.inc.c"
 
-static void func_actor_342400_8016B744(Task* arg0)
-{
-    Actor341700Work* work;
-    s32              soundId;
-    s32              pan;
+#include "../../shared/hopping_enemy_death_settle_quiet.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    if (D_actor_342400_80173A84[work->field_418 - 1] == 0) {
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = 9;
-        work->field_414 = 1;
-        soundId         = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0002;
-        pan             = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        work->field_422 = 4;
-        return;
-    }
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 7;
-    work->field_414 = 1;
-    work->field_44F = (u8)work->field_41C * 4;
-    work->field_422++;
-}
-
-/// Plays sound 2, releases `Gp_StateF0`'s hold if it is this enemy's,
-/// unlinks the enemy node, detaches its records and unlinks its three hit
-/// bodies, hides the model and advances the state.
-static void func_actor_342400_8016B84C(Task* arg0)
-{
-    Actor341700Work* work2;
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-    TmdObject*       model;
-
-    work            = (Actor341700Work*)arg0->work;
-    enemy           = (GpEnemy*)arg0->spawnArg2.pointer;
-    model           = arg0->extra.tmd;
-    work->field_412 = 0;
-    SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
-        Gp_StateF0.field_1F = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    enemy->recs = 0;
-    work2       = (Actor341700Work*)arg0->work;
-    Gp_UnlinkObj(&work2->obj_2AC);
-    Gp_UnlinkObj(&work2->obj_2CC);
-    Gp_UnlinkObj(&work2->obj_3AC);
-    model->flags    = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_420 = work->field_420 + 1;
-}
-
-/// On frame 3 frees the model's buffers and sets model flag 4; after 0x24
-/// frames destroys the enemy.
-static void func_actor_342400_8016B914(Task* arg0)
-{
-    Actor341700Work* work;
-    TmdObject*       model;
-    u16              ticks;
-
-    work            = (Actor341700Work*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks == 3) {
-        Tmd_FreeBuffers(model);
-        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    if ((s16)work->field_412 >= 0x24) {
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
-    }
-}
-
-static void func_actor_342400_8016B9A4(Task* arg0)
-{
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    work  = (Actor341700Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> 0xC) << 8) | 0x402C0002, 0xF);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
-        Gp_StateF0.field_1F = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    work->field_420 = work->field_420 + 1;
-}
-
-static void func_actor_342400_8016BA3C(Task* arg0)
-{
-    Actor341700Work* work;
-    s16              anim;
-    s16              next;
-
-    work = (Actor341700Work*)arg0->work;
-    anim = work->field_418;
-    if (anim == 8) {
-        if (work->field_440 == 0) {
-            work->field_426 = 4;
-            work->field_41C = 0x10;
-            work->field_418 = 5;
-            work->field_414 = 1;
-        } else {
-            work->field_426 = 4;
-            work->field_41C = 0x10;
-            work->field_418 = 6;
-            work->field_414 = 1;
-        }
-    } else {
-        next            = D_actor_342400_80173A98[anim - 1];
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = next;
-        work->field_414 = 1;
-    }
-    func_actor_342400_80165CC0(arg0);
-    work->field_420++;
-}
-
-/// Ticks the animation and, once the hit flags are set, advances the state.
-static void func_actor_342400_8016BAF4(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
-
-    work = (Actor341700Work*)arg0->work;
-    func_actor_342400_80165CC0(arg0);
-    work2 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_420 = work->field_420 + 1;
-    }
-}
+/// A further copy, under this file's own name.
+#define hopperDeathWaitAnim func_actor_342400_8016BAF4
+#include "../../shared/hopping_enemy_death_wait_anim.inc.c"
+#undef hopperDeathWaitAnim
 
 #include "../../shared/hopping_enemy_drop_bodies.inc.c"
 
@@ -4684,81 +1791,19 @@ static void func_actor_342400_8016BBD0(Task* arg0)
 {
 }
 
-static void func_actor_342400_8016BBD8(Task* arg0)
-{
-    Actor341700Work* work;
-    GpEnemy*         enemy;
-
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    work  = (Actor341700Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> 0xC) << 8) | 0x402C0002, 0xF);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
-        Gp_StateF0.field_1F = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    work->field_420 = work->field_420 + 1;
-}
+/// A further copy, under this file's own name.
+#define hopperDeathCryUnlink func_actor_342400_8016BBD8
+#include "../../shared/hopping_enemy_death_cry_unlink.inc.c"
+#undef hopperDeathCryUnlink
 
 #include "../../shared/hopping_enemy_begin_shrink.inc.c"
 
-/// After 0x18 frames sets model flag 2, clears the frame counter, sets
-/// `field_451` and advances the state.
-static void func_actor_342400_8016BD3C(Task* arg0)
-{
-    u16              ticks;
-    Actor341700Work* work;
-    TmdObject*       model;
+/// A further copy, under this file's own name.
+#define hopperDeathTurnTranslucent func_actor_342400_8016BD3C
+#include "../../shared/hopping_enemy_death_translucent.inc.c"
+#undef hopperDeathTurnTranslucent
 
-    work            = (Actor341700Work*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 0x18) {
-        model->flags    = model->flags | TMD_OBJECT_SEMI_TRANS;
-        work->field_412 = 0U;
-        work->field_451 = 1;
-        work->field_420 = work->field_420 + 1;
-    }
-}
-
-/// Death shrink without the effect of `func_actor_342400_80166180`:
-/// restores the saved root matrix, scales it on Y by `field_430` (0x40
-/// smaller each frame), sets light mode 2 on frame 16, and after frame 32
-/// hides the model, clears the frame counter and advances the state.
-static void func_actor_342400_8016BD98(Task* arg0)
-{
-    Actor341700Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-
-    work             = (Actor341700Work*)arg0->work;
-    ident            = &m.ident;
-    obj              = arg0->extra.tmd;
-    coord            = obj->coords;
-    work->field_430 -= 0x40;
-    scale.vx         = 0x1000;
-    scale.vy         = (s16)work->field_430;
-    scale.vz         = 0x1000;
-    coord->coord     = work->savedRootMtx;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
-    ScaleMatrix(&m.mat, &scale);
-    MulMatrix(&coord->coord, &m.mat);
-    if ((s16)++work->field_412 == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
-    }
-    if ((s16)work->field_412 > 0x20) {
-        obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_412 = 0;
-        work->field_420++;
-    }
-}
+#include "../../shared/hopping_enemy_shrink.inc.c"
 
 static void func_actor_342400_8016BED8(Task* arg0)
 {
@@ -4770,27 +1815,4 @@ static void func_actor_342400_8016BED8(Task* arg0)
     work->field_422 = 0;
 }
 
-/// While `field_41E` is 1, consumes the pending request in `field_448`:
-/// request 3 moves the state machine to state 8 and request 5 to state 9,
-/// anything else is just cleared. Returns 1 when `field_41E` is 1 and 0
-/// otherwise.
-static s32 func_actor_342400_8016BEF0(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    if (work->field_41E == 1) {
-        switch (work->field_448) {
-            case 3:
-                work->field_420 = 8;
-                work->field_422 = 0;
-                break;
-            case 5:
-                work->field_420 = 9;
-                work->field_422 = 0;
-                break;
-        }
-        work->field_448 = 0;
-        return 1;
-    }
-    return 0;
-}
+#include "../../shared/hopping_enemy_take_knockdown_request.inc.c"
