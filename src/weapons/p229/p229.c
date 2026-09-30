@@ -72,7 +72,7 @@ void func_p229_8011D1DC(Task* task)
     base  = &Gp_RoomCoords[0];
     slot  = &base->light;
 
-    if (Gp_State1C->eventState >= 2) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
 

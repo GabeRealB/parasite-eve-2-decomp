@@ -64,8 +64,8 @@ static inline void RoomFx_MoteTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {

@@ -1634,7 +1634,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
     TmdObject* obj;
     GpEffWork* work;
     GfxCoord*  coord;
-    s16        eventState;
+    s16        effectControl;
 
     obj   = task->extra.tmd;
     work  = task->spawnArg2.pointer;
@@ -1644,9 +1644,9 @@ void func_shelter_b6_nursery_80181314(Task* task)
         return;
     }
     {
-        eventState = Gp_State1C->eventState;
-        if (eventState >= 2) {
-            if (eventState >= 4) {
+        effectControl = Gp_State1C->effectControl;
+        if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+            if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 Gp_ReleaseState1CMem(work, task);
             }
         } else {
@@ -1992,13 +1992,13 @@ void func_shelter_b6_nursery_80182730(Task* task)
     SVECTOR    step;
     GpEffWork* work;
     GfxCoord*  coord;
-    s16        eventState;
+    s16        effectControl;
 
-    work       = task->spawnArg2.pointer;
-    eventState = Gp_State1C->eventState;
-    coord      = task->extra.coordBody->coord;
-    if (eventState >= 2) {
-        if (eventState >= 4) {
+    work          = task->spawnArg2.pointer;
+    effectControl = Gp_State1C->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -2114,8 +2114,8 @@ void func_shelter_b6_nursery_80182D28(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -2296,7 +2296,7 @@ void func_shelter_b6_nursery_8018378C(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -2494,8 +2494,8 @@ void func_shelter_b6_nursery_80184074(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

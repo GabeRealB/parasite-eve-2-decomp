@@ -127,7 +127,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
+    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
@@ -384,7 +384,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
+    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:

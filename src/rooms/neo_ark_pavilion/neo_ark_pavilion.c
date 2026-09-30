@@ -1967,9 +1967,9 @@ void func_neo_ark_pavilion_8017EC4C(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_neo_ark_pavilion_8017ED98(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -2091,13 +2091,13 @@ void func_neo_ark_pavilion_8017F0CC(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
             func_neo_ark_pavilion_8017F588(coord, (u16)work->index, work->scale, work->angle);
         } else {
             func_neo_ark_pavilion_8017F974(coord, (u16)work->index, work->scale);
         }
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -2348,8 +2348,8 @@ void func_neo_ark_pavilion_8017FCB0(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -2534,7 +2534,7 @@ void func_neo_ark_pavilion_80180714(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -2735,8 +2735,8 @@ void func_neo_ark_pavilion_80180FFC(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -2938,8 +2938,8 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -3054,7 +3054,7 @@ void func_neo_ark_pavilion_8018219C(Task* task)
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -3089,7 +3089,7 @@ void func_neo_ark_pavilion_8018219C(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->eventState >= 4) {
+    } else if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
     }
 }
@@ -3282,10 +3282,10 @@ void func_neo_ark_pavilion_80182DFC(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;

@@ -3373,7 +3373,7 @@ void func_mine_mesa_8017ED08(Task* arg0)
         D_80115758                 = 0x600E9;
         D_8011572C                 = 0x600EB;
         D_80115750                 = 0x600EC;
-        Gp_State1C->roomEffectMode = 2;
+        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                = 1;
     }
 
@@ -3495,7 +3495,7 @@ static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// growing discs and a closing ring each frame, then whites the screen out;
 /// state 2 draws a fading glow until it is dim enough, and the task then hands
 /// its `GpEffWork` block back. It releases the block early while
-/// `Gp_State1C->eventState` is 4 or more, and draws nothing while it is
+/// `Gp_State1C->effectControl` is 4 or more, and draws nothing while it is
 /// non-zero.
 void func_mine_mesa_8017F230(Task* task)
 {
@@ -3505,8 +3505,8 @@ void func_mine_mesa_8017F230(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -3675,7 +3675,7 @@ static void func_mine_mesa_8017F900(GfxCoord* arg0, s16 arg1, u8* rgb)
 /// and seeds them all from the two origins; state 1 moves one coordinate of
 /// each trail per frame, cycling through the eight, and draws the pair with
 /// `func_mine_mesa_80180184`. The task releases its `GpEffWork` block once
-/// `age` reaches `spawnArg1`, and idles while `Gp_State1C->eventState` is 2 or
+/// `age` reaches `spawnArg1`, and idles while `Gp_State1C->effectControl` is 2 or
 /// more.
 void func_mine_mesa_8017FC94(Task* task)
 {
@@ -3691,7 +3691,7 @@ void func_mine_mesa_8017FC94(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -3885,8 +3885,8 @@ void func_mine_mesa_8018057C(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

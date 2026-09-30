@@ -2051,7 +2051,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);
         func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x600);
         rgb[0] = work->scale >> 1;

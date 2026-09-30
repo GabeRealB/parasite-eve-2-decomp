@@ -1083,7 +1083,7 @@ static void func_actor_800200_801622B0(Task* arg0)
     actor->field_88[2].motionDirection.vy = sc->vec.vy;
     actor->field_88[2].motionDirection.vz = sc->vec.vz;
     if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, Gp_State1C->groundShade);
+        Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, Gp_State1C->groundShadowShade);
     }
     SCRATCH_POP_BYTES(0x18);
 }

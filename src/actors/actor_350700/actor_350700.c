@@ -609,7 +609,7 @@ static void func_actor_350700_80161E88(Task* arg0)
     }
     if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShadowShade);
         }
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
@@ -1183,7 +1183,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
     }
     if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {

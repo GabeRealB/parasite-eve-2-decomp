@@ -81,7 +81,7 @@ void func_mp5a5_8011D1E0(Task* task)
     base  = &Gp_RoomCoords[0];
     slot  = &base->light;
 
-    if (Gp_State1C->eventState >= 2) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
 

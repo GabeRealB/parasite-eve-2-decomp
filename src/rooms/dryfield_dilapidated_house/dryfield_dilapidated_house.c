@@ -3558,7 +3558,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
 /// frames every frame, writes them into slot `field_22 & 7`, re-runs the whole
 /// ring so the older slots follow their parents, and hands the ribbon to
 /// `func_dryfield_dilapidated_house_801823B8`. The task frees itself once
-/// `age` reaches spawn arg 1. It idles whole while `Gp_State1C->eventState`
+/// `age` reaches spawn arg 1. It idles whole while `Gp_State1C->effectControl`
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
@@ -3572,7 +3572,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -3751,9 +3751,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_State1C->eventState != 0) {
+            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->field_22 = tick;
-                if (Gp_State1C->eventState >= 4) {
+                if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 return;
@@ -3794,9 +3794,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             task->state = 1;
             return;
         case 1:
-            if (Gp_State1C->eventState != 0) {
+            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->field_22 = tick;
-                if (Gp_State1C->eventState >= 4) {
+                if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 return;
@@ -4131,9 +4131,9 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
     s32         angle;
 
     mem  = arg0->spawnArg2.pointer;
-    flag = Gp_State1C->eventState;
-    if (flag != 0) {
-        if (flag >= 4) {
+    flag = Gp_State1C->effectControl;
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
@@ -4174,10 +4174,10 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     s32         angle;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag >= 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;

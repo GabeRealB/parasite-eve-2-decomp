@@ -847,8 +847,8 @@ void func_shelter_b1_south_maintenance_walkway_8017E760(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1029,7 +1029,7 @@ void func_shelter_b1_south_maintenance_walkway_8017F1C4(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1227,8 +1227,8 @@ void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -1427,8 +1427,8 @@ void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -1544,7 +1544,7 @@ void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1579,7 +1579,7 @@ void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->eventState >= 4) {
+    } else if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
     }
 }
@@ -1770,10 +1770,10 @@ void func_shelter_b1_south_maintenance_walkway_801818AC(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;

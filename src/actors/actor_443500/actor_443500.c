@@ -2622,7 +2622,7 @@ static void func_actor_443500_801321F0(Task* task)
     }
     if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
         if (gGameSession->viewReady != 0) {
             Gp_UpdateCoord(&task->extra.tmd->coords[1]);

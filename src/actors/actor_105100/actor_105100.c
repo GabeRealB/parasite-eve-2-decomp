@@ -844,7 +844,7 @@ static void        func_actor_105100_80135CEC(GfxCoord* arg0, s32 arg1);
 
 /// Projects `coord` onto two `POLY_FT4` billboards, lights `Gp_RoomCoords[2]`
 /// as a point light at that position, and traces the ground for the ground-quad
-/// helper when `Gp_State1C->groundTrace` is set.
+/// helper when `Gp_State1C->groundTraceEnabled` is set.
 static void func_actor_105100_80131EBC(GfxCoord* coord, s16 size)
 {
     GfxCoord       ground;
@@ -951,7 +951,7 @@ static void func_actor_105100_80131EBC(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        if (Gp_State1C->groundTrace != 0) {
+        if (Gp_State1C->groundTraceEnabled != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_actor_105100_80132414(&ground, (s32)(s16)(outerSize * 2));
             }
@@ -2705,7 +2705,7 @@ static void func_actor_105100_80135CEC(GfxCoord* arg0, s32 arg1)
     SVECTOR sp18;
     s32     ang;
 
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

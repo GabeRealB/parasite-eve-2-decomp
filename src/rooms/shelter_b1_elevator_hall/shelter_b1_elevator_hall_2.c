@@ -738,8 +738,8 @@ void func_shelter_b1_elevator_hall_8017E6F4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1000,10 +1000,10 @@ void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
     s32         shift;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;
@@ -1087,10 +1087,10 @@ void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;
@@ -1463,10 +1463,10 @@ void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
     s16        ang;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;
@@ -1500,8 +1500,8 @@ void func_shelter_b1_elevator_hall_80180D18(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
     } else {
@@ -1679,7 +1679,7 @@ void func_shelter_b1_elevator_hall_8018177C(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1873,8 +1873,8 @@ void func_shelter_b1_elevator_hall_80182064(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

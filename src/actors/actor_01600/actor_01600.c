@@ -3356,7 +3356,7 @@ static void Actor01600_Fn03EEC(Task* arg0)
         return;
     }
     if (func_800EA1A8(MATRIX_TRANS(&coord[1].workm), &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x1C0, Gp_State1C->groundShade);
+        Gp_DrawEffGroundQuad(&pos, 0x1C0, Gp_State1C->groundShadowShade);
     }
 }
 

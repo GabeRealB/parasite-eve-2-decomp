@@ -1072,7 +1072,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
 
 /// Re-spawns the observatory's ambient effects for the current camera view,
 /// one per entry whose view mask contains the active view. Skipped entirely
-/// once `Gp_State1C->eventState` has reached 4, i.e. once the room has faded out.
+/// once `Gp_State1C->effectControl` reaches the cancellation threshold of 4.
 void func_acropolis_observatory_8017E6F8(Task* task)
 {
     GfxCoord* coord;
@@ -1083,7 +1083,7 @@ void func_acropolis_observatory_8017E6F8(Task* task)
 
     coord = task->extra.coordBody->coord;
     mask  = 1 << Gp_GetViewIndex();
-    if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         i     = 0;
         vec   = D_acropolis_observatory_8017FE78;
         flags = D_acropolis_observatory_8017FEB8;

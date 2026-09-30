@@ -1431,9 +1431,9 @@ static void func_actor_206100_8014A70C(GfxCoord* coord, u16 arg1, u16 arg2, u32 
     u16     variant;
     u16     param;
 
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, 0x400, 0);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     }

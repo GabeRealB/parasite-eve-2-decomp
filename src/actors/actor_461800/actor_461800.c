@@ -1235,7 +1235,7 @@ static void func_actor_461800_80132AD8(Task* task)
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShadowShade);
         SCRATCH_POP_BYTES(0x18);
     }
 }
@@ -1770,7 +1770,7 @@ static void func_actor_461800_80133B98(Task* task)
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShadowShade);
         SCRATCH_POP_BYTES(0x18);
     }
 }

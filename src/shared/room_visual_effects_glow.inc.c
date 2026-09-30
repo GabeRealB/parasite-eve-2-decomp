@@ -141,8 +141,8 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -258,7 +258,7 @@ static inline void RoomFx_FlyingSparkTask(Task* task)
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -293,7 +293,7 @@ static inline void RoomFx_FlyingSparkTask(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->eventState >= 4) {
+    } else if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
     }
 }

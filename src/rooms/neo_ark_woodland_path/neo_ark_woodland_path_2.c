@@ -337,8 +337,8 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             D_neo_ark_woodland_path_80181684[i].vz = part->workm.t[2];
         }
     }
-    Gp_State1C->roomEffectMode = (root->coord.t[1] < 0x11) * 2;
-    if (Gp_State1C->eventState == 0 && root->coord.t[1] >= 0x12C) {
+    Gp_State1C->roomEffectMode = (root->coord.t[1] < 0x11) * ROOM_EFFECT_VIEW_ENABLED;
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING && root->coord.t[1] >= 0x12C) {
         for (i = 0; i < 2; i++) {
             part               = &owner->extra.tmd->coords[i * 3 + 15];
             obj->chance        = ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vx, part->workm.t[0]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vy, part->workm.t[1]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vz, part->workm.t[2]) + 0x20;
@@ -560,9 +560,9 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -686,8 +686,8 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
                 func_neo_ark_woodland_path_8017FDE4(coord, (u16)work->index, work->scale, work->angle);
             } else {

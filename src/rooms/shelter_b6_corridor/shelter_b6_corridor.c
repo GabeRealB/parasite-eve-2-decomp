@@ -1034,7 +1034,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
     u32       shade;
 
     coord = task->extra.tmd->coords + 1;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         shade  = ((gDisplayState.animFrame & 1) << 4) + 0x40;
         rgb[0] = shade;
         rgb[1] = shade;
@@ -1053,14 +1053,14 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 {
     GpEffWork* mem;
     GfxCoord*  coord;
-    s16        eventState;
+    s16        effectControl;
     u8         rgb[3];
 
-    mem        = task->spawnArg2.pointer;
-    eventState = Gp_State1C->eventState;
-    coord      = task->extra.coordBody->coord;
-    if (eventState != 0) {
-        if (eventState < 4) {
+    mem           = task->spawnArg2.pointer;
+    effectControl = Gp_State1C->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;

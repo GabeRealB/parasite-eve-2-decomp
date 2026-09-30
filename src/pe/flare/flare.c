@@ -57,7 +57,7 @@ void flareEffectTask(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 == -2) || (Gp_State1C->fadeState != 0)) {
+    if ((state->field_3 == -2) || (Gp_State1C->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         SndEvt_EnqueueType7(0xE03E0001, 1);
         Gp_ReleaseState1CMem(mem, arg0);
         return;

@@ -1867,7 +1867,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             D_shelter_b4_reservoir_801850AC[i].vz = c->workm.t[2];
         }
     }
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         if (GameFlag_GetNibble(0xB7) != 0) {
             if (gGameSession->waterY < root->coord.t[1] && work->field_22 != 0) {
                 for (i = 0; i < 2; i++) {
@@ -1970,7 +1970,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 /// low 12 bits of the spawn argument and the brightness (`scale`) to 0x40,
 /// and turns the coordinate to a random angle about Y. Every frame after that
 /// grows the size by 0x20 and dims the brightness by 2, releasing the effect
-/// once the brightness drops under 2. While `Gp_State1C->eventState` is
+/// once the brightness drops under 2. While `Gp_State1C->effectControl` is
 /// non-zero it only redraws at the current values, releasing from state 4.
 void func_shelter_b4_reservoir_801803DC(Task* task)
 {
@@ -1979,9 +1979,9 @@ void func_shelter_b4_reservoir_801803DC(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_reservoir_80180530(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -2093,7 +2093,7 @@ static void func_shelter_b4_reservoir_80180530(GfxCoord* arg0, s32 arg1, s32 arg
 /// stored direction - scaled to the speed in bits 16-23 (0x40 when zero).
 /// Every later tick draws, moves the coordinate by the velocity with gravity
 /// pulling it down, and releases the effect after animation frame 7. While
-/// `Gp_State1C->eventState` is non-zero it only draws, releasing from state 4.
+/// `Gp_State1C->effectControl` is non-zero it only draws, releasing from state 4.
 void func_shelter_b4_reservoir_80180864(Task* task)
 {
     GpEffWork* work;
@@ -2106,8 +2106,8 @@ void func_shelter_b4_reservoir_80180864(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
                 func_shelter_b4_reservoir_80180D20(coord, work->index, work->scale, work->angle);
             } else {
@@ -2324,9 +2324,9 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
     s16        f2a;
     u32        rng;
 
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -2771,8 +2771,8 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -2876,7 +2876,7 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 /// own frame and keeps 0xCC/0x1000 of it as the per-frame step. Every frame
 /// after that moves by the step and, on odd ticks, draws the next frame of
 /// `func_shelter_b4_reservoir_80183298`, releasing the effect at tick 20. While
-/// `Gp_State1C->eventState` is non-zero it does nothing but release from state
+/// `Gp_State1C->effectControl` is non-zero it does nothing but release from state
 /// 4.
 void func_shelter_b4_reservoir_80183074(Task* task)
 {
@@ -2888,7 +2888,7 @@ void func_shelter_b4_reservoir_80183074(Task* task)
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -2923,7 +2923,7 @@ void func_shelter_b4_reservoir_80183074(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->eventState >= 4) {
+    } else if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
     }
 }
@@ -3112,10 +3112,10 @@ void func_shelter_b4_reservoir_80183CD4(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;

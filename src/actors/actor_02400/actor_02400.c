@@ -311,7 +311,7 @@ static void Actor02400_Fn02CA4(GfxCoord* arg0, s32 arg1);
 /// Draws the glow around `coord`: lights `Gp_RoomCoords[2]` there
 /// with a randomly flickering intensity, then projects `coord` and queues two
 /// `POLY_FT4` billboards around it, the outer one half again as large as
-/// `size`. With `Gp_State1C->groundTrace` set it traces the ground below and
+/// `size`. With `Gp_State1C->groundTraceEnabled` set it traces the ground below and
 /// draws the ground quad there at twice the outer size.
 static void Actor02400_Fn00064(GfxCoord* coord, s16 size)
 {
@@ -419,7 +419,7 @@ static void Actor02400_Fn00064(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        if (Gp_State1C->groundTrace != 0) {
+        if (Gp_State1C->groundTraceEnabled != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                 Actor02400_Fn005BC(&ground, (s32)(s16)(outerSize * 2));
             }
@@ -1592,7 +1592,7 @@ static void Actor02400_Fn02CA4(GfxCoord* arg0, s32 arg1)
     SVECTOR sp18;
     s32     ang;
 
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

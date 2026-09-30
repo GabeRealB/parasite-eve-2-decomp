@@ -1502,7 +1502,7 @@ static void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32
 /// `D_80115730` on a random bone of the player every fourth tick and state 2
 /// adding a fainter, wider disc on odd ticks. State 3 drifts away while
 /// drawing a widening ring and fading, and releases the work block once faded;
-/// state 4 releases it at once. While `Gp_State1C->eventState` is non-zero it
+/// state 4 releases it at once. While `Gp_State1C->effectControl` is non-zero it
 /// does nothing but release once that reaches 4.
 void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 {
@@ -1514,8 +1514,8 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -1619,7 +1619,7 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 /// own frame and keeps 0xCC/0x1000 of it as the per-frame step. Every frame
 /// after that moves by the step and, on odd ticks, draws the next frame of
 /// `func_shelter_b2_operating_room_8017F478`, releasing the effect at tick 20.
-/// While `Gp_State1C->eventState` is non-zero it does nothing but release from
+/// While `Gp_State1C->effectControl` is non-zero it does nothing but release from
 /// state 4.
 void func_shelter_b2_operating_room_8017F254(Task* task)
 {
@@ -1631,7 +1631,7 @@ void func_shelter_b2_operating_room_8017F254(Task* task)
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1666,7 +1666,7 @@ void func_shelter_b2_operating_room_8017F254(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->eventState >= 4) {
+    } else if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
     }
 }
@@ -1845,7 +1845,7 @@ static void func_shelter_b2_operating_room_8017FB20(GfxCoord* arg0, s32 arg1, u8
 /// `func_shelter_b2_operating_room_80180060` at a growing size. While its echo
 /// level lasts it also draws a widening ring that fades out; once the echo is
 /// spent the main level runs down, and the work block is released when it
-/// does. While `Gp_State1C->eventState` is non-zero it does nothing but
+/// does. While `Gp_State1C->effectControl` is non-zero it does nothing but
 /// release once that reaches 4.
 void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
 {
@@ -1856,10 +1856,10 @@ void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;

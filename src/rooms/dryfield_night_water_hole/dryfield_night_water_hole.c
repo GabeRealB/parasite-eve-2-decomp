@@ -1637,7 +1637,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
             }
             break;
         case 1:
-            if (GameFlag_GetNibble(0xB8) == 0 && Gp_State1C->eventState == 0 &&
+            if (GameFlag_GetNibble(0xB8) == 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING &&
                 gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
@@ -1825,9 +1825,9 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_dryfield_night_water_hole_8017F3A8(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1953,8 +1953,8 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
                 func_dryfield_night_water_hole_8017FB98(coord, (u16)work->index, work->scale, work->angle);
             } else {

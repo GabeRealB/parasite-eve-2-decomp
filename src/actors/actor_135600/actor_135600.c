@@ -858,7 +858,7 @@ static void func_actor_135600_801324D0(Task* arg0)
 
     if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
     }
     if (Gp_StateF0.field_4 == 0) {

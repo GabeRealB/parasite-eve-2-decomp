@@ -595,7 +595,7 @@ void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
         D_80115758                 = 0x601DD;
         D_8011572C                 = 0x601F9;
         D_80115750                 = 0x60215;
-        Gp_State1C->roomEffectMode = 2;
+        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                = 1;
     }
 }
@@ -615,8 +615,8 @@ void func_neo_ark_savanna_zone_8017DA0C(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -799,7 +799,7 @@ void func_neo_ark_savanna_zone_8017E470(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -994,8 +994,8 @@ void func_neo_ark_savanna_zone_8017ED58(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

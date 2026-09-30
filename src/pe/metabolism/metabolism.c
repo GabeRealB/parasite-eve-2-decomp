@@ -66,7 +66,7 @@ static s16 D_metabolism_8012FB78[16];
 static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
-/// or `Gp_State1C->fadeState >= 4`) releases the work block. State 0 parents the
+/// or `Gp_State1C->peEffectControl >= 4`) releases the work block. State 0 parents the
 /// coordinate to the player with an identity rotation lifted 0x400 above it,
 /// picks the intensity row from the combo counter, seeds one random angle per
 /// fan wedge into `D_metabolism_8012FB78`, and plays the combo-indexed cue.
@@ -92,7 +92,7 @@ void func_metabolism_8012EF34(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }

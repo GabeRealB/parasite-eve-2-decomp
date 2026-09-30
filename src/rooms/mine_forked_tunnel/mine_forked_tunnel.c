@@ -1525,7 +1525,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 
     if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords->workm), &vec) != 0) {
-            Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->groundShadowShade);
         }
         Gp_UpdateCoord(arg0->extra.tmd->coords);
         func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords->workm.t, 0, 3);
@@ -2041,7 +2041,7 @@ void func_mine_forked_tunnel_8017E78C(Task* unused)
 {
     s32 idx;
 
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     idx                        = Gp_GetViewIndex() & 0xFF;
 
     switch (idx) {

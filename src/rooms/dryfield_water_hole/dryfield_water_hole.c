@@ -1668,7 +1668,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
             }
             break;
         case 1:
-            if (Gp_State1C->eventState == 0 && gGameSession->waterY < ctlCoords->coord.t[1]) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
                     part = &ctl->extra.tmd->coords[14 + i * 3];
@@ -1867,9 +1867,9 @@ void func_dryfield_water_hole_8017EC90(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_dryfield_water_hole_8017EDE4(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {

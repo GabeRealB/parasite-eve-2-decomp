@@ -139,9 +139,9 @@ void func_energyball_8012EF48(Task* arg0)
 }
 
 /// One ball of the energy ball cast; `spawnArg1` picks the `Gp_RoomCoords`
-/// slot it owns and `spawnArg2` the `GpEffWork` block. While the room is
-/// fading (`Gp_State1C->fadeState`) it only redraws, and drops the ball once the
-/// fade passes 4. Otherwise it walks `Task::state`: 0 allocates the
+/// slot it owns and `spawnArg2` the `GpEffWork` block. With nonzero
+/// `Gp_State1C->peEffectControl` it only redraws; cancellation at 4 or more
+/// drops the ball. Otherwise it walks `Task::state`: 0 allocates the
 /// `EnergyBallWork` collision block, picks the charge row of
 /// `D_energyball_80131194` from the combo counter and seeds a random spin
 /// `period`; 1 grows the ball by the row's `field_2` per frame until it
@@ -151,7 +151,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// effects on a hit (`Gp_CountRec18Hi`) or unlinking when the room's
 /// `field_16` drops; 3 and 4 fade the burst out, growing to twice the row's
 /// size or shrinking below one step. Cancel (`Gp_StateC08.field_3 == -2` or
-/// the fade at 4 or more) anywhere but combo 0x2B lets the ball go: the last
+/// PE effect control at 4 or more) anywhere but combo 0x2B lets the ball go: the last
 /// ball in flight (`D_80115724`) queues the row's stop sound.
 void func_energyball_8012F180(Task* arg0)
 {
@@ -168,18 +168,18 @@ void func_energyball_8012F180(Task* arg0)
     SVECTOR*        dir;
     u16             r;
     s32*            snd;
-    s16             fade;
+    s16             peEffectControl;
     s32             cur;
 
-    slot  = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
-    sc    = &slot->light.head.u.coord;
-    tail  = &slot->light;
-    coord = arg0->extra.coordBody->coord;
-    fade  = Gp_State1C->fadeState;
-    work  = (EnergyBallWork*)arg0->work;
-    mem   = arg0->spawnArg2.pointer;
-    if (fade != 0) {
-        if (fade >= 4) {
+    slot            = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
+    sc              = &slot->light.head.u.coord;
+    tail            = &slot->light;
+    coord           = arg0->extra.coordBody->coord;
+    peEffectControl = Gp_State1C->peEffectControl;
+    work            = (EnergyBallWork*)arg0->work;
+    mem             = arg0->spawnArg2.pointer;
+    if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (D_80115724 > 0) {
                 D_80115724 -= 1;
                 if (D_80115724 == 0) {
@@ -194,7 +194,7 @@ void func_energyball_8012F180(Task* arg0)
         Gp_UpdateCoord(coord);
         func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
         func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
-        if ((arg0->state < 3) && (Gp_State1C->groundTrace != 0) &&
+        if ((arg0->state < 3) && (Gp_State1C->groundTraceEnabled != 0) &&
             (Gp_TraceGroundCoord(coord, &ground) == 1)) {
             func_energyball_801307D4(&ground, mem->angle);
         }
@@ -274,7 +274,7 @@ void func_energyball_8012F180(Task* arg0)
             sc->composeStamp = GRAPHICS_COORD_DIRTY;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
-            if ((Gp_State1C->groundTrace != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
+            if ((Gp_State1C->groundTraceEnabled != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
                 func_energyball_801307D4(&ground, mem->angle);
             }
             coord->workm.t[1] += D_energyball_80131194[mem->index].field_2 * mem->age;
@@ -282,7 +282,7 @@ void func_energyball_8012F180(Task* arg0)
                                      (D_energyball_80131194[mem->index].field_0 - mem->angle) / 5);
             coord->workm.t[1] -= D_energyball_80131194[mem->index].field_2 * mem->age;
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
-                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (D_80115724 > 0) {
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
@@ -341,13 +341,13 @@ void func_energyball_8012F180(Task* arg0)
             sc->composeStamp = GRAPHICS_COORD_DIRTY;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
-            if (Gp_State1C->groundTrace != 0) {
+            if (Gp_State1C->groundTraceEnabled != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                     func_energyball_801307D4(&ground, mem->angle);
                 }
             }
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
-                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (D_80115724 > 0) {
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
@@ -379,7 +379,7 @@ void func_energyball_8012F180(Task* arg0)
                 arg0->state = 3;
                 return;
             }
-            if (Gp_State1C->battleState != 1) {
+            if (Gp_State1C->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 Gp_UnlinkObj(&work->obj);
                 arg0->state = 4;
                 return;
@@ -393,7 +393,7 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
-                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
+                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
@@ -421,7 +421,7 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
-                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
+                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
@@ -735,9 +735,9 @@ void func_energyball_8013107C(Task* arg0)
     s32        angle;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->fadeState;
+    flag  = Gp_State1C->peEffectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
 

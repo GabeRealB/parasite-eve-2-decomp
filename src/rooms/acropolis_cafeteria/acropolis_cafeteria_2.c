@@ -1206,13 +1206,13 @@ void func_acropolis_cafeteria_8017F390(Task* task)
 
     obj   = task->extra.tmd;
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    state = Gp_State1C->eventState;
+    state = Gp_State1C->effectControl;
     coord = obj->coords;
-    if (state >= 4) {
+    if (state >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
         return;
     }
-    if (state != 0) {
+    if (state != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
     Gp_UpdateCoord(coord);
@@ -1355,8 +1355,8 @@ void func_acropolis_cafeteria_8017F948(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1533,7 +1533,7 @@ void func_acropolis_cafeteria_801803AC(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1726,8 +1726,8 @@ void func_acropolis_cafeteria_80180C94(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

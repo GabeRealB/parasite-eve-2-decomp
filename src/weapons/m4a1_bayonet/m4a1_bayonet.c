@@ -53,7 +53,7 @@ static SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
 static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 
 /// Per-frame task for the M4A1 bayonet's blade trail. Nothing runs once the
-/// room is fading (`Gp_State1C->eventState` non-zero); the task is then released
+/// effect control is paused (`Gp_State1C->effectControl` non-zero); the task is then released
 /// as soon as that phase reaches 4. State 0 places the tip frame at
 /// `D_m4a1_bayonet_8011DEC8[0]` under the muzzle and the hilt frame at
 /// `[1]` under it, then seeds all sixteen trail slots with that pose. State 1
@@ -77,8 +77,8 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    phase = Gp_State1C->eventState;
-    if (phase == 0) {
+    phase = Gp_State1C->effectControl;
+    if (phase == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -155,7 +155,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
         }
         alive = work->age < 0xD;
     } else {
-        alive = phase < 4;
+        alive = phase < ROOM_EFFECT_CONTROL_CANCEL_MIN;
     }
     if (!alive) {
         Gp_ReleaseState1CMem(work, task);

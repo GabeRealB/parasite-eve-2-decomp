@@ -1107,5 +1107,5 @@ void func_dryfield_gas_station_80181A78(Task* arg0)
     } else if (mask != 0) {
         func_dryfield_gas_station_80181058(coord, &D_dryfield_gas_station_80183144, 0x60, 0x40);
     }
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

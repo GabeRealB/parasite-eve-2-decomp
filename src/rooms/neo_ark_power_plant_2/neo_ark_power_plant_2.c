@@ -903,7 +903,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
     switch ((u8)Gp_GetViewIndex()) {
         case 6:
             if (GameFlag_GetNibble(0x147) != 0) {
-                if (Gp_State1C->eventState == 0 && GameFlag_GetNibble(0xDF) == 0) {
+                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(0xDF) == 0) {
                     rnd         = Gp_LcgState * 5 + 0x71357911;
                     Gp_LcgState = rnd;
                     if (((rnd >> 16) & 7) == 0) {
@@ -1017,8 +1017,8 @@ void func_neo_ark_power_plant_2_8017DDF4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1198,7 +1198,7 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1397,8 +1397,8 @@ void func_neo_ark_power_plant_2_8017F140(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

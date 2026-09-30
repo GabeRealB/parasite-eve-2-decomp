@@ -795,7 +795,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 }
 
 /// Draws one helipad floodlight glow. Light `index` owns transient light slot
-/// `6 + (index & 1)`; the light is skipped while `Gp_State1C->eventState` is
+/// `6 + (index & 1)`; the light is skipped while `Gp_State1C->effectControl` is
 /// non-zero (switching the slot off once it reaches 4) and unless the
 /// current view's bit is set in the light's
 /// `D_acropolis_helicopter_landing_pad_80184EE0` mask. Otherwise `pos` is
@@ -823,8 +823,8 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
     lvl   = level;
     light = &Gp_RoomCoords[6 + (index & 1)];
     work  = &light->light;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             light->framesLeft = 0;
         }
     } else {
@@ -963,7 +963,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 /// `scale * 31 / otz` rotated by `angle` and `angle + 0x400`. A
 /// bright sprite (`spawnArg1 == 1`) flickers a random green / blue-white tint
 /// on 1-in-4 LCG rolls and, before its last two frames, fires a 0x600E0
-/// effect on 1-in-16. While `Gp_State1C->eventState` is 0 the coord drifts,
+/// effect on 1-in-16. While `Gp_State1C->effectControl` is 0 the coord drifts,
 /// `scale` grows by `period` and the frame counter advances until it
 /// expires, which releases the state-1C memory; `field_4 >= 4` releases it at
 /// once and 2..3 idles.
@@ -980,8 +980,8 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState >= 2) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
@@ -1048,7 +1048,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
                 }
                 if (mem->age < mem->step * 6 - 2) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
+                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
                     }
                 }
@@ -1081,7 +1081,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState == 0) {
+        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             coord->coord.t[0]  += mem->move.vx;
             coord->coord.t[1]  += mem->move.vy;
             coord->coord.t[2]  += mem->move.vz;
@@ -1106,7 +1106,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
 /// effects reparented under this task, and claims slot 5 as a light. State 2
 /// releases the state-1C memory, the only step taken while
-/// `Gp_State1C->eventState` is set.
+/// `Gp_State1C->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
     GpEffWork*    mem;
@@ -1120,7 +1120,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (arg0->state == 2) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -1146,7 +1146,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                if (Gp_State1C->eventState == 0) {
+                if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     func_acropolis_helicopter_landing_pad_80180A64(coord);
                 }
             }
@@ -1356,7 +1356,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
 /// light parameters from the coord and an LCG draw; state 1 spawns two more
 /// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
 /// 64th frame; state 3 releases the state-1C memory. Idle while
-/// `Gp_State1C->eventState` is set.
+/// `Gp_State1C->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
     GpEffWork*    mem;
@@ -1372,7 +1372,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    if (Gp_State1C->eventState != 0 && arg0->state < 3) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING && arg0->state < 3) {
         return;
     }
     Gp_UpdateCoord(coord);
@@ -1422,7 +1422,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// last eight frames fade to grey; before that a spawned flare
 /// (`spawnArg1`) flickers a random green / blue-white tint on 1-in-4 LCG rolls
 /// and fires a 0x600E0 effect on 1-in-16, and every flare fires 0x6005A on
-/// 1-in-16. While `Gp_State1C->eventState` is 0 the coord drifts and the frame
+/// 1-in-16. While `Gp_State1C->effectControl` is 0 the coord drifts and the frame
 /// counter advances until it expires, which releases the state-1C memory;
 /// `field_4 >= 4` releases it at once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
@@ -1440,8 +1440,8 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState >= 2) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
@@ -1497,14 +1497,14 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                         prim->code |= 1;
                     }
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
+                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
                     }
                 } else {
                     prim->code = 0x2D;
                 }
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
+                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1.value, NULL);
                 }
             }
@@ -1534,7 +1534,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState == 0) {
+        if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             coord->coord.t[0]  += mem->move.vx;
             coord->coord.t[1]  += mem->move.vy;
             coord->coord.t[2]  += mem->move.vz;
@@ -1547,7 +1547,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     }
 }
 
-/// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C->groundShade`
+/// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C->groundShadowShade`
 /// while view 0x12 is active, folds the frame counter `gDisplayState.animFrame * 4` into a
 /// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
 /// are dropped on the rising half so the ramp steps in fours), then runs
@@ -1561,9 +1561,9 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
     s32        level;
 
     if ((Gp_GetViewIndex() & 0xFF) == 0x12) {
-        Gp_State1C->groundShade = -1;
+        Gp_State1C->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
     } else {
-        Gp_State1C->groundShade = 0;
+        Gp_State1C->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
     }
 
     v           = gDisplayState.animFrame << 2;

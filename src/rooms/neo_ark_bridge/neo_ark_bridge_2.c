@@ -747,7 +747,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
             view = Gp_GetViewIndex() & 0xFF;
             if (view < 7) {
                 if (view >= 5) {
-                    if (Gp_State1C->eventState == 0) {
+                    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         rnd         = Gp_LcgState * 5 + 0x71357911;
                         Gp_LcgState = rnd;
                         if (((rnd >> 16) & 3) == 0) {
@@ -880,9 +880,9 @@ void func_neo_ark_bridge_8017EF70(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_neo_ark_bridge_8017F0C4(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1003,8 +1003,8 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
                 func_neo_ark_bridge_8017F8B4(coord, work->index, work->scale, work->angle);
             } else {
@@ -1234,8 +1234,8 @@ void func_neo_ark_bridge_8017FF84(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1421,7 +1421,7 @@ void func_neo_ark_bridge_801809E8(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1622,8 +1622,8 @@ void func_neo_ark_bridge_801812D0(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

@@ -80,8 +80,8 @@ static void func_m4a1_pyke_8011E4AC(Task* task);
 static void func_m4a1_pyke_8011E4F8(Task* arg0);
 
 /// Per-frame beam task for the M4A1 Pyke. Nothing runs while the player model
-/// is hidden (`field_C & 0x80`) or the room is fading out
-/// (`Gp_State1C->eventState >= 2`). State 0 hangs the task's own coordinate off
+/// is hidden (`field_C & 0x80`) or effects are hidden
+/// (`Gp_State1C->effectControl >= 2`). State 0 hangs the task's own coordinate off
 /// `field_8` at the fixed muzzle offset with an identity rotation; state 1 then
 /// dispatches on `spawnArg1`:
 ///
@@ -93,7 +93,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 ///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
-/// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
+/// While `Gp_State1C->effectControl` is non-zero the two drawing sub-states wind
 /// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
@@ -114,7 +114,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     if ((gameGetPtrSlot(3)->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
         return;
     }
-    if (Gp_State1C->eventState >= 2) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
     work->age++;
@@ -139,7 +139,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                 case 0:
                     break;
                 case 1:
-                    if (Gp_State1C->eventState != 0) {
+                    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
                         func_m4a1_pyke_8011D548(
                             MATRIX_TRANS(&coord->workm), work->age, 0x80);
@@ -164,7 +164,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     work->scale         = 0x40;
                     break;
                 case 2:
-                    if (Gp_State1C->eventState != 0) {
+                    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
                         break;
                     }
@@ -281,8 +281,8 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 /// `Gp_State1C` work block holding the dart's velocity (`move` / `move.vy`
 /// / `move.vz`), its age (`age`), its flare width (`scale`) and its
 /// spin angle (`angle`); `Task::extra` reaches the coordinate the dart flies
-/// on. Everything stops once the room is fading out (`Gp_State1C->eventState >=
-/// 4`); while the fade is merely under way the dart is only redrawn.
+/// on. Everything stops on cancellation (`Gp_State1C->effectControl >=
+/// 4`); with nonzero control below that threshold the dart is only redrawn.
 ///
 /// - State 0 allocates the `M4a1PykeBeam` list node, aims the dart by rotating
 ///   `(0, spawnArg1 - rand(0..0x3F), 0)` through the coordinate's own matrix,
@@ -301,24 +301,24 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     GfxCoord*     coord;
     GpEffWork*    work;
     M4a1PykeBeam* beam;
-    s32           fade;
+    s32           effectControl;
     u32           ang0;
     u32           ang1;
     u32           ang2;
     u32           ang3;
 
-    beam  = (M4a1PykeBeam*)task->work;
-    work  = task->spawnArg2.pointer;
-    fade  = Gp_State1C->eventState;
-    coord = task->extra.coordBody->coord;
-    if (fade >= 4) {
+    beam          = (M4a1PykeBeam*)task->work;
+    work          = task->spawnArg2.pointer;
+    effectControl = Gp_State1C->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);
         }
         Gp_ReleaseState1CMem(work, task);
         return;
     }
-    if (fade != 0) {
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_m4a1_pyke_8011DCEC(MATRIX_TRANS(&coord->workm),
                                 (work->age >> 1) + 1, work->scale, work->angle);
         return;
@@ -378,7 +378,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
                                     work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
+            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTraceEnabled != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_m4a1_pyke_8011E168(MATRIX_TRANS(&ground.workm),
                                         (s16)((work->scale * 2) / 3));

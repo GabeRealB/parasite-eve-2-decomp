@@ -493,7 +493,7 @@ static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2
 /// have the form `Gp_SpawnEff` takes as effect ids.
 void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 {
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (arg0->state == 0) {
         D_80115758  = 0x601D9;
         D_8011572C  = 0x601F5;
@@ -517,8 +517,8 @@ void func_neo_ark_forest_zone_8017E420(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -701,7 +701,7 @@ void func_neo_ark_forest_zone_8017EE84(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -900,8 +900,8 @@ void func_neo_ark_forest_zone_8017F76C(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

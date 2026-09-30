@@ -1265,7 +1265,7 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 /// at the low 12 bits of the spawn argument and the brightness (`scale`) at
 /// 0x40, and turns its coordinate to a random angle about Y. Each frame it then
 /// grows the size by 0x20 and dims the brightness by 2, releasing the effect
-/// once the brightness falls under 2. While `Gp_State1C->eventState` is
+/// once the brightness falls under 2. While `Gp_State1C->effectControl` is
 /// non-zero it only redraws at the current values, and releases from state 4.
 void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 {
@@ -1274,9 +1274,9 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_upper_sewer_8017EA0C(coord, work->angle, work->scale);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1400,8 +1400,8 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
                 func_shelter_b4_upper_sewer_8017F1FC(coord, work->index, work->scale, work->angle);
             } else {

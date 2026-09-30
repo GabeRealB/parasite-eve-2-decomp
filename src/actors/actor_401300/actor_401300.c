@@ -2275,7 +2275,7 @@ static void func_actor_401300_80133A3C(Task* arg0)
             }
         }
     }
-    if (Gp_State1C->roomEffectMode == 2) {
+    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
         switch (snd) {
             case 0x400D0001:
             case 0x400D0003:
@@ -5661,22 +5661,22 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
                 actor->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShadowShade);
                 state = work->field_0;
             }
             if ((state == 0x28) && (work->field_8A2 == 2)) {
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShadowShade);
             }
             break;
         case 1:
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
                 actor->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShadowShade);
                 state = work->field_0;
             }
             if ((state == 0x28) && (work->field_8A2 == 2)) {
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShadowShade);
             }
             Gp_ClearRec18Occupied(work->field_AD0);
             Gp_ClearRec18Occupied(work->field_990);
@@ -5765,7 +5765,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
                         SndEvt_EnqueueType6(0x400D0013, (s8)Gp_GetObjPan(player->extra.tmd->coords),
                                             (s8)gpGetObjDepth(player->extra.tmd->coords));
                     }
-                    if (Gp_State1C->roomEffectMode == 2) {
+                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
@@ -5789,7 +5789,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
                         SndEvt_EnqueueType6(0x400D0013, (s8)Gp_GetObjPan(player->extra.tmd->coords),
                                             (s8)gpGetObjDepth(player->extra.tmd->coords));
                     }
-                    if (Gp_State1C->roomEffectMode == 2) {
+                    if (Gp_State1C->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(0x60054, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }

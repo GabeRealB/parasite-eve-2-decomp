@@ -1892,7 +1892,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
     u8                      view;
 
     ctx                        = task->spawnArg2.pointer;
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     mode                       = gGameSession->field_132;
 
     if (mode != 0) {
@@ -2233,13 +2233,13 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->spawnArg1.value < 0) {
             func_shelter_b3_garbage_incinerator_80182F18(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             func_shelter_b3_garbage_incinerator_80182AB8(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -2512,9 +2512,9 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b3_garbage_incinerator_801837F8(coord, work->index, work->scale, work->angle);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

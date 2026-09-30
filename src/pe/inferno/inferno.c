@@ -103,7 +103,7 @@ void func_inferno_8012EF88(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         goto release;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -254,7 +254,7 @@ void func_inferno_8012F530(Task* arg0)
     map   = (InfernoIdMap*)arg0->work;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         goto release;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

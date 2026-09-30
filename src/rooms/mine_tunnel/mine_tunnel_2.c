@@ -546,7 +546,7 @@ void func_mine_tunnel_8017D7D4(Task* unused)
 {
     s32 idx;
 
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     idx                        = Gp_GetViewIndex() & 0xFF;
 
     switch (idx) {

@@ -522,7 +522,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
     }
     if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), (VECTOR3*)&vec) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->groundShadowShade);
         }
         Gp_ClearRec18Occupied(&work->rec);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

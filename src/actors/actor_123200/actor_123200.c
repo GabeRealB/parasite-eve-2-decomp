@@ -1008,13 +1008,13 @@ static void func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1)
         case 0:
             if (work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShadowShade);
             }
             break;
         case 1:
             if (work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShadowShade);
             }
             return;
         case 2:

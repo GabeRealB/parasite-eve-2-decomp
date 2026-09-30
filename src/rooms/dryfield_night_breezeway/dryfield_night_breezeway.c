@@ -832,7 +832,7 @@ static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 
 /// view 4 draws, a pulsing star and a second beam. Other views draw nothing.
 void func_dryfield_night_breezeway_8017E5BC(Task* unused)
 {
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->at4.loc.view) {
         case 2:
             func_dryfield_night_breezeway_8017E334(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);

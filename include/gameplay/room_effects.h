@@ -32,7 +32,7 @@ extern s32 D_80115738;
 
 extern s32 D_8011573C;
 
-extern GpState1C* Gp_State1C;
+extern RoomEffectState* Gp_State1C;
 
 extern s32 D_80115744;
 
@@ -54,10 +54,10 @@ s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 
 void func_800EA3A0(s32 arg0);
 
-/// Spawns a `GpState1C` effect task and its `GpEffWork` (`memCalloc(0x2C)`).
+/// Spawns a counted effect task and its `GpEffWork` (`memCalloc(0x2C)`).
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
-/// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
-/// `GpState1C::effectCount`. `arg1` is the parent coordinate (`NULL` = world):
+/// 16 bits; a negative `arg0` bypasses the ordinary spawn limit (129) in
+/// `RoomEffectState::effectCount`. `arg1` is the parent coordinate (`NULL` = world):
 /// the task's own `TmdObject::coords` coordinate is seeded from it and
 /// re-parented to `gGfxViewCoord`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
 /// optional offset vector (`NULL` = zero) rotated into the parent's space and

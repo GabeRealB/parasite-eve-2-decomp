@@ -100,7 +100,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     light = &base->light.head.u.coord;
     slot  = &base->light;
 
-    if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN) == 0 && Gp_State1C->eventState < 2) {
+    if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN) == 0 && Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age = work->age + 1;
         switch (task->state) {
             case 0:
@@ -128,7 +128,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                     case 0:
                         break;
                     case 1:
-                        if (Gp_State1C->eventState != 0) {
+                        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
                                 func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
@@ -159,7 +159,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         work->index         = 0;
                         return;
                     case 2:
-                        if (Gp_State1C->eventState != 0) {
+                        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
                                 func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period,

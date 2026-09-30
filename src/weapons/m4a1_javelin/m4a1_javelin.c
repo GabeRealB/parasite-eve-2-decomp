@@ -109,7 +109,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 ///   `D_m4a1_javelin_8012EB68` impact point or `GpEffWork::move` rotated
 ///   into world space, and `pos` is a sixth of the way back towards the
 ///   muzzle. Six segments are drawn with
-///   `func_m4a1_javelin_8011DAB0`; while `Gp_State1C->groundTrace` is set each
+///   `func_m4a1_javelin_8011DAB0`; while `Gp_State1C->groundTraceEnabled` is set each
 ///   segment also probes `D_m4a1_javelin_8011FA98` (0x800 along +Y) with
 ///   `func_800DE7CC` and skins the ground contact with
 ///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam
@@ -140,8 +140,8 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -250,7 +250,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             pa.vx        = (u16)pb.vx;
             pa.vy        = (u16)pb.vy;
             pa.vz        = (u16)pb.vz;
-            if (Gp_State1C->groundTrace != 0) {
+            if (Gp_State1C->groundTraceEnabled != 0) {
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&D_m4a1_javelin_8011FA98);
                 gte_rtv0();
@@ -751,10 +751,10 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
     s16        flag;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);

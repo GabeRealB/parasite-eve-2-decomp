@@ -60,7 +60,7 @@ static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Healing PE ring. Cancel (`Gp_StateC08.field_3 == -2` or
-/// `Gp_State1C->fadeState >= 4`) releases the work block, and if the effect has
+/// `Gp_State1C->peEffectControl >= 4`) releases the work block, and if the effect has
 /// not started yet also sets `field_6` bit 3. State 0 parents the coordinate
 /// to the player, plays the combo-indexed cue from `D_healing_8012FC34`, and
 /// falls into state 1, which grows brightness / radius, randomizes a spawn
@@ -84,7 +84,7 @@ void func_healing_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if ((state->field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((state->field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         if (arg0->state == 0) {
             state->field_6 |= 8;
         }

@@ -979,7 +979,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Gp_State1C->eventState < 4) {
+            if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 if (gGameSession->at4.loc.view == 3) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
@@ -1035,7 +1035,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     play  = 0;
-    if (Gp_State1C->eventState < 4 && ((0x46 >> (gGameSession->at4.loc.view - 1)) & 1)) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x46 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         block         = SCRATCH_PUSH(AcropolisFireEscapeGlowScratch);
         block->vec.vx = coord->workm.t[0];

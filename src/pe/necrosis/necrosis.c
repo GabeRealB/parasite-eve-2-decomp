@@ -95,7 +95,7 @@ void func_necrosis_8012EF34(Task* arg0)
     s32                    pan;
     u16                    old;
     s32                    tick;
-    s16                    fade;
+    s16                    peEffectControl;
 
     work     = (NecrosisWork*)arg0->work;
     mem      = arg0->spawnArg2.pointer;
@@ -108,11 +108,11 @@ void func_necrosis_8012EF34(Task* arg0)
             if (Gp_StateC08.field_3 == -2) {
                 goto release;
             }
-            fade = Gp_State1C->fadeState;
-            if (fade >= 4) {
+            peEffectControl = Gp_State1C->peEffectControl;
+            if (peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto release;
             }
-            if (fade != 0) {
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 mem->age = old;
                 return;
             }
@@ -164,7 +164,7 @@ void func_necrosis_8012EF34(Task* arg0)
             arg0->state = 1;
             /* fallthrough */
         case 1:
-            if (Gp_State1C->fadeState == 0) {
+            if (Gp_State1C->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 gte_lddp(0x1100);
                 gte_ldsv(&mem->move);
                 gte_gpf12();
@@ -184,7 +184,7 @@ void func_necrosis_8012EF34(Task* arg0)
             } else {
                 mem->age = mem->age - 1;
             }
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 goto release;
@@ -207,7 +207,7 @@ void func_necrosis_8012EF34(Task* arg0)
             if (Gp_StateC08.field_3 == -2) {
                 goto release;
             }
-            if (Gp_State1C->fadeState >= 4) {
+            if (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto release;
             }
             tick = (s16)tick;
@@ -227,7 +227,7 @@ void func_necrosis_8012F52C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->fadeState != 0) {
+    if (Gp_State1C->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
 
@@ -333,7 +333,7 @@ void func_necrosis_8012FAF8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->fadeState != 0) {
+    if (Gp_State1C->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
 

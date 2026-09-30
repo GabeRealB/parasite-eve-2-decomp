@@ -2994,13 +2994,13 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
         case 0:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShadowShade);
             }
             break;
         case 1:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShadowShade);
             }
             return;
         case 2:
@@ -3026,7 +3026,7 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
         blk->coord.coord.t[2]   = blk->v.vz;
         blk->coord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&blk->coord);
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->coord.workm), 0x280, Gp_State1C->groundShade);
+        Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->coord.workm), 0x280, Gp_State1C->groundShadowShade);
     }
     if (work->field_2 != work->field_0) {
         work->field_4 = 1;

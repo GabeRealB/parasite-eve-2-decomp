@@ -567,7 +567,7 @@ static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP(RoomDraw25Scratch);
 }
 
-/// Flash effect task on the object's coordinate. While `eventState` is non-zero
+/// Flash effect task on the object's coordinate. While `effectControl` is non-zero
 /// it draws nothing, releasing its work block once that reaches 4. Otherwise,
 /// over `spawnArg1` frames it brightens a pink tint (full red, half blue,
 /// quarter green) while growing two fanned glows and a ring; at the peak it
@@ -581,8 +581,8 @@ void func_dryfield_night_r08_8017E5B0(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -750,7 +750,7 @@ static void func_dryfield_night_r08_8017EC80(GfxCoord* arg0, s16 arg1, u8* rgb)
 /// rings with that point and the second offset. Each later frame it writes the
 /// current pair into the next slot and draws the trail between the rings,
 /// releasing itself once its age reaches `spawnArg1`. Nothing runs while
-/// `eventState` is 2 or more.
+/// `effectControl` is 2 or more.
 void func_dryfield_night_r08_8017F014(Task* task)
 {
     GfxCoord   coord;
@@ -765,7 +765,7 @@ void func_dryfield_night_r08_8017F014(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -945,7 +945,7 @@ static void func_dryfield_night_r08_8017F504(GfxCoord* arg0, GfxCoord* arg1, s16
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-/// Burst effect task on the object's coordinate. While `eventState` is non-zero
+/// Burst effect task on the object's coordinate. While `effectControl` is non-zero
 /// it draws nothing, releasing its work block once that reaches 4. Its first
 /// frame spawns effect 0x60076 and then either a spark (0x60070), if
 /// `spawnArg1` is set, or two 0x6007C effects. The spark branch then emits one
@@ -960,8 +960,8 @@ void func_dryfield_night_r08_8017F8FC(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

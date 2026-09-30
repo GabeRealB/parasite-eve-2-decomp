@@ -1492,7 +1492,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
 
 /// Draws one frame of a forked-road wall lamp: a flickering, screen-aligned
 /// sprite at the task's own coordinate frame. The lamp is skipped entirely
-/// while the effect pool is busy (`Gp_State1C->eventState` at 4 or more) and on
+/// when effects are cancelled (`Gp_State1C->effectControl` at 4 or more) and on
 /// the days whose bit is clear in `D_acropolis_forked_road_801821E8`, indexed
 /// by the low nibble of `Task::spawnArg1`.
 ///
@@ -1519,7 +1519,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState < 4 &&
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
@@ -1767,8 +1767,8 @@ void func_acropolis_forked_road_8017EF80(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1949,7 +1949,7 @@ void func_acropolis_forked_road_8017F9E4(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -2147,8 +2147,8 @@ void func_acropolis_forked_road_801802CC(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

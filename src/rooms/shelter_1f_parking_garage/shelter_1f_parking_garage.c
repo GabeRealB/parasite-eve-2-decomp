@@ -1015,7 +1015,7 @@ static void func_shelter_1f_parking_garage_8017E868(SVECTOR* worldPoint, s32 rad
 /// `Gp_DrawFadeQuad` and moves to state 2, which draws a star at three times
 /// the radius, fading by 0x10 and shrinking by 8 a frame until the brightness
 /// falls below 0x11. The task then releases its `GpEffWork` block, as it
-/// also does early once `Gp_State1C->eventState` reaches 4; while that state
+/// also does early once `Gp_State1C->effectControl` reaches 4; while that state
 /// is non-zero it draws nothing.
 void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 {
@@ -1025,8 +1025,8 @@ void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -1196,7 +1196,7 @@ static void func_shelter_1f_parking_garage_8017F2DC(GfxCoord* arg0, s16 arg1, u8
 /// overwrites one slot of each trail a frame, cycling through the eight,
 /// and draws the band between the trails; the task releases its
 /// `GpEffWork` block once its age reaches `spawnArg1`. Nothing runs while
-/// `Gp_State1C->eventState` is 2 or more.
+/// `Gp_State1C->effectControl` is 2 or more.
 void func_shelter_1f_parking_garage_8017F670(Task* task)
 {
     GfxCoord   coord;
@@ -1211,7 +1211,7 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1401,7 +1401,7 @@ static void func_shelter_1f_parking_garage_8017FB60(GfxCoord* arg0, GfxCoord* ar
 /// feeds with a randomly jittered spark each frame, or (zero) two more
 /// effects and a pair of rings that state 2 widens by 0x30 and dims by 0x20
 /// a frame. Either way the task releases its `GpEffWork` block after seven
-/// frames, or early once `Gp_State1C->eventState` reaches 4; while that
+/// frames, or early once `Gp_State1C->effectControl` reaches 4; while that
 /// state is non-zero it does nothing else.
 void func_shelter_1f_parking_garage_8017FF58(Task* task)
 {
@@ -1412,8 +1412,8 @@ void func_shelter_1f_parking_garage_8017FF58(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

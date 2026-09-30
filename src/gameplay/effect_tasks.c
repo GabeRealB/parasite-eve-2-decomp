@@ -205,7 +205,7 @@ void Gp_EffCtlTask2B(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     base  = Gp_RoomCoords;
     slot  = &base->light;
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
@@ -283,7 +283,7 @@ void Gp_EffCtlTask2B(Task* arg0)
                         break;
                 }
                 if (mem->index == 0) {
-                    Gp_State1C->burstRequest = 1;
+                    Gp_State1C->burstRequest = true;
                 }
                 break;
             case 1:
@@ -315,7 +315,7 @@ void Gp_EffCtlTask6A(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     slot  = &base->light;
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
@@ -343,7 +343,7 @@ void Gp_EffCtlTask6A(Task* arg0)
                 mem->move.vz = -(mem->scale >> 1);
                 Gp_SpawnEff(0x60034, coord, mem->scale + 0x600, &mem->move);
                 arg0->state              = 1;
-                Gp_State1C->burstRequest = 1;
+                Gp_State1C->burstRequest = true;
                 break;
             case 1:
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -369,22 +369,22 @@ void Gp_EffCtlTask6A(Task* arg0)
 
 void Gp_EffCtlTask6B(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GpState1C*    st;
-    s32           temp;
-    s32           idx;
-    s32           t2;
-    s32           count;
+    GpEffWork*       mem;
+    GfxCoord*        coord;
+    GpCoord64*       base;
+    GpPointLight*    slot;
+    RoomEffectState* effectState;
+    s32              temp;
+    s32              idx;
+    s32              t2;
+    s32              count;
 
-    base  = Gp_RoomCoords;
-    slot  = &base->light;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    st    = Gp_State1C;
-    if (st->eventState < 2) {
+    base        = Gp_RoomCoords;
+    slot        = &base->light;
+    mem         = arg0->spawnArg2.pointer;
+    coord       = arg0->extra.coordBody->coord;
+    effectState = Gp_State1C;
+    if (effectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         if (arg0->state == 0) {
             temp                                  = arg0->spawnArg1.halves.high;
@@ -425,7 +425,7 @@ void Gp_EffCtlTask6B(Task* arg0)
                 Gp_RoomCoords->framesLeft = 4;
             }
             if (mem->index == 0) {
-                Gp_State1C->burstRequest = 1;
+                Gp_State1C->burstRequest = true;
             }
         }
         if (slot->inner >= 0x191) {
@@ -454,7 +454,7 @@ void func_800ED42C(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     base  = Gp_RoomCoords;
     slot  = &base->light;
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
@@ -608,7 +608,7 @@ void func_800ED42C(Task* arg0)
                         mem->scale  = 4;
                 }
                 base->framesLeft         = 4;
-                Gp_State1C->burstRequest = 1;
+                Gp_State1C->burstRequest = true;
                 break;
             case 1:
                 if (mem->age == mem->scale) {
@@ -645,7 +645,7 @@ void Gp_EffCtlTask6C(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     base  = Gp_RoomCoords;
     slot  = &base->light;
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
@@ -699,7 +699,7 @@ void Gp_EffCtlTask6C(Task* arg0)
                 }
                 base->framesLeft = 4;
                 if (mem->index == 0) {
-                    Gp_State1C->burstRequest = 1;
+                    Gp_State1C->burstRequest = true;
                 }
                 break;
             case 1:
@@ -742,9 +742,9 @@ void Gp_EffSprTask34(Task* arg0)
     u16              vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < 2) {
+    if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (mem->age == 0) {
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -766,7 +766,7 @@ void Gp_EffSprTask34(Task* arg0)
         gte_rtps();
         gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             block->otz     = block->otz + 1;
             prim           = gGpuPrimCursor;
@@ -799,14 +799,14 @@ void Gp_EffSprTask34(Task* arg0)
                     prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         mem->age++;
         if (mem->age < 2) {
             return;
         }
-    } else if (flag < 4) {
+    } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);
@@ -825,9 +825,9 @@ void Gp_EffSprTask72(Task* arg0)
     u16              vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < 2) {
+    if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -850,7 +850,7 @@ void Gp_EffSprTask72(Task* arg0)
         gte_rtps();
         gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             block->otz     = block->otz + 1;
             prim           = gGpuPrimCursor;
@@ -883,14 +883,14 @@ void Gp_EffSprTask72(Task* arg0)
                     prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         mem->age++;
         if (mem->age < 2) {
             return;
         }
-    } else if (flag < 4) {
+    } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);
@@ -909,9 +909,9 @@ void Gp_EffLineTaskA3(Task* arg0)
     u16               vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < 2) {
+    if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -953,12 +953,12 @@ void Gp_EffLineTaskA3(Task* arg0)
         gte_rtps();
         gte_stsxy(&((GpEffLineScratch*)(head - 0x20))->sxy0);
         gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
             gte_rtps();
             gte_stsxy(&((GpEffLineScratch*)(head - 0x20))->sxy1);
             gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
-            if (block->flag >= 0) {
+            if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
                 gte_stszotz(&((GpEffLineScratch*)(head - 0x20))->otz);
                 block->otz     = block->otz + 1;
                 prim           = gGpuPrimCursor;
@@ -982,14 +982,14 @@ void Gp_EffLineTaskA3(Task* arg0)
             }
         }
         SCRATCH_POP_BYTES(0x20);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         mem->age++;
         if (mem->age < 4) {
             return;
         }
-    } else if (flag < 4) {
+    } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);
@@ -1062,10 +1062,10 @@ void Gp_EffSprTask35(Task* arg0)
     u16              vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag >= 2) {
-        if (flag < 4) {
+    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
@@ -1105,7 +1105,7 @@ void Gp_EffSprTask35(Task* arg0)
         gte_rtps();
         gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -1141,7 +1141,7 @@ void Gp_EffSprTask35(Task* arg0)
                     prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         coord->coord.t[0]  += mem->move.vx;
@@ -1171,10 +1171,10 @@ void Gp_EffSprTask6F(Task* arg0)
     u16              vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag >= 2) {
-        if (flag < 4) {
+    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
@@ -1211,7 +1211,7 @@ void Gp_EffSprTask6F(Task* arg0)
         gte_rtps();
         gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -1247,7 +1247,7 @@ void Gp_EffSprTask6F(Task* arg0)
                     prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         coord->coord.t[0]  += mem->move.vx;
@@ -1278,10 +1278,10 @@ void Gp_EffModelTask(Task* arg0)
 
     extra = arg0->extra.tmd;
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = extra->coords;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -1715,9 +1715,9 @@ void Gp_EffCtlTask3B(Task* arg0)
     s32        rng;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < 2) {
+    if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -1734,14 +1734,14 @@ void Gp_EffCtlTask3B(Task* arg0)
             arg0->state = 1;
         }
         Gp_DrawEffSprite3B(coord, mem->age, mem->angle, mem->scale);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         mem->age++;
         if (mem->age < 4) {
             return;
         }
-    } else if (flag < 4) {
+    } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);
@@ -1828,10 +1828,10 @@ void Gp_EffSprTask5C(Task* arg0)
     u16              vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag >= 2) {
-        if (flag < 4) {
+    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
@@ -1907,7 +1907,7 @@ void Gp_EffSprTask5C(Task* arg0)
         gte_rtps();
         gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             block->otz     = block->otz + 1;
             prim           = gGpuPrimCursor;
@@ -1942,7 +1942,7 @@ void Gp_EffSprTask5C(Task* arg0)
                     prim);
         }
         SCRATCH_POP_BYTES(0x1C);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         coord->coord.t[0]  += mem->move.vx;
@@ -1977,10 +1977,10 @@ void func_800F289C(Task* arg0)
     s32              mask2;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag >= 2) {
-        if (flag < 4) {
+    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
@@ -2090,7 +2090,7 @@ void func_800F289C(Task* arg0)
         gte_rtps();
         gte_stsxy(&block->sx);
         gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
             gte_stszotz(&block->otz);
             block->otz++;
             prim           = gGpuPrimCursor;
@@ -2127,7 +2127,7 @@ void func_800F289C(Task* arg0)
                     prim);
         }
         SCRATCH_POP(GpFxQuadScratch);
-        if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
         coord->coord.t[0]  += mem->move.vx;
@@ -2237,11 +2237,11 @@ void Gp_EffSprTask7C(Task* arg0)
     u16              vz;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
     param = 0x80;
-    if (flag >= 2) {
-        if (flag < 4) {
+    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -2286,7 +2286,7 @@ void Gp_EffSprTask7C(Task* arg0)
     gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
+    if (block->flag >= ROOM_EFFECT_CONTROL_RUNNING) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
         prim           = gGpuPrimCursor;
@@ -2330,7 +2330,7 @@ void Gp_EffSprTask7C(Task* arg0)
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
     coord->coord.t[0]  += mem->move.vx;
@@ -2385,10 +2385,10 @@ void func_800F4308(Task* arg0)
     roomCoord = &slot->head.u.coord;
     body      = arg0->extra.coordBody;
     mem       = arg0->spawnArg2.pointer;
-    flag      = Gp_State1C->eventState;
+    flag      = Gp_State1C->effectControl;
     coord     = body->coord;
-    if (flag != 0) {
-        cond = flag < 4;
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        cond = flag < ROOM_EFFECT_CONTROL_CANCEL_MIN;
         goto release;
     }
     Gp_UpdateCoord(coord);
@@ -2713,10 +2713,10 @@ void Gp_EffPolyTask9C(Task* arg0)
     s16        flag;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < 4) {
-        if (flag < 2) {
+    if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
             if (arg0->state == 0) {
                 mem->scale  = 0x10;
                 mem->angle  = 0x20;
@@ -2947,8 +2947,8 @@ void Gp_EffSprTask54(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState >= 2) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
@@ -3033,7 +3033,7 @@ void Gp_EffSprTask54(Task* arg0)
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         coord->coord.t[0]  += mem->move.vx;
         coord->coord.t[1]  += mem->move.vy;
         coord->coord.t[2]  += mem->move.vz;
@@ -3116,7 +3116,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
     s32            i;
     POLY_FT4*      prim;
 
-    if (shade >= 0 && Gp_State1C->eventState < 2) {
+    if (shade >= 0 && Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         block = SCRATCH_PUSH(GpQuadScratch);
         gte_SetTransMatrix(&GsWSMATRIX);
         for (i = 0; i < 4; i++) {
@@ -3195,11 +3195,11 @@ void Gp_EffSprTask53(Task* arg0)
             coord->parent       = parent + 1;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
-        } else if (Gp_State1C->groundShade >= 0) {
+        } else if (Gp_State1C->groundShadowShade >= 0) {
             if (!(slot->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
                 Gp_UpdateCoord(coord);
                 if ((s16)func_800EA1A8(MATRIX_TRANS(&coord->workm), &vec) != 0) {
-                    Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->groundShade);
+                    Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->groundShadowShade);
                 }
             }
         }

@@ -1045,5 +1045,5 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
         func_dryfield_warehouse_8017ED34(coord, 4, 8);
         func_dryfield_warehouse_8017ED34(coord, 6, 8);
     }
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

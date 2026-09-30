@@ -2897,10 +2897,10 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     SVECTOR    pos;
     SVECTOR    ofs;
 
-    work                    = task->spawnArg2.pointer;
-    coord                   = task->extra.coordBody->coord;
-    Gp_State1C->groundShade = 0xFF;
-    hi                      = 0;
+    work                          = task->spawnArg2.pointer;
+    coord                         = task->extra.coordBody->coord;
+    Gp_State1C->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_MAX_SHADE;
+    hi                            = 0;
     if (gGameSession->at4.loc.view < 0x20) {
         mask = 1 << gGameSession->at4.loc.view;
     } else {
@@ -3265,8 +3265,8 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
     SVECTOR    pos;
     u8         color[3];
 
-    if (Gp_State1C->eventState >= 2) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -3322,7 +3322,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
             task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & 3;
             break;
         case 1:
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 work->pos.vz += work->period;
                 if (work->pos.vy != 0 && work->age % work->pos.vy == 0) {
                     work->index++;
@@ -3383,7 +3383,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
             }
             break;
         case 2:
-            if (Gp_State1C->eventState != 0) {
+            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age--;
             }
             if (work->age < 60) {
@@ -3472,8 +3472,8 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
     GfxCoord* coord = task->extra.coordBody->coord;
     s32       i;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -3566,10 +3566,10 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     u8          color[3];
 
     work  = task->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = task->extra.coordBody->coord;
-    if (flag >= 2) {
-        if (flag >= 4) {
+    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -3594,7 +3594,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
             task->state   = 1;
             break;
         case 1:
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 work->index++;
                 coord->coord.t[1]  += work->move.vy;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3620,7 +3620,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
             }
             break;
         case 2:
-            if (Gp_State1C->eventState != 0) {
+            if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age = age;
             }
             t = work->age;
@@ -3727,8 +3727,8 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
     s32        lo;
     s32        arg;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -3829,8 +3829,8 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
     MATRIX*    m;
     s32        half; // default drift length and the centre of the wide drift rolls
 
-    if (Gp_State1C->eventState >= 2) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -3899,7 +3899,7 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
             task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & 3;
             break;
         case 1:
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if (work->age % work->pos.vy == 0) {
                     work->index++;
                 }
@@ -4016,8 +4016,8 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
     s16        end;
     u8         color[3];
 
-    if (Gp_State1C->eventState >= 2) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
@@ -4068,7 +4068,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
             task->state         = 1;
             break;
         case 1:
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 work->index++;
                 work->move.vy--;
                 coord->coord.t[0]  += work->move.vx;

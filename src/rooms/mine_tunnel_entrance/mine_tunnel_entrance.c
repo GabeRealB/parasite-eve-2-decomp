@@ -546,7 +546,7 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
 /// second quad). Other views draw nothing.
 void func_mine_tunnel_entrance_8017D720(Task* unused)
 {
-    Gp_State1C->roomEffectMode = 2;
+    Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB18;

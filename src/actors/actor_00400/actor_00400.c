@@ -1293,9 +1293,9 @@ static void Actor00400_Fn001AC(GfxCoord* coord, u16 phase, u16 kind, u32 arg3)
     u16     variant;
     u16     param;
 
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         Actor00400_Fn005DC(coord, ((u32)phase >> 1) % 6, 0x400, 0);
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     }

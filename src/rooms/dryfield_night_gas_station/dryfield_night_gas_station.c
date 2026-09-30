@@ -3470,7 +3470,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
         D_80115758                 = 0x60006;
         D_8011572C                 = 0x60008;
         D_80115750                 = 0x60009;
-        Gp_State1C->roomEffectMode = 2;
+        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     }
     for (i = 0; i < 10; i += 2) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
@@ -3488,7 +3488,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     }
     if (GameFlag_GetNibble(0x63) == 0) {
         work->active = 1;
-        if (Gp_State1C->battleState != 1 && Gp_State1C->eventState == 0) {
+        if (Gp_State1C->battleState != ROOM_EFFECT_BATTLE_ENGAGED && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             for (i = 19; i < 21; i++) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 work->kind   = (Gp_LcgState >> 16) % 3;
@@ -3509,7 +3509,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
                 }
             }
         }
-    } else if (work->active != 0 && Gp_State1C->eventState == 0) {
+    } else if (work->active != 0 && Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         for (i = 19; i < 21; i++) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
@@ -3726,8 +3726,8 @@ void func_dryfield_night_gas_station_80181D80(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -3906,7 +3906,7 @@ void func_dryfield_night_gas_station_801827E4(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -4099,8 +4099,8 @@ void func_dryfield_night_gas_station_801830CC(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

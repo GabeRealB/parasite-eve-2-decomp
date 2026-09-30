@@ -703,7 +703,7 @@ void func_neo_ark_pyramid_8017DBF0(Task* arg0)
         D_80115758                 = 0x601E2;
         D_8011572C                 = 0x601FE;
         D_80115750                 = 0x6021A;
-        Gp_State1C->roomEffectMode = 2;
+        Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
         arg0->state                = 1;
     }
 }
@@ -723,8 +723,8 @@ void func_neo_ark_pyramid_8017DC50(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
@@ -909,7 +909,7 @@ void func_neo_ark_pyramid_8017E6B4(Task* task)
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
-    if (Gp_State1C->eventState < 2) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -1106,8 +1106,8 @@ void func_neo_ark_pyramid_8017EF9C(Task* task)
     objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

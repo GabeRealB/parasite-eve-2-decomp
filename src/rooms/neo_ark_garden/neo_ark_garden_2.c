@@ -449,7 +449,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             } else {
                 work->soundDelay--;
             }
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 rnd         = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
@@ -489,7 +489,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             }
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[2]);
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[3]);
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 rnd         = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
@@ -710,8 +710,8 @@ void func_neo_ark_garden_8017F790(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -827,7 +827,7 @@ void func_neo_ark_garden_8017FCE8(Task* task)
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
             case 0:
@@ -862,7 +862,7 @@ void func_neo_ark_garden_8017FCE8(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->eventState >= 4) {
+    } else if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_ReleaseState1CMem(work, task);
     }
 }
@@ -1060,10 +1060,10 @@ void func_neo_ark_garden_80180948(Task* arg0)
     s16        step;
 
     mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->eventState;
+    flag  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag != 0) {
-        if (flag < 4) {
+    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;

@@ -110,13 +110,13 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
             func_shelter_b1_pod_service_gantry_8017DF70(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             func_shelter_b1_pod_service_gantry_8017E400(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
-        if (Gp_State1C->eventState >= 4) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -410,8 +410,8 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState < 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
                 func_shelter_b1_pod_service_gantry_8017ED3C(coord, work->index, work->scale, work->angle);
             } else {
@@ -752,8 +752,8 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_State1C->eventState != 0) {
-        if (Gp_State1C->eventState >= 4) {
+    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
             return;
         }

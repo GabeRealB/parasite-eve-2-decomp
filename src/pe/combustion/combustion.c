@@ -120,7 +120,7 @@ void func_combustion_8012EF34(Task* arg0)
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 goto release;
             }
             mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].field_0;
@@ -137,7 +137,7 @@ void func_combustion_8012EF34(Task* arg0)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4) ||
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (mem->age > D_combustion_80130980[mem->index].field_6)) {
             release:
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -212,7 +212,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_801305F8(coord, mem->age, mem->scale);
             }
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -234,7 +234,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_80130184(coord, mem->age, mem->scale * 4, 0);
             }
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }

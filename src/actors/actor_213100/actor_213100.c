@@ -437,7 +437,7 @@ static void func_actor_213100_80149E3C(Task* task)
     }
     if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {

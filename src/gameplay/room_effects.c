@@ -427,7 +427,7 @@ s32 D_80115738;
 
 s32 D_8011573C;
 
-GpState1C* Gp_State1C;
+RoomEffectState* Gp_State1C;
 
 s32 D_80115744;
 
@@ -454,6 +454,8 @@ extern s32 D_80111CF0[49];
 extern s32 D_80111DB4[33];
 
 static const TaskFuncTable3 D_80097678;
+
+enum { ROOM_EFFECT_NORMAL_SPAWN_LIMIT = 0x81 };
 
 /// Grayscale fade task controlled by `Player_Status.peStateFlags` bit 0.
 /// Alternates LCG-selected brightness targets, then fades out and releases
@@ -1350,48 +1352,48 @@ static const TaskFuncTable3 D_80097678 = { {
 
 static void Gp_InitState1C(Task* arg0)
 {
-    GpState1C* p;
-    s32        val;
+    RoomEffectState* effectState;
+    s32              val;
 
-    val = 0;
-    p   = memCalloc(0x1C, val);
-    if (p == NULL) {
+    val         = 0;
+    effectState = memCalloc(sizeof(*effectState), val);
+    if (effectState == NULL) {
         taskKill(arg0);
         return;
     }
 
-    Gp_State1CTask = arg0;
-    Gp_State1C     = p;
-    arg0->work     = p;
-    p->effectCount = 0;
-    p->rumbleCount = 0;
-    p->eventState  = 0;
-    p->groundTrace = 1;
-    p->groundShade = 0;
+    Gp_State1CTask                  = arg0;
+    Gp_State1C                      = effectState;
+    arg0->work                      = effectState;
+    effectState->effectCount        = 0;
+    effectState->rumbleCount        = 0;
+    effectState->effectControl      = ROOM_EFFECT_CONTROL_RUNNING;
+    effectState->groundTraceEnabled = true;
+    effectState->groundShadowShade  = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
     Gp_SpawnEff(0x60053, 0, 0, 0);
 
-    D_80115758        = 0;
-    D_8011572C        = 0;
-    D_80115750        = 0;
-    D_80115730        = 0;
-    D_80115734        = 0;
-    D_80115754        = 0;
-    D_80115728        = 0;
-    D_80115744        = 0;
-    D_8011573C        = 0;
-    D_80115720        = 0;
-    D_8011574C        = 0;
-    p->roomEffectMode = 0;
-    p->field_C        = 0;
-    p->fadeState      = 0;
-    p->screenFxFlags  = 0;
-    p->peFxFlags      = 0;
-    p->burstRequest   = 0;
-    p->battleState    = 0;
-    p->peFadeId       = 0;
-    p->pendingPulses  = 0;
-    D_80115738        = 0;
-    D_80115724        = 0;
+    D_80115758                         = 0;
+    D_8011572C                         = 0;
+    D_80115750                         = 0;
+    D_80115730                         = 0;
+    D_80115734                         = 0;
+    D_80115754                         = 0;
+    D_80115728                         = 0;
+    D_80115744                         = 0;
+    D_8011573C                         = 0;
+    D_80115720                         = 0;
+    D_8011574C                         = 0;
+    effectState->roomEffectMode        = ROOM_EFFECT_VIEW_DISABLED;
+    effectState->lastAnimationSoundCue = 0;
+    effectState->peEffectControl       = ROOM_EFFECT_CONTROL_RUNNING;
+    effectState->screenFxFlags         = 0;
+    effectState->peFxFlags             = 0;
+    effectState->burstRequest          = false;
+    effectState->battleState           = 0;
+    effectState->peFadeMask            = 0;
+    effectState->pendingCancelFlags    = 0;
+    D_80115738                         = 0;
+    D_80115724                         = 0;
     arg0->state++;
     Gp_InitRoomCoords();
 
@@ -1421,10 +1423,10 @@ static void Gp_InitState1C(Task* arg0)
 
 static void Gp_TickState1C(Task* unused)
 {
-    GpState1C*  p;
-    GpStateF0*  q;
-    GpStateC08* r;
-    s16         temp;
+    RoomEffectState* effectState;
+    GpStateF0*       q;
+    GpStateC08*      r;
+    s16              previousBattleState;
 
     if (Gp_State1C->effectCount <= 0) {
         Gp_State1C->effectCount = 0;
@@ -1432,21 +1434,22 @@ static void Gp_TickState1C(Task* unused)
     if (Gp_State1C->rumbleCount <= 0) {
         Gp_State1C->rumbleCount = 0;
     }
-    temp = Gp_State1C->battleState;
-    if ((temp == 1) && (Gp_StateF0.prefix.bytes.field_0 != temp)) {
+    previousBattleState = Gp_State1C->battleState;
+    if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (Gp_StateF0.prefix.bytes.field_0 != previousBattleState)) {
         SndEvt_EnqueueType7(0xFF0D, 1);
         Gp_State1C->rumbleCount = 0;
     }
-    p                = Gp_State1C;
-    q                = &Gp_StateF0;
-    p->battleState   = q->prefix.bytes.field_0;
-    p->eventState    = q->field_4 | (p->pendingPulses & 0x100);
-    p->fadeState     = q->field_4 | (p->pendingPulses & 0x180);
-    p->pendingPulses = 0;
-    if (!(p->eventState & 1)) {
+    // Publish cancellation for one update alongside the scene actor mode.
+    effectState                     = Gp_State1C;
+    q                               = &Gp_StateF0;
+    effectState->battleState        = q->prefix.bytes.field_0;
+    effectState->effectControl      = q->field_4 | (effectState->pendingCancelFlags & ROOM_EFFECT_CANCEL_ALL);
+    effectState->peEffectControl    = q->field_4 | (effectState->pendingCancelFlags & (ROOM_EFFECT_CANCEL_PE | ROOM_EFFECT_CANCEL_ALL));
+    effectState->pendingCancelFlags = 0;
+    if (!(effectState->effectControl & ROOM_EFFECT_CONTROL_PAUSED)) {
         Gp_DecRoomCoordRefs();
     }
-    if (Gp_State1C->fadeState >= 4) {
+    if (Gp_State1C->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         r           = &Gp_StateC08;
         r->field_10 = 0;
         r->field_C  = 0;
@@ -1560,7 +1563,7 @@ s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2)
 
 void func_800EA3A0(s32 arg0)
 {
-    Gp_State1C->field_C = arg0 + 1;
+    Gp_State1C->lastAnimationSoundCue = arg0 + 1;
 }
 
 static void Gp_DecRoomCoordRefs(void)
@@ -1605,7 +1608,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg
     s32        bank;
 
     bank = (arg0 >> 16) & 0x7FFF;
-    if ((arg0 >= 0) && (Gp_State1C->effectCount >= 0x81)) {
+    if ((arg0 >= 0) && (Gp_State1C->effectCount >= ROOM_EFFECT_NORMAL_SPAWN_LIMIT)) {
         return NULL;
     }
     arg0 &= 0xFFFF;
@@ -2116,7 +2119,7 @@ void func_800EC47C(Task* arg0)
     mem = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
-            Gp_State1C->screenFxFlags |= 1;
+            Gp_State1C->screenFxFlags |= ROOM_EFFECT_SCREEN_FADE_QUAD;
             arg0->state                = 1;
             mem->angle                 = 0x10;
         case 1:
@@ -2163,7 +2166,7 @@ void func_800EC47C(Task* arg0)
                 rgb[0] = rgb[1] = rgb[2] = mem->scale;
                 Gp_DrawFadeQuad(rgb, 2);
             } else {
-                Gp_State1C->screenFxFlags &= 0xFFFE;
+                Gp_State1C->screenFxFlags &= (u16)~ROOM_EFFECT_SCREEN_FADE_QUAD;
                 Gp_State1C->effectCount--;
                 memFree(mem);
                 taskKill(arg0);
@@ -2174,15 +2177,15 @@ void func_800EC47C(Task* arg0)
 
 void Gp_FadeWaveTask(Task* arg0)
 {
-    GpState1C* p;
-    GpEffWork* mem;
-    u16        color;
-    u8         rgb[3];
+    RoomEffectState* effectState;
+    GpEffWork*       mem;
+    u16              color;
+    u8               rgb[3];
 
-    p   = Gp_State1C;
-    mem = arg0->spawnArg2.pointer;
-    if (p->peFadeId != arg0->spawnArg1.value) {
-        p->effectCount--;
+    effectState = Gp_State1C;
+    mem         = arg0->spawnArg2.pointer;
+    if (effectState->peFadeMask != arg0->spawnArg1.value) {
+        effectState->effectCount--;
         memFree(mem);
         taskKill(arg0);
         return;
@@ -2223,7 +2226,7 @@ static void Gp_KillState1CTask(Task* arg0)
 
 void Gp_PulseState1C(void)
 {
-    Gp_State1C->pendingPulses |= 0x100;
+    Gp_State1C->pendingCancelFlags |= ROOM_EFFECT_CANCEL_ALL;
 }
 
 static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
@@ -2252,24 +2255,24 @@ void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
 
 void func_800EC9C8(void)
 {
-    if (!(Gp_State1C->screenFxFlags & 1)) {
+    if (!(Gp_State1C->screenFxFlags & ROOM_EFFECT_SCREEN_FADE_QUAD)) {
         Gp_SpawnEff(0x800600E8, 0, 0, 0);
     }
 }
 
 void Gp_SetState1CPe(s32 arg0)
 {
-    Gp_State1C->peFadeId = (u8)arg0;
+    Gp_State1C->peFadeMask = (u8)arg0;
     Gp_SpawnEff(0x8006000F, 0, (s32)((u8)arg0), 0);
 }
 
 void func_800ECA54(void)
 {
-    GpState1C* p;
+    RoomEffectState* effectState;
 
-    p = Gp_State1C;
-    if (!(p->screenFxFlags & 0x80)) {
-        p->peFxFlags &= 0xF7FF;
+    effectState = Gp_State1C;
+    if (!(effectState->screenFxFlags & ROOM_EFFECT_SCREEN_BURST_GUARD)) {
+        effectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_STATUS_BURST;
         Gp_SpawnEff(0x8006000E, 0, 0, 0);
     }
 }

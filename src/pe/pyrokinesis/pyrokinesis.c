@@ -109,7 +109,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     u8                    rgb[3];
     s32                   i;
     s32                   pan;
-    s16                   fade;
+    s16                   peEffectControl;
     s32                   tick;
     s32                   radius;
     s32                   next;
@@ -125,11 +125,11 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     slot     = &base->light;
     switch (arg0->state) {
         case 0:
-            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = Gp_State1C->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (fade != 0) {
+            if (peEffectControl != 0) {
                 mem->age = mem->age - 1;
                 return;
             }
@@ -224,13 +224,13 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 1:
-            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = Gp_State1C->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (fade != 0) {
+            if (peEffectControl != 0) {
                 mem->age = mem->age - 1;
                 return;
             }
@@ -254,7 +254,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     Task_Reparent(arg0, spawned->task);
                 }
             }
-            if (Gp_State1C->groundTrace != 0) {
+            if (Gp_State1C->groundTraceEnabled != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                     func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
@@ -307,12 +307,12 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         case 2:
-            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = Gp_State1C->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (fade != 0) {
+            if (peEffectControl != 0) {
                 mem->age = mem->age - 1;
                 return;
             }
@@ -351,12 +351,12 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 3:
-            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = Gp_State1C->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (fade != 0) {
+            if (peEffectControl != 0) {
                 mem->age = mem->age - 1;
                 return;
             }
@@ -373,12 +373,12 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             return;
         case 4:
-            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = Gp_State1C->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (fade != 0) {
+            if (peEffectControl != 0) {
                 mem->age = mem->age - 1;
                 return;
             }
@@ -412,10 +412,10 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (Gp_StateC08.field_3 != -2) {
         scene = Gp_State1C->battleState;
-        if (scene == 1) {
-            flag = Gp_State1C->fadeState;
-            if (flag < 4) {
-                if (flag != 0) {
+        if (scene == ROOM_EFFECT_BATTLE_ENGAGED) {
+            flag = Gp_State1C->peEffectControl;
+            if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+                if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
                     return;
                 }
                 mem->age = mem->age + 1;
@@ -757,9 +757,9 @@ void func_pyrokinesis_80130C54(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_StateC08.field_3 != -2) {
-        flag = Gp_State1C->fadeState;
-        if (flag < 4) {
-            if (flag != 0) {
+        flag = Gp_State1C->peEffectControl;
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
                 return;
             }
             mem->age = mem->age + 1;
@@ -866,9 +866,9 @@ void func_pyrokinesis_801311B8(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_StateC08.field_3 != -2) {
-        flag = Gp_State1C->fadeState;
-        if (flag < 4) {
-            if (flag != 0) {
+        flag = Gp_State1C->peEffectControl;
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
                 return;
             }
             if (arg0->state == 0) {
@@ -1086,9 +1086,9 @@ void func_pyrokinesis_80131CE4(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_StateC08.field_3 != -2) {
-        flag = Gp_State1C->fadeState;
-        if (flag < 4) {
-            if (flag != 0) {
+        flag = Gp_State1C->peEffectControl;
+        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
                 return;
             }
             mem->age = mem->age + 1;

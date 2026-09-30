@@ -35591,7 +35591,7 @@ entry `beqz` delay:
 base = Gp_RoomCoords;
 slot = (GpCoordTail*)&base->coord;
 st   = Gp_State1C;
-if (st->eventState < 2) {
+if (st->effectControl < 2) {
     slot->field_50 = 0xC00;
     ...
     if (slot->field_58 >= 0x191) {
@@ -35600,7 +35600,7 @@ if (st->eventState < 2) {
 }
 ```
 
-A local `GpState1C* st = Gp_State1C` interleaves `lui s6, %hi(Gp_RoomCoords)`
+A local `RoomEffectState* st = Gp_State1C` interleaves `lui s6, %hi(Gp_RoomCoords)`
 with the `Gp_State1C` load so `addiu a0, s6, %lo(Gp_RoomCoords)` stays in
 the prologue. `Gp_EffCtlTask6B` is the example.
 
@@ -45442,7 +45442,7 @@ re-split so splat drops the now-moved `INCLUDE_RODATA` line itself.
 ## Duplicate the tail call instead of an `else` when statement order can only fix one of scheduling and allocation
 
 `func_hypervelocity_8011F270` reads three things at the top — `mem =
-arg0->spawnArg2`, `flag = Gp_State1C->eventState`, `coord =
+arg0->spawnArg2`, `flag = Gp_State1C->effectControl`, `coord =
 ((GameActorExt*)arg0->extra)->field_8` — and ends with one shared
 `Gp_ReleaseState1CMem(mem, index)` reached both from the early
 `flag`-dispatch arm and from the fall-through of the body. Written with the
@@ -55616,7 +55616,7 @@ slot  = (GpCoordTail*)light;
 if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
     return;
 }
-if (Gp_State1C->eventState >= 2) {
+if (Gp_State1C->effectControl >= 2) {
     return;
 }
 ```
@@ -57413,7 +57413,7 @@ that `j` — and therefore the branch polarity — follows the source: the *then
 arm falls through, the *else* arm is the one merged into the shared tail.
 
 `func_acropolis_bridge_80182694` ends its state-1 case with a decrement or a
-`Gp_ReleaseState1CMem` that the early `Gp_State1C->eventState >= 4` path also
+`Gp_ReleaseState1CMem` that the early `Gp_State1C->effectControl >= 4` path also
 reaches. Writing the release as the *then* arm inlines the `jal` in the middle
 of the function (`branch=1 insert=6 delete=5`, 84%):
 
@@ -119072,7 +119072,7 @@ All three in one rewrite: 62.684% with `regs=57 insert=17 delete=15` to
 
 ## A nested `if`'s comparison lands in the outer branch's delay slot: read the branch as testing the *earlier* value
 
-`func_mine_cavern_80180320` gates on `Gp_State1C`'s `eventState` the way the whole
+`func_mine_cavern_80180320` gates on `Gp_State1C`'s `effectControl` the way the whole
 room-effect family does - 1-3 parks the effect, 4 or more tears the work block
 down - and the target tests it twice off one load:
 
@@ -119096,8 +119096,8 @@ Nothing special is needed in the C to get this - write the nesting plainly and
 let CSE merge the two reads into one load and one pseudo:
 
 ```c
-if (Gp_State1C->eventState != 0) {
-    if (Gp_State1C->eventState >= 4) {
+if (Gp_State1C->effectControl != 0) {
+    if (Gp_State1C->effectControl >= 4) {
         Gp_ReleaseState1CMem(work, task);
     }
 } else {
@@ -120045,7 +120045,7 @@ promotion and are already matched in their own overlay.
 ## Identical early-exit blocks the target *keeps*: jump2's chain loop only runs when the first comparison fails (func_dryfield_dilapidated_house_80182744, 2026-09-17)
 
 The mirror image of the entry above. Two switch cases each open with
-`if (Gp_State1C->eventState != 0) { work->field_22 = tick; keep = Gp_State1C->eventState < 4;
+`if (Gp_State1C->effectControl != 0) { work->field_22 = tick; keep = Gp_State1C->effectControl < 4;
 break; }` and both `break` to one shared `if (!keep) Gp_ReleaseState1CMem(...)`.
 Written that way the two then-blocks are byte-identical and the target keeps
 *both*: the case-0 test is `beqz $v0, <main body>` with the early block as its
@@ -120081,7 +120081,7 @@ the cheapest RTL-only difference:
 ```c
         s32 fade;
         work->field_22 = tick;
-        fade           = Gp_State1C->eventState; /* the reload the target has anyway */
+        fade           = Gp_State1C->effectControl; /* the reload the target has anyway */
         SOFT_USE_REG(fade);                     /* between the `lh` and the `slti` */
         keep = fade < 4;
 ```

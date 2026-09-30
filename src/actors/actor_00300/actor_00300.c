@@ -1263,7 +1263,7 @@ static void            Actor00300_Fn04664(GfxCoord* arg0, s32 arg1);
 /// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
 /// intensity, projects `coord` and draws two `POLY_FT4` glow billboards around
 /// it, the outer one half again as large as `size`; when
-/// `Gp_State1C->groundTrace` is set, traces the ground below and draws the
+/// `Gp_State1C->groundTraceEnabled` is set, traces the ground below and draws the
 /// ground quad there at twice the outer size.
 static void Actor00300_Fn00078(GfxCoord* coord, s16 size)
 {
@@ -1371,7 +1371,7 @@ static void Actor00300_Fn00078(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        if (Gp_State1C->groundTrace != 0) {
+        if (Gp_State1C->groundTraceEnabled != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                 Actor00300_Fn005D0(&ground, (s32)(s16)(outerSize * 2));
             }
@@ -2184,7 +2184,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
             work->field_680 =
                 ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                 0xFFF;
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
@@ -2241,7 +2241,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                     work->field_654 = NULL;
                 }
             }
-            if (((s16)work->field_672 < 0xE) && (Gp_State1C->eventState == 0)) {
+            if (((s16)work->field_672 < 0xE) && (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
                 effectRandom2 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom2;
                 if (!((effectRandom2 >> 0x10) & 3)) {
@@ -2387,7 +2387,7 @@ static void Actor00300_Fn028D0(Task* arg0)
     coord = obj->coords;
     switch (state) {
         case 0:
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom0 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom0;
                 if (!((effectRandom0 >> 0x10) & 3)) {
@@ -2429,7 +2429,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                     work->field_654 = NULL;
                 }
             }
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
@@ -2653,7 +2653,7 @@ static void Actor00300_Fn030B8(Task* arg0)
             work->field_66E = 3;
             return;
         case 1:
-            if (Gp_State1C->eventState == 0) {
+            if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectRandom = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState  = (s32)effectRandom;
                 if (!((effectRandom >> 0x10) & 3)) {
@@ -3316,7 +3316,7 @@ static void Actor00300_Fn04664(GfxCoord* arg0, s32 arg1)
     SVECTOR sp18;
     s32     ang;
 
-    if (Gp_State1C->eventState == 0) {
+    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

@@ -1059,8 +1059,8 @@ static void func_actor_800100_80166514(Task* arg0);
 static void func_actor_800100_80166F50(Task* arg0);
 
 /// Per-frame flare task of the actor: while the player model is visible
-/// (`field_C & 0x80` clear) and the room is not fading out
-/// (`Gp_State1C->eventState < 2`) it claims room-light slot 3 as the flare's
+/// (`field_C & 0x80` clear) and effects are visible
+/// (`Gp_State1C->effectControl < 2`) it claims room-light slot 3 as the flare's
 /// coordinate. State 0 hangs that coordinate off the actor's own at the fixed
 /// offset and zeroes its `age`; state 1 then dispatches on `spawnArg1`:
 ///
@@ -1072,7 +1072,7 @@ static void func_actor_800100_80166F50(Task* arg0);
 ///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
-/// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
+/// While `Gp_State1C->effectControl` is non-zero the two drawing sub-states wind
 /// `age` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
@@ -1093,7 +1093,7 @@ void func_actor_800100_80161F20(Task* task)
     if ((gameGetPtrSlot(10)->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
         return;
     }
-    if (Gp_State1C->eventState >= 2) {
+    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
     work->age++;
@@ -1119,7 +1119,7 @@ void func_actor_800100_80161F20(Task* task)
                 case 0:
                     break;
                 case 1:
-                    if (Gp_State1C->eventState != 0) {
+                    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
                         func_actor_800100_80162264(
                             MATRIX_TRANS(&coord->workm), work->age, 0x80);
@@ -1140,7 +1140,7 @@ void func_actor_800100_80161F20(Task* task)
                     work->scale         = 0x40;
                     break;
                 case 2:
-                    if (Gp_State1C->eventState != 0) {
+                    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
                         break;
                     }
@@ -1252,10 +1252,10 @@ static void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
-/// Projectile task of the actor: while the state block says a fade-out is not
-/// running it winds `work->age` (the animation frame, halved for the
-/// draw) forward, and while one is (`Gp_State1C->eventState` non-zero) it just
-/// redraws at the coordinate. `eventState >= 4` tears the task down.
+/// Projectile task of the actor: with effect control running it advances
+/// `work->age` (the animation frame, halved for the draw). With nonzero
+/// `Gp_State1C->effectControl` it only redraws at the coordinate; values at
+/// least 4 cancel the task.
 ///
 /// - State 0 allocates the projectile's `Actor800100Beam`, claims the exit
 ///   callback, seeds its spin from `Gp_LcgState`, and rotates the scratch
@@ -1276,24 +1276,24 @@ void func_actor_800100_801624F0(Task* task)
     GfxCoord*        coord;
     GpEffWork*       work;
     Actor800100Beam* beam;
-    s32              fade;
+    s32              effectControl;
     u32              ang0;
     u32              ang1;
     u32              ang2;
     u32              ang3;
 
-    beam  = (Actor800100Beam*)task->work;
-    work  = task->spawnArg2.pointer;
-    fade  = Gp_State1C->eventState;
-    coord = task->extra.coordBody->coord;
-    if (fade >= 4) {
+    beam          = (Actor800100Beam*)task->work;
+    work          = task->spawnArg2.pointer;
+    effectControl = Gp_State1C->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);
         }
         Gp_ReleaseState1CMem(work, task);
         return;
     }
-    if (fade != 0) {
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_UpdateCoord(coord);
         func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
                                    (work->age >> 1) + 1, work->scale,
@@ -1352,7 +1352,7 @@ void func_actor_800100_801624F0(Task* task)
                                        work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
+            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTraceEnabled != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_actor_800100_80162E90(MATRIX_TRANS(&ground.workm),
                                            (s16)((work->scale * 2) / 3));
@@ -1793,7 +1793,7 @@ static void func_actor_800100_801635F4(Task* arg0)
         ground->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(ground);
         if (func_800EA1A8(MATRIX_TRANS(&ground->workm), (VECTOR3*)scratch) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, Gp_State1C->groundShade);
+            Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, Gp_State1C->groundShadowShade);
         }
     }
     SCRATCH_POP_BYTES(0x18);
