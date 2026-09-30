@@ -32,10 +32,15 @@
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
+/// Bytes at the scripted-walk mode's address. The first halfword is
+/// `gScriptedWalkModeValue`. Nothing reads or writes the second halfword;
+/// its role, including padding, is unproven.
 extern s16 gScriptedWalkMode[2];
-// Scalar symbol view preserves the original byte/halfword address formation.
+
+/// Approach mode the last `scriptedWalkTo` selected for the first variant
+/// (0 faces the target, step 60; 1 faces away, step 15 backward; 2 faces the
+/// target, step 25). Halfword view of `gScriptedWalkMode`, which is how the
+/// walk code addresses the mode.
 extern s16 gScriptedWalkModeValue __asm__("gScriptedWalkMode");
 
 /// Work block of the overlay's first actor variant, allocated zeroed by its
@@ -72,9 +77,6 @@ extern Actor143900Work* gScriptedWalkWork;
 /// The first variant's task, published by its spawn routine so the
 /// visibility and play-animation handlers can reach it.
 extern Task* D_actor_143900_801496BC;
-
-/// Approach mode the last `scriptedWalkTo` call selected; the first
-/// variant's update picks its walk distance from it.
 
 /// Reset argument the first variant forwards to the reseed: its play-animation
 /// handler latches the preset's `field_C` here, and the update sets it to 10

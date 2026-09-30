@@ -15,9 +15,12 @@
  *   gScriptedWalkMode         the mode of the last walk
  *   gScriptedWalkBlendFrames  the blend the next reseed uses
  *
- * A package that stores the mode inside a larger object names it through
- * SCRIPTED_WALK_MODE before including this header. A file with a second walker, as actor_143900 has, includes the fragments
- * again with the library names defined to that walker's own.
+ * A package that does not address the mode as a plain `s16 gScriptedWalkMode`
+ * names that halfword through SCRIPTED_WALK_MODE before including this header.
+ * actor_143900 and actor_461800 bind it to `gScriptedWalkModeValue`, the
+ * halfword at the start of their four-byte mode symbol. A file with a second
+ * walker, as actor_143900 has, includes the fragments again with the library
+ * names defined to that walker's own.
  */
 
 #ifndef SRC_SHARED_SCRIPTED_WALK_H
