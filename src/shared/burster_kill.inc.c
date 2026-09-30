@@ -1,0 +1,47 @@
+/* Part of the burster library; see burster.h. */
+
+/// Kills the first enemy: its HP is cleared and a random draw (or a non-zero
+/// `arg1`) picks the death. The violent one plays its sound, sets the 0x8000
+/// bit of the last two bodies, spawns the 0x6009C and 0x60030 effects and the
+/// death script, and asks for a final effect through `field_2DA`; the other
+/// plays a second sound and moves the reaction state to 6. `field_2D6` picks
+/// the sound set either way.
+void bursterKill(Task* arg0, u8 arg1)
+{
+    Actor104600Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GfxCoord*        coord;
+    s32              soundId;
+
+    obj         = arg0->extra.tmd;
+    enemy       = arg0->spawnArg2.pointer;
+    work        = (Actor104600Work*)arg0->work;
+    coord       = obj->coords;
+    enemy->hp   = 0;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if (((Gp_LcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
+        if (work->field_2D6 != 0) {
+            soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x4046000B;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        } else {
+            soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402E0003;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        }
+        work->obj1B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj1EC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
+        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &gBursterBurstFxOffset);
+        Gp_SpawnScript18(&gBursterBurstScriptA, &gBursterBurstScriptB);
+        work->field_2DA = 1;
+    } else {
+        if (work->field_2D6 != 0) {
+            soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x4046000C;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        } else {
+            soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402E0004;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        }
+        work->field_2B2 = 6;
+    }
+}
