@@ -229,7 +229,13 @@ enum {
     /// Script-start requests supply their upper 16 bits after bank remapping.
     /// The cached `SndBankSlot::bankId` is not consulted; a free descriptor id
     /// can match, and matching does not establish image or sample-table readiness.
-    SOUND_BANK_SLOT_MATCH_ID   = 0,
+    SOUND_BANK_SLOT_MATCH_ID = 0,
+    /// Selects matching by the attached sample descriptor's encoded bank type.
+    ///
+    /// `SOUND_BANK_TYPE_MASK` selects bits 12..15 of both the requested id and
+    /// `SndBank::bankId`; the low 12 bits are ignored. The first matching slot
+    /// wins, without consulting its cached id or validating its image or tables.
+    /// Type 15 also matches `SOUND_BANK_ID_FREE`, so this is not a readiness test.
     SOUND_BANK_SLOT_MATCH_TYPE = 1
 };
 
