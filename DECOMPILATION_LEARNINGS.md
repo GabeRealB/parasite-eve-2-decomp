@@ -6144,7 +6144,7 @@ in the C source makes blend live across the shift, so local-alloc gives blend
 the instruction order matches even though the C order is reversed:
 
 ```c
-blend  = (*(u8*)&ds->field_8 & 1) * 8;
+blend  = (*(u8*)&ds->animFrame & 1) * 8;
 packed = arg2 << 16;
 tr     = (packed >> 20) & 0xF0;
 tg     = (packed >> 16) & 0xF0;
@@ -11698,7 +11698,7 @@ AVSZ3 (splat still tags these as "Handwritten" because of COP2): call
 Hoist `opz = &ws->gteResult` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
 `&ws->gteResult` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
 shifted OT slot (~85%); write both `addPrim` halves as the full
-`((((u32)otz << ds->field_128) >> 2) & 0xFFC) + (s32)ws->ot`
+`((((u32)otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot`
 expression, same as `Gp_LinkSprtCmd`.
 
 ## Decode the COP2 register file before reading an unmatched GTE body as C
@@ -16761,10 +16761,10 @@ even if the local is not read afterward. GCC still emits the multiply early and
 CSEs it into the later array access:
 
 ```c
-drawBase = ds->field_48;
+drawBase = ds->drawEnv;
 PutDrawEnv(&drawBase[buf]);
 stride = buf * 0x14;          /* emit s0*0x14 into $s2 first */
-dispBase = ds->field_20;      /* then addiu a0, s1, 0x20 */
+dispBase = ds->dispEnv;       /* then addiu a0, s1, 0x20 */
 PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
 /* later DrawOTag(Gpu_OtBuffers[buf].field_10) reuses $s2 */
 ```
@@ -23482,14 +23482,14 @@ Related delay-slot / pin patterns used on the same function (exit + menu):
 asm volatile("" ::: "a0");
 Task_CallExit(s4);
 
-/* GetResetCount result stays in v0; first field_12c store survives CSE */
+/* GetResetCount result stays in v0; first demoScene store survives CSE */
 register u32 v0 asm("v0");
 v0 = GameMain_GetResetCount();
 ds = &gDisplayState;
 asm("" : "+r"(v0), "+r"(ds));
 v0 = v0 + 2;
-ds->field_12c = v0;
-asm("" : "+r"(v0), "+m"(ds->field_12c));
+ds->demoScene = v0;
+asm("" : "+r"(v0), "+m"(ds->demoScene));
 
 /* Menu loop: bump s0/s1 before jal so addiu s2 fills delay */
 do {
@@ -23578,7 +23578,7 @@ compare promotes with `lbu` + `sll 24`. Assign the cast into an `s32`:
 ```c
 s32 flag;
 
-flag = (s8)ds->field_122;
+flag = (s8)ds->keepGraphics;
 ds->control.flags.flipMode = 2;
 if (flag == 0) {
     /* calls */
@@ -27578,7 +27578,7 @@ with `ABS(vz)` in `$a0` and the `vx` reload in `$v0`.
 
 ## Index a global array field by name so dest is `base+off` then scale
 
-`ds = &gDisplayState` plus `MoveImage((RECT*)&ds->dispEnv[i], …)` folds the
+`ds = &gDisplayState` plus `MoveImage(&ds->dispEnv[i].disp, …)` folds the
 array offset into the scaled index (`addiu a0, scaled, 0x20; addu a0, ds`).
 The target computes the array base first (`addiu v0, ds, 0x20`) and adds
 the scaled index in the `jal` delay slot.
@@ -27587,12 +27587,12 @@ Write dest through the global name and x/y through the local pointer:
 
 ```c
 MoveImage(
-    (RECT*)&gDisplayState.dispEnv[ds->field_1f ^ 1],
-    ds->dispEnv[ds->field_1f].disp.x,
-    ds->dispEnv[ds->field_1f].disp.y);
+    &gDisplayState.dispEnv[ds->drawBuffer ^ 1].disp,
+    ds->dispEnv[ds->drawBuffer].disp.x,
+    ds->dispEnv[ds->drawBuffer].disp.y);
 ```
 
-That also rematerializes `field_1f` between the two `lh`s (`lbu` in the
+That also rematerializes `drawBuffer` between the two `lh`s (`lbu` in the
 `lh a1` delay slot). A local `DISPENV* dest = ds->dispEnv` emits the
 `addiu` base but schedules the reload after both loads.
 
@@ -32573,7 +32573,7 @@ D4 task states share this pair (`Gp_LoadWaitBoot` … `Gp_FadeGrayHold`).
 
 On the leaf overlay (`Gp_FadeGrayHold`) the target hoists `0x64` and both
 prim pointers before the `CdCmd_Queue.bootLoadActive` check. Keep that order
-in C (`color = 0x64`, then `buf = ds->field_114`, then both `&arr[buf]`).
+in C (`color = 0x64`, then `buf = ds->otBuffer`, then both `&arr[buf]`).
 
 An `s8 yoff = ds->vramYOffset` local after `x0` is what places
 `sb r/g/b` before `sh x0` and the `lbu 0x109` / `sll`/`sra` between `x0`
@@ -32620,7 +32620,7 @@ register s32 queued asm("a0");
 color = 8;
 ds    = &gDisplayState;
 asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
-buf    = ds->field_114;
+buf    = ds->otBuffer;
 tile   = &Gp_FadeTiles[buf];
 dr     = &Gp_FadeTpages[buf];
 queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(CdCmd_Queue+0x224) */
@@ -57018,8 +57018,8 @@ holding `0x38` — but emits `lbu v0, 0x8(a2)` and `addiu v0, v0, -0x40`.
 **Symptom.** Two mismatches that always travel together: the global's load
 narrows from `lw` to `lbu`, and every additive constant wraps into its signed
 byte (`0xC0` → `-0x40`, `0xDF` → `-0x21`). Nothing about the surrounding code
-differs, so it reads like a struct-field-type problem — but `field_8` really is
-`s32`, and casting it (`(u8)gDisplayState.animFrame`) only makes the `lbu`
+differs, so it reads like a struct-field-type problem — but `animFrame` really is
+`u32`, and casting it (`(u8)gDisplayState.animFrame`) only makes the `lbu`
 deliberate rather than fixing it.
 
 **Cause.** Combining the `+ 0xC0` into the `sb` gives combine a QImode
@@ -59806,7 +59806,7 @@ any leftover `reorder=1`.
 ## An `s32` temp keeps a full `lw` and the positive `addiu` in a byte-field store
 
 `Room_Draw06` fills a `POLY_FT4`'s four `u` texcoords from the frame-parity bit
-of `gDisplayState.animFrame` (an `s32`). The direct form
+of `gDisplayState.animFrame` (a `u32`). The direct form
 
 ```c
 prim->u0 = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
@@ -132030,8 +132030,8 @@ Two other things to expect when the whole struct goes at once. A reference
 inside a macro argument is reported at the *invocation's* first line, so an
 `addPrim(...)` call that spans lines has its identifier a line below the
 reported one; those sites are the ones the pass has to fix by hand afterwards
-(299 of them here). And a mention of the form `` `gDisplayState.field_1f` /
-`field_104` `` has only the first spelling qualified, so the rest survive every
+(299 of them here). And a mention of the form `` `gDisplayState.drawBuffer` /
+`skipDraw` `` has only the first spelling qualified, so the rest survive every
 substitution and are found only by grepping the notes for the retired names.
 
 ## The heap wrappers are libapi `heap3`, and writing `_freep` is what selects a heap

@@ -106,7 +106,7 @@ void func_800AA548(s32 arg0)
 
     session                    = gGameSession;
     session->deathVariant      = 0;
-    gDisplayState.otDepthShift = 0;
+    gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     sess                       = &session->at4.loc;
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;

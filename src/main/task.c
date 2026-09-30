@@ -196,7 +196,7 @@ void taskKill(Task* task)
         memFree(task->work);
     }
 
-    if (gDisplayState.skipTeardown == 0) {
+    if (gDisplayState.immediateTaskFree == 0) {
         type = task->bodyKind;
         if (type == TASK_BODY_TMD) {
             goto case1;

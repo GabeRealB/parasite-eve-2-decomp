@@ -53,11 +53,14 @@ enum {
 
 /// Pending requests; high-bit sentinel requests bypass the normal display-hold gate.
 enum {
-    DISPLAY_MODE_NONE       = 0,
-    DISPLAY_MODE_MENU_FIRST = 0x20,
-    DISPLAY_MODE_MENU_LIMIT = 0x80,
-    DISPLAY_MODE_DESCRIPTOR = 0x81,
-    DISPLAY_MODE_BARE_OT    = 0xFF,
+    DISPLAY_MODE_NONE            = 0,
+    DISPLAY_MODE_MENU_FIRST      = 0x20,
+    DISPLAY_MODE_MENU_GROUP_MASK = 0xF0,
+    DISPLAY_MODE_GAME_MENU_GROUP = 0x40,
+    DISPLAY_MODE_MAP             = 0x43,
+    DISPLAY_MODE_MENU_LIMIT      = 0x80,
+    DISPLAY_MODE_DESCRIPTOR      = 0x81,
+    DISPLAY_MODE_BARE_OT         = 0xFF,
 };
 
 /// CD-command latch values used to block reset while work is active.
@@ -98,6 +101,14 @@ enum {
 enum {
     DISPLAY_SHAKE_MIN = -8,
     DISPLAY_SHAKE_MAX = 8,
+};
+
+/// Camera-depth left shifts: multiply depth before ordering-table quantization.
+enum {
+    DISPLAY_DEPTH_SHIFT_1X = 0,
+    DISPLAY_DEPTH_SHIFT_2X = 1,
+    DISPLAY_DEPTH_SHIFT_4X = 2,
+    DISPLAY_DEPTH_SHIFT_8X = 3,
 };
 
 /// Resident frame presentation, clocks and controls shared by all overlays.
@@ -150,11 +161,11 @@ typedef struct {
     byte        unknown_11f;             // Role unproven; no direct access
     s16         field_120;               // Initialized to 1; no reader, role and signedness unproven
     s8          keepGraphics;            // Preserve resident room graphics during modal display and decode paths
-    s8          skipTeardown;            // Nonzero skips per-task-type destruction when freeing a task
+    s8          immediateTaskFree;       // Task release (0 normal deferred collection, nonzero free body and task immediately)
     u16         region;                  // Timing standard for audio and CD (0 NTSC/60 Hz, 1 PAL/50 Hz)
     s8          shakeY;                  // Requested vertical screen shake in pixels, clamped to [-8, 8]
     byte        unknown_127;             // Role unproven; no direct access
-    u8          otDepthShift;            // Left shift of camera depth before ordering-table quantization (observed 0, 1, 3)
+    u8          otDepthShift;            // Camera-depth left shift before OT quantization (0/1/2/3 scales depth by 1/2/4/8)
     byte        unknown_129;             // Role unproven; no direct access
     u16         videoMode;               // Image/heap setup selector (0 normal, 1 streaming-video setup)
     u16         demoScene;               // Replay source (0 live play, 1-0xF numbered scene, 0x10 fixed development-memory replay)

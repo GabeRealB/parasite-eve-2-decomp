@@ -45,7 +45,7 @@ Task* Task_SpawnOnDefaultListA(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, T
 /// The task's own free is the part that waits, so that a task calling this from
 /// its own callback is not freed while that callback is still running: the body
 /// goes, and the task is marked `bodyKind` 0xFF for the next exec pass to
-/// collect. With `gDisplayState.skipTeardown` set, the body is released and the
+/// collect. With `gDisplayState.immediateTaskFree` set, the body is released and the
 /// task unlinked and freed here instead.
 void taskKill(Task* task);
 

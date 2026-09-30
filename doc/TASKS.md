@@ -126,7 +126,7 @@ exit callbacks.
 2. Unlinks from the parent ring.
 3. Frees `work` if set.
 4. Tears down `extra` according to `bodyKind`, releasing bodies immediately
-   when `gDisplayState.skipTeardown` is set.
+   when `gDisplayState.immediateTaskFree` is set.
 5. Normally sets `bodyKind = 0xFF` for collection after the callback returns;
    the immediate path also unlinks and frees the task during this call.
 

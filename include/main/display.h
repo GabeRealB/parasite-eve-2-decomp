@@ -66,11 +66,14 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 #define PRIM_RGBC(r, g, b, code) \
     ((u32)(r) | ((u32)(g) << 8) | ((u32)(b) << 16) | ((u32)(code) << 24))
 
-/// The one instance of the display pipeline's state.
+/// Resident presentation, frame clocks and display/session controls shared by all overlays.
 ///
-/// It lives in the main executable's BSS and every overlay that draws reaches
-/// it through this symbol, so it is the single place a frame's buffer, its
-/// environments and its flags are recorded.
+/// The game loop clears this object in place on initialization and soft reset;
+/// deterministic replay also resets its clocks. Its storage lasts for the
+/// resident executable's lifetime, while its selections and controls change
+/// between frames and during task-owned presentation. Drawing consumers use
+/// `drawBuffer` (0 or 1) for the current frame's resources; `otBuffer` and
+/// `frameBuffer` belong to their respective presentation paths.
 extern DisplayState gDisplayState;
 
 extern GpuOtBuf Gpu_OtBuffers[2];

@@ -717,7 +717,7 @@ case2:
     arg0->node.state.b.flags = 9;
     return;
 default_body:
-    if (((gDisplayState.pendingMode & 0xF0) == 0x40) && (work->field_7AC == 0)) {
+    if (((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) && (work->field_7AC == 0)) {
         work->field_7AC = 1;
         SndEvt_EnqueueType8(0x50000000);
     }

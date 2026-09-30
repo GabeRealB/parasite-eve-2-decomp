@@ -415,7 +415,7 @@ static void func_actor_503500_80133270(Task* arg0)
                 work->field_7E5 = 0;
                 work->field_7E7 = 0;
             }
-            if ((gDisplayState.pendingMode & 0xF0) == 0x40) {
+            if ((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) {
                 SndEvt_EnqueueType8(0x40000000);
                 work->field_7E7 = 1;
             }
@@ -1048,7 +1048,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
                 work->field_79C            = task;
-                gDisplayState.otDepthShift = 1;
+                gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_2X;
                 work->field_7DA            = work->field_7DA + 1;
             }
             break;
@@ -1093,7 +1093,7 @@ static void func_actor_503500_801345F4(Task* arg0)
             break;
         case 6:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
-                gDisplayState.otDepthShift = 0;
+                gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
                 func_actor_503500_80135FB4(arg0, 0, 0);
                 work->field_7D2 = 0;
                 func_actor_503500_80136EFC(arg0, 0);
@@ -1204,7 +1204,7 @@ static void func_actor_503500_80134C68(Task* arg0)
                     coord->coord.t[1] = D_actor_503500_8016EC50.vy;
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
-                gDisplayState.otDepthShift = 1;
+                gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_2X;
                 work->field_7C0            = 0;
                 work->field_7E1++;
             }
@@ -1232,7 +1232,7 @@ static void func_actor_503500_80134C68(Task* arg0)
         case 5:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
                 work->field_7E0            = 0;
-                gDisplayState.otDepthShift = 0;
+                gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
                 func_actor_503500_80135F9C(arg0, 0, 0);
                 func_actor_503500_80135FB4(arg0, 0, 0);
             }
@@ -1670,7 +1670,7 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, 0, 3);
-    gDisplayState.otDepthShift = 0;
+    gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
 /// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
@@ -1859,7 +1859,7 @@ void func_actor_503500_80136048(Task* arg0)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, 0, 3);
-    gDisplayState.otDepthShift = 0;
+    gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
 /// Reports whether the boss-wide gate is open; the body ignores its
@@ -2408,7 +2408,7 @@ static void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, arg1 == 3, 3);
-    gDisplayState.otDepthShift = 0;
+    gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
 /// Asks slot `slot` to die: arms its `field_730` flag with `arg3` in

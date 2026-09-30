@@ -1504,7 +1504,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
 /// 0x14-byte scratch stack block and, for anything at `otz` 0x11 or
 /// further, queues one semi-transparent `POLY_FT4` on tpage 0x2B whose
 /// half extent is `scale * 39 / otz`, so the lamp shrinks with distance. The
-/// grey alternates by 0x10 on the parity of `DisplayState::field_8`, which is
+/// grey alternates by 0x10 on the parity of `DisplayState::animFrame`, which is
 /// what makes it flicker.
 void func_acropolis_forked_road_8017E410(Task* task)
 {

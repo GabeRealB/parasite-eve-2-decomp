@@ -2029,9 +2029,9 @@ static void func_dryfield_trailer_coach_8018291C(Task* task)
     char pad[0x10];
 
     if (Mc_SaveData[0].state.at4.loc.view == 8) {
-        gDisplayState.otDepthShift = 0;
+        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     } else {
-        gDisplayState.otDepthShift = 3;
+        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
     }
 }
 

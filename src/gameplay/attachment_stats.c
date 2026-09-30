@@ -1785,7 +1785,7 @@ end:
             }
         }
     }
-    if (gDisplayState.pendingMode == 0x43) {
+    if (gDisplayState.pendingMode == DISPLAY_MODE_MAP) {
         Gp_PulseState1C80();
     }
 }

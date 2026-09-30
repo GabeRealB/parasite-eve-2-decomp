@@ -1097,7 +1097,7 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
     if (func_800E3FCC(0xA2) == 0x25) {
         func_800E3FAC(0xA2, 0x26);
     }
-    gDisplayState.otDepthShift = 3;
+    gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
     /* Through a pointer rather than as `task->state`: a member access is
        struct memory, which the scheduler lets pass the store above it, and the
        original keeps the two in source order. */
@@ -1245,9 +1245,9 @@ static void func_dryfield_night_trailer_coach_80182898(Task* task)
     char pad[0x10];
 
     if (Mc_SaveData[0].state.at4.loc.view == 5) {
-        gDisplayState.otDepthShift = 0;
+        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     } else {
-        gDisplayState.otDepthShift = 3;
+        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
     }
 }
 
