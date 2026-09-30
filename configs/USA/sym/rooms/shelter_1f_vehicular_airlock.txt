@@ -40,7 +40,7 @@ D_shelter_1f_vehicular_airlock_80180C50 = 0x80180C50; // size:0x24 defined:True
 D_shelter_1f_vehicular_airlock_80180C74 = 0x80180C74; // size:0x4 defined:True
 D_shelter_1f_vehicular_airlock_80180C78 = 0x80180C78; // size:0x3A0 defined:True
 D_shelter_1f_vehicular_airlock_80181018 = 0x80181018; // size:0xFEC defined:True
-gRoomEventMsg = 0x80182AA8; // size:0x8 defined:True
+gRoomEventStagedMsg = 0x80182AA8; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182AB0 = 0x80182AB0; // size:0x4 defined:True
 gRoomEventLatched = 0x80182AB4; // size:0xC defined:True
 

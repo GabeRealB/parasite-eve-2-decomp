@@ -90,7 +90,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The save-location record and event the message handler latched for the
 /// room's event task.
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 /// Set by the message handler when its last message latched an event and
@@ -1070,7 +1070,7 @@ GpRoomParamRec* D_neo_ark_pavilion_801879EC[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_neo_ark_pavilion_80187A1C[4] = {
     0,
@@ -1101,8 +1101,8 @@ static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEv
     D_neo_ark_pavilion_80187A1C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

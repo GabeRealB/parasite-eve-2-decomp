@@ -82,7 +82,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -326,7 +326,7 @@ GpRoomParamRec* D_shelter_1f_vehicular_airlock_80182A80[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_1f_vehicular_airlock_80182AB0[4] = {
     0,
@@ -361,8 +361,8 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
     D_shelter_1f_vehicular_airlock_80182AB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

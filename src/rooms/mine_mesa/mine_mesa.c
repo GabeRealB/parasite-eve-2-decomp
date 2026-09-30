@@ -80,7 +80,7 @@ extern GpGridParams D_mine_mesa_801864A4;
 
 extern GpGridParams D_mine_mesa_8018700C;
 
-extern RoomEventMsg gRoomEventMsg;
+extern RoomEventMsg gRoomEventStagedMsg;
 
 extern s8 D_mine_mesa_80189B48;
 
@@ -2548,7 +2548,7 @@ TaskDesc D_mine_mesa_80189B2C = { 0, 32, func_mine_mesa_80181894, { .model = NUL
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_mine_mesa_80189B48 = 0;
 
@@ -2612,8 +2612,8 @@ static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
     D_mine_mesa_80189B48 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

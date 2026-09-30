@@ -120,7 +120,7 @@ extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 /// second is also reached under its own name.
 
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0);
@@ -968,7 +968,7 @@ GpRoomParamRec* D_shelter_b1_pod_access_tunnel_80184CDC[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b1_pod_access_tunnel_80184D0C[4] = {
     0,
@@ -988,8 +988,8 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
     D_shelter_b1_pod_access_tunnel_80184D0C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

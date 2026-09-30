@@ -337,7 +337,7 @@ GpRoomParamRec* D_shelter_b1_north_maintenance_walkway_80185B4C[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
     0,

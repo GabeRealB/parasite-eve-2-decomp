@@ -16,8 +16,14 @@
  *   RoomEventReq      gRoomEventReq       the latched request (gate and task)
  *   u8                gRoomEventActive    raised while an event runs
  *   TaskDesc          gRoomEventTaskDesc  the event task the gate spawns
+ *   RoomEventMsg      gRoomEventStagedMsg the staged task's latched message
  *   RoomLatchedEvent  gRoomEventLatched   the latched event (staged task)
  *   RoomFadeStorage   gRoomEventFade      the staged task's fade
+ *
+ * Some rooms keep the flag, the request, the latched event or the fade inside
+ * a larger object, or the fade on its own. The code reaches those four through
+ * the macros below, which name the plain objects; such a room defines the one
+ * it needs before including this header, naming where the value sits.
  */
 
 #ifndef SRC_SHARED_ROOM_EVENTS_H
@@ -26,6 +32,19 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+
+#ifndef ROOM_EVENT_ACTIVE
+#define ROOM_EVENT_ACTIVE gRoomEventActive
+#endif
+#ifndef ROOM_EVENT_REQ
+#define ROOM_EVENT_REQ gRoomEventReq
+#endif
+#ifndef ROOM_EVENT_LATCHED
+#define ROOM_EVENT_LATCHED gRoomEventLatched
+#endif
+#ifndef ROOM_EVENT_FADE
+#define ROOM_EVENT_FADE gRoomEventFade.fade
+#endif
 
 s32  roomEventGate(RoomEventReq* req, RoomEventMsg* msg);
 void roomEventTask(Task* task);

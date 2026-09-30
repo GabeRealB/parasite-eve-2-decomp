@@ -103,7 +103,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and the event the event gate latched for the event task, and
 /// the flag it sets when it latches one.
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
@@ -935,7 +935,7 @@ GpRoomParamRec* D_dryfield_night_driveway_801820F0[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_dryfield_night_driveway_80182120[4] = {
     0,
@@ -1024,8 +1024,8 @@ s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in
         D_dryfield_night_driveway_80182120_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventMsg     = *out;
-                gRoomEventLatched = req;
+                gRoomEventStagedMsg = *out;
+                gRoomEventLatched   = req;
                 if (p->flagId != 0) {
                     GameFlag_SetNibble(p->flagId, 1);
                 }

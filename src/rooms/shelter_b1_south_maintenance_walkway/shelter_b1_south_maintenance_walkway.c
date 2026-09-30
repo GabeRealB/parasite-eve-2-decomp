@@ -80,7 +80,7 @@ extern SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[];
 
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 extern GpGridParams   D_shelter_b1_south_maintenance_walkway_801827B8[1];
@@ -427,7 +427,7 @@ GpRoomParamRec* D_shelter_b1_south_maintenance_walkway_80183614[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_b1_south_maintenance_walkway_80183644[4] = {
     0,
@@ -453,8 +453,8 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
     D_shelter_b1_south_maintenance_walkway_80183644_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

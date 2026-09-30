@@ -98,7 +98,7 @@ static void func_shelter_b2_septic_tank_8018083C(SVECTOR* worldPoint, s32 radius
 
 extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -1164,7 +1164,7 @@ GpRoomParamRec* D_shelter_b2_septic_tank_80187014[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_septic_tank_80187044 = 0;
 
@@ -1189,8 +1189,8 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatc
     D_shelter_b2_septic_tank_80187044 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

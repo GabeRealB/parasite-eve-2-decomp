@@ -57,7 +57,7 @@ extern s8 D_neo_ark_forest_zone_80182E40[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern s8 D_neo_ark_forest_zone_80182E40_value __asm__("D_neo_ark_forest_zone_80182E40");
 
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 /// Payload handed to the helper task 0x31 the event may start.
@@ -73,7 +73,7 @@ static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_neo_ark_forest_zone_80182E40[4] = {
     0,
@@ -115,8 +115,8 @@ static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatched
     D_neo_ark_forest_zone_80182E40_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

@@ -1,6 +1,6 @@
 // Overlay-local symbols for neo_ark_savanna_zone.
 gRoomEventLatched = 0x8018099C; // size:0xC defined:True
-gRoomEventMsg = 0x80180990; // size:0x8 defined:True
+gRoomEventStagedMsg = 0x80180990; // size:0x8 defined:True
 D_neo_ark_savanna_zone_80180998 = 0x80180998; // size:0x1 defined:True
 D_neo_ark_savanna_zone_8017F9A0 = 0x8017F9A0; // size:0xC defined:True
 D_neo_ark_savanna_zone_8017F9AC = 0x8017F9AC; // size:0x28 defined:True

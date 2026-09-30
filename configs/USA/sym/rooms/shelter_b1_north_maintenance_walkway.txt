@@ -56,7 +56,7 @@ D_801502BC = 0x801502BC; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
 RoomFx_TrailOffsets = 0x80184B64; // size:0x10 defined:True
 RoomFx_HaloShades = 0x80184B50; // size:0x14 defined:True
-gRoomEventMsg = 0x80185B74; // size:0x8 defined:True
+gRoomEventStagedMsg = 0x80185B74; // size:0x8 defined:True
 D_shelter_b1_north_maintenance_walkway_80185B7C = 0x80185B7C; // size:0x4 defined:True
 gRoomEventLatched = 0x80185B80; // size:0xC defined:True
 

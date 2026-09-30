@@ -206,7 +206,7 @@ static GpItemMap* Shop_Data_8018762C;
 /// argument of its helper task 0x31, the message, the flag saying one was
 /// latched, and the event's parameters.
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_heliport_80180658(Task* task);
@@ -595,7 +595,7 @@ static GpItemMap* Shop_Data_8018762C = NULL;
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_1f_heliport_80182CB0[4] = {
     0,
@@ -631,8 +631,8 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
     D_shelter_1f_heliport_80182CB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

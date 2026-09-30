@@ -67,7 +67,7 @@ D_map_neo_ark_8017B470 = 0x8017B470; // absolute:True
 D_map_neo_ark_8017B4B0 = 0x8017B4B0; // absolute:True
 D_map_neo_ark_8017B4E0 = 0x8017B4E0; // absolute:True
 D_map_neo_ark_8017B530 = 0x8017B530; // absolute:True
-gRoomEventMsg = 0x80187A14; // size:0x8 defined:True
+gRoomEventStagedMsg = 0x80187A14; // size:0x8 defined:True
 D_neo_ark_pavilion_80187A1C = 0x80187A1C; // size:0x4 defined:True
 gRoomEventLatched = 0x80187A20; // size:0xC defined:True
 

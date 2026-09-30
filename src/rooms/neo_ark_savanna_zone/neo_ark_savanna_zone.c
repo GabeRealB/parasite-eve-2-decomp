@@ -56,7 +56,7 @@
 #include "../../shared/room_events.h"
 
 extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern s8               D_neo_ark_savanna_zone_80180998;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -408,7 +408,7 @@ GpRoomParamRec* D_neo_ark_savanna_zone_80180968[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_neo_ark_savanna_zone_80180998 = 0;
 
@@ -431,8 +431,8 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatche
     D_neo_ark_savanna_zone_80180998 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

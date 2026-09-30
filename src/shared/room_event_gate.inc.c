@@ -18,10 +18,10 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
     s32 ret;
     s32 neg;
 
-    flag             = req->flagId;
-    gRoomEventActive = 0;
-    neg              = flag < 0;
-    got              = (s16)flag;
+    flag              = req->flagId;
+    ROOM_EVENT_ACTIVE = 0;
+    neg               = flag < 0;
+    got               = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -33,17 +33,17 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventMsg = *msg;
-                gRoomEventReq = *req;
-                id            = req->flagId;
-                mode          = 1;
+                gRoomEventMsg  = *msg;
+                ROOM_EVENT_REQ = *req;
+                id             = req->flagId;
+                mode           = 1;
                 if (id < 0) {
                     id   = -id;
                     mode = 0;
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
-                gRoomEventActive = 1;
+                ROOM_EVENT_ACTIVE = 1;
                 return 2;
             }
             return ret;

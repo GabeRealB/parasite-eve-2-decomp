@@ -14,7 +14,7 @@
 
 extern RoomFadeStorage gRoomEventFade;
 
-extern RoomEventMsg gRoomEventMsg;
+extern RoomEventMsg gRoomEventStagedMsg;
 
 extern RoomLatchedEvent gRoomEventLatched;
 

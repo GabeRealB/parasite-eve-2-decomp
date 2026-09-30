@@ -11,40 +11,40 @@ void roomEventStagedTask(Task* arg0)
         case 0:
             Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(gRoomEventLatched.capCmd, 0);
+            Gp_RunCapCmd(ROOM_EVENT_LATCHED.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (gRoomEventLatched.fade != 0) {
-                    gRoomEventFade.fade.field_0 = 0;
-                    gRoomEventFade.fade.field_1 = 0;
-                    gRoomEventFade.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &gRoomEventFade.fade);
+                if (ROOM_EVENT_LATCHED.fade != 0) {
+                    ROOM_EVENT_FADE.field_0 = 0;
+                    ROOM_EVENT_FADE.field_1 = 0;
+                    ROOM_EVENT_FADE.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &ROOM_EVENT_FADE);
                 }
                 arg0->state++;
             }
             break;
         case 2:
-            if (gRoomEventLatched.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(gRoomEventLatched.stageSnd, 0, 0);
+            if (ROOM_EVENT_LATCHED.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(ROOM_EVENT_LATCHED.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(gRoomEventLatched.stageSnd)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(ROOM_EVENT_LATCHED.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = gRoomEventMsg.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = gRoomEventMsg.warp;
-            Mc_SaveData[0].state.at4.loc.room = gRoomEventMsg.room;
+            Mc_SaveData[0].state.at4.loc.area = gRoomEventStagedMsg.areaId;
+            Mc_SaveData[0].state.at4.loc.warp = gRoomEventStagedMsg.warp;
+            Mc_SaveData[0].state.at4.loc.room = gRoomEventStagedMsg.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

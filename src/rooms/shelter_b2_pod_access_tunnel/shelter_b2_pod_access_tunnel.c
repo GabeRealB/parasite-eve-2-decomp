@@ -36,7 +36,7 @@ extern u8 D_shelter_b2_pod_access_tunnel_80185708[4];
 extern u8 D_shelter_b2_pod_access_tunnel_80185708_value __asm__("D_shelter_b2_pod_access_tunnel_80185708");
 
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 s32 D_shelter_b2_pod_access_tunnel_801856A0[3] = {
@@ -80,7 +80,7 @@ GpRoomParamRec* D_shelter_b2_pod_access_tunnel_801856D8[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_pod_access_tunnel_80185708[4] = {
     0,
@@ -104,8 +104,8 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
     D_shelter_b2_pod_access_tunnel_80185708_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventMsg     = *dst;
-            gRoomEventLatched = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

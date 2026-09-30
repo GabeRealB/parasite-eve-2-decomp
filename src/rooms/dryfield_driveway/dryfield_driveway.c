@@ -66,7 +66,7 @@ extern TaskDesc D_dryfield_driveway_8017E2FC[];
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventMsg;
+extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 extern AnimationPlayRequest D_dryfield_driveway_8017E330;
@@ -615,7 +615,7 @@ GpRoomParamRec* D_dryfield_driveway_80180660[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_dryfield_driveway_80180690[4] = {
     0,
@@ -702,8 +702,8 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
         D_dryfield_driveway_80180690_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventMsg     = *out;
-                gRoomEventLatched = req;
+                gRoomEventStagedMsg = *out;
+                gRoomEventLatched   = req;
                 if (p->flagId != 0) {
                     GameFlag_SetNibble(p->flagId, 1);
                 }

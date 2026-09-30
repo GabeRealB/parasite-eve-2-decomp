@@ -11,16 +11,16 @@ void roomEventTask(Task* task)
         case 0:
             Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(gRoomEventReq.field_0);
-            if (gRoomEventReq.field_8 != 0) {
-                SndEvt_EnqueueType6(gRoomEventReq.field_8, 0, 0);
+            Gp_RunCapCmd1(ROOM_EVENT_REQ.field_0);
+            if (ROOM_EVENT_REQ.field_8 != 0) {
+                SndEvt_EnqueueType6(ROOM_EVENT_REQ.field_8, 0, 0);
                 task->state++;
             } else {
                 task->state = 2;
             }
             break;
         case 1:
-            if (SndVoice_HasActiveId(gRoomEventReq.field_8) == 0) {
+            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.field_8) == 0) {
                 task->state++;
             }
             break;
@@ -28,15 +28,15 @@ void roomEventTask(Task* task)
             task->state++;
             break;
         case 3:
-            if (gRoomEventReq.field_C != 0) {
-                SndEvt_EnqueueType6(gRoomEventReq.field_C, 0, 0);
+            if (ROOM_EVENT_REQ.field_C != 0) {
+                SndEvt_EnqueueType6(ROOM_EVENT_REQ.field_C, 0, 0);
                 task->state++;
             } else {
                 task->state = 5;
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(gRoomEventReq.field_C) == 0) {
+            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.field_C) == 0) {
                 task->state++;
             }
             break;
