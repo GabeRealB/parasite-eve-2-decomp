@@ -28,10 +28,10 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// Matrix units and cache invalidation follow `GfxCoord`.
 ///
 /// `coord` points to `ownedCoord` for the body's lifetime. Keep the body at its
-/// allocated address, unlink it from `gTmdDisp2dList` before releasing it, and
+/// allocated address, unlink it from `gModelObjectCoordBodyList` before releasing it, and
 /// keep any borrowed parent alive while its transform is composed.
 typedef struct ModelObjectCoordBody {
-    TmdListNode link;       // Intrusive link on `gTmdDisp2dList`; forward traversal ends at NULL
+    TmdListNode link;       // Intrusive link on `gModelObjectCoordBodyList`; forward traversal ends at NULL
     GfxCoord*   coord;      // Single coordinate node, pointing to `ownedCoord`
     s32         field_C;    // Initialized to 1; meaning unproven
     GfxCoord    ownedCoord; // Owned local transform and composed-matrix cache

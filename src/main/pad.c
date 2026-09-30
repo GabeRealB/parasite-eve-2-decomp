@@ -11,7 +11,7 @@
 /* Define BSS before API headers to preserve first-declaration order. */
 TmdListNode gTmdList;
 
-TmdListNode gTmdDisp2dList;
+TmdListNode gModelObjectCoordBodyList;
 
 PadRawPort Pad_RawPorts[2];
 
@@ -20,6 +20,8 @@ s32 D_80071210;
 #include "pad.h"
 
 #include "main/tmd.h"
+
+#include "gameplay/model_objects.h"
 
 void Pad_Init(void)
 {
@@ -70,9 +72,9 @@ void Pad_Init(void)
 
 void Tmd_InitLists(void)
 {
-    D_80071210          = 0;
-    gTmdList.next       = NULL;
-    gTmdList.prev       = &gTmdList;
-    gTmdDisp2dList.next = NULL;
-    gTmdDisp2dList.prev = &gTmdDisp2dList;
+    D_80071210                     = 0;
+    gTmdList.next                  = NULL;
+    gTmdList.prev                  = &gTmdList;
+    gModelObjectCoordBodyList.next = NULL;
+    gModelObjectCoordBodyList.prev = &gModelObjectCoordBodyList;
 }

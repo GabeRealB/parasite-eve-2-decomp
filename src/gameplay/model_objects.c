@@ -27,7 +27,7 @@ enum { MODEL_OBJECT_STASH_DRAW_TASK = 0x1A };
 /// Saved model-list endpoints; the first element still refers to the active sentinel.
 static TmdListNode _gModelObjectSavedModelList = { NULL, NULL };
 
-/// Saved 2D-display-list endpoints; restored to their original sentinel together.
+/// Saved coordinate-body-list endpoints; restored to their original sentinel together.
 static TmdListNode _gModelObjectSavedDisp2dList = { NULL, NULL };
 
 /// Temporary draw task active while the previous body lists are stashed.
@@ -291,7 +291,7 @@ ModelObjectCoordBody* gpAttachDisp2d(Task* task)
         coord->param.rot.vy   = 0;
         coord->param.rot.vx   = 0;
         coord->composeStamp   = GRAPHICS_COORD_DIRTY;
-        list                  = &gTmdDisp2dList;
+        list                  = &gModelObjectCoordBodyList;
         last                  = list->prev;
         node->link.next       = last->next;
         last->next            = &node->link;
@@ -359,7 +359,7 @@ void modelObjectUnlinkDisp2d(TmdListNode* node)
 
     next = node->next;
     if (next == NULL) {
-        prevSlot = &gTmdDisp2dList.prev;
+        prevSlot = &gModelObjectCoordBodyList.prev;
     } else {
         prevSlot = &next->prev;
     }
@@ -381,11 +381,11 @@ static void _modelObjectStashLists(void)
 {
     // Save endpoints, keeping the elements tied to their original sentinels.
     _gModelObjectSavedModelList    = gTmdList;
-    _gModelObjectSavedDisp2dList   = gTmdDisp2dList;
+    _gModelObjectSavedDisp2dList   = gModelObjectCoordBodyList;
     gTmdList.next                  = NULL;
     gTmdList.prev                  = &gTmdList;
-    gTmdDisp2dList.next            = NULL;
-    gTmdDisp2dList.prev            = &gTmdDisp2dList;
+    gModelObjectCoordBodyList.next = NULL;
+    gModelObjectCoordBodyList.prev = &gModelObjectCoordBodyList;
     _gModelObjectTemporaryDrawTask = Task_Spawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
 }
 
@@ -395,8 +395,8 @@ static void _modelObjectStashLists(void)
 static void _modelObjectRestoreLists(void)
 {
     Task_CallExit(_gModelObjectTemporaryDrawTask);
-    gTmdList       = _gModelObjectSavedModelList;
-    gTmdDisp2dList = _gModelObjectSavedDisp2dList;
+    gTmdList                  = _gModelObjectSavedModelList;
+    gModelObjectCoordBodyList = _gModelObjectSavedDisp2dList;
 }
 
 void _gpUpdateCoordTree(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)

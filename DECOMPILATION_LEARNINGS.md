@@ -28215,12 +28215,12 @@ if (node != NULL) {
     coord->parent    = &gGfxViewCoord;
     one           = ONE;
     ...
-    list = &gTmdDisp2dList;
+    list = &gModelObjectCoordBodyList;
 }
 ```
 
 `gpAttachDisp2d` is the example. The same body without the register pin
-stuck at 92.6% with only those registers (and the late `&gTmdDisp2dList`)
+stuck at 92.6% with only those registers (and the late `&gModelObjectCoordBodyList`)
 different.
 
 ## Join timeout + confirm with `||` so `one` stays in `$s0`
@@ -132116,12 +132116,12 @@ A head layout matching another type's is not by itself a duplicate. The task
 subsystem's `TaskNode` is also embedded by name, but its `next` names a `Task`
 and its `prev` a task-list link; it serves a different list protocol. A body's
 `TmdListNode` has the same meaning in either body list, so it is shared by
-both containers without interpreting a display body as a model.
+both containers without interpreting a coordinate body as a model.
 
 The link type cannot carry the container distinction, so each head is named
-for the list it anchors — the model list, the 2D-display list — and never for
+for the list it anchors — the model list, the coordinate-body list — and never for
 its element field. What tells the second list apart is what its elements are,
-and the walk says it rather than the head type: the display list's walk
+and the walk says it rather than the head type: the coordinate-body list's walk
 refreshes one coordinate per element and emits nothing, so those elements are
 coordinates their owner reads, not geometry the pass draws.
 

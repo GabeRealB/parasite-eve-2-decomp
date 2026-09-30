@@ -10,6 +10,24 @@ struct Task;
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+/// Resident sentinel for attached task-owned coordinate bodies.
+///
+/// `next` points to the first `ModelObjectCoordBody.link`, and `prev` to the
+/// last. Initialization leaves `next == NULL` and `prev` pointing to this
+/// sentinel. The first element points back to the sentinel; the last points
+/// forward to `NULL`. Recover bodies with `PARENT_OF`; the sentinel is a bare
+/// `TmdListNode`, never a coordinate body.
+///
+/// Successful attachment appends a body. Each model draw pass refreshes its
+/// single coordinate before visiting model parts; this list emits no primitives.
+/// Bodies must remain at their allocated addresses and be unlinked before
+/// release. The resident sentinel is never freed.
+///
+/// Stashing saves and clears this list's endpoints together with `gTmdList`.
+/// Saved elements retain their back-links to this sentinel and must stay linked
+/// and alive until the endpoints are restored. Only one stash may be outstanding.
+extern TmdListNode gModelObjectCoordBodyList;
+
 TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 
 /// Gives a task a coordinate body and returns it, or `NULL` when there is no
@@ -18,9 +36,9 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 /// The body carries a coordinate of its own instead of a model. That coordinate
 /// is parented to the view, so what the task places in it comes back relative to
 /// the camera rather than to the world, and it joins the end of
-/// `gTmdDisp2dList`, where the frame's draw passes compose it. Recording it as
-/// the task's body (`spawnType` 2) is what later releases it; `Gp_AttachTmd` is
-/// the model-side counterpart.
+/// `gModelObjectCoordBodyList`, where the frame's draw passes compose it.
+/// Recording it as the task's body (`spawnType` 2) is what later releases it;
+/// `Gp_AttachTmd` is the model-side counterpart.
 ModelObjectCoordBody* gpAttachDisp2d(Task* task);
 
 TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
@@ -38,7 +56,7 @@ void modelObjectUnlinkTmd(TmdListNode* node);
 /// release: `gpFreeDisp2d` is its counterpart for coordinate bodies.
 void gpFreeTmd(TmdObject* obj);
 
-/// Unlinks a coordinate body from its refresh list (`gTmdDisp2dList`).
+/// Unlinks a coordinate body from its refresh list (`gModelObjectCoordBodyList`).
 ///
 /// `node` must be an element's link currently on this list, never the sentinel
 /// or an already detached link. The body stays allocated and its old links

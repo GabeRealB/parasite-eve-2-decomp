@@ -24,17 +24,6 @@
 /// sentinel and must stay linked and alive until the endpoints are restored.
 extern TmdListNode gTmdList;
 
-/// Head of the coordinate-body list: the anchor for the coordinate nodes a task
-/// attaches in place of a model.
-///
-/// A node here carries a single coordinate rather than a model with parts, so
-/// the entry that follows the link pair is the coordinate rather than the
-/// per-part array. The draw pass refreshes that coordinate for every node on
-/// the list before it reaches the models and draws nothing from it; the task
-/// that attached the node reads the refreshed matrix. The two lists are saved,
-/// emptied and restored together.
-extern TmdListNode gTmdDisp2dList;
-
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;
 

@@ -9,8 +9,8 @@
 #include "gte.h"
 
 #include "actor_render.h"
-#include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/model_objects.h"
 #include "model_objects.h"
 
 #include "main/display_types.h"
@@ -196,7 +196,7 @@ static __inline__ void _gpRefreshAllCoords(void)
 
     stamp  = D_80071210 & GRAPHICS_COORD_STAMP_MASK;
     parity = D_80071210 & 1;
-    for (display = PARENT_OF(gTmdDisp2dList.next, ModelObjectCoordBody, link); display != NULL;
+    for (display = PARENT_OF(gModelObjectCoordBodyList.next, ModelObjectCoordBody, link); display != NULL;
          display = PARENT_OF(display->link.next, ModelObjectCoordBody, link)) {
         _gpRefreshCoord(display->coord, stamp, parity, NULL);
     }
