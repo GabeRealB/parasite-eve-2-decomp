@@ -11,9 +11,9 @@
 
 #include "main/task_types.h"
 
-extern ActorCommand D_neo_ark_forest_zone_80182E44;
+extern ActorCommand gRoamerCommand;
 
-extern u16 D_neo_ark_forest_zone_80182E54[5];
+extern u16 gRoamerReserveHp[5];
 
 extern TaskDesc D_neo_ark_forest_zone_80181DBC;
 

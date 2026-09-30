@@ -1,0 +1,37 @@
+/* Part of the roaming enemies library; see roaming_enemies.h. */
+
+/// First arming state: with no spawns to arm for the session's slot it only
+/// advances; otherwise it installs its message table, folds the slot's spawn
+/// count into game flag 0x10C (remembering the slot in 0x10D), caps it at five
+/// and fills that many spawn slots with the room's ceiling, zeroing the rest.
+void roamerArmPoolA(Task* task)
+{
+    s16 i;
+    s16 nib;
+
+    if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
+        task->msgTable = NULL;
+        task->state    = task->state + 1;
+        return;
+    }
+    task->msgTable      = gRoamerMsgTableA;
+    gRoamerReserveCount = GameFlag_GetNibble(0x10C);
+    nib                 = GameFlag_GetNibble(0x10D);
+    if (gGameSession->location.loc.variant != nib) {
+        gRoamerReserveCount = gRoamerReserveCount + gRoamerArmCountsA[gGameSession->location.loc.variant];
+        GameFlag_SetNibble(0x10C, gRoamerReserveCount);
+        GameFlag_SetNibble(0x10D, gGameSession->location.loc.variant);
+    }
+    if (gRoamerReserveCount >= 6) {
+        gRoamerReserveCount = 5;
+    }
+    for (i = 0; i < 5; i++) {
+        if (i < gRoamerReserveCount) {
+            gRoamerReserveHp[i] = gRoamerParams.hpMax;
+        } else {
+            gRoamerReserveHp[i] = 0;
+        }
+    }
+    gRoamerCooldown = 0x5A;
+    task->state     = task->state + 1;
+}

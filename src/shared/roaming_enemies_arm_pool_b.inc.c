@@ -1,0 +1,35 @@
+/* Part of the roaming enemies library; see roaming_enemies.h. */
+
+/// Second arming state: the same as `roamerArmPoolA` with
+/// its own gate, message table and game flags 0x10A / 0x10B.
+void roamerArmPoolB(Task* task)
+{
+    s16 i;
+    s16 nib;
+
+    if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
+        task->msgTable = NULL;
+        task->state    = task->state + 1;
+        return;
+    }
+    task->msgTable      = gRoamerMsgTableB;
+    gRoamerReserveCount = GameFlag_GetNibble(0x10A);
+    nib                 = GameFlag_GetNibble(0x10B);
+    if (gGameSession->location.loc.variant != nib) {
+        gRoamerReserveCount = gRoamerReserveCount + gRoamerArmCountsB[gGameSession->location.loc.variant];
+        GameFlag_SetNibble(0x10A, gRoamerReserveCount);
+        GameFlag_SetNibble(0x10B, gGameSession->location.loc.variant);
+    }
+    if (gRoamerReserveCount >= 6) {
+        gRoamerReserveCount = 5;
+    }
+    for (i = 0; i < 5; i++) {
+        if (i < gRoamerReserveCount) {
+            gRoamerReserveHp[i] = gRoamerParams.hpMax;
+        } else {
+            gRoamerReserveHp[i] = 0;
+        }
+    }
+    gRoamerCooldown = 0x5A;
+    task->state     = task->state + 1;
+}

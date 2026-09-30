@@ -1,0 +1,97 @@
+/* Part of the roaming enemies library; see roaming_enemies.h. */
+
+/// Per-frame state after `roamerArmPoolA`: counts the
+/// countdown down, releases a pending `Gp_StateF0` reference, and once that
+/// reference has dropped folds the still-pending spawn slots back into game
+/// flags 0x168 and 0x10C. On a placement request it hands the first pending
+/// slot to a waiting slot-4 task (one whose enemy `hp` still reads -999), sends it
+/// message 0x7DB and places it at the requested point.
+void roamerTickPoolA(Task* task)
+{
+    s16      i;
+    s16      count;
+    s32      a;
+    s32      b;
+    GpEnemy* obj;
+    s16      j;
+    s16      k;
+
+    gameGetPtrSlot(3);
+    if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
+        return;
+    }
+    if (gRoamerCooldown > 0) {
+        gRoamerCooldown--;
+    }
+    if (gRoamerReleasePending == 1 && Gp_StateF0.field_6 >= 2) {
+        gRoamerReleasePending = 0;
+        Gp_ReleaseStateF0(task, 0xD);
+    }
+    if (Gp_StateF0.field_6 == 0 && gRoamerPrevBattleRefs > 0) {
+        gRoamerCooldown = 0x96;
+        a               = GameFlag_GetNibble(0x168);
+        b               = GameFlag_GetNibble(0x10C);
+        count           = 0;
+        for (k = 0; k < 5; k++) {
+            if (((s16*)gRoamerReserveHp)[k] > 0) {
+                count++;
+            }
+        }
+        GameFlag_SetNibble(0x168, a + (b - count));
+        count = 0;
+        for (k = 0; k < 5; k++) {
+            if (((s16*)gRoamerReserveHp)[k] > 0) {
+                count++;
+            }
+        }
+        GameFlag_SetNibble(0x10C, count);
+        areaSyncLocationVariant(&gGameSession->location.loc);
+    }
+    gRoamerPrevBattleRefs = Gp_StateF0.field_6;
+    if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
+        Gp_StateF0.prefix.bytes.field_0  = 0;
+        Gp_StateF0.field_5               = 0;
+        Gp_StateF0.field_6               = 0;
+        Gp_StateF0.field_8               = 0;
+        Gp_StateF0.field_C               = 0;
+        Gp_StateF0.field_10              = 0;
+        gGameSession->battleResetPending = 0;
+    }
+    if (Gp_StateF0.prefix.bytes.field_0 != 2 && gRoamerSpawnRequest != 0) {
+        gRoamerCommand.context.loc.stage = 5;
+        gRoamerCommand.context.loc.area  = 0x1D;
+        gRoamerCommand.command           = 0xB;
+        for (i = 0; i < 2; i++) {
+            if (Gp_LookupSlot4(i) == 0) {
+                break;
+            }
+            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
+            if (obj == NULL) {
+                break;
+            }
+            if (obj->hp == -999) {
+                for (j = 0; j < gRoamerReserveCount; j++) {
+                    if (((s16*)gRoamerReserveHp)[j] > 0) {
+                        obj->hp             = gRoamerReserveHp[j];
+                        obj->reactionFlags  = 0;
+                        gRoamerReserveHp[j] = 0;
+                        break;
+                    }
+                }
+                if (obj->hp > 0) {
+                    Gp_IncStateF0Ref(0);
+                    gRoamerCooldown += 0x5A;
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].x;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                    Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                   gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].rotY, 1);
+                }
+                break;
+            }
+        }
+    }
+    gRoamerSpawnRequest = 0;
+}

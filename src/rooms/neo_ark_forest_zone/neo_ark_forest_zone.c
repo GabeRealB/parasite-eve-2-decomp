@@ -51,6 +51,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/falling_leaves.h"
+#include "../../shared/roaming_enemies.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -82,11 +83,11 @@ s8 D_neo_ark_forest_zone_80182E40[4] = {
     20,
 };
 
-ActorCommand D_neo_ark_forest_zone_80182E44 = { 0 };
+ActorCommand gRoamerCommand = { 0 };
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-u16 D_neo_ark_forest_zone_80182E54[5] = {
+u16 gRoamerReserveHp[5] = {
     0,
     0,
     0,

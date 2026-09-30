@@ -44,12 +44,13 @@
 #define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 #include "../../shared/falling_leaves.h"
+#include "../../shared/roaming_enemies.h"
 
 #define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
 
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
 
-/// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
+/// The room's frame countdown at `gRoamerCooldown`. Signed,
 /// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
 /// it, `func_...80180DDC` counts it down): a load whose result is truncated by
 /// the following `sh` only has to supply the low half, so GCC picks the
@@ -57,61 +58,61 @@
 /// handler stores need the signed declaration. A union offering both views
 /// compiles the same instructions but marks every access `in_struct`, and that
 /// flag decides the scheduler's dependence analysis - it pinned a load after a
-/// store in `func_neo_ark_woodland_path_80180C6C`. See
+/// store in `roamerArmPoolB`. See
 /// `DECOMPILATION_LEARNINGS.md`, "A union that only names a view costs
 /// `in_struct`".
-extern s16 D_neo_ark_woodland_path_8018498E;
+extern s16 gRoamerCooldown;
 
-extern ActorCommand D_neo_ark_woodland_path_80184A5C;
+extern ActorCommand gRoamerCommand;
 
-/// The room's five spawn slots: `func_neo_ark_woodland_path_8018046C` fills the
-/// first free one with a countdown and `func_neo_ark_woodland_path_80180B18`
+/// The room's five spawn slots: `roamerBankRetreat` fills the
+/// first free one with a countdown and `roamerAmbushMsg`
 /// hands slot 0 to the spawn it triggers and clears it. Read as `lhu` by the
 /// handler and as `lh` by the slot filler, so each site names the view it uses
 /// (`[0]` here, an `s16*` cast there).
-extern u16 D_neo_ark_woodland_path_80184A60[5];
+extern u16 gRoamerReserveHp[5];
 
-/// Ceiling `func_neo_ark_woodland_path_8018046C` clamps a spawn slot to
+/// Ceiling `roamerBankRetreat` clamps a spawn slot to
 /// (0x1A4, 420 frames). Only the first halfword is this unit's; the run
 /// continues into the room's parameter block, so the extent is splat's.
 
 /// The same run reached through its leading label, which is how
-/// `func_neo_ark_woodland_path_80180C6C` reads the ceiling: element 2 is
+/// `roamerArmPoolB` reads the ceiling: element 2 is
 /// `D_...8494C[0]`, 420 frames. splat names both addresses because the compiled
 /// code names both, and the two are different code - an index keeps this
 /// symbol in a register and takes the offset as the load's displacement, while
 /// naming `D_...8494C` addresses it directly.
-extern EnemyParams  D_neo_ark_woodland_path_80184948;
+extern EnemyParams  gRoamerParams;
 extern DamageAttack D_neo_ark_woodland_path_80184930[6];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
-/// `func_neo_ark_woodland_path_80180C6C` adds the slot's spawn count to it and
+/// `roamerArmPoolB` adds the slot's spawn count to it and
 /// then caps it at 5, the number of slots `D_...84A60` has. Signed, though the
 /// add reads it as `lhu` - the result is truncated by the following `sh`, so
 /// only the low half matters and GCC picks the unsigned load by itself.
-extern s16 D_neo_ark_woodland_path_80184990;
+extern s16 gRoamerReserveCount;
 
 /// How many spawns each slot arms, indexed by `gGameSession->location.loc.variant` (the
 /// slot the session is in): the byte `func_...80180C6C` adds to
 /// `D_...80184990`, and the gate `func_...80180DDC` tests against zero.
-extern u8 D_neo_ark_woodland_path_80184970[];
+extern u8 gRoamerArmCountsB[];
 
-/// The message-handler table `func_neo_ark_woodland_path_80180C6C` parks in
+/// The message-handler table `roamerArmPoolB` parks in
 /// `Task::msgTable`: a placement request (0x13EF,
 /// `func_neo_ark_woodland_path_80181568`), a countdown bump (0x13F4) and the
-/// 0x7DB command handler `func_neo_ark_woodland_path_80180B18`.
-extern GpMsgEntry D_neo_ark_woodland_path_801849F4[];
+/// 0x7DB command handler `roamerAmbushMsg`.
+extern GpMsgEntry gRoamerMsgTableB[];
 
 /// The same gate for the arm-state one step earlier: `func_...80180568` tests
 /// it against zero and `func_...801806D8` reads the slot's count from it. One
 /// byte per session slot, indexed by `gGameSession->location.loc.variant`, like
 /// `D_...84970` above.
-extern u8 D_neo_ark_woodland_path_80184980[];
+extern u8 gRoamerArmCountsA[];
 
 /// `func_...80180568`'s own message-handler table, parked in `Task::msgTable`
 /// as `D_...849F4` is by `func_...80180C6C`: the same three ids, answered by
-/// the placement request `func_neo_ark_woodland_path_8018147C`, the spawn-slot
-/// filler `func_neo_ark_woodland_path_8018046C` and a 0x7DB handler that
+/// the placement request `roamerLatchRequest`, the spawn-slot
+/// filler `roamerBankRetreat` and a 0x7DB handler that
 /// ignores the message.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -125,21 +126,21 @@ typedef struct {
 } NeoArkWoodlandPath2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkWoodlandPath2MsgEntry, 8);
 
-extern NeoArkWoodlandPath2MsgEntry D_neo_ark_woodland_path_80184998[];
+extern NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[];
 
 /// Set once a spawn slot has been armed, read by the room's other states.
-extern s16 D_neo_ark_woodland_path_80184996;
+extern s16 gRoamerReleasePending;
 
 /// Spawn point requested by the room's 0x13EF handlers (the message's third
 /// byte, taken only while `D_...8498E` has run out and the byte differs from
 /// the previous request). One-based index into the placement table of the
 /// running sequence; zero means no request, and the per-frame states clear it
 /// every frame whether or not they placed a spawn.
-extern s16 D_neo_ark_woodland_path_80184992;
+extern s16 gRoamerSpawnRequest;
 
 /// The byte the last 0x13EF message carried, kept so that a repeated request
 /// is dropped rather than placed again.
-extern s16 D_neo_ark_woodland_path_80184994;
+extern s16 gRoamerLastRequest;
 
 /// A placement `func_...801806D8` puts a spawned task at: the x and z it writes
 /// into the task's coordinate translation (y is always zero) and the Y
@@ -152,7 +153,7 @@ typedef struct NeoArkWoodlandPathSpawnPos {
 } NeoArkWoodlandPathSpawnPos;
 
 /// The room's spawn placements, indexed by `D_...80184992 - 1`.
-extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[];
+extern NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[];
 
 /// The second arming sequence's spawn placements, which
 /// `func_...80180DDC` picks from by `D_...80184992 - 1`. Five of them; any
@@ -161,7 +162,7 @@ extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5];
 
 /// `Gp_StateF0.field_6` as `func_...801806D8` saw it on the previous frame, so
 /// that it can tell the reference count was non-zero before the frame began.
-extern s16 D_neo_ark_woodland_path_801849F0;
+extern s16 gRoamerPrevBattleRefs;
 
 /// The object `Task::spawnArg2` holds for the task that runs
 /// `func_neo_ark_woodland_path_8017EA08`. Only the halfword at 0x26 is known:
@@ -173,12 +174,9 @@ typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x26 */ s16  chance;
 } NeoArkWoodlandPathTrailObj;
 
-s32  func_neo_ark_woodland_path_80180B18(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_neo_ark_woodland_path_80181474(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_neo_ark_woodland_path_8018147C(Task*, s32, u8*, TaskMessageArg);
-s32  func_neo_ark_woodland_path_8018154C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_neo_ark_woodland_path_80181568(Task*, s32, u8*, TaskMessageArg);
-void func_neo_ark_woodland_path_8018046C(Task*, s32, s32);
+s32 func_neo_ark_woodland_path_80181474(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_woodland_path_8018154C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_woodland_path_80181568(Task*, s32, u8*, TaskMessageArg);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
@@ -192,7 +190,7 @@ DamageAttack D_neo_ark_woodland_path_80184930[6] = {
     { 40, 0 },
 };
 
-EnemyParams D_neo_ark_woodland_path_80184948 = { D_neo_ark_woodland_path_80184930, 420, 115, 200, 5, 100, 10, 100, 10 };
+EnemyParams gRoamerParams = { D_neo_ark_woodland_path_80184930, 420, 115, 200, 5, 100, 10, 100, 10 };
 
 // Retained numeric records following the enemy parameters.
 u16 D_neo_ark_woodland_path_80184958[3][4] = {
@@ -201,7 +199,7 @@ u16 D_neo_ark_woodland_path_80184958[3][4] = {
     { 0, 500, 7, 0 },
 };
 
-u8 D_neo_ark_woodland_path_80184970[16] = {
+u8 gRoamerArmCountsB[16] = {
     0,
     1,
     3,
@@ -220,7 +218,7 @@ u8 D_neo_ark_woodland_path_80184970[16] = {
     0,
 };
 
-u8 D_neo_ark_woodland_path_80184980[14] = {
+u8 gRoamerArmCountsA[14] = {
     0,
     3,
     2,
@@ -237,24 +235,24 @@ u8 D_neo_ark_woodland_path_80184980[14] = {
     0,
 };
 
-s16 D_neo_ark_woodland_path_8018498E = 30;
+s16 gRoamerCooldown = 30;
 
-s16 D_neo_ark_woodland_path_80184990 = 0;
+s16 gRoamerReserveCount = 0;
 
-s16 D_neo_ark_woodland_path_80184992 = 0;
+s16 gRoamerSpawnRequest = 0;
 
-s16 D_neo_ark_woodland_path_80184994 = 0;
+s16 gRoamerLastRequest = 0;
 
-s16 D_neo_ark_woodland_path_80184996 = 0;
+s16 gRoamerReleasePending = 0;
 
-NeoArkWoodlandPath2MsgEntry D_neo_ark_woodland_path_80184998[4] = {
-    { 5103, { .call0 = func_neo_ark_woodland_path_8018147C } },
-    { 5108, { .call2 = func_neo_ark_woodland_path_8018046C } },
+NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[4] = {
+    { 5103, { .call0 = roamerLatchRequest } },
+    { 5108, { .call2 = roamerBankRetreat } },
     { 2011, { .call0 = func_neo_ark_woodland_path_80181474 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[7] = {
+NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[7] = {
     { -2000, 0, 8977, -1024 },
     { 379, 0, 7700, 2048 },
     { 7950, 0, 4650, -1024 },
@@ -264,12 +262,12 @@ NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[7] = {
     { 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF },
 };
 
-s16 D_neo_ark_woodland_path_801849F0 = 0;
+s16 gRoamerPrevBattleRefs = 0;
 
-GpMsgEntry D_neo_ark_woodland_path_801849F4[4] = {
+GpMsgEntry gRoamerMsgTableB[4] = {
     { 5103, func_neo_ark_woodland_path_80181568 },
     { 5108, func_neo_ark_woodland_path_8018154C },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_woodland_path_80180B18 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -293,17 +291,14 @@ TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
     { 0, 32, func_neo_ark_woodland_path_801814E8, { .model = NULL } },
 };
 
-ActorCommand D_neo_ark_woodland_path_80184A5C = { { .loc = { 0, 0 } }, 0 };
+ActorCommand gRoamerCommand = { { .loc = { 0, 0 } }, 0 };
 
-u16 D_neo_ark_woodland_path_80184A60[5];
+u16 gRoamerReserveHp[5];
 
 static void func_neo_ark_woodland_path_801814D4(Task* arg0);
 
 static void func_neo_ark_woodland_path_801815C0(Task* arg0);
 
-static void func_neo_ark_woodland_path_80180568(Task* task);
-static void func_neo_ark_woodland_path_801806D8(Task* task);
-static void func_neo_ark_woodland_path_80180C6C(Task* task);
 static void func_neo_ark_woodland_path_80180DDC(Task* task);
 
 /// Scatters effects around the slot-3 task's model while its root coordinate
@@ -466,253 +461,22 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
 
 #include "../../shared/water_tile_u16.inc.c"
 
-void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
-{
-    s16 i;
-    s16 v;
+#include "../../shared/roaming_enemies_bank_retreat.inc.c"
 
-    if (arg2 > 0) {
-        for (i = 0; i < 5; i++) {
-            if (((s16*)D_neo_ark_woodland_path_80184A60)[i] == 0) {
-                v                                           = arg2 * 0x6E / 100;
-                ((s16*)D_neo_ark_woodland_path_80184A60)[i] = v;
-                if (D_neo_ark_woodland_path_80184948.hpMax < v) {
-                    ((s16*)D_neo_ark_woodland_path_80184A60)[i] = D_neo_ark_woodland_path_80184948.hpMax;
-                }
-                if (Gp_StateF0.field_6 >= 2) {
-                    Gp_ReleaseStateF0(task, 0xD);
-                } else {
-                    D_neo_ark_woodland_path_80184996 = 1;
-                }
-                D_neo_ark_woodland_path_8018498E += 0x5A;
-                return;
-            }
-        }
-        return;
-    }
-    D_neo_ark_woodland_path_8018498E += 0x5A;
-}
+#include "../../shared/roaming_enemies_arm_pool_a.inc.c"
 
-/// Arming state, the sibling of `func_neo_ark_woodland_path_80180C6C` one step
-/// earlier in the sequence: it parks its own 0x7DB handler table in the task,
-/// folds the slot's spawn count into game flag 0x10C (remembering the slot in
-/// 0x10D) and fills the five spawn slots with the room's ceiling - or zero.
-/// Same shape as its sibling; only the flags, the slot-count array and the
-/// handler table differ.
-static void func_neo_ark_woodland_path_80180568(Task* task)
-{
-    s16 i;
-    s16 nib;
-
-    if (D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant] == 0) {
-        task->msgTable = NULL;
-        task->state    = task->state + 1;
-        return;
-    }
-    task->msgTable                   = D_neo_ark_woodland_path_80184998;
-    D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10C);
-    nib                              = GameFlag_GetNibble(0x10D);
-    if (gGameSession->location.loc.variant != nib) {
-        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant];
-        GameFlag_SetNibble(0x10C, D_neo_ark_woodland_path_80184990);
-        GameFlag_SetNibble(0x10D, gGameSession->location.loc.variant);
-    }
-    if (D_neo_ark_woodland_path_80184990 >= 6) {
-        D_neo_ark_woodland_path_80184990 = 5;
-    }
-    for (i = 0; i < 5; i++) {
-        if (i < D_neo_ark_woodland_path_80184990) {
-            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948.hpMax;
-        } else {
-            D_neo_ark_woodland_path_80184A60[i] = 0;
-        }
-    }
-    D_neo_ark_woodland_path_8018498E = 0x5A;
-    task->state                      = task->state + 1;
-}
-
-/// Per-frame state of the arming sequence `func_...80180568` sets up: counts
-/// the room's countdown down, and once the reference count on `Gp_StateF0`
-/// has dropped to zero folds the still-pending spawn slots back into game
-/// flags 0x168 and 0x10C. When a spawn point has been requested it hands the
-/// first pending slot to a waiting slot-4 task (one whose enemy `hp` still reads -999),
-/// sends it the 0x7DB message and places it at that point.
-static void func_neo_ark_woodland_path_801806D8(Task* task)
-{
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
-
-    gameGetPtrSlot(3);
-    if (D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant] == 0) {
-        return;
-    }
-    if (D_neo_ark_woodland_path_8018498E > 0) {
-        D_neo_ark_woodland_path_8018498E--;
-    }
-    if (D_neo_ark_woodland_path_80184996 == 1 && Gp_StateF0.field_6 >= 2) {
-        D_neo_ark_woodland_path_80184996 = 0;
-        Gp_ReleaseStateF0(task, 0xD);
-    }
-    if (Gp_StateF0.field_6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
-        D_neo_ark_woodland_path_8018498E = 0x96;
-        a                                = GameFlag_GetNibble(0x168);
-        b                                = GameFlag_GetNibble(0x10C);
-        count                            = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
-                count++;
-            }
-        }
-        GameFlag_SetNibble(0x168, a + (b - count));
-        count = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
-                count++;
-            }
-        }
-        GameFlag_SetNibble(0x10C, count);
-        areaSyncLocationVariant(&gGameSession->location.loc);
-    }
-    D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
-    if (gGameSession->battleResetPending == 1 && D_neo_ark_woodland_path_8018498E == 0) {
-        Gp_StateF0.prefix.bytes.field_0  = 0;
-        Gp_StateF0.field_5               = 0;
-        Gp_StateF0.field_6               = 0;
-        Gp_StateF0.field_8               = 0;
-        Gp_StateF0.field_C               = 0;
-        Gp_StateF0.field_10              = 0;
-        gGameSession->battleResetPending = 0;
-    }
-    if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
-        D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
-        D_neo_ark_woodland_path_80184A5C.context.loc.area  = 0x1D;
-        D_neo_ark_woodland_path_80184A5C.command           = 0xB;
-        for (i = 0; i < 2; i++) {
-            if (Gp_LookupSlot4(i) == 0) {
-                break;
-            }
-            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
-            if (obj == NULL) {
-                break;
-            }
-            if (obj->hp == -999) {
-                for (j = 0; j < D_neo_ark_woodland_path_80184990; j++) {
-                    if (((s16*)D_neo_ark_woodland_path_80184A60)[j] > 0) {
-                        obj->hp                             = D_neo_ark_woodland_path_80184A60[j];
-                        obj->reactionFlags                  = 0;
-                        D_neo_ark_woodland_path_80184A60[j] = 0;
-                        break;
-                    }
-                }
-                if (obj->hp > 0) {
-                    Gp_IncStateF0Ref(0);
-                    D_neo_ark_woodland_path_8018498E += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_woodland_path_80184A5C, 0);
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].x;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].z;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                   D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].rotY, 1);
-                }
-                break;
-            }
-        }
-    }
-    D_neo_ark_woodland_path_80184992 = 0;
-}
+#include "../../shared/roaming_enemies_tick_pool_a.inc.c"
 
 /// State handlers of the first arming sequence's entry task
 /// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
-    { func_neo_ark_woodland_path_80180568, func_neo_ark_woodland_path_801806D8,
+    { roamerArmPoolA, roamerTickPoolA,
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
-{
-    s32      result;
-    u16      cmd;
-    GpEnemy* obj;
+#include "../../shared/roaming_enemies_ambush_msg.inc.c"
 
-    result = 0;
-    if (msg.command->context.key == 0xB05) {
-        cmd = msg.command->command;
-        switch (cmd) {
-            case 0:
-                D_neo_ark_woodland_path_8018498E = -1;
-                result                           = 0;
-                return result;
-            case 2:
-                D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
-                D_neo_ark_woodland_path_80184A5C.context.loc.area  = 0xB;
-                D_neo_ark_woodland_path_80184A5C.command           = 0xC;
-                result                                             = 1;
-                if (Gp_LookupSlot4(0) != 0) {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY,
-                                      &D_neo_ark_woodland_path_80184A5C, 0);
-                    obj                                              = Gp_LookupSlot4(0)->spawnArg2.pointer;
-                    Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
-                    Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[1] = 0;
-                    Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[2] = -0x320;
-                    if (obj != 0) {
-                        obj->hp                             = D_neo_ark_woodland_path_80184A60[0];
-                        D_neo_ark_woodland_path_80184A60[0] = 0;
-                        obj->reactionFlags                  = 0;
-                    }
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
-                                   0x400, 1);
-                    D_neo_ark_woodland_path_8018498E = 0x5A;
-                }
-                return result;
-            default:
-                return 0;
-        }
-    } else {
-        return result;
-    }
-}
-
-/// Arming state: with no spawns to arm for the session's slot it only advances;
-/// otherwise it parks this room's 0x7DB handler table in the task, folds the
-/// slot's spawn count into game flag 0x10A (remembering the slot in 0x10B), and
-/// fills the five spawn slots with the room's ceiling - or zero.
-static void func_neo_ark_woodland_path_80180C6C(Task* task)
-{
-    s16 i;
-    s16 nib;
-
-    if (D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant] == 0) {
-        task->msgTable = NULL;
-        task->state    = task->state + 1;
-        return;
-    }
-    task->msgTable                   = D_neo_ark_woodland_path_801849F4;
-    D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10A);
-    nib                              = GameFlag_GetNibble(0x10B);
-    if (gGameSession->location.loc.variant != nib) {
-        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant];
-        GameFlag_SetNibble(0x10A, D_neo_ark_woodland_path_80184990);
-        GameFlag_SetNibble(0x10B, gGameSession->location.loc.variant);
-    }
-    if (D_neo_ark_woodland_path_80184990 >= 6) {
-        D_neo_ark_woodland_path_80184990 = 5;
-    }
-    for (i = 0; i < 5; i++) {
-        if (i < D_neo_ark_woodland_path_80184990) {
-            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948.hpMax;
-        } else {
-            D_neo_ark_woodland_path_80184A60[i] = 0;
-        }
-    }
-    D_neo_ark_woodland_path_8018498E = 0x5A;
-    task->state                      = task->state + 1;
-}
+#include "../../shared/roaming_enemies_arm_pool_b.inc.c"
 
 /// Per-frame state of the arming sequence `func_...80180C6C` sets up, the
 /// sibling of `func_...801806D8`: counts the room's countdown down, and once the
@@ -731,17 +495,17 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant] == 0) {
+    if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
         return;
     }
-    if (D_neo_ark_woodland_path_8018498E > 0) {
-        D_neo_ark_woodland_path_8018498E--;
+    if (gRoamerCooldown > 0) {
+        gRoamerCooldown--;
     }
-    if (Gp_StateF0.field_6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
+    if (Gp_StateF0.field_6 == 0 && gRoamerPrevBattleRefs > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {
-            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
+            if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
@@ -750,23 +514,23 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {
-            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
+            if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
         GameFlag_SetNibble(0x167, a + (b - count));
         count = 0;
         for (k = 0; k < 5; k++) {
-            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
+            if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
         GameFlag_SetNibble(0x10A, count);
         areaSyncLocationVariant(&gGameSession->location.loc);
-        D_neo_ark_woodland_path_8018498E = 0x96;
+        gRoamerCooldown = 0x96;
     }
-    D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
-    if (gGameSession->battleResetPending == 1 && D_neo_ark_woodland_path_8018498E == 0) {
+    gRoamerPrevBattleRefs = Gp_StateF0.field_6;
+    if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
         Gp_StateF0.prefix.bytes.field_0  = 0;
         Gp_StateF0.field_5               = 0;
         Gp_StateF0.field_6               = 0;
@@ -775,10 +539,10 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         Gp_StateF0.field_10              = 0;
         gGameSession->battleResetPending = 0;
     }
-    if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
-        D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
-        D_neo_ark_woodland_path_80184A5C.context.loc.area  = 0xB;
-        D_neo_ark_woodland_path_80184A5C.command           = 0xB;
+    if (Gp_StateF0.prefix.bytes.field_0 != 2 && gRoamerSpawnRequest != 0) {
+        gRoamerCommand.context.loc.stage = 5;
+        gRoamerCommand.context.loc.area  = 0xB;
+        gRoamerCommand.command           = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -788,19 +552,19 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 break;
             }
             if (obj->hp == -999) {
-                for (j = 0; j < D_neo_ark_woodland_path_80184990; j++) {
-                    if (((s16*)D_neo_ark_woodland_path_80184A60)[j] > 0) {
-                        obj->hp                             = D_neo_ark_woodland_path_80184A60[j];
-                        obj->reactionFlags                  = 0;
-                        D_neo_ark_woodland_path_80184A60[j] = 0;
+                for (j = 0; j < gRoamerReserveCount; j++) {
+                    if (((s16*)gRoamerReserveHp)[j] > 0) {
+                        obj->hp             = gRoamerReserveHp[j];
+                        obj->reactionFlags  = 0;
+                        gRoamerReserveHp[j] = 0;
                         break;
                     }
                 }
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
-                    D_neo_ark_woodland_path_8018498E += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_woodland_path_80184A5C, 0);
-                    switch ((s16)(D_neo_ark_woodland_path_80184992 - 1)) {
+                    gRoamerCooldown += 0x5A;
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    switch ((s16)(gRoamerSpawnRequest - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
@@ -848,13 +612,13 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
             }
         }
     }
-    D_neo_ark_woodland_path_80184992 = 0;
+    gRoamerSpawnRequest = 0;
 }
 
 /// State handlers of the second arming sequence's entry task
 /// `func_neo_ark_woodland_path_801815D4`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
-    { func_neo_ark_woodland_path_80180C6C, func_neo_ark_woodland_path_80180DDC,
+    { roamerArmPoolB, func_neo_ark_woodland_path_80180DDC,
       func_neo_ark_woodland_path_801815C0, taskKill }
 };
 
@@ -863,28 +627,7 @@ s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, TaskMessageArg ar
     return 0;
 }
 
-/// 0x13EF handler of the first sequence: records the message's third byte as the
-/// requested spawn point, unless it repeats the previous request or the
-/// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
-/// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg, TaskMessageArg arg3)
-{
-    s16 counter;
-
-    if (msg[2] != D_neo_ark_woodland_path_80184994) {
-        counter = D_neo_ark_woodland_path_8018498E;
-        if (counter == 0) {
-            D_neo_ark_woodland_path_80184992 = msg[2];
-        } else {
-            goto L_clear;
-        }
-    } else {
-    L_clear:
-        D_neo_ark_woodland_path_80184992 = 0;
-    }
-    D_neo_ark_woodland_path_80184994 = msg[2];
-    return 1;
-}
+#include "../../shared/roaming_enemies_latch_request.inc.c"
 
 static void func_neo_ark_woodland_path_801814D4(Task* arg0)
 {
@@ -904,32 +647,14 @@ void func_neo_ark_woodland_path_801814E8(Task* task)
 
 s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
-    D_neo_ark_woodland_path_8018498E += 0x5A;
+    gRoamerCooldown += 0x5A;
     return 1;
 }
 
-/// 0x13EF handler of the second sequence: records the message's third byte as the
-/// requested spawn point, unless it repeats the previous request or the
-/// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
-/// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg, TaskMessageArg arg3)
-{
-    s16 counter;
-
-    if (msg[2] != D_neo_ark_woodland_path_80184994) {
-        counter = D_neo_ark_woodland_path_8018498E;
-        if (counter == 0) {
-            D_neo_ark_woodland_path_80184992 = msg[2];
-        } else {
-            goto L_clear;
-        }
-    } else {
-    L_clear:
-        D_neo_ark_woodland_path_80184992 = 0;
-    }
-    D_neo_ark_woodland_path_80184994 = msg[2];
-    return 1;
-}
+/// A further copy, under this file's own name.
+#define roamerLatchRequest func_neo_ark_woodland_path_80181568
+#include "../../shared/roaming_enemies_latch_request.inc.c"
+#undef roamerLatchRequest
 
 static void func_neo_ark_woodland_path_801815C0(Task* arg0)
 {

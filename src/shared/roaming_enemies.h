@@ -1,0 +1,34 @@
+/* The Neo Ark forest rooms' pool of roaming enemies. The room keeps up to five
+ * reserve slots of banked HP, sized from game-flag nibbles per session slot:
+ * each visit adds the slot's arming count (per location variant) to a running
+ * total and caps it at five. The room's dormant slot-4 enemies (hp -999) are
+ * revived from this pool. A 0x13EF request names a spawn point, and the room
+ * gives the next dormant enemy a banked HP, raises a battle-state reference,
+ * sends it the 0x7DB actor command and places it at that point with its yaw.
+ * An enemy that retreats reports its HP through message 0x13F4. That HP goes
+ * back into a free slot at 110%, capped at the enemy's maximum. When the
+ * battle ends, the enemies still banked are folded back into the flag nibbles
+ * so the count survives the room change. A frame cooldown spaces the arrivals.
+ * Each room runs two such pools, one feeding area 0x1D (nibbles
+ * 0x10C/0x10D/0x168) and one feeding area 0xB (nibbles 0x10A/0x10B/0x167).
+ * They share the slots, cooldown and request state.
+ *
+ * Include this header in the prologue and each fragment at its function's
+ * position.
+ */
+
+#ifndef SRC_SHARED_ROAMING_ENEMIES_H
+#define SRC_SHARED_ROAMING_ENEMIES_H
+
+#include "types.h"
+
+#include "main/task_types.h"
+
+void roamerBankRetreat(Task* task, s32 arg1, s32 arg2);
+void roamerArmPoolA(Task* task);
+void roamerTickPoolA(Task* task);
+s32  roamerAmbushMsg(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3);
+void roamerArmPoolB(Task* task);
+s32  roamerLatchRequest(Task* arg0, s32 arg1, u8* arg2, TaskMessageArg arg3);
+
+#endif /* SRC_SHARED_ROAMING_ENEMIES_H */
