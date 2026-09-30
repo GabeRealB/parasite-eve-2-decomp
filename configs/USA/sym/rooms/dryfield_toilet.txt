@@ -7,7 +7,7 @@ D_dryfield_toilet_8018030C = 0x8018030C; // size:0x4 defined:True
 D_dryfield_toilet_80180310 = 0x80180310; // size:0x4 defined:True
 D_dryfield_toilet_80180314 = 0x80180314; // size:0x24 defined:True
 D_dryfield_toilet_801802A4 = 0x801802A4; // size:0x30 defined:True
-D_dryfield_toilet_80181120 = 0x80181120; // size:0xC defined:True
+RoomFx_DiscShades = 0x80181120; // size:0xC defined:True
 D_dryfield_toilet_8018112C = 0x8018112C; // size:0x10 defined:True
 D_dryfield_toilet_8018113C = 0x8018113C; // size:0x4 defined:True
 D_dryfield_toilet_80181140 = 0x80181140; // size:0x2 defined:True
@@ -101,3 +101,8 @@ func_dryfield_toilet_8017EBF4 = 0x8017EBF4; // type:func
 func_dryfield_toilet_8017F854 = 0x8017F854; // type:func
 
 func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func
+RoomFx_DrawFlyingSpark = 0x8017EE18; // type:func
+RoomFx_DrawFlyingRing = 0x8017F09C; // type:func
+RoomFx_DrawFlyingDisc = 0x8017F4C0; // type:func
+RoomFx_DrawBurst2Glow = 0x8017FA00; // type:func
+RoomFx_DrawGround2Quad = 0x8017FF2C; // type:func
