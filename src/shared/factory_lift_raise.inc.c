@@ -63,9 +63,9 @@ s32 factoryLiftRaise(Task* task)
             Gp_EnqueueStageSnd7(0x53170008, 1);
             Gp_EnqueueStageSnd6(0x53170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         }
-        done                = 1;
+        done               = 1;
         work->field_C.word = -0x23A0000;
-        work->field_17      = 4;
+        work->field_17     = 4;
     }
     coord->coord.t[1]   = work->field_C.halves.integer;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

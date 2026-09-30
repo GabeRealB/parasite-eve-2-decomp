@@ -66,9 +66,9 @@ s32 factoryLiftTurnOut(Task* task)
             Gp_EnqueueStageSnd7(0x5317000F, 1);
             Gp_EnqueueStageSnd6(0x53170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         }
-        done                 = 1;
+        done                = 1;
         work->field_10.word = 0x4000000;
-        work->field_16       = 4;
+        work->field_16      = 4;
     }
     mat                = (OverlayMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;

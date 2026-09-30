@@ -55,12 +55,12 @@ void bursterContacts(Task* arg0)
             work->field_2CE = 0;
         }
     }
-    dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    dx                     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     scratch->delta.vx.word = dx;
     scratch->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     scratch->delta.vz.word = dz;
-    distance            = SquareRoot0((dx * dx) + (dz * dz));
+    distance               = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x320 && work->field_2C8 == 1) {
         work->field_2D2 = 1;
         work->field_2C8 = 2;
@@ -110,14 +110,14 @@ void bursterContacts(Task* arg0)
                 }
                 break;
             case 0x30000:
-                wallDx              = coord->workm.t[0] - work->rec154[i].point.vx;
+                wallDx                 = coord->workm.t[0] - work->rec154[i].point.vx;
                 scratch->delta.vy.word = 0;
                 scratch->delta.vx.word = wallDx;
-                wallDz              = coord->workm.t[2] - work->rec154[i].point.vz;
+                wallDz                 = coord->workm.t[2] - work->rec154[i].point.vz;
                 scratch->delta.vz.word = wallDz;
-                distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance            = work->rec154[i].distance - distance;
-                distance            = (distance <= 0) ? 0 : distance;
+                distance               = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
+                distance               = work->rec154[i].distance - distance;
+                distance               = (distance <= 0) ? 0 : distance;
                 scratch->delta.vx.word = coord->workm.t[0] - work->rec154[i].point.vx;
                 scratch->delta.vy.word = coord->workm.t[1] - work->rec154[i].point.vy;
                 scratch->delta.vz.word = coord->workm.t[2] - work->rec154[i].point.vz;

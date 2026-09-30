@@ -16,10 +16,10 @@ void reverseWalkSpawn(Task* arg0)
         return;
     }
 
-    arg0->work          = work;
-    work->model.animId  = -1;
-    work->model.bank    = -1;
-    work->freeCountdown = -1;
+    arg0->work             = work;
+    work->model.animId     = -1;
+    work->model.bank       = -1;
+    work->freeCountdown    = -1;
     work->walk.acc[0].word = 0;
     work->walk.acc[1].word = 0;
     work->walk.acc[2].word = 0;

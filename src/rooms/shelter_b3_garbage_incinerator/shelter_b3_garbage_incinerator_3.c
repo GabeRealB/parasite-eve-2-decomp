@@ -53,6 +53,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#define EFFECT_SPRITE_SHARED_BILLBOARD
 #include "../../shared/effect_sprite.h"
 #include "../../shared/screen_wave.h"
 

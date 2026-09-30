@@ -18,14 +18,14 @@ void reverseWalkUpdate(Task* arg0)
     s32              i;
 
     funcs[(s16)work->walk.motion](arg0);
-    coord                = arg0->extra.tmd->coords;
+    coord                   = arg0->extra.tmd->coords;
     work->walk.acc[0].word += work->walk.step.vx;
     work->walk.acc[1].word += work->walk.step.vy;
     work->walk.acc[2].word += work->walk.step.vz;
-    coord->coord.t[0]   += (s16)(work->walk.acc[0].word >> 16);
-    coord->coord.t[1]   += (s16)(work->walk.acc[1].word >> 16);
-    coord->coord.t[2]   += (s16)(work->walk.acc[2].word >> 16);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
+    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
+    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
+    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
     work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
     work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
     work->walk.acc[2].word  = (u16)work->walk.acc[2].word;

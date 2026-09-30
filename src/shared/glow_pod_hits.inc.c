@@ -71,11 +71,11 @@ void glowPodHits(Task* arg0)
                 sc->delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
                 sc->delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                damage         = Gp_ComputeDamage(work->field_1A4[i].key.value,
-                                                  SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
-                                                              sc->delta.vy.word * sc->delta.vy.word +
-                                                              sc->delta.vz.word * sc->delta.vz.word),
-                                                  0, 0);
+                damage            = Gp_ComputeDamage(work->field_1A4[i].key.value,
+                                                     SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
+                                                                 sc->delta.vy.word * sc->delta.vy.word +
+                                                                 sc->delta.vz.word * sc->delta.vz.word),
+                                                     0, 0);
                 if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key.value, 0) != 0) {
                     damage *= 4;
                 }

@@ -77,6 +77,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#define EFFECT_SPRITE_SHARED_BILLBOARD
 #include "../../shared/effect_sprite.h"
 #include "../../shared/actor_messages.h"
 

@@ -89,17 +89,17 @@ void lungerHitTick(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
+                other                  = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->delta.vx.word = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.word = other->coord.t[1] - self->coord.t[1];
-                dz                  = other->coord.t[2] - self->coord.t[2];
+                dz                     = other->coord.t[2] - self->coord.t[2];
                 scratch->delta.vz.word = dz;
-                val                 = (scratch->delta.vx.word * self->coord.m[0][2]) + (scratch->delta.vy.word * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
-                work->field_6AA     = val >= 0;
-                damage              = Gp_ComputeDamage(work->field_4EC[i].key.value,
-                                                       SquareRoot0((scratch->delta.vx.word * scratch->delta.vx.word) + (scratch->delta.vy.word * scratch->delta.vy.word) + (scratch->delta.vz.word * scratch->delta.vz.word)),
-                                                       0, 0);
-                kind                = Gp_GetIdParam0(work->field_4EC[i].key.value);
+                val                    = (scratch->delta.vx.word * self->coord.m[0][2]) + (scratch->delta.vy.word * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
+                work->field_6AA        = val >= 0;
+                damage                 = Gp_ComputeDamage(work->field_4EC[i].key.value,
+                                                          SquareRoot0((scratch->delta.vx.word * scratch->delta.vx.word) + (scratch->delta.vy.word * scratch->delta.vy.word) + (scratch->delta.vz.word * scratch->delta.vz.word)),
+                                                          0, 0);
+                kind                   = Gp_GetIdParam0(work->field_4EC[i].key.value);
                 if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
                     if (work->field_4EC[i].key.value & 0x8000) {
                         if (gLungerWeakPointPe[work->field_4EC[i].key.value & 0x7F] != 0) {
@@ -262,15 +262,15 @@ void lungerHitTick(Task* arg0)
                 }
                 break;
             case 3:
-                part                = &arg0->extra.tmd->coords[3];
-                x                   = part->workm.t[0] - work->field_4EC[i].point.vx;
+                part                   = &arg0->extra.tmd->coords[3];
+                x                      = part->workm.t[0] - work->field_4EC[i].point.vx;
                 scratch->delta.vx.word = x;
-                y                   = part->workm.t[1] - work->field_4EC[i].point.vy;
+                y                      = part->workm.t[1] - work->field_4EC[i].point.vy;
                 scratch->delta.vy.word = y;
-                z                   = part->workm.t[2] - work->field_4EC[i].point.vz;
+                z                      = part->workm.t[2] - work->field_4EC[i].point.vz;
                 scratch->delta.vz.word = z;
-                push                = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                clamped             = push;
+                push                   = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                clamped                = push;
                 if (push <= 0) {
                     clamped = 0;
                 }
