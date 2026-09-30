@@ -12021,7 +12021,7 @@ case 5:
     table = Font_Glyphs2;
     break;
 default:
-    table = Font_Glyphs1;
+    table = _gFontGlyphsLarge;
     break;
 }
 ```

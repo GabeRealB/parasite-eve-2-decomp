@@ -497,12 +497,12 @@ Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 | Table | VA | Count | `glyphTable` | `vBias` (`Text_DrawString`) |
 |---|---|---|---|---|
 | `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 (`TEXT_GLYPH_TABLE_MEDIUM`) | `0x26` |
-| `Font_Glyphs1` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than 0 and 5 | `0x80` |
+| `_gFontGlyphsLarge` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than `TEXT_GLYPH_TABLE_MEDIUM` (0) and `TEXT_GLYPH_TABLE_SMALL` (5) | `0x80` |
 | `Font_Glyphs2` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | `0` |
 
-`Ui_DrawTextUnderline` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`. The large
-face sits 128 lines down the 256-tall font page; drawing it with V bias 0
-samples padding, not glyphs.
+`Ui_DrawTextUnderline` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`.
+`_gFontGlyphsLarge` sits 128 lines down the 256-tall font page; drawing it
+with V bias 0 samples padding, not glyphs.
 
 `_FontGlyph` `u`/`v` are **page-local texels** in the 4bpp page at
 `(960, 256)`, with `vBias` added to `v`. SPRT `w`/`h` are

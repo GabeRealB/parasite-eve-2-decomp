@@ -56,10 +56,18 @@ enum {
 /// 224 records occupy 0xA80 bytes.
 enum { FONT_GLYPH_MEDIUM_COUNT = 0x100 - ' ' };
 
+/// Record count of the large UI face.
+///
+/// One record per character byte from ' ' through 0xFF, indexed as
+/// `byte - ' '`, so every such byte is in range. The medium face covers the
+/// same bytes under `FONT_GLYPH_MEDIUM_COUNT`; the small face stops at 0x7A and does not
+/// use this count. 224 records occupy 0xA80 bytes.
+enum { FONT_GLYPH_LARGE_COUNT = 0x100 - ' ' };
+
 /// Texture bounds and pen metrics for one encoded UI-font character.
 ///
 /// Tables are indexed by the character byte minus ' ': `_gFontGlyphsMedium` and
-/// `Font_Glyphs1` cover 0x20..0xFF, and `Font_Glyphs2` covers 0x20..0x7A.
+/// `_gFontGlyphsLarge` cover 0x20..0xFF, and `Font_Glyphs2` covers 0x20..0x7A.
 /// The texture origin is relative to a 4bpp page; the selected font supplies
 /// an additional V bias. Adjacent right/left kerning classes combine modulo
 /// 256, allowing pair tightening when equal and non-neutral.
@@ -78,6 +86,7 @@ typedef struct {
 } _FontGlyph;
 STATIC_ASSERT_SIZEOF(_FontGlyph, 0xC);
 STATIC_ASSERT(FONT_GLYPH_MEDIUM_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsMediumBytes);
+STATIC_ASSERT(FONT_GLYPH_LARGE_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsLargeBytes);
 
 /// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
 static SPRT D_80071710;
@@ -88,7 +97,7 @@ static TaskDesc D_8005EDA0[];
 
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT];
 
-static _FontGlyph Font_Glyphs1[];
+static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT];
 
 static _FontGlyph Font_Glyphs2[];
 
@@ -213,7 +222,18 @@ TaskDesc* gTaskDescBanks[15] = {
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 #include "assets/font_glyphs0.inc"
 };
-static _FontGlyph Font_Glyphs1[] = {
+
+/// Large UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
+///
+/// `Text_DrawString` and `Text_MeasureAndCenter` select this face when
+/// `glyphTable` is neither `TEXT_GLYPH_TABLE_MEDIUM` nor
+/// `TEXT_GLYPH_TABLE_SMALL`. Named callers use `TEXT_GLYPH_TABLE_LARGE` and
+/// `TEXT_GLYPH_TABLE_LARGE_ALTERNATE`; any other selector takes this face too.
+/// Drawing also selects it for an `\sL` command, in either letter's case, and
+/// adds `TEXT_GLYPH_V_BIAS_LARGE` to each record's texture V. The initializer
+/// is the embedded `font_glyphs1` catalogue blob. Bytes below space are not
+/// records in this face.
+static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 #include "assets/font_glyphs1.inc"
 };
 static _FontGlyph Font_Glyphs2[] = {
@@ -448,7 +468,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             request->vBias = TEXT_GLYPH_V_BIAS_SMALL;
             break;
         default:
-            table          = Font_Glyphs1;
+            table          = _gFontGlyphsLarge;
             request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
             break;
     }
@@ -544,7 +564,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                                 break;
                             case 'L':
                             case 'l':
-                                table          = Font_Glyphs1;
+                                table          = _gFontGlyphsLarge;
                                 request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
                                 break;
                         }
@@ -809,7 +829,7 @@ void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
             table = Font_Glyphs2;
             break;
         default:
-            table = Font_Glyphs1;
+            table = _gFontGlyphsLarge;
             break;
     }
 
