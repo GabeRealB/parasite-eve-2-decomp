@@ -194,3 +194,4 @@ pairWalkSetVisibility = 0x80133250; // type:func
 pairWalkPlace = 0x801332B4; // type:func
 pairWalkSubModelTask = 0x801333FC; // type:func
 pairWalkUpdate = 0x80132D68; // type:func
+footstepWalkPlay = 0x801327BC; // type:func

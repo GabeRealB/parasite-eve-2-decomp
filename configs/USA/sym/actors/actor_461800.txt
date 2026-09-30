@@ -175,3 +175,4 @@ scriptedWalkTo = 0x80132F44; // type:func
 walkerDrawShadowShaded = 0x80132AD8; // type:func
 footstepWalkPlace = 0x80133970; // type:func
 scriptedWalkPlace = 0x80132EA4; // type:func
+footstepWalkPlay = 0x80133898; // type:func

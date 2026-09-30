@@ -110,7 +110,6 @@ static void func_actor_461800_80133B98(Task* task);
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80132E14(Task*, s32, s32);
 s32  func_actor_461800_80132F20(Task*, s32, ActorCommand* request, s32);
-s32  func_actor_461800_80133898(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80133928(Task*, s32, s32);
 s32  func_actor_461800_801339EC(Task*, s32, ActorCommand* msg, s32);
 void func_actor_461800_801329B0(Task*);
@@ -819,7 +818,7 @@ AnimationSet D_actor_461800_80143790 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 Actor461800MessageEntry gFootstepWalkMsgTable[6] = {
-    { 2003, { .call0 = func_actor_461800_80133898 } },
+    { 2003, { .call0 = footstepWalkPlay } },
     { 2005, { .call4 = func_actor_461800_80133928 } },
     { 2004, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_801339EC } },
@@ -1289,28 +1288,7 @@ void footstepWalkExit(Task* task)
 
 #include "../../shared/footstep_walk_blend_anim.inc.c"
 
-/// Applies an animation preset to the second variant's work block: the id is
-/// copied in, the reset mode is picked by the preset's blend flag and the reset
-/// argument is either taken from the preset or left at 2, then the work block's
-/// animation is restarted through `footstepWalkUpdate`. Only the ids
-/// this variant owns are accepted; anything else leaves the work block
-/// untouched and reports the failure.
-s32 func_actor_461800_80133898(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
-{
-    if (preset->animationId < 0x23) {
-        gFootstepWalkWork->st.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = 1;
-            gFootstepWalkBlendFrames    = preset->blendFrames;
-        } else {
-            gFootstepWalkWork->st.state = 2;
-        }
-        gFootstepWalkWork->st.field_6 = 0;
-        footstepWalkUpdate(gFootstepWalkTask);
-        return 0;
-    }
-    return -1;
-}
+#include "../../shared/footstep_walk_play.inc.c"
 
 /// Visibility message of the second variant: applies `arg2` to the model of
 /// the task published in `gFootstepWalkTask` - bit 0 selects

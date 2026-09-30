@@ -98,7 +98,6 @@ static void func_actor_535700_80133020(Task* task);
 extern TmdSource D_actor_535700_80139A6C;
 void             func_actor_535700_80132478(Task*);
 
-s32 func_actor_535700_801327BC(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_535700_8013284C(Task*, s32, s32);
 s32 func_actor_535700_80132910(Task*, s32, ActorCommand* msg);
 
@@ -746,7 +745,7 @@ AnimationSet D_actor_535700_8013DA80 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 Actor535700MsgEntry gFootstepWalkMsgTable[6] = {
-    { 2003, { .call2 = func_actor_535700_801327BC } },
+    { 2003, { .call2 = footstepWalkPlay } },
     { 2005, { .call7 = func_actor_535700_8013284C } },
     { 2004, { .call4 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_535700_80132910 } },
@@ -1214,27 +1213,7 @@ void footstepWalkExit(Task* task)
 
 #include "../../shared/footstep_walk_blend_anim.inc.c"
 
-/// "Start animation" opcode of the first enemy: `withArg` selects between the
-/// two start paths the runner `footstepWalkUpdate` dispatches on, and
-/// only the first carries `animArg`, which it leaves in
-/// `gFootstepWalkBlendFrames`. Returns -1, without touching the work block, when
-/// the clip id is 0x23 or more.
-s32 func_actor_535700_801327BC(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
-{
-    if (args->animationId < 0x23) {
-        gFootstepWalkWork->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = 1;
-            gFootstepWalkBlendFrames    = args->blendFrames;
-        } else {
-            gFootstepWalkWork->st.state = 2;
-        }
-        gFootstepWalkWork->st.field_6 = 0;
-        footstepWalkUpdate(gFootstepWalkTask);
-        return 0;
-    }
-    return -1;
-}
+#include "../../shared/footstep_walk_play.inc.c"
 
 /// Visibility opcode of the first enemy: applies `arg2` to the model of the
 /// task published in `gFootstepWalkTask` - bit 0 shows it (flags 0)
