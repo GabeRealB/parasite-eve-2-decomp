@@ -243,15 +243,16 @@ STATIC_ASSERT(OFFSET_OF(McSaveData, state.headerChecksumComplement) == OFFSET_OF
 STATIC_ASSERT(OFFSET_OF(McSaveData, preview.remainingBytes) == 0x20, McSaveData_previewRemainder);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.playTime) == 0xC, McSaveData_playTime);
 
-/// Indices of the two resident images in `gMcSaveData`.
-///
-/// The live image is the record the game reads and writes. The backup is the
-/// next image. Initialization clears the live image and fills the backup with
-/// 0xFF. Loading writes both copies from the card back into the array. Saving
-/// checksums the live image, writes that image to the card twice, and then
-/// copies the live image over the resident backup.
+/// Indices of the two resident save images in `gMcSaveData`.
 enum {
-    MEMORY_CARD_SAVE_LIVE   = 0, // Image the game reads and writes
+    /// Index of the resident save image the game reads and writes.
+    ///
+    /// The next image is the backup. Initialization zeroes this image and fills
+    /// the backup with 0xFF, then stores the new-game location, scene and
+    /// character here. Saving checksums this image, stores two copies of it on
+    /// the card, and then copies it over the resident backup. Loading replaces
+    /// both images from the card.
+    MEMORY_CARD_SAVE_LIVE   = 0,
     MEMORY_CARD_SAVE_BACKUP = 1, // Copy kept immediately after the live image
     MEMORY_CARD_SAVE_COUNT  = 2  // Live image followed by its backup
 };
