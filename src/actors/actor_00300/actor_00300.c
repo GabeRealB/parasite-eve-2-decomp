@@ -114,16 +114,11 @@ typedef struct Actor00300AreaConfig {
 } Actor00300AreaConfig;
 STATIC_ASSERT_SIZEOF(Actor00300AreaConfig, 8);
 
+/// Same 0x6A4 parent allocation as `Actor00300MainWork`. The front is that
+/// block's nineteen-slot rig. This view names state halfwords the other view
+/// leaves in its tail.
 typedef struct Actor100300Work {
-    /* 0x000 */ WorldCollisionBody    obj0;
-    /* 0x020 */ u16                   field_20;
-    /* 0x022 */ byte                  pad_22[0x16];
-    /* 0x038 */ WorldCollisionBody    obj38;
-    /* 0x058 */ byte                  pad_58[0x18];
-    /* 0x070 */ WorldCollisionContact field_70;
-    /* 0x088 */ u16                   field_88;
-    /* 0x08A */ s16                   field_8A;
-    /* 0x08C */ byte                  pad_8C[0x3B0];
+    /* 0x000 */ ActorAnimRig19        rig;
     /* 0x43C */ Task*                 field_43C;
     /* 0x440 */ byte                  field_440[0x20];
     /* 0x460 */ byte                  field_460[0x20];
@@ -180,6 +175,7 @@ typedef struct Actor100300Work {
     /* 0x6A0 */ s16                   field_6A0;
     /* 0x6A2 */ s16                   field_6A2;
 } Actor100300Work;
+STATIC_ASSERT_SIZEOF(Actor100300Work, 0x6A4);
 
 extern DamageAttack Actor00300_D15FD8[4];
 
@@ -2962,7 +2958,7 @@ static void Actor00300_Fn03A1C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((AnimationContext*)work, (AnimationSlot*)&work->obj38.prev);
+    rec   = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_696 & ANIMATION_RECORD_CUE_2)) {
             sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40030001;
@@ -3220,11 +3216,11 @@ static void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
 
 static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
 {
-    Actor100300Work* work;
-    GfxCoord*        coord;
-    s32              id;
-    s32              expired;
-    s16              timer;
+    Actor00300InitWork* work;
+    GfxCoord*           coord;
+    s32                 id;
+    s32                 expired;
+    s16                 timer;
 
     coord   = arg1->extra.tmd->coords;
     work    = arg1->work;
@@ -3240,20 +3236,20 @@ static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
             coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
             Gp_UpdateCoord(coord);
             Actor00300_Fn00078(coord, 0x200);
-            id = work->field_70.key.value;
+            id = work->rec70.key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                              [gGameSession->location.loc.area - 1][func_800E1B24(id)]
                                                  ->field_1 == 0) {
                 expired = 1;
             }
-            Gp_ClearRec18Occupied(&work->field_70);
+            Gp_ClearRec18Occupied(&work->rec70);
             Actor00300_Fn04528(arg1);
-            timer          = work->field_88 - 1;
-            work->field_88 = timer;
-            if (timer <= 0 || (work->field_20 & 1) || expired != 0) {
+            timer       = work->timer - 1;
+            work->timer = timer;
+            if (timer <= 0 || (work->rec20.flags & WORLD_COLLISION_CONTACT_OCCUPIED) || expired != 0) {
                 Gp_SpawnEff(D_8011573C, coord, 0, NULL);
-                arg1->state    = 2;
-                work->field_8A = 0;
+                arg1->state = 2;
+                work->pad8A = 0;
             }
         case 2:
             return;
@@ -3616,12 +3612,12 @@ static void Actor00300_Fn04ED4(Task* arg0)
             val = 8;
         }
         for (i = 1; i < 0x13; i++) {
-            func_800B4114((AnimationContext*)work, i, work->field_66E, 0, val);
+            func_800B4114(&work->rig.anim, i, work->field_66E, 0, val);
         }
     } else {
         work->field_672++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 }
@@ -3718,20 +3714,20 @@ void Actor00300_Fn0521C(Task* arg0)
 
 static void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
 {
-    Actor100300Work* work;
-    u16              timer;
+    Actor00300InitWork* work;
+    u16                 timer;
 
-    work = (Actor100300Work*)arg1->work;
-    switch (work->field_8A) {
+    work = arg1->work;
+    switch (work->pad8A) {
         case 0:
             Gp_UnlinkObj(&work->obj0);
             Gp_UnlinkObj(&work->obj38);
-            work->field_88 = 0x3C;
-            work->field_8A = 1;
+            work->timer = 0x3C;
+            work->pad8A = 1;
             return;
         case 1:
-            timer          = work->field_88 - 1;
-            work->field_88 = timer;
+            timer       = work->timer - 1;
+            work->timer = timer;
             if ((s16)timer <= 0) {
                 Gp_DestroyEnemy(arg0, arg1);
             }
@@ -3755,7 +3751,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
         frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((AnimationContext*)work, i, work->field_66E, 0, frames);
+        func_800B4114(&work->rig.anim, i, work->field_66E, 0, frames);
     }
     return 0;
 }

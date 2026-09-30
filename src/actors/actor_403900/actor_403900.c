@@ -3079,7 +3079,7 @@ static void func_actor_403900_80135BE0(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_712 != 0) {
-        rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+        rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
         if (rec != NULL) {
             if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_6CA & ANIMATION_RECORD_CUE_2)) {
                 snd = D_actor_403900_80138424[work->field_712 * 2 - 1] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
@@ -3276,12 +3276,12 @@ static inline void Actor403900_ReseedAnim(Task* arg0)
         work->field_6C4 = 0;
         value           = D_actor_403900_801383B0[work->field_6C0];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->anim, i, work->field_6C0, 0, value);
+            func_800B4114(&work->rig.anim, i, work->field_6C0, 0, value);
         }
     } else {
         work->field_6C4++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 }
@@ -3550,11 +3550,11 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
     work->field_65C.coord      = &arg1->extra.tmd->coords[3];
     work->field_65C.spawnArgLo = 0x500;
     work->field_65C.spawnArgHi = 2;
-    func_800B3F84(&work->anim, D_actor_403900_801540EC, obj, work->field_30C, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_403900_801540EC, obj, work->rig.poses, work->rig.slots);
     work->field_6C0 = 0xB;
     work->field_6C2 = 0xB;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->anim, i, work->field_6C0);
+        Gp_AnimResetSlot(&work->rig.anim, i, work->field_6C0);
     }
     kind = arg0->spawnState;
     switch (kind) {
@@ -3935,12 +3935,12 @@ static void func_actor_403900_80137EF0(Task* arg0)
         work->field_6C4 = 0;
         value           = D_actor_403900_801383B0[work->field_6C0];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->anim, i, work->field_6C0, 0, value);
+            func_800B4114(&work->rig.anim, i, work->field_6C0, 0, value);
         }
     } else {
         work->field_6C4++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 }

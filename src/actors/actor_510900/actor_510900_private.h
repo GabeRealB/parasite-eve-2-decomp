@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include "actors/actor.h"
+
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
@@ -20,14 +22,7 @@
 #include "main/tmd_types.h"
 
 typedef struct Actor510900Work {
-    /* 0x000 */ WorldCollisionBody obj0;
-    /* 0x020 */ byte               pad_20[0x18];
-    /* 0x038 */ WorldCollisionBody obj38;
-    /* 0x058 */ byte               pad_58[0x264];
-    /* 0x2BC */ WorldCollisionBody obj2BC;
-    /* 0x2DC */ byte               pad_2DC[0x18];
-    /* 0x2F4 */ WorldCollisionBody obj2F4;
-    /* 0x314 */ byte               pad_314[0x128];
+    /* 0x000 */ ActorAnimRig19     rig;
     /* 0x43C */ MATRIX             field_43C; ///< colour matrix, handed to TmdObject::colorMtx
     /* 0x45C */ MATRIX             field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ WorldCollisionBody obj47C;

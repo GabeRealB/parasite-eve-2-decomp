@@ -121,9 +121,7 @@ STATIC_ASSERT_SIZEOF(Actor105100ProjScratch, 0x38);
 /// off `&coord[3]`, the second off the model's own coordinate and the third
 /// off the third-party model's.
 typedef struct Actor105100Work {
-    /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[19];
-    /* 0x30C */ byte                  field_30C[0x130];
+    /* 0x000 */ ActorAnimRig19        rig;
     /* 0x43C */ MATRIX                field_43C;
     /* 0x45C */ MATRIX                field_45C;
     /* 0x47C */ WorldCollisionBody    obj47C;
@@ -1091,10 +1089,10 @@ static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
     work->field_554.coord      = &arg1->extra.tmd->coords[3];
     work->field_554.spawnArgLo = 0x500;
     work->field_554.spawnArgHi = 3;
-    func_800B3F84(&work->anim, D_actor_105100_80141488, obj, work->field_30C,
-                  work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_105100_80141488, obj, work->rig.poses,
+                  work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        Gp_AnimResetSlot(&work->rig.anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_560               = coord->coord;
@@ -1908,7 +1906,7 @@ static void func_actor_105100_80134130(Task* arg0)
 
     work = arg0->work;
     self = arg0->extra.tmd->coords;
-    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_5B8 & ANIMATION_RECORD_CUE_2)) {
             snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40330001;
@@ -1940,12 +1938,12 @@ static inline void _actor105100AnimUpdate(Task* task)
         work->field_592 = 0;
         val             = D_actor_105100_801414C8[(s16)work->field_58E];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->anim, i, (s16)work->field_58E, 0, val);
+            func_800B4114(&work->rig.anim, i, (s16)work->field_58E, 0, val);
         }
     } else {
         work->field_592++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 }

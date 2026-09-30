@@ -170,8 +170,8 @@ extern AnimationSet* D_actor_510900_80167CAC[];
 extern u16 D_actor_510900_80167C94[12];
 
 /// 0x7C-byte `Task::work` block `func_actor_510900_8013AD90` allocates: two
-/// linked `WorldCollisionBody`s, each with its one-entry `WorldCollisionContact` table, laid out as the
-/// head of `Actor510900Work` (`func_actor_510900_8013C430` unlinks both).
+/// linked `WorldCollisionBody`s, each with its one-entry `WorldCollisionContact` table.
+/// `func_actor_510900_8013C430` unlinks both.
 typedef struct Actor510900ChildWork {
     /* 0x00 */ WorldCollisionBody    obj0;
     /* 0x20 */ WorldCollisionContact rec20;
@@ -2321,7 +2321,7 @@ static void func_actor_510900_80138A9C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((AnimationContext*)work, (AnimationSlot*)&work->obj38.prev);
+    rec   = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_59A & ANIMATION_RECORD_CUE_2)) {
             snd = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40780001;
@@ -2595,7 +2595,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             coord->coord.t[1] = 0;
             coord->coord.t[2] = 0;
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot((AnimationContext*)work, i, work->field_586);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->field_586);
             }
             if (work->field_594 == 0) {
                 work->field_594 = 1;
@@ -3954,12 +3954,12 @@ static void func_actor_510900_8013BB20(Task* arg0)
         work->field_58A = 0;
         value           = D_actor_510900_80167B38[work->field_586];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114((AnimationContext*)work, i, work->field_586, 0, value);
+            func_800B4114(&work->rig.anim, i, work->field_586, 0, value);
         }
     } else {
         work->field_58A++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 }
@@ -4036,7 +4036,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     work            = arg0->work;
     work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((AnimationContext*)work, i, work->field_586, 0, blend);
+        func_800B4114(&work->rig.anim, i, work->field_586, 0, blend);
     }
     work->field_58A = 0;
     return 0;
@@ -4235,8 +4235,8 @@ static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1)
 
 static void func_actor_510900_8013C380(Task* arg0)
 {
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    Actor510900Work* work  = arg0->work;
+    GpEnemy*              enemy = arg0->spawnArg2.pointer;
+    Actor510900ChildAnim* work  = arg0->work;
 
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->obj2BC);
@@ -4256,8 +4256,8 @@ void func_actor_510900_8013C3DC(Task* task)
 
 static void func_actor_510900_8013C430(Task* arg0)
 {
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    Actor510900Work* work  = arg0->work;
+    GpEnemy*              enemy = arg0->spawnArg2.pointer;
+    Actor510900ChildWork* work  = arg0->work;
 
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->obj0);

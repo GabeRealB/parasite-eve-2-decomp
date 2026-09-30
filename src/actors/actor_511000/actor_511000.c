@@ -47,18 +47,15 @@ extern GpImgRec D_actor_511000_801472B4[2];
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
 /// `func_actor_511000_80133958` allocates it (`memCalloc(0x488, 0)`), hands
-/// `anim` / `slots` / `field_30C` to `func_800B3F84`, and points its own model
+/// the rig to `func_800B3F84`, and points its own model
 /// at the two matrices; the three children it spawns do the same.
 typedef struct Actor511000ParentWork {
-    /* 0x000 */ AnimationContext anim;
-    /* 0x014 */ AnimationSlot    slots[1];
-    /* 0x03C */ byte             pad_3C[0x2D0];
-    /* 0x30C */ byte             field_30C[0x130];
-    /* 0x43C */ MATRIX           field_43C; ///< colour matrix, handed to TmdObject::colorMtx
-    /* 0x45C */ MATRIX           field_45C; ///< light matrix, handed to TmdObject::lightMtx
-    /* 0x47C */ s32              field_47C; ///< cleared by the spawn handler
-    /* 0x480 */ s16              field_480; ///< frame counter; fades both matrices every third tick in state 3+
-    /* 0x482 */ byte             pad_482[6];
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ MATRIX         field_43C; ///< colour matrix, handed to TmdObject::colorMtx
+    /* 0x45C */ MATRIX         field_45C; ///< light matrix, handed to TmdObject::lightMtx
+    /* 0x47C */ s32            field_47C; ///< cleared by the spawn handler
+    /* 0x480 */ s16            field_480; ///< frame counter; fades both matrices every third tick in state 3+
+    /* 0x482 */ byte           pad_482[6];
 } Actor511000ParentWork;
 STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 
@@ -3145,7 +3142,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     model->flags    = MODEL_HIDDEN;
     model->lightMtx = &work->field_45C;
     model->colorMtx = &work->field_43C;
-    func_800B3F84(&work->anim, D_actor_511000_801550C0, model, work->field_30C, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_511000_801550C0, model, work->rig.poses, work->rig.slots);
     work->field_47C     = 0;
     task->msgTable      = D_actor_511000_801550A0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3224,7 +3221,7 @@ static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
     pos    = SCRATCH_STACK_CURSOR(VECTOR);
     if (flag != 0) {
         for (i = 1; i < 19; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (work->field_47C < 3) {

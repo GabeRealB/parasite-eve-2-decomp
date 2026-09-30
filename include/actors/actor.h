@@ -468,11 +468,18 @@ typedef struct ActorAnimRig20 {
 } ActorAnimRig20;
 STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 
-/// The animation rig of a nineteen-part model, laid out as `ActorAnimRig20`.
-typedef struct ActorAnimRig19 {
-    AnimationContext anim;
-    AnimationSlot    slots[0x13];
-    byte             poses[0x13][0x10];
+/// Caller-owned playback storage for nineteen slots.
+///
+/// The context borrows the model's part coordinates and is bound to this
+/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
+/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
+/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
+/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
+/// capacity, so a slot or pose index has to stay within these 19 entries.
+typedef struct {
+    AnimationContext anim;                                   // Context bound to `slots`, `poses` and the model coordinates
+    AnimationSlot    slots[19];                              // Playback slot for one driven index
+    u8               poses[19][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
 } ActorAnimRig19;
 STATIC_ASSERT_SIZEOF(ActorAnimRig19, 0x43C);
 
@@ -938,18 +945,15 @@ STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 /// runs up, plays the actor's cue at 0x14, and at 0x5F asks the scene for
 /// message 0x3ED - clearing the flag and sending 0x3F1 instead if the scene
 /// refuses it.
-/// `slots[1]` is the animation slot the cue body `func_actor_402200_80135BE0`
-/// hands to `Gp_AnimGetRec`: the second of the 0x28-byte slots the actor work
-/// blocks lay out from 0x14, the same one the other actor overlays' cue bodies
-/// play from. `field_6CA` latches the record's two cue bits (`0x30`) for the
-/// next frame, and `field_712` is the running entry index into the overlay's
+/// `rig.slots[1]` is the animation slot the cue body `func_actor_402200_80135BE0`
+/// hands to `Gp_AnimGetRec`: the second of the rig's slots, the same one the
+/// other actor overlays' cue bodies play from. `field_6CA` latches the record's
+/// two cue bits (`0x30`) for the next frame, and `field_712` is the running entry index into the overlay's
 /// cue-id table `D_actor_402200_80138420` - zero disarms the body, and while it
 /// is set the two adjacent words `[field_712 * 2 - 1]` and `[field_712 * 2]`
 /// are the cue ids it plays.
 typedef struct Actor402200Work {
-    AnimationContext       anim;
-    AnimationSlot          slots[19];
-    byte                   field_30C[0x130];
+    ActorAnimRig19         rig;
     MATRIX                 field_43C;
     MATRIX                 field_45C;
     byte                   field_47C[8];

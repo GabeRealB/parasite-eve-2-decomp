@@ -2193,9 +2193,8 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 /// light matrix, 0x43C the colour one) and fills the context's coordinate, pair
 /// source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
-/// The block's 0x14-prefix then becomes the `AnimationContext`: `func_800B3F84` loads
-/// the animation data into it over the nineteen `AnimationSlot`s, and slots 1..18
-/// are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
+/// The block's rig is bound with `func_800B3F84` over its nineteen slots, and
+/// slots 1..18 are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
 /// and 3 are the two whose models get the current room's texture page and CLUT
 /// row (`Gp_GetNestedAreaRec`, indexed by the context id's top nibble) and whose
 /// tasks are kept in `field_568` / `field_56C`. Entry 2 also gets an effect
@@ -2256,10 +2255,10 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     work->field_53C.coord      = &arg1->extra.tmd->coords[3];
     work->field_53C.spawnArgLo = 0x400;
     work->field_53C.spawnArgHi = 2;
-    func_800B3F84((AnimationContext*)work, D_actor_510900_80167AA4, obj,
-                  ((ActorAnimRig19*)work)->poses, ((ActorAnimRig19*)work)->slots);
+    func_800B3F84(&work->rig.anim, D_actor_510900_80167AA4, obj,
+                  work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot((AnimationContext*)work, i, 1);
+        Gp_AnimResetSlot(&work->rig.anim, i, 1);
     }
     work->field_592 = 1;
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 1, 0, arg0);
@@ -2378,7 +2377,7 @@ void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1)
     }
     work->field_58A++;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex((AnimationContext*)work, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
