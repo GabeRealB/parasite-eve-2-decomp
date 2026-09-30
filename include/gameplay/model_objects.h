@@ -53,21 +53,26 @@ void modelObjectUnlinkTmd(TmdListNode* node);
 /// Releases a model body: the buffer it owns, then the body itself.
 ///
 /// The body has already left its list, so this is the second half of the
-/// release: `gpFreeDisp2d` is its counterpart for coordinate bodies.
+/// release: `modelObjectFreeCoordBody` is its counterpart for coordinate bodies.
 void gpFreeTmd(TmdObject* obj);
 
 /// Unlinks a coordinate body from its refresh list (`gModelObjectCoordBodyList`).
 ///
 /// `node` must be an element's link currently on this list, never the sentinel
 /// or an already detached link. The body stays allocated and its old links
-/// remain in place; release it with `gpFreeDisp2d` after unlinking.
+/// remain in place; release it with `modelObjectFreeCoordBody` after unlinking.
 void modelObjectUnlinkDisp2d(TmdListNode* node);
 
-/// Releases a coordinate body, returning its memory to the heap.
+/// Releases a detached task-owned coordinate body to the primary heap.
 ///
-/// The body has already left its list, so this is the second half of the
-/// release: `gpFreeTmd` is its counterpart on the model side.
-void gpFreeDisp2d(ModelObjectCoordBody* node);
+/// `body` must be `NULL` or the original live allocation from `gpAttachDisp2d`.
+/// Before releasing a non-null body, unlink it from `gModelObjectCoordBodyList`
+/// and ensure no stashed list still contains it. This also ends the embedded
+/// coordinate's lifetime; borrowed parent coordinates are not released.
+/// The caller owns the task's body-pointer and body-kind bookkeeping.
+///
+/// The primary heap becomes active even for `NULL` and remains selected.
+void modelObjectFreeCoordBody(ModelObjectCoordBody* body);
 
 void Gp_DrawDisp2dOt(struct Task* unused);
 

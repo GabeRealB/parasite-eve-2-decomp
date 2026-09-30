@@ -264,7 +264,7 @@ void taskKill(Task* task)
         goto cu_def;
 
     cu2:
-        gpFreeDisp2d(task->extra.coordBody);
+        modelObjectFreeCoordBody(task->extra.coordBody);
 
     cu_def:
         task->bodyKind = TASK_BODY_RELEASED;
@@ -287,7 +287,7 @@ imm1:
 
 imm2:
     modelObjectUnlinkDisp2d(&task->extra.coordBody->link);
-    gpFreeDisp2d(task->extra.coordBody);
+    modelObjectFreeCoordBody(task->extra.coordBody);
 
 imm_unlink:
     previousList     = _gTaskActiveList;
@@ -686,7 +686,7 @@ void taskCountdownCallback(Task* task)
             task->bodyKind = TASK_BODY_RELEASED;
             break;
         case TASK_BODY_COORD:
-            gpFreeDisp2d(task->extra.coordBody);
+            modelObjectFreeCoordBody(task->extra.coordBody);
             task->bodyKind = TASK_BODY_RELEASED;
             break;
         default:

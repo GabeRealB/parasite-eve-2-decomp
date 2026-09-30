@@ -132436,7 +132436,7 @@ bridge header for overlay symbols, which pulls in main headers only. That
 works while the signature is expressible in main types - the body types those
 prototypes take are declared in `main/tmd.h`, `main/task.h` and
 `main/session.h` - and stops working the moment the honest parameter type is
-one the overlay owns: `gpFreeDisp2d` releases the `ModelObjectCoordBody` body, and no main
+one the overlay owns: `modelObjectFreeCoordBody` releases the `ModelObjectCoordBody` body, and no main
 header declares that type.
 
 Three ways out, and only one of them is right:

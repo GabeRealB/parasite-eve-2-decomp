@@ -397,9 +397,9 @@ void modelObjectUnlinkDisp2d(TmdListNode* node)
     prev->next = node->next;
 }
 
-void gpFreeDisp2d(ModelObjectCoordBody* node)
+void modelObjectFreeCoordBody(ModelObjectCoordBody* body)
 {
-    memFree(node);
+    memFree(body);
 }
 
 /// Saves the current lists and starts drawing from temporary empty lists.
