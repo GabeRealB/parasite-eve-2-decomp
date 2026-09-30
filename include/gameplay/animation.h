@@ -10,15 +10,21 @@
 
 #include "main/coord.h"
 
-/// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
-/// GPF/GPL-blended (`Gp_AnimWritePoseBlend`) or copied (`Gp_AnimWritePoseCopy`) into
-/// `GfxCoord.coord.t` when `AnimationSlot.poseEncoding == 1`; rotation is
-/// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
-typedef struct _GpAnimPose {
-    /* 0x00 */ SVECTOR trans;
-    /* 0x08 */ SVECTOR rot;
-} GpAnimPose;
-STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
+/// Unpacked local transform of one animated model part.
+///
+/// Playback writes one when a caller wants the blended pose instead of an
+/// update to the part's model coordinate, and blend and copy routines read a
+/// pair of them to produce that coordinate. Each `SVECTOR` keeps its trailing
+/// pad, so the pose is 16 bytes. `translation` uses the model coordinate's
+/// integer units. Each component of `rotation` is an Euler angle in 4096 units
+/// per turn. A translation-and-rotation track fills both; a rotation-only
+/// track leaves `translation` unchanged. The keyframe forms are
+/// `AnimationPackedPose` and `AnimationPackedRotation`.
+typedef struct {
+    SVECTOR translation; // Local X/Y/Z in model integer units
+    SVECTOR rotation;    // Euler angles about X/Y/Z, in 1/4096 turns
+} AnimationPose;
+STATIC_ASSERT_SIZEOF(AnimationPose, 0x10);
 
 /// One animation pose with a local translation and three Euler rotation angles.
 ///
@@ -127,7 +133,7 @@ enum { ANIMATION_POSE_BUFFER_BYTES = 16 };
 /// each slot's coordinate index must be below `partCount`. The buffer holds
 /// `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation` (4 bytes) at the
 /// start of each 16-byte entry, selected by the slot's encoding. It does not hold
-/// unpacked `GpAnimPose` values. Buffer and slot capacities are supplied by the
+/// unpacked `AnimationPose` values. Buffer and slot capacities are supplied by the
 /// caller and are not stored or checked here. Slot-pointer tick helpers rebind
 /// `slots` using the slot's track index, which must equal its array index.
 typedef struct {
@@ -150,7 +156,7 @@ STATIC_ASSERT_SIZEOF(AnimationContext, 0x14);
 /// is borrowed for this call only; a zero-duration segment writes neither.
 /// Banks and encoded outputs must be word-aligned. The encoded output may
 /// alias the current slot's 16-byte buffer entry, which is read before writing.
-void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose* unpackedDestination,
+void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination,
                            void* encodedDestination);
 
 /// Persistent head-tracking state for `func_800B17D4`, allocated by the task

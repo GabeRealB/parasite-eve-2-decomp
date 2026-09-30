@@ -6,8 +6,8 @@
 /// written to the first is the mix of the two.
 void incinBossTickBlended(Task* arg0)
 {
-    GpAnimPose       pose0;
-    GpAnimPose       pose1;
+    AnimationPose    pose0;
+    AnimationPose    pose1;
     Actor403200Work* work     = arg0->work;
     s32              blend    = work->field_7C0;
     s32              invBlend = 0x1000 - blend;

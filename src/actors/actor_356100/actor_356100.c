@@ -1043,8 +1043,8 @@ static __inline__ void Actor356100_PositionDelta(GfxCoord* coord, SVECTOR* pos)
 
 static void func_actor_356100_801633DC(Task* arg0)
 {
-    GpAnimPose           pose;
-    GpAnimPose           blendPose;
+    AnimationPose        pose;
+    AnimationPose        blendPose;
     AnimationContext*    anim;
     s16                  weight;
     s16                  i;

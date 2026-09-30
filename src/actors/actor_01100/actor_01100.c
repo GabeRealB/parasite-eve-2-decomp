@@ -247,12 +247,12 @@ typedef struct ActorsShared80138efcArg {
     /// Pose buffers of the two animation contexts. While `field_BA2` is
     /// nonzero the first context steps into `poses[0]`, the second into
     /// `poses[1]`, and `Gp_AnimWritePoseBlend` weights the pair by it.
-    /* 0x40 */ GpAnimPose poses[2];
-    /* 0x60 */ s8         pan;
-    /* 0x61 */ byte       pad_61[0x1];
-    /* 0x62 */ s8         depth;
-    /* 0x63 */ byte       pad_63[0x1];
-    /* 0x64 */ s8         field_64;
+    /* 0x40 */ AnimationPose poses[2];
+    /* 0x60 */ s8            pan;
+    /* 0x61 */ byte          pad_61[0x1];
+    /* 0x62 */ s8            depth;
+    /* 0x63 */ byte          pad_63[0x1];
+    /* 0x64 */ s8            field_64;
 } ActorsShared80138efcArg;
 STATIC_ASSERT_SIZEOF(ActorsShared80138efcArg, 0x68);
 
@@ -1994,7 +1994,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
     s32                            restart;
     s32                            randBit;
     s32                            slot;
-    GpAnimPose*                    pose;
+    AnimationPose*                 pose;
     s32                            blend;
     s32                            animId;
     s32                            i;

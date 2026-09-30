@@ -701,7 +701,7 @@ STATIC_ASSERT_SIZEOF(Actor105500HitScratch, 0x38);
 typedef struct Actor05300Work {
     AnimationContext      anim;
     AnimationSlot         slots[10];
-    GpAnimPose            poses[10];
+    AnimationPose         poses[10];
     MATRIX                field_244;
     MATRIX                field_264;
     WorldCollisionBody    node0;

@@ -113,11 +113,11 @@ enum {
 /// The slot selects encoding 1 (translation and rotation) or 4 (rotation only).
 /// All pointers are borrowed for the current tick; the request lives in scratch.
 typedef struct {
-    const void* currentPose;          // Current encoded pose
-    const void* nextPose;             // Next encoded pose, in the same format
-    void*       encodedDestination;   // Optional output in the slot's encoding
-    GpAnimPose* unpackedDestination;  // Optional unpacked output; NULL updates the model coordinate
-    u8          refreshRotationDelta; // First tick using a buffered pose: calculate the relative rotation
+    const void*    currentPose;          // Current encoded pose
+    const void*    nextPose;             // Next encoded pose, in the same format
+    void*          encodedDestination;   // Optional output in the slot's encoding
+    AnimationPose* unpackedDestination;  // Optional unpacked output; NULL updates the model coordinate
+    u8             refreshRotationDelta; // First tick using a buffered pose: calculate the relative rotation
 } _AnimationBlendRequest;
 STATIC_ASSERT_SIZEOF(_AnimationBlendRequest, 0x14);
 
@@ -1952,7 +1952,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
         } else {
             gte_MulMatrix0(&scratch->deltaMatrix, &scratch->currentMatrix, &scratch->deltaMatrix);
             Gfx_MatrixToEuler(&scratch->deltaMatrix, &scratch->nextRotation);
-            request->unpackedDestination->rot = scratch->nextRotation;
+            request->unpackedDestination->rotation = scratch->nextRotation;
         }
     } else {
         // Ordinary keyframes interpolate their Euler components directly.
@@ -1967,7 +1967,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
             RotMatrix_gte(&scratch->nextRotation, &coord->coord);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
-            request->unpackedDestination->rot = scratch->nextRotation;
+            request->unpackedDestination->rotation = scratch->nextRotation;
         }
     }
 }
@@ -2006,9 +2006,9 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
             coord->coord.t[2]   = scratch->translation.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
-            request->unpackedDestination->trans.vx = scratch->translation.vx;
-            request->unpackedDestination->trans.vy = scratch->translation.vy;
-            request->unpackedDestination->trans.vz = scratch->translation.vz;
+            request->unpackedDestination->translation.vx = scratch->translation.vx;
+            request->unpackedDestination->translation.vy = scratch->translation.vy;
+            request->unpackedDestination->translation.vz = scratch->translation.vz;
         }
         // Decode full-resolution angles before the shared rotation blend.
         encodedPose                 = request->currentPose;
@@ -2126,7 +2126,7 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
     animationTickSlotPose(context, arg1, 0, 0);
 }
 
-void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose* unpackedDestination, void* encodedDestination)
+void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination, void* encodedDestination)
 {
     // Encoding 2 reports a diagnostic; its pose layout is unproven.
     enum { ANIMATION_POSE_UNSUPPORTED = 2 };
@@ -2562,11 +2562,11 @@ void func_800B4114(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 
     _gpAnimSeekSlot(context, arg1, arg2, arg3, arg4);
 }
 
-void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                            s32 arg5)
 {
     void**         scratch;
-    GpAnimPose*    head;
+    AnimationPose* head;
     AnimationSlot* slot;
     GfxCoord*      dest;
     SVECTOR*       trans;
@@ -2575,17 +2575,17 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, GpAnimPose* arg2
 
     scratch                        = SCRATCH_HEAD_ADDR;
     slot                           = &context->slots[arg1];
-    head                           = SCRATCH_HEAD_AT(scratch, GpAnimPose);
+    head                           = SCRATCH_HEAD_AT(scratch, AnimationPose);
     idx                            = slot->coordIndex;
     SCRATCH_HEAD_AT(scratch, void) = head - 1;
     dest                           = &context->coords[idx];
-    trans                          = &head[-1].trans;
+    trans                          = &head[-1].translation;
     if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION) {
         gte_lddp(arg4);
-        gte_ldsv(&arg2->trans);
+        gte_ldsv(&arg2->translation);
         gte_gpf12();
         gte_lddp(arg5);
-        gte_ldsv(&arg3->trans);
+        gte_ldsv(&arg3->translation);
         gte_gpl12();
         gte_stsv(trans);
         dest->coord.t[0] = trans->vx;
@@ -2593,23 +2593,23 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, GpAnimPose* arg2
         dest->coord.t[2] = trans->vz;
     }
     gte_lddp(arg4);
-    gte_ldsv(&arg2->rot);
+    gte_ldsv(&arg2->rotation);
     gte_gpf12();
     gte_lddp(arg5);
-    gte_ldsv(&arg3->rot);
+    gte_ldsv(&arg3->rotation);
     gte_gpl12();
-    rot = &head[-1].rot;
+    rot = &head[-1].rotation;
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BLOCK(GpAnimPose);
+    SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
-void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                           s32 arg5)
 {
     void**         scratch;
-    GpAnimPose*    head;
+    AnimationPose* head;
     AnimationSlot* slot;
     GfxCoord*      dest;
     SVECTOR*       rot;
@@ -2617,26 +2617,26 @@ void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, GpAnimPose* arg2,
 
     scratch                        = SCRATCH_HEAD_ADDR;
     slot                           = &context->slots[arg1];
-    head                           = SCRATCH_HEAD_AT(scratch, GpAnimPose);
+    head                           = SCRATCH_HEAD_AT(scratch, AnimationPose);
     idx                            = slot->coordIndex;
     SCRATCH_HEAD_AT(scratch, void) = head - 1;
     dest                           = &context->coords[idx];
     if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION) {
-        dest->coord.t[0] = arg2->trans.vx;
-        dest->coord.t[1] = arg2->trans.vy;
-        dest->coord.t[2] = arg2->trans.vz;
+        dest->coord.t[0] = arg2->translation.vx;
+        dest->coord.t[1] = arg2->translation.vy;
+        dest->coord.t[2] = arg2->translation.vz;
     }
     gte_lddp(arg4);
-    gte_ldsv(&arg2->rot);
+    gte_ldsv(&arg2->rotation);
     gte_gpf12();
     gte_lddp(arg5);
-    gte_ldsv(&arg3->rot);
+    gte_ldsv(&arg3->rotation);
     gte_gpl12();
-    rot = &head[-1].rot;
+    rot = &head[-1].rotation;
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BLOCK(GpAnimPose);
+    SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
 void Gp_AnimTickIndex(AnimationContext* context, s32 arg1)
@@ -2644,7 +2644,7 @@ void Gp_AnimTickIndex(AnimationContext* context, s32 arg1)
     animationTickSlotPose(context, arg1, 0, 0);
 }
 
-void func_800B4538(AnimationContext* context, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
+void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     AnimationSlot*         slot;
     AnimationSet*          set;
@@ -2734,7 +2734,7 @@ static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, 
     arg1->currentPose.indices.setIndex    = arg2;
 }
 
-void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
+void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                      void* arg7)
 {
     AnimationSlot*         slot;

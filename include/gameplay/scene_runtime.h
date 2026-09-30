@@ -89,15 +89,15 @@ void Gp_AnimResetSlot(AnimationContext* context, s32 arg1, s32 arg2);
 
 void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                            s32 arg5);
 
-void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                           s32 arg5);
 
 void Gp_AnimTickIndex(AnimationContext* context, s32 arg1);
 
-void func_800B4538(AnimationContext* context, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5,
+void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5,
                    s32 arg6);
 
 /// Returns the current keyframe record, or `NULL` when the slot uses a buffered pose (set 0x7FFF).

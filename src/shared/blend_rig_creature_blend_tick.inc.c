@@ -6,8 +6,8 @@
 /// (three below it) and `field_83A`; slots 11..17 only tick the main context.
 void rigBlendTick(Task* task)
 {
-    GpAnimPose        pose;
-    GpAnimPose        blendPose;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
     AnimationContext* anim;
     s16               weight;
     s16               i;

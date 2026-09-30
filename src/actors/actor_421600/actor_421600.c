@@ -2571,8 +2571,8 @@ static s32 func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* re
 
 static void func_actor_421600_80133B30(Task* arg0)
 {
-    GpAnimPose           pose;
-    GpAnimPose           blendPose;
+    AnimationPose        pose;
+    AnimationPose        blendPose;
     Actor421600AnimWork* work;
     s32                  blend;
     s32                  invBlend;

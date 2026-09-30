@@ -1382,8 +1382,8 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2)
 /// `func_actor_403000_801336B4`, which walks 24 slots instead of 19.
 static void func_actor_110600_80134438(Task* arg0)
 {
-    GpAnimPose           pose;
-    GpAnimPose           blendPose;
+    AnimationPose        pose;
+    AnimationPose        blendPose;
     AnimationContext*    anim;
     s16                  weight;
     s16                  i;

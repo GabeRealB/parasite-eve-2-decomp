@@ -4062,8 +4062,8 @@ static void func_actor_403000_80133444(Task* arg0)
 
 static void func_actor_403000_801336B4(Task* arg0)
 {
-    GpAnimPose           pose;
-    GpAnimPose           blendPose;
+    AnimationPose        pose;
+    AnimationPose        blendPose;
     AnimationContext*    anim;
     s16                  weight;
     s16                  i;

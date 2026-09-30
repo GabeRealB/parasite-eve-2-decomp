@@ -7,8 +7,8 @@
 /// and up only take the pose rate and are advanced unblended.
 void blendRigTickBlended(Task* arg0)
 {
-    GpAnimPose        pose;
-    GpAnimPose        blendPose;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
     AnimationContext* anim;
     s16               weight;
     s16               i;

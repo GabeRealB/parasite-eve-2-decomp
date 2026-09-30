@@ -934,8 +934,8 @@ static __inline__ void Actor01900_ResetYaw(GfxCoord* coord)
 /// animation alone. The per-joint rates come from `field_8A2` and `field_8AA`.
 static void Actor01900_Fn01950(Task* arg0)
 {
-    GpAnimPose          pose;
-    GpAnimPose          blendPose;
+    AnimationPose       pose;
+    AnimationPose       blendPose;
     AnimationContext*   anim;
     s16                 weight;
     s16                 i;

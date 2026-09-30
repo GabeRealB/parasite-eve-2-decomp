@@ -36080,7 +36080,7 @@ gte_lddp(scratch->nextWeight);
 
 Pin the optional dest to `$v1` so `lui v1, 0x1F80` for the scratch pop
 cannot hoist into the `beqz dest` delay. Write the unpacked translation through
-`request->unpackedDestination->trans.vx` (no local) so each `sh` reloads the pointer. A named
+`request->unpackedDestination->translation.vx` (no local) so each `sh` reloads the pointer. A named
 `z = scratch->translation.vz` before `coord->composeStamp = 0` keeps that store in the `lh vz` delay
 rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 
@@ -124008,7 +124008,7 @@ pins, no empty asm, no permuter run. Scratch
 ## An m2c seed's stack locals are 4-byte `M2C_UNK`, so passing a 0x10-byte struct to a callee costs the frame and a saved register (func_actor_323000_8016331C, 2026-09-17)
 
 `m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
-function passes two 0x10-byte `GpAnimPose` locals to `animationTickSlotPose` and
+function passes two 0x10-byte `AnimationPose` locals to `animationTickSlotPose` and
 `Gp_AnimWritePoseCopy`, the seed's frame comes out one pose short
 (`addiu sp,sp,-0x48` against a target `-0x58`) and the two poses sit at
 `sp+0x18` / `sp+0x1c` instead of the target's `sp+0x18` / `sp+0x28`.
@@ -143566,7 +143566,7 @@ The pass stops at a jump, so when the copy sits *before* the `if` the reads
 inside the block keep the carve, the copy serves the asm operand alone, and dbr
 moves it into the branch delay slot.
 
-**Fix.** `trans = &head[-1].trans;` just above `if (slot->poseEncoding == 1)`, no
+**Fix.** `trans = &head[-1].translation;` just above `if (slot->poseEncoding == 1)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
 ## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_STACK_RESERVE_BLOCK` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)

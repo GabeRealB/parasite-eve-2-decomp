@@ -2040,8 +2040,8 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
 
 static void Actor00100_Fn01D74(Task* arg0)
 {
-    GpAnimPose        pose;
-    GpAnimPose        otherPose;
+    AnimationPose     pose;
+    AnimationPose     otherPose;
     AnimationContext* anim;
     s16               part;
     s16               index;
