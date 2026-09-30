@@ -130,7 +130,7 @@ void func_800AA548(s32 arg0)
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
-        if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & ~0xFF) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
+        if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
             Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = 2;
         } else {
             Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = rec.field_34;

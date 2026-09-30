@@ -13,12 +13,19 @@ struct Task;
 /// `key` once; warp and variant are outside this four-byte view.
 #define GAME_LOCATION_WORD(key) (*(u32*)&(key))
 
-/// Packs four byte values into a location prefix, stage in the high byte.
+/// Packs a location prefix or area-layout selector into a `u32` comparison key.
 ///
-/// Each argument is evaluated once and must be in 0..255. Conversion to u32
-/// precedes each shift; values are not masked or truncated by this helper.
-#define GAME_LOCATION_KEY(stage, area, room, view) \
-    (((u32)(stage) << 24) | ((u32)(area) << 16) | ((u32)(room) << 8) | (u32)(view))
+/// Bytes from high to low are stage, area, room or placement variant, and
+/// room-local view slot. Grant keys use the placement variant and a zero view;
+/// location prefixes exclude warp and placement variant. Zero bytes are literal
+/// zeros; callers must mask the bytes they want to ignore.
+///
+/// Arguments must be integer byte values in 0..255. Each is evaluated once,
+/// in unspecified order, and converted to `u32` before shifting, without byte
+/// masking or truncation. Constant arguments produce an integer constant
+/// expression suitable for case labels, static initializers and byte masks.
+#define GAME_LOCATION_KEY(stage, area, roomOrVariant, view) \
+    (((u32)(stage) << 24) | ((u32)(area) << 16) | ((u32)(roomOrVariant) << 8) | (u32)(view))
 
 /// Selects the stage and area bytes of a packed location prefix.
 #define GAME_LOCATION_STAGE_AREA_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0)

@@ -5120,7 +5120,7 @@ static void func_actor_403100_80136610(Task* arg0)
 
     obj   = arg0->extra.tmd;
     coord = obj->coords;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & ~0xFF) != GAME_LOCATION_KEY(3, 29, 2, 0) ||
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) != GAME_LOCATION_KEY(3, 29, 2, 0) ||
         (arg0->work = memCalloc(0x678U, false)) == NULL) {
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
