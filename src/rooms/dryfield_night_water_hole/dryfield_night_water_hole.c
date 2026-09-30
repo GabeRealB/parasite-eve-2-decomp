@@ -241,7 +241,7 @@ s32 D_dryfield_night_water_hole_8018065C = 0x22003;
 
 s32 D_dryfield_night_water_hole_80180660 = 0x32003;
 
-GpXformArg D_dryfield_night_water_hole_80180664 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_water_hole_80180664 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
 GpEvsCmd D_dryfield_night_water_hole_8018067C[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
@@ -1182,8 +1182,8 @@ static s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilPa
 /// room), re-spawns the player task as type 0x11 and kills itself.
 void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
 {
-    GpXformArg msg;
-    void*      slot;
+    ActorTransform msg;
+    void*          slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {

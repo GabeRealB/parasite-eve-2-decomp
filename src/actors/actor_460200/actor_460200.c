@@ -70,7 +70,7 @@ typedef struct {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
         s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, ActorTransform*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor460200MessageEntry;
@@ -83,7 +83,7 @@ extern u8 D_actor_460200_8013FCCC[];
 
 extern AnimationPlayRequest D_actor_460200_80135F14;
 extern AnimationPlayRequest D_actor_460200_8013607C;
-extern GpXformArg           D_actor_460200_80136234;
+extern ActorTransform       D_actor_460200_80136234;
 extern GpEvsCmd             D_actor_460200_80137AA0[];
 extern GpEvsCmd             D_actor_460200_80137BA8[];
 extern GpEvsCmd             D_actor_460200_80137CB0[];
@@ -133,16 +133,16 @@ void             func_actor_460200_8013364C(Task*);
 
 s32 func_actor_460200_80133408(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_460200_80133474(Task*, s32, s32);
-s32 func_actor_460200_801334F0(Task*, s32, GpXformArg*);
+s32 func_actor_460200_801334F0(Task*, s32, ActorTransform* placement);
 s32 func_actor_460200_80133568(Task*, s32, ActorCommand* args);
-s32 func_actor_460200_80133580(Task*, s32, GpXformArg*);
+s32 func_actor_460200_80133580(Task*, s32, ActorTransform* target);
 
 extern TmdSource D_actor_460200_8014DB94;
 s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_460200_80133CD0(Task*, s32, s32);
-s32              func_actor_460200_80133D4C(Task*, s32, GpXformArg*);
+s32              func_actor_460200_80133D4C(Task*, s32, ActorTransform* placement);
 s32              func_actor_460200_80133DC4(void);
-s32              func_actor_460200_80133DCC(Task*, s32, GpXformArg*);
+s32              func_actor_460200_80133DCC(Task*, s32, ActorTransform* target);
 void             func_actor_460200_8013386C(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135E1C;
@@ -155,9 +155,9 @@ extern AnimationPlayRequest D_actor_460200_801360B8;
 extern AnimationPlayRequest D_actor_460200_801360CC;
 s32                         func_actor_460200_80132B2C(Task*, s32, AnimationPlayRequest*);
 s32                         func_actor_460200_80132B98(Task*, s32, s32);
-s32                         func_actor_460200_80132C14(Task*, s32, GpXformArg*);
+s32                         func_actor_460200_80132C14(Task*, s32, ActorTransform* placement);
 s32                         func_actor_460200_80132C8C(Task*, s32, ActorCommand* args);
-s32                         func_actor_460200_80132CAC(Task*, s32, GpXformArg*);
+s32                         func_actor_460200_80132CAC(Task*, s32, ActorTransform* target);
 void                        func_actor_460200_801327B4(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135EB0;
@@ -187,11 +187,11 @@ extern AnimationPlayRequest D_actor_460200_8013616C;
 extern AnimationPlayRequest D_actor_460200_80136180;
 extern AnimationPlayRequest D_actor_460200_80136194;
 extern AnimationPlayRequest D_actor_460200_801361A8;
-extern GpXformArg           D_actor_460200_801361BC;
-extern GpXformArg           D_actor_460200_801361D4;
-extern GpXformArg           D_actor_460200_801361EC;
-extern GpXformArg           D_actor_460200_80136204;
-extern GpXformArg           D_actor_460200_8013621C;
+extern ActorTransform       D_actor_460200_801361BC;
+extern ActorTransform       D_actor_460200_801361D4;
+extern ActorTransform       D_actor_460200_801361EC;
+extern ActorTransform       D_actor_460200_80136204;
+extern ActorTransform       D_actor_460200_8013621C;
 void                        func_actor_460200_80132090(Task*);
 void                        func_actor_460200_801320E0(s32);
 void                        func_actor_460200_80132124(void);
@@ -574,25 +574,25 @@ AnimationPlayRequest D_actor_460200_80136194 = { { .index = 1 }, 16, ANIMATION_B
 
 AnimationPlayRequest D_actor_460200_801361A8 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_460200_801361BC = { { -910, 0, 5650, 0 }, { 0, -1592, 0, 0 } };
+ActorTransform D_actor_460200_801361BC = { { -910, 0, 5650, 0 }, { 0, -1592, 0, 0 } };
 
-GpXformArg D_actor_460200_801361D4 = { { -1050, 0, 5418, 0 }, { 0, -1592, 0, 0 } };
+ActorTransform D_actor_460200_801361D4 = { { -1050, 0, 5418, 0 }, { 0, -1592, 0, 0 } };
 
-GpXformArg D_actor_460200_801361EC = { { -2100, 0, 4600, 0 }, { 0, 398, 0, 0 } };
+ActorTransform D_actor_460200_801361EC = { { -2100, 0, 4600, 0 }, { 0, 398, 0, 0 } };
 
-GpXformArg D_actor_460200_80136204 = { { -2100, 0, 4600, 0 }, { 0, 341, 0, 0 } };
+ActorTransform D_actor_460200_80136204 = { { -2100, 0, 4600, 0 }, { 0, 341, 0, 0 } };
 
-GpXformArg D_actor_460200_8013621C = { { -2000, 0, 3800, 0 }, { 0, 1479, 0, 0 } };
+ActorTransform D_actor_460200_8013621C = { { -2000, 0, 3800, 0 }, { 0, 1479, 0, 0 } };
 
-GpXformArg D_actor_460200_80136234 = { { -2000, 0, 4700, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_460200_80136234 = { { -2000, 0, 4700, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_actor_460200_8013624C = { { 800, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_460200_8013624C = { { 800, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_460200_80136264 = { { -250, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_460200_80136264 = { { -250, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_460200_8013627C = { { -1000, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_460200_8013627C = { { -1000, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_460200_80136294 = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
+ActorTransform D_actor_460200_80136294 = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
 
 TaskDesc D_actor_460200_801362AC = { 0, 32, func_actor_460200_80132090, { .model = NULL } };
 
@@ -2685,7 +2685,7 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_460200_80132C14(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor160600Work* work;
@@ -2724,7 +2724,7 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 12, for the step
 /// body to walk off.
-s32 func_actor_460200_80132CAC(Task* task, s32 arg1, GpXformArg* target)
+s32 func_actor_460200_80132CAC(Task* task, s32 arg1, ActorTransform* target)
 {
     GfxCoord*        coord;
     Actor160600Work* work;
@@ -3004,7 +3004,7 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_460200_801334F0(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor161500Work* work;
@@ -3036,7 +3036,7 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 30, for the walk
 /// that follows.
-s32 func_actor_460200_80133580(Task* task, s32 arg1, GpXformArg* target)
+s32 func_actor_460200_80133580(Task* task, s32 arg1, ActorTransform* target)
 {
     GfxCoord*        coord;
     Actor161500Work* work;
@@ -3322,7 +3322,7 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_80133D4C(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_460200_80133D4C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor160600Work* work;
@@ -3350,7 +3350,7 @@ s32 func_actor_460200_80133DC4(void)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 12, for the step
 /// body to walk off.
-s32 func_actor_460200_80133DCC(Task* task, s32 arg1, GpXformArg* target)
+s32 func_actor_460200_80133DCC(Task* task, s32 arg1, ActorTransform* target)
 {
     GfxCoord*        coord;
     Actor160600Work* work;

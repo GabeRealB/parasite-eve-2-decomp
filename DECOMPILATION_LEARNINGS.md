@@ -4860,7 +4860,7 @@ that depth difference, not a source `goto`.
 
 ## A `nop` in a `jal`'s delay slot is the tell that the call block is a cross-jump head
 
-`func_mine_forked_tunnel_8017D5E8` picks a `GpXformArg` and hands it to
+`func_mine_forked_tunnel_8017D5E8` picks an `ActorTransform` and hands it to
 `Room_Util18`. m2c's single-call shape - a pointer assigned in each arm, one
 call after the join - scores 87.2% with `regs=18 branch=1 reorder=2 insert=3
 delete=5` and *identical* block topology, so the structural diagnostics are
@@ -24707,9 +24707,9 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
 
-Gp_SetActorDest(arg0, arg1, arg2, arg3); /* jal; nop — $v0 still "holds" the return */
+Gp_SetActorDest(arg0, arg1, transform, arg3); /* jal; nop — $v0 still "holds" the return */
 actor->field_956 = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```
@@ -52821,7 +52821,7 @@ size (`addiu $sp,$sp,-0x28` against the ROM's `-0x30`, with the `$s0`/`$ra`
 slots shifted to match), the stack local handed to `Gp_DispatchMsg` as `arg2`
 is bigger than the fields the function writes. `func_acropolis_fountain_8017DC00`
 stores only three words at `sp+0x10`/`0x14`/`0x18` yet reserves 0x18 bytes of
-locals: the payload is the 0x18-byte `GpXformArg` (`include/gameplay/message.h`),
+locals: the payload is the 0x18-byte `ActorTransform` (`include/gameplay/message.h`),
 and msg `0x3F2` fills its position `pos` while leaving the angles `rot`
 untouched.
 
@@ -54918,7 +54918,7 @@ grep -rn "movieFrame\|movieReady" src/     # -> acropolis_observatory_2.c
 
 `func_acropolis_observatory_8017D9A8` turned out to be the same task with a
 different path table and one fewer state, already matched and already carrying
-the `AobStreamWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `GpXformArg`
+the `AobStreamWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `ActorTransform`
 0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
 every remaining difference a symbol *name* (`Mc_SaveData+0x22` vs
 `D_8007218A`), i.e. already a match.
@@ -60263,7 +60263,7 @@ as two locals, however disjoint their scopes are.
 
 `func_acropolis_plaza_8017E9A8` sends three payloads from the same frame
 region: a three-byte CD slot triple at `sp+0x58`, an `AnimationPlayRequest` at `sp+0x60`, and
-a `GpXformArg` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
+an `ActorTransform` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
 locals in three nested blocks scores 98.4% with `stack=0` but a 0xA0 frame
 instead of 0x88: each one got its own slot (`0x58`, `0x60`, `0x78`). The fix is
 to make the overlap explicit, with a wrapper struct for the view that does not
@@ -60278,7 +60278,7 @@ typedef struct AcropolisPlazaWeaponMsg {
 typedef union AcropolisPlazaTailMsg {
     /* 0x0 */ u8                      slot[4];
     /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
-    /* 0x0 */ GpXformArg              place;
+    /* 0x0 */ ActorTransform              place;
 } AcropolisPlazaTailMsg;            // 0x1C
 ```
 
@@ -74829,7 +74829,7 @@ s32 func_actor_510900_8013BE64(Actor510900* arg0, s32 msgId, s32 arg2)
 
 The convention is visible in the matched siblings: `func_actor_444000_8013A958(
 Actor444000* task, s32 msgId, s32 arg2)` and the shared `ActorsShared80132074(
-Task* task, s32 arg1, GpXformArg* args)`, which is the 0x7D4 entry
+Task* task, s32 arg1, ActorTransform* args)`, which is the 0x7D4 entry
 of the same table our function is the 0x7D5 entry of. A handler that branches on
 an argument register one slot early is this, not an allocation problem — do not
 reach for a pin.
@@ -81667,7 +81667,7 @@ in `$a2`, forcing the `lh` before the zeroing, so the zeroing becomes the last
 insn before the call and `dbr` takes it:
 
 ```c
-void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement)
+void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement)
 ```
 
 `base_1.c` 100.000%, every penalty zero, no pins. The dumps agree with that
@@ -81721,7 +81721,7 @@ payload struct, that says the field at `+4` is 16-bit — and it would be wrong.
 
 GCC 2.8.1 narrows the *load* to the destination's width while expanding the
 assignment, so copying the payload's `pos.vy` (a `long` in
-`GpXformArg`) into a `u16` member is HImode in the very first
+`ActorTransform`) into a `u16` member is HImode in the very first
 dump, before any optimisation pass:
 
 ```
@@ -84360,12 +84360,12 @@ The m2c seed wrote the clear *before* the last angle store (its RTL order is
 `reorder=1`. Writing the clear **last**:
 
 ```c
-coord->coord.t[0] = arg2->field_0;
-coord->coord.t[1] = arg2->field_4;
-coord->coord.t[2] = arg2->field_8;
-work->field_274   = arg2->field_10;
-work->field_278   = arg2->field_12;
-work->field_27C   = arg2->field_14;
+coord->coord.t[0] = transform->pos.vx;
+coord->coord.t[1] = transform->pos.vy;
+coord->coord.t[2] = transform->pos.vz;
+work->field_274   = transform->rot.vx;
+work->field_278   = transform->rot.vy;
+work->field_27C   = transform->rot.vz;
 work->coord.composeStamp   = 0;
 ```
 
@@ -88825,7 +88825,7 @@ target `8b9d3c0601648efde4e7a64846f9525b943dc6cd533befbfaa22b66d782a6ab0`.
 
 `func_dryfield_water_tank_8017E174` is a three-argument room message handler —
 the shape every `(msgId, handler)` table in the room library uses, e.g.
-`Room_Util08(Task* task, s32 value, GpXformArg* placement)`. m2c's
+`Room_Util08(Task* task, s32 value, ActorTransform* placement)`. m2c's
 transcription declared it with two parameters, dropping the `msgId` no
 expression reaches, so the message payload was read as `$a1` where the target
 reads `$a2` (`lhu $v0, 0x2($a2)`).
@@ -89006,7 +89006,7 @@ branches *into* a body, reach for `switch` next.
 ## A store to a *stack slot* kills CSE's memory equivalence too, so a re-read field stays re-read
 
 `func_dryfield_water_tank_8017EC6C` steps the water tank one entry along its
-path: it fills a `GpXformArg` local from an `SVECTOR` table indexed by the
+path: it fills an `ActorTransform` local from an `SVECTOR` table indexed by the
 task's own `killCountdown`, sends it with msg 0x3E9, and bumps the counter. The
 target loads `0x2A($a1)` four times - once for the `slti 0x34` guard, then once
 per table field, with the payload stores in between:
@@ -89050,7 +89050,7 @@ documented HImode-move rule and not a signedness statement: the field stays
 m2c seed's 54.59% (`base.i`
 `56a41611dd665dac63e2a0cea3c87ffd8e1d3718674a824ae86ce42763e9f4b0`); the seed
 modelled the payload as six scalars reading a 32-byte-stride table, which the
-`GpXformArg` local plus `SVECTOR` array fixes.
+`ActorTransform` local plus `SVECTOR` array fixes.
 
 ## A twin of a matched sibling is provable before you write any C (func_dryfield_water_tank_8017ED30, 2026-09-15)
 
@@ -89523,13 +89523,13 @@ emitted `addiu a2,s0,0x60` where the target has `0x18`. One instruction, 99.891%
 
 The route to the pointee type is the *receiver*, not the data. The room's script
 table pairs message 0x7D4 with `Room_Util08`, whose third parameter is a
-`GpXformArg*` - `VECTOR pos` + `SVECTOR rot`, 0x18 bytes - and the bytes
+`ActorTransform*` - `VECTOR pos` + `SVECTOR rot`, 0x18 bytes - and the bytes
 decode as one. Declaring the payloads as that type and indexing them reproduces
 the displacement while keeping the base symbol:
 
 ```c
-extern GpXformArg D_dryfield_water_tower_801823A8;
-extern GpXformArg D_dryfield_water_tower_801823D8[];
+extern ActorTransform D_dryfield_water_tower_801823A8;
+extern ActorTransform D_dryfield_water_tower_801823D8[];
 
 Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
 Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
@@ -89731,18 +89731,18 @@ addiu a2,s0,0x18       # second call, same base
 That `addiu` off a live base is the whole answer about the data. Two *sibling*
 symbols would have compiled to a second `lui`/`addiu` pair, and splat would then
 have labelled the second address - exactly what it did for
-`acropolis_helicopter_landing_pad`, whose two `GpXformArg`s 0x18 apart carry
+`acropolis_helicopter_landing_pad`, whose two `ActorTransform`s 0x18 apart carry
 two names. One base plus a constant offset means the original indexed a single
 array, so the offset *is* the stride: `0x30 / 0x18 = 2` elements.
 
 Read the blob at that stride and the element type names itself. Both records fit
-`gameplay/message.h`'s `GpXformArg` (`0x1F4, 0, 0xAF0` and `0x3E8, 0, 0xC80`
+`gameplay/message.h`'s `ActorTransform` (`0x1F4, 0, 0xAF0` and `0x3E8, 0, 0xC80`
 with every rotation zero, at 0x00 and 0x18), and that is the type the room family
 already uses for the 0x7D4 placement payload the two calls carry - check
 `room_common.h` and the `actors_shared_*` headers before declaring a new one.
 
 ```c
-extern GpXformArg D_dryfield_motel_room_1_8017E130[2];
+extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
 Gp_DispatchMsg(work->field_C,  0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
 Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
 ```
@@ -93872,7 +93872,7 @@ the body -- `Room_Util16` / `Room_Util17` carry the same `Gp_SprtTables`
 walk.
 ## A duplicated store to one address is a source-level double write; stores only sink, never rise (func_mine_mesa_8017E074, 2026-09-16)
 
-**Problem.** A `GpXformArg` builder stores two words to each of two stack
+**Problem.** An `ActorTransform` builder stores two words to each of two stack
 slots -- the raw table value, then the adjusted one:
 
 ```
@@ -96830,7 +96830,7 @@ if (D_80070F6C[0] & 4) {
 Reading the coordinate lets `cse` forward the value its own store just put
 there, so one load serves both uses. The contrast is `func_dryfield_water_tower_8017DFAC`
 in the same file, whose record is reached as a declared scalar (`s32 D_x[]`
-rather than a `GpXformArg`): not `in_struct`, so its second load *is* merged
+rather than an `ActorTransform`): not `in_struct`, so its second load *is* merged
 and the m2c shape matches there. A jump to the target's exact instruction count
 with only `regs`/`reorder` left is the tell that the RTL is right and allocation
 is all that remains.
@@ -108326,13 +108326,13 @@ Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
 
 `func_actor_401000_801380B8` writes three `sw` at `0`/`4`/`8` and three `sh` at
 `0x10`/`0x12`/`0x14` into `D_actor_401000_80155018`, a 0x20-byte zeroed run in
-the package's `.data` with no symbol anywhere under `src/`. That is `GpXformArg`
+the package's `.data` with no symbol anywhere under `src/`. That is `ActorTransform`
 (`include/gameplay/message.h`) — the same 0x18-byte slot-3 payload the stack-local
 senders use ("A short frame around a `Gp_DispatchMsg` payload means the wrong
 payload type"). Declare it in the overlay header and reach it through a pointer:
 
 ```c
-GpXformArg* msg;
+ActorTransform* msg;
 ...
 msg         = &D_actor_401000_80155018;
 msg->pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
@@ -120389,7 +120389,7 @@ fields through `place->` moved the reads onto `$v1` and scored 100.000% with
 every penalty zero, in one build. The writes stayed direct.
 
 A related trap in the same function: `D_mine_forked_tunnel_80181BA4` is a
-`GpXformArg` in the overlay's sibling unit and was declared a `VECTOR` here,
+`ActorTransform` in the overlay's sibling unit and was declared a `VECTOR` here,
 which is a `conflicting types for` error at build time and *identical bytes* if
 you fix it by spelling the reads `.pos.vx` - a symbol can be legitimately viewed
 two ways as long as both views agree on the offsets actually read.
@@ -120398,7 +120398,7 @@ Inputs: `base_1.c` SHA256 `e99a82a721484ab5900a917569451863601554f1a74af7535a681
 (96.667%); `base_2.c` SHA256 `f08d382a80db1bd0fb8be9a3fd09a99b878a159aa8c813f74cd63c656a4dc85b`
 (100.000%, all penalties zero); `base_3.c` SHA256
 `a8a2f2b2c3cb3a1e2226ed455bada726b43f2faebfad277f466b6ea538c9a8c4` is the same
-source against the header's `GpXformArg` type, byte-identical object.
+source against the header's `ActorTransform` type, byte-identical object.
 `target.s` SHA256 `0f92b81219939223dbf73c67681009c22f709dda4035d62d368ef067060fa655`.
 Scratch `nonmatchings/func_mine_forked_tunnel_8017DAB8-vacuum`.
 
@@ -125274,7 +125274,7 @@ the twin's branch to "preserve the shape", or adding a temp to force a fresh
 re-read the stores the removed branch sat between.
 
 The destination type is worth re-deriving rather than copying, too.
-The payload is `GpXformArg` in both `actor_113100` and `actor_141000`, but
+The payload is `ActorTransform` in both `actor_113100` and `actor_141000`, but
 `actor_113100`'s destination is three loose `u16` words at
 0x528/0x52A/0x52C rather than the twin's `u16 field_4B8/4BA/4BC`: declare the
 halves `u16` and write the plain member assignment. The `lhu` that comes out is

@@ -155,7 +155,7 @@ ActorCommand D_dryfield_underpass_8017E8A8 = { { .loc = { 5, 11 } }, 4 };
 
 AnimationPlayRequest D_dryfield_underpass_8017E8AC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_dryfield_underpass_8017E8C0 = { { 0x3EE0, -1000, -3624, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_dryfield_underpass_8017E8C0 = { { 0x3EE0, -1000, -3624, 0 }, { 0, -2048, 0, 0 } };
 
 GpEvsCmd D_dryfield_underpass_8017E8D8[21] = {
     { 41, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

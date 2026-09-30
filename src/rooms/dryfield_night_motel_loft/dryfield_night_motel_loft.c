@@ -40,7 +40,7 @@ extern GpAreaTmdRec D_dryfield_night_motel_loft_80180834[3];
 extern GpAreaTmdRec D_dryfield_night_motel_loft_80180858[2];
 extern GpAreaTmdRec D_dryfield_night_motel_loft_80180870[2];
 
-GpXformArg D_dryfield_night_motel_loft_8017FB84[2] = {
+ActorTransform D_dryfield_night_motel_loft_8017FB84[2] = {
     { { 0, 0, 0xFFFF, 0 }, { 0, 0, 0, 0 } },
     { { 0xFFFF, 0, 0, 0 }, { -1, 0, 0, 0 } },
 };

@@ -219,7 +219,7 @@ typedef struct {
         s32  (*call0)(void);
         s32  (*call1)(Task*);
         s32  (*call2)(Task*, s32, ActorCommand* request);
-        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, ActorTransform*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
@@ -271,8 +271,8 @@ extern Actor403200DropCoord D_actor_403200_8015F970;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpXformArg value;
-    u8         retained[40];
+    ActorTransform value;
+    u8             retained[40];
 } Actor403200StorageF9C0;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF9C0, 64);
 
@@ -376,7 +376,7 @@ void                func_actor_403200_80141868(Task*);
 s32  func_actor_403200_80138468(Task*, s32, s32);
 s32  func_actor_403200_80138748(Task*, s32, ActorCommand* msg);
 s32  func_actor_403200_80141974(Task*);
-s32  func_actor_403200_801419C4(Task*, s32, GpXformArg*);
+s32  func_actor_403200_801419C4(Task*, s32, ActorTransform* placement);
 s32  func_actor_403200_80141A94(Task*, s32, s32);
 s32  func_actor_403200_80141B30(void);
 void func_actor_403200_80140E6C(Task*);
@@ -9944,7 +9944,7 @@ s32 func_actor_403200_80141974(Task* task)
 /// Place the task's model from `placement`: the three longs become the root
 /// coordinate's translation, then the X, Y and Z rotations are applied in that
 /// order and the coordinate is marked dirty. Returns 1.
-s32 func_actor_403200_801419C4(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_403200_801419C4(Task* task, s32 arg1, ActorTransform* placement)
 {
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;

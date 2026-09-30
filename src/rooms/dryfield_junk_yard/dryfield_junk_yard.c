@@ -78,9 +78,9 @@ extern TaskDesc             D_dryfield_junk_yard_8017DD48[];
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DD88;
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DDD8;
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DDEC;
-extern GpXformArg           D_dryfield_junk_yard_8017DE00;
-extern GpXformArg           D_dryfield_junk_yard_8017DE18;
-extern GpXformArg           D_dryfield_junk_yard_8017DE30;
+extern ActorTransform       D_dryfield_junk_yard_8017DE00;
+extern ActorTransform       D_dryfield_junk_yard_8017DE18;
+extern ActorTransform       D_dryfield_junk_yard_8017DE30;
 extern GpEvsCmd             D_dryfield_junk_yard_8017DE48[];
 extern GpEvsCmd             D_dryfield_junk_yard_8017E028[];
 extern GpEvsCmd             D_dryfield_junk_yard_8017E160[];
@@ -121,7 +121,7 @@ extern GpObj4C              D_dryfield_junk_yard_80180C7C[10];
 extern GpObj4C              D_dryfield_junk_yard_80180F74[19];
 extern GpRoomBoundVec       D_dryfield_junk_yard_80181BCC[8];
 extern GpRoomCoordSet       D_dryfield_junk_yard_80181BB4[1];
-extern GpXformArg           D_dryfield_junk_yard_8017DE00;
+extern ActorTransform       D_dryfield_junk_yard_8017DE00;
 extern TaskDesc             D_8014D8A4;
 void                        func_dryfield_junk_yard_8017DC54(s8);
 
@@ -157,11 +157,11 @@ AnimationPlayRequest D_dryfield_junk_yard_8017DDD8 = { { .index = 6 }, 7, ANIMAT
 
 AnimationPlayRequest D_dryfield_junk_yard_8017DDEC = { { .index = 6 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_junk_yard_8017DE00 = { { 0x288B, 0, 3893, 0 }, { 0, 2700, 0, 0 } };
+ActorTransform D_dryfield_junk_yard_8017DE00 = { { 0x288B, 0, 3893, 0 }, { 0, 2700, 0, 0 } };
 
-GpXformArg D_dryfield_junk_yard_8017DE18 = { { 0x530A, 0, 3407, 0 }, { 0, 3074, 0, 0 } };
+ActorTransform D_dryfield_junk_yard_8017DE18 = { { 0x530A, 0, 3407, 0 }, { 0, 3074, 0, 0 } };
 
-GpXformArg D_dryfield_junk_yard_8017DE30 = { { 0x54C4, 0, 3800, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_dryfield_junk_yard_8017DE30 = { { 0x54C4, 0, 3800, 0 }, { 0, 2048, 0, 0 } };
 
 GpEvsCmd D_dryfield_junk_yard_8017DE48[20] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },

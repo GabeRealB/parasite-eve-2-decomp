@@ -60,7 +60,7 @@ Task* Gp_SpawnWeaponEff(void);
 void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 
 /// Message 1006; the fourth dispatch argument is unused.
-s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3);
+s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg3);
 
 s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, struct GfxCoord* arg1, struct GfxCoord* arg2);
 
@@ -130,7 +130,7 @@ void Gp_PlayerMode2State2(Task* arg0);
 void Gp_PlayerMode2State6(Task* arg0);
 
 s32 func_80104684(Task* arg0, s32 arg1, s32 arg2);
-s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform);
 s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2);
 s32 func_80105828(Task* arg0);
 s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);

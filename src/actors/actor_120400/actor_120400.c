@@ -67,8 +67,8 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, GpXformArg*);
-        s32 (*call3)(Task*, s32, GpXformArg*, Actor120400SpawnAnim*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
+        s32 (*call3)(Task*, s32, ActorTransform*, Actor120400SpawnAnim*);
         s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor120400MsgEntry;
@@ -123,9 +123,9 @@ static const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
 extern TmdSource D_actor_120400_8013783C;
 extern TmdSource D_actor_120400_80137C90;
 extern TmdSource D_actor_120400_801380E4;
-s32              func_actor_120400_80132398(Task*, s32, GpXformArg*, Actor120400SpawnAnim*);
+s32              func_actor_120400_80132398(Task*, s32, ActorTransform* place, Actor120400SpawnAnim*);
 s32              func_actor_120400_80132AA0(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_120400_80132BBC(Task*, s32, GpXformArg*);
+s32              func_actor_120400_80132BBC(Task*, s32, ActorTransform* args);
 s32              func_actor_120400_80132C38(Task*, s32, s32, s32);
 s32              func_actor_120400_80132D14(void);
 void             func_actor_120400_8013254C(Task*);
@@ -1091,7 +1091,7 @@ static void func_actor_120400_80132254(Task* arg0)
 /// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
 /// the `Gp_AnimResetSlot` one, followed by a `Gp_AnimTickIndex` pass over the
 /// same 0x14 slots and `model.ticking` raised. Returns 0 either way.
-s32 func_actor_120400_80132398(Task* task, s32 arg1, GpXformArg* place, Actor120400SpawnAnim* anim)
+s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Actor120400SpawnAnim* anim)
 {
     Actor120400MainWork*  work;
     Actor120400MainWork*  w;
@@ -1409,7 +1409,7 @@ s32 func_actor_120400_80132AA0(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// Message 0x7D4 handler of the parent: places the root part at the message's
 /// position and Euler angles, rebuilding the rotation from them and clearing
 /// `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_120400_80132BBC(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_120400_80132BBC(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

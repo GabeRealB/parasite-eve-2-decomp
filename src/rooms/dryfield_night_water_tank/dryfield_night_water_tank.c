@@ -100,9 +100,9 @@ s32  func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, GpMessageArg);
 s32  func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, GpMessageArg);
 void func_dryfield_night_water_tank_8017D5D0(Task*);
 
-GpXformArg D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
+ActorTransform D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
 
-GpXformArg D_dryfield_night_water_tank_8017DDAC = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_dryfield_night_water_tank_8017DDAC = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
 
 AnimationPlayRequest D_dryfield_night_water_tank_8017DDC4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

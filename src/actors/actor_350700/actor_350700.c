@@ -52,8 +52,8 @@ typedef struct {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, GpXformArg*);
-        s32 (*call4)(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
+        s32 (*call3)(Task*, s32, ActorTransform*);
+        s32 (*call4)(Task*, s32, ActorTransform*, Actor350700SpawnAnim*);
         s32 (*call5)(Task*, s32, s32);
     } handler;
 } Actor350700MsgEntry;
@@ -149,17 +149,17 @@ extern TmdSource D_actor_350700_8016E86C;
 extern TmdSource D_actor_350700_8016ECC0;
 extern TmdSource D_actor_350700_8016F1B0;
 extern TmdSource D_actor_350700_8016F5F4;
-s32              func_actor_350700_801630C0(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
+s32              func_actor_350700_801630C0(Task*, s32, ActorTransform* place, Actor350700SpawnAnim*);
 s32              func_actor_350700_801636A8(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_350700_801637C4(Task*, s32, GpXformArg*);
+s32              func_actor_350700_801637C4(Task*, s32, ActorTransform* args);
 s32              func_actor_350700_80163840(Task*, s32, s32);
 s32              func_actor_350700_8016395C(void);
 void             func_actor_350700_80163274(Task*);
 void             func_actor_350700_80163350(Task*);
 
-s32  func_actor_350700_801621B4(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
+s32  func_actor_350700_801621B4(Task*, s32, ActorTransform* place, Actor350700SpawnAnim*);
 s32  func_actor_350700_80162860(Task*, s32, AnimationPlayRequest*, s32);
-s32  func_actor_350700_80162998(Task*, s32, GpXformArg*);
+s32  func_actor_350700_80162998(Task*, s32, ActorTransform* args);
 s32  func_actor_350700_80162A14(Task*, s32, s32);
 s32  func_actor_350700_80162AF4(Task*, s32, ActorCommand* msg);
 void func_actor_350700_80162398(Task*);
@@ -672,7 +672,7 @@ static void func_actor_350700_80162070(Task* arg0)
 /// rotation from `place`, picks the start animation from `anim` (or anim 3,
 /// 2 once `field_4C4` is set) and installs it with the body of
 /// `func_actor_350700_80162860` written out inline. Returns 0.
-s32 func_actor_350700_801621B4(Task* task, s32 arg1, GpXformArg* place, Actor350700SpawnAnim* anim)
+s32 func_actor_350700_801621B4(Task* task, s32 arg1, ActorTransform* place, Actor350700SpawnAnim* anim)
 {
     Actor350500Work*      work;
     Actor350500Work*      w;
@@ -974,7 +974,7 @@ s32 func_actor_350700_80162860(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// `args`. The translation goes straight into the local matrix, the Euler
 /// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds the
 /// rotation; clearing `composeStamp` makes the world matrix be recomputed. Returns 0.
-s32 func_actor_350700_80162998(Task* task, s32 msgId, GpXformArg* args)
+s32 func_actor_350700_80162998(Task* task, s32 msgId, ActorTransform* args)
 {
     GfxCoord* coord;
 
@@ -1249,7 +1249,7 @@ static void func_actor_350700_80162F7C(Task* arg0)
 /// `walk.rotX`..`walk.rotZ`, then applies a start preset -- `anim`'s, or anim 0xD
 /// with preset byte 1 when absent -- with the body of
 /// `func_actor_350700_801636A8` written out inline. Returns 0.
-s32 func_actor_350700_801630C0(Task* task, s32 arg1, GpXformArg* place, Actor350700SpawnAnim* anim)
+s32 func_actor_350700_801630C0(Task* task, s32 arg1, ActorTransform* place, Actor350700SpawnAnim* anim)
 {
     Actor135600Work*      work;
     Actor135600Work*      w;
@@ -1545,7 +1545,7 @@ s32 func_actor_350700_801636A8(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// translation straight into the local matrix and the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation.
 /// Returns 0.
-s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpXformArg* args)
+s32 func_actor_350700_801637C4(Task* task, s32 msgId, ActorTransform* args)
 {
     GfxCoord* coord;
 

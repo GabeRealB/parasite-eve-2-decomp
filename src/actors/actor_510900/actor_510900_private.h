@@ -131,7 +131,7 @@ typedef struct {
         s16 (*call0)(Task*);
         s32 (*call1)(Task*);
         s32 (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, ActorTransform*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor510900MessageEntry;

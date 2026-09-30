@@ -459,31 +459,31 @@ ActorCommand D_dryfield_dilapidated_house_801842B0 = { { .loc = { 2, 9 } }, 3 };
 
 ActorCommand D_dryfield_dilapidated_house_801842B4 = { { .loc = { 2, 9 } }, 4 };
 
-GpXformArg D_dryfield_dilapidated_house_801842B8 = { { -5304, 0, -1940, 0 }, { 0, 796, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_801842B8 = { { -5304, 0, -1940, 0 }, { 0, 796, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_801842D0 = { { -2630, 0, -1740, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_801842D0 = { { -2630, 0, -1740, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_801842E8 = { { -2630, 0, -1900, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_801842E8 = { { -2630, 0, -1900, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184300 = { { 2900, 0, -120, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184300 = { { 2900, 0, -120, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184318 = { { 2900, 0, -408, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184318 = { { 2900, 0, -408, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184330 = { { 0, 0, -860, 0 }, { 0, -1137, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184330 = { { 0, 0, -860, 0 }, { 0, -1137, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184348 = { { -1300, 0, -1300, 0 }, { 0, -1137, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184348 = { { -1300, 0, -1300, 0 }, { 0, -1137, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184360 = { { -1300, 0, -1800, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184360 = { { -1300, 0, -1800, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184378 = { { -1880, 0, -1460, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184378 = { { -1880, 0, -1460, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_80184390 = { { 130, 0, -930, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_80184390 = { { 130, 0, -930, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_801843A8 = { { -370, 0, -1100, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_801843A8 = { { -370, 0, -1100, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_801843C0 = { { 500, 0, 300, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_801843C0 = { { 500, 0, 300, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_dryfield_dilapidated_house_801843D8 = { { 1000, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_dilapidated_house_801843D8 = { { 1000, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
 GpOverrideArg D_dryfield_dilapidated_house_801843F0 = { 19, 1 };
 

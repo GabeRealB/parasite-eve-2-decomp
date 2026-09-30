@@ -506,8 +506,8 @@ static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMs
 /// 0x11 and kills itself.
 void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
 {
-    GpXformArg msg;
-    void*      slot;
+    ActorTransform msg;
+    void*          slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {

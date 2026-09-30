@@ -117,8 +117,8 @@ extern ActorCommand         D_shelter_b2_septic_tank_80182FA0;
 extern ActorCommand         D_shelter_b2_septic_tank_80182FA4;
 extern ActorCommand         D_shelter_b2_septic_tank_80182FA8;
 extern GpCopyArg            D_shelter_b2_septic_tank_80182F78;
-extern GpXformArg           D_shelter_b2_septic_tank_80182FD4;
-extern GpXformArg           D_shelter_b2_septic_tank_80182FEC;
+extern ActorTransform       D_shelter_b2_septic_tank_80182FD4;
+extern ActorTransform       D_shelter_b2_septic_tank_80182FEC;
 void                        func_shelter_b2_septic_tank_8017D97C(s32);
 void                        func_shelter_b2_septic_tank_8017D9A0(void);
 
@@ -186,9 +186,9 @@ AnimationPlayRequest D_shelter_b2_septic_tank_80182FAC = { { .index = 1 }, 1, AN
 
 AnimationPlayRequest D_shelter_b2_septic_tank_80182FC0 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_shelter_b2_septic_tank_80182FD4 = { { 256, 0, -6802, 0 }, { 0, -1536, 0, 0 } };
+ActorTransform D_shelter_b2_septic_tank_80182FD4 = { { 256, 0, -6802, 0 }, { 0, -1536, 0, 0 } };
 
-GpXformArg D_shelter_b2_septic_tank_80182FEC = { 0 };
+ActorTransform D_shelter_b2_septic_tank_80182FEC = { 0 };
 
 GpEvsCmd D_shelter_b2_septic_tank_80183004[11] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b2_septic_tank_80182F78 }, { .value = 0 } },

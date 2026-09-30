@@ -89,7 +89,7 @@ typedef struct {
     s32 id;
     union {
         s32  (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call1)(Task*, s32, GpXformArg*);
+        s32  (*call1)(Task*, s32, ActorTransform*);
         s32  (*call2)(Task*, s32, s32, s32);
         void (*call3)(Task*, s32, VECTOR*);
     } handler;
@@ -170,7 +170,7 @@ void             func_actor_310600_801629CC(Task*);
 
 s32  func_actor_310600_8016246C(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_310600_801625F0(Task*, s32, s32, s32);
-s32  func_actor_310600_80162C18(Task*, s32, GpXformArg*);
+s32  func_actor_310600_80162C18(Task*, s32, ActorTransform* args);
 void func_actor_310600_80162C94(Task*, s32, VECTOR*);
 
 AnimationPackedPose D_actor_310600_80162CF8[102] = {
@@ -953,7 +953,7 @@ static void func_actor_310600_80162B98(Task* task)
 /// part's local matrix, the Euler angles into the coordinate's `rot` slot, and
 /// the rotation is rebuilt from them. Clearing `composeStamp` makes `_gpUpdateCoordTree`
 /// recompute the world matrix. `arg1` is unused.
-s32 func_actor_310600_80162C18(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_310600_80162C18(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

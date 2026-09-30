@@ -178,11 +178,11 @@ AnimationPlayRequest D_shelter_b6_corridor_8017F290[5] = {
     { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpXformArg D_shelter_b6_corridor_8017F2F4 = { { 7000, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_shelter_b6_corridor_8017F2F4 = { { 7000, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_shelter_b6_corridor_8017F30C = { { 7800, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b6_corridor_8017F30C = { { 7800, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_shelter_b6_corridor_8017F324 = { { 0x4E20, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b6_corridor_8017F324 = { { 0x4E20, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
 ActorCommand D_shelter_b6_corridor_8017F33C = { { .loc = { 5, 24 } }, 1 };
 

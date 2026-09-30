@@ -247,7 +247,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor444000MessageEntry;
@@ -345,8 +345,8 @@ extern Actor444000Storage1868 D_actor_444000_80161868;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpXformArg value;
-    u8         retained[8];
+    ActorTransform value;
+    u8             retained[8];
 } Actor444000Storage1908;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1908, 32);
 
@@ -463,7 +463,7 @@ extern TmdSource D_actor_444000_80146F68;
 s32              func_actor_444000_8013A958(Task*, s32, s32);
 s32              func_actor_444000_8013ACD0(Task*, s32, ActorCommand* msg);
 s32              func_actor_444000_80143D68(Task*);
-s32              func_actor_444000_80143D7C(Task*, s32, GpXformArg*);
+s32              func_actor_444000_80143D7C(Task*, s32, ActorTransform* placement);
 s32              func_actor_444000_80143E68(Task*, s32, s32);
 s32              func_actor_444000_80143F38(Task*);
 void             func_actor_444000_80142F28(Task*);
@@ -9946,7 +9946,7 @@ s32 func_actor_444000_80143D68(Task* arg0)
 /// longs become the translation, the Euler angles are applied X/Y/Z unless the
 /// work block's state index is 0x12 or 0x13, and the coordinate is marked
 /// dirty. Same body as `ActorsShared80135990` with that state gate added.
-s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, GpXformArg* placement)
+s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
 {
     Actor403200Work* work = arg0->work;
 

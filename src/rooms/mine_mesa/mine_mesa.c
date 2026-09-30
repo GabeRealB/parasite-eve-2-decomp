@@ -144,7 +144,7 @@ extern TaskDesc   D_mine_mesa_801818F8;
 extern GpMsgEntry D_mine_mesa_80181904[];
 extern TaskDesc   D_mine_mesa_80181990[];
 
-/// The mesa's run: one `SVECTOR` position per frame, sent as a `GpXformArg`.
+/// The mesa's run: one `SVECTOR` position per frame, sent as an `ActorTransform`.
 extern SVECTOR D_mine_mesa_80184184[];
 
 extern GpEvsCmd D_mine_mesa_80184664[];
@@ -226,11 +226,11 @@ extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
 extern GpScriptCmd          D_mine_mesa_80189A80[4];
 extern GpScriptRec          D_mine_mesa_80189A90[3];
-extern GpXformArg           D_mine_mesa_801843C4;
-extern GpXformArg           D_mine_mesa_801843DC;
-extern GpXformArg           D_mine_mesa_80184590;
-extern GpXformArg           D_mine_mesa_801845A8;
-extern GpXformArg           D_mine_mesa_801845C0;
+extern ActorTransform       D_mine_mesa_801843C4;
+extern ActorTransform       D_mine_mesa_801843DC;
+extern ActorTransform       D_mine_mesa_80184590;
+extern ActorTransform       D_mine_mesa_801845A8;
+extern ActorTransform       D_mine_mesa_801845C0;
 void                        func_mine_mesa_8017DDF0(void);
 void                        func_mine_mesa_8017E5A0(void);
 void                        func_mine_mesa_8017E5C0(void);
@@ -266,13 +266,13 @@ extern GpObj3A        D_mine_mesa_801899B4[2];
 extern GpObj4C        D_mine_mesa_80188E40[8];
 extern GpRoomBoundVec D_mine_mesa_80189954[12];
 extern GpRoomCoordSet D_mine_mesa_80188E28[1];
-extern GpXformArg     D_mine_mesa_801843F4;
-extern GpXformArg     D_mine_mesa_80184424;
-extern GpXformArg     D_mine_mesa_8018443C;
-extern GpXformArg     D_mine_mesa_801845F0;
-extern GpXformArg     D_mine_mesa_80184608;
-extern GpXformArg     D_mine_mesa_80184620;
-extern GpXformArg     D_mine_mesa_80184638;
+extern ActorTransform D_mine_mesa_801843F4;
+extern ActorTransform D_mine_mesa_80184424;
+extern ActorTransform D_mine_mesa_8018443C;
+extern ActorTransform D_mine_mesa_801845F0;
+extern ActorTransform D_mine_mesa_80184608;
+extern ActorTransform D_mine_mesa_80184620;
+extern ActorTransform D_mine_mesa_80184638;
 void                  func_mine_mesa_8017E600(void);
 void                  func_mine_mesa_8017E650(void);
 void                  func_mine_mesa_8017E684(s32);
@@ -640,18 +640,18 @@ AnimationPlayRequest D_mine_mesa_8018439C = { { .index = 1 }, 13, ANIMATION_BLEN
 
 AnimationPlayRequest D_mine_mesa_801843B0 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_mine_mesa_801843C4 = { { 8780, 0, 2700, 0 }, { 0, 785, 0, 0 } };
+ActorTransform D_mine_mesa_801843C4 = { { 8780, 0, 2700, 0 }, { 0, 785, 0, 0 } };
 
-GpXformArg D_mine_mesa_801843DC = { { 7670, 0, 2200, 0 }, { 0, 785, 0, 0 } };
+ActorTransform D_mine_mesa_801843DC = { { 7670, 0, 2200, 0 }, { 0, 785, 0, 0 } };
 
-GpXformArg D_mine_mesa_801843F4 = { { 9550, 0, 1700, 0 }, { 0, -774, 0, 0 } };
+ActorTransform D_mine_mesa_801843F4 = { { 9550, 0, 1700, 0 }, { 0, -774, 0, 0 } };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpXformArg D_mine_mesa_8018440C = { { 7770, 0, 2000, 0 }, { 0, 685, 0, 0 } };
+ActorTransform D_mine_mesa_8018440C = { { 7770, 0, 2000, 0 }, { 0, 685, 0, 0 } };
 
-GpXformArg D_mine_mesa_80184424 = { { 6280, 0, 5370, 0 }, { 0, 1420, 0, 0 } };
+ActorTransform D_mine_mesa_80184424 = { { 6280, 0, 5370, 0 }, { 0, 1420, 0, 0 } };
 
-GpXformArg D_mine_mesa_8018443C = { { 9630, 0, 1570, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_mine_mesa_8018443C = { { 9630, 0, 1570, 0 }, { 0, 1024, 0, 0 } };
 
 AnimationSet* D_mine_mesa_80184454[12] = {
     NULL,
@@ -696,22 +696,22 @@ AnimationPlayRequest D_mine_mesa_80184568 = { { .index = 1 }, 58, ANIMATION_BLEN
 
 AnimationPlayRequest D_mine_mesa_8018457C = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_mine_mesa_80184590 = { { 6320, 0, 1770, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_mine_mesa_80184590 = { { 6320, 0, 1770, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_mine_mesa_801845A8 = { { 6320, 0, 1770, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_mine_mesa_801845A8 = { { 6320, 0, 1770, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_mine_mesa_801845C0 = { { 6320, 0, 1770, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mine_mesa_801845C0 = { { 6320, 0, 1770, 0 }, { 0, -1024, 0, 0 } };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpXformArg D_mine_mesa_801845D8 = { { 4600, 0, 1770, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mine_mesa_801845D8 = { { 4600, 0, 1770, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mine_mesa_801845F0 = { { 6172, 0, 2800, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_mine_mesa_801845F0 = { { 6172, 0, 2800, 0 }, { 0, 2047, 0, 0 } };
 
-GpXformArg D_mine_mesa_80184608 = { { 4820, 0, 2500, 0 }, { 0, 1054, 0, 0 } };
+ActorTransform D_mine_mesa_80184608 = { { 4820, 0, 2500, 0 }, { 0, 1054, 0, 0 } };
 
-GpXformArg D_mine_mesa_80184620 = { { 6172, 0, 2800, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_mine_mesa_80184620 = { { 6172, 0, 2800, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_mine_mesa_80184638 = { { 6172, 0, 2800, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_mine_mesa_80184638 = { { 6172, 0, 2800, 0 }, { 0, 2048, 0, 0 } };
 
 ActorCommand D_mine_mesa_80184650 = { { .loc = { 4, 1 } }, 0 };
 
@@ -2914,13 +2914,13 @@ void func_mine_mesa_8017E024(Task* arg0)
 }
 
 /// Walks the mesa one step along `D_mine_mesa_80184184` per frame: sends slot 3
-/// that entry as a `GpXformArg` -- the table position with x pulled back
+/// that entry as an `ActorTransform` -- the table position with x pulled back
 /// 0x64 and z pushed out 0xC8 -- and advances `killCountdown`. At 0x2E the mesa
 /// has finished its run, and the task kills itself; the session's overlay-wait
 /// gate cuts the run short the same way.
 void func_mine_mesa_8017E074(Task* arg0)
 {
-    GpXformArg rec;
+    ActorTransform rec;
 
     if (arg0->killCountdown >= 0x2E || gGameSession->evtSkipped != 0) {
         taskKill(arg0);

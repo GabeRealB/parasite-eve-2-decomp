@@ -233,17 +233,17 @@ GpOverlayIds D_acropolis_east_elevator_hall_80185CB4 = { 1, 3, 11 };
 
 GpOverlayIds D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
 
-GpXformArg D_acropolis_east_elevator_hall_80185CC4 = { { 1, 0, 0, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_east_elevator_hall_80185CC4 = { { 1, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_east_elevator_hall_80185CDC = { { 5051, 0, -1280, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_east_elevator_hall_80185CDC = { { 5051, 0, -1280, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_east_elevator_hall_80185CF4 = { 0 };
+ActorTransform D_acropolis_east_elevator_hall_80185CF4 = { 0 };
 
-GpXformArg D_acropolis_east_elevator_hall_80185D0C = { { 1937, 0, -492, 0 }, { 0, 1224, 0, 0 } };
+ActorTransform D_acropolis_east_elevator_hall_80185D0C = { { 1937, 0, -492, 0 }, { 0, 1224, 0, 0 } };
 
-GpXformArg D_acropolis_east_elevator_hall_80185D24 = { { 0, 0, 0, 0 }, { 0, 1640, 0, 0 } };
+ActorTransform D_acropolis_east_elevator_hall_80185D24 = { { 0, 0, 0, 0 }, { 0, 1640, 0, 0 } };
 
-GpXformArg D_acropolis_east_elevator_hall_80185D3C = { { 4440, 0, -672, 0 }, { 0, 1640, 0, 0 } };
+ActorTransform D_acropolis_east_elevator_hall_80185D3C = { { 4440, 0, -672, 0 }, { 0, 1640, 0, 0 } };
 
 GpEvsCmd D_acropolis_east_elevator_hall_80185D54[36] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

@@ -680,29 +680,29 @@ AnimationPlayRequest D_mine_cavern_80187B0C = { { .index = 1 }, 63, ANIMATION_BL
 
 AnimationPlayRequest D_mine_cavern_80187B20 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_mine_cavern_80187B34 = { { 0x4402, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mine_cavern_80187B34 = { { 0x4402, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187B4C = { { 0x31A6, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mine_cavern_80187B4C = { { 0x31A6, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187B64 = { { 6660, 0, 7200, 0 }, { 0, 569, 0, 0 } };
+ActorTransform D_mine_cavern_80187B64 = { { 6660, 0, 7200, 0 }, { 0, 569, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187B7C = { { 6550, 0, 7100, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_mine_cavern_80187B7C = { { 6550, 0, 7100, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187B94 = { { 3880, 0, 6678, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_mine_cavern_80187B94 = { { 3880, 0, 6678, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187BAC = { { 1900, 0, 160, 0 }, { 0, -114, 0, 0 } };
+ActorTransform D_mine_cavern_80187BAC = { { 1900, 0, 160, 0 }, { 0, -114, 0, 0 } };
 
 GpOverrideArg D_mine_cavern_80187BC4 = { 55, 48 };
 
-GpXformArg D_mine_cavern_80187BCC = { { 7400, 0, 1750, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_mine_cavern_80187BCC = { { 7400, 0, 1750, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187BE4 = { { 9250, 0, 1300, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_mine_cavern_80187BE4 = { { 9250, 0, 1300, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187BFC = { { 9250, 0, 1800, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_mine_cavern_80187BFC = { { 9250, 0, 1800, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187C14 = { { 7550, 0, 7360, 0 }, { 0, -455, 0, 0 } };
+ActorTransform D_mine_cavern_80187C14 = { { 7550, 0, 7360, 0 }, { 0, -455, 0, 0 } };
 
-GpXformArg D_mine_cavern_80187C2C = { { 1410, 0, 3000, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_mine_cavern_80187C2C = { { 1410, 0, 3000, 0 }, { 0, 910, 0, 0 } };
 
 ActorCommand D_mine_cavern_80187C44 = { { .loc = { 4, 2 } }, 0 };
 

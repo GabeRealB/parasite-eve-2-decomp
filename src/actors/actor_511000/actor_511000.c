@@ -224,7 +224,7 @@ typedef struct {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, ActorCommand* request);
-        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, ActorTransform*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor511000MessageEntry;
@@ -253,7 +253,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, GpXformArg*, s32);
+        s32 (*call1)(Task*, s32, ActorTransform*, s32);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor511000MsgEntry;
@@ -282,7 +282,7 @@ extern TmdSource D_actor_511000_80142554;
 extern TmdSource D_actor_511000_80142AAC;
 extern TmdSource D_actor_511000_80142C90;
 s32              func_actor_511000_80132604(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_511000_80132724(Task*, s32, GpXformArg*);
+s32              func_actor_511000_80132724(Task*, s32, ActorTransform* args);
 s32              func_actor_511000_801327A0(Task*, s32, s32);
 s32              func_actor_511000_8013287C(Task*, s32, ActorCommand* msg);
 s32              func_actor_511000_80132904(Task*, s32, s32);
@@ -297,10 +297,10 @@ extern AnimationSet D_actor_511000_8014694C;
 extern Actor511000Palette D_actor_511000_80147E84;
 
 s32  func_actor_511000_801334B8(Task*);
-s32  func_actor_511000_801334C4(Task*, s32, GpXformArg*, s32);
+s32  func_actor_511000_801334C4(Task*, s32, ActorTransform* args, s32);
 s32  func_actor_511000_80133554(Task*, s32, s32);
 s32  func_actor_511000_80133DEC(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_511000_80133E48(Task*, s32, GpXformArg*);
+s32  func_actor_511000_80133E48(Task*, s32, ActorTransform* args);
 s32  func_actor_511000_80133EAC(Task*, s32, s32);
 void func_actor_511000_80133D90(Task*);
 void func_actor_511000_80133EF4(Task*);
@@ -2420,7 +2420,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// coordinate, keeps its Euler angles in the coordinate's `rot` slot and
 /// rebuilds the rotation from them, then clears `composeStamp` so the world matrix is
 /// recomputed.
-s32 func_actor_511000_80132724(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_511000_80132724(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 
@@ -2961,7 +2961,7 @@ s32 func_actor_511000_801334B8(Task* arg0)
 /// translation and Euler angles into the root coordinate, rebuilds its
 /// rotation, clears `composeStamp` so the world matrix is recomputed and clears the
 /// model's hidden bit 0x80.
-s32 func_actor_511000_801334C4(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
+s32 func_actor_511000_801334C4(Task* task, s32 arg1, ActorTransform* args, s32 arg3)
 {
     GfxCoord*  coord;
     TmdObject* extra;
@@ -3291,7 +3291,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* prese
 /// Placement message handler: builds the root coordinate's matrix from the
 /// payload's Euler angles, drops its translation in and clears `composeStamp` so the
 /// world matrix is recomputed.
-s32 func_actor_511000_80133E48(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_511000_80133E48(Task* task, s32 arg1, ActorTransform* args)
 {
     TmdObject* ext   = task->extra.tmd;
     GfxCoord*  coord = ext->coords;

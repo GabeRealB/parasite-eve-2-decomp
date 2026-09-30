@@ -62,7 +62,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, Actor104000Event*);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
         s32 (*call4)(Task*, s32, void*);
     } handler;
@@ -183,7 +183,7 @@ void             Actor04000_Fn0703C(Task*);
 
 s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*);
 s32 Actor04000_Fn06590(Task*, s32, s32);
-s32 Actor04000_Fn06634(Task*, s32, GpXformArg*);
+s32 Actor04000_Fn06634(Task*, s32, ActorTransform* placement);
 s32 Actor04000_Fn06704(Task*, s32, void*);
 s32 Actor04000_Fn06728(Task*, s32, AnimationPlayRequest*, s32);
 
@@ -3161,7 +3161,7 @@ s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2)
 /// three longs become the coordinate's translation, then the X, Y and Z angles
 /// are applied in that order and the coordinate is marked dirty. Always
 /// answers 1.
-s32 Actor04000_Fn06634(Task* task, s32 arg1, GpXformArg* placement)
+s32 Actor04000_Fn06634(Task* task, s32 arg1, ActorTransform* placement)
 {
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;

@@ -78,9 +78,9 @@ extern Actor142900TaskTable D_actor_142900_80137600;
 extern s32                  D_actor_142900_801382A8;
 extern s32                  D_actor_142900_801382AC;
 
-extern GpXformArg D_actor_142900_801378A0;
-void              func_actor_142900_80131F5C(void);
-void              func_actor_142900_80131FDC(s32);
+extern ActorTransform D_actor_142900_801378A0;
+void                  func_actor_142900_80131F5C(void);
+void                  func_actor_142900_80131FDC(s32);
 
 void func_actor_142900_80131F5C(void);
 void func_actor_142900_80131FDC(s32);
@@ -618,9 +618,9 @@ GpCopyArg D_actor_142900_80137890 = { { .words = D_actor_142900_80137764.words }
 
 GpCopyArg D_actor_142900_80137898 = { { .words = D_actor_142900_80137618.words }, 32 };
 
-GpXformArg D_actor_142900_801378A0 = { { 0x2C60, 0, -1050, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_142900_801378A0 = { { 0x2C60, 0, -1050, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_142900_801378B8 = { { 0x2C60, 0, 190, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_142900_801378B8 = { { 0x2C60, 0, 190, 0 }, { 0, 2048, 0, 0 } };
 
 GpEvsCmd D_actor_142900_801378D0[87] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

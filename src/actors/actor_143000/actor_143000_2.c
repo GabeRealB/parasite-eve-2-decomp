@@ -82,9 +82,9 @@ AnimationPlayRequest D_actor_143000_80135160 = { { .index = 1 }, 51, ANIMATION_B
 
 GpCopyArg D_actor_143000_80135174 = { { .words = D_actor_143000_801350D4.words }, 32 };
 
-GpXformArg D_actor_143000_8013517C = { { 3270, 0, -1630, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_143000_8013517C = { { 3270, 0, -1630, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_143000_80135194 = { { 3270, 0, -2630, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_143000_80135194 = { { 3270, 0, -2630, 0 }, { 0, -2048, 0, 0 } };
 
 u8 D_actor_143000_801351AC = 0;
 

@@ -176,14 +176,14 @@ extern GpEvsCmd                            D_dryfield_night_gas_station_801841FC
 extern GpGridParams D_dryfield_night_gas_station_80184374;
 extern GpGridParams D_dryfield_night_gas_station_8018ABBC;
 
-extern SVECTOR    D_dryfield_night_gas_station_80188580[];
-extern GpXformArg D_dryfield_night_gas_station_80188B0C;
-extern GpEvsCmd   D_dryfield_night_gas_station_80188B64[];
-extern GpEvsCmd   D_dryfield_night_gas_station_80188BF4[];
-extern GpEvsCmd   D_dryfield_night_gas_station_80189014[];
-extern GpEvsCmd   D_dryfield_night_gas_station_8018920C[];
-extern GpEvsCmd   D_dryfield_night_gas_station_801892E4[];
-extern GpEvsCmd   D_dryfield_night_gas_station_80189A7C[];
+extern SVECTOR        D_dryfield_night_gas_station_80188580[];
+extern ActorTransform D_dryfield_night_gas_station_80188B0C;
+extern GpEvsCmd       D_dryfield_night_gas_station_80188B64[];
+extern GpEvsCmd       D_dryfield_night_gas_station_80188BF4[];
+extern GpEvsCmd       D_dryfield_night_gas_station_80189014[];
+extern GpEvsCmd       D_dryfield_night_gas_station_8018920C[];
+extern GpEvsCmd       D_dryfield_night_gas_station_801892E4[];
+extern GpEvsCmd       D_dryfield_night_gas_station_80189A7C[];
 
 /// The room's effect anchors, 8 bytes apart. Entries 0-9 are drawn in pairs by
 /// `func_dryfield_night_gas_station_801812B4`, 10-18 one at a time by
@@ -268,12 +268,12 @@ extern GpOverrideArg        D_dryfield_night_gas_station_801889DC;
 extern GpRoomBoundVec       D_dryfield_night_gas_station_80190684[22];
 extern GpRoomCoordSet       D_dryfield_night_gas_station_8018FAC0[1];
 extern GpRoomCoordSet       D_dryfield_night_gas_station_8018FD78[1];
-extern GpXformArg           D_dryfield_night_gas_station_8018897C;
-extern GpXformArg           D_dryfield_night_gas_station_80188994;
-extern GpXformArg           D_dryfield_night_gas_station_801889AC;
-extern GpXformArg           D_dryfield_night_gas_station_801889C4;
-extern GpXformArg           D_dryfield_night_gas_station_80188AF4;
-extern GpXformArg           D_dryfield_night_gas_station_80188B0C;
+extern ActorTransform       D_dryfield_night_gas_station_8018897C;
+extern ActorTransform       D_dryfield_night_gas_station_80188994;
+extern ActorTransform       D_dryfield_night_gas_station_801889AC;
+extern ActorTransform       D_dryfield_night_gas_station_801889C4;
+extern ActorTransform       D_dryfield_night_gas_station_80188AF4;
+extern ActorTransform       D_dryfield_night_gas_station_80188B0C;
 extern TaskDesc             D_8014D8A4;
 void                        func_dryfield_night_gas_station_8017FBD4(s32);
 void                        func_dryfield_night_gas_station_80180604(s32);
@@ -851,13 +851,13 @@ AnimationPlayRequest D_dryfield_night_gas_station_80188954 = { { .index = 1 }, 5
 
 AnimationPlayRequest D_dryfield_night_gas_station_80188968 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_dryfield_night_gas_station_8018897C = { { 0x2F44, 0, -3180, 0 }, { 0, 1444, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_8018897C = { { 0x2F44, 0, -3180, 0 }, { 0, 1444, 0, 0 } };
 
-GpXformArg D_dryfield_night_gas_station_80188994 = { { 1630, 0, -4332, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_80188994 = { { 1630, 0, -4332, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_night_gas_station_801889AC = { { 2670, 0, -4332, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_801889AC = { { 2670, 0, -4332, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_night_gas_station_801889C4 = { { 7767, 0, -2200, 0 }, { 0, 1376, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_801889C4 = { { 7767, 0, -2200, 0 }, { 0, 1376, 0, 0 } };
 
 GpOverrideArg D_dryfield_night_gas_station_801889DC = { 2, 51 };
 
@@ -901,11 +901,11 @@ AnimationPlayRequest D_dryfield_night_gas_station_80188ACC = { { .index = 1 }, 5
 
 AnimationPlayRequest D_dryfield_night_gas_station_80188AE0 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_dryfield_night_gas_station_80188AF4 = { { 0x319C, 0, -2450, 0 }, { 0, 1480, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_80188AF4 = { { 0x319C, 0, -2450, 0 }, { 0, 1480, 0, 0 } };
 
-GpXformArg D_dryfield_night_gas_station_80188B0C = { { 0x35CA, 0, -298, 0 }, { 0, 2292, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_80188B0C = { { 0x35CA, 0, -298, 0 }, { 0, 2292, 0, 0 } };
 
-GpXformArg D_dryfield_night_gas_station_80188B24 = { { 7335, 0, -3520, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_gas_station_80188B24 = { { 7335, 0, -3520, 0 }, { 0, 1024, 0, 0 } };
 
 ActorCommand D_dryfield_night_gas_station_80188B3C = { { .loc = { 3, 1 } }, 1 };
 

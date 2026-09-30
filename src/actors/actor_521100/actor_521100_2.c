@@ -90,7 +90,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor5211002MessageEntry;
@@ -123,9 +123,9 @@ static void func_actor_521100_801368B0(Task* task);
 
 s32  func_actor_521100_801369B8(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_521100_80136A1C(Task*, s32, s32);
-s32  func_actor_521100_80136A64(Task*, s32, GpXformArg*);
+s32  func_actor_521100_80136A64(Task*, s32, ActorTransform* placement);
 s32  func_actor_521100_80136AE0(Task*, s32, ActorCommand* msg);
-s32  func_actor_521100_80136BE8(Task*, s32, GpXformArg*);
+s32  func_actor_521100_80136BE8(Task*, s32, ActorTransform* target);
 void func_actor_521100_80136404(Task*);
 void func_actor_521100_80136604(Task*);
 
@@ -856,7 +856,7 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 /// the yaw of the argument block's angles is used, cached in the work block's
 /// `field_48C.yaw` and applied with `Gfx_RotMatrixY`, then the position becomes
 /// the root coordinate's translation and `composeStamp` is cleared.
-s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;
@@ -913,7 +913,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg)
     }
     return 0;
 }
-s32 func_actor_521100_80136BE8(Task* task, s32 arg1, GpXformArg* target)
+s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target)
 {
     GfxCoord* coord;
     s32       dx;

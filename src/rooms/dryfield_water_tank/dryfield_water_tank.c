@@ -192,9 +192,9 @@ AnimationPlayRequest D_dryfield_water_tank_80184B08 = { { .index = 1 }, 64, ANIM
 
 AnimationPlayRequest D_dryfield_water_tank_80184B1C = { { .index = 1 }, 65, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_water_tank_80184B30 = { { 2530, -0x2EE0, 610, 0 }, { 0, -2047, 0, 0 } };
+ActorTransform D_dryfield_water_tank_80184B30 = { { 2530, -0x2EE0, 610, 0 }, { 0, -2047, 0, 0 } };
 
-GpXformArg D_dryfield_water_tank_80184B48 = { { 2388, -0x2EE0, 1137, 0 }, { 0, 960, 0, 0 } };
+ActorTransform D_dryfield_water_tank_80184B48 = { { 2388, -0x2EE0, 1137, 0 }, { 0, 960, 0, 0 } };
 
 s32 D_dryfield_water_tank_80184B60[2] = {
     62,
@@ -254,11 +254,11 @@ AnimationPlayRequest D_dryfield_water_tank_80184D84 = { { .index = 0 }, 27, ANIM
 
 AnimationPlayRequest D_dryfield_water_tank_80184D98 = { { .index = 0 }, 28, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_dryfield_water_tank_80184DAC = { { 2530, -0x2EE0, -640, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_water_tank_80184DAC = { { 2530, -0x2EE0, -640, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_water_tank_80184DC4 = { { 2530, -0x2EE0, -640, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_water_tank_80184DC4 = { { 2530, -0x2EE0, -640, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_dryfield_water_tank_80184DDC = { { 2530, -0x2EE0, 0x2710, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_water_tank_80184DDC = { { 2530, -0x2EE0, 0x2710, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_dryfield_water_tank_80184DF4[2] = {
     { 0, 192, func_dryfield_water_tank_8017EC6C, { .model = NULL } },
@@ -1356,7 +1356,7 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 /// `TmdObject` coordinate frame. The three longs become the translation, then
 /// yaw / pitch / roll are applied with `Gfx_RotMatrixY` / `X` / `Z` and the
 /// coordinate is marked dirty.
-void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placement)
+void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

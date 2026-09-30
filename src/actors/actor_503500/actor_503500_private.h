@@ -336,7 +336,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor5035003MsgEntry;
@@ -398,7 +398,7 @@ extern TaskDesc D_actor_503500_8016E924[17];
 
 extern Task* D_actor_503500_80176558;
 
-extern GpXformArg D_actor_503500_8017655C;
+extern ActorTransform D_actor_503500_8017655C;
 
 extern AnimationSet** D_actor_503500_8016EAB8[2];
 
@@ -651,7 +651,7 @@ s32 func_actor_503500_80135950(Task*, s32, AnimationPlayRequest*, s32);
 
 s32 func_actor_503500_80135B74(Task*, s32, ActorCommand* msg);
 
-s32 func_actor_503500_80137088(Task*, s32, GpXformArg*);
+s32 func_actor_503500_80137088(Task*, s32, ActorTransform* args);
 
 s32 func_actor_503500_80137158(Task*, s32, s32);
 

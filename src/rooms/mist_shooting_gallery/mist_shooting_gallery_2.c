@@ -2772,7 +2772,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
 {
     MistShootingGalleryWork*  work;
     MistShootingGallerySpawn* spawn;
-    GpXformArg                xform;
+    ActorTransform            xform;
     GameActor*                actor;
     s32                       mode;
     s32                       bonus;

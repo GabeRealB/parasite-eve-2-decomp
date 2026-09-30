@@ -84,20 +84,20 @@ typedef struct {
     s16    room;
 } _DescentWork;
 
-extern GpXformArg D_shelter_b3_garbage_incinerator_80185B58[2];
+extern ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
         void (*call0)(Task*);
-        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, ActorTransform*);
         void (*call2)(Task*, s32, s32);
     } handler;
 } ShelterB3GarbageIncinerator2ExtendedMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2ExtendedMessageEntry, 8);
 
 extern ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
-extern GpXformArg                                       D_shelter_b3_garbage_incinerator_80185B88;
+extern ActorTransform                                   D_shelter_b3_garbage_incinerator_80185B88;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
@@ -182,7 +182,7 @@ static TaskDesc CapCaption_Data_80154508;
 void func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
 void func_shelter_b3_garbage_incinerator_8017E158(Task*);
 void func_shelter_b3_garbage_incinerator_8017E690(Task*, s32, s32);
-void func_shelter_b3_garbage_incinerator_8017E70C(Task*, s32, GpXformArg*);
+void func_shelter_b3_garbage_incinerator_8017E70C(Task*, s32, ActorTransform* placement);
 void func_shelter_b3_garbage_incinerator_8017E7A4(Task*);
 void func_shelter_b3_garbage_incinerator_8017E7D0(Task*);
 void func_shelter_b3_garbage_incinerator_8017F0A8(Task*);
@@ -235,12 +235,12 @@ ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerato
     { 5108, { .call0 = func_shelter_b3_garbage_incinerator_8017E7A4 } },
 };
 
-GpXformArg D_shelter_b3_garbage_incinerator_80185B58[2] = {
+ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
     { { 0x36B0, 0, -0x4650, 0 }, { 0, 0, 0, 0 } },
     { { 0x36B0, 2000, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpXformArg D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { 257, 192, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
 
@@ -744,10 +744,10 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 /// the sequence is over.
 static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
-    GpXformArg    msg;
-    _DescentWork* work  = arg0->work;
-    GfxCoord*     coord = arg0->extra.tmd->coords;
-    GfxCoord*     ref   = work->target->extra.tmd->coords;
+    ActorTransform msg;
+    _DescentWork*  work  = arg0->work;
+    GfxCoord*      coord = arg0->extra.tmd->coords;
+    GfxCoord*      ref   = work->target->extra.tmd->coords;
 
     switch (work->state) {
         case 0:
@@ -979,7 +979,7 @@ void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2
 /// Places the task's model: re-parents its coordinate to the world frame, takes
 /// the three longs of `placement` as the translation and applies the three
 /// shorts as yaw, pitch and roll.
-void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, GpXformArg* placement)
+void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

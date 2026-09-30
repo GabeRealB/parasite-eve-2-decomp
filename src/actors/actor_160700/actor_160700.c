@@ -49,7 +49,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor160700MessageEntry;
@@ -100,9 +100,9 @@ extern TmdSource D_actor_160700_8013C6FC;
 extern TmdSource D_actor_160700_8013C8F8;
 s32              func_actor_160700_801325F0(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_160700_8013265C(Task*, s32, s32);
-s32              func_actor_160700_801326C0(Task*, s32, GpXformArg*);
+s32              func_actor_160700_801326C0(Task*, s32, ActorTransform* placement);
 s32              func_actor_160700_80132738(void);
-s32              func_actor_160700_80132740(Task*, s32, GpXformArg*);
+s32              func_actor_160700_80132740(Task*, s32, ActorTransform* target);
 void             func_actor_160700_8013233C(Task*);
 void             func_actor_160700_80132808(Task*);
 
@@ -621,9 +621,9 @@ AnimationPlayRequest D_actor_160700_8013560C = { { .index = 1 }, 22, ANIMATION_B
 
 AnimationPlayRequest D_actor_160700_80135620 = { { .index = 1 }, 23, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_160700_80135634 = { { 2250, 0, 790, 0 }, { 0, -853, 0, 0 } };
+ActorTransform D_actor_160700_80135634 = { { 2250, 0, 790, 0 }, { 0, -853, 0, 0 } };
 
-GpXformArg D_actor_160700_8013564C = { { 2000, 0, 750, 0 }, { 0, -739, 0, 0 } };
+ActorTransform D_actor_160700_8013564C = { { 2000, 0, 750, 0 }, { 0, -739, 0, 0 } };
 
 GpEvsCmd D_actor_160700_80135664[47] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -1772,7 +1772,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
 
 /// Script opcode: yaws the actor's root coordinate to `placement->rot.vy`,
 /// caching the yaw in the work block, and moves it to `placement->pos`.
-s32 func_actor_160700_801326C0(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_160700_801326C0(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor160600Work* work;
@@ -1799,7 +1799,7 @@ s32 func_actor_160700_80132738(void)
 /// Script opcode "walk to": turns the actor's root coordinate to face
 /// `target` horizontally, caching the yaw, and stores the horizontal distance
 /// in steps of 12 as `travel` for the step body to walk off.
-s32 func_actor_160700_80132740(Task* task, s32 arg1, GpXformArg* target)
+s32 func_actor_160700_80132740(Task* task, s32 arg1, ActorTransform* target)
 {
     GfxCoord*        coord;
     Actor160600Work* work;

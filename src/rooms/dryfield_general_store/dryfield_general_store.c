@@ -83,8 +83,8 @@ static void func_dryfield_general_store_8017DF4C(Task* task);
 extern AnimationPlayRequest D_dryfield_general_store_8017E4FC;
 extern GpCopyArg            D_dryfield_general_store_8017E4E0;
 extern GpOverrideArg        D_dryfield_general_store_8017E554;
-extern GpXformArg           D_dryfield_general_store_8017E524;
-extern GpXformArg           D_dryfield_general_store_8017E53C;
+extern ActorTransform       D_dryfield_general_store_8017E524;
+extern ActorTransform       D_dryfield_general_store_8017E53C;
 extern s32                  D_dryfield_general_store_8017E560;
 void                        func_dryfield_general_store_8017E130(s32);
 
@@ -165,9 +165,9 @@ AnimationPlayRequest D_dryfield_general_store_8017E4FC = { { .index = 1 }, 48, A
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_dryfield_general_store_8017E510 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_general_store_8017E524 = { { 1735, 0, 6800, 0 }, { 0, -2047, 0, 0 } };
+ActorTransform D_dryfield_general_store_8017E524 = { { 1735, 0, 6800, 0 }, { 0, -2047, 0, 0 } };
 
-GpXformArg D_dryfield_general_store_8017E53C = { { 1505, 0, 5558, 0 }, { 0, -2047, 0, 0 } };
+ActorTransform D_dryfield_general_store_8017E53C = { { 1505, 0, 5558, 0 }, { 0, -2047, 0, 0 } };
 
 GpOverrideArg D_dryfield_general_store_8017E554 = { 4, 9 };
 

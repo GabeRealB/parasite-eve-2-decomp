@@ -178,7 +178,7 @@ void Gp_SetupDirWarp(void)
     GameActor*       actor;
     GameLocationKey* sess;
     GpWarpRec        rec;
-    GpXformArg       msg;
+    ActorTransform   msg;
     SVECTOR          pos;
     SVECTOR          pos2;
     s32              stage;
@@ -227,7 +227,7 @@ void Gp_SetupDirWarp(void)
             }
             msg.rot.vx = 0;
             msg.rot.vz = 0;
-            msg.rot.vy = (rec.player.words.field_0 + 0x800) & 0xFFF;
+            msg.rot.vy = (rec.player.words.field_0 + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
             if (rec.player.words.field_0 == 0x7800 || rec.player.words.field_0 == 0x7FFF) {
                 pos.vx     = -0x5C1;
                 pos.vy     = 0;
@@ -269,7 +269,7 @@ void Gp_SetupDirWarp(void)
             }
             msg.rot.vx = 0;
             msg.rot.vz = 0;
-            msg.rot.vy = (rec.player.words.field_0 + 0x800) & 0xFFF;
+            msg.rot.vy = (rec.player.words.field_0 + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
             if (rec.player.words.field_0 == 0x7800 || rec.player.words.field_0 == 0x7FFF) {
                 pos2.vx    = -0x5C1;
                 pos2.vy    = 0;

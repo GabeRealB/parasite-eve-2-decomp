@@ -210,7 +210,7 @@ AnimationSet* D_dryfield_gas_station_80182E30[5] = {
     NULL,
 };
 
-GpXformArg D_dryfield_gas_station_80182E44[3] = {
+ActorTransform D_dryfield_gas_station_80182E44[3] = {
     { { 14408, 0, -2630, 0 }, { 0, 3584, 0, 0 } },
     { { 14158, 0, -2380, 0 }, { 0, 2560, 0, 0 } },
     { { 14158, 0, -2380, 0 }, { 0, 3072, 0, 0 } },

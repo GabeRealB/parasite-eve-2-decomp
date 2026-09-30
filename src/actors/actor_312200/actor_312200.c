@@ -41,7 +41,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor312200MessageEntry;
@@ -148,7 +148,7 @@ static void func_actor_312200_801637CC(Task* task);
 
 extern TmdSource D_actor_312200_80168148;
 s32              func_actor_312200_80163510(Task*, s32, s32);
-s32              func_actor_312200_801635CC(Task*, s32, GpXformArg*);
+s32              func_actor_312200_801635CC(Task*, s32, ActorTransform* placement);
 s32              func_actor_312200_801636CC(Task*, s32, ActorCommand* msg);
 void             func_actor_312200_80163854(Task*);
 
@@ -850,7 +850,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
 /// onto the actor's root coordinate, the Euler angles are applied X / Y / Z,
 /// and the resulting heading is read back out of the matrix Z-axis with
 /// `ratan2` and cached in `Actor312200Work::yaw`.
-s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     s32              mx;

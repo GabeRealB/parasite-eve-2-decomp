@@ -102,9 +102,9 @@ typedef struct {
     s32 id; // Message id; 0x7FFFFFFF terminates the table
     union {
         s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*placement)(Task*, s32, GpXformArg*, s32);
+        s32 (*placement)(Task*, s32, ActorTransform*, s32);
         s32 (*mode)(Task*, s32, s32, s32);
-        s32 (*command)(Task*, s32, ActorCommand* request, GpXformArg*);
+        s32 (*command)(Task*, s32, ActorCommand* request, ActorTransform*);
     } handler; // Callback with the argument views required by that message
 } _Actor323300MessageEntry;
 STATIC_ASSERT_SIZEOF(_Actor323300MessageEntry, 8);
@@ -121,7 +121,7 @@ extern AnimationSet** D_actor_323300_80172558[1];
 extern TaskDesc D_actor_323300_8017255C[];
 
 /// Placement `func_actor_323300_80161E78` hands `func_actor_323300_801629F0`.
-extern GpXformArg D_actor_323300_8017259C;
+extern ActorTransform D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
 /// hand `func_actor_323300_801628B8`.
@@ -136,7 +136,7 @@ extern AnimationPlayRequest D_actor_323300_801725DC;
 extern AnimationSet*        D_actor_323300_80174A60[4];
 extern AnimationSet**       D_actor_323300_80174A70[1];
 extern AnimationPlayRequest D_actor_323300_80174A74;
-extern GpXformArg           D_actor_323300_80174AB0;
+extern ActorTransform       D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -153,11 +153,11 @@ static void func_actor_323300_801626F4(Task* arg0);
 static void func_actor_323300_80162748(Task* arg0);
 static void func_actor_323300_801627B4(Task* arg0);
 s32         func_actor_323300_801628B8(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
-s32         func_actor_323300_801629F0(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
+s32         func_actor_323300_801629F0(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 static void func_actor_323300_801634B0(Task* arg0);
 static void func_actor_323300_80163510(Task* arg0);
 static void func_actor_323300_8016359C(Task* arg0, s16 arg1);
-static s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
+static s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
@@ -169,9 +169,9 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
 } };
 
 s32 func_actor_323300_80162208(Task*, s32, s32, s32);
-s32 func_actor_323300_80162360(Task*, s32, ActorCommand* msg, GpXformArg*);
+s32 func_actor_323300_80162360(Task*, s32, ActorCommand* msg, ActorTransform* place);
 s32 func_actor_323300_801628B8(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_323300_801629F0(Task*, s32, GpXformArg*, s32);
+s32 func_actor_323300_801629F0(Task*, s32, ActorTransform* transform, s32);
 
 extern TmdSource D_actor_323300_80169200;
 extern TmdSource D_actor_323300_8017128C;
@@ -338,7 +338,7 @@ _Actor323300MessageEntry D_actor_323300_80172574[5] = {
     { 0x7FFFFFFF, { .animation = NULL } },
 };
 
-GpXformArg D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };
 
 AnimationPlayRequest D_actor_323300_801725B4 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -430,7 +430,7 @@ AnimationPlayRequest D_actor_323300_80174A88[2] = {
     { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpXformArg D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
 
 static void func_actor_323300_80162A6C(Task* arg0, ToiletMorphTarget* arg1, s32 arg2);
 static void func_actor_323300_80162BE4(Task* arg0);
@@ -616,7 +616,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// the child at `field_4B8`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
 /// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
-s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, GpXformArg* place)
+s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTransform* place)
 {
     Actor323300Work*      w;
     Actor323300Work*      work;
@@ -850,21 +850,21 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, AnimationPlayRequest* msg, 
     return 0;
 }
 
-/// Message-0x7D4 handler: places the actor at `args`. The translation goes
+/// Message-0x7D4 handler: places the actor at `transform`. The translation goes
 /// straight into the root part's local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
 /// clearing `composeStamp` makes the world matrix be recomputed.
-s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
+s32 func_actor_323300_801629F0(Task* task, s32 msgId, ActorTransform* transform, s32 arg3)
 {
     GfxCoord* coord;
 
     coord               = (task->extra.tmd)->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
+    coord->coord.t[0]   = transform->pos.vx;
+    coord->coord.t[1]   = transform->pos.vy;
+    coord->coord.t[2]   = transform->pos.vz;
+    coord->param.rot.vx = transform->rot.vx;
+    coord->param.rot.vy = transform->rot.vy;
+    coord->param.rot.vz = transform->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
@@ -1201,20 +1201,20 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 }
 
 /// The 0x6B0 block's placement handler, the same body as
-/// `func_actor_323300_801629F0`: copies `args`' translation into the root
+/// `func_actor_323300_801629F0`: copies `transform`'s translation into the root
 /// part's local matrix and its Euler angles into the coordinate's `rot` slot,
 /// rebuilds the rotation from them and clears `composeStamp`.
-static s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
+static s32 func_actor_323300_8016369C(Task* task, s32 msgId, ActorTransform* transform, s32 arg3)
 {
     GfxCoord* coord;
 
     coord               = (task->extra.tmd)->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
+    coord->coord.t[0]   = transform->pos.vx;
+    coord->coord.t[1]   = transform->pos.vy;
+    coord->coord.t[2]   = transform->pos.vz;
+    coord->param.rot.vx = transform->rot.vx;
+    coord->param.rot.vy = transform->rot.vy;
+    coord->param.rot.vz = transform->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;

@@ -172,7 +172,7 @@ ActorCommand D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
 
 AnimationPlayRequest D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_neo_ark_submarine_tunnel_80181AD0 = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_neo_ark_submarine_tunnel_80181AD0 = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
 
 GpOverlayIds D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
 

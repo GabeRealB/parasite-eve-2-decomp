@@ -138,8 +138,8 @@ s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, GpMessageArg, GpMessa
 
 extern AnimationPlayRequest D_acropolis_west_elevator_hall_80184598;
 extern GpCopyArg            D_acropolis_west_elevator_hall_80184590;
-extern GpXformArg           D_acropolis_west_elevator_hall_801845AC;
-extern GpXformArg           D_acropolis_west_elevator_hall_801845C4;
+extern ActorTransform       D_acropolis_west_elevator_hall_801845AC;
+extern ActorTransform       D_acropolis_west_elevator_hall_801845C4;
 
 extern AnimationSet D_acropolis_west_elevator_hall_80184540;
 extern TmdSource    D_acropolis_west_elevator_hall_8018050C;
@@ -256,14 +256,14 @@ GpCopyArg D_acropolis_west_elevator_hall_80184590 = { { .sets = D_acropolis_west
 
 AnimationPlayRequest D_acropolis_west_elevator_hall_80184598 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_acropolis_west_elevator_hall_801845AC = { { 0x2710, 0, 2527, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_west_elevator_hall_801845AC = { { 0x2710, 0, 2527, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_west_elevator_hall_801845C4 = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_west_elevator_hall_801845C4 = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpXformArg D_acropolis_west_elevator_hall_801845DC = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_west_elevator_hall_801845DC = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_west_elevator_hall_801845F4 = { { -1388, 0, 922, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_west_elevator_hall_801845F4 = { { -1388, 0, 922, 0 }, { 0, 2048, 0, 0 } };
 
 AnimationPlayRequest D_acropolis_west_elevator_hall_8018460C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

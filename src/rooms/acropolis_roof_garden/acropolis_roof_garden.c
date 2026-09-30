@@ -124,9 +124,9 @@ extern AnimationPlayRequest D_acropolis_roof_garden_80183D30;
 extern AnimationPlayRequest D_acropolis_roof_garden_80183D44;
 extern AnimationPlayRequest D_acropolis_roof_garden_80183D58;
 extern GpCopyArg            D_acropolis_roof_garden_80183CC4;
-extern GpXformArg           D_acropolis_roof_garden_80183C58;
-extern GpXformArg           D_acropolis_roof_garden_80183C70;
-extern GpXformArg           D_acropolis_roof_garden_80183CA0;
+extern ActorTransform       D_acropolis_roof_garden_80183C58;
+extern ActorTransform       D_acropolis_roof_garden_80183C70;
+extern ActorTransform       D_acropolis_roof_garden_80183CA0;
 void                        func_acropolis_roof_garden_8017DAD4(s32);
 
 extern AnimationSet D_acropolis_roof_garden_80181724;
@@ -230,13 +230,13 @@ ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
 
 AnimationPlayRequest D_acropolis_roof_garden_80183C44 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_acropolis_roof_garden_80183C58 = { 0 };
+ActorTransform D_acropolis_roof_garden_80183C58 = { 0 };
 
-GpXformArg D_acropolis_roof_garden_80183C70 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_roof_garden_80183C70 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
+ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
 
-GpXformArg D_acropolis_roof_garden_80183CA0 = { { -7508, 0, -8572, 0 }, { 0, 407, 0, 0 } };
+ActorTransform D_acropolis_roof_garden_80183CA0 = { { -7508, 0, -8572, 0 }, { 0, 407, 0, 0 } };
 
 AnimationSet* D_acropolis_roof_garden_80183CB8[3] = {
     &D_acropolis_roof_garden_80181724,

@@ -84,26 +84,16 @@ STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are 0xD and 1.
 typedef GpSpawnAnimArg Actor335800SpawnAnim;
 
-/// Start pose `func_actor_335800_80161E88` places its root part at: a
-/// translation plus the Euler angles for `RotMatrix`.
-typedef struct Actor335800Pose {
-    /* 0x00 */ s32     x;
-    /* 0x04 */ s32     y;
-    /* 0x08 */ s32     z;
-    /* 0x0C */ byte    pad_C[0x4];
-    /* 0x10 */ SVECTOR rot;
-} Actor335800Pose;
-
-extern Actor335800Pose D_actor_335800_80164F80;
+extern ActorTransform D_actor_335800_80164F80;
 
 extern TaskDesc             D_actor_335800_80164DE0[];
 extern AnimationPlayRequest D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
 /// `func_actor_335800_801621B4` selects an entry of it by index.
-extern GpXformArg D_actor_335800_80164EA4[5];
-extern GpEvsCmd   D_actor_335800_80165FC0[];
-extern GpEvsCmd   D_actor_335800_80166098[];
+extern ActorTransform D_actor_335800_80164EA4[5];
+extern GpEvsCmd       D_actor_335800_80165FC0[];
+extern GpEvsCmd       D_actor_335800_80166098[];
 
 /// Animation bank tables of the parent and the child block.
 extern AnimationSet*  D_actor_335800_8016EAC4[5];
@@ -122,8 +112,8 @@ typedef struct {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call2)(Task*, s32, ActorCommand* request, s32);
-        s32 (*call3)(Task*, s32, GpXformArg*);
-        s32 (*call4)(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+        s32 (*call3)(Task*, s32, ActorTransform*);
+        s32 (*call4)(Task*, s32, ActorTransform*, Actor335800SpawnAnim*);
         s32 (*call5)(Task*, s32, s32);
     } handler;
 } Actor335800MsgEntry;
@@ -216,7 +206,7 @@ void func_actor_335800_80162364(Task*);
 void func_actor_335800_801624DC(Task*);
 void func_actor_335800_80162588(Task*);
 
-extern Actor335800Pose      D_actor_335800_80164F80;
+extern ActorTransform       D_actor_335800_80164F80;
 extern AnimationPlayRequest D_actor_335800_80164E54;
 extern AnimationPlayRequest D_actor_335800_80164E90;
 extern AnimationPlayRequest D_actor_335800_80164F44;
@@ -224,9 +214,9 @@ extern AnimationPlayRequest D_actor_335800_80164F58;
 extern AnimationPlayRequest D_actor_335800_80164F6C;
 extern ActorCommand         D_actor_335800_80164FC8;
 extern GpCopyArg            D_actor_335800_80164E24;
-extern GpXformArg           D_actor_335800_80164EA4[5];
-extern GpXformArg           D_actor_335800_80164F98;
-extern GpXformArg           D_actor_335800_80164FB0;
+extern ActorTransform       D_actor_335800_80164EA4[5];
+extern ActorTransform       D_actor_335800_80164F98;
+extern ActorTransform       D_actor_335800_80164FB0;
 void                        func_actor_335800_80162040(void);
 void                        func_actor_335800_80162060(void);
 void                        func_actor_335800_80162080(void);
@@ -247,15 +237,15 @@ extern ActorCommand         D_actor_335800_80165044;
 extern GpCopyArg            D_actor_335800_80164E24;
 extern GpOverlayIds         D_actor_335800_80165050;
 extern GpOverlayIds         D_actor_335800_80165058;
-extern GpXformArg           D_actor_335800_80164EA4[5];
-s32                         func_actor_335800_80162C80(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+extern ActorTransform       D_actor_335800_80164EA4[5];
+s32                         func_actor_335800_80162C80(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
 s32                         func_actor_335800_801632A4(Task*, s32, AnimationPlayRequest*, s32);
-s32                         func_actor_335800_801633C0(Task*, s32, GpXformArg*);
+s32                         func_actor_335800_801633C0(Task*, s32, ActorTransform* args);
 s32                         func_actor_335800_8016343C(Task*, s32, s32);
 s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
-s32                         func_actor_335800_80163880(Task*, s32, GpXformArg*, Actor335800SpawnAnim*);
+s32                         func_actor_335800_80163880(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
 s32                         func_actor_335800_80163E20(Task*, s32, AnimationPlayRequest*, s32);
-s32                         func_actor_335800_80163F3C(Task*, s32, GpXformArg*);
+s32                         func_actor_335800_80163F3C(Task*, s32, ActorTransform* args);
 s32                         func_actor_335800_80163FB8(Task*, s32, s32);
 s32                         func_actor_335800_80164098(void);
 void                        func_actor_335800_80162040(void);
@@ -398,7 +388,7 @@ AnimationPlayRequest D_actor_335800_80164E7C = { { .index = 1 }, 51, ANIMATION_B
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_actor_335800_80164E90 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_335800_80164EA4[5] = {
+ActorTransform D_actor_335800_80164EA4[5] = {
     { { -7180, -3200, 4310, 0 }, { 0, 1024, 0, 0 } },
     { { -6280, -3200, 1000, 0 }, { 0, 1024, 0, 0 } },
     { { -6280, -3200, 5570, 0 }, { 0, 1024, 0, 0 } },
@@ -417,11 +407,11 @@ AnimationPlayRequest D_actor_335800_80164F58 = { { .index = 0 }, 3, ANIMATION_BL
 
 AnimationPlayRequest D_actor_335800_80164F6C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-Actor335800Pose D_actor_335800_80164F80 = { -4000, 0, 1970, { 0, 0, 0, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_actor_335800_80164F80 = { { -4000, 0, 1970, 0 }, { 0, 2047, 0, 0 } };
 
-GpXformArg D_actor_335800_80164F98 = { { -7730, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_335800_80164F98 = { { -7730, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_335800_80164FB0 = { { -6260, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_335800_80164FB0 = { { -6260, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
 
 ActorCommand D_actor_335800_80164FC8 = { { .loc = { 3, 29 } }, 0 };
 
@@ -431,7 +421,7 @@ AnimationPlayRequest D_actor_335800_80164FE0 = { { .index = 0 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_335800_80164FF4 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_335800_80165008 = { { -1287, 0, -2750, 0 }, { 0, -1650, 0, 0 } };
+ActorTransform D_actor_335800_80165008 = { { -1287, 0, -2750, 0 }, { 0, -1650, 0, 0 } };
 
 ActorCommand D_actor_335800_80165020 = { { .loc = { 3, 29 } }, 1 };
 
@@ -968,9 +958,9 @@ void func_actor_335800_80161E88(Task* task)
     coord = task->extra.coordBody->coord;
     switch (task->state) {
         case 0:
-            coord->coord.t[0]   = D_actor_335800_80164F80.x;
-            coord->coord.t[1]   = D_actor_335800_80164F80.y;
-            coord->coord.t[2]   = D_actor_335800_80164F80.z - 1000;
+            coord->coord.t[0]   = D_actor_335800_80164F80.pos.vx;
+            coord->coord.t[1]   = D_actor_335800_80164F80.pos.vy;
+            coord->coord.t[2]   = D_actor_335800_80164F80.pos.vz - 1000;
             rot                 = &D_actor_335800_80164F80.rot;
             coord->param.rot.vx = rot->vx;
             coord->param.rot.vy = rot->vy;
@@ -980,7 +970,7 @@ void func_actor_335800_80161E88(Task* task)
             task->killCountdown = 100;
             task->state++;
         case 1:
-            if (D_actor_335800_80164F80.z < coord->coord.t[2]) {
+            if (D_actor_335800_80164F80.pos.vz < coord->coord.t[2]) {
                 task->killCountdown -= 6;
                 if (task->killCountdown < -60) {
                     task->killCountdown = 0;
@@ -1422,7 +1412,7 @@ static void func_actor_335800_80162B3C(Task* arg0)
 /// Placement handler for the parent block: stores the spawn position and
 /// rotation, then applies a start preset exactly as `func_actor_335800_801632A4`
 /// does (inlined here).
-s32 func_actor_335800_80162C80(Task* task, s32 arg1, GpXformArg* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80162C80(Task* task, s32 arg1, ActorTransform* place, Actor335800SpawnAnim* anim)
 {
     Actor335800MainWork*  work;
     Actor335800MainWork*  w;
@@ -1700,7 +1690,7 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// Message 0x7D4 handler of the parent block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
 /// clearing `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_801633C0(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_335800_801633C0(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 
@@ -1861,7 +1851,7 @@ static void func_actor_335800_8016373C(Task* arg0)
 /// `func_actor_335800_80162C80`: stores the spawn position and rotation, then
 /// applies a start preset exactly as `func_actor_335800_80163E20` does
 /// (inlined here).
-s32 func_actor_335800_80163880(Task* task, s32 arg1, GpXformArg* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Actor335800SpawnAnim* anim)
 {
     Actor335800Work*      work;
     Actor335800Work*      w;
@@ -2137,7 +2127,7 @@ s32 func_actor_335800_80163E20(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// Message 0x7D4 handler of the child block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
 /// clearing `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_80163F3C(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_335800_80163F3C(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

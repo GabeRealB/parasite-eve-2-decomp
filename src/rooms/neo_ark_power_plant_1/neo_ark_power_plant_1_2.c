@@ -171,7 +171,7 @@ AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, AN
 
 NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &D_neo_ark_power_plant_1_8017EAF0 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
 
-GpXformArg D_neo_ark_power_plant_1_8017EECC = { { 4800, 2, -0x2A94, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_neo_ark_power_plant_1_8017EECC = { { 4800, 2, -0x2A94, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_neo_ark_power_plant_1_8017EEE4[13] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },

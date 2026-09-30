@@ -225,9 +225,9 @@ extern GpObj4C                             D_dryfield_trailer_coach_80189254[4];
 extern GpObj4C                             D_dryfield_trailer_coach_80189384[12];
 extern GpRoomBoundVec                      D_dryfield_trailer_coach_80189BAC[12];
 extern GpRoomCoordSet                      D_dryfield_trailer_coach_80189B94[1];
-extern GpXformArg                          D_dryfield_trailer_coach_80184FD8;
-extern GpXformArg                          D_dryfield_trailer_coach_80184FF0;
-extern GpXformArg                          D_dryfield_trailer_coach_80185008;
+extern ActorTransform                      D_dryfield_trailer_coach_80184FD8;
+extern ActorTransform                      D_dryfield_trailer_coach_80184FF0;
+extern ActorTransform                      D_dryfield_trailer_coach_80185008;
 void                                       func_dryfield_trailer_coach_80182850(void);
 
 #include "../../shared/shop_data.inc.c"
@@ -332,14 +332,14 @@ TaskDesc D_dryfield_trailer_coach_80184FC0[2] = {
     { 0, 32, func_dryfield_trailer_coach_801822F4, { .model = NULL } },
 };
 
-GpXformArg D_dryfield_trailer_coach_80184FD8 = { { 4870, 0, -900, 0 }, { 0, -2560, 0, 0 } };
+ActorTransform D_dryfield_trailer_coach_80184FD8 = { { 4870, 0, -900, 0 }, { 0, -2560, 0, 0 } };
 
-GpXformArg D_dryfield_trailer_coach_80184FF0 = { { 5270, 0, -500, 0 }, { 0, -2560, 0, 0 } };
+ActorTransform D_dryfield_trailer_coach_80184FF0 = { { 5270, 0, -500, 0 }, { 0, -2560, 0, 0 } };
 
-GpXformArg D_dryfield_trailer_coach_80185008 = { { 4870, 0, -900, 0 }, { 0, 2560, 0, 0 } };
+ActorTransform D_dryfield_trailer_coach_80185008 = { { 4870, 0, -900, 0 }, { 0, 2560, 0, 0 } };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpXformArg D_dryfield_trailer_coach_80185020 = { { 4400, 128, -2400, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_dryfield_trailer_coach_80185020 = { { 4400, 128, -2400, 0 }, { 0, 512, 0, 0 } };
 
 AnimationPlayRequest D_dryfield_trailer_coach_80185038 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 

@@ -253,7 +253,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
 typedef union AcropolisPlazaTailMsg {
     /* 0x0 */ u8                      slot[4];
     /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
-    /* 0x0 */ GpXformArg              place;
+    /* 0x0 */ ActorTransform          place;
 } AcropolisPlazaTailMsg;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
@@ -515,9 +515,9 @@ AnimationPlayRequest D_acropolis_plaza_80183084 = { { .index = 2 }, 21, ANIMATIO
 
 AnimationPlayRequest D_acropolis_plaza_80183098 = { { .index = 2 }, 22, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_acropolis_plaza_801830AC = { { 0x489E, 0, 4040, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_plaza_801830AC = { { 0x489E, 0, 4040, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_plaza_801830C4 = { { 0x4CAE, 0, 4250, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_plaza_801830C4 = { { 0x4CAE, 0, 4250, 0 }, { 0, 2048, 0, 0 } };
 
 GpEvsCmd D_acropolis_plaza_801830DC[41] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3452,8 +3452,8 @@ L_tail:
 /// once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
 {
-    GpXformArg              place;
-    GpXformArg              warp;
+    ActorTransform          place;
+    ActorTransform          warp;
     CdCmdQueue*             q    = &CdCmd_Queue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
@@ -3521,8 +3521,8 @@ void func_acropolis_plaza_8017E7E4(Task* task)
 /// (`func_acropolis_plaza_8017DE24(4)`), which the earlier states skip.
 void func_acropolis_plaza_8017E9A8(Task* task)
 {
-    GpXformArg              place;
-    GpXformArg              warp;
+    ActorTransform          place;
+    ActorTransform          warp;
     AnimationPlayRequest    script;
     AcropolisPlazaTailMsg   buf;
     AnimationPlayRequest*   rec;
@@ -3656,10 +3656,10 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// task. Every state from 7 on also steps the room's per-frame work.
 void func_acropolis_plaza_8017ECF8(Task* task)
 {
-    GpXformArg                 place;
-    GpXformArg                 warp;
+    ActorTransform             place;
+    ActorTransform             warp;
     u8                         slot[4];
-    GpXformArg                 placeBack;
+    ActorTransform             placeBack;
     AnimationPlayRequest       roomRec;
     AcropolisPlazaOpeningBuf   buf;
     CdCmdQueue*                q    = &CdCmd_Queue;

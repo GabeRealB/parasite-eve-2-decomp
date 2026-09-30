@@ -233,7 +233,7 @@ AnimationPlayRequest D_shelter_b2_main_corridor_80182C68 = { { .index = 1 }, 1, 
 
 AnimationPlayRequest D_shelter_b2_main_corridor_80182C7C = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_shelter_b2_main_corridor_80182C90 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b2_main_corridor_80182C90 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
 GpEvsCmd D_shelter_b2_main_corridor_80182CA8[13] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
@@ -1615,8 +1615,8 @@ RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0
 /// room into the save location and spawns the room-load task 0x11.
 void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
 {
-    GpXformArg msg;
-    void*      slot;
+    ActorTransform msg;
+    void*          slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {

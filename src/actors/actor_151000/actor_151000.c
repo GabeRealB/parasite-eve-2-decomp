@@ -77,7 +77,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
     } handler;
@@ -101,7 +101,7 @@ void             func_actor_151000_801323F4(Task*);
 
 s32 func_actor_151000_80132738(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_151000_801327C8(Task*, s32, s32);
-s32 func_actor_151000_80132810(Task*, s32, GpXformArg*);
+s32 func_actor_151000_80132810(Task*, s32, ActorTransform* placement);
 s32 func_actor_151000_8013288C(Task*, s32, ActorCommand* msg);
 s32 func_actor_151000_801328DC(Task*, s32, VECTOR*, s32);
 
@@ -196,15 +196,15 @@ AnimationPlayRequest D_actor_151000_80133454 = { { .index = 1 }, 1, ANIMATION_BL
 
 ActorCommand D_actor_151000_80133468 = { { .loc = { 5, 15 } }, 1 };
 
-GpXformArg D_actor_151000_8013346C = { { -7700, 0, -0x46B4, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_151000_8013346C = { { -7700, 0, -0x46B4, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_151000_80133484 = { { -6300, 0, -0x4330, 0 }, { 0, 227, 0, 0 } };
+ActorTransform D_actor_151000_80133484 = { { -6300, 0, -0x4330, 0 }, { 0, 227, 0, 0 } };
 
-GpXformArg D_actor_151000_8013349C = { { -7480, 0, -0x44B6, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_151000_8013349C = { { -7480, 0, -0x44B6, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_151000_801334B4 = { { -4900, 0, -0x3CBE, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_151000_801334B4 = { { -4900, 0, -0x3CBE, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_151000_801334CC = { { -3600, 0, -0x30D4, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_151000_801334CC = { { -3600, 0, -0x30D4, 0 }, { 0, 0, 0, 0 } };
 
 GpCopyArg D_actor_151000_801334E4 = { { .words = D_actor_151000_8013336C.words }, 32 };
 
@@ -1128,7 +1128,7 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
 /// Placement opcode: yaws the model's root coordinate to `placement->rot.vy`,
 /// caching that yaw in the work block, then drops the placement translation
 /// into the matrix and marks it dirty.
-s32 func_actor_151000_80132810(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_151000_80132810(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;

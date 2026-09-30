@@ -246,24 +246,11 @@ typedef struct Actor560800ChainScratch {
 } Actor560800ChainScratch;
 STATIC_ASSERT_SIZEOF(Actor560800ChainScratch, 0xA8);
 
-/// One 0x18-byte part pose: a root position and the root rotation.
-/// `func_actor_560800_80137F58` loads one table of eight (one per part) into
-/// the parts - `D_actor_560800_80175314` / `801753D4` / `80175494` by
-/// `Actor560800PartsWork::field_46`, `80175554` as offsets from the message
-/// position, `80175614` for the teardown - and `func_actor_560800_801386D4`
-/// clamps the part's `Actor560800ModelWork::field_256` to `pos.vy` while it
-/// grows it by the matching `D_actor_560800_801756EC` step.
-typedef struct Actor560800PartPose {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor560800PartPose;
-STATIC_ASSERT_SIZEOF(Actor560800PartPose, 0x18);
-
-extern Actor560800PartPose D_actor_560800_80175314[];
-extern Actor560800PartPose D_actor_560800_801753D4[];
-extern Actor560800PartPose D_actor_560800_80175494[];
-extern Actor560800PartPose D_actor_560800_80175554[];
-extern Actor560800PartPose D_actor_560800_80175614[];
+extern ActorTransform D_actor_560800_80175314[];
+extern ActorTransform D_actor_560800_801753D4[];
+extern ActorTransform D_actor_560800_80175494[];
+extern ActorTransform D_actor_560800_80175554[];
+extern ActorTransform D_actor_560800_80175614[];
 
 /// Controller task of this overlay, published by `func_actor_560800_80135BD8`
 /// and read by the sub-task handlers.
@@ -274,8 +261,8 @@ extern Task* D_actor_560800_8017578C;
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern AnimationSet* D_actor_560800_8016EA40[13];
 
-extern ActorAnimStep D_actor_560800_8016EBE8[];
-extern GpXformArg    D_actor_560800_8016F1CC[6];
+extern ActorAnimStep  D_actor_560800_8016EBE8[];
+extern ActorTransform D_actor_560800_8016F1CC[6];
 
 /// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
 /// second argument: a null entry then one animation set per slot of
@@ -323,21 +310,21 @@ static void func_actor_560800_80134258(Task* arg0);
 static void func_actor_560800_80134384(Task* arg0);
 static void func_actor_560800_80134BFC(Task* arg0);
 
-extern TaskDesc      D_actor_560800_8016EA28[];
-extern TaskDesc      D_actor_560800_8017575C[];
-extern AnimationSet* D_actor_560800_8016EA74[];
-extern AnimationSet* D_actor_560800_8016EB04[];
-extern AnimationSet* D_actor_560800_8016EB30[];
-extern ActorAnimStep D_actor_560800_8016EC1C[36];
-extern ActorAnimStep D_actor_560800_8016ECAC[6];
-extern ActorAnimStep D_actor_560800_8016ECC4[46];
-extern GpXformArg    D_actor_560800_8016F154;
+extern TaskDesc       D_actor_560800_8016EA28[];
+extern TaskDesc       D_actor_560800_8017575C[];
+extern AnimationSet*  D_actor_560800_8016EA74[];
+extern AnimationSet*  D_actor_560800_8016EB04[];
+extern AnimationSet*  D_actor_560800_8016EB30[];
+extern ActorAnimStep  D_actor_560800_8016EC1C[36];
+extern ActorAnimStep  D_actor_560800_8016ECAC[6];
+extern ActorAnimStep  D_actor_560800_8016ECC4[46];
+extern ActorTransform D_actor_560800_8016F154;
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
         void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, ActorTransform*);
         void (*call2)(Task*, s32, VECTOR*);
         void (*call3)(Task*, s32, s32);
     } handler;
@@ -370,7 +357,7 @@ void             func_actor_560800_80138A4C(Task*, s32, ActorCommand* msg);
 void             func_actor_560800_80138FC8(Task*);
 void             func_actor_560800_80139360(Task*, s32, s32);
 void             func_actor_560800_801393EC(Task*, s32, s32);
-void             func_actor_560800_80139440(Task*, s32, GpXformArg*);
+void             func_actor_560800_80139440(Task*, s32, ActorTransform* placement);
 
 extern AnimationSet D_actor_560800_80150C20;
 extern AnimationSet D_actor_560800_80150F18;
@@ -476,7 +463,7 @@ void                func_actor_560800_80135D54(Task*);
 void                func_actor_560800_80135FA0(Task*);
 void                func_actor_560800_80136094(Task*);
 void                func_actor_560800_801361A0(Task*, s32, s32);
-void                func_actor_560800_801361F4(Task*, s32, GpXformArg*);
+void                func_actor_560800_801361F4(Task*, s32, ActorTransform* placement);
 void                func_actor_560800_80136280(s32);
 void                func_actor_560800_801362B0(s32);
 void                func_actor_560800_801362E0(s16);
@@ -3021,97 +3008,97 @@ ActorAnimStep D_actor_560800_8016ECC4[46] = {
     { 65535, -1 },
 };
 
-GpXformArg D_actor_560800_8016ED7C = { 0 };
+ActorTransform D_actor_560800_8016ED7C = { 0 };
 
-GpXformArg D_actor_560800_8016ED94 = { 0 };
+ActorTransform D_actor_560800_8016ED94 = { 0 };
 
-GpXformArg D_actor_560800_8016EDAC = { { 6400, 0, 3350, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016EDAC = { { 6400, 0, 3350, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EDC4 = { 0 };
+ActorTransform D_actor_560800_8016EDC4 = { 0 };
 
-GpXformArg D_actor_560800_8016EDDC = { { 5400, 0, 3350, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016EDDC = { { 5400, 0, 3350, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EDF4 = { { 6000, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016EDF4 = { { 6000, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EE0C = { 0 };
+ActorTransform D_actor_560800_8016EE0C = { 0 };
 
-GpXformArg D_actor_560800_8016EE24 = { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016EE24 = { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EE3C = { 0 };
+ActorTransform D_actor_560800_8016EE3C = { 0 };
 
-GpXformArg D_actor_560800_8016EE54 = { 0 };
+ActorTransform D_actor_560800_8016EE54 = { 0 };
 
-GpXformArg D_actor_560800_8016EE6C = { 0 };
+ActorTransform D_actor_560800_8016EE6C = { 0 };
 
-GpXformArg D_actor_560800_8016EE84 = { 0 };
+ActorTransform D_actor_560800_8016EE84 = { 0 };
 
-GpXformArg D_actor_560800_8016EE9C[2] = { { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } }, { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } } };
+ActorTransform D_actor_560800_8016EE9C[2] = { { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } }, { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } } };
 
-GpXformArg D_actor_560800_8016EECC = { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016EECC = { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EEE4 = { { 5000, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016EEE4 = { { 5000, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EEFC = { { 7500, 0, 3000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016EEFC = { { 7500, 0, 3000, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EF14 = { { 7850, 0, 3400, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016EF14 = { { 7850, 0, 3400, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EF2C = { 0 };
+ActorTransform D_actor_560800_8016EF2C = { 0 };
 
-GpXformArg D_actor_560800_8016EF44 = { { 7500, 0, 3400, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016EF44 = { { 7500, 0, 3400, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EF5C = { 0 };
+ActorTransform D_actor_560800_8016EF5C = { 0 };
 
-GpXformArg D_actor_560800_8016EF74 = { 0 };
+ActorTransform D_actor_560800_8016EF74 = { 0 };
 
-GpXformArg D_actor_560800_8016EF8C = { { 9150, 0, 3750, 0 }, { 0, -170, 0, 0 } };
+ActorTransform D_actor_560800_8016EF8C = { { 9150, 0, 3750, 0 }, { 0, -170, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EFA4 = { 0 };
+ActorTransform D_actor_560800_8016EFA4 = { 0 };
 
-GpXformArg D_actor_560800_8016EFBC = { { 8050, 0, 3700, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016EFBC = { { 8050, 0, 3700, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016EFD4 = { 0 };
+ActorTransform D_actor_560800_8016EFD4 = { 0 };
 
-GpXformArg D_actor_560800_8016EFEC = { { 6950, 0, 3650, 0 }, { 0, 1536, 0, 0 } };
+ActorTransform D_actor_560800_8016EFEC = { { 6950, 0, 3650, 0 }, { 0, 1536, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F004 = { { 6950, 0, 3650, 0 }, { 0, 1365, 0, 0 } };
+ActorTransform D_actor_560800_8016F004 = { { 6950, 0, 3650, 0 }, { 0, 1365, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F01C = { 0 };
+ActorTransform D_actor_560800_8016F01C = { 0 };
 
-GpXformArg D_actor_560800_8016F034 = { 0 };
+ActorTransform D_actor_560800_8016F034 = { 0 };
 
-GpXformArg D_actor_560800_8016F04C = { 0 };
+ActorTransform D_actor_560800_8016F04C = { 0 };
 
-GpXformArg D_actor_560800_8016F064 = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016F064 = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F07C = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016F07C = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F094 = { 0 };
+ActorTransform D_actor_560800_8016F094 = { 0 };
 
-GpXformArg D_actor_560800_8016F0AC = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016F0AC = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F0C4 = { 0 };
+ActorTransform D_actor_560800_8016F0C4 = { 0 };
 
-GpXformArg D_actor_560800_8016F0DC = { 0 };
+ActorTransform D_actor_560800_8016F0DC = { 0 };
 
-GpXformArg D_actor_560800_8016F0F4 = { 0 };
+ActorTransform D_actor_560800_8016F0F4 = { 0 };
 
-GpXformArg D_actor_560800_8016F10C = { 0 };
+ActorTransform D_actor_560800_8016F10C = { 0 };
 
-GpXformArg D_actor_560800_8016F124 = { { 8350, 0, 4300, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016F124 = { { 8350, 0, 4300, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F13C = { { 8340, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_560800_8016F13C = { { 8340, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F154 = { { 8130, 0, 2850, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F154 = { { 8130, 0, 2850, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F16C = { 0 };
+ActorTransform D_actor_560800_8016F16C = { 0 };
 
-GpXformArg D_actor_560800_8016F184 = { { 8700, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F184 = { { 8700, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F19C = { 0 };
+ActorTransform D_actor_560800_8016F19C = { 0 };
 
-GpXformArg D_actor_560800_8016F1B4 = { { 8600, 0, 3500, 0 }, { 0, -512, 0, 0 } };
+ActorTransform D_actor_560800_8016F1B4 = { { 8600, 0, 3500, 0 }, { 0, -512, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F1CC[6] = {
+ActorTransform D_actor_560800_8016F1CC[6] = {
     { { 9400, 0, 2600, 0 }, { 0, -512, 0, 0 } },
     { { 9400, 0, 2600, 0 }, { 0, -1024, 0, 0 } },
     { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } },
@@ -3120,32 +3107,32 @@ GpXformArg D_actor_560800_8016F1CC[6] = {
     { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } },
 };
 
-GpXformArg D_actor_560800_8016F25C = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F25C = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F274 = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F274 = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F28C = { { 6350, 0, 3200, 0 }, { 0, -967, 0, 0 } };
+ActorTransform D_actor_560800_8016F28C = { { 6350, 0, 3200, 0 }, { 0, -967, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F2A4 = { { 6350, 0, 3200, 0 }, { 0, 796, 0, 0 } };
+ActorTransform D_actor_560800_8016F2A4 = { { 6350, 0, 3200, 0 }, { 0, 796, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F2BC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F2BC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F2D4 = { 0 };
+ActorTransform D_actor_560800_8016F2D4 = { 0 };
 
-GpXformArg D_actor_560800_8016F2EC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F2EC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F304 = { 0 };
+ActorTransform D_actor_560800_8016F304 = { 0 };
 
-GpXformArg D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0 } };
+ActorTransform D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0 } };
 
-GpXformArg D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
 Actor560800MessageEntry D_actor_560800_8016F34C[2] = {
     { 2005, { .call3 = func_actor_560800_801361A0 } },
     { 2004, { .call1 = func_actor_560800_801361F4 } },
 };
 
-GpXformArg* D_actor_560800_8016F35C[34] = {
+ActorTransform* D_actor_560800_8016F35C[34] = {
     NULL,
     &D_actor_560800_8016ED7C,
     &D_actor_560800_8016ED94,
@@ -3182,7 +3169,7 @@ GpXformArg* D_actor_560800_8016F35C[34] = {
     &D_actor_560800_8016EECC,
 };
 
-GpXformArg* D_actor_560800_8016F3E4[34] = {
+ActorTransform* D_actor_560800_8016F3E4[34] = {
     NULL,
     &D_actor_560800_8016EEFC,
     &D_actor_560800_8016EF14,
@@ -3219,7 +3206,7 @@ GpXformArg* D_actor_560800_8016F3E4[34] = {
     &D_actor_560800_8016F04C,
 };
 
-GpXformArg* D_actor_560800_8016F46C[34] = {
+ActorTransform* D_actor_560800_8016F46C[34] = {
     NULL,
     D_actor_560800_8016F1CC,
     &D_actor_560800_8016F1CC[1],
@@ -3256,7 +3243,7 @@ GpXformArg* D_actor_560800_8016F46C[34] = {
     &D_actor_560800_8016F31C,
 };
 
-GpXformArg* D_actor_560800_8016F4F4[34] = {
+ActorTransform* D_actor_560800_8016F4F4[34] = {
     NULL,
     &D_actor_560800_8016F064,
     &D_actor_560800_8016F07C,
@@ -4006,7 +3993,7 @@ AnimationSet* D_actor_560800_801752F0[9] = {
     &D_actor_560800_801752C0,
 };
 
-Actor560800PartPose D_actor_560800_80175314[8] = {
+ActorTransform D_actor_560800_80175314[8] = {
     { { 400, -2800, 900, 0 }, { 1360, 2048, 64, 0 } },
     { { 300, -2800, 800, 0 }, { 1430, 2048, 48, 0 } },
     { { 200, -2800, 800, 0 }, { 1070, 2048, 32, 0 } },
@@ -4017,7 +4004,7 @@ Actor560800PartPose D_actor_560800_80175314[8] = {
     { { -300, -2800, 900, 0 }, { 1200, 2048, -48, 0 } },
 };
 
-Actor560800PartPose D_actor_560800_801753D4[8] = {
+ActorTransform D_actor_560800_801753D4[8] = {
     { { 300, -3700, 900, 0 }, { 1280, 2048, 0, 0 } },
     { { 200, -3700, 800, 0 }, { 1280, 2048, 0, 0 } },
     { { 100, -3700, 800, 0 }, { 1280, 2048, 0, 0 } },
@@ -4028,7 +4015,7 @@ Actor560800PartPose D_actor_560800_801753D4[8] = {
     { { -400, -3700, 900, 0 }, { 1280, 2048, 0, 0 } },
 };
 
-Actor560800PartPose D_actor_560800_80175494[8] = {
+ActorTransform D_actor_560800_80175494[8] = {
     { { 250, -2800, 900, 0 }, { 1280, 2048, -80, 0 } },
     { { 200, -2800, 900, 0 }, { 1280, 2048, 64, 0 } },
     { { 150, -2800, 800, 0 }, { 1280, 2048, 48, 0 } },
@@ -4039,7 +4026,7 @@ Actor560800PartPose D_actor_560800_80175494[8] = {
     { { -100, -2800, 900, 0 }, { 1280, 2048, -32, 0 } },
 };
 
-Actor560800PartPose D_actor_560800_80175554[8] = {
+ActorTransform D_actor_560800_80175554[8] = {
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
@@ -4050,7 +4037,7 @@ Actor560800PartPose D_actor_560800_80175554[8] = {
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
 };
 
-Actor560800PartPose D_actor_560800_80175614[8] = {
+ActorTransform D_actor_560800_80175614[8] = {
     { { 0, -1100, -200, 0 }, { 1080, 2048, 0, 0 } },
     { { 0, -1100, -200, 0 }, { 968, 2048, 0, 0 } },
     { { 0, -1100, -200, 0 }, { 1137, 2048, 0, 0 } },
@@ -4136,13 +4123,13 @@ u32 D_actor_560800_801757A8;
 
 Task* D_actor_560800_801757AC;
 
-extern GpXformArg* D_actor_560800_8016F35C[];
+extern ActorTransform* D_actor_560800_8016F35C[];
 
-extern GpXformArg* D_actor_560800_8016F3E4[];
+extern ActorTransform* D_actor_560800_8016F3E4[];
 
-extern GpXformArg* D_actor_560800_8016F46C[];
+extern ActorTransform* D_actor_560800_8016F46C[];
 
-extern GpXformArg* D_actor_560800_8016F4F4[];
+extern ActorTransform* D_actor_560800_8016F4F4[];
 
 extern Actor560800MessageEntry D_actor_560800_801756D4[3];
 
@@ -4888,7 +4875,7 @@ void func_actor_560800_80133648(u32 arg0)
 void func_actor_560800_80133750(s32 arg0)
 {
     Actor560800Work* work;
-    GpXformArg*      msg;
+    ActorTransform*  msg;
 
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     if (work->field_66 == 0) {
@@ -5887,7 +5874,7 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
 /// position becomes the model coordinate's translation, the Y, X and Z
 /// rotations are applied in that order, and the coordinate is marked for
 /// recalculation.
-void func_actor_560800_801361F4(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_560800_801361F4(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;
@@ -6664,7 +6651,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
 {
     Actor560800PartsWork* work;
     u16                   flag;
-    Actor560800PartPose*  pose;
+    ActorTransform*       pose;
     Actor560800ModelWork* part;
     GfxCoord*             coord;
     OverlayMat*           mat;
@@ -7381,7 +7368,7 @@ void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
 /// position becomes the model coordinate's translation, the Y, X and Z
 /// rotations are applied in that order, and the coordinate is marked for
 /// recalculation.
-void func_actor_560800_80139440(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_560800_80139440(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

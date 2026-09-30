@@ -146,7 +146,7 @@ AnimationPlayRequest D_shelter_r36_8017DDE4[13] = {
 
 AnimationPlayRequest D_shelter_r36_8017DEE8 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_shelter_r36_8017DEFC = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_r36_8017DEFC = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_shelter_r36_8017DF14[2] = {
     { 0, 32, func_shelter_r36_8017D5E8, { .model = NULL } },

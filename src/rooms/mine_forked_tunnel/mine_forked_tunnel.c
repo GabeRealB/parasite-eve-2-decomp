@@ -57,7 +57,7 @@
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
-/// `func_mine_forked_tunnel_8017D8EC` compose into the `GpXformArg` they
+/// `func_mine_forked_tunnel_8017D8EC` compose into the `ActorTransform` they
 /// hand `func_mine_forked_tunnel_8017DC8C` (entry 0 of each) and that
 /// `func_mine_forked_tunnel_8017D724` walks one entry per step of
 /// `Task::killCountdown`, which it clamps at 0x6E. Both are 240 entries - the
@@ -67,16 +67,16 @@ extern SVECTOR D_mine_forked_tunnel_80181244[240];
 extern SVECTOR D_mine_forked_tunnel_80180AC4[240];
 
 /// The placement `func_mine_forked_tunnel_8017D5E8` uses instead when the
-/// `0x75` game flag is set: a complete `GpXformArg` sitting in the room's
+/// `0x75` game flag is set: a complete `ActorTransform` sitting in the room's
 /// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
-extern GpXformArg D_mine_forked_tunnel_80181BBC;
+extern ActorTransform D_mine_forked_tunnel_80181BBC;
 
-/// The `GpXformArg` the tunnel's pitch-animated object adopts: state 0
+/// The `ActorTransform` the tunnel's pitch-animated object adopts: state 0
 /// (`func_mine_forked_tunnel_8017DE54`) copies it onto the task's coordinate
 /// whole, and state 1 (`func_mine_forked_tunnel_8017DAB8`) then keeps its `pos`
 /// while taking the `rot` from the pitch table below. Position
 /// (0xB4, -0xEB, -0x30C), rotation zero.
-extern GpXformArg D_mine_forked_tunnel_80181BA4;
+extern ActorTransform D_mine_forked_tunnel_80181BA4;
 
 /// The pitch curve `func_mine_forked_tunnel_8017DAB8` walks that object
 /// through, one `SVECTOR` per step of the counter it runs while
@@ -145,7 +145,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0);
 static void func_mine_forked_tunnel_8017DAB8(Task* arg0);
 static void func_mine_forked_tunnel_8017DC50(Task* arg0);
 static void func_mine_forked_tunnel_8017DC70(Task* arg0);
-static s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
+static s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 s32         func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3);
 static void func_mine_forked_tunnel_8017DE54(Task* task);
 static void func_mine_forked_tunnel_8017DF34(s32 arg0);
@@ -816,9 +816,9 @@ MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
     { 2147483647, { .call0 = NULL } },
 };
 
-GpXformArg D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_mine_forked_tunnel_80181BBC = { { 2253, 964, 1131, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_mine_forked_tunnel_80181BBC = { { 2253, 964, 1131, 0 }, { 0, 2047, 0, 0 } };
 
 SVECTOR D_mine_forked_tunnel_80181BD4[3] = {
 #include "assets/mine_forked_tunnel_collision_0469C_normals.inc"
@@ -940,7 +940,7 @@ AnimationPlayRequest D_mine_forked_tunnel_8018315C = { { .index = 1 }, 49, ANIMA
 
 AnimationPlayRequest D_mine_forked_tunnel_80183170 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_mine_forked_tunnel_80183184 = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_mine_forked_tunnel_80183184 = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
 
 ActorCommand D_mine_forked_tunnel_8018319C = { { .loc = { 4, 7 } }, 0 };
 
@@ -1471,7 +1471,7 @@ static void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
     MineForkedTunnelWork* work;
-    GpXformArg            placement;
+    ActorTransform        placement;
 
     work = memCalloc(0x48, 0);
     if (work == NULL) {
@@ -1505,9 +1505,9 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
 static void func_mine_forked_tunnel_8017D724(Task* arg0)
 {
-    TmdObject* ext;
-    GpXformArg placement;
-    VECTOR3    vec;
+    TmdObject*     ext;
+    ActorTransform placement;
+    VECTOR3        vec;
 
     ext = arg0->extra.tmd;
 
@@ -1558,9 +1558,9 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// pointer and gives `$v0` to the values instead of the address.
 s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
 {
-    GpXformArg            placement;
-    GpXformArg*           place;
-    GpXformArg*           src;
+    ActorTransform        placement;
+    ActorTransform*       place;
+    ActorTransform*       src;
     GfxCoord*             coord;
     MineForkedTunnelWork* work;
 
@@ -1623,9 +1623,9 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
 
 static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 {
-    GpXformArg  placement;
-    GpXformArg* place;
-    GfxCoord*   coord;
+    ActorTransform  placement;
+    ActorTransform* place;
+    GfxCoord*       coord;
 
     if (arg0->spawnArg1.value == 1 && arg0->killCountdown < 0x36) {
         placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
@@ -1683,7 +1683,7 @@ static void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// of the `TmdObject`'s coordinate frame and the angles its rotation, rebuilt
 /// with `RotMatrixZYX` and marked dirty. Shaped as a message handler; the room
 /// calls it directly with id 0x7D4 in `arg1`, which it does not read.
-static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
+static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
 
@@ -1757,7 +1757,7 @@ void func_mine_forked_tunnel_8017DDE8(Task* task)
 /// Spawn state 0: adopt the parent task's model lighting - the light and colour
 /// matrix pointers off the parent's `TmdObject` plus its coordinate as the
 /// frame's parent link - then reparent onto that task, drop `field_C` bit 7 and
-/// place the object at this room's `GpXformArg`, rebuilding `coord` with
+/// place the object at this room's `ActorTransform`, rebuilding `coord` with
 /// `RotMatrixZYX`.
 static void func_mine_forked_tunnel_8017DE54(Task* task)
 {

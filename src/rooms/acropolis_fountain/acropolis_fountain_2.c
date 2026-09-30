@@ -1282,8 +1282,8 @@ void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1)
 
 static void func_acropolis_fountain_8017DAA4(Task* arg0)
 {
-    GpXformArg msg;
-    Task*      slot;
+    ActorTransform msg;
+    Task*          slot;
 
     slot       = gameGetPtrSlot(3);
     msg.rot.vx = 0;
@@ -1321,8 +1321,8 @@ static void func_acropolis_fountain_8017DBAC(Task* arg0)
 
 static void func_acropolis_fountain_8017DC00(Task* arg0)
 {
-    GpXformArg msg;
-    Task*      slot;
+    ActorTransform msg;
+    Task*          slot;
 
     gameGetPtrSlot(3);
     slot       = gameGetPtrSlot(3);

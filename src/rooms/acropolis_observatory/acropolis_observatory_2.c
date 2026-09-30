@@ -693,7 +693,7 @@ AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &D_acropolis
 void func_acropolis_observatory_8017D9A8(Task* task)
 {
     AnimationPlayRequest rec;
-    GpXformArg           place;
+    ActorTransform       place;
     s32                  killed;
     RoomStreamWork*      work;
     RoomStreamWork*      blk;
@@ -803,7 +803,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 void func_acropolis_observatory_8017DD3C(Task* task)
 {
     AnimationPlayRequest rec;
-    GpXformArg           place;
+    ActorTransform       place;
     s32                  killed;
     RoomStreamWork*      work;
     RoomStreamWork*      blk;

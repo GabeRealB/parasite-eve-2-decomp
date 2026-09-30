@@ -186,7 +186,7 @@ void             func_actor_160900_80134870(void);
 
 void func_actor_160900_80131EB0(Task*);
 void func_actor_160900_801345D0(Task*, s32, s32);
-void func_actor_160900_80134624(Task*, s32, GpXformArg*);
+void func_actor_160900_80134624(Task*, s32, ActorTransform* placement);
 
 TmdBone D_actor_160900_80134898[20] = {
 #include "assets/actor_160900_model_07598_skeleton.inc"
@@ -664,7 +664,7 @@ u8 D_actor_160900_8013F1F8[8] = {
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call0)(Task*, s32, ActorTransform*);
         void (*call1)(Task*, s32, s32);
     } handler;
 } Actor160900MessageEntry;
@@ -2208,7 +2208,7 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
 /// the task's `TmdObject` coordinate frame. The three longs become the
 /// translation, then yaw / pitch / roll are applied with `Gfx_RotMatrixY` /
 /// `X` / `Z` and the coordinate is marked dirty.
-void func_actor_160900_80134624(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_160900_80134624(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

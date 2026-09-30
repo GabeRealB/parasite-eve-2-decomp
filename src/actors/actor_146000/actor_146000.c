@@ -444,13 +444,13 @@ GpCopyArg D_actor_146000_801353B8 = { { .words = D_actor_146000_801352BC.words }
 
 GpCopyArg D_actor_146000_801353C0 = { { .words = D_actor_146000_80135214.words }, 32 };
 
-GpXformArg D_actor_146000_801353C8 = { { 4668, 0, -1337, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_146000_801353C8 = { { 4668, 0, -1337, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_146000_801353E0 = { { 5885, 0, -1300, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_146000_801353E0 = { { 5885, 0, -1300, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_146000_801353F8 = { { 0x281E, 0, -1000, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_146000_801353F8 = { { 0x281E, 0, -1000, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_146000_80135410 = { { 9020, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_146000_80135410 = { { 9020, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
 
 GpEvsCmd D_actor_146000_80135428[57] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },

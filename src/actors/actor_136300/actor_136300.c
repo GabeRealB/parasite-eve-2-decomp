@@ -1153,13 +1153,13 @@ GpCopyArg D_actor_136300_8013B518 = { { .words = D_actor_136300_8013B2A8.words }
 
 GpCopyArg D_actor_136300_8013B520 = { { .words = D_actor_136300_8013B140.words }, 32 };
 
-GpXformArg D_actor_136300_8013B528 = { { 2000, 0, 1940, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_136300_8013B528 = { { 2000, 0, 1940, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_136300_8013B540 = { { 2000, 0, 3940, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_136300_8013B540 = { { 2000, 0, 3940, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_136300_8013B558 = { { 2000, 0, 5240, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_136300_8013B558 = { { 2000, 0, 5240, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_actor_136300_8013B570 = { { 2230, 0, 5240, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_136300_8013B570 = { { 2230, 0, 5240, 0 }, { 0, -1024, 0, 0 } };
 
 GpOverrideArg D_actor_136300_8013B588 = { 19, 47 };
 

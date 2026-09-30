@@ -99,7 +99,7 @@ AnimationPlayRequest D_dryfield_toilet_80180BC8 = { { .index = 1 }, 49, ANIMATIO
 
 AnimationPlayRequest D_dryfield_toilet_80180BDC = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_toilet_80180BF0 = { { -1664, 0, 135, 0 }, { 0, -2047, 0, 0 } };
+ActorTransform D_dryfield_toilet_80180BF0 = { { -1664, 0, 135, 0 }, { 0, -2047, 0, 0 } };
 
 ActorCommand D_dryfield_toilet_80180C08 = { { .loc = { 2, 16 } }, 1 };
 
@@ -114,7 +114,7 @@ ActorCommand D_dryfield_toilet_80180C18[2] = {
     { { .loc = { 2, 16 } }, 13 },
 };
 
-GpXformArg D_dryfield_toilet_80180C20[2] = {
+ActorTransform D_dryfield_toilet_80180C20[2] = {
     { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } },
     { { -1664, 0, -1222, 0 }, { 0, 0, 0, 0 } },
 };

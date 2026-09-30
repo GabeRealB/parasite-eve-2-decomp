@@ -67,7 +67,7 @@
 /// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
 /// scales each of its columns by the matching `field_264` component through
 /// `gpf 12` and clears `coord.composeStamp`; `func_actor_342000_801640C0` writes all of
-/// it from a `GpXformArg`.
+/// it from an `ActorTransform`.
 ///
 /// `field_264` holds that per-axis scale, 1.12 fixed point like the matrix it
 /// multiplies: each column `j` is gathered into a scratchpad `SVECTOR`, run
@@ -128,28 +128,28 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
 typedef struct Actor342000EventWork {
-    /* 0x00 */ GpXformArg field_0[2];
-    /* 0x30 */ GpXformArg field_30;
-    /* 0x48 */ Task*      field_48;
-    /* 0x4C */ Task*      field_4C;
-    /* 0x50 */ Task*      field_50;
-    /* 0x54 */ Task*      field_54;
-    /* 0x58 */ Task*      field_58;
-    /* 0x5C */ Task*      field_5C;
-    /* 0x60 */ Task*      field_60;
-    /* 0x64 */ Task*      field_64;
-    /* 0x68 */ u16        field_68;
-    /* 0x6A */ u16        field_6A;
-    /* 0x6C */ u16        field_6C;
-    /* 0x6E */ byte       pad_6E[0x2];
-    /* 0x70 */ s16        field_70;
-    /* 0x72 */ s16        field_72;
-    /* 0x74 */ u16        field_74;
-    /* 0x76 */ byte       pad_76[0x2];
-    /* 0x78 */ s16        field_78;
-    /* 0x7A */ u16        field_7A;
-    /* 0x7C */ u16        field_7C;
-    /* 0x7E */ u16        field_7E;
+    /* 0x00 */ ActorTransform field_0[2];
+    /* 0x30 */ ActorTransform field_30;
+    /* 0x48 */ Task*          field_48;
+    /* 0x4C */ Task*          field_4C;
+    /* 0x50 */ Task*          field_50;
+    /* 0x54 */ Task*          field_54;
+    /* 0x58 */ Task*          field_58;
+    /* 0x5C */ Task*          field_5C;
+    /* 0x60 */ Task*          field_60;
+    /* 0x64 */ Task*          field_64;
+    /* 0x68 */ u16            field_68;
+    /* 0x6A */ u16            field_6A;
+    /* 0x6C */ u16            field_6C;
+    /* 0x6E */ byte           pad_6E[0x2];
+    /* 0x70 */ s16            field_70;
+    /* 0x72 */ s16            field_72;
+    /* 0x74 */ u16            field_74;
+    /* 0x76 */ byte           pad_76[0x2];
+    /* 0x78 */ s16            field_78;
+    /* 0x7A */ u16            field_7A;
+    /* 0x7C */ u16            field_7C;
+    /* 0x7E */ u16            field_7E;
 } Actor342000EventWork;
 STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
 
@@ -159,18 +159,18 @@ extern Task* D_actor_342000_80165070;
 
 /// Message 0x7D4's static payload, handed to `Gp_DispatchMsg` by the actor's
 /// spawn tick. The same record the handler takes.
-extern GpXformArg D_actor_342000_801648B8;
+extern ActorTransform D_actor_342000_801648B8;
 
 /// Fixed placement `func_actor_342000_8016439C` warps slot 3 to, sent as
 /// message 0x3E9 and again as 0x3F2 by `func_actor_342000_80162BBC`.
-extern GpXformArg D_actor_342000_80164948;
+extern ActorTransform D_actor_342000_80164948;
 
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, ActorCommand* request, GpXformArg*);
-        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call0)(Task*, s32, ActorCommand* request, ActorTransform*);
+        void (*call1)(Task*, s32, ActorTransform*);
         void (*call2)(Task*, s32, s32);
     } handler;
 } Actor342000MessageEntry;
@@ -191,9 +191,9 @@ void func_actor_342000_801628C8(Task*);
 void func_actor_342000_8016382C(Task*);
 void func_actor_342000_80163EAC(Task*);
 void func_actor_342000_80163FB8(Task*, s32, s32);
-void func_actor_342000_80164034(Task*, s32, GpXformArg*);
-void func_actor_342000_801640C0(Task*, s32, GpXformArg*);
-void func_actor_342000_80164110(Task*, s32, ActorCommand* request, GpXformArg*);
+void func_actor_342000_80164034(Task*, s32, ActorTransform* transform);
+void func_actor_342000_801640C0(Task*, s32, ActorTransform* transform);
+void func_actor_342000_80164110(Task*, s32, ActorCommand* request, ActorTransform* transform);
 void func_actor_342000_80164154(void);
 void func_actor_342000_801641B4(void);
 void func_actor_342000_801641FC(void);
@@ -258,17 +258,17 @@ s16 D_actor_342000_80164810[4] = {
     -1,
 };
 
-GpXformArg D_actor_342000_80164818[2] = {
+ActorTransform D_actor_342000_80164818[2] = {
     { { 0x2CEC, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
     { { 0x4074, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpXformArg D_actor_342000_80164848[2] = {
+ActorTransform D_actor_342000_80164848[2] = {
     { { 0x30D4, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
     { { 0x3C8C, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpXformArg D_actor_342000_80164878[2] = {
+ActorTransform D_actor_342000_80164878[2] = {
     { { 0x364C, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
     { { 0x3714, 4500, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
@@ -278,9 +278,9 @@ Actor342000MessageEntry D_actor_342000_801648A8[2] = {
     { 2004, { .call1 = func_actor_342000_80164034 } },
 };
 
-GpXformArg D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_342000_801648B8 = { { 0x36B0, 2000, -0x40D8, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 2048, 0, 0 } };
 
 Actor342000MessageEntry D_actor_342000_801648E8[3] = {
     { 2005, { .call2 = func_actor_342000_80163FB8 } },
@@ -297,9 +297,9 @@ SVECTOR D_actor_342000_80164900[6] = {
     { 0, 1660, 200, 2 },
 };
 
-GpXformArg D_actor_342000_80164930 = { { 0x3A98, 0, -0x5FB4, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_342000_80164930 = { { 0x3A98, 0, -0x5FB4, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_342000_80164948 = { { 0x3584, 0, -0x5460, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_342000_80164948 = { { 0x3584, 0, -0x5460, 0 }, { 0, 0, 0, 0 } };
 
 GpOverlayIds D_actor_342000_80164960 = { 4, 20, 11 };
 
@@ -408,15 +408,15 @@ extern Actor342000MessageEntry D_actor_342000_801648E8[3];
 extern AnimationSet* D_actor_342000_801647E8[4];
 
 /// Placement sent as message 0x3E9 by sequence step 1.
-extern GpXformArg D_actor_342000_80164930;
+extern ActorTransform D_actor_342000_80164930;
 
-extern GpXformArg D_actor_342000_80164818[2];
+extern ActorTransform D_actor_342000_80164818[2];
 
-extern GpXformArg D_actor_342000_80164848[2];
+extern ActorTransform D_actor_342000_80164848[2];
 
-extern GpXformArg D_actor_342000_80164878[2];
+extern ActorTransform D_actor_342000_80164878[2];
 
-extern GpXformArg D_actor_342000_801648D0;
+extern ActorTransform D_actor_342000_801648D0;
 
 extern s32 D_80144A74;
 
@@ -436,7 +436,7 @@ static s32         func_actor_342000_80161EA4(Task* arg0, u16 arg1);
 static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w);
 static void        func_actor_342000_80162158(Task* arg0);
 static void        func_actor_342000_80162BBC(Task* arg0);
-static inline void Actor342000_CopyMove(GpXformArg* dst, GpXformArg* src);
+static inline void Actor342000_CopyMove(ActorTransform* dst, ActorTransform* src);
 static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n);
 static inline s32  Actor342000_Sway(s32 x, s32 d);
 static inline void Actor342000_Add(long* value, s32 delta);
@@ -865,7 +865,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
     work->field_68 = 0;
 }
 
-static inline void Actor342000_CopyMove(GpXformArg* dst, GpXformArg* src)
+static inline void Actor342000_CopyMove(ActorTransform* dst, ActorTransform* src)
 {
     dst->pos.vx = src->pos.vx;
     dst->pos.vy = src->pos.vy;
@@ -917,7 +917,7 @@ static void func_actor_342000_80162F28(Task* arg0)
 {
     Actor342000EventWork* work;
     Actor342000Work*      actor;
-    GpXformArg*           src;
+    ActorTransform*       src;
     s32                   v;
 
     work  = (Actor342000EventWork*)arg0->work;
@@ -1122,8 +1122,8 @@ void func_actor_342000_8016382C(Task* arg0)
     Actor342000EventWork* ev;
     Actor342000EventWork* alloc;
     Actor342000EventWork* seq;
-    GpXformArg*           src;
-    GpXformArg*           dst;
+    ActorTransform*       src;
+    ActorTransform*       dst;
     Task*                 child;
     u16                   i;
     s16                   timer;
@@ -1339,47 +1339,47 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
 /// the payload onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
+void func_actor_342000_80164034(Task* task, s32 arg1, ActorTransform* transform)
 {
     GfxCoord* coord;
     MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = arg2->pos.vx;
-    coord->coord.t[1] = arg2->pos.vy;
+    coord->coord.t[0] = transform->pos.vx;
+    coord->coord.t[1] = transform->pos.vy;
     mtx               = &coord->coord;
-    coord->coord.t[2] = arg2->pos.vz;
-    Gfx_RotMatrixY(mtx, arg2->rot.vy, 1);
-    Gfx_RotMatrixX(mtx, arg2->rot.vx, 0);
-    Gfx_RotMatrixZ(mtx, arg2->rot.vz, 0);
+    coord->coord.t[2] = transform->pos.vz;
+    Gfx_RotMatrixY(mtx, transform->rot.vy, 1);
+    Gfx_RotMatrixX(mtx, transform->rot.vx, 0);
+    Gfx_RotMatrixZ(mtx, transform->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpXformArg* arg2)
+void func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform)
 {
     Actor342000Work* work;
     GfxCoord*        coord;
 
     work                     = (Actor342000Work*)arg0->work;
     coord                    = &work->coord;
-    coord->coord.t[0]        = arg2->pos.vx;
-    coord->coord.t[1]        = arg2->pos.vy;
-    coord->coord.t[2]        = arg2->pos.vz;
-    work->field_274          = arg2->rot.vx;
-    work->field_278          = arg2->rot.vy;
-    work->field_27C          = arg2->rot.vz;
+    coord->coord.t[0]        = transform->pos.vx;
+    coord->coord.t[1]        = transform->pos.vy;
+    coord->coord.t[2]        = transform->pos.vz;
+    work->field_274          = transform->rot.vx;
+    work->field_278          = transform->rot.vy;
+    work->field_27C          = transform->rot.vz;
     work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, GpXformArg* arg3)
+void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, ActorTransform* transform)
 {
     Actor342000Work* work;
 
     work = (Actor342000Work*)arg0->work;
     if (request->command == 0xA) {
-        work->field_264.vx = arg3->pos.vx;
-        work->field_264.vy = arg3->pos.vy;
-        work->field_264.vz = arg3->pos.vz;
+        work->field_264.vx = transform->pos.vx;
+        work->field_264.vy = transform->pos.vy;
+        work->field_264.vz = transform->pos.vz;
     }
     work->field_2AA = request->command;
 }

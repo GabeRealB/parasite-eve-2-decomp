@@ -1219,8 +1219,8 @@ GpRoomParamRec* D_acropolis_forked_road_801850A4[8] = {
 /// the save's room ids, arms the fade-out task and kills this task.
 void func_acropolis_forked_road_8017DA24(Task* task)
 {
-    GpXformArg      place;
-    GpXformArg      place2;
+    ActorTransform  place;
+    ActorTransform  place2;
     u8              slot;
     RoomStreamWork* work;
     RoomStreamWork* blk;
@@ -1324,7 +1324,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 void func_acropolis_forked_road_8017DD60(Task* task)
 {
     AnimationPlayRequest rec;
-    GpXformArg           place;
+    ActorTransform       place;
     s32                  sp40;
     RoomStreamWork*      work;
     RoomStreamWork*      blk;

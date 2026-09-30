@@ -48,7 +48,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor150400MsgEntry;
@@ -73,9 +73,9 @@ void             func_actor_150400_801328BC(Task*);
 
 s32 func_actor_150400_801326A4(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_150400_80132710(Task*, s32, s32);
-s32 func_actor_150400_80132774(Task*, s32, GpXformArg*);
+s32 func_actor_150400_80132774(Task*, s32, ActorTransform* placement);
 s32 func_actor_150400_801327EC(void);
-s32 func_actor_150400_801327F4(Task*, s32, GpXformArg*);
+s32 func_actor_150400_801327F4(Task*, s32, ActorTransform* target);
 
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
@@ -124,9 +124,9 @@ AnimationPlayRequest D_actor_150400_80132D10 = { { .index = 0 }, 4, ANIMATION_BL
 
 AnimationPlayRequest D_actor_150400_80132D24 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_150400_80132D50 = { { 1535, -500, -3316, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_150400_80132D50 = { { 1535, -500, -3316, 0 }, { 0, 1024, 0, 0 } };
 
 GpOverlayIds D_actor_150400_80132D68 = { 5, 4, 11 };
 
@@ -704,7 +704,7 @@ s32 func_actor_150400_80132710(Task* task, s32 arg1, s32 flags)
 /// Script opcode: place the actor. Yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `yaw`, then drops the placement
 /// translation into the matrix and marks it for recomputation.
-s32 func_actor_150400_80132774(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_150400_80132774(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor150400Work* work;
@@ -731,7 +731,7 @@ s32 func_actor_150400_801327EC(void)
 /// the yaw of the horizontal offset from the coordinate's own translation,
 /// caches that yaw in `yaw` and rebuilds the local matrix from it, then sets
 /// `travel` to the distance divided by 17, the step body's per-frame stride.
-s32 func_actor_150400_801327F4(Task* task, s32 arg1, GpXformArg* target)
+s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target)
 {
     GfxCoord*        coord;
     Actor150400Work* work;

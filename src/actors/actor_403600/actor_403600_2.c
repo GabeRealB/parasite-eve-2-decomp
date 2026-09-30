@@ -180,8 +180,8 @@ extern Task*    D_actor_403600_801606B0;
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpXformArg value;
-    u8         retained[8];
+    ActorTransform value;
+    u8             retained[8];
 } Actor4036002Storage06E0;
 STATIC_ASSERT_SIZEOF(Actor4036002Storage06E0, 32);
 

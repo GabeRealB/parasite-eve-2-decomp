@@ -189,7 +189,7 @@ extern AnimationSet* D_actor_121300_8013CC08[4];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call0)(Task*, s32, ActorTransform*);
         void (*call1)(Task*, s32, s32);
         void (*call2)(s32, s32, s32);
     } handler;
@@ -197,7 +197,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor121300MessageEntry, 8);
 
 extern Actor121300MessageEntry D_actor_121300_8013CC88[3];
-extern GpXformArg              D_actor_121300_8013CCA0;
+extern ActorTransform          D_actor_121300_8013CCA0;
 extern GpEvsCmd                D_actor_121300_8013CE08[];
 extern GpEvsCmd                D_actor_121300_8013D2E8[];
 
@@ -213,7 +213,7 @@ extern OverlayWaveRec6 D_actor_121300_8013D470[30];
 
 void func_actor_121300_80131EB0(Task*);
 
-void func_actor_121300_8013411C(Task*, s32, GpXformArg*);
+void func_actor_121300_8013411C(Task*, s32, ActorTransform* placement);
 void func_actor_121300_801341A8(Task*, s32, s32);
 void func_actor_121300_80134224(s32, s32, s32);
 
@@ -1585,7 +1585,7 @@ Actor121300MessageEntry D_actor_121300_8013CC88[3] = {
     { 2016, { .call2 = func_actor_121300_80134224 } },
 };
 
-GpXformArg D_actor_121300_8013CCA0 = { { 5140, -140, 3010, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_121300_8013CCA0 = { { 5140, -140, 3010, 0 }, { 0, 0, 0, 0 } };
 
 SVECTOR D_actor_121300_8013CCB8[18] = {
     { 2500, 0, 4700, 0 },
@@ -2711,7 +2711,7 @@ void func_actor_121300_801340F0(Task* task)
 /// Scene-script handler that places the task's model: `placement`'s position
 /// becomes the translation of the `TmdObject`'s first coordinate, its angles
 /// are applied Y, then X, then Z, and the coordinate is marked dirty.
-void func_actor_121300_8013411C(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_121300_8013411C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

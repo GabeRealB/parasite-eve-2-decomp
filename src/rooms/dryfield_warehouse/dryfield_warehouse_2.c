@@ -68,9 +68,9 @@ typedef struct DwhWork {
 } DwhWork;
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
 
-extern AnimationSet* D_dryfield_warehouse_8017F848[2];
-extern GpXformArg    D_dryfield_warehouse_8017F850;
-extern GpXformArg    D_dryfield_warehouse_8017F868;
+extern AnimationSet*  D_dryfield_warehouse_8017F848[2];
+extern ActorTransform D_dryfield_warehouse_8017F850;
+extern ActorTransform D_dryfield_warehouse_8017F868;
 
 extern GpEvsCmd D_dryfield_warehouse_8017F880[];
 extern GpEvsCmd D_dryfield_warehouse_8017FA00[];
@@ -131,9 +131,9 @@ AnimationSet* D_dryfield_warehouse_8017F848[2] = {
     &D_dryfield_warehouse_8017F820,
 };
 
-GpXformArg D_dryfield_warehouse_8017F850 = { { 5540, 0, -2300, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_warehouse_8017F850 = { { 5540, 0, -2300, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_dryfield_warehouse_8017F868 = { { 4654, 0, -1968, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_dryfield_warehouse_8017F868 = { { 4654, 0, -1968, 0 }, { 0, 512, 0, 0 } };
 
 GpEvsCmd D_dryfield_warehouse_8017F880[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },

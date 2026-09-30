@@ -187,16 +187,6 @@ typedef struct {
 } DumpingHoleAnimFrame;
 
 typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s32 field_8;
-    u8  pad_C[0x4];
-    s16 field_10;
-    s16 field_12;
-    s16 field_14;
-} DumpingHoleCoordCfg;
-
-typedef struct {
     MATRIX field_0;
     MATRIX field_20;
     u16    rotX; // Accumulated rotation about X, advanced by `spinX` each frame
@@ -224,12 +214,8 @@ typedef struct {
     s32     otz;
 } DumpingHoleProjection;
 
-/// An entry of the spawn tables walked by message state 6; a 0xFFFF first
-/// word ends the table.
-typedef struct {
-    s32 field_0;
-    u8  pad_4[0x14];
-} DumpingHoleSpawnEntry;
+/// End marker in the X coordinate of the room's model placement tables.
+enum { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END = 0xFFFF };
 
 /// An entry of the third spawn table: a position, and a flag asking for a
 /// ring of debris tasks around it. A 0xFFFF `x` ends the table.
@@ -279,28 +265,28 @@ typedef struct {
 } DumpingHoleShard;
 
 typedef struct {
-    MATRIX     lightMtx;
-    MATRIX     colorMtx;
-    GpXformArg pose;     // Sent to the task itself with message 0x7D4
-    SVECTOR    field_58; // Spawn parameters handed by address to the table spawns
-    SVECTOR    field_60;
-    GfxCoord*  field_68;
-    s16        field_6C;
-    s16        field_6E;
-    VECTOR     scale; // Per-axis scale applied to the rotation of model part 3
-    Task*      field_80;
-    Task*      field_84;
-    Task*      field_88;
-    u16        state; // One-shot command, cleared once handled
-    u16        step;  // Progress through the sequence the command started
-    u16        timer; // Frames spent in the current step
-    u8         pad_92[0x2];
-    s16        field_94;
-    s16        field_96;
-    s16        field_98; // X rotation of model part 1 once the sequence reaches step 2
-    s16        field_9A;
-    u16        field_9C; // Latch: set once the state-F0 release has been issued
-    u8         pad_9E[0x2];
+    MATRIX         lightMtx;
+    MATRIX         colorMtx;
+    ActorTransform pose;     // Sent to the task itself with message 0x7D4
+    SVECTOR        field_58; // Spawn parameters handed by address to the table spawns
+    SVECTOR        field_60;
+    GfxCoord*      field_68;
+    s16            field_6C;
+    s16            field_6E;
+    VECTOR         scale; // Per-axis scale applied to the rotation of model part 3
+    Task*          field_80;
+    Task*          field_84;
+    Task*          field_88;
+    u16            state; // One-shot command, cleared once handled
+    u16            step;  // Progress through the sequence the command started
+    u16            timer; // Frames spent in the current step
+    u8             pad_92[0x2];
+    s16            field_94;
+    s16            field_96;
+    s16            field_98; // X rotation of model part 1 once the sequence reaches step 2
+    s16            field_9A;
+    u16            field_9C; // Latch: set once the state-F0 release has been issued
+    u8             pad_9E[0x2];
 } DumpingHoleEntity4;
 
 typedef struct {
@@ -337,17 +323,17 @@ extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
 extern s16                    D_shelter_b3_dumping_hole_8018816C[];
 extern s16                    D_shelter_b3_dumping_hole_80188184[];
 extern s32                    D_shelter_b3_dumping_hole_8018819C[];
-extern GpXformArg             D_shelter_b3_dumping_hole_801881CC;
-extern GpXformArg             D_shelter_b3_dumping_hole_801881E4;
-extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
-extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
+extern ActorTransform         D_shelter_b3_dumping_hole_801881CC;
+extern ActorTransform         D_shelter_b3_dumping_hole_801881E4;
+extern ActorTransform         D_shelter_b3_dumping_hole_801881FC[];
+extern ActorTransform         D_shelter_b3_dumping_hole_80188304[];
 extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
 
-extern GpEvsCmd   D_shelter_b3_dumping_hole_80188640[];
-extern GpEvsCmd   D_shelter_b3_dumping_hole_80188A78[];
-extern GpObj4C    D_shelter_b3_dumping_hole_8018ECA4[10];
-extern Task*      D_shelter_b3_dumping_hole_8018F4AC;
-extern GpXformArg D_shelter_b3_dumping_hole_8018966C;
+extern GpEvsCmd       D_shelter_b3_dumping_hole_80188640[];
+extern GpEvsCmd       D_shelter_b3_dumping_hole_80188A78[];
+extern GpObj4C        D_shelter_b3_dumping_hole_8018ECA4[10];
+extern Task*          D_shelter_b3_dumping_hole_8018F4AC;
+extern ActorTransform D_shelter_b3_dumping_hole_8018966C;
 
 extern s32 D_shelter_b3_dumping_hole_8018F4D8;
 // Message-table callbacks use the argument views required by this TU.
@@ -355,7 +341,7 @@ typedef struct {
     s32 id;
     union {
         void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, ActorTransform*);
         void (*call2)(Task*, s32, s32);
     } handler;
 } ShelterB3DumpingHole2MessageEntry;
@@ -442,7 +428,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task*);
 void func_shelter_b3_dumping_hole_80181430(void);
 void func_shelter_b3_dumping_hole_80181560(Task*);
 void func_shelter_b3_dumping_hole_801817D8(Task*, s32, s32);
-void func_shelter_b3_dumping_hole_80181854(Task*, s32, GpXformArg*);
+void func_shelter_b3_dumping_hole_80181854(Task*, s32, ActorTransform* placement);
 void func_shelter_b3_dumping_hole_801818E0(void);
 void func_shelter_b3_dumping_hole_80181958(s32);
 void func_shelter_b3_dumping_hole_80181990(s16);
@@ -463,9 +449,9 @@ extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B01C;
 extern ActorCommand                        D_shelter_b3_dumping_hole_8018B078;
 extern GpScriptCmd                         D_shelter_b3_dumping_hole_8018AFAC[2];
 extern GpScriptRec                         D_shelter_b3_dumping_hole_8018AFB4[2];
-extern GpXformArg                          D_shelter_b3_dumping_hole_8018B030;
-extern GpXformArg                          D_shelter_b3_dumping_hole_8018B048;
-extern GpXformArg                          D_shelter_b3_dumping_hole_8018B060;
+extern ActorTransform                      D_shelter_b3_dumping_hole_8018B030;
+extern ActorTransform                      D_shelter_b3_dumping_hole_8018B048;
+extern ActorTransform                      D_shelter_b3_dumping_hole_8018B060;
 extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 void                                       func_shelter_b3_dumping_hole_80181A18(void);
 void                                       func_shelter_b3_dumping_hole_80181B04(s16);
@@ -608,44 +594,44 @@ s32 D_shelter_b3_dumping_hole_8018819C[12] = {
     0,
 };
 
-GpXformArg D_shelter_b3_dumping_hole_801881CC = { { 0x290E, 0, -6000, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_shelter_b3_dumping_hole_801881CC = { { 0x290E, 0, -6000, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_shelter_b3_dumping_hole_801881E4 = { { 5000, 1800, -6000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b3_dumping_hole_801881E4 = { { 5000, 1800, -6000, 0 }, { 0, 0, 0, 0 } };
 
-DumpingHoleSpawnEntry D_shelter_b3_dumping_hole_801881FC[11] = {
-    { 9000, { 24, 252, 255, 255, 36, 250, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8900, { 192, 249, 255, 255, 20, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8200, { 4, 247, 255, 255, 76, 235, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 248, 248, 255, 255, 88, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8400, { 248, 248, 255, 255, 12, 229, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9100, { 80, 251, 255, 255, 88, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9000, { 80, 251, 255, 255, 168, 228, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9000, { 224, 252, 255, 255, 188, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8400, { 204, 247, 255, 255, 144, 232, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 7900, { 172, 244, 255, 255, 132, 234, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 0xFFFF, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+ActorTransform D_shelter_b3_dumping_hole_801881FC[11] = {
+    { { 9000, -1000, -1500, 0 }, { 0, 0, 0, 0 } },
+    { { 8900, -1600, -5100, 0 }, { 0, 0, 0, 0 } },
+    { { 8200, -2300, -5300, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1800, -5800, 0 }, { 0, 0, 0, 0 } },
+    { { 8400, -1800, -6900, 0 }, { 0, 0, 0, 0 } },
+    { { 9100, -1200, -5800, 0 }, { 0, 0, 0, 0 } },
+    { { 9000, -1200, -7000, 0 }, { 0, 0, 0, 0 } },
+    { { 9000, -800, -5700, 0 }, { 0, 0, 0, 0 } },
+    { { 8400, -2100, -6000, 0 }, { 0, 0, 0, 0 } },
+    { { 7900, -2900, -5500, 0 }, { 0, 0, 0, 0 } },
+    { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
-DumpingHoleSpawnEntry D_shelter_b3_dumping_hole_80188304[19] = {
-    { 8800, { 24, 252, 255, 255, 244, 232, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 160, 246, 255, 255, 200, 231, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 136, 250, 255, 255, 224, 227, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 36, 250, 255, 255, 212, 229, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9100, { 180, 251, 255, 255, 44, 232, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9000, { 136, 250, 255, 255, 88, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8900, { 124, 252, 255, 255, 232, 234, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 180, 251, 255, 255, 220, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 236, 250, 255, 255, 208, 238, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 92, 249, 255, 255, 164, 237, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8900, { 48, 248, 255, 255, 20, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8600, { 4, 247, 255, 255, 208, 238, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8400, { 172, 244, 255, 255, 120, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8400, { 48, 248, 255, 255, 168, 228, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 104, 247, 255, 255, 80, 226, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 8800, { 236, 250, 255, 255, 80, 226, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9100, { 224, 252, 255, 255, 224, 227, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 9000, { 68, 253, 255, 255, 8, 238, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 0xFFFF, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+ActorTransform D_shelter_b3_dumping_hole_80188304[19] = {
+    { { 8800, -1000, -5900, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -2400, -6200, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1400, -7200, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1500, -6700, 0 }, { 0, 0, 0, 0 } },
+    { { 9100, -1100, -6100, 0 }, { 0, 0, 0, 0 } },
+    { { 9000, -1400, -5800, 0 }, { 0, 0, 0, 0 } },
+    { { 8900, -900, -5400, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1100, -4900, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1300, -4400, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1700, -4700, 0 }, { 0, 0, 0, 0 } },
+    { { 8900, -2000, -5100, 0 }, { 0, 0, 0, 0 } },
+    { { 8600, -2300, -4400, 0 }, { 0, 0, 0, 0 } },
+    { { 8400, -2900, -5000, 0 }, { 0, 0, 0, 0 } },
+    { { 8400, -2000, -7000, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -2200, -7600, 0 }, { 0, 0, 0, 0 } },
+    { { 8800, -1300, -7600, 0 }, { 0, 0, 0, 0 } },
+    { { 9100, -800, -7200, 0 }, { 0, 0, 0, 0 } },
+    { { 9000, -700, -4600, 0 }, { 0, 0, 0, 0 } },
+    { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
 DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[13] = {
@@ -783,7 +769,7 @@ ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
     { 2004, { .call1 = func_shelter_b3_dumping_hole_80181854 } },
 };
 
-GpXformArg D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
+ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
 
 GpOverlayIds D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
 
@@ -932,11 +918,11 @@ AnimationPlayRequest D_shelter_b3_dumping_hole_8018B008 = { { .index = 1 }, 49, 
 
 AnimationPlayRequest D_shelter_b3_dumping_hole_8018B01C = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_shelter_b3_dumping_hole_8018B030 = { { 0x2904, 0, -3300, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_shelter_b3_dumping_hole_8018B030 = { { 0x2904, 0, -3300, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_shelter_b3_dumping_hole_8018B048 = { { 0x2904, -100, -3300, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_shelter_b3_dumping_hole_8018B048 = { { 0x2904, -100, -3300, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_shelter_b3_dumping_hole_8018B060 = { { 8800, 0, -6000, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b3_dumping_hole_8018B060 = { { 8800, 0, -6000, 0 }, { 0, 1024, 0, 0 } };
 
 ActorCommand D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
 
@@ -2384,12 +2370,12 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     DumpingHoleCoordWork* work;
     TmdObject*            extra;
     GfxCoord*             coord;
-    DumpingHoleCoordCfg*  cfg;
+    ActorTransform*       placement;
     VECTOR                v;
     TmdObject*            e2;
 
     extra      = arg0->extra.tmd;
-    cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2.pointer;
+    placement  = arg0->spawnArg2.pointer;
     coord      = extra->coords;
     work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
     arg0->work = work;
@@ -2403,12 +2389,12 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     Tmd_AllocBuffers(extra);
     extra->lightMtx   = &work->field_0;
     extra->colorMtx   = &work->field_20;
-    coord->coord.t[0] = cfg->field_0;
-    coord->coord.t[1] = cfg->field_4;
-    coord->coord.t[2] = cfg->field_8;
-    Gfx_RotMatrixY(&coord->coord, cfg->field_12, 1);
-    Gfx_RotMatrixX(&coord->coord, cfg->field_10, 0);
-    Gfx_RotMatrixZ(&coord->coord, cfg->field_14, 0);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(&coord->coord, placement->rot.vy, 1);
+    Gfx_RotMatrixX(&coord->coord, placement->rot.vx, 0);
+    Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Task_Reparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
     Gp_UpdateCoord(coord);
@@ -2723,10 +2709,10 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     work->field_3A++;
                     return;
                 case 1:
-                    for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].field_0 != 0xFFFF; i++) {
+                    for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
                         Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
                     }
-                    for (i = 0; D_shelter_b3_dumping_hole_80188304[i].field_0 != 0xFFFF; i++) {
+                    for (i = 0; D_shelter_b3_dumping_hole_80188304[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
                         Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].x != 0xFFFF; i++) {
@@ -3539,7 +3525,7 @@ void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
 /// Places the task's model at `placement`: the position becomes the
 /// coordinate's translation, the rotation is applied in Y, X, Z order, and the
 /// coordinate is marked for recomputation.
-void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, GpXformArg* placement)
+void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

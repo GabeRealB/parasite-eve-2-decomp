@@ -36,7 +36,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor110700MsgEntry;
@@ -52,7 +52,7 @@ static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
 
 extern TmdSource D_actor_110700_801377C8;
 s32              func_actor_110700_8013201C(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_110700_80132074(Task*, s32, GpXformArg*);
+s32              func_actor_110700_80132074(Task*, s32, ActorTransform* args);
 s32              func_actor_110700_801320D8(Task*, s32, s32);
 void             func_actor_110700_80131E24(Task*);
 
@@ -322,7 +322,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args
 /// Message 0x7D4 handler: places the actor. Builds the root coordinate's
 /// rotation from the message's Euler angles, writes its translation, and
 /// clears `composeStamp` so the world matrix is recomputed from them.
-s32 func_actor_110700_80132074(Task* task, s32 msgId, GpXformArg* args)
+s32 func_actor_110700_80132074(Task* task, s32 msgId, ActorTransform* args)
 {
     TmdObject* ext   = task->extra.tmd;
     GfxCoord*  coord = ext->coords;

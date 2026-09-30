@@ -214,15 +214,15 @@ s8 D_mist_parking_8018DA28[28] = {
     0,
 };
 
-GpXformArg D_mist_parking_8018DA44 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mist_parking_8018DA44 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DA5C = { { 4494, 0, -3867, 0 }, { 0, 1365, 0, 0 } };
+ActorTransform D_mist_parking_8018DA5C = { { 4494, 0, -3867, 0 }, { 0, 1365, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DA74 = { { 3270, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mist_parking_8018DA74 = { { 3270, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DA8C = { { 4370, 0, -4000, 0 }, { 0, 1365, 0, 0 } };
+ActorTransform D_mist_parking_8018DA8C = { { 4370, 0, -4000, 0 }, { 0, 1365, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DAA4 = { { 4560, 0, -4916, 0 }, { 0, 1630, 0, 0 } };
+ActorTransform D_mist_parking_8018DAA4 = { { 4560, 0, -4916, 0 }, { 0, 1630, 0, 0 } };
 
 AnimationPlayRequest D_mist_parking_8018DABC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -291,15 +291,15 @@ AnimationPlayRequest D_mist_parking_8018DD64 = { { .index = 0 }, 34, ANIMATION_B
 
 AnimationPlayRequest D_mist_parking_8018DD78 = { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_mist_parking_8018DD8C = { { 6400, 0, -4800, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mist_parking_8018DD8C = { { 6400, 0, -4800, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DDA4 = { { 5150, 0, -4450, 0 }, { 0, -515, 0, 0 } };
+ActorTransform D_mist_parking_8018DDA4 = { { 5150, 0, -4450, 0 }, { 0, -515, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DDBC = { { 5030, 0, -5680, 0 }, { 0, -296, 0, 0 } };
+ActorTransform D_mist_parking_8018DDBC = { { 5030, 0, -5680, 0 }, { 0, -296, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DDD4 = { { -1960, 0, -4650, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mist_parking_8018DDD4 = { { -1960, 0, -4650, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_mist_parking_8018DDEC = { { 5150, 0, -4450, 0 }, { 0, -715, 0, 0 } };
+ActorTransform D_mist_parking_8018DDEC = { { 5150, 0, -4450, 0 }, { 0, -715, 0, 0 } };
 
 GpSpawnAnimArg D_mist_parking_8018DE04 = { 2, 26 };
 
@@ -333,7 +333,7 @@ AnimationPlayRequest D_mist_parking_8018DEC4 = { { .index = 0 }, 8, ANIMATION_BL
 
 AnimationPlayRequest D_mist_parking_8018DED8 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_mist_parking_8018DEEC = { { 8460, 0, 92, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_mist_parking_8018DEEC = { { 8460, 0, 92, 0 }, { 0, 2047, 0, 0 } };
 
 u8 D_mist_parking_8018DF04[8] = {
     130,

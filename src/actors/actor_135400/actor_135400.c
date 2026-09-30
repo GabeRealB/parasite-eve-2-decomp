@@ -82,8 +82,8 @@ STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
 /// spawn copies the pair in one go and then hands the branch picked by game
 /// flag 0x6C to the 0x7D4 handler `func_actor_135400_8013276C`.
 typedef struct Actor135400Places {
-    /* 0x00 */ GpXformArg field_0;
-    /* 0x18 */ GpXformArg field_18;
+    /* 0x00 */ ActorTransform field_0;
+    /* 0x18 */ ActorTransform field_18;
 } Actor135400Places;
 STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 
@@ -99,7 +99,7 @@ typedef struct {
     s32 id; // Message id; 0x7FFFFFFF terminates the table
     union {
         s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*placement)(Task*, s32, GpXformArg*, s32);
+        s32 (*placement)(Task*, s32, ActorTransform*, s32);
         s32 (*mode)(Task*, s32, s32, s32);
         s32 (*command)(Task*, s32, ActorCommand* request, s32);
     } handler; // Callback with the argument views required by that message
@@ -149,7 +149,7 @@ static void func_actor_135400_8013252C(Task* task);
 static void func_actor_135400_80132614(Task* arg0);
 static void func_actor_135400_80132634(Task* task);
 s32         func_actor_135400_80132650(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
-s32         func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3);
+s32         func_actor_135400_8013276C(Task* task, s32 anim, ActorTransform* args, s32 arg3);
 s32         func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 static void func_actor_135400_80132B60(Task* arg0);
 static void func_actor_135400_80132C90(Task* arg0);
@@ -193,12 +193,12 @@ static const Actor135400Places D_actor_135400_80131E48 = {
 
 extern TmdSource D_actor_135400_8013E250;
 s32              func_actor_135400_80132D24(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_135400_80132E40(Task*, s32, GpXformArg*, s32);
+s32              func_actor_135400_80132E40(Task*, s32, ActorTransform* args, s32);
 s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
 void             func_actor_135400_80132AF4(Task*);
 
 s32  func_actor_135400_80132650(Task*, s32, AnimationPlayRequest*, s32);
-s32  func_actor_135400_8013276C(Task*, s32, GpXformArg*, s32);
+s32  func_actor_135400_8013276C(Task*, s32, ActorTransform* args, s32);
 s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
 s32  func_actor_135400_801328DC(Task*, s32, ActorCommand* msg, s32);
 void func_actor_135400_801323F8(Task*);
@@ -889,7 +889,7 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, AnimationPlayRequest* param
 /// root part's local matrix and its Euler angles into the coordinate's `rot`
 /// slot, rebuilds the rotation from them and clears `composeStamp` so the world matrix
 /// is recomputed.
-s32 func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3)
+s32 func_actor_135400_8013276C(Task* task, s32 anim, ActorTransform* args, s32 arg3)
 {
     GfxCoord* coord;
 
@@ -1156,7 +1156,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
 
 /// The 0x7D4 handler of the same task: the same placement as
 /// `func_actor_135400_8013276C`, applied to this task's root coordinate.
-s32 func_actor_135400_80132E40(Task* task, s32 anim, GpXformArg* args, s32 arg3)
+s32 func_actor_135400_80132E40(Task* task, s32 anim, ActorTransform* args, s32 arg3)
 {
     GfxCoord* coord;
 

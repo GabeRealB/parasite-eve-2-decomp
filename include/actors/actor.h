@@ -343,7 +343,7 @@ STATIC_ASSERT_SIZEOF(ActorWallPushFrame, 0x30);
 /// message 0x3E9, and the offset to the player with its normalised direction.
 typedef struct ActorAttackScratch {
     AnimationPlayRequest anim;
-    GpXformArg           place;
+    ActorTransform       place;
     VECTOR               delta;
     SVECTOR              dir;
 } ActorAttackScratch;
@@ -1264,7 +1264,7 @@ STATIC_ASSERT_SIZEOF(Actor402200TrailScratch, 0x3C);
 typedef struct Actor402200GrabScratch {
     GpDelayArg           query;
     AnimationPlayRequest anim;
-    GpXformArg           place;
+    ActorTransform       place;
     VECTOR               out;
     SVECTOR              in;
 } Actor402200GrabScratch;

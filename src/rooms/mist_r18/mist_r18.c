@@ -645,7 +645,7 @@ AnimationPlayRequest D_mist_r18_801851DC = { { .sets = NULL }, 7, ANIMATION_BLEN
 
 AnimationPlayRequest D_mist_r18_801851F0 = { { .sets = NULL }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_mist_r18_80185204 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_mist_r18_80185204 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 
 ActorCommand D_mist_r18_8018521C = { 0 };
 

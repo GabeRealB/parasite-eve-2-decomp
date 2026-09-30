@@ -93,7 +93,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, Actor210700Anim*, s32);
-        s32 (*call1)(Task*, s32, GpXformArg*, s32);
+        s32 (*call1)(Task*, s32, ActorTransform*, s32);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor210700MsgEntry;
@@ -109,7 +109,7 @@ static void func_actor_210700_8014A0AC(Task* task);
 static void func_actor_210700_8014A1E8(Task* task);
 static void func_actor_210700_8014A208(Task* arg0);
 s32         func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 arg3);
-s32         func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3);
+s32         func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 arg3);
 
 /// The actor's three task states - spawn, tick and teardown - which
 /// `func_actor_210700_80149F38` runs by `Task::state`.
@@ -127,7 +127,7 @@ extern AnimationSet D_actor_210700_8015799C;
 extern AnimationSet D_actor_210700_80157C24;
 extern TmdSource    D_actor_210700_80156504;
 s32                 func_actor_210700_8014A224(Task*, s32, Actor210700Anim*, s32);
-s32                 func_actor_210700_8014A344(Task*, s32, GpXformArg*, s32);
+s32                 func_actor_210700_8014A344(Task*, s32, ActorTransform* args, s32);
 s32                 func_actor_210700_8014A3D4(Task*, s32, s32);
 s32                 func_actor_210700_8014A4B0(Task*, s32, s32);
 void                func_actor_210700_80149F38(Task*);
@@ -1163,7 +1163,7 @@ static void func_actor_210700_80149F90(Task* task)
 {
     Actor210700Work* work;
     TmdObject*       extra;
-    GpXformArg       args;
+    ActorTransform   args;
     Actor210700Anim  anim;
     VECTOR3          pos;
 
@@ -1300,7 +1300,7 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
 /// coordinate's `rot` slot, rebuilds the rotation from them, clears `composeStamp` so
 /// the world matrix is recomputed, and clears `TmdObject::flags` bit 0x80 to
 /// show the model. Always returns 0.
-s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
+s32 func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 arg3)
 {
     GfxCoord*  coord;
     TmdObject* extra;

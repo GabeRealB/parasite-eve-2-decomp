@@ -108,14 +108,14 @@ extern s32 D_actor_120300_80140A20[9];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call0)(Task*, s32, ActorTransform*);
         void (*call1)(Task*, s32, s32);
     } handler;
 } Actor120300MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor120300MessageEntry, 8);
 
 extern Actor120300MessageEntry D_actor_120300_80140A44[2];
-extern GpXformArg              D_actor_120300_80140A54[13];
+extern ActorTransform          D_actor_120300_80140A54[13];
 extern GpEvsCmd                D_actor_120300_80140B94[];
 extern GpEvsCmd                D_actor_120300_80141524[];
 extern GpEvsCmd                D_actor_120300_801416D4[];
@@ -133,7 +133,7 @@ void             func_actor_120300_80133330(s32);
 void             func_actor_120300_801337C4(Task*);
 void             func_actor_120300_80133B5C(Task*);
 void             func_actor_120300_80133C38(Task*, s32, s32);
-void             func_actor_120300_80133C6C(Task*, s32, GpXformArg*);
+void             func_actor_120300_80133C6C(Task*, s32, ActorTransform* placement);
 void             func_actor_120300_80133D04(s32);
 void             func_actor_120300_80133DA4(void);
 void             func_actor_120300_80133DD4(void);
@@ -1086,7 +1086,7 @@ Actor120300MessageEntry D_actor_120300_80140A44[2] = {
     { 2004, { .call0 = func_actor_120300_80133C6C } },
 };
 
-GpXformArg D_actor_120300_80140A54[13] = {
+ActorTransform D_actor_120300_80140A54[13] = {
     { { 2414, 0, 2529, 0 }, { 0, 0, 0, 0 } },
     { { 2553, 0, 2396, 0 }, { 0, 1024, 0, 0 } },
     { { 2553, 0, 1700, 0 }, { 0, 1024, 0, 0 } },
@@ -1558,7 +1558,7 @@ static void func_actor_120300_80132338(Task* arg0)
     s32              diff;
     s16              target;
     s16              cur;
-    GpXformArg*      rec;
+    ActorTransform*  rec;
     Task*            playerTask;
 
     work = (Actor120300Work*)arg0->work;
@@ -1753,7 +1753,7 @@ static void func_actor_120300_80132C60(Task* arg0)
     GfxCoord*        coord;
     Actor120300Work* work;
     s32              x;
-    GpXformArg*      msg;
+    ActorTransform*  msg;
 
     tmd   = arg0->extra.tmd;
     work  = (Actor120300Work*)arg0->work;
@@ -2200,7 +2200,7 @@ void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2)
 /// coordinate is parented to the view coordinate, takes `placement`'s
 /// position as its translation and its rotation applied Y, then X, then Z.
 /// `arg1` is the message id.
-void func_actor_120300_80133C6C(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_120300_80133C6C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

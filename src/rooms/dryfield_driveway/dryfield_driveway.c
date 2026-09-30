@@ -132,7 +132,7 @@ AnimationPlayRequest D_dryfield_driveway_8017E344 = { { .index = 1 }, 48, ANIMAT
 
 AnimationPlayRequest D_dryfield_driveway_8017E358 = { { .index = 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_driveway_8017E36C = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_driveway_8017E36C = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_dryfield_driveway_8017E384[14] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },

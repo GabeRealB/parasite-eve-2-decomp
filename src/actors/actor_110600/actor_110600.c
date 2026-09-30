@@ -405,7 +405,7 @@ static void func_actor_110600_80138D7C(Task* arg0);
 
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpXformArg* placement);
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement);
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `displaySetShakeY` with the low bit (0 or 1). Returns 1 on wrap.
@@ -451,14 +451,14 @@ typedef struct {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, Actor110600Event*);
         s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, ActorTransform*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
 } Actor110600MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor110600MessageEntry, 8);
 
-s32  func_actor_110600_80133E48(Task*, s32, GpXformArg*);
+s32  func_actor_110600_80133E48(Task*, s32, ActorTransform* placement);
 s32  func_actor_110600_80134040(Task*, s32, Actor110600Event*);
 s32  func_actor_110600_8013839C(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_110600_80138448(Task*, s32, s32);
@@ -1890,7 +1890,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 /// from the actor's own heading and caches the resulting yaw in the work
 /// block's `field_8`. The rescale `func_actor_110600_80138568` performs is
 /// inlined behind the placement.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
 {
     Actor110600Work* work;
 

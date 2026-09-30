@@ -661,8 +661,8 @@ static void Gp_CommitSaveLoc(void)
 
 static void Gp_MsgPlayer3EE(void)
 {
-    GpXformArg sp;
-    void*      slot;
+    ActorTransform sp;
+    void*          slot;
 
     slot = gameGetPtrSlot(3);
     if (gGameSession->eventState != 0) {

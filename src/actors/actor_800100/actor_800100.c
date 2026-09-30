@@ -187,9 +187,9 @@ typedef struct {
         s32  (*call2)(Task*, s32, GpCopyArg*);
         s32  (*call3)(Task*, s32, GpCountArg*);
         s32  (*call4)(Task*, s32, GpDelayArg*);
-        s32  (*call5)(Task*, s32, GpXformArg*);
-        s32  (*transform)(Task*, s32, GpXformArg*, s32);
-        s32  (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
+        s32  (*call5)(Task*, s32, ActorTransform*);
+        s32  (*transform)(Task*, s32, ActorTransform*, s32);
+        s32  (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
         s32  (*call7)(Task*, s32, s32);
         s32  (*call8)(Task*, s32, s32, s32);
         void (*call9)(Task*, s32, GpMoveArg*);

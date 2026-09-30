@@ -294,7 +294,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call2)(Task*, s32, GpXformArg*);
+        s32  (*call2)(Task*, s32, ActorTransform*);
         s32  (*call3)(Task*, s32, s32);
         s32  (*call4)(Task*, s32, u16*);
         void (*call5)(void);
@@ -340,8 +340,8 @@ extern ActorHeightClamp D_actor_401000_80154FD0[];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpXformArg value;
-    u8         retained[8];
+    ActorTransform value;
+    u8             retained[8];
 } Actor401000Storage5018;
 STATIC_ASSERT_SIZEOF(Actor401000Storage5018, 32);
 
@@ -1281,7 +1281,7 @@ void func_actor_401000_8013D68C(void);
 s32  func_actor_401000_8013D694(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_401000_8013D704(Task*, s32, s32);
 s32  func_actor_401000_8013D7C4(Task*);
-s32  func_actor_401000_8013D814(Task*, s32, GpXformArg*);
+s32  func_actor_401000_8013D814(Task*, s32, ActorTransform* placement);
 s32  func_actor_401000_8013D914(Task*);
 s32  func_actor_401000_8013D958(Task*, s32, u16*);
 
@@ -3359,7 +3359,7 @@ static void func_actor_401000_801380B8(Task* arg0)
     GpEnemy*         enemy;
     Task*            player;
     SVECTOR*         pdir;
-    GpXformArg*      msg;
+    ActorTransform*  msg;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -4839,7 +4839,7 @@ s32 func_actor_401000_8013D7C4(Task* task)
 /// root coordinate, then the X, Y and Z rotations are applied in that order.
 /// The heading of the rotated Z axis is stored as the work block's `yaw`.
 /// Returns 1.
-s32 func_actor_401000_8013D814(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_401000_8013D814(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     s32              mx;

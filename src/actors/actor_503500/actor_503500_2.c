@@ -97,14 +97,14 @@ extern GpScriptCmd          D_actor_503500_8014D2F0[2];
 extern GpScriptCmd          D_actor_503500_8014D300[3];
 extern GpScriptRec          D_actor_503500_8014D2F8[2];
 extern GpScriptRec          D_actor_503500_8014D30C[3];
-extern GpXformArg           D_actor_503500_8014BAD8;
-extern GpXformArg           D_actor_503500_8014BAF0;
-extern GpXformArg           D_actor_503500_8014BB08;
-extern GpXformArg           D_actor_503500_8014BB20;
-extern GpXformArg           D_actor_503500_8014BB38;
-extern GpXformArg           D_actor_503500_8014BBB4[2];
-extern GpXformArg           D_actor_503500_8014BBE4;
-extern GpXformArg           D_actor_503500_8014BBFC;
+extern ActorTransform       D_actor_503500_8014BAD8;
+extern ActorTransform       D_actor_503500_8014BAF0;
+extern ActorTransform       D_actor_503500_8014BB08;
+extern ActorTransform       D_actor_503500_8014BB20;
+extern ActorTransform       D_actor_503500_8014BB38;
+extern ActorTransform       D_actor_503500_8014BBB4[2];
+extern ActorTransform       D_actor_503500_8014BBE4;
+extern ActorTransform       D_actor_503500_8014BBFC;
 void                        func_actor_503500_80132B78(void);
 void                        func_actor_503500_80132B98(void);
 void                        func_actor_503500_80132BB8(void);
@@ -429,15 +429,15 @@ AnimationPlayRequest D_actor_503500_8014B9FC[10] = {
 
 AnimationPlayRequest D_actor_503500_8014BAC4 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_503500_8014BAD8 = { { 2500, -2000, 6900, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_503500_8014BAD8 = { { 2500, -2000, 6900, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BAF0 = { { 2000, -2000, 6900, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_503500_8014BAF0 = { { 2000, -2000, 6900, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BB08 = { { 1990, -2000, 6580, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_actor_503500_8014BB08 = { { 1990, -2000, 6580, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BB20 = { { 2240, -2000, 6770, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_actor_503500_8014BB20 = { { 2240, -2000, 6770, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BB38 = { { 2000, 0, 1000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_503500_8014BB38 = { { 2000, 0, 1000, 0 }, { 0, 0, 0, 0 } };
 
 AnimationPlayRequest D_actor_503500_8014BB50[5] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -447,14 +447,14 @@ AnimationPlayRequest D_actor_503500_8014BB50[5] = {
     { { .index = 1 }, 4, ANIMATION_BLEND_INTERPOLATE, 40, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpXformArg D_actor_503500_8014BBB4[2] = {
+ActorTransform D_actor_503500_8014BBB4[2] = {
     { { 5200, 5200, 6500, 0 }, { 0, -1024, 0, 0 } },
     { { 8490, 1000, 6210, 0 }, { 0, -682, 0, 0 } },
 };
 
-GpXformArg D_actor_503500_8014BBE4 = { { 7000, 1000, 7000, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_503500_8014BBE4 = { { 7000, 1000, 7000, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BBFC = { { 7300, 500, 7600, 0 }, { 0, 1536, 0, 0 } };
+ActorTransform D_actor_503500_8014BBFC = { { 7300, 500, 7600, 0 }, { 0, 1536, 0, 0 } };
 
 ActorCommand D_actor_503500_8014BC14 = { { .loc = { 4, 48 } }, 0 };
 
@@ -475,9 +475,9 @@ AnimationPlayRequest D_actor_503500_8014BC40 = { { .index = 0 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_503500_8014BC54 = { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_503500_8014BC68 = { { 5190, 3920, 7820, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_503500_8014BC68 = { { 5190, 3920, 7820, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BC80[2] = {
+ActorTransform D_actor_503500_8014BC80[2] = {
     { { 0x2B5C, 560, 7970, 0 }, { 0, 1024, 0, 0 } },
     { { 0x3232, 1610, 7970, 0 }, { 0, 1024, 0, 0 } },
 };
@@ -490,13 +490,13 @@ ActorCommand D_actor_503500_8014BCB8 = { { .loc = { 4, 48 } }, 2 };
 
 ActorCommand D_actor_503500_8014BCBC = { { .loc = { 4, 48 } }, 3 };
 
-GpXformArg D_actor_503500_8014BCC0 = { { 3350, -3360, 0x2D82, 0 }, { 0, -512, 0, 0 } };
+ActorTransform D_actor_503500_8014BCC0 = { { 3350, -3360, 0x2D82, 0 }, { 0, -512, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BCD8 = { { 0x311A, -3360, 2430, 0 }, { 0, 1535, 0, 0 } };
+ActorTransform D_actor_503500_8014BCD8 = { { 0x311A, -3360, 2430, 0 }, { 0, 1535, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BCF0 = { { 7960, -3360, 7040, 0 }, { 0, -512, 0, 0 } };
+ActorTransform D_actor_503500_8014BCF0 = { { 7960, -3360, 7040, 0 }, { 0, -512, 0, 0 } };
 
-GpXformArg D_actor_503500_8014BD08 = { { 7960, -3360, 7040, 0 }, { 0, 1535, 0, 0 } };
+ActorTransform D_actor_503500_8014BD08 = { { 7960, -3360, 7040, 0 }, { 0, 1535, 0, 0 } };
 
 ActorCommand D_actor_503500_8014BD20 = { { .loc = { 4, 48 } }, 0 };
 

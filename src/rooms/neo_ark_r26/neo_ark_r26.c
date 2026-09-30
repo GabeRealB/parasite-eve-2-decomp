@@ -125,9 +125,9 @@ AnimationPlayRequest D_neo_ark_r26_8017DA1C = { { .index = 1 }, 17, ANIMATION_BL
 
 AnimationPlayRequest D_neo_ark_r26_8017DA30 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_neo_ark_r26_8017DA44 = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_neo_ark_r26_8017DA44 = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_neo_ark_r26_8017DA5C = { { 0, 0, 850, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_neo_ark_r26_8017DA5C = { { 0, 0, 850, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_neo_ark_r26_8017DA74[57] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

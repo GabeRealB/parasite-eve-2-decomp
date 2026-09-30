@@ -32,7 +32,7 @@ typedef union {
         AnimationSet*        sets[10];
         GpCopyArg            copy;
         AnimationPlayRequest arguments[1];
-        GpXformArg           placements[3];
+        ActorTransform       placements[3];
     } data;
     s32 words[35];
 } Actor260500AnimStorageCAF4;
@@ -73,7 +73,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
     } handler;
@@ -96,7 +96,7 @@ void             func_actor_260500_8014A460(Task*);
 
 s32 func_actor_260500_8014A6C4(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_260500_8014A754(Task*, s32, s32);
-s32 func_actor_260500_8014A79C(Task*, s32, GpXformArg*);
+s32 func_actor_260500_8014A79C(Task*, s32, ActorTransform* placement);
 s32 func_actor_260500_8014A818(Task*, s32, ActorCommand* msg);
 s32 func_actor_260500_8014A83C(Task*, s32, VECTOR*, s32);
 
@@ -388,15 +388,15 @@ AnimationPlayRequest D_actor_260500_8014CAE0 = { { .index = 1 }, 56, ANIMATION_B
 
 Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4 = { .data = { { &D_actor_260500_8014AE44, &D_actor_260500_8014B134, &D_actor_260500_8014B830, &D_actor_260500_8014BACC, NULL, NULL, &D_actor_260500_8014BE84, &D_actor_260500_8014C208, &D_actor_260500_8014C50C, &D_actor_260500_8014C838 }, { { .words = D_actor_260500_8014CAF4.words }, 32 }, { { { .index = 1 }, 1, 0, 0, 0 } }, { { { 860, 0, 6730, 0 }, { 0, -2161, 0, 0 } }, { { 860, 0, 6730, 0 }, { 0, -2161, 0, 0 } }, { { 860, 0, 6910, 0 }, { 0, -2048, 0, 0 } } } } };
 
-GpXformArg D_actor_260500_8014CB80 = { { 860, 0, 6640, 0 }, { 0, -2161, 0, 0 } };
+ActorTransform D_actor_260500_8014CB80 = { { 860, 0, 6640, 0 }, { 0, -2161, 0, 0 } };
 
-GpXformArg D_actor_260500_8014CB98 = { { 920, 0, 6000, 0 }, { 0, -113, 0, 0 } };
+ActorTransform D_actor_260500_8014CB98 = { { 920, 0, 6000, 0 }, { 0, -113, 0, 0 } };
 
-GpXformArg D_actor_260500_8014CBB0 = { { 1210, 0, 5610, 0 }, { 0, -227, 0, 0 } };
+ActorTransform D_actor_260500_8014CBB0 = { { 1210, 0, 5610, 0 }, { 0, -227, 0, 0 } };
 
-GpXformArg D_actor_260500_8014CBC8 = { { 1010, 0, 5840, 0 }, { 0, -113, 0, 0 } };
+ActorTransform D_actor_260500_8014CBC8 = { { 1010, 0, 5840, 0 }, { 0, -113, 0, 0 } };
 
-GpXformArg D_actor_260500_8014CBE0 = { { 860, 0, 6180, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_260500_8014CBE0 = { { 860, 0, 6180, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_actor_260500_8014CBF8[109] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -499,7 +499,7 @@ GpEvsCmd D_actor_260500_8014CBF8[109] = {
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_260500_8014CAF4.data.placements[0].pos.vx }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_260500_8014CAF4.data.placements[0] }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_260500_8014C8B0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_260500_8014CBE0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260500_8014CAF4.data.arguments[0] }, { .value = 0 } },
@@ -519,7 +519,7 @@ GpEvsCmd D_actor_260500_8014D630[17] = {
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260500_8014CAF4.data.arguments[0] }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_260500_8014CAF4.data.placements[0].pos.vx }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_260500_8014CAF4.data.placements[0] }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_260500_8014C8B0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_260500_8014CBE0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -1524,14 +1524,14 @@ void func_actor_260500_80149E38(s32 arg0)
 }
 
 /// Sends message 0x7D4 (placement) with the record at
-/// `D_actor_260500_8014CAF4.data.placements[0].pos.vx` to the task in lookup slot 4, when there is one.
+/// `D_actor_260500_8014CAF4.data.placements[0]` to the task in lookup slot 4, when there is one.
 static void func_actor_260500_80149E80(void)
 {
     Task* slot;
 
     slot = Gp_LookupSlot4(0);
     if (slot != 0) {
-        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_260500_8014CAF4.data.placements[0].pos.vx, 0);
+        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_260500_8014CAF4.data.placements[0], 0);
     }
 }
 
@@ -1785,7 +1785,7 @@ s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2)
 /// Placement handler: turns the model to the placement's yaw, keeping that yaw
 /// in the work block, and moves it to the placement's position. Only the Y
 /// rotation is applied.
-s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_260500_8014A79C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;

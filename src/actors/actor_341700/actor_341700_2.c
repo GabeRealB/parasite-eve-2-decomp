@@ -77,7 +77,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor3417002MessageEntry;
@@ -98,7 +98,7 @@ static void      func_actor_341700_8016D32C(Task*);
 
 s32 func_actor_341700_8016CE28(Task*, s32, s32);
 s32 func_actor_341700_8016CEB4(Task*, s32, ActorCommand* cmd);
-s32 func_actor_341700_8016CF48(Task*, s32, GpXformArg*);
+s32 func_actor_341700_8016CF48(Task*, s32, ActorTransform* placement);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1129,7 +1129,7 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd)
 /// longs become the translation, then pitch / yaw / roll are applied with
 /// `Gfx_RotMatrixX` / `Y` / `Z`, re-fetching the coordinate for every field,
 /// and the coordinate is marked dirty. Always returns 1.
-s32 func_actor_341700_8016CF48(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_341700_8016CF48(Task* task, s32 arg1, ActorTransform* placement)
 {
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;

@@ -97,7 +97,7 @@ STATIC_ASSERT_SIZEOF(AcsCutsceneWork, 0xC);
 /// explicit.
 typedef union AcsMsgArg {
     /* 0x0 */ AnimationPlayRequest rec;
-    /* 0x0 */ GpXformArg           place;
+    /* 0x0 */ ActorTransform       place;
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
@@ -196,7 +196,7 @@ typedef struct AcsSpriteLevels {
 /// and helicopter-pad rooms set it.
 
 extern GpMsgEntry           D_acropolis_sanctuary_8018081C[];
-extern GpXformArg           D_acropolis_sanctuary_801808BC;
+extern ActorTransform       D_acropolis_sanctuary_801808BC;
 extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180A0C;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180AE8;
@@ -280,12 +280,12 @@ extern AnimationPlayRequest D_acropolis_sanctuary_80180AC0;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180AD4;
 extern GpCopyArg            D_acropolis_sanctuary_8018093C;
 extern GpOverlayIds         D_acropolis_sanctuary_80180AFC;
-extern GpXformArg           D_acropolis_sanctuary_80180844;
-extern GpXformArg           D_acropolis_sanctuary_8018085C;
-extern GpXformArg           D_acropolis_sanctuary_8018088C;
-extern GpXformArg           D_acropolis_sanctuary_801808A4;
-extern GpXformArg           D_acropolis_sanctuary_801808D4;
-extern GpXformArg           D_acropolis_sanctuary_801808EC;
+extern ActorTransform       D_acropolis_sanctuary_80180844;
+extern ActorTransform       D_acropolis_sanctuary_8018085C;
+extern ActorTransform       D_acropolis_sanctuary_8018088C;
+extern ActorTransform       D_acropolis_sanctuary_801808A4;
+extern ActorTransform       D_acropolis_sanctuary_801808D4;
+extern ActorTransform       D_acropolis_sanctuary_801808EC;
 void                        func_acropolis_sanctuary_8017D8A0(u32);
 void                        func_acropolis_sanctuary_8017D8CC(void);
 
@@ -324,21 +324,21 @@ GpMsgEntry D_acropolis_sanctuary_8018081C[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpXformArg D_acropolis_sanctuary_80180844 = { { -9700, 0, -7910, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_80180844 = { { -9700, 0, -7910, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_acropolis_sanctuary_8018085C = { 0 };
+ActorTransform D_acropolis_sanctuary_8018085C = { 0 };
 
-GpXformArg D_acropolis_sanctuary_80180874 = { { 0, 0, -900, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_80180874 = { { 0, 0, -900, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_acropolis_sanctuary_8018088C = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_8018088C = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_sanctuary_801808A4 = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_801808A4 = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_sanctuary_801808BC = { { 0, 0, 480, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_801808BC = { { 0, 0, 480, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_sanctuary_801808D4 = { { 0, 0, -900, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_801808D4 = { { 0, 0, -900, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024, 0, 0 } };
 
 AnimationPlayRequest D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

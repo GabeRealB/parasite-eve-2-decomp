@@ -184,7 +184,7 @@ typedef struct {
         s32  (*call0)(void);
         s32  (*call1)(Task*);
         s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, ActorTransform*);
         s32  (*call4)(Task*, s32, s32);
         s32  (*call5)(Task*, s32, u16*);
         void (*call6)(void);
@@ -225,7 +225,7 @@ extern TmdSource Actor01900_D102C8;
 s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*);
 s32              Actor01900_Fn0A38C(Task*, s32, s32);
 s32              Actor01900_Fn0A44C(Task*);
-s32              Actor01900_Fn0A49C(Task*, s32, GpXformArg*);
+s32              Actor01900_Fn0A49C(Task*, s32, ActorTransform* placement);
 s32              Actor01900_Fn0A59C(void);
 s32              Actor01900_Fn0A5A4(Task*, s32, u16*);
 void             Actor01900_Fn0A314(void);
@@ -3548,7 +3548,7 @@ s32 Actor01900_Fn0A44C(Task* task)
     return 1;
 }
 
-s32 Actor01900_Fn0A49C(Task* task, s32 arg1, GpXformArg* placement)
+s32 Actor01900_Fn0A49C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*                 coord;
     s32                       mx;

@@ -87,7 +87,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
     } handler;
@@ -149,7 +149,7 @@ extern TmdSource D_actor_143900_801493AC;
 extern TmdSource D_actor_143900_8014960C;
 s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_143900_80133254(Task*, s32, s32);
-s32              func_actor_143900_801332E4(Task*, s32, GpXformArg*);
+s32              func_actor_143900_801332E4(Task*, s32, ActorTransform* placement);
 s32              func_actor_143900_80133360(Task*, s32, ActorCommand* msg);
 s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
 void             func_actor_143900_80132DEC(Task*);
@@ -157,7 +157,7 @@ void             func_actor_143900_80132FB0(Task*);
 
 s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_143900_801326B4(Task*, s32, s32);
-s32  func_actor_143900_801326FC(Task*, s32, GpXformArg*);
+s32  func_actor_143900_801326FC(Task*, s32, ActorTransform* placement);
 s32  func_actor_143900_80132778(Task*, s32, ActorCommand* msg);
 s32  func_actor_143900_8013279C(Task*, s32, VECTOR*, s32);
 void func_actor_143900_80132324(Task*);
@@ -1458,7 +1458,7 @@ s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2)
 /// coordinate frame from `placement`. Only the yaw is used, remembered in the
 /// work block and applied with `Gfx_RotMatrixY`, then the three longs become
 /// the coordinate's translation.
-s32 func_actor_143900_801326FC(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_143900_801326FC(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;
@@ -1824,7 +1824,7 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2)
 /// coordinate frame from `placement`. Only the yaw is used, remembered in the
 /// work block and applied with `Gfx_RotMatrixY`, then the three longs become
 /// the coordinate's translation.
-s32 func_actor_143900_801332E4(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_143900_801332E4(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;

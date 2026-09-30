@@ -94,13 +94,13 @@ extern TaskDesc D_actor_450200_8013FB40;
 
 /// Placement payload that four of the overlay's data records pair with message
 /// 0x3EE. Only its yaw changes, set by `func_actor_450200_8013219C`.
-extern GpXformArg D_actor_450200_80137DC4;
-extern Task*      D_actor_450200_801401E0;
-extern Task*      D_actor_450200_801401E4;
-extern u16        D_actor_450200_801401E8[256];
-extern u16        D_actor_450200_801403E8[256];
-extern u16        D_actor_450200_801405E8[256];
-extern u16        D_actor_450200_801407E8[256];
+extern ActorTransform D_actor_450200_80137DC4;
+extern Task*          D_actor_450200_801401E0;
+extern Task*          D_actor_450200_801401E4;
+extern u16            D_actor_450200_801401E8[256];
+extern u16            D_actor_450200_801403E8[256];
+extern u16            D_actor_450200_801405E8[256];
+extern u16            D_actor_450200_801407E8[256];
 
 void func_actor_450200_80132848(s32);
 void func_actor_450200_80132880(s32);
@@ -534,25 +534,25 @@ GpScriptRec D_actor_450200_80137CE4[2] = {
     { 0, 0, 13, 0 },
 };
 
-GpXformArg D_actor_450200_80137CEC = { { 0x36B0, 0, 0x2D50, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137CEC = { { 0x36B0, 0, 0x2D50, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D04 = { { 8000, 0, 0x2D50, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137D04 = { { 8000, 0, 0x2D50, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D1C = { { 0x2904, 0, 0x2FA8, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137D1C = { { 0x2904, 0, 0x2FA8, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D34 = { { 8000, 0, 0x2FA8, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137D34 = { { 8000, 0, 0x2FA8, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D4C = { { 8000, 0, 9000, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137D4C = { { 8000, 0, 9000, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D64 = { { 0x2AF8, 0, 0x3070, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137D64 = { { 0x2AF8, 0, 0x3070, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D7C = { { 0x2AF8, 0, 0x2C24, 0 }, { 0, -113, 0, 0 } };
+ActorTransform D_actor_450200_80137D7C = { { 0x2AF8, 0, 0x2C24, 0 }, { 0, -113, 0, 0 } };
 
-GpXformArg D_actor_450200_80137D94 = { { 9750, 0, 0x2C24, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_450200_80137D94 = { { 9750, 0, 0x2C24, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_450200_80137DAC = { { 8000, 0, 9700, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_450200_80137DAC = { { 8000, 0, 9700, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_actor_450200_80137DC4 = { { 0, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_80137DC4 = { { 0, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 
 GpEvsCmd D_actor_450200_80137DDC[4] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137BC4 }, { .value = 0 } },
@@ -921,7 +921,7 @@ AnimationPlayRequest D_actor_450200_8013C6F8 = { { .index = 1 }, 51, ANIMATION_B
 
 GpCopyArg D_actor_450200_8013C70C = { { .words = D_actor_450200_8013C66C.words }, 32 };
 
-GpXformArg D_actor_450200_8013C714 = { { 0x2710, 0, 0x2EE0, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450200_8013C714 = { { 0x2710, 0, 0x2EE0, 0 }, { 0, -1024, 0, 0 } };
 
 GpEvsCmd D_actor_450200_8013C72C[40] = {
     { 35, { .value = 0 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1079,13 +1079,13 @@ GpCopyArg D_actor_450200_8013FBE8 = { { .words = D_actor_450200_8013FB4C.words }
 
 GpOverrideArg D_actor_450200_8013FBF0 = { 19, 1 };
 
-GpXformArg D_actor_450200_8013FBF8 = { { 6271, 0, 3306, 0 }, { 0, -682, 0, 0 } };
+ActorTransform D_actor_450200_8013FBF8 = { { 6271, 0, 3306, 0 }, { 0, -682, 0, 0 } };
 
-GpXformArg D_actor_450200_8013FC10 = { { 3096, 0, 4774, 0 }, { 0, -1080, 0, 0 } };
+ActorTransform D_actor_450200_8013FC10 = { { 3096, 0, 4774, 0 }, { 0, -1080, 0, 0 } };
 
-GpXformArg D_actor_450200_8013FC28 = { { 880, 0, 6890, 0 }, { 0, 3015, 0, 0 } };
+ActorTransform D_actor_450200_8013FC28 = { { 880, 0, 6890, 0 }, { 0, 3015, 0, 0 } };
 
-GpXformArg D_actor_450200_8013FC40 = { { 880, 0, 6890, 0 }, { 0, 967, 0, 0 } };
+ActorTransform D_actor_450200_8013FC40 = { { 880, 0, 6890, 0 }, { 0, 967, 0, 0 } };
 
 GpEvsCmd D_actor_450200_8013FC58[44] = {
     { 35, { .value = 0 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

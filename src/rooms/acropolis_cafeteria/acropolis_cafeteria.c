@@ -67,19 +67,19 @@ extern void func_80724608(void*, s32, s32, void*);
 
 extern GpMsgEntry D_acropolis_cafeteria_80182AA8[];
 
-extern GpXformArg D_acropolis_cafeteria_80182D28;
-extern s32        D_acropolis_cafeteria_80182DB8;
-extern GpXformArg D_acropolis_cafeteria_80182DDC;
-extern GpEvsCmd   D_acropolis_cafeteria_80182E74[];
-extern GpEvsCmd   D_acropolis_cafeteria_801831BC[];
-extern GpEvsCmd   D_acropolis_cafeteria_8018330C[];
-extern GpEvsCmd   D_acropolis_cafeteria_801834D4[];
-extern GpEvsCmd   D_acropolis_cafeteria_8018363C[];
-extern GpEvsCmd   D_acropolis_cafeteria_80183DBC[];
-extern GpEvsCmd   D_acropolis_cafeteria_80183F3C[];
-extern s32        D_acropolis_cafeteria_80184164;
-extern RECT       D_acropolis_cafeteria_80184168;
-extern RECT       D_acropolis_cafeteria_80184170;
+extern ActorTransform D_acropolis_cafeteria_80182D28;
+extern s32            D_acropolis_cafeteria_80182DB8;
+extern ActorTransform D_acropolis_cafeteria_80182DDC;
+extern GpEvsCmd       D_acropolis_cafeteria_80182E74[];
+extern GpEvsCmd       D_acropolis_cafeteria_801831BC[];
+extern GpEvsCmd       D_acropolis_cafeteria_8018330C[];
+extern GpEvsCmd       D_acropolis_cafeteria_801834D4[];
+extern GpEvsCmd       D_acropolis_cafeteria_8018363C[];
+extern GpEvsCmd       D_acropolis_cafeteria_80183DBC[];
+extern GpEvsCmd       D_acropolis_cafeteria_80183F3C[];
+extern s32            D_acropolis_cafeteria_80184164;
+extern RECT           D_acropolis_cafeteria_80184168;
+extern RECT           D_acropolis_cafeteria_80184170;
 
 static void func_acropolis_cafeteria_8017D6AC(Task* task);
 static void func_acropolis_cafeteria_8017E348(Task* task);
@@ -139,21 +139,21 @@ AnimationPlayRequest D_acropolis_cafeteria_80182B44 = { { .index = 1 }, 9, ANIMA
 
 AnimationPlayRequest D_acropolis_cafeteria_80182B58 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_acropolis_cafeteria_80182B6C = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182B6C = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182B84 = { { -3759, -300, 18, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182B84 = { { -3759, -300, 18, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182B9C = { { -3748, -300, -885, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182B9C = { { -3748, -300, -885, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182BB4 = { { -3689, -300, -2934, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182BB4 = { { -3689, -300, -2934, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182BCC = { { -3892, -300, -1836, 0 }, { 0, 1800, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182BCC = { { -3892, -300, -1836, 0 }, { 0, 1800, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182BE4 = { { -3000, -300, 1000, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182BE4 = { { -3000, -300, 1000, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182BFC = { { -3000, -300, -600, 0 }, { 0, 2304, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182BFC = { { -3000, -300, -600, 0 }, { 0, 2304, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182C14 = { { -2800, -300, -892, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182C14 = { { -2800, -300, -892, 0 }, { 0, 2048, 0, 0 } };
 
 AnimationPlayRequest D_acropolis_cafeteria_80182C2C = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -182,23 +182,23 @@ AnimationPlayRequest D_acropolis_cafeteria_80182CA0 = { { .index = 1 }, 49, ANIM
 
 AnimationPlayRequest D_acropolis_cafeteria_80182CB4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_acropolis_cafeteria_80182CC8 = { { -3106, -300, -2056, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182CC8 = { { -3106, -300, -2056, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182CE0 = { { -3860, -299, -1365, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182CE0 = { { -3860, -299, -1365, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182CF8 = { { -3890, -299, -1555, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182CF8 = { { -3890, -299, -1555, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182D10 = { { -3490, -299, -4500, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182D10 = { { -3490, -299, -4500, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182D28 = { { -3860, -299, -1253, 0 }, { 0, 200, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182D28 = { { -3860, -299, -1253, 0 }, { 0, 200, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182D40 = { { -3290, -299, -3500, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182D40 = { { -3290, -299, -3500, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182D58 = { { -3650, -299, -961, 0 }, { 0, 200, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182D58 = { { -3650, -299, -961, 0 }, { 0, 200, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182D70 = { { -3026, -300, -4126, 0 }, { 0, -200, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182D70 = { { -3026, -300, -4126, 0 }, { 0, -200, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182D88 = { { -470, -1400, 701, 0 }, { 0, -800, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182D88 = { { -470, -1400, 701, 0 }, { 0, -800, 0, 0 } };
 
 ActorCommand D_acropolis_cafeteria_80182DA0 = { { .loc = { 1, 4 } }, 0 };
 
@@ -218,11 +218,11 @@ ActorCommand D_acropolis_cafeteria_80182DBC = { { .loc = { 1, 4 } }, 8 };
 
 ActorCommand D_acropolis_cafeteria_80182DC0 = { { .loc = { 1, 4 } }, 9 };
 
-GpXformArg D_acropolis_cafeteria_80182DC4 = { { -3403, -250, 800, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182DC4 = { { -3403, -250, 800, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182DDC = { { -3850, -299, -900, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182DDC = { { -3850, -299, -900, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_acropolis_cafeteria_80182DF4 = { { -4400, -299, -1400, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_acropolis_cafeteria_80182DF4 = { { -4400, -299, -1400, 0 }, { 0, 2048, 0, 0 } };
 
 AnimationPlayRequest D_acropolis_cafeteria_80182E0C = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

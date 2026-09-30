@@ -92,7 +92,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor146300MsgEntry;
@@ -104,7 +104,7 @@ extern AnimationPlayRequest D_actor_146300_80137AAC;
 extern AnimationPlayRequest D_actor_146300_80137B10;
 extern AnimationPlayRequest D_actor_146300_80137B38;
 extern AnimationPlayRequest D_actor_146300_80137B60;
-extern GpXformArg           D_actor_146300_80137C10;
+extern ActorTransform       D_actor_146300_80137C10;
 extern GpEvsCmd             D_actor_146300_801386C0[];
 extern GpEvsCmd             D_actor_146300_80138810[];
 extern GpEvsCmd             D_actor_146300_801388D0[];
@@ -126,7 +126,7 @@ void             func_actor_146300_80132B1C(Task*);
 
 s32 func_actor_146300_8013299C(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_146300_80132A2C(Task*, s32, s32);
-s32 func_actor_146300_80132A98(Task*, s32, GpXformArg*);
+s32 func_actor_146300_80132A98(Task*, s32, ActorTransform* placement);
 s32 func_actor_146300_80132B14(void);
 
 extern AnimationPlayRequest D_actor_146300_80137A20;
@@ -162,8 +162,8 @@ extern AnimationPlayRequest D_actor_146300_80137B24;
 extern AnimationPlayRequest D_actor_146300_80137B4C;
 extern AnimationPlayRequest D_actor_146300_80137B9C;
 extern AnimationPlayRequest D_actor_146300_80137BB0;
-extern GpXformArg           D_actor_146300_80137BE0;
-extern GpXformArg           D_actor_146300_80137BF8;
+extern ActorTransform       D_actor_146300_80137BE0;
+extern ActorTransform       D_actor_146300_80137BF8;
 void                        func_actor_146300_801323E0(void);
 
 void func_actor_146300_80131ECC(Task*);
@@ -640,11 +640,11 @@ AnimationPlayRequest D_actor_146300_80137BC4 = { { .index = 1 }, 64, ANIMATION_B
 
 GpCopyArg D_actor_146300_80137BD8 = { { .words = D_actor_146300_80137898.words }, 32 };
 
-GpXformArg D_actor_146300_80137BE0 = { { 1110, -0x2EE0, -2500, 0 }, { 0, 1820, 0, 0 } };
+ActorTransform D_actor_146300_80137BE0 = { { 1110, -0x2EE0, -2500, 0 }, { 0, 1820, 0, 0 } };
 
-GpXformArg D_actor_146300_80137BF8 = { { 1500, -0x2EE0, -1744, 0 }, { 0, 1820, 0, 0 } };
+ActorTransform D_actor_146300_80137BF8 = { { 1500, -0x2EE0, -1744, 0 }, { 0, 1820, 0, 0 } };
 
-GpXformArg D_actor_146300_80137C10 = { { 1110, -0x2EE0, -2000, 0 }, { 0, 682, 0, 0 } };
+ActorTransform D_actor_146300_80137C10 = { { 1110, -0x2EE0, -2000, 0 }, { 0, 682, 0, 0 } };
 
 GpEvsCmd D_actor_146300_80137C28[99] = {
     { 13, { .callbackNoArg = func_actor_146300_801323E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1722,7 +1722,7 @@ s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
 /// Message 0x7D4 handler: turns the model root to `placement`'s yaw
 /// (recorded in the work block's `yaw`), moves it to `placement`'s position and
 /// marks the coordinate for recomputation. Only the Y rotation is applied.
-s32 func_actor_146300_80132A98(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_146300_80132A98(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;

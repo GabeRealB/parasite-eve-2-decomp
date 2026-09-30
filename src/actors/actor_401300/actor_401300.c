@@ -255,7 +255,7 @@ typedef struct {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, Actor401300Event*);
         s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, ActorTransform*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
@@ -334,7 +334,7 @@ s32                 func_actor_401300_80132554(Task*, s32, Actor401300Event*);
 s32                 func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*);
 s32                 func_actor_401300_80141504(Task*, s32, s32);
 s32                 func_actor_401300_801415C4(Task*);
-s32                 func_actor_401300_80141614(Task*, s32, GpXformArg*);
+s32                 func_actor_401300_80141614(Task*, s32, ActorTransform* placement);
 s32                 func_actor_401300_80141714(Task*);
 void                func_actor_401300_8014148C(void);
 void                func_actor_401300_80141F2C(Task*);
@@ -5979,7 +5979,7 @@ s32 func_actor_401300_801415C4(Task* task)
 /// Places the model's root coordinate from `placement`: sets its translation,
 /// applies the X, Y and Z rotations in turn, and caches the resulting heading
 /// (`ratan2` of the matrix Z axis) in `Actor401300Work::yaw`. Always returns 1.
-s32 func_actor_401300_80141614(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     s32              mx;

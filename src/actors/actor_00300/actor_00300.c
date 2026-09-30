@@ -229,7 +229,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor00300RecoveredMsgEntry;
@@ -272,7 +272,7 @@ extern AnimationSet Actor00300_D15FB0;
 extern TmdSource    Actor00300_D09E84;
 extern TmdSource    Actor00300_D0A120;
 s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*);
-s32                 Actor00300_Fn05388(Task*, s32, GpXformArg*);
+s32                 Actor00300_Fn05388(Task*, s32, ActorTransform* args);
 s32                 Actor00300_Fn053EC(Task*, s32, s32);
 s32                 Actor00300_Fn05434(Task*, s32, ActorCommand* args);
 void                Actor00300_Fn04770(Task*);
@@ -3760,7 +3760,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
     return 0;
 }
 
-s32 Actor00300_Fn05388(Task* arg0, s32 arg1, GpXformArg* args)
+s32 Actor00300_Fn05388(Task* arg0, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord = arg0->extra.tmd->coords;
 

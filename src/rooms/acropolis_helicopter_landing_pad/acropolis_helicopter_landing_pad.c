@@ -57,7 +57,7 @@ typedef struct {
     s32 id; // Message id; 0x7FFFFFFF terminates the table
     union {
         s32 (*animation)(Task*, s32, AnimationPlayRequest*, GpMessageArg);
-        s32 (*placement)(Task*, s32, GpXformArg*, s32);
+        s32 (*placement)(Task*, s32, ActorTransform*, s32);
     } handler; // Callback with the argument views required by that message
 } _AcropolisHelicopterLandingPadMessageEntry;
 STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadMessageEntry, 8);
@@ -68,14 +68,14 @@ extern GsF_LIGHT                                  D_acropolis_helicopter_landing
 /// a non-zero byte keeps the enemy model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
-extern GpXformArg D_acropolis_helicopter_landing_pad_80182394;
-extern GpXformArg D_acropolis_helicopter_landing_pad_801823AC;
+extern ActorTransform D_acropolis_helicopter_landing_pad_80182394;
+extern ActorTransform D_acropolis_helicopter_landing_pad_801823AC;
 
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
-s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
+s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
 s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, GpMessageArg);
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task*, s32, GpXformArg*, s32);
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task*, s32, ActorTransform* placement, s32);
 
 _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
     { 2003, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
@@ -128,9 +128,9 @@ s8 D_acropolis_helicopter_landing_pad_80182370[36] = {
     0,
 };
 
-GpXformArg D_acropolis_helicopter_landing_pad_80182394 = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_helicopter_landing_pad_80182394 = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_acropolis_helicopter_landing_pad_801823AC = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_acropolis_helicopter_landing_pad_801823AC = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
 
 TmdBone D_acropolis_helicopter_landing_pad_801823C4[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0612C_skeleton.inc"
@@ -271,7 +271,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, Animat
 /// task's model at `placement`: copies the position onto the coordinate's
 /// translation, the Euler angles onto its rotation, rebuilds the rotation
 /// matrix and marks the coordinate dirty.
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3)
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
 

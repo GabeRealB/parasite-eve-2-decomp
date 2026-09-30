@@ -30,9 +30,9 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpXformArg D_mist_parking_8018FC3C;
+extern ActorTransform D_mist_parking_8018FC3C;
 
-static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
+static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 
 void func_mist_parking_801837B8(Task*);
 void func_mist_parking_8018397C(Task*);
@@ -42,7 +42,7 @@ TaskDesc D_mist_parking_8018FC24[2] = {
     { 0, 192, func_mist_parking_801837B8, { .model = NULL } },
 };
 
-GpXformArg D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
+ActorTransform D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
 
 SVECTOR D_mist_parking_8018FC54[2] = {
 #include "assets/mist_parking_collision_126F8_normals.inc"
@@ -293,7 +293,7 @@ static void func_mist_parking_801839CC(Task* task)
 
 static void func_mist_parking_80183A28(Task* task)
 {
-    GpXformArg placement;
+    ActorTransform placement;
 
     if (task->killCountdown > 0) {
         placement                      = D_mist_parking_8018FC3C;
@@ -312,7 +312,7 @@ static void func_mist_parking_80183A28(Task* task)
 /// coordinate frame's translation, its angles the frame's rotation, from
 /// which `RotMatrixZYX` rebuilds the matrix; clearing `composeStamp` makes the frame
 /// be recomputed.
-static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
+static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
 

@@ -37,7 +37,32 @@ enum {
     ROOM_EVENT_QUERY_ONLY      = 1,
 };
 
-struct GpXformArg;
+/// Angular scale and wrapping used by actor placement and facing records.
+enum {
+    ACTOR_TRANSFORM_ANGLE_TURN      = 4096,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN = 2048,
+    ACTOR_TRANSFORM_ANGLE_MASK      = ACTOR_TRANSFORM_ANGLE_TURN - 1,
+};
+
+/// An actor position and orientation used by placement tables and task messages.
+///
+/// Coordinates use whole world-coordinate units in the frame selected by the
+/// receiver or table; part placements may be relative to another model. Euler
+/// angles use 4096 units per turn and need not be normalized. The SDK vectors'
+/// fourth components have no placement meaning.
+///
+/// Placement handlers use both vectors; turning and approach handlers may read
+/// only yaw or position. Initialize every component the selected handler reads.
+/// Message handlers consume the values during dispatch, copying any destination
+/// needed by later frames. Keep a borrowed message live through dispatch and a
+/// borrowed spawn placement live until the task has initialized from it.
+/// The record occupies 24 bytes with four-byte alignment.
+typedef struct {
+    VECTOR  pos; // Signed X/Y/Z position in the receiver's coordinate frame
+    SVECTOR rot; // Signed X/Y/Z Euler angles; 4096 units per turn
+} ActorTransform;
+STATIC_ASSERT_SIZEOF(ActorTransform, 0x18);
+
 struct AnimationPlayRequest;
 struct ActorCommand;
 struct AnimationSet;
@@ -52,7 +77,7 @@ typedef union GpMessageArg {
     void*                        storage;
     u8*                          bytes;
     VECTOR*                      vector;
-    struct GpXformArg*           transform;
+    ActorTransform*              transform;
     struct AnimationPlayRequest* animation;
     struct ActorCommand*         command;
     RoomEventMsg*                location;
@@ -84,16 +109,6 @@ typedef struct _GpActorArg {
     /* 0xC */ s32  field_C;
 } GpActorArg;
 STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
-
-/// A position and a set of Euler angles, the payload of the messages that put
-/// a task somewhere. The player takes it to be placed or warped, and as the
-/// point to walk to; the actors take it to be placed, and as the point to walk
-/// to or turn towards, where some read only the position.
-typedef struct GpXformArg {
-    VECTOR  pos;
-    SVECTOR rot;
-} GpXformArg;
-STATIC_ASSERT_SIZEOF(GpXformArg, 0x18);
 
 /// Playback choices stored as signed words in an animation request.
 enum {
@@ -217,7 +232,7 @@ typedef struct GpFacingArg {
 STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
 
 /// The optional second payload of message 0x3F2, which sends the receiver to a
-/// `GpXformArg` destination: two values the receiver keeps in its own state
+/// `ActorTransform` destination: two values the receiver keeps in its own state
 /// while it gets there. Without one it clears both.
 typedef struct GpOverrideArg {
     s32 field_0;

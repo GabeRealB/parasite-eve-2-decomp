@@ -449,9 +449,9 @@ AnimationPlayRequest D_actor_143400_80134F54 = { { .index = 1 }, 56, ANIMATION_B
 
 AnimationPlayRequest D_actor_143400_80134F68 = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_143400_80134F7C = { { 7000, 0, 4040, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_143400_80134F7C = { { 7000, 0, 4040, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_143400_80134F94 = { { 6800, 0, 4160, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_143400_80134F94 = { { 6800, 0, 4160, 0 }, { 0, 0, 0, 0 } };
 
 AnimationSet* D_actor_143400_80134FAC[9] = {
     NULL,
@@ -485,9 +485,9 @@ AnimationPlayRequest D_actor_143400_80135064 = { { .index = 1 }, 54, ANIMATION_B
 
 AnimationPlayRequest D_actor_143400_80135078 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_143400_8013508C = { { 9440, 0, 3160, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_actor_143400_8013508C = { { 9440, 0, 3160, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_actor_143400_801350A4 = { { 7650, 0, 4110, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_143400_801350A4 = { { 7650, 0, 4110, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_actor_143400_801350BC[97] = {
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

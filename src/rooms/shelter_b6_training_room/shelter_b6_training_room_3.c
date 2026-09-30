@@ -217,9 +217,9 @@ AnimationPlayRequest D_shelter_b6_training_room_80183A0C = { { .index = 1 }, 50,
 
 AnimationPlayRequest D_shelter_b6_training_room_80183A20 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_shelter_b6_training_room_80183A34 = { { 2300, 0, 8900, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_shelter_b6_training_room_80183A34 = { { 2300, 0, 8900, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_shelter_b6_training_room_80183A4C = { { 2300, 0, 9000, 0 }, { 0, 1707, 0, 0 } };
+ActorTransform D_shelter_b6_training_room_80183A4C = { { 2300, 0, 9000, 0 }, { 0, 1707, 0, 0 } };
 
 AnimationPlayRequest D_shelter_b6_training_room_80183A64 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -233,7 +233,7 @@ AnimationPlayRequest D_shelter_b6_training_room_80183AB4 = { { .index = 0 }, 4, 
 
 AnimationPlayRequest D_shelter_b6_training_room_80183AC8 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_shelter_b6_training_room_80183ADC = { { 2850, 0, 8050, 0 }, { 0, -228, 0, 0 } };
+ActorTransform D_shelter_b6_training_room_80183ADC = { { 2850, 0, 8050, 0 }, { 0, -228, 0, 0 } };
 
 AnimationPlayRequest D_shelter_b6_training_room_80183AF4[5] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -243,11 +243,11 @@ AnimationPlayRequest D_shelter_b6_training_room_80183AF4[5] = {
     { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpXformArg D_shelter_b6_training_room_80183B58 = { { 3250, 0, 9500, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_shelter_b6_training_room_80183B58 = { { 3250, 0, 9500, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_shelter_b6_training_room_80183B70 = { { 3250, 0, 9500, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b6_training_room_80183B70 = { { 3250, 0, 9500, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_shelter_b6_training_room_80183B88 = { { 5000, 0, 0x2710, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b6_training_room_80183B88 = { { 5000, 0, 0x2710, 0 }, { 0, 1024, 0, 0 } };
 
 ActorCommand D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
 

@@ -71,23 +71,23 @@
 /// `Gp_KillPlayerEffs`) and `func_actor_341900_80163438` (calls
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
-    /* 0x00 */ Task*      field_0; // gameGetPtrSlot(3)
-    /* 0x04 */ Task*      field_4; // Gp_FindWorkById(session slot)->field_0
-    /* 0x08 */ Task*      field_8;
-    /* 0x0C */ Task*      field_C;
-    /* 0x10 */ Task*      field_10;
-    /* 0x14 */ GpXformArg field_14;
-    /* 0x2C */ GpXformArg field_2C;
-    /* 0x44 */ GpXformArg field_44;
-    /* 0x5C */ s16        field_5C;
-    /* 0x5E */ s16        field_5E;
-    /* 0x60 */ byte       pad_60[0x4];
-    /* 0x64 */ s16        field_64;
-    /* 0x66 */ s16        field_66;
-    /* 0x68 */ s16        field_68;
-    /* 0x6A */ byte       pad_6A[0x2];
-    /* 0x6C */ u16        field_6C;
-    /* 0x6E */ byte       pad_6E[0x2];
+    /* 0x00 */ Task*          field_0; // gameGetPtrSlot(3)
+    /* 0x04 */ Task*          field_4; // Gp_FindWorkById(session slot)->field_0
+    /* 0x08 */ Task*          field_8;
+    /* 0x0C */ Task*          field_C;
+    /* 0x10 */ Task*          field_10;
+    /* 0x14 */ ActorTransform field_14;
+    /* 0x2C */ ActorTransform field_2C;
+    /* 0x44 */ ActorTransform field_44;
+    /* 0x5C */ s16            field_5C;
+    /* 0x5E */ s16            field_5E;
+    /* 0x60 */ byte           pad_60[0x4];
+    /* 0x64 */ s16            field_64;
+    /* 0x66 */ s16            field_66;
+    /* 0x68 */ s16            field_68;
+    /* 0x6A */ byte           pad_6A[0x2];
+    /* 0x6C */ u16            field_6C;
+    /* 0x6E */ byte           pad_6E[0x2];
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
 
@@ -199,30 +199,30 @@ extern AnimationSet* D_actor_341900_801639C4[3];
 extern s16 D_actor_341900_801639D0[];
 /// Placements sent to the two effect children (`field_C` / `field_10`) as
 /// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
-extern GpXformArg D_actor_341900_801639D8[2];
+extern ActorTransform D_actor_341900_801639D8[2];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
     union {
         void (*call0)(void);
         void (*call1)(Task*, s32, Actor341900AnimCmd*);
-        void (*call2)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, ActorTransform*);
         void (*call3)(Task*, s32, s32);
     } handler;
 } Actor341900MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor341900MessageEntry, 8);
 
 extern Actor341900MessageEntry D_actor_341900_80163A38[2];
-extern GpXformArg              D_actor_341900_80163A48;
-extern GpXformArg              D_actor_341900_80163A60;
+extern ActorTransform          D_actor_341900_80163A48;
+extern ActorTransform          D_actor_341900_80163A60;
 extern Actor341900MessageEntry D_actor_341900_80163A78[4];
 /// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
 /// `func_actor_341900_801635A4` also warps slot 3 to the last one.
-extern GpXformArg D_actor_341900_80163AC8;
-extern GpXformArg D_actor_341900_80163AE0;
-extern GpXformArg D_actor_341900_80163AF8;
-extern GpXformArg D_actor_341900_80163B10;
-extern GpXformArg D_actor_341900_80163B28;
+extern ActorTransform D_actor_341900_80163AC8;
+extern ActorTransform D_actor_341900_80163AE0;
+extern ActorTransform D_actor_341900_80163AF8;
+extern ActorTransform D_actor_341900_80163B10;
+extern ActorTransform D_actor_341900_80163B28;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern GpEvsCmd D_actor_341900_80163B48[];
@@ -252,7 +252,7 @@ void                func_actor_341900_80163678(void);
 
 void func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*);
 void func_actor_341900_80163224(Task*, s32, s32);
-void func_actor_341900_801632A0(Task*, s32, GpXformArg*);
+void func_actor_341900_801632A0(Task*, s32, ActorTransform* placement);
 void func_actor_341900_8016332C(void);
 
 AnimationPackedPose D_actor_341900_801636A0[6] = {
@@ -307,12 +307,12 @@ s16 D_actor_341900_801639D0[4] = {
     0,
 };
 
-GpXformArg D_actor_341900_801639D8[2] = {
+ActorTransform D_actor_341900_801639D8[2] = {
     { { -60, 150, -2650, 0 }, { 0, 0, 0, 0 } },
     { { -60, 150, -2650, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpXformArg D_actor_341900_80163A08[2] = {
+ActorTransform D_actor_341900_80163A08[2] = {
     { { -60, 150, -5300, 0 }, { 0, 0, 0, 0 } },
     { { -60, 150, 0, 0 }, { 0, 0, 0, 0 } },
 };
@@ -322,9 +322,9 @@ Actor341900MessageEntry D_actor_341900_80163A38[2] = {
     { 2004, { .call2 = func_actor_341900_801632A0 } },
 };
 
-GpXformArg D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
 
 Actor341900MessageEntry D_actor_341900_80163A78[4] = {
     { 2005, { .call3 = func_actor_341900_80163224 } },
@@ -342,15 +342,15 @@ Actor341900SpawnPos D_actor_341900_80163A98[6] = {
     { 0, 1660, 200, 2 },
 };
 
-GpXformArg D_actor_341900_80163AC8 = { { 500, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_341900_80163AC8 = { { 500, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_341900_80163AE0 = { { 3000, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_341900_80163AE0 = { { 3000, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_341900_80163AF8 = { { 3200, 0, -2500, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_341900_80163AF8 = { { 3200, 0, -2500, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_341900_80163B10 = { { 1000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_actor_341900_80163B10 = { { 1000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_actor_341900_80163B28 = { { 4000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_actor_341900_80163B28 = { { 4000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
 
 GpOverlayIds D_actor_341900_80163B40 = { 4, 19, 11 };
 
@@ -1050,7 +1050,7 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 /// placement onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void func_actor_341900_801632A0(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_341900_801632A0(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

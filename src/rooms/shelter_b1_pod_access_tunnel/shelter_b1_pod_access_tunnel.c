@@ -157,9 +157,9 @@ extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DDC;
 extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0;
 extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E04;
 extern GpCopyArg            D_shelter_b1_pod_access_tunnel_80182D70;
-extern GpXformArg           D_shelter_b1_pod_access_tunnel_80182E18;
-extern GpXformArg           D_shelter_b1_pod_access_tunnel_80182E30;
-extern GpXformArg           D_shelter_b1_pod_access_tunnel_80182E48;
+extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E18;
+extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E30;
+extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E48;
 void                        func_shelter_b1_pod_access_tunnel_8017E39C(void);
 void                        func_shelter_b1_pod_access_tunnel_8017E3BC(void);
 void                        func_shelter_b1_pod_access_tunnel_8017E3DC(void);
@@ -387,11 +387,11 @@ AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0 = { { .index = 1 },
 
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E04 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182E18 = { { 1740, 0, -5620, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182E18 = { { 1740, 0, -5620, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182E30 = { { 1690, 0, -6060, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182E30 = { { 1690, 0, -6060, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182E48 = { { 2350, 0, -4800, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182E48 = { { 2350, 0, -4800, 0 }, { 0, 0, 0, 0 } };
 
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E60[4] = {
     { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -415,19 +415,19 @@ AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182F14 = { { .index = 0 },
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182F28 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182F3C = { { 1760, 0, -5100, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182F3C = { { 1760, 0, -5100, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182F54 = { { 1740, 0, -3970, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182F54 = { { 1740, 0, -3970, 0 }, { 0, 2047, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182F6C = { { 4000, 0, -1650, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182F6C = { { 4000, 0, -1650, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182F84 = { { 6700, 0, -1650, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182F84 = { { 6700, 0, -1650, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182F9C = { { 7100, 0, 2920, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182F9C = { { 7100, 0, 2920, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182FB4 = { { 6930, 0, 3710, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182FB4 = { { 6930, 0, 3710, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_shelter_b1_pod_access_tunnel_80182FCC = { { 1760, 0, -4100, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_shelter_b1_pod_access_tunnel_80182FCC = { { 1760, 0, -4100, 0 }, { 0, 0, 0, 0 } };
 
 ActorCommand D_shelter_b1_pod_access_tunnel_80182FE4 = { { .loc = { 4, 17 } }, 1 };
 

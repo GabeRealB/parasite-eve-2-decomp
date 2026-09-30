@@ -176,7 +176,7 @@ extern TaskDesc D_8014D8A4;
 extern AnimationPlayRequest D_dryfield_main_street_801815AC;
 extern AnimationPlayRequest D_dryfield_main_street_801815C0;
 extern AnimationPlayRequest D_dryfield_main_street_801815D4;
-extern GpXformArg           D_dryfield_main_street_801815E8;
+extern ActorTransform       D_dryfield_main_street_801815E8;
 void                        func_dryfield_main_street_8017E2F4(s32);
 void                        func_dryfield_main_street_8017E320(void);
 void                        func_dryfield_main_street_8017E354(s32);
@@ -269,10 +269,10 @@ AnimationPlayRequest D_dryfield_main_street_801815C0 = { { .index = 1 }, 49, ANI
 
 AnimationPlayRequest D_dryfield_main_street_801815D4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_main_street_801815E8 = { { -2237, 0, -2100, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_main_street_801815E8 = { { -2237, 0, -2100, 0 }, { 0, 0, 0, 0 } };
 
 // Retained parameter record; layout follows the adjacent script arguments.
-GpXformArg D_dryfield_main_street_80181600 = { { -3000, 0, 6000, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_main_street_80181600 = { { -3000, 0, 6000, 0 }, { 0, 0, 0, 0 } };
 
 ActorCommand D_dryfield_main_street_80181618 = { { .loc = { 2, 2 } }, 1 };
 

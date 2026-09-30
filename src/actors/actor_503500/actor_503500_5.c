@@ -157,7 +157,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
 } Actor5035005MsgEntry;
@@ -211,7 +211,7 @@ extern AnimationSet D_actor_503500_80176314;
 extern AnimationSet D_actor_503500_801764EC;
 extern TmdSource    D_actor_503500_80175DC8;
 s32                 func_actor_503500_8014652C(Task*, s32, AnimationPlayRequest*);
-s32                 func_actor_503500_80146664(Task*, s32, GpXformArg*);
+s32                 func_actor_503500_80146664(Task*, s32, ActorTransform* args);
 s32                 func_actor_503500_801466E0(Task*, s32, s32);
 s32                 func_actor_503500_801467C0(Task*, s32, ActorCommand* msg);
 void                func_actor_503500_801463C0(Task*);
@@ -1927,7 +1927,7 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, AnimationPlayRequest* msg)
 /// Message-0x7D4 handler of the effect task's table (the one
 /// `func_actor_503500_8014642C` installs): places the effect's model at `args`
 /// exactly as `func_actor_503500_80132508` places the actor. Returns 0.
-s32 func_actor_503500_80146664(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_503500_80146664(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

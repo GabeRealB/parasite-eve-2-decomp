@@ -278,14 +278,14 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpXformArg*);
-        s32 (*transform)(Task*, s32, GpXformArg*, s32);
+        s32 (*call1)(Task*, s32, ActorTransform*);
+        s32 (*transform)(Task*, s32, ActorTransform*, s32);
         s32 (*call2)(Task*, s32, s32, s32);
         s32 (*call3)(Task*, s32, GpFacingArg*);
         s32 (*call4)(Task*);
         s32 (*call5)(Task*, s32, s32);
         s32 (*coord)(Task*, s32, GfxCoord*);
-        s32 (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
+        s32 (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
         s32 (*call7)(Task*, s32, AnimationPlayRequest*);
         s32 (*call8)(Task*, s32, GpCountArg*);
         s32 (*call9)(Task*, s32, GpCopyArg*);
@@ -439,7 +439,7 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0);
 
 s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2);
 
-s32 func_80105190(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
 
 s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
@@ -6329,7 +6329,7 @@ s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request)
     return 0;
 }
 
-s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform)
 {
     TmdObject* extra;
     GameActor* actor;
@@ -6339,12 +6339,12 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     extra             = arg0->extra.tmd;
     actor             = (GameActor*)arg0->work;
     coord             = extra->coords;
-    coord->coord.t[0] = arg2->pos.vx;
-    coord->coord.t[1] = arg2->pos.vy;
-    coord->coord.t[2] = arg2->pos.vz;
-    actor->field_50   = arg2->rot.vx;
-    actor->field_52   = arg2->rot.vy;
-    actor->field_54   = arg2->rot.vz;
+    coord->coord.t[0] = transform->pos.vx;
+    coord->coord.t[1] = transform->pos.vy;
+    coord->coord.t[2] = transform->pos.vz;
+    actor->field_50   = transform->rot.vx;
+    actor->field_52   = transform->rot.vy;
+    actor->field_54   = transform->rot.vz;
     mtx               = &coord->coord;
     RotMatrix((SVECTOR*)&actor->field_50, mtx);
     MatrixNormal(mtx, mtx);
@@ -6384,7 +6384,7 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0)
     }
 }
 
-s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3)
+s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg3)
 {
     GameActor* actor;
     s32*       head;
@@ -6399,7 +6399,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3)
     actor->field_982 = 1;
     actor->field_956 = 2;
     actor->field_983 = 0x38;
-    angle            = arg2->rot.vy;
+    angle            = transform->rot.vy;
     actor->field_82  = angle;
     val              = func_80103E7C(actor->field_52, angle);
     head[-4]         = val;
@@ -6452,7 +6452,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     return 0;
 }
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6481,9 +6481,9 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     actor->field_956 = 4;
     actor->field_982 = 1;
     actor->field_983 = 0x38;
-    actor->field_20  = arg2->pos.vx;
-    actor->field_24  = arg2->pos.vy;
-    actor->field_28  = arg2->pos.vz;
+    actor->field_20  = transform->pos.vx;
+    actor->field_24  = transform->pos.vy;
+    actor->field_28  = transform->pos.vz;
     if (arg3 != NULL) {
         actor->field_93C = arg3->field_0;
         actor->field_93E = arg3->field_4;
@@ -6494,7 +6494,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_80105190(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6523,9 +6523,9 @@ s32 func_80105190(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     actor->field_956 = 4;
     actor->field_982 = 1;
     actor->field_983 = 0x38;
-    actor->field_20  = arg2->pos.vx;
-    actor->field_24  = arg2->pos.vy;
-    actor->field_28  = arg2->pos.vz;
+    actor->field_20  = transform->pos.vx;
+    actor->field_24  = transform->pos.vy;
+    actor->field_28  = transform->pos.vz;
     if (arg3 != NULL) {
         actor->field_93C = arg3->field_0;
         actor->field_93E = arg3->field_4;

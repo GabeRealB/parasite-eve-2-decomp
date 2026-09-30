@@ -55,7 +55,7 @@ extern s8                   D_actor_450900_80135E70;
 extern s32                  D_actor_450900_80135E74;
 extern AnimationPlayRequest D_actor_450900_80135FEC;
 extern AnimationPlayRequest D_actor_450900_801360B4;
-extern GpXformArg           D_actor_450900_80136458;
+extern ActorTransform       D_actor_450900_80136458;
 extern GpEvsCmd             D_actor_450900_80136470[];
 extern GpEvsCmd             D_actor_450900_80136680[];
 extern GpEvsCmd             D_actor_450900_80136890[];
@@ -513,11 +513,11 @@ AnimationPlayRequest D_actor_450900_801360A0 = { { .index = 1 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_450900_801360B4 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_450900_801360C8 = { { 3450, 0, 6378, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_450900_801360C8 = { { 3450, 0, 6378, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_450900_801360E0 = { { 3300, 0, 6378, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_450900_801360E0 = { { 3300, 0, 6378, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_actor_450900_801360F8 = { { 750, 0, 3710, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450900_801360F8 = { { 750, 0, 3710, 0 }, { 0, -1024, 0, 0 } };
 
 GpEvsCmd D_actor_450900_80136110[21] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_450900_80135EC0.data.copies[1] }, { .value = 0 } },
@@ -560,7 +560,7 @@ GpEvsCmd D_actor_450900_80136308[14] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpXformArg D_actor_450900_80136458 = { { 0, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_450900_80136458 = { { 0, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 
 GpEvsCmd D_actor_450900_80136470[22] = {
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_450900_801360C8 }, { .value = 0 } },

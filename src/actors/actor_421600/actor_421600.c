@@ -375,7 +375,7 @@ typedef struct {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
         s32  (*call2)(Task*, s32, ActorCommand* request);
-        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, ActorTransform*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
@@ -500,7 +500,7 @@ extern TmdSource    D_actor_421600_80143A54;
 s32                 func_actor_421600_80132A00(Task*, s32, ActorCommand* request);
 s32                 func_actor_421600_8013E42C(Task*, s32, s32);
 s32                 func_actor_421600_8013E4EC(Task*);
-s32                 func_actor_421600_8013E52C(Task*, s32, GpXformArg*);
+s32                 func_actor_421600_8013E52C(Task*, s32, ActorTransform* placement);
 s32                 func_actor_421600_8013E62C(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_421600_8013E654(Task*);
 static void         func_actor_421600_8013EEC8(Task*);
@@ -7265,7 +7265,7 @@ return_one:
 ///
 /// The `TmdObject` is re-read from `Task::extra` for every access because the
 /// stores and the `Gfx_RotMatrix*` calls in between may alias it.
-s32 func_actor_421600_8013E52C(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_421600_8013E52C(Task* task, s32 arg1, ActorTransform* placement)
 {
     Actor421600Work* work;
 

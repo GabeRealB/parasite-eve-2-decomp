@@ -68,7 +68,7 @@ typedef struct {
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
         s32 (*call2)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call3)(Task*, s32, ActorCommand* request);
-        s32 (*call4)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, ActorTransform*);
         s32 (*call5)(Task*, s32, VECTOR*);
         s32 (*call6)(Task*, s32, VECTOR*, s32);
         s32 (*call7)(Task*, s32, s32);
@@ -108,7 +108,7 @@ void             func_actor_535700_80132478(Task*);
 
 s32 func_actor_535700_801327BC(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_535700_8013284C(Task*, s32, s32);
-s32 func_actor_535700_80132894(Task*, s32, GpXformArg*);
+s32 func_actor_535700_80132894(Task*, s32, ActorTransform* placement);
 s32 func_actor_535700_80132910(Task*, s32, ActorCommand* msg);
 s32 func_actor_535700_80132960(Task*, s32, VECTOR*, s32);
 
@@ -116,7 +116,7 @@ extern TmdSource D_actor_535700_80142E58;
 extern TmdSource D_actor_535700_8014339C;
 s32              func_actor_535700_801331E4(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_535700_80133250(Task*, s32, s32);
-s32              func_actor_535700_801332B4(Task*, s32, GpXformArg*);
+s32              func_actor_535700_801332B4(Task*, s32, ActorTransform* placement);
 s32              func_actor_535700_8013332C(void);
 s32              func_actor_535700_80133334(Task*, s32, VECTOR*);
 void             func_actor_535700_80132F20(Task*);
@@ -141,23 +141,23 @@ extern AnimationPlayRequest D_actor_535700_80133594;
 extern AnimationPlayRequest D_actor_535700_801335A8;
 extern AnimationPlayRequest D_actor_535700_80133684;
 extern ActorCommand         D_actor_535700_8013348C;
-extern GpXformArg           D_actor_535700_80133698;
-extern GpXformArg           D_actor_535700_801336B0;
-extern GpXformArg           D_actor_535700_801336C8;
-extern GpXformArg           D_actor_535700_801336E0;
-extern GpXformArg           D_actor_535700_801336F8;
-extern GpXformArg           D_actor_535700_80133710;
-extern GpXformArg           D_actor_535700_80133728;
-extern GpXformArg           D_actor_535700_80133740;
-extern GpXformArg           D_actor_535700_80133758;
-extern GpXformArg           D_actor_535700_80133770;
-extern GpXformArg           D_actor_535700_80133788;
-extern GpXformArg           D_actor_535700_801337A0;
-extern GpXformArg           D_actor_535700_801337B8;
-extern GpXformArg           D_actor_535700_801337D0;
-extern GpXformArg           D_actor_535700_801337E8;
-extern GpXformArg           D_actor_535700_80133800;
-extern GpXformArg           D_actor_535700_80133818;
+extern ActorTransform       D_actor_535700_80133698;
+extern ActorTransform       D_actor_535700_801336B0;
+extern ActorTransform       D_actor_535700_801336C8;
+extern ActorTransform       D_actor_535700_801336E0;
+extern ActorTransform       D_actor_535700_801336F8;
+extern ActorTransform       D_actor_535700_80133710;
+extern ActorTransform       D_actor_535700_80133728;
+extern ActorTransform       D_actor_535700_80133740;
+extern ActorTransform       D_actor_535700_80133758;
+extern ActorTransform       D_actor_535700_80133770;
+extern ActorTransform       D_actor_535700_80133788;
+extern ActorTransform       D_actor_535700_801337A0;
+extern ActorTransform       D_actor_535700_801337B8;
+extern ActorTransform       D_actor_535700_801337D0;
+extern ActorTransform       D_actor_535700_801337E8;
+extern ActorTransform       D_actor_535700_80133800;
+extern ActorTransform       D_actor_535700_80133818;
 void                        func_actor_535700_80131EF0(s32);
 void                        func_actor_535700_80131F2C(void);
 
@@ -214,48 +214,48 @@ AnimationPlayRequest D_actor_535700_801335BC[10] = {
 
 AnimationPlayRequest D_actor_535700_80133684 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_535700_80133698 = { { 0x7530, 0, 0x7530, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_80133698 = { { 0x7530, 0, 0x7530, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_801336B0 = { { 50, 0, -0x37C8, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_801336B0 = { { 50, 0, -0x37C8, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_801336C8 = { { 50, 0, -0x2CC4, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_801336C8 = { { 50, 0, -0x2CC4, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_801336E0 = { { 50, 0, -0x2CC4, 0 }, { 0, -398, 0, 0 } };
+ActorTransform D_actor_535700_801336E0 = { { 50, 0, -0x2CC4, 0 }, { 0, -398, 0, 0 } };
 
-GpXformArg D_actor_535700_801336F8 = { { 0, 0, -0x2DC8, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_535700_801336F8 = { { 0, 0, -0x2DC8, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_actor_535700_80133710 = { { 0, 0, -0x2710, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_80133710 = { { 0, 0, -0x2710, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_80133728 = { { -1300, 0, -0x2710, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_80133728 = { { -1300, 0, -0x2710, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_80133740 = { { 0, 0, -0x2710, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_535700_80133740 = { { 0, 0, -0x2710, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_actor_535700_80133758 = { { -300, 0, -0x283C, 0 }, { 0, -1991, 0, 0 } };
+ActorTransform D_actor_535700_80133758 = { { -300, 0, -0x283C, 0 }, { 0, -1991, 0, 0 } };
 
-GpXformArg D_actor_535700_80133770 = { { 0, 0, -0x4650, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_80133770 = { { 0, 0, -0x4650, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_80133788 = { { 0, 0, -0x3BC4, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_535700_80133788 = { { 0, 0, -0x3BC4, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_535700_801337A0 = { { -3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_535700_801337A0 = { { -3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_535700_801337B8 = { { -400, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_535700_801337B8 = { { -400, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_535700_801337D0 = { { 3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_535700_801337D0 = { { 3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_535700_801337E8 = { { 400, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_535700_801337E8 = { { 400, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_535700_80133800 = { { 0, 0, -500, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_535700_80133800 = { { 0, 0, -500, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_actor_535700_80133818 = { { 0, 0, -4500, 0 }, { 0, -2048, 0, 0 } };
+ActorTransform D_actor_535700_80133818 = { { 0, 0, -4500, 0 }, { 0, -2048, 0, 0 } };
 
-GpXformArg D_actor_535700_80133830[2] = {
+ActorTransform D_actor_535700_80133830[2] = {
     { { 3500, 0, -2000, 0 }, { 0, -1024, 0, 0 } },
     { { 0, 0, -2000, 0 }, { 0, -1024, 0, 0 } },
 };
 
-GpXformArg D_actor_535700_80133860 = { { 0, 0, -0x38A4, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_535700_80133860 = { { 0, 0, -0x38A4, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_535700_80133878 = { { 0, 0, -0x3322, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_535700_80133878 = { { 0, 0, -0x3322, 0 }, { 0, -1024, 0, 0 } };
 
 GpOverlayIds D_actor_535700_80133890 = { 3, 57, 11 };
 
@@ -1454,7 +1454,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
 /// Placement opcode of the first enemy: yaws the model's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block's `st.yaw`, then
 /// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_80132894(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_535700_80132894(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;
@@ -1800,7 +1800,7 @@ s32 func_actor_535700_80133250(Task* task, s32 arg1, s32 flags)
 /// Placement opcode of the second enemy: yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `Actor150400Work::yaw`, then
 /// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_801332B4(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_535700_801332B4(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor150400Work* work;

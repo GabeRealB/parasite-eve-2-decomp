@@ -79,7 +79,7 @@ extern AnimationSet* D_dryfield_water_tank_801804EC[2];
 
 /// The placement the room sends the slot-3 task, the cutscene's owner, with
 /// message 0x3E9.
-extern GpXformArg D_dryfield_water_tank_801804F4;
+extern ActorTransform D_dryfield_water_tank_801804F4;
 
 /// The two blocks `func_800E8634` is handed as raw addresses.
 extern GpEvsCmd D_dryfield_water_tank_8018050C[];
@@ -103,9 +103,9 @@ void             func_dryfield_water_tank_8017E568(Task*);
 void             func_dryfield_water_tank_8017EB80(s16);
 void             func_dryfield_water_tank_8017EBA0(void);
 
-GpXformArg D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
+ActorTransform D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
 
-GpXformArg D_dryfield_water_tank_8017F0E8 = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_dryfield_water_tank_8017F0E8 = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
 
 AnimationPlayRequest D_dryfield_water_tank_8017F100 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -178,7 +178,7 @@ TmdSource D_dryfield_water_tank_8017FD3C = {
     D_dryfield_water_tank_8017F694,
 };
 
-GpXformArg D_dryfield_water_tank_8017FD60[2] = {
+ActorTransform D_dryfield_water_tank_8017FD60[2] = {
     { { 3100, 0, 0, 0 }, { 0, 1024, 0, 0 } },
     { { 3100, 0, 1800, 0 }, { 0, 1024, 0, 0 } },
 };
@@ -283,7 +283,7 @@ AnimationSet* D_dryfield_water_tank_801804EC[2] = {
     &D_dryfield_water_tank_801804C4,
 };
 
-GpXformArg D_dryfield_water_tank_801804F4 = { { 2600, -0x2EE0, -450, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_dryfield_water_tank_801804F4 = { { 2600, -0x2EE0, -450, 0 }, { 0, 512, 0, 0 } };
 
 GpEvsCmd D_dryfield_water_tank_8018050C[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -1013,7 +1013,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
     DwtWork* cur;
     union {
         AnimationPlayRequest rec;
-        GpXformArg           warp;
+        ActorTransform       warp;
     } msg;
     AnimationPlayRequest  script;
     AnimationPlayRequest* rec;
@@ -1208,12 +1208,12 @@ void func_dryfield_water_tank_8017EC38(u32 arg0)
 }
 
 /// Walks the water tank one step along `D_dryfield_water_tank_80184530` per
-/// frame: sends slot 3 that entry as a `GpXformArg` -- the spline position
+/// frame: sends slot 3 that entry as an `ActorTransform` -- the spline position
 /// with the tank's fixed half-turn about `y` -- and advances `killCountdown`.
 /// At 0x34 the tank has finished its run, and the task kills itself.
 void func_dryfield_water_tank_8017EC6C(Task* arg0)
 {
-    GpXformArg rec;
+    ActorTransform rec;
 
     if (arg0->killCountdown >= 0x34) {
         taskKill(arg0);
@@ -1231,12 +1231,12 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
 
 /// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
 /// walks it one step along `D_dryfield_water_tank_801847C0` per frame and sends
-/// slot 3 that entry as a `GpXformArg`, this time with a quarter-turn about
+/// slot 3 that entry as an `ActorTransform`, this time with a quarter-turn about
 /// `y` (0x400) instead of the first leg's half-turn. At 0x34 the tank has
 /// finished its run a second time and the task kills itself.
 void func_dryfield_water_tank_8017ED30(Task* arg0)
 {
-    GpXformArg rec;
+    ActorTransform rec;
 
     if (arg0->killCountdown >= 0x34) {
         taskKill(arg0);

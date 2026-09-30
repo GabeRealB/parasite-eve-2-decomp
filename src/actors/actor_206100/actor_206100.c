@@ -2590,7 +2590,7 @@ static void func_actor_206100_8014CB68(Task* task)
     Actor206100Work* work2;
     TmdObject*       tmd;
     GfxCoord*        coord;
-    GpXformArg       msg;
+    ActorTransform   msg;
 
     work  = (Actor206100Work*)task->work;
     tmd   = task->extra.tmd;
@@ -2642,7 +2642,7 @@ static void func_actor_206100_8014CD08(Task* task)
     Actor206100Work* work2;
     TmdObject*       tmd;
     GfxCoord*        coord;
-    GpXformArg       msg;
+    ActorTransform   msg;
 
     work            = (Actor206100Work*)task->work;
     tmd             = task->extra.tmd;

@@ -242,7 +242,7 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
 
 Task* D_actor_503500_80176558 = NULL;
 
-GpXformArg D_actor_503500_8017655C = { 0 };
+ActorTransform D_actor_503500_8017655C = { 0 };
 
 Actor5035003Storage6574 D_actor_503500_80176574 = { 0 };
 
@@ -2507,7 +2507,7 @@ static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
 /// block -- the yaw recovered from the matrix it just built, and the same
 /// translation in 16.16 fixed point. Clearing `composeStamp` makes `_gpUpdateCoordTree`
 /// recompute the world matrix from the new local one.
-s32 func_actor_503500_80137088(Task* arg0, s32 arg1, GpXformArg* args)
+s32 func_actor_503500_80137088(Task* arg0, s32 arg1, ActorTransform* args)
 {
     Actor503500Work* work;
     GfxCoord*        coord;

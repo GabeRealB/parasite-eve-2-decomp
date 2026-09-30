@@ -61,7 +61,7 @@ s32 func_actor_510900_8013BD5C(Task*);
 
 s32 func_actor_510900_8013BD84(Task*, s32, AnimationPlayRequest*);
 
-s32 func_actor_510900_8013BE00(Task*, s32, GpXformArg*);
+s32 func_actor_510900_8013BE00(Task*, s32, ActorTransform* args);
 
 s32 func_actor_510900_8013BE64(Task*, s32, s32);
 
@@ -4045,7 +4045,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 /// Message 0x7D4 handler: places the actor. It builds the model's root coordinate
 /// from the argument block's Euler angles and translation, and clears its
 /// `composeStamp` so the world matrix is recomputed from it.
-s32 func_actor_510900_8013BE00(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_510900_8013BE00(Task* task, s32 arg1, ActorTransform* args)
 {
     TmdObject* ext   = task->extra.tmd;
     GfxCoord*  coord = ext->coords;

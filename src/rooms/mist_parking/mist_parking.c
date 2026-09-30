@@ -203,11 +203,11 @@ MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-GpXformArg D_mist_parking_80186BE0 = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_mist_parking_80186BE0 = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_mist_parking_80186BF8 = { { 8448, 1, -3828, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_mist_parking_80186BF8 = { { 8448, 1, -3828, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_mist_parking_80186C10 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_mist_parking_80186C10 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
 
 AnimationSet* D_mist_parking_80186C28[1] = {
     &D_mist_parking_80186B90,

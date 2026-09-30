@@ -459,7 +459,7 @@ TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
     { 0, 192, func_shelter_b1_underground_parking_80183714, { .model = NULL } },
 };
 
-GpXformArg D_shelter_b1_underground_parking_801872C0 = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_shelter_b1_underground_parking_801872C0 = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
 
 GpEvsCmd D_shelter_b1_underground_parking_801872D8[10] = {
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1698,8 +1698,8 @@ void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 /// kills itself.
 void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
 {
-    GpXformArg msg;
-    void*      slot;
+    ActorTransform msg;
+    void*          slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {

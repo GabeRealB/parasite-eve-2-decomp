@@ -801,8 +801,8 @@ u8* D_shelter_b4_water_supply_80184E50;
 /// type 0x11 and kills itself.
 void func_shelter_b4_water_supply_8017D650(Task* arg0)
 {
-    GpXformArg msg;
-    void*      slot;
+    ActorTransform msg;
+    void*          slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {

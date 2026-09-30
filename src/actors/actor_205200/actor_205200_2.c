@@ -603,9 +603,9 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->place.pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
                 scratch->place.rot.vx = 0;
                 if (work->field_58E == 0) {
-                    scratch->place.rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + 0x800) & 0xFFF;
+                    scratch->place.rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                 } else {
-                    scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
+                    scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 }
                 scratch->place.rot.vz = 0;
                 Gp_DispatchMsgPtr(player, 0x3E9, &scratch->place, 0);

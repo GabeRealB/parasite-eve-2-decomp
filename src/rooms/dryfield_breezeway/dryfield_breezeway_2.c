@@ -192,7 +192,7 @@ STATIC_ASSERT_SIZEOF(DbwBeamEdge, 0x12);
 /// Placement this room hands on with message 0x7D4 from
 /// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
-extern GpXformArg D_dryfield_breezeway_80181E28;
+extern ActorTransform D_dryfield_breezeway_80181E28;
 
 /// The two placements that follow it in the same three-record run, which
 /// `func_dryfield_breezeway_8017DEC0` sends to slot 3 as the second and third
@@ -200,7 +200,7 @@ extern GpXformArg D_dryfield_breezeway_80181E28;
 /// player with, and `[1]` -- the run's third record -- the one message 0x3EE
 /// does. The label the decomp references is the start of this array, so the
 /// third record is reached as `[1]` rather than by a symbol of its own.
-extern GpXformArg D_dryfield_breezeway_80181E40[];
+extern ActorTransform D_dryfield_breezeway_80181E40[];
 
 /// The key-item prompt's own hotspot table: the one-entry 0xFFFF-terminated
 /// `OverlayHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the
@@ -286,9 +286,9 @@ TaskDesc D_dryfield_breezeway_80181E10[2] = {
     { 0, 32, func_dryfield_breezeway_8017DCE4, { .model = NULL } },
 };
 
-GpXformArg D_dryfield_breezeway_80181E28 = { { 0x4268, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
+ActorTransform D_dryfield_breezeway_80181E28 = { { 0x4268, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
 
-GpXformArg D_dryfield_breezeway_80181E40[2] = {
+ActorTransform D_dryfield_breezeway_80181E40[2] = {
     { { 0x4074, 0, 1500, 0 }, { 0, 1024, 0, 0 } },
     { { 0x4074, 0, 1500, 0 }, { 0, 512, 0, 0 } },
 };

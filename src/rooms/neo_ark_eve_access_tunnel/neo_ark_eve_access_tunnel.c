@@ -525,8 +525,8 @@ static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtil
 /// `Mc_SaveData`, spawns task type 0x11 and ends the task.
 void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
 {
-    GpXformArg msg;
-    Task*      slot;
+    ActorTransform msg;
+    Task*          slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {

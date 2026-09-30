@@ -124,11 +124,11 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request);
 
 s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
+s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
 
-s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
 
 s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
@@ -1741,31 +1741,31 @@ s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request)
     return 0;
 }
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3)
+s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
 {
     PlayerStatus* p;
     u8            saved;
 
     p     = &Player_Status;
     saved = p->field_24;
-    func_80104E00(arg0, arg1, arg2, arg3);
+    func_80104E00(arg0, arg1, transform, arg3);
     p->field_24 = saved;
     return 0;
 }
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
 
     p     = &Player_Status;
     saved = p->field_24;
-    Gp_SetActorDest(arg0, arg1, arg2, arg3);
+    Gp_SetActorDest(arg0, arg1, transform, arg3);
     p->field_24 = saved;
     return 0;
 }
 
-s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -1774,7 +1774,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     p     = &Player_Status;
     actor = arg0->work;
     saved = p->field_24;
-    Gp_SetActorDest(arg0, arg1, arg2, arg3);
+    Gp_SetActorDest(arg0, arg1, transform, arg3);
     p->field_24      = saved;
     actor->field_956 = 8;
     return 0;

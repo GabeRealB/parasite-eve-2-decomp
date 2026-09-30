@@ -113,7 +113,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor210600MessageEntry;
@@ -129,7 +129,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 extern TmdSource D_actor_210600_801594D8;
 s32              func_actor_210600_8014B5F4(Task*, s32, s32);
-s32              func_actor_210600_8014B6A0(Task*, s32, GpXformArg*);
+s32              func_actor_210600_8014B6A0(Task*, s32, ActorTransform* placement);
 s32              func_actor_210600_8014B770(Task*, s32, ActorCommand* msg);
 void             func_actor_210600_8014BA3C(Task*);
 
@@ -556,7 +556,7 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
 /// translation, the X, Y and Z angles are then applied in that order through
 /// `Gfx_RotMatrixX` / `Y` / `Z`, and the coordinate is marked dirty. `msgId`
 /// is unused; the handler always reports the message handled.
-s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, GpXformArg* placement)
+s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, ActorTransform* placement)
 {
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;

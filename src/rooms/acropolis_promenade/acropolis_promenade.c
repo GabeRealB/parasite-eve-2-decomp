@@ -218,7 +218,7 @@ TaskDesc D_acropolis_promenade_80180EA4[2] = {
 
 AnimationPlayRequest D_acropolis_promenade_80180EBC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_acropolis_promenade_80180ED0[2] = {
+ActorTransform D_acropolis_promenade_80180ED0[2] = {
     { { -1454, 171, -1843, 0 }, { 0, 2048, 0, 0 } },
     { { -999, 171, -2799, 0 }, { 0, 1324, 0, 0 } },
 };
@@ -1760,7 +1760,7 @@ static void func_acropolis_promenade_8017DB48(Task* task)
 void func_acropolis_promenade_8017DB9C(Task* task)
 {
     AnimationPlayRequest rec;
-    GpXformArg           place;
+    ActorTransform       place;
     s32                  killed;
     RoomStreamWork*      work;
     RoomStreamWork*      blk;

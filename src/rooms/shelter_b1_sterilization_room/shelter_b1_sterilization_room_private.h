@@ -33,9 +33,9 @@ extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885FC;
 
 extern AnimationPlayRequest D_shelter_b1_sterilization_room_80188610;
 
-extern GpXformArg D_shelter_b1_sterilization_room_80188638;
+extern ActorTransform D_shelter_b1_sterilization_room_80188638;
 
-extern GpXformArg D_shelter_b1_sterilization_room_80188650;
+extern ActorTransform D_shelter_b1_sterilization_room_80188650;
 
 extern GpU16Pair D_shelter_b1_sterilization_room_80188738;
 

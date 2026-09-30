@@ -466,8 +466,8 @@ STATIC_ASSERT_SIZEOF(Actor403000Storage8DB0, 32);
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpXformArg value;
-    u8         retained[8];
+    ActorTransform value;
+    u8             retained[8];
 } Actor403000Storage8D90;
 STATIC_ASSERT_SIZEOF(Actor403000Storage8D90, 32);
 
@@ -505,7 +505,7 @@ static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* re
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.
-s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpXformArg* placement);
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement);
 
 /// Latch the requested animation and restart the animation state machine.
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, AnimationPlayRequest* msg);
@@ -551,7 +551,7 @@ typedef struct {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, Actor403000Event*);
         s32  (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call3)(Task*, s32, GpXformArg*);
+        s32  (*call3)(Task*, s32, ActorTransform*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
     } handler;
@@ -624,7 +624,7 @@ extern TmdSource    D_actor_403000_80145324;
 s32                 func_actor_403000_801324EC(Task*, s32, Actor403000Event*);
 s32                 func_actor_403000_8013D268(Task*, s32, s32);
 s32                 func_actor_403000_8013D324(Task*);
-s32                 func_actor_403000_8013D364(Task*, s32, GpXformArg*);
+s32                 func_actor_403000_8013D364(Task*, s32, ActorTransform* placement);
 s32                 func_actor_403000_8013D464(Task*, s32, AnimationPlayRequest*);
 static void         func_actor_403000_8013D59C(Task*);
 void                func_actor_403000_8013D260(void);
@@ -7722,7 +7722,7 @@ return_one:
 /// Handler for message 0x7D4: place the model's root coordinate at
 /// `placement` - translation, then rotation about Y, X and Z - and cache the
 /// resulting heading in `Actor403000Work::yaw`.
-s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     Actor403000Work* work;

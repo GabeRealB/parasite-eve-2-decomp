@@ -43,8 +43,8 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
-        s32 (*call3)(Task*, s32, GpXformArg*, Actor350500SpawnAnim*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
+        s32 (*call3)(Task*, s32, ActorTransform*, Actor350500SpawnAnim*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor350500MsgEntry;
@@ -86,9 +86,9 @@ static const TaskFuncTable4 D_actor_350500_80161E30 = { {
 static const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 
 extern TmdSource D_actor_350500_8016785C;
-s32              func_actor_350500_8016217C(Task*, s32, GpXformArg*, Actor350500SpawnAnim*);
+s32              func_actor_350500_8016217C(Task*, s32, ActorTransform* place, Actor350500SpawnAnim*);
 s32              func_actor_350500_80162828(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_350500_80162960(Task*, s32, GpXformArg*);
+s32              func_actor_350500_80162960(Task*, s32, ActorTransform* args);
 s32              func_actor_350500_801629DC(Task*, s32, s32);
 s32              func_actor_350500_80162ABC(Task*, s32, ActorCommand* msg);
 void             func_actor_350500_80162360(Task*);
@@ -334,7 +334,7 @@ static void func_actor_350500_80162038(Task* arg0)
 /// animation from `anim` (or anim 3, 2 once `field_4C4` is set), installing
 /// it with the body of `func_actor_350500_80162828` written out inline.
 /// Returns 0.
-s32 func_actor_350500_8016217C(Task* task, s32 arg1, GpXformArg* place, Actor350500SpawnAnim* anim)
+s32 func_actor_350500_8016217C(Task* task, s32 arg1, ActorTransform* place, Actor350500SpawnAnim* anim)
 {
     Actor350500Work*      work;
     Actor350500Work*      w;
@@ -630,7 +630,7 @@ s32 func_actor_350500_80162828(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// goes straight into the local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
 /// clearing `composeStamp` makes the world matrix be recomputed. Returns 0.
-s32 func_actor_350500_80162960(Task* task, s32 msgId, GpXformArg* args)
+s32 func_actor_350500_80162960(Task* task, s32 msgId, ActorTransform* args)
 {
     GfxCoord* coord;
 

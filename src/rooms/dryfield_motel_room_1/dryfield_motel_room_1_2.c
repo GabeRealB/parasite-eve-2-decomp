@@ -116,13 +116,13 @@ extern Task* D_dryfield_motel_room_1_8018159C;
 
 /// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
-extern GpXformArg D_dryfield_motel_room_1_8017E130[2];
+extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
 
 /// The placements the script driver's actions 1 and 2 send as message 0x7D4:
 /// `[0]` to `Dmr1Work::field_4`, `[1]` to `field_8`.
-extern GpXformArg D_dryfield_motel_room_1_8017E0D0[2];
+extern ActorTransform D_dryfield_motel_room_1_8017E0D0[2];
 
-extern GpXformArg D_dryfield_motel_room_1_8017E100[2];
+extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 
 /// Main loop of the room's cutscene task. State 0 arms it once -- a `Gp_StateC08.field_A`
 /// of 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the task
@@ -180,17 +180,17 @@ extern GpSprtElem  D_dryfield_motel_room_1_8017F6A8[61];
 extern GpSprtElem  D_dryfield_motel_room_1_8017FB94[29];
 extern GpSprtElem  D_dryfield_motel_room_1_8017FE08[111];
 
-GpXformArg D_dryfield_motel_room_1_8017E0D0[2] = {
+ActorTransform D_dryfield_motel_room_1_8017E0D0[2] = {
     { { 500, 0, 1400, 0 }, { 0, 0, 0, 0 } },
     { { 1200, 0, 2450, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpXformArg D_dryfield_motel_room_1_8017E100[2] = {
+ActorTransform D_dryfield_motel_room_1_8017E100[2] = {
     { { 500, 0, 2000, 0 }, { 0, 0, 0, 0 } },
     { { 1200, 0, 2400, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpXformArg D_dryfield_motel_room_1_8017E130[2] = {
+ActorTransform D_dryfield_motel_room_1_8017E130[2] = {
     { { 500, 0, 2800, 0 }, { 0, 0, 0, 0 } },
     { { 1000, 0, 3200, 0 }, { 0, 0, 0, 0 } },
 };

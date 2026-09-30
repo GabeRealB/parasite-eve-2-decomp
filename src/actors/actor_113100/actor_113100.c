@@ -88,8 +88,8 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
-        s32 (*call3)(Task*, s32, GpXformArg*, Actor113100SpawnAnim*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
+        s32 (*call3)(Task*, s32, ActorTransform*, Actor113100SpawnAnim*);
         s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor113100MsgEntry;
@@ -170,9 +170,9 @@ extern TmdSource D_actor_113100_80139664;
 void             func_actor_113100_80132E98(Task*);
 
 s32 func_actor_113100_80132790(Task*, s32, s32, s32);
-s32 func_actor_113100_801328EC(Task*, s32, GpXformArg*, Actor113100SpawnAnim*);
+s32 func_actor_113100_801328EC(Task*, s32, ActorTransform* place, Actor113100SpawnAnim*);
 s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_113100_8013333C(Task*, s32, GpXformArg*);
+s32 func_actor_113100_8013333C(Task*, s32, ActorTransform* args);
 s32 func_actor_113100_801333B8(Task*, s32, ActorCommand* msg);
 
 TmdBone D_actor_113100_8013346C[20] = {
@@ -1596,7 +1596,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// preset in place -- the body of the 0x7D3 handler
 /// `func_actor_113100_801331E8` written out inline against a preset built on
 /// this function's own stack, `anim` picking the preset's `field_4`.
-s32 func_actor_113100_801328EC(Task* task, s32 msgId, GpXformArg* place, Actor113100SpawnAnim* anim)
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Actor113100SpawnAnim* anim)
 {
     Actor113100Work*      work;
     Actor113100Work*      w;
@@ -1969,7 +1969,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
 /// The translation goes straight into the root part's local matrix, the Euler
 /// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds
 /// the rotation; clearing `composeStamp` makes the world matrix be recomputed.
-s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpXformArg* args)
+s32 func_actor_113100_8013333C(Task* task, s32 msgId, ActorTransform* args)
 {
     GfxCoord* coord;
 

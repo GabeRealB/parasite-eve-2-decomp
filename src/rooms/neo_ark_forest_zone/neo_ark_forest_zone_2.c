@@ -205,7 +205,7 @@ s32 D_neo_ark_forest_zone_80181E38 = 0x20B05;
 
 AnimationPlayRequest D_neo_ark_forest_zone_80181E3C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_neo_ark_forest_zone_80181E50 = { { 2888, 128, -95, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_neo_ark_forest_zone_80181E50 = { { 2888, 128, -95, 0 }, { 0, -1024, 0, 0 } };
 
 Task* D_neo_ark_forest_zone_80181E68 = NULL;
 

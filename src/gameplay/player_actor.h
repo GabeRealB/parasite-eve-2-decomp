@@ -72,7 +72,7 @@ void Gp_EffSprTaskE2(Task* arg0);
 
 void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
 
 s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 

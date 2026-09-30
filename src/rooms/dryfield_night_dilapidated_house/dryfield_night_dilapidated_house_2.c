@@ -999,7 +999,7 @@ AnimationPlayRequest D_dryfield_night_dilapidated_house_801866A4[5] = {
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_80186708 = { { .index = 1 }, 71, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_dryfield_night_dilapidated_house_8018671C = { { 2900, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_dryfield_night_dilapidated_house_8018671C = { { 2900, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 
 AnimationSet* D_dryfield_night_dilapidated_house_80186734[16] = {
     NULL,
@@ -1054,9 +1054,9 @@ AnimationPlayRequest D_dryfield_night_dilapidated_house_80186894 = { { .index = 
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_801868A8 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_dryfield_night_dilapidated_house_801868BC = { { 400, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_dilapidated_house_801868BC = { { 400, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_night_dilapidated_house_801868D4 = { { 1540, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_dilapidated_house_801868D4 = { { 1540, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
 GpOverlayIds D_dryfield_night_dilapidated_house_801868EC = { 3, 50, 11 };
 

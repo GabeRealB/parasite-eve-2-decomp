@@ -306,7 +306,7 @@ prefixes, choose the responsibility the symbol actually implements.
 
 | Prefix | Responsibility | Source examples | Interface / type headers |
 |---|---|---|---|
-| `actorRender` | Actor model drawing and coordinate updates | `actor_render.c` | `include/gameplay/actor_render.h`, `src/gameplay/actor_render.h` |
+| `actorRender` | Actor model drawing, coordinate updates and position/orientation records | `actor_render.c` | `include/gameplay/actor_render.h`, `include/gameplay/message.h` (`ActorTransform`), `src/gameplay/actor_render.h` |
 | `modelObject`, `animation` | Model attachments and animation state | `model_objects.c`, `scene_runtime.c` | `include/gameplay/model_objects.h`, `include/gameplay/animation.h`, `include/gameplay/animation_types.h`, `src/gameplay/model_objects.h` |
 | `modelLighting` | Lit model transforms and primitive emission | `model_lighting.c` | `include/gameplay/model_lighting.h`, `src/gameplay/model_lighting.h` |
 | `worldCoord` | Room/world transforms and light queries | `world_coords.c` | `include/gameplay/world_coords.h`, `src/gameplay/world_coords.h` |

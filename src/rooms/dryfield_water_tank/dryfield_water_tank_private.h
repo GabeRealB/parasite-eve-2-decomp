@@ -14,7 +14,7 @@ typedef struct {
     s32 id;
     union {
         void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, ActorTransform*);
         void (*call2)(Task*, s32, s32);
     } handler;
 } DryfieldWaterTankMessageEntry;
@@ -42,7 +42,7 @@ extern GpMsgEntry D_dryfield_water_tank_8017F324[5];
 
 extern TaskDesc D_dryfield_water_tank_8017F34C[2];
 
-extern GpXformArg D_dryfield_water_tank_8017FD60[2];
+extern ActorTransform D_dryfield_water_tank_8017FD60[2];
 
 extern u16 D_dryfield_water_tank_8017FDA8[12];
 
@@ -134,7 +134,7 @@ void func_dryfield_water_tank_8017D948(Task*);
 
 void func_dryfield_water_tank_8017E0B4(Task*, s32, s32);
 
-void func_dryfield_water_tank_8017E0E8(Task*, s32, GpXformArg*);
+void func_dryfield_water_tank_8017E0E8(Task*, s32, ActorTransform* placement);
 
 void func_dryfield_water_tank_8017E174(Task*, s32, ActorCommand* msg);
 

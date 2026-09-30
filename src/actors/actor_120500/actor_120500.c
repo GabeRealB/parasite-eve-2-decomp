@@ -94,7 +94,7 @@ extern AnimationSet* D_actor_120500_80138088[2];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call0)(Task*, s32, ActorTransform*);
         void (*call1)(Task*, s32, s32);
     } handler;
 } Actor120500MessageEntry;
@@ -115,15 +115,15 @@ extern AnimationSet* D_actor_120500_8013807C[];
 
 /// Placement records sent to that same task as message 0x3E9, passed by
 /// address.
-extern GpXformArg D_actor_120500_80138090;
-extern GpXformArg D_actor_120500_801380A8;
+extern ActorTransform D_actor_120500_80138090;
+extern ActorTransform D_actor_120500_801380A8;
 
 /// Pair of blocks `func_actor_120500_8013241C` passes to `func_800E8634`.
 extern GpEvsCmd D_actor_120500_801380D8[];
 extern GpEvsCmd D_actor_120500_80138318[];
 
 /// The actor's own placement, sent to itself as message 0x7D4.
-extern GpXformArg D_actor_120500_801380C0;
+extern ActorTransform D_actor_120500_801380C0;
 
 void func_actor_120500_801328C0(s16);
 void func_actor_120500_801328E0(s16);
@@ -136,7 +136,7 @@ void             func_actor_120500_8013241C(Task*);
 void             func_actor_120500_80132708(Task*);
 void             func_actor_120500_801327E4(Task*);
 void             func_actor_120500_80132A04(Task*, s32, s32);
-void             func_actor_120500_80132A74(Task*, s32, GpXformArg*);
+void             func_actor_120500_80132A74(Task*, s32, ActorTransform* placement);
 
 TmdBone D_actor_120500_80132B0C[20] = {
 #include "assets/actor_120500_model_0580C_skeleton.inc"
@@ -269,11 +269,11 @@ AnimationSet* D_actor_120500_80138088[2] = {
     &D_actor_120500_801379E8,
 };
 
-GpXformArg D_actor_120500_80138090 = { { 6330, -3200, -4900, 0 }, { 0, 3584, 0, 0 } };
+ActorTransform D_actor_120500_80138090 = { { 6330, -3200, -4900, 0 }, { 0, 3584, 0, 0 } };
 
-GpXformArg D_actor_120500_801380A8 = { { 787, 0, 7000, 0 }, { 0, 3584, 0, 0 } };
+ActorTransform D_actor_120500_801380A8 = { { 787, 0, 7000, 0 }, { 0, 3584, 0, 0 } };
 
-GpXformArg D_actor_120500_801380C0 = { { 800, -0x2EE0, -2750, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_120500_801380C0 = { { 800, -0x2EE0, -2750, 0 }, { 0, 2048, 0, 0 } };
 
 GpEvsCmd D_actor_120500_801380D8[24] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
@@ -855,7 +855,7 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
 /// coordinate is parented to the view coordinate, takes `placement`'s
 /// position as its translation and its rotation applied Y, then X, then Z.
 /// `arg1` is the message id.
-void func_actor_120500_80132A74(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_120500_80132A74(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

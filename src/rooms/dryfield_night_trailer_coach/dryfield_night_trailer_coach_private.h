@@ -12,7 +12,7 @@
 
 #include "rooms/room.h"
 
-extern GpXformArg D_dryfield_night_trailer_coach_80187988;
+extern ActorTransform D_dryfield_night_trailer_coach_80187988;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_801879D0;
 

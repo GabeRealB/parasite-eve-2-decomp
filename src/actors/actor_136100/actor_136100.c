@@ -44,9 +44,9 @@
 
 #include "rooms/dryfield_night_main_street.h"
 
-extern GpXformArg D_actor_136100_8013F334[2];
+extern ActorTransform D_actor_136100_8013F334[2];
 
-extern GpXformArg D_actor_136100_8013F304[2];
+extern ActorTransform D_actor_136100_8013F304[2];
 
 /// Work block for the `actor_136100` overlay's cutscene actor.
 ///
@@ -109,8 +109,8 @@ extern s16 D_actor_136100_8013F1FC[];
 /// 5 the fade-out.
 extern TaskDesc D_actor_136100_80140744[];
 
-extern GpXformArg D_actor_136100_8013F3C4;
-extern GpXformArg D_actor_136100_8013F3DC;
+extern ActorTransform D_actor_136100_8013F3C4;
+extern ActorTransform D_actor_136100_8013F3DC;
 
 extern AnimationSet* D_actor_136100_8013F180[8];
 extern AnimationSet* D_actor_136100_8013F1A0[13];
@@ -123,22 +123,22 @@ extern s32           D_actor_136100_8013F2C4[12];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpXformArg*);
+        void (*call0)(Task*, s32, ActorTransform*);
         void (*call1)(Task*, s32, s32);
     } handler;
 } Actor136100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor136100MessageEntry, 8);
 
 extern Actor136100MessageEntry D_actor_136100_8013F2F4[2];
-extern GpXformArg              D_actor_136100_8013F364;
-extern GpXformArg              D_actor_136100_8013F37C;
-extern GpXformArg              D_actor_136100_8013F394;
-extern GpXformArg              D_actor_136100_8013F3AC;
-extern GpXformArg              D_actor_136100_8013F3F4;
-extern GpXformArg              D_actor_136100_8013F40C;
-extern GpXformArg              D_actor_136100_8013F424;
-extern GpXformArg              D_actor_136100_8013F43C;
-extern GpXformArg              D_actor_136100_8013F454;
+extern ActorTransform          D_actor_136100_8013F364;
+extern ActorTransform          D_actor_136100_8013F37C;
+extern ActorTransform          D_actor_136100_8013F394;
+extern ActorTransform          D_actor_136100_8013F3AC;
+extern ActorTransform          D_actor_136100_8013F3F4;
+extern ActorTransform          D_actor_136100_8013F40C;
+extern ActorTransform          D_actor_136100_8013F424;
+extern ActorTransform          D_actor_136100_8013F43C;
+extern ActorTransform          D_actor_136100_8013F454;
 extern GpEvsCmd                D_actor_136100_8013F46C[];
 extern GpEvsCmd                D_actor_136100_8013F784[];
 extern GpEvsCmd                D_actor_136100_8013F94C[];
@@ -186,7 +186,7 @@ void             func_actor_136100_801344AC(Task*);
 void             func_actor_136100_80134588(Task*);
 void             func_actor_136100_8013467C(void);
 void             func_actor_136100_801346EC(Task*, s32, s32);
-void             func_actor_136100_80134720(Task*, s32, GpXformArg*);
+void             func_actor_136100_80134720(Task*, s32, ActorTransform* placement);
 void             func_actor_136100_801347B8(void);
 void             func_actor_136100_80134838(s16);
 void             func_actor_136100_80134858(s16);
@@ -931,38 +931,38 @@ Actor136100MessageEntry D_actor_136100_8013F2F4[2] = {
 };
 
 // The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-GpXformArg D_actor_136100_8013F304[2] = {
+ActorTransform D_actor_136100_8013F304[2] = {
     { { -3500, 0, -3700, 0 }, { 0, -1024, 0, 0 } },
     { { -4800, 0, -4100, 0 }, { 0, -1024, 0, 0 } },
 };
 
 // The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-GpXformArg D_actor_136100_8013F334[2] = {
+ActorTransform D_actor_136100_8013F334[2] = {
     { { -3200, 0, 6500, 0 }, { 0, 910, 0, 0 } },
     { { -2520, 0, 7690, 0 }, { 0, 910, 0, 0 } },
 };
 
-GpXformArg D_actor_136100_8013F364 = { { -3300, 0, 6400, 0 }, { 0, 910, 0, 0 } };
+ActorTransform D_actor_136100_8013F364 = { { -3300, 0, 6400, 0 }, { 0, 910, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F37C = { { -5400, 0, -4100, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform D_actor_136100_8013F37C = { { -5400, 0, -4100, 0 }, { 0, -1024, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F394 = { { -6400, 0, -4000, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_actor_136100_8013F394 = { { -6400, 0, -4000, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F3AC = { { -2600, 0, 7400, 0 }, { 0, 420, 0, 0 } };
+ActorTransform D_actor_136100_8013F3AC = { { -2600, 0, 7400, 0 }, { 0, 420, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F3C4 = { { -1300, 0, 7000, 0 }, { 0, 420, 0, 0 } };
+ActorTransform D_actor_136100_8013F3C4 = { { -1300, 0, 7000, 0 }, { 0, 420, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F3DC = { { -1540, 0, 7600, 0 }, { 0, 420, 0, 0 } };
+ActorTransform D_actor_136100_8013F3DC = { { -1540, 0, 7600, 0 }, { 0, 420, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F3F4 = { { -5800, 0, -3200, 0 }, { 0, 1365, 0, 0 } };
+ActorTransform D_actor_136100_8013F3F4 = { { -5800, 0, -3200, 0 }, { 0, 1365, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F40C = { { -2210, 0, 8000, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_136100_8013F40C = { { -2210, 0, 8000, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F424 = { { -1000, 0, 7725, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_136100_8013F424 = { { -1000, 0, 7725, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F43C = { { -910, 0, 8130, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_actor_136100_8013F43C = { { -910, 0, 8130, 0 }, { 0, 2048, 0, 0 } };
 
-GpXformArg D_actor_136100_8013F454 = { { -5800, -400, -4400, 0 }, { 1843, 0, 0, 0 } };
+ActorTransform D_actor_136100_8013F454 = { { -5800, -400, -4400, 0 }, { 1843, 0, 0, 0 } };
 
 GpEvsCmd D_actor_136100_8013F46C[33] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
@@ -2438,7 +2438,7 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 /// Places the task's model in the world frame: its coordinate is re-parented
 /// to the view coordinate, takes `placement`'s three longs as its translation
 /// and its three shorts as yaw, pitch and roll.
-void func_actor_136100_80134720(Task* task, s32 arg1, GpXformArg* placement)
+void func_actor_136100_80134720(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

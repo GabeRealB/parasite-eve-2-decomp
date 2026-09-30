@@ -56,7 +56,7 @@ extern SVECTOR D_actor_341300_80165A58[];
 
 /// Placement record the overlay's data table points at, read here only as the
 /// target position's x/z pair.
-extern GpXformArg D_actor_341300_80165330;
+extern ActorTransform D_actor_341300_80165330;
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -91,8 +91,8 @@ extern AnimationPlayRequest D_actor_341300_801652F4;
 extern AnimationPlayRequest D_actor_341300_80165308;
 extern AnimationPlayRequest D_actor_341300_8016531C;
 extern GpCopyArg            D_actor_341300_80165244;
-extern GpXformArg           D_actor_341300_801652C4;
-extern GpXformArg           D_actor_341300_801652DC;
+extern ActorTransform       D_actor_341300_801652C4;
+extern ActorTransform       D_actor_341300_801652DC;
 void                        func_actor_341300_8016239C(void);
 void                        func_actor_341300_801623BC(void);
 void                        func_actor_341300_801623DC(void);
@@ -248,9 +248,9 @@ AnimationPlayRequest D_actor_341300_8016529C = { { .index = 1 }, 51, ANIMATION_B
 
 AnimationPlayRequest D_actor_341300_801652B0 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_341300_801652C4 = { { 2000, 0, 2250, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_actor_341300_801652C4 = { { 2000, 0, 2250, 0 }, { 0, 2047, 0, 0 } };
 
-GpXformArg D_actor_341300_801652DC = { { 2000, 0, 4000, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_actor_341300_801652DC = { { 2000, 0, 4000, 0 }, { 0, 2047, 0, 0 } };
 
 AnimationPlayRequest D_actor_341300_801652F4 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -258,7 +258,7 @@ AnimationPlayRequest D_actor_341300_80165308 = { { .index = 0 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_341300_8016531C = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_actor_341300_80165330 = { { 2090, -3480, 1440, 0 }, { 0, 0, 2047, 0 } };
+ActorTransform D_actor_341300_80165330 = { { 2090, -3480, 1440, 0 }, { 0, 0, 2047, 0 } };
 
 ActorCommand D_actor_341300_80165348 = { { .loc = { 4, 30 } }, 1 };
 

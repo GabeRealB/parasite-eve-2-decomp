@@ -59,7 +59,7 @@ typedef struct {
         s32 (*call1)(Task*);
         s32 (*call2)(Task*, s32, AnimationPlayRequest*);
         s32 (*call3)(Task*, s32, ActorCommand* request);
-        s32 (*call4)(Task*, s32, GpXformArg*);
+        s32 (*call4)(Task*, s32, ActorTransform*);
         s32 (*call5)(Task*, s32, s32);
     } handler;
 } Actor521100MessageEntry;
@@ -71,14 +71,14 @@ s32 func_actor_521100_80135BEC(Task*);
 
 s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*);
 
-s32 func_actor_521100_80135CAC(Task*, s32, GpXformArg*);
+s32 func_actor_521100_80135CAC(Task*, s32, ActorTransform* args);
 
 typedef struct Actor521100FireScratch {
     /* 0x00 */ VECTOR               pos;
     /* 0x10 */ VECTOR               delta;
     /* 0x20 */ SVECTOR              vec;
     /* 0x28 */ AnimationPlayRequest msg;
-    /* 0x3C */ GpXformArg           aim;
+    /* 0x3C */ ActorTransform       aim;
 } Actor521100FireScratch;
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
@@ -2661,7 +2661,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                         }
                     } else {
                         if (absDiff < 0x65) {
-                            sc->aim.rot.vy = (work->field_696 + 0x800) & 0xFFF;
+                            sc->aim.rot.vy = (work->field_696 + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                         } else if (flag > 0) {
                             sc->aim.rot.vy = angle - 0x64;
                         } else {
@@ -2785,7 +2785,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->aim.pos.vy = coord->coord.t[1];
                 sc->aim.pos.vz = coord->coord.t[2];
                 sc->aim.rot.vx = 0;
-                sc->aim.rot.vy = (work->field_696 + 0x800) & 0xFFF;
+                sc->aim.rot.vy = (work->field_696 + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                 sc->aim.rot.vz = 0;
                 Gp_DispatchMsgPtr(player, 0x3E9, &sc->aim, 0);
             }
@@ -3767,7 +3767,7 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args)
 /// Message 0x7D4 handler in `D_actor_521100_8015F6FC`, placing the actor: builds the root coordinate's
 /// matrix from the argument block's angles, stores its translation and clears
 /// `composeStamp` so the world matrix is recomputed.
-s32 func_actor_521100_80135CAC(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_521100_80135CAC(Task* task, s32 arg1, ActorTransform* args)
 {
     TmdObject* ext   = task->extra.tmd;
     GfxCoord*  coord = ext->coords;

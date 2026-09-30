@@ -107,7 +107,7 @@ void func_actor_310100_801632B0(Task* task);
 /// task from `D_actor_310100_801798E4`. The display task is handed `arg2` as its
 /// `spawnArg1` and this task as its parent (`spawnArg2`); it spawns the model
 /// task in turn, handing it `field_506` as its `spawnArg1`.
-void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, GpXformArg* placement);
+void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement);
 
 /// Message 0x7D7 handler: parks the display task's work block at state 2 and
 /// returns when handed mode 3, otherwise tears the display task down and spawns
@@ -117,7 +117,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2);
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
 /// marks it dirty.
-void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement);
+void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement);
 
 /// Teardown handler: kills the display task hanging off the work block and
 /// parks this task in state 3.
@@ -133,9 +133,9 @@ typedef struct {
     s32 id;
     union {
         void (*call0)(Task*);
-        void (*call1)(Task*, s32, GpXformArg*);
+        void (*call1)(Task*, s32, ActorTransform*);
         void (*call2)(Task*, s32, s32);
-        void (*call3)(Task*, s32, s32, GpXformArg*);
+        void (*call3)(Task*, s32, s32, ActorTransform*);
     } handler;
 } Actor310100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor310100MessageEntry, 8);
@@ -625,10 +625,10 @@ s32 D_actor_310100_801798A8[3] = {
     0x5105000A,
 };
 
-void func_actor_310100_80162C64(Task*, s32, s32, GpXformArg*);
+void func_actor_310100_80162C64(Task*, s32, s32, ActorTransform* placement);
 void func_actor_310100_80162CDC(Task*, s32, s32);
-void func_actor_310100_80162D50(Task*, s32, GpXformArg*);
-void func_actor_310100_80162EC8(Task*, s32, GpXformArg*);
+void func_actor_310100_80162D50(Task*, s32, ActorTransform* placement);
+void func_actor_310100_80162EC8(Task*, s32, ActorTransform* placement);
 void func_actor_310100_80162F34(Task*);
 
 Actor310100MessageEntry D_actor_310100_801798B4[6] = {
@@ -1153,7 +1153,7 @@ void func_actor_310100_801629FC(Task* task)
     }
 }
 
-void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, GpXformArg* placement)
+void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement)
 {
     Actor310100Work* work;
 
@@ -1192,7 +1192,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 /// animation slots (`pos.vz` zero resets them through `Gp_AnimResetSlot`,
 /// otherwise `func_800B4114` blends them) and records the new base in
 /// `field_4F8` / `field_4FA`.
-void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
+void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement)
 {
     AnimationPlayRequest request;
     Actor310100Work*     work;
@@ -1248,7 +1248,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
 /// marks it dirty.
-void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement)
+void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement)
 {
     Actor310100Work* work;
     GfxCoord*        coord;

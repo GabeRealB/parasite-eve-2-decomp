@@ -468,9 +468,9 @@ AnimationPlayRequest D_shelter_b1_sterilization_room_80188610 = { { .index = 1 }
 
 AnimationPlayRequest D_shelter_b1_sterilization_room_80188624 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_shelter_b1_sterilization_room_80188638 = { { 5540, 0, 8600, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_shelter_b1_sterilization_room_80188638 = { { 5540, 0, 8600, 0 }, { 0, 2047, 0, 0 } };
 
-GpXformArg D_shelter_b1_sterilization_room_80188650 = { { 5876, 0, 0x28D2, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_shelter_b1_sterilization_room_80188650 = { { 5876, 0, 0x28D2, 0 }, { 0, 512, 0, 0 } };
 
 _ShelterB1SterilizationRoomMsg D_shelter_b1_sterilization_room_80188668[8] = {
     { { 21, 19, 0, 0, 0, 0, 0, 0, 247, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },

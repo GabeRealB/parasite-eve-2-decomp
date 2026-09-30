@@ -323,7 +323,7 @@ typedef struct {
         void (*reset)(void);
         s32  (*value)(Task*, s32, s32);
         s32  (*task)(Task*);
-        s32  (*placement)(Task*, s32, GpXformArg*);
+        s32  (*placement)(Task*, s32, ActorTransform*);
     } handler;
 } Actor00100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor00100MessageEntry, 8);
@@ -459,7 +459,7 @@ extern TmdSource Actor00100_D108C0;
 
 s32 Actor00100_Fn00E58(Task*, s32, ActorCommand* request);
 
-s32 Actor00100_Fn0B2B4(Task*, s32, GpXformArg*);
+s32 Actor00100_Fn0B2B4(Task*, s32, ActorTransform* placement);
 
 void Actor00100_Fn0B134(void);
 
@@ -5596,7 +5596,7 @@ s32 Actor00100_Fn0B264(Task* task)
     return 1;
 }
 
-s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, GpXformArg* placement)
+s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*                 coord;
     s32                       mx;

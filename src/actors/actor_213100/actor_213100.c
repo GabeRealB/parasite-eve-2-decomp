@@ -70,7 +70,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor213100MessageEntry;
@@ -92,7 +92,7 @@ s32         func_actor_213100_8014A258(Task* task, s32 arg1, AnimationPlayReques
 extern TmdSource D_actor_213100_801501E4;
 extern TmdSource D_actor_213100_801503DC;
 s32              func_actor_213100_8014A258(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_213100_8014A390(Task*, s32, GpXformArg*);
+s32              func_actor_213100_8014A390(Task*, s32, ActorTransform* args);
 s32              func_actor_213100_8014A40C(Task*, s32, s32);
 void             func_actor_213100_80149FE4(Task*);
 void             func_actor_213100_8014A0C0(Task*);
@@ -639,7 +639,7 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// the translation goes straight into the root coordinate's local matrix, the
 /// Euler angles into the coordinate's `rot` slot, from which the rotation is
 /// rebuilt. Clearing `composeStamp` has the world matrix recomputed. Returns 0.
-s32 func_actor_213100_8014A390(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_213100_8014A390(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

@@ -176,7 +176,7 @@ AnimationPlayRequest D_neo_ark_power_plant_2_8018024C = { { .sets = D_neo_ark_po
 
 AnimationPlayRequest D_neo_ark_power_plant_2_80180260 = { { .sets = D_neo_ark_power_plant_2_80180240 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_neo_ark_power_plant_2_80180274 = { { 4000, -5000, -1540, 0 }, { 0, -2275, 0, 0 } };
+ActorTransform D_neo_ark_power_plant_2_80180274 = { { 4000, -5000, -1540, 0 }, { 0, -2275, 0, 0 } };
 
 GpScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
     { 257, 1 },

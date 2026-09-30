@@ -242,7 +242,7 @@ AnimationPlayRequest D_dryfield_night_driveway_8017F394 = { { .index = 1 }, 48, 
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F3A8 = { { .index = 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpXformArg D_dryfield_night_driveway_8017F3BC = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F3BC = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_dryfield_night_driveway_8017F3D4[14] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
@@ -305,25 +305,25 @@ GpMsgEntry D_dryfield_night_driveway_8017F7A4[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpXformArg D_dryfield_night_driveway_8017F7D4 = { { -700, 0, 1320, 0 }, { 0, 1365, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F7D4 = { { -700, 0, 1320, 0 }, { 0, 1365, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F7EC = { { -700, 0, 1320, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F7EC = { { -700, 0, 1320, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F804 = { { 3300, 0, 790, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F804 = { { 3300, 0, 790, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F81C = { { 100, 0, 790, 0 }, { 0, 3413, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F81C = { { 100, 0, 790, 0 }, { 0, 3413, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F834 = { { -3000, 0, 790, 0 }, { 0, 3413, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F834 = { { -3000, 0, 790, 0 }, { 0, 3413, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F84C = { { -9527, 0, -1500, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F84C = { { -9527, 0, -1500, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F864 = { { -9527, 0, -1500, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F864 = { { -9527, 0, -1500, 0 }, { 0, 1024, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F87C = { { -3800, 0, -1500, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F87C = { { -3800, 0, -1500, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
+ActorTransform D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
 
 DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &D_dryfield_night_driveway_8017EE30, &D_dryfield_night_driveway_8017F044, &D_dryfield_night_driveway_8017F324, NULL }, { { { .index = 1 }, 47, 0, 0, 1 }, { { .index = 1 }, 47, 0, 0, 1 } } } };
 

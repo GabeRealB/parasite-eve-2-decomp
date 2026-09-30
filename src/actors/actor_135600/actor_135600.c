@@ -62,8 +62,8 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, GpXformArg*, Actor135600SpawnAnim*);
-        s32 (*call3)(Task*, s32, GpXformArg*, s32);
+        s32 (*call2)(Task*, s32, ActorTransform*, Actor135600SpawnAnim*);
+        s32 (*call3)(Task*, s32, ActorTransform*, s32);
         s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor135600MsgEntry;
@@ -87,7 +87,7 @@ static void func_actor_135600_80132E68(Task* task);
 static void func_actor_135600_80132F28(Task* task);
 static void func_actor_135600_80132FA8(Task* task);
 s32         func_actor_135600_801330A8(Task* task, s32 msgId, AnimationPlayRequest* preset, s32 arg3);
-s32         func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3);
+s32         func_actor_135600_801331C4(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
 s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// States of the two part tasks (`D_actor_135600_8013B0C4` entries 1 and 2),
@@ -149,9 +149,9 @@ extern TmdSource    D_actor_135600_80137E94;
 extern TmdSource    D_actor_135600_801382E8;
 extern TmdSource    D_actor_135600_801387D8;
 extern TmdSource    D_actor_135600_80138AE8;
-s32                 func_actor_135600_8013282C(Task*, s32, GpXformArg*, Actor135600SpawnAnim*);
+s32                 func_actor_135600_8013282C(Task*, s32, ActorTransform* place, Actor135600SpawnAnim*);
 s32                 func_actor_135600_801330A8(Task*, s32, AnimationPlayRequest*, s32);
-s32                 func_actor_135600_801331C4(Task*, s32, GpXformArg*, s32);
+s32                 func_actor_135600_801331C4(Task*, s32, ActorTransform* args, s32);
 s32                 func_actor_135600_80133240(Task*, s32, s32, s32);
 s32                 func_actor_135600_8013336C(void);
 void                func_actor_135600_801329E0(Task*);
@@ -784,7 +784,7 @@ static void func_actor_135600_80132234(Task* task)
 {
     Actor135600Work*     work;
     Task*                spawned;
-    GpXformArg           args;
+    ActorTransform       args;
     AnimationPlayRequest preset;
 
     work = (Actor135600Work*)memCalloc(0x50C, false);
@@ -942,7 +942,7 @@ static void func_actor_135600_801326E8(Task* arg0)
 /// `walk.rotX`..`walk.rotZ`, then applies a start preset -- `anim`'s, or anim 0xD
 /// with preset byte 1 when absent -- with the body of
 /// `func_actor_135600_801330A8` written out inline. Returns 0.
-s32 func_actor_135600_8013282C(Task* task, s32 arg1, GpXformArg* place, Actor135600SpawnAnim* anim)
+s32 func_actor_135600_8013282C(Task* task, s32 arg1, ActorTransform* place, Actor135600SpawnAnim* anim)
 {
     Actor135600Work*      work;
     Actor135600Work*      w;
@@ -1333,7 +1333,7 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, AnimationPlayRequest* msg,
 /// the Euler angles in the coordinate's own `rot` slot and rebuilds the
 /// rotation from them; clearing `composeStamp` makes the world matrix be recomputed.
 /// Returns 0.
-s32 func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
+s32 func_actor_135600_801331C4(Task* task, s32 msgId, ActorTransform* args, s32 arg3)
 {
     GfxCoord* coord;
 

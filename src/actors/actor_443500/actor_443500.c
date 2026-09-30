@@ -99,7 +99,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32, s32);
     } handler;
 } Actor443500MessageEntry;
@@ -156,10 +156,10 @@ extern AnimationPlayRequest D_actor_443500_801411BC;
 extern AnimationPlayRequest D_actor_443500_801411D0;
 extern GpCopyArg            D_actor_443500_80140E70;
 extern GpCopyArg            D_actor_443500_80140FE8;
-extern GpXformArg           D_actor_443500_80140F54;
-extern GpXformArg           D_actor_443500_80140F6C;
-extern GpXformArg           D_actor_443500_801411E4;
-extern GpXformArg           D_actor_443500_801411FC;
+extern ActorTransform       D_actor_443500_80140F54;
+extern ActorTransform       D_actor_443500_80140F6C;
+extern ActorTransform       D_actor_443500_801411E4;
+extern ActorTransform       D_actor_443500_801411FC;
 void                        func_actor_443500_80131E3C(s32);
 void                        func_actor_443500_80131E84(s32);
 void                        func_actor_443500_80131EE4(void);
@@ -962,9 +962,9 @@ AnimationPlayRequest D_actor_443500_80140F2C = { { .index = 1 }, 56, ANIMATION_B
 
 AnimationPlayRequest D_actor_443500_80140F40 = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_443500_80140F54 = { { 0x3A98, -1000, 7600, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_actor_443500_80140F54 = { { 0x3A98, -1000, 7600, 0 }, { 0, 512, 0, 0 } };
 
-GpXformArg D_actor_443500_80140F6C = { { 0x3CF0, -1000, 9000, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_actor_443500_80140F6C = { { 0x3CF0, -1000, 9000, 0 }, { 0, 512, 0, 0 } };
 
 AnimationSet* D_actor_443500_80140F84[25] = {
     NULL,
@@ -1046,9 +1046,9 @@ AnimationPlayRequest D_actor_443500_801411BC = { { .index = 1 }, 70, ANIMATION_B
 
 AnimationPlayRequest D_actor_443500_801411D0 = { { .index = 1 }, 71, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_443500_801411E4 = { { 0x3F48, -1000, 8000, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform D_actor_443500_801411E4 = { { 0x3F48, -1000, 8000, 0 }, { 0, 2047, 0, 0 } };
 
-GpXformArg D_actor_443500_801411FC = { { 0x3FAC, -1000, 6950, 0 }, { 0, 1365, 0, 0 } };
+ActorTransform D_actor_443500_801411FC = { { 0x3FAC, -1000, 6950, 0 }, { 0, 1365, 0, 0 } };
 
 AnimationPlayRequest D_actor_443500_80141214 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -1122,11 +1122,11 @@ AnimationPlayRequest D_actor_443500_801414BC = { { .index = 0 }, 34, ANIMATION_B
 
 AnimationPlayRequest D_actor_443500_801414D0 = { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpXformArg D_actor_443500_801414E4 = { { 0x3E80, -1000, 9000, 0 }, { 0, 2560, 0, 0 } };
+ActorTransform D_actor_443500_801414E4 = { { 0x3E80, -1000, 9000, 0 }, { 0, 2560, 0, 0 } };
 
-GpXformArg D_actor_443500_801414FC = { { 0x3F48, -1000, 6200, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_443500_801414FC = { { 0x3F48, -1000, 6200, 0 }, { 0, 0, 0, 0 } };
 
-GpXformArg D_actor_443500_80141514 = { { 0x3E80, -1000, 5910, 0 }, { 0, 0, 0, 0 } };
+ActorTransform D_actor_443500_80141514 = { { 0x3E80, -1000, 5910, 0 }, { 0, 0, 0, 0 } };
 
 GpEvsCmd D_actor_443500_8014152C[74] = {
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2383,7 +2383,7 @@ TaskDesc D_actor_443500_8015873C[2] = {
 };
 
 s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_443500_80132900(Task*, s32, GpXformArg*);
+s32 func_actor_443500_80132900(Task*, s32, ActorTransform* args);
 s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
 
 Actor443500MessageEntry D_actor_443500_80158754[4] = {
@@ -2786,7 +2786,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
 /// straight into the root coordinate's local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which the rotation is rebuilt. Clearing `composeStamp`
 /// has the world matrix recomputed. Returns 0.
-s32 func_actor_443500_80132900(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_443500_80132900(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

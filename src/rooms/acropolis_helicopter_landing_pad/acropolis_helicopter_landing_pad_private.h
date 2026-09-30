@@ -48,7 +48,7 @@ extern RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90;
 
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5];
 
-extern GpXformArg D_acropolis_helicopter_landing_pad_801837B0;
+extern ActorTransform D_acropolis_helicopter_landing_pad_801837B0;
 
 extern s32 D_acropolis_helicopter_landing_pad_801837E0[18];
 
@@ -72,7 +72,7 @@ extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E28;
 
 extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C;
 
-extern GpXformArg D_acropolis_helicopter_landing_pad_80184E50;
+extern ActorTransform D_acropolis_helicopter_landing_pad_80184E50;
 
 /// Per-frame phase tick of the room's script task.
 void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task);

@@ -68,7 +68,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request, s32);
-        s32 (*call2)(Task*, s32, GpXformArg*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
     } handler;
@@ -116,12 +116,12 @@ static void func_actor_461800_80133B98(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80132E14(Task*, s32, s32);
-s32  func_actor_461800_80132EA4(Task*, s32, GpXformArg*);
+s32  func_actor_461800_80132EA4(Task*, s32, ActorTransform* placement);
 s32  func_actor_461800_80132F20(Task*, s32, ActorCommand* request, s32);
 s32  func_actor_461800_80132F44(Task*, s32, VECTOR*, s32);
 s32  func_actor_461800_80133898(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80133928(Task*, s32, s32);
-s32  func_actor_461800_80133970(Task*, s32, GpXformArg*);
+s32  func_actor_461800_80133970(Task*, s32, ActorTransform* placement);
 s32  func_actor_461800_801339EC(Task*, s32, ActorCommand* msg, s32);
 s32  func_actor_461800_80133A3C(Task*, s32, VECTOR*, s32);
 void func_actor_461800_801329B0(Task*);
@@ -165,9 +165,9 @@ TaskDesc D_actor_461800_80133EBC[2] = {
     { 0, 32, func_actor_461800_80131E38, { .model = NULL } },
 };
 
-GpXformArg D_actor_461800_80133ED4 = { { 7710, 980, 6290, 0 }, { 0, -1479, 0, 0 } };
+ActorTransform D_actor_461800_80133ED4 = { { 7710, 980, 6290, 0 }, { 0, -1479, 0, 0 } };
 
-GpXformArg D_actor_461800_80133EEC = { { 7030, 980, 7530, 0 }, { 0, -1820, 0, 0 } };
+ActorTransform D_actor_461800_80133EEC = { { 7030, 980, 7530, 0 }, { 0, -1820, 0, 0 } };
 
 AnimationPlayRequest D_actor_461800_80133F04 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -1362,7 +1362,7 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
 /// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
 /// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
 /// then the three longs become the coordinate's translation.
-s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;
@@ -1679,7 +1679,7 @@ s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2)
 /// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
 /// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
 /// then the three longs become the coordinate's translation.
-s32 func_actor_461800_80133970(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     u16       yaw;

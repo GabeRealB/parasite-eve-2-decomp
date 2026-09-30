@@ -60,8 +60,8 @@ extern GpMsgEntry D_dryfield_garage_8017DC7C[];
 /// entry.
 extern TaskDesc D_dryfield_garage_8017DCAC[];
 
-extern GpXformArg D_dryfield_garage_8017DCC4;
-extern GpObj4A    D_dryfield_garage_8017FD1C[11];
+extern ActorTransform D_dryfield_garage_8017DCC4;
+extern GpObj4A        D_dryfield_garage_8017FD1C[11];
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -108,7 +108,7 @@ TaskDesc D_dryfield_garage_8017DCAC[2] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpXformArg D_dryfield_garage_8017DCC4 = { { 1680, 0, 6170, 0 }, { 0, 2048, 0, 0 } };
+ActorTransform D_dryfield_garage_8017DCC4 = { { 1680, 0, 6170, 0 }, { 0, 2048, 0, 0 } };
 
 GpRoomObjRec D_dryfield_garage_8017DCDC[1] = {
     { D_dryfield_garage_8017E64C, D_dryfield_garage_8017F69C, D_dryfield_garage_8017FD1C, NULL },

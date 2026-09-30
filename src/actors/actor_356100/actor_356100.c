@@ -234,8 +234,8 @@ typedef union Actor356100Event {
 } Actor356100Event;
 
 typedef struct {
-    GpXformArg value;
-    u8         retained[8];
+    ActorTransform value;
+    u8             retained[8];
 } Actor356100Storage32B0;
 STATIC_ASSERT_SIZEOF(Actor356100Storage32B0, 32);
 
@@ -245,7 +245,7 @@ typedef struct {
         s32 (*call0)(void);
         s32 (*call1)(Task*);
         s32 (*call2)(Task*, s32, Actor356100Event*);
-        s32 (*call3)(Task*, s32, GpXformArg*);
+        s32 (*call3)(Task*, s32, ActorTransform*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
 } Actor356100MessageEntry;
@@ -255,7 +255,7 @@ extern TmdSource D_actor_356100_8016FC74;
 s32              func_actor_356100_80169E5C(void);
 s32              func_actor_356100_80169E64(Task*, s32, s32);
 s32              func_actor_356100_80169F24(Task*);
-s32              func_actor_356100_80169F74(Task*, s32, GpXformArg*);
+s32              func_actor_356100_80169F74(Task*, s32, ActorTransform* placement);
 s32              func_actor_356100_8016A074(Task*);
 s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*);
 void             func_actor_356100_8016A910(Task*);
@@ -3127,7 +3127,7 @@ s32 func_actor_356100_80169F24(Task* task)
 /// Places the model's root coordinate from `placement` (translation, then the
 /// X, Y and Z rotations in turn) and stores the resulting heading, `ratan2`
 /// of the rotation's Z axis, in the work block's `yaw`.
-s32 func_actor_356100_80169F74(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_356100_80169F74(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     s32              mx;

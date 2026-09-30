@@ -473,11 +473,11 @@ DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6]
 
 TaskDesc D_dryfield_night_trailer_coach_8018797C = { 0, 32, func_dryfield_night_trailer_coach_8018243C, { .model = NULL } };
 
-GpXformArg D_dryfield_night_trailer_coach_80187988 = { { 4870, 0, -900, 0 }, { 0, -1536, 0, 0 } };
+ActorTransform D_dryfield_night_trailer_coach_80187988 = { { 4870, 0, -900, 0 }, { 0, -1536, 0, 0 } };
 
-GpXformArg D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 0, -1479, 0, 0 } };
+ActorTransform D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 0, -1479, 0, 0 } };
 
-GpXformArg D_dryfield_night_trailer_coach_801879B8 = { { 4400, 0, -2400, 0 }, { 0, 512, 0, 0 } };
+ActorTransform D_dryfield_night_trailer_coach_801879B8 = { { 4400, 0, -2400, 0 }, { 0, 512, 0, 0 } };
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_801879D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -823,7 +823,7 @@ static UiObjectDesc Telephone_Data_80181CC8;
 
 extern DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
 
-extern GpXformArg D_dryfield_night_trailer_coach_801879B8;
+extern ActorTransform D_dryfield_night_trailer_coach_801879B8;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CEC;
 

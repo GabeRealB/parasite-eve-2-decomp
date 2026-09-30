@@ -60,8 +60,8 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, GpXformArg*);
-        s32 (*call3)(Task*, s32, GpXformArg*, Actor317000SpawnAnim*);
+        s32 (*call2)(Task*, s32, ActorTransform*);
+        s32 (*call3)(Task*, s32, ActorTransform*, Actor317000SpawnAnim*);
         s32 (*call4)(Task*, s32, s32, s32);
     } handler;
 } Actor317000MsgEntry;
@@ -105,9 +105,9 @@ static const TaskFuncTable4 D_actor_317000_80161E30 = { {
 static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 extern TmdSource D_actor_317000_801683A4;
-s32              func_actor_317000_80162458(Task*, s32, GpXformArg*, Actor317000SpawnAnim*);
+s32              func_actor_317000_80162458(Task*, s32, ActorTransform* place, Actor317000SpawnAnim*);
 s32              func_actor_317000_80162A10(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_317000_80162B48(Task*, s32, GpXformArg*);
+s32              func_actor_317000_80162B48(Task*, s32, ActorTransform* args);
 s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
 s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
 void             func_actor_317000_80162624(Task*);
@@ -556,7 +556,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// onto `func_800B4114`'s per-slot loop instead of the `Gp_AnimResetSlot`
 /// one, followed by a `Gp_AnimTickIndex` pass over the same 0x12 slots and
 /// `model.ticking` raised. Returns 0 either way.
-s32 func_actor_317000_80162458(Task* task, s32 arg1, GpXformArg* place, Actor317000SpawnAnim* anim)
+s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Actor317000SpawnAnim* anim)
 {
     Actor317000Work*      work;
     Actor317000Work*      w;
@@ -847,7 +847,7 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// position into the root coordinate's translation and its Euler angles into
 /// `GfxCoord::param.rot`, rebuilds the rotation from them with `RotMatrix`
 /// and clears `composeStamp` so the world matrix is recomputed. Returns 0.
-s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_317000_80162B48(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

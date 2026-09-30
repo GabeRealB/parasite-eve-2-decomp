@@ -321,7 +321,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call2)(Task*, s32, GpXformArg*);
+        s32  (*call2)(Task*, s32, ActorTransform*);
         s32  (*call3)(Task*, s32, s32);
         s32  (*call4)(Task*, s32, u16*);
         void (*call5)(void);
@@ -336,8 +336,8 @@ extern Actor401800MessageEntry D_actor_401800_80155A80[8];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpXformArg value;
-    u8         retained[8];
+    ActorTransform value;
+    u8             retained[8];
 } Actor401800Storage5AD8;
 STATIC_ASSERT_SIZEOF(Actor401800Storage5AD8, 32);
 
@@ -410,7 +410,7 @@ extern TmdSource D_actor_401800_80143918;
 s32              func_actor_401800_8013DCBC(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_401800_8013DD2C(Task*, s32, s32);
 s32              func_actor_401800_8013DDEC(Task*);
-s32              func_actor_401800_8013DE3C(Task*, s32, GpXformArg*);
+s32              func_actor_401800_8013DE3C(Task*, s32, ActorTransform* placement);
 s32              func_actor_401800_8013DF3C(Task*);
 s32              func_actor_401800_8013DF80(Task*, s32, u16*);
 void             func_actor_401800_8013DCB4(void);
@@ -4709,7 +4709,7 @@ s32 func_actor_401800_8013DDEC(Task* task)
 /// coordinate for every field), then stores the resulting heading - `ratan2`
 /// of the rotation matrix's Z axis - in the work block's `field_16`. Always
 /// returns 1.
-s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord*        coord;
     s32              mx;

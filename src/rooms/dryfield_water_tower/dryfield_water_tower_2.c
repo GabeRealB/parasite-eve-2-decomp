@@ -57,9 +57,9 @@
 
 #include "overlay.h"
 
-extern GpXformArg D_dryfield_water_tower_80181A70[3];
+extern ActorTransform D_dryfield_water_tower_80181A70[3];
 
-extern GpXformArg D_dryfield_water_tower_80181A40[2];
+extern ActorTransform D_dryfield_water_tower_80181A40[2];
 
 extern GpObj4C D_dryfield_water_tower_80186A84[24];
 
@@ -207,7 +207,7 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 
 /// Placement sent to the cap and prop tasks as message 0x7D4. The cap's
 /// arrival test reads its height and Z coordinate directly from this record.
-extern GpXformArg D_dryfield_water_tower_80181AB8;
+extern ActorTransform D_dryfield_water_tower_80181AB8;
 
 /// The three effect-definition tables the cap-arrival test and
 /// `func_dryfield_water_tower_8017FA5C` install into the room's live copies --
@@ -269,7 +269,7 @@ extern u16 D_dryfield_water_tower_80181C60[];
 /// 3, which sends `80181AD0` -- the 0x18-byte record one step below it in the
 /// same array -- with 0x3F2 straight after. `func_dryfield_water_tower_8017F9AC`
 /// and `8017FA5C` send `80181AD0` with the same message.
-extern GpXformArg D_dryfield_water_tower_80181AD0[2];
+extern ActorTransform D_dryfield_water_tower_80181AD0[2];
 
 /// The three `Gp_SpawnScript18` pairs the cap script's last three commands
 /// spawn into `field_50`, and the sound each one queues: `0x52140006` with the
@@ -296,7 +296,7 @@ typedef struct {
     union {
         void (*call0)(Task*);
         void (*call1)(Task*, s32, ActorCommand* request);
-        void (*call2)(Task*, s32, GpXformArg*);
+        void (*call2)(Task*, s32, ActorTransform*);
     } handler;
 } DryfieldWaterTower2MessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTower2MessageEntry, 8);
@@ -347,7 +347,7 @@ extern TaskDesc D_dryfield_water_tower_8018277C[];
 
 /// The room's run of 4A objects; element 14 is `D_dryfield_water_tower_80186A84[20]`.
 
-/// The `GpXformArg` run the room's 0x7D4 messages step the props through:
+/// The `ActorTransform` run the room's 0x7D4 messages step the props through:
 /// the 0x18-byte records from 0x801823A8 up to 0x80182408. `D_..._801823C0`,
 /// the second of them, is case 1's pair -- `[0]` to `field_4` and `[3]`
 /// (0x80182408) to `field_8`; `D_..._801823F0`, the run's element 2, is case
@@ -355,7 +355,7 @@ extern TaskDesc D_dryfield_water_tower_8018277C[];
 /// `func_dryfield_water_tower_80180220` sends as element 1 of the pair it
 /// declares `D_..._801823D8[]`; and `D_..._801823A8`, the first, is the player
 /// move both that opcode and case 4 send with 0x3E9.
-extern GpXformArg D_dryfield_water_tower_801823A8;
+extern ActorTransform D_dryfield_water_tower_801823A8;
 
 /// The `AnimationPlayRequest` (0x14-byte) run the 0x7D3 animation messages send: `field_4`
 /// carries the animation index -- 0x0D / 0x0E / 0x0F for the three records --
@@ -416,7 +416,7 @@ extern SVECTOR    D_dryfield_water_tower_801828CC[29];
 extern SVECTOR    D_dryfield_water_tower_801829B4[175];
 extern TaskDesc   D_8014D8A4;
 extern s16*       D_dryfield_water_tower_80183584[16];
-void              func_dryfield_water_tower_8017F77C(Task*, s32, GpXformArg*);
+void              func_dryfield_water_tower_8017F77C(Task*, s32, ActorTransform* placement);
 void              func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
 
 TaskDesc D_dryfield_water_tower_80180394 = { 0, 32, func_dryfield_water_tower_8017D7D8, { .model = NULL } };
@@ -493,21 +493,21 @@ TmdSource D_dryfield_water_tower_80181A1C = {
 };
 
 // Placement task reads and dispatches entry 1.
-GpXformArg D_dryfield_water_tower_80181A40[2] = {
+ActorTransform D_dryfield_water_tower_80181A40[2] = {
     { { 3100, 0, 0, 0 }, { 0, 1024, 0, 0 } },
     { { 3100, 0, 1800, 0 }, { 0, 1024, 0, 0 } },
 };
 
 // The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-GpXformArg D_dryfield_water_tower_80181A70[3] = {
+ActorTransform D_dryfield_water_tower_80181A70[3] = {
     { { -2900, -8000, 0, 0 }, { 0, 3072, 0, 0 } },
     { { -2900, -4000, 0, 0 }, { 0, 3072, 0, 0 } },
     { { -2500, -200, 0, 0 }, { 0, 3072, 0, 0 } },
 };
 
-GpXformArg D_dryfield_water_tower_80181AB8 = { { -2500, -4000, 0, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_dryfield_water_tower_80181AB8 = { { -2500, -4000, 0, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_dryfield_water_tower_80181AD0[2] = {
+ActorTransform D_dryfield_water_tower_80181AD0[2] = {
     { { 1900, 0, -270, 0 }, { 0, 3072, 0, 0 } },
     { { 2500, 0, -270, 0 }, { 0, 3072, 0, 0 } },
 };
@@ -678,9 +678,9 @@ TaskDesc D_dryfield_water_tower_80182384[3] = {
     { 257, 192, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
 };
 
-GpXformArg D_dryfield_water_tower_801823A8 = { { -700, -1, -4500, 0 }, { 0, 3072, 0, 0 } };
+ActorTransform D_dryfield_water_tower_801823A8 = { { -700, -1, -4500, 0 }, { 0, 3072, 0, 0 } };
 
-GpXformArg D_dryfield_water_tower_801823C0[4] = {
+ActorTransform D_dryfield_water_tower_801823C0[4] = {
     { { -4465, -1, 0, 0 }, { 0, 1024, 0, 0 } },
     { { -4000, 100, -1200, 0 }, { 3840, 1024, 0, 0 } },
     { { -4465, -1, 1000, 0 }, { 0, 1024, 0, 0 } },
@@ -2772,7 +2772,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 /// `TmdObject` coordinate frame -- the three longs become the translation,
 /// then yaw, pitch and roll are applied with `Gfx_RotMatrixY` / `X` / `Z` --
 /// and marks the coordinate dirty.
-void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, GpXformArg* placement)
+void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, ActorTransform* placement)
 {
     GfxCoord* coord;
     MATRIX*   mtx;

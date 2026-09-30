@@ -48,7 +48,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor503500MsgEntry;
@@ -70,7 +70,7 @@ extern SVECTOR D_actor_503500_80147360[92];
 extern TmdBone D_actor_503500_80147338[1];
 extern u32     D_actor_503500_80147640[459];
 
-s32 func_actor_503500_80132508(Task*, s32, GpXformArg*);
+s32 func_actor_503500_80132508(Task*, s32, ActorTransform* args);
 s32 func_actor_503500_80132584(Task*, s32, s32);
 s32 func_actor_503500_80132664(Task*, s32, ActorCommand* msg);
 
@@ -982,7 +982,7 @@ static void func_actor_503500_801324EC(Task* arg0)
 /// coordinate's local matrix, the Euler angles into the coordinate's `rot`
 /// slot, from which the rotation is rebuilt. Clearing `composeStamp` has the world
 /// matrix recomputed. Returns 0.
-s32 func_actor_503500_80132508(Task* task, s32 arg1, GpXformArg* args)
+s32 func_actor_503500_80132508(Task* task, s32 arg1, ActorTransform* args)
 {
     GfxCoord* coord;
 

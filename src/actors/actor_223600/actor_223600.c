@@ -137,7 +137,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, Actor223600Event*);
-        s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*call1)(Task*, s32, ActorTransform*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor223600MessageEntry;
@@ -160,7 +160,7 @@ void             func_actor_223600_8014CF6C(Task*);
 
 s32 func_actor_223600_8014CC04(Task*, s32, s32);
 s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*);
-s32 func_actor_223600_8014CD54(Task*, s32, GpXformArg*);
+s32 func_actor_223600_8014CD54(Task*, s32, ActorTransform* placement);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1573,7 +1573,7 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
 /// coordinate from `placement`: the three longs become the translation, the
 /// X, Y and Z angles are applied in that order with `Gfx_RotMatrixX` / `Y` /
 /// `Z`, and the coordinate is marked dirty. Always returns 1.
-s32 func_actor_223600_8014CD54(Task* task, s32 arg1, GpXformArg* placement)
+s32 func_actor_223600_8014CD54(Task* task, s32 arg1, ActorTransform* placement)
 {
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
