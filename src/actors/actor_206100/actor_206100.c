@@ -64,6 +64,7 @@
 #include "rooms/neo_ark_submarine_gallery.h"
 #include "../../shared/screen_wave.h"
 #include "../../shared/coord_math.h"
+#include "../../shared/striker_enemy.h"
 
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
@@ -466,7 +467,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 /// stays zero.  `rec` is the two-entry `WorldCollisionContact` table `obj.context.contacts` points at.
 /// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
 /// stores from the actor's coordinate, `field_60` the pair index the setup
-/// hands to `func_actor_206100_8014A70C`, and `field_64` the scale word it
+/// hands to `strikerImpactBurst`, and `field_64` the scale word it
 /// biases by 0x10002000.  The tick handler `func_actor_206100_8014B8B4`
 /// advances `field_5A` and adds `field_58` into the coordinate's `t[1]`.
 typedef struct Actor206100ChildWork {
@@ -528,12 +529,11 @@ static void func_actor_206100_8014EEC0(Task* task);
 
 /// Spawns the beam's impact effect burst at `coord`. `arg1` is
 /// `Actor206100ChildWork::field_60` (the `DamageAttack` index): `(arg1 >> 1) % 6`
-/// picks the spark frame `func_actor_206100_8014AB3C` plays, bit 0 gates the
+/// picks the spark frame `strikerDrawSpark` plays, bit 0 gates the
 /// puff and the low three bits the directional tail. `arg2` selects the burst
 /// - 0 a lone spark, 1 the spark plus those two extras, 2 a four-shot ring -
 /// and `arg3` is the biased `field_64` scale word, whose low 12 bits are the
 /// effect parameter and bits 12..15 a variant index.
-static void func_actor_206100_8014A70C(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3);
 
 /// Steps the actor's model coordinate `arg1` along the heading `arg2`, in the
 /// XZ plane, and marks it dirty.
@@ -550,7 +550,6 @@ static void func_actor_206100_8014A70C(GfxCoord* coord, u16 arg1, u16 arg2, u32 
 /// Every call site in this overlay takes `arg2` from the actor's heading and
 /// `arg1` from a step distance, either a constant (`0x30`, `0x40`) or an
 /// `s16` the caller narrows itself.
-static void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2);
 
 /// State-1 body: ticks the actor's per-state frame counter and, once it
 /// reaches 0x22, walks the actor out of the scene -- parks its model coordinate
@@ -635,7 +634,6 @@ static void func_actor_206100_8014D8E8(Task* task);
 static void func_actor_206100_8014DD3C(Task* task);
 
 /// Teardown state of the beam child, run until its countdown kills it.
-static void func_actor_206100_8014EFC8(Task* task);
 
 /// Transforms `pos` from `coord`'s space up the parent chain into the view
 /// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
@@ -673,7 +671,6 @@ static void func_actor_206100_8014E964(Task* task, void* unusedTable);
 static void func_actor_206100_8014FBE4(Task* task, void* unusedTable);
 static void func_actor_206100_8014FCD4(Task* task, void* unusedTable);
 static void func_actor_206100_8014FDE8(Task* task, void* unusedTable);
-static void func_actor_206100_8014AB3C(GfxCoord* coord, u16 arg1, u16 arg2, s32 arg3);
 static void func_actor_206100_8014E228(Task* task);
 
 /// Distortion amplitude of the screen wave: `frame * scale / span` of the
@@ -706,7 +703,7 @@ static const TaskFuncTable3 D_actor_206100_80149E24 = {
     {
         func_actor_206100_8014EEC0,
         func_actor_206100_8014B8B4,
-        func_actor_206100_8014EFC8,
+        strikerStrikeTeardown,
     },
 };
 
@@ -1260,155 +1257,19 @@ static void func_actor_206100_8014F69C(Task* task);
 
 extern TaskDesc D_80147E48;
 
-static void                 func_actor_206100_8014B698(Task* task);
-static void                 func_actor_206100_8014BAA8(Task* task);
-static __inline__ s32       Actor206100_AccumulateRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
-static __inline__ GfxCoord* Actor206100_LocalizeRotation(GfxCoord* arg0, MATRIX* arg1);
-static void                 func_actor_206100_8014BEC4(GfxCoord* coord, s16 yaw);
-static inline void          _actor206100AnimUpdate(Task* task);
-static void                 func_actor_206100_8014C274(Task* task);
-static __inline__ void      Actor206100_UpdateColor(Task* task);
-static void                 func_actor_206100_8014CB68(Task* task);
-static __inline__ void      set_state(Task* task, s32 state);
-static __inline__ s16       take_request(Task* task);
+static void            func_actor_206100_8014B698(Task* task);
+static void            func_actor_206100_8014BAA8(Task* task);
+static inline void     _actor206100AnimUpdate(Task* task);
+static void            func_actor_206100_8014C274(Task* task);
+static __inline__ void Actor206100_UpdateColor(Task* task);
+static void            func_actor_206100_8014CB68(Task* task);
+static __inline__ void set_state(Task* task, s32 state);
+static __inline__ s16  take_request(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
 
-static void func_actor_206100_8014A70C(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
-{
-    SVECTOR vec;
-    s32     i;
-    u16     variant;
-    u16     param;
-
-    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, 0x400, 0);
-        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            return;
-        }
-    }
-
-    variant = (arg3 >> 12) & 0xF;
-    param   = arg3 & 0xFFF;
-
-    switch (arg2) {
-        case 0:
-            Gp_SpawnEff(D_80115738, coord, 0x14001000 + param + variant, NULL);
-            break;
-
-        case 1:
-            func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, param, 0);
-            if (!(arg1 & 1)) {
-                Gp_SpawnEff(D_80115738, coord, 0x01000000 + param + variant, NULL);
-            }
-            if (!(arg1 & 7)) {
-                SVECTOR* dir;
-
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-
-                dir = &vec;
-                VectorNormalSS(dir, dir);
-                gte_lddp(0x40);
-                gte_ldsv(dir);
-                gte_gpf12();
-                gte_stsv(dir);
-                Gp_SpawnEff(0x600E0, coord, (s32)(param), dir);
-            }
-            break;
-
-        case 2:
-            func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, param, 0);
-            Gp_SpawnEff(D_80115738, coord, 0x10001000 + param + variant, NULL);
-            for (i = 0; i < 4; i++) {
-                SVECTOR* dir;
-
-                Gp_SpawnEff(D_80115738, coord, 0x02001000 + param + variant, NULL);
-
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-
-                dir = &vec;
-                VectorNormalSS(dir, dir);
-                gte_lddp(0x40);
-                gte_ldsv(dir);
-                gte_gpf12();
-                gte_stsv(dir);
-                Gp_SpawnEff(0x600E0, coord, (s32)(param), dir);
-            }
-            break;
-    }
-}
-/// Links one frame of the rotating impact-spark billboard at `arg0`'s world
-/// position, projected through `GsWSMATRIX` by a single `RTPS`; a negative
-/// projection flag drops the quad.  `arg1` picks one of six 0x27-square frames
-/// along row 0x38 of tpage 0x2A, `arg2` sizes the quad and `arg3` spins it: the
-/// corners sit `arg2 * 0x27 / otz` from the projected centre along `arg3` and
-/// `arg3 + 0x400`, so the spark shrinks with depth.
-static void func_actor_206100_8014AB3C(GfxCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
-{
-    void**             scratch;
-    u8*                head;
-    GpEffFlareScratch* blk;
-    GpEffFlareScratch* copy;
-    POLY_FT4*          prim;
-    s32                ang;
-    u16                frame;
-    s32                u;
-
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    blk                            = (GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch));
-    copy                           = blk;
-    blk->vec.vx                    = (u16)arg0->workm.t[0];
-    blk->vec.vy                    = (u16)arg0->workm.t[1];
-    blk->vec.vz                    = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = blk;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->vec);
-    gte_rtps();
-    gte_stsxy(&((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(copy);
-        ((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2F;
-        prim->tpage = 0x2A;
-        prim->clut  = 0x4293;
-        frame       = arg1 % 6;
-        u           = frame * 0x28;
-        setUV4(prim, u, 0x38, u + 0x27, 0x38, u, 0x5F, u + 0x27, 0x5F);
-        ang      = (s16)arg3;
-        blk->dx  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz) * rcos(ang)) >> 12;
-        prim->x0 = blk->sx + (u16)blk->dx;
-        prim->x3 = blk->sx - (u16)blk->dx;
-        prim->y0 = blk->sy - (u16)blk->dy;
-        prim->y3 = blk->sy + (u16)blk->dy;
-        ang      = ang + 0x400;
-        blk->dx  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz) * rcos(ang)) >> 12;
-        prim->x1 = blk->sx + (u16)blk->dx;
-        prim->x2 = blk->sx - (u16)blk->dx;
-        prim->y1 = blk->sy - (u16)blk->dy;
-        prim->y2 = blk->sy + (u16)blk->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));
-}
+#include "../../shared/striker_enemy_impact_burst.inc.c"
+#include "../../shared/striker_enemy_draw_spark.inc.c"
 
 static void func_actor_206100_8014AF74(Task* task)
 {
@@ -1738,7 +1599,7 @@ static void func_actor_206100_8014B698(Task* task)
 /// `func_800E0C10`'s push-back says the beam is crowded, and retires the child
 /// - clearing the object's draw flags, bumping the task state and switching
 /// the effect kind to 2 - once `killCountdown` reaches 0x5B or the flag is up.
-/// `field_64` is the scale the setup hands to `func_actor_206100_8014A70C`
+/// `field_64` is the scale the setup hands to `strikerImpactBurst`
 /// biased by 0x10002000; it ramps 0x100 a frame to 0x600 and then holds.
 static void func_actor_206100_8014B8B4(Task* task)
 {
@@ -1794,7 +1655,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         } else {
             child->field_64 = 0x600;
         }
-        func_actor_206100_8014A70C(coord, child->field_60, mode, child->field_64 + 0x10002000);
+        strikerImpactBurst(coord, child->field_60, mode, child->field_64 + 0x10002000);
     }
 }
 /// Damage / knock-back tick: walks the six contact records of the actor's
@@ -1955,105 +1816,9 @@ static void func_actor_206100_8014BAA8(Task* task)
         work->field_504 = 0;
     }
 }
-/// Accumulate `arg0`'s parent chain into `arg1`: seed it with the node's own
-/// rotation, then pre-multiply by each (renormalised) ancestor up to but not
-/// including `arg2`, renormalising after every step. Returns whether the walk
-/// stopped on `arg2` rather than running off the end of the chain.
-static __inline__ s32 Actor206100_AccumulateRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
-{
-    MATRIX    normal;
-    MATRIX    matrix;
-    GfxCoord* coord;
+#include "../../shared/striker_enemy_inlines.inc.c"
 
-    coord = arg0->parent;
-    *arg1 = arg0->coord;
-    while (1) {
-        if (coord == NULL) {
-            return 0;
-        }
-        if (coord == arg2) {
-            return 1;
-        }
-        matrix = coord->coord;
-        MatrixNormal(&matrix, &matrix);
-        gte_SetRotMatrix(&matrix);
-        MulRotMatrix(arg1);
-        MatrixNormal(arg1, &normal);
-        *arg1 = normal;
-        coord = coord->parent;
-    }
-}
-
-/// Undo the parent chain again, turning the world-space rotation in `arg1`
-/// back into one relative to `arg0`'s parent: accumulate the chain *above* the
-/// parent, transpose it (the 3x3 inverse of a rotation) and pre-multiply.
-/// Nothing to do when the parent is already the view coordinate.
-///
-/// Returns `arg0` so the caller stores through the returned pointer; the copy
-/// GCC emits where the exits merge is what gives the store base its own
-/// pseudo. Three details here are matching requirements rather than style:
-/// the early `return arg0;` on the end-of-chain exit (it is what lifts `arg0`
-/// past the scratch pointers in global-alloc's priority order, so it keeps
-/// `$s3`), and the `mp` / `lp` pointer variables, whose declarations must
-/// precede `view` so their pseudos out-rank it when the two tie.
-static __inline__ GfxCoord* Actor206100_LocalizeRotation(GfxCoord* arg0, MATRIX* arg1)
-{
-    MATRIX    matrix;
-    MATRIX    local;
-    MATRIX    normal;
-    MATRIX    transposed;
-    MATRIX*   mp;
-    MATRIX*   lp;
-    GfxCoord* coord;
-    GfxCoord* view;
-
-    coord = arg0->parent;
-    if (coord != &gGfxViewCoord) {
-        mp     = &matrix;
-        view   = &gGfxViewCoord;
-        lp     = &local;
-        matrix = coord->coord;
-        while (1) {
-            coord = coord->parent;
-            if (coord == NULL) {
-                return arg0;
-            }
-            if (coord == view) {
-                gte_TransposeMatrix(mp, &transposed);
-                gte_SetRotMatrix(&transposed);
-                MulRotMatrix(arg1);
-                break;
-            }
-            local = coord->coord;
-            MatrixNormal(&local, &local);
-            gte_SetRotMatrix(lp);
-            MulRotMatrix(&matrix);
-            MatrixNormal(&matrix, &normal);
-            matrix = normal;
-        }
-    }
-    return arg0;
-}
-
-/// Turns the joint `coord` by `yaw` about the world Y axis: accumulates its
-/// rotation up to the view coordinate, turns it, expresses the result back in
-/// the parent's frame and writes the 3x3 into the joint.  The working matrix
-/// is one `MATRIX` taken off the scratchpad head for the duration.
-static void func_actor_206100_8014BEC4(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
-
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    Actor206100_AccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = Actor206100_LocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
+#include "../../shared/striker_enemy_turn_joint.inc.c"
 
 /// Services the animation request in the work block and steps animation slots
 /// 1 through 0xE once.  `field_50C` holds the request kind: kind 1 zeroes the
@@ -2526,7 +2291,7 @@ static void func_actor_206100_8014CD08(Task* task)
         return;
     }
     work->field_526 = (u16)(work->field_526 + ((s32)(0x1D4C - (s16)work->field_526) >> 2));
-    func_actor_206100_8014EA8C(task, 0x30, work->field_43E);
+    strikerStepForward(task, 0x30, work->field_43E);
 }
 /// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `field_51E` and seeds
@@ -3214,7 +2979,7 @@ static void func_actor_206100_8014DD3C(Task* task)
 /// planar distance below 0x3E8) advances `field_548` modulo 8 and the ring-step
 /// counter `field_54F`, which resets after its sixth step and re-arms the roll;
 /// otherwise it steers the yaw `field_43E` toward the vertex by 0x2C a frame
-/// and hands the actor to `func_actor_206100_8014EA8C` for a 0x40 step.
+/// and hands the actor to `strikerStepForward` for a 0x40 step.
 ///
 /// The three diffs are written into the `delta` `SVECTOR` although only `vx`
 /// and `vz` are read back -- the distance is planar, so `vy` is dead.  That
@@ -3288,7 +3053,7 @@ static void func_actor_206100_8014DEAC(Task* task)
         } else if (diff < -0x100) {
             work->field_43E = angle + 0x2C;
         }
-        func_actor_206100_8014EA8C(task, 0x40, sub->field_43E);
+        strikerStepForward(task, 0x40, sub->field_43E);
     }
 }
 /// Retarget tick: `func_actor_206100_8014EB48` arms the state to 1 with the
@@ -3463,8 +3228,8 @@ static void func_actor_206100_8014E228(Task* task)
     Gp_UpdateCoord(c1);
     Gp_UpdateCoord(c2);
     Gp_UpdateCoord(c3);
-    func_actor_206100_8014BEC4(c2, (s16)(u16)work->field_35E / 3);
-    func_actor_206100_8014BEC4(c3, (s16)(u16)work->field_35E / 3);
+    strikerTurnJoint(c2, (s16)(u16)work->field_35E / 3);
+    strikerTurnJoint(c3, (s16)(u16)work->field_35E / 3);
 
     mc.ident.m00_m01 = 0x1000;
     mc.ident.m02_m10 = 0;
@@ -3593,12 +3358,7 @@ static void func_actor_206100_8014E964(Task* task, void* unusedTable)
         work->field_520 = work->field_520 + 1;
     }
 }
-static void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2)
-{
-    task->extra.tmd->coords->coord.t[0]  += ((rsin(arg2) << 4) * arg1) >> 16;
-    task->extra.tmd->coords->coord.t[2]  += ((rcos(arg2) << 4) * arg1) >> 16;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/striker_enemy_step_forward.inc.c"
 
 static void func_actor_206100_8014EB48(Task* task, s16 arg1)
 {
@@ -3685,7 +3445,7 @@ static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
     SCRATCH_STACK_CURSOR(Actor206100DistScratch) = scratch;
     work                                         = (Actor206100Work*)task->work;
     coord                                        = task->extra.tmd->coords;
-    func_actor_206100_8014EA8C(task, arg1, work->field_43E);
+    strikerStepForward(task, arg1, work->field_43E);
     scratch->delta.vx = -(u16)coord->coord.t[0];
     scratch->delta.vz = -(u16)coord->coord.t[2];
     scratch->dist     = SquareRoot0(scratch->delta.vx * scratch->delta.vx +
@@ -3742,29 +3502,11 @@ static void func_actor_206100_8014EEC0(Task* task)
     Gp_InitRec18Table(rec, 2, 0);
     child->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
-    func_actor_206100_8014A70C(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
+    strikerImpactBurst(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
     task->state++;
 }
 
-/// Teardown state of the beam child: each frame it clears the root
-/// coordinate's `composeStamp` and counts `killCountdown` up, and on the twelfth frame
-/// unlinks the beam's collision object and kills the task.
-static void func_actor_206100_8014EFC8(Task* task)
-{
-    Actor206100ChildWork* child;
-    TmdObject*            tmd;
-    u16                   countdown;
-
-    child                     = (Actor206100ChildWork*)task->work;
-    tmd                       = task->extra.tmd;
-    tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    countdown                 = task->killCountdown + 1;
-    task->killCountdown       = countdown;
-    if ((s16)countdown >= 0xC) {
-        Gp_UnlinkObj(&child->obj);
-        taskKill(task);
-    }
-}
+#include "../../shared/striker_enemy_strike_teardown.inc.c"
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 

@@ -1,0 +1,81 @@
+/* Part of the striker enemy library; see striker_enemy.h. */
+
+/// Spawns the impact burst at `coord`. Kind 0 is a lone room effect. Kind 1 is
+/// the spark plus a puff (when bit 0 of `phase` is clear) and a randomly aimed
+/// spark every eighth phase. Kind 2 is the spark, a flash and a ring of four
+/// aimed sparks. `arg3`'s low 12 bits are the effect size and bits 12..15 its
+/// variant, and `(phase >> 1) % 6` picks the spark frame. While effects are
+/// paused only the spark is drawn.
+void strikerImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
+{
+    SVECTOR vec;
+    s32     i;
+    u16     variant;
+    u16     param;
+
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        strikerDrawSpark(coord, ((u32)arg1 >> 1) % 6, 0x400, 0);
+        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            return;
+        }
+    }
+
+    variant = (arg3 >> 12) & 0xF;
+    param   = arg3 & 0xFFF;
+
+    switch (arg2) {
+        case 0:
+            Gp_SpawnEff(D_80115738, coord, 0x14001000 + param + variant, NULL);
+            break;
+
+        case 1:
+            strikerDrawSpark(coord, ((u32)arg1 >> 1) % 6, param, 0);
+            if (!(arg1 & 1)) {
+                Gp_SpawnEff(D_80115738, coord, 0x01000000 + param + variant, NULL);
+            }
+            if (!(arg1 & 7)) {
+                SVECTOR* dir;
+
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+
+                dir = &vec;
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x40);
+                gte_ldsv(dir);
+                gte_gpf12();
+                gte_stsv(dir);
+                Gp_SpawnEff(0x600E0, coord, (s32)(param), dir);
+            }
+            break;
+
+        case 2:
+            strikerDrawSpark(coord, ((u32)arg1 >> 1) % 6, param, 0);
+            Gp_SpawnEff(D_80115738, coord, 0x10001000 + param + variant, NULL);
+            for (i = 0; i < 4; i++) {
+                SVECTOR* dir;
+
+                Gp_SpawnEff(D_80115738, coord, 0x02001000 + param + variant, NULL);
+
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+
+                dir = &vec;
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x40);
+                gte_ldsv(dir);
+                gte_gpf12();
+                gte_stsv(dir);
+                Gp_SpawnEff(0x600E0, coord, (s32)(param), dir);
+            }
+            break;
+    }
+}
