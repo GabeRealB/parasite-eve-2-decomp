@@ -120,3 +120,4 @@ D_dryfield_night_driveway_8017F394 = 0x8017F394; // size:0x14 defined:True
 func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func
 
 func_dryfield_night_driveway_8017E5CC = 0x8017E5CC; // type:func
+glowDrawShaft = 0x8017DDE4; // type:func

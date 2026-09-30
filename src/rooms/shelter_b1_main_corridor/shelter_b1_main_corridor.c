@@ -61,6 +61,7 @@
 
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/glow_draw.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -120,7 +121,6 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 /// The two points the beam runs between, relative to its parent coordinate;
 /// the second is also declared on its own.
 
-static void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_shelter_b1_main_corridor_8017D784(Task*);
@@ -1049,15 +1049,15 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_801830D4;
-            func_shelter_b1_main_corridor_8017E070(&p[0], 0x200, 0x800, 0x111);
-            func_shelter_b1_main_corridor_8017E070(&p[2], 0x200, 0x800, 0x111);
+            glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
+            glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_80183114;
-            func_shelter_b1_main_corridor_8017E070(&p[0], 0x200, 0x800, 0x10);
-            func_shelter_b1_main_corridor_8017E070(&p[4], 0x200, 0, 0x10);
+            glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+            glowDrawBeam(&p[4], 0x200, 0, 0x10);
             func_shelter_b1_main_corridor_8017E858(&p[10], 1, 0x300);
             func_shelter_b1_main_corridor_8017E858(&p[11], 1, 0x300);
             func_shelter_b1_main_corridor_8017E858(&p[17], 1, 0x300);
@@ -1065,17 +1065,17 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
             break;
         }
         case 5:
-            func_shelter_b1_main_corridor_8017E070(D_shelter_b1_main_corridor_80183134, 0x200, 0, 0x10);
+            glowDrawBeam(D_shelter_b1_main_corridor_80183134, 0x200, 0, 0x10);
             break;
         case 6:
-            func_shelter_b1_main_corridor_8017E070(D_shelter_b1_main_corridor_80183114, 0x200, 0x800, 0x10);
+            glowDrawBeam(D_shelter_b1_main_corridor_80183114, 0x200, 0x800, 0x10);
             break;
         case 7: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_80183124;
-            func_shelter_b1_main_corridor_8017E070(&p[0], 0x200, 0x800, 0x10);
-            func_shelter_b1_main_corridor_8017E070(&p[4], 0x200, 0, 0x10);
-            func_shelter_b1_main_corridor_8017E070(&p[6], 0x200, 0x800, 0x100);
+            glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+            glowDrawBeam(&p[4], 0x200, 0, 0x10);
+            glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
             func_shelter_b1_main_corridor_8017E858(&p[13], 1, 0x300);
             func_shelter_b1_main_corridor_8017E858(&p[14], 1, 0x300);
             func_shelter_b1_main_corridor_8017E858(&p[20], 1, 0x300);
@@ -1085,159 +1085,20 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
         case 8: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_80183124;
-            func_shelter_b1_main_corridor_8017E070(&p[0], 0x200, 0x800, 0x10);
-            func_shelter_b1_main_corridor_8017E070(&p[6], 0x200, 0x800, 0x100);
+            glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+            glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
             break;
         }
         case 9:
-            func_shelter_b1_main_corridor_8017E070(D_shelter_b1_main_corridor_80183144, 0x200, 0, 0x10);
+            glowDrawBeam(D_shelter_b1_main_corridor_80183144, 0x200, 0, 0x10);
             break;
         case 10:
-            func_shelter_b1_main_corridor_8017E070(D_shelter_b1_main_corridor_80183124, 0x200, 0x800, 0x10);
+            glowDrawBeam(D_shelter_b1_main_corridor_80183124, 0x200, 0x800, 0x10);
             break;
     }
 }
 
-/// Draws a gouraud capsule between the view-space points `arg0[0]` and
-/// `arg0[1]`: a half-disc at each end, radius `(s16)arg1 * 64` over the end's
-/// OTZ, joined by a band, all rotated by `(s16)arg2`. The inner vertices take
-/// the colour coded in `arg3` (red from bits 8-15, green from bit 4, blue from
-/// bit 0), each scaled by a blend byte that pulses with the frame counter, and
-/// the outer rim is black. Nothing is drawn when the second point's OTZ is
-/// below 0x11.
-static void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                packed;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-    s32                base;
-    u8                 blend;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        p1       = arg0 + 1;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(p1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
-        }
-        extent    = (s16)arg1 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        packed    = arg3 << 16;
-        blend     = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
-        r         = blend * (packed >> 24);
-        g         = blend * ((packed >> 20) & 1);
-        base      = (s16)arg2;
-        b         = blend * (arg3 & 1);
-        ang       = 0;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            p        = prim;
-            p->r2    = r;
-            p->g2    = g;
-            prim->b2 = b;
-            p->r3    = 0;
-            p->g3    = 0;
-            p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
-            t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
-            t2       = ang + 0x400;
-            p->x2    = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, r, g, b);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            t3             = ang - 0x1000;
-            prim           = gGpuPrimCursor;
-            t              = ang - 0x1000;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xE00;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xC00;
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            t        = base - t;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_beam.inc.c"
 
 /// Draws one semi-transparent textured sprite centred on the view-space point
 /// `arg0` when its OTZ is at least 0x11. `arg1` picks the 40-texel-wide cell

@@ -84,3 +84,4 @@ D_dryfield_night_general_store_801858C7 = 0x801858C7; // size:0x1 defined:True
 D_dryfield_night_general_store_801858C8 = 0x801858C8; // size:0x14 defined:True
 
 func_dryfield_night_general_store_8017E6C8 = 0x8017E6C8; // type:func
+glowDrawShaft = 0x8017DEE0; // type:func

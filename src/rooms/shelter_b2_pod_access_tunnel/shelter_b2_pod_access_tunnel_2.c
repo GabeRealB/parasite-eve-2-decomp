@@ -50,6 +50,7 @@
 
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/glow_draw.h"
 
 /// The beam placements the view-dependent beam task draws for camera views 2,
 /// 3/6 and 4/7: pairs of end points, of which each view draws a subset.
@@ -65,7 +66,6 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
 /// reaches `[1]` under its own name,
 /// `RoomFx_TrailOffsets[1]`.
 
-static void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_pod_access_tunnel_8017ED5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_pod_access_tunnel_8017F1BC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
@@ -580,7 +580,7 @@ GpObj3A D_shelter_b2_pod_access_tunnel_80185664[1] = {
 
 /// On the task's first tick stores seven room-specific values into resident
 /// gameplay globals, then draws the beams
-/// (`func_shelter_b2_pod_access_tunnel_8017DF64`) the current camera view
+/// (`glowDrawCone`) the current camera view
 /// shows.
 void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 {
@@ -599,187 +599,56 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183C08;
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[0], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[2], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[4], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[6], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[12], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[14], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[16], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[18], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[28], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[30], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[32], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[34], 0x200, 0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[40], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[42], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[44], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[46], 0x200, 0);
+            glowDrawCone(&p[0], 0x200, 0x400);
+            glowDrawCone(&p[2], 0x200, 0x400);
+            glowDrawCone(&p[4], 0x200, 0x400);
+            glowDrawCone(&p[6], 0x200, 0x400);
+            glowDrawCone(&p[12], 0x200, 0);
+            glowDrawCone(&p[14], 0x200, 0);
+            glowDrawCone(&p[16], 0x200, 0);
+            glowDrawCone(&p[18], 0x200, 0);
+            glowDrawCone(&p[28], 0x200, 0x400);
+            glowDrawCone(&p[30], 0x200, 0x400);
+            glowDrawCone(&p[32], 0x200, 0x400);
+            glowDrawCone(&p[34], 0x200, 0x400);
+            glowDrawCone(&p[40], 0x200, 0);
+            glowDrawCone(&p[42], 0x200, 0);
+            glowDrawCone(&p[44], 0x200, 0);
+            glowDrawCone(&p[46], 0x200, 0);
             break;
         }
         case 3:
         case 6: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183C48;
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[0], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[2], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[10], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[12], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[14], 0x200, 0x800);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[16], 0x200, 0x800);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[28], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[30], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[38], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[40], 0x200, 0);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[42], 0x200, 0x800);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[44], 0x200, 0x800);
+            glowDrawCone(&p[0], 0x200, -0x400);
+            glowDrawCone(&p[2], 0x200, -0x400);
+            glowDrawCone(&p[10], 0x200, 0);
+            glowDrawCone(&p[12], 0x200, 0);
+            glowDrawCone(&p[14], 0x200, 0x800);
+            glowDrawCone(&p[16], 0x200, 0x800);
+            glowDrawCone(&p[28], 0x200, -0x400);
+            glowDrawCone(&p[30], 0x200, -0x400);
+            glowDrawCone(&p[38], 0x200, 0);
+            glowDrawCone(&p[40], 0x200, 0);
+            glowDrawCone(&p[42], 0x200, 0x800);
+            glowDrawCone(&p[44], 0x200, 0x800);
             break;
         }
         case 4:
         case 7: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183CC8;
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[0], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[2], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[28], 0x200, -0x400);
-            func_shelter_b2_pod_access_tunnel_8017DF64(&p[30], 0x200, -0x400);
+            glowDrawCone(&p[0], 0x200, -0x400);
+            glowDrawCone(&p[2], 0x200, -0x400);
+            glowDrawCone(&p[28], 0x200, -0x400);
+            glowDrawCone(&p[30], 0x200, -0x400);
             break;
         }
     }
 }
 
-/// Projects the two ends of the segment `arg0[0]`..`arg0[1]` through
-/// `gGfxViewCoord.workm` and, when the second end lies beyond depth 0x10, queues a
-/// glowing beam of gouraud `POLY_G4` quads: a half-disc around the first end,
-/// the band joining the two ends and a half-disc around the second. `arg1` is
-/// the world half-width, scaled by 64 over each end's depth, and `arg2` the
-/// angle the discs start from. The centre colour flickers between two greys
-/// with the frame counter; every rim fades to black.
-static void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                rgb;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-    s32                base;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        p1       = arg0 + 1;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(p1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
-        }
-        extent    = (s16)arg1 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        ang       = 0;
-        base      = (s16)arg2;
-        rgb       = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            p        = prim;
-            p->r2    = rgb;
-            p->g2    = rgb;
-            prim->b2 = rgb;
-            p->r3    = 0;
-            p->g3    = 0;
-            p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
-            t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
-            t2       = ang + 0x400;
-            p->x2    = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            t3             = ang - 0x1000;
-            prim           = gGpuPrimCursor;
-            t              = ang - 0x1000;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xE00;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xC00;
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            t        = base - t;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_cone.inc.c"
 
 /// An animated sprite effect, drawn through
 /// `func_shelter_b2_pod_access_tunnel_8017ED5C` (state 1) or

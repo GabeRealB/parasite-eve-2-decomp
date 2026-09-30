@@ -281,3 +281,4 @@ RoomFx_DrawHaloDisc = 0x8017FBF4; // type:func
 RoomFx_DrawBurstGlow = 0x801804CC; // type:func
 RoomFx_DrawGroundQuad = 0x801809F8; // type:func
 RoomFx_DrawFlashStar = 0x80180D70; // type:func
+glowDrawCapsule = 0x8017E774; // type:func

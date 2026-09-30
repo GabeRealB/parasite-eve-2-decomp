@@ -56,6 +56,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -148,7 +149,6 @@ static void func_neo_ark_observatory_8017F3FC(Task* task);
 static s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
 static void func_neo_ark_observatory_8017FE34(GfxCoord* coord, SVECTOR* offset);
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
-static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams   D_neo_ark_observatory_80181FA4;
 extern GpObj3A        D_neo_ark_observatory_801878D4[4];
@@ -2034,36 +2034,36 @@ void func_neo_ark_observatory_80180124(Task* task)
     view = Gp_GetViewIndex();
     switch (view) {
         case 2:
-            func_neo_ark_observatory_80180A0C(&D_neo_ark_observatory_801814E4[0], 0x280, 0x444);
+            glowDrawDisc(&D_neo_ark_observatory_801814E4[0], 0x280, 0x444);
             break;
         case 3: {
             SVECTOR* p;
             p = D_neo_ark_observatory_801814F4;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x280, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x280, 0x444);
+            glowDrawDisc(&p[0], 0x280, 0x444);
+            glowDrawDisc(&p[1], 0x280, 0x444);
             break;
         }
         case 4:
         case 16: {
             SVECTOR* p;
             p = D_neo_ark_observatory_801814FC;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x280, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x280, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[2], 0x280, 0x333);
-            func_neo_ark_observatory_80180A0C(&p[3], 0x280, 0x222);
+            glowDrawDisc(&p[0], 0x280, 0x444);
+            glowDrawDisc(&p[1], 0x280, 0x444);
+            glowDrawDisc(&p[2], 0x280, 0x333);
+            glowDrawDisc(&p[3], 0x280, 0x222);
             break;
         }
         case 5:
         case 17: {
             SVECTOR* p;
             p = D_neo_ark_observatory_8018150C;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x280, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x280, 0x444);
+            glowDrawDisc(&p[0], 0x280, 0x444);
+            glowDrawDisc(&p[1], 0x280, 0x444);
             break;
         }
         case 6:
         case 18:
-            func_neo_ark_observatory_80180A0C(&D_neo_ark_observatory_8018151C[0], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_observatory_8018151C[0], 0x200, 0x444);
             break;
         case 7: {
             SVECTOR* p;
@@ -2076,21 +2076,21 @@ void func_neo_ark_observatory_80180124(Task* task)
         case 19: {
             SVECTOR* p;
             p = D_neo_ark_observatory_8018151C;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[2], 0x200, 0x222);
-            func_neo_ark_observatory_80180A0C(&p[6], 0x200, 0x222);
-            func_neo_ark_observatory_80180A0C(&p[7], 0x200, 0x333);
-            func_neo_ark_observatory_80180A0C(&p[8], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[9], 0x200, 0x444);
+            glowDrawDisc(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[2], 0x200, 0x222);
+            glowDrawDisc(&p[6], 0x200, 0x222);
+            glowDrawDisc(&p[7], 0x200, 0x333);
+            glowDrawDisc(&p[8], 0x200, 0x444);
+            glowDrawDisc(&p[9], 0x200, 0x444);
             break;
         }
         case 8:
         case 20: {
             SVECTOR* p;
             p = D_neo_ark_observatory_80181564;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[2], 0x200, 0x444);
+            glowDrawDisc(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[1], 0x200, 0x444);
+            glowDrawDisc(&p[2], 0x200, 0x444);
             func_neo_ark_observatory_80180534(&p[-32], 0x400, D_neo_ark_observatory_80187A3C, 8);
             func_neo_ark_observatory_80180534(&p[-30], 0x400, D_neo_ark_observatory_80187A3C, 8);
             func_neo_ark_observatory_80180534(&p[-28], 0x400, D_neo_ark_observatory_80187A3C, 8);
@@ -2099,12 +2099,12 @@ void func_neo_ark_observatory_80180124(Task* task)
         case 9: {
             SVECTOR* p;
             p = D_neo_ark_observatory_80181574;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[2], 0x200, 0x333);
-            func_neo_ark_observatory_80180A0C(&p[3], 0x200, 0x222);
-            func_neo_ark_observatory_80180A0C(&p[-6], 0x200, 0x222);
-            func_neo_ark_observatory_80180A0C(&p[-8], 0x200, 0x333);
+            glowDrawDisc(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[1], 0x200, 0x444);
+            glowDrawDisc(&p[2], 0x200, 0x333);
+            glowDrawDisc(&p[3], 0x200, 0x222);
+            glowDrawDisc(&p[-6], 0x200, 0x222);
+            glowDrawDisc(&p[-8], 0x200, 0x333);
             func_neo_ark_observatory_80180534(&p[-28], 0x400, D_neo_ark_observatory_80187A3C, 8);
             func_neo_ark_observatory_80180534(&p[-26], 0x400, D_neo_ark_observatory_80187A3C, 0xC);
             func_neo_ark_observatory_80180534(&p[-24], 0x400, D_neo_ark_observatory_80187A3C, 8);
@@ -2113,22 +2113,22 @@ void func_neo_ark_observatory_80180124(Task* task)
         case 10: {
             SVECTOR* p;
             p = D_neo_ark_observatory_80181524;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[5], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[6], 0x200, 0x333);
-            func_neo_ark_observatory_80180A0C(&p[7], 0x200, 0x222);
+            glowDrawDisc(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[1], 0x200, 0x444);
+            glowDrawDisc(&p[5], 0x200, 0x444);
+            glowDrawDisc(&p[6], 0x200, 0x333);
+            glowDrawDisc(&p[7], 0x200, 0x222);
             func_neo_ark_observatory_80180534(&p[-12], 0x600, D_neo_ark_observatory_80187A3C, 0x10);
             break;
         }
         case 11: {
             SVECTOR* p;
             p = D_neo_ark_observatory_8018157C;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x200, 0x222);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x200, 0x333);
-            func_neo_ark_observatory_80180A0C(&p[2], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[-7], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[-8], 0x200, 0x444);
+            glowDrawDisc(&p[0], 0x200, 0x222);
+            glowDrawDisc(&p[1], 0x200, 0x333);
+            glowDrawDisc(&p[2], 0x200, 0x444);
+            glowDrawDisc(&p[-7], 0x200, 0x444);
+            glowDrawDisc(&p[-8], 0x200, 0x444);
             func_neo_ark_observatory_80180534(&p[-21], 0x600, D_neo_ark_observatory_80187A3C, 0x10);
             break;
         }
@@ -2136,15 +2136,15 @@ void func_neo_ark_observatory_80180124(Task* task)
         case 14: {
             SVECTOR* p;
             p = D_neo_ark_observatory_801814E4;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x280, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[2], 0x280, 0x444);
+            glowDrawDisc(&p[0], 0x280, 0x444);
+            glowDrawDisc(&p[2], 0x280, 0x444);
             break;
         }
         case 21: {
             SVECTOR* p;
             p = D_neo_ark_observatory_80181564;
-            func_neo_ark_observatory_80180A0C(&p[0], 0x200, 0x444);
-            func_neo_ark_observatory_80180A0C(&p[1], 0x200, 0x444);
+            glowDrawDisc(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[1], 0x200, 0x444);
             break;
         }
     }
@@ -2229,72 +2229,7 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
     }
 }
 
-/// Draws a glow around the world point `arg0`: projects it through
-/// `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues four
-/// gouraud `POLY_G4` quads that together make a disc around the projected
-/// centre, lit at the centre and black at the rim. The on-screen radius is
-/// `(s16)arg1 * 64 / otz`. `arg2` packs the centre colour as three RGB
-/// nibbles, each OR'd with a flicker bit taken from the frame counter.
-static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 void func_neo_ark_observatory_80180DAC(s32 arg0)
 {

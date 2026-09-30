@@ -64,6 +64,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
 /// the scratch stack: the projected centre `sx` / `sy`, its `otz` and GTE
@@ -151,9 +152,9 @@ extern Task* D_shelter_b2_laboratory_80182A68;
 extern s8 D_shelter_b2_laboratory_80182A90[];
 
 /// Glow positions `func_shelter_b2_laboratory_80180548` draws per view:
-/// `func_shelter_b2_laboratory_80180AB4` takes the pair `pt[n]`, `pt[n + 1]`;
+/// `glowDrawCapsule` takes the pair `pt[n]`, `pt[n + 1]`;
 /// `func_shelter_b2_laboratory_801812F8` and
-/// `func_shelter_b2_laboratory_8018176C` a single point.
+/// `glowDrawPulsingDisc` a single point.
 extern SVECTOR D_shelter_b2_laboratory_80182AA0[45];
 
 /// The cutscene's sound task, killed when the scene is skipped.
@@ -206,9 +207,7 @@ extern u16 D_shelter_b2_laboratory_80186540;
 
 static void func_shelter_b2_laboratory_80180450(Task* task);
 static void func_shelter_b2_laboratory_80180494(Task* task);
-static void func_shelter_b2_laboratory_80180AB4(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_laboratory_801820F4(s16 arg0);
 
 s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, TaskMessageArg);
@@ -1635,40 +1634,40 @@ void func_shelter_b2_laboratory_80180548(Task* task)
 
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
             break;
         case 3:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
             break;
         case 4:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[24], 0x200, 0x444);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 5:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1676,37 +1675,37 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             }
             break;
         case 6:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[20], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[22], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[20], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[22], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 7:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 8:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 9:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             break;
         case 10:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1714,12 +1713,12 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             }
             break;
         case 12:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1728,17 +1727,17 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             break;
         case 13:
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                func_shelter_b2_laboratory_8018176C(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
-                func_shelter_b2_laboratory_8018176C(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
             }
             break;
         case 15:
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1748,144 +1747,7 @@ void func_shelter_b2_laboratory_80180548(Task* task)
     }
 }
 
-/// Draws a glowing capsule between the world points `arg0` and `arg0 + 1`,
-/// projected through `gGfxViewCoord.workm`. Each end is a disc of radius
-/// `(s16)arg1 * 64` over its depth; for each 0x400 step across half a turn
-/// from the screen-space angle between the ends, one gouraud `POLY_G4` wedge
-/// is queued at each end and one band joins them. The lit vertices, at the
-/// centres, take the colour packed in `arg2` (one nibble per channel),
-/// flickering with the animation frame. Nothing is drawn when either
-/// projection flags an error.
-static void func_shelter_b2_laboratory_80180AB4(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    void**                   scratch;
-    u8*                      head;
-    OverlayPointPairScratch* block;
-    POLY_G4*                 prim;
-    DisplayState*            ds;
-    SVECTOR*                 p1;
-    s32                      ang;
-    s32                      t;
-    s32                      t3;
-    s32                      t2;
-    s32                      limit;
-    s32                      angStart;
-    s32                      packed;
-    s32                      blend;
-    s32                      tr;
-    s32                      tg;
-    s32                      scaled;
-    s32                      conn;
-    u8                       r;
-    u8                       g;
-    u8                       b;
-
-    p1       = arg0 + 1;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x1C;
-    block    = (OverlayPointPairScratch*)(head - 0x1C);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(p1);
-        gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz1);
-            scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / block->otz0;
-            block->r1 = scaled / block->otz1;
-            ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &gDisplayState;
-            ang       = (s16)ang;
-            blend     = ((u8)ds->animFrame & 1) * 8;
-            packed    = arg2 << 16;
-            tr        = (packed >> 20) & 0xF0;
-            tg        = (packed >> 16) & 0xF0;
-            r         = blend | tr;
-            g         = blend | tg;
-            b         = blend | ((arg2 & 0xF) << 4);
-            if (ang < ang + 0x800) {
-                angStart = ang;
-                limit    = ang + 0x800;
-                do {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                    t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    t2       = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-                    conn           = angStart + ((ang - angStart) * 2);
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    t3             = ang + 0x800;
-                    prim           = gGpuPrimCursor;
-                    t              = t3;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xC00;
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-                    ang = t2;
-                } while (ang < limit);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#include "../../shared/glow_draw_capsule.inc.c"
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
@@ -1981,143 +1843,7 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
-/// inner cross wedges around the projected centre. `arg2` is a signed
-/// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and
-/// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
-/// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
-/// blue.
-static void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    RoomDraw05Scratch* block;
-    POLY_G4*           prim;
-    s32                pulse;
-    s32                color;
-    s32                half;
-    s32                size;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                u;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x14);
-        block   = (RoomDraw05Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
-    gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        pulse         = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang           = 0;
-        size          = (s16)arg2;
-        block->rOuter = (size * 64) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-        color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            half = (s16)color >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, half, half);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-
-        color = half;
-        ang   = 0x200;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-}
+#include "../../shared/glow_draw_pulsing_disc.inc.c"
 
 static void func_shelter_b2_laboratory_801820F4(s16 arg0)
 {

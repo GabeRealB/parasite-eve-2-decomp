@@ -38,12 +38,12 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 #define D_shelter_b6_growth_room_8017F298 (D_shelter_b6_growth_room_8017F258 + 8)
 #define D_shelter_b6_growth_room_8017F2C8 (D_shelter_b6_growth_room_8017F258 + 14)
 #define D_shelter_b6_growth_room_8017F300 (D_shelter_b6_growth_room_8017F258 + 21)
 
-static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
 static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 arg2, u16 arg3);
 static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
@@ -495,136 +495,72 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
     func_shelter_b6_growth_room_8017E448(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[6], 0x180, 0x400);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[7], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[8], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[9], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[10], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[11], 0x180, 0x440);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[12], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[13], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[14], 0x100, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[15], 0x100, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[20], 0x200, 0x444);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[21], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[6], 0x180, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[7], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[8], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[9], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[10], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[11], 0x180, 0x440);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[12], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[13], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[14], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[15], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[20], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[21], 0x200, 0x444);
             break;
         case 3:
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[1], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[2], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[3], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[4], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[5], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[6], 0x200, 0x400);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[12], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[13], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[24], 0x200, 0x444);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[25], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[12], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[13], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[24], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[25], 0x200, 0x444);
             break;
         case 4:
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F300[0], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F300[1], 0x100, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F300[2], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F300[0], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F300[1], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F300[2], 0x100, 0x44);
             break;
         case 5:
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[1], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[2], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[3], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[4], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[5], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[6], 0x200, 0x400);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
             break;
         case 6:
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F2C8[0], 0x180, 0x400);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F2C8[1], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F2C8[2], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F2C8[7], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F2C8[8], 0x100, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F2C8[9], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[0], 0x180, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[1], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[2], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[7], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[8], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[9], 0x100, 0x44);
             break;
         case 7:
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[2], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[3], 0x200, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[9], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[10], 0x180, 0x44);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[11], 0x180, 0x440);
-            func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[12], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[2], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[3], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[9], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[10], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[11], 0x180, 0x440);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[12], 0x200, 0x44);
             break;
     }
 }
 
-/// Draws a glowing disc at the world point `arg0`: projected through
-/// `gGfxViewCoord.workm`, it becomes four `POLY_G4` wedges around the screen
-/// position. `arg1` is the radius, scaled by 64 over the depth; `arg2` packs
-/// the centre vertex's colour as three 4-bit channels, OR'd with the
-/// frame-counter bit.
-static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 {

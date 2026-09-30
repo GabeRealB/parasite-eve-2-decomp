@@ -50,6 +50,7 @@
 
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/glow_draw.h"
 
 /// The passage's per-view emitter placements, one `SVECTOR` per position, 8
 /// bytes apart. All four names address the same 24-entry run: `ED8` is `EC8[2]`,
@@ -62,9 +63,6 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 
 /// Shift per colour channel for each of the halo's tints, indexed by the tint
 /// selector the spawn argument carries.
-
-static void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams               D_mine_secret_passage_801815E0[1];
 extern GpObj3A                    D_mine_secret_passage_801831A8[2];
@@ -654,8 +652,8 @@ RoomFadeStorage D_mine_secret_passage_80183440;
 /// 0x60240-0x60243 in that order, the same slot order every other room uses -
 /// then draws the emitters the current camera view shows: a run of placements
 /// out of one of the passage's arrays, each drawn as a
-/// `func_mine_secret_passage_8017DC84` glow (half-extent 0x200-0x280, colour
-/// 0x444 except view 6's 0x44) or a `func_mine_secret_passage_8017E4C8` disc
+/// `glowDrawCapsule` glow (half-extent 0x200-0x280, colour
+/// 0x444 except view 6's 0x44) or a `glowDrawDisc` disc
 /// (half-extent 0x200 or 0x400, colour 0x421 or 0x444).
 void func_mine_secret_passage_8017D9D4(Task* arg0)
 {
@@ -670,271 +668,70 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_secret_passage_80180EC8;
-            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[17], 0x200, 0x421);
+            glowDrawCapsule(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[16], 0x200, 0x421);
+            glowDrawDisc(&p[17], 0x200, 0x421);
             break;
         }
         case 3: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[14], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[15], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[17], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[20], 0x200, 0x421);
+            glowDrawCapsule(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[14], 0x200, 0x421);
+            glowDrawDisc(&p[15], 0x200, 0x421);
+            glowDrawDisc(&p[16], 0x200, 0x421);
+            glowDrawDisc(&p[17], 0x200, 0x421);
+            glowDrawDisc(&p[20], 0x200, 0x421);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[18], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[19], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[20], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[21], 0x200, 0x421);
+            glowDrawCapsule(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[16], 0x200, 0x421);
+            glowDrawDisc(&p[18], 0x200, 0x421);
+            glowDrawDisc(&p[19], 0x200, 0x421);
+            glowDrawDisc(&p[20], 0x200, 0x421);
+            glowDrawDisc(&p[21], 0x200, 0x421);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_secret_passage_80180EE8;
-            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[6], 0x400, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[7], 0x400, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[8], 0x400, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[9], 0x400, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[10], 0x200, 0x421);
+            glowDrawCapsule(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[6], 0x400, 0x444);
+            glowDrawDisc(&p[7], 0x400, 0x444);
+            glowDrawDisc(&p[8], 0x400, 0x444);
+            glowDrawDisc(&p[9], 0x400, 0x444);
+            glowDrawDisc(&p[10], 0x200, 0x421);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_secret_passage_80180EE8;
-            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
-            func_mine_secret_passage_8017DC84(&p[2], 0x200, 0x444);
-            func_mine_secret_passage_8017DC84(&p[4], 0x280, 0x44);
-            func_mine_secret_passage_8017E4C8(&p[9], 0x400, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[10], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[11], 0x200, 0x421);
+            glowDrawCapsule(&p[0], 0x200, 0x444);
+            glowDrawCapsule(&p[2], 0x200, 0x444);
+            glowDrawCapsule(&p[4], 0x280, 0x44);
+            glowDrawDisc(&p[9], 0x400, 0x444);
+            glowDrawDisc(&p[10], 0x200, 0x421);
+            glowDrawDisc(&p[11], 0x200, 0x421);
             break;
         }
         case 7: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
-            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[18], 0x200, 0x421);
-            func_mine_secret_passage_8017E4C8(&p[20], 0x200, 0x421);
+            glowDrawCapsule(&p[0], 0x200, 0x444);
+            glowDrawDisc(&p[16], 0x200, 0x421);
+            glowDrawDisc(&p[18], 0x200, 0x421);
+            glowDrawDisc(&p[20], 0x200, 0x421);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_secret_passage_80180F08;
-            func_mine_secret_passage_8017DC84(&p[0], 0x280, 0x44);
+            glowDrawCapsule(&p[0], 0x280, 0x44);
             break;
         }
     }
 }
 
-/// Draws a glow joining the two points `arg0[0]` and `arg0[1]`, projected
-/// through `gGfxViewCoord.workm`; nothing is drawn unless both project. `arg1` is
-/// the half-extent, scaled by each end's depth. Starting from the screen-space
-/// angle between the ends, for each 0x400 step over half a turn it queues three
-/// gouraud `POLY_G4`s: a wedge of each end and the band between them. The lit
-/// vertices take the colour packed in `arg2`, four bits per channel (R, G, B
-/// from high to low nibble), with the frame counter's low bit as a flicker.
-static void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    void**                   scratch;
-    u8*                      head;
-    OverlayPointPairScratch* block;
-    POLY_G4*                 prim;
-    DisplayState*            ds;
-    SVECTOR*                 p1;
-    s32                      ang;
-    s32                      t;
-    s32                      t3;
-    s32                      t2;
-    s32                      limit;
-    s32                      angStart;
-    s32                      packed;
-    s32                      blend;
-    s32                      tr;
-    s32                      tg;
-    s32                      scaled;
-    s32                      conn;
-    u8                       r;
-    u8                       g;
-    u8                       b;
+#include "../../shared/glow_draw_capsule.inc.c"
 
-    p1       = arg0 + 1;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x1C;
-    block    = (OverlayPointPairScratch*)(head - 0x1C);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(p1);
-        gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
-            scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
-            block->r1 = scaled / block->otz1;
-            ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &gDisplayState;
-            ang       = (s16)ang;
-            blend     = ((u8)ds->animFrame & 1) * 8;
-            packed    = arg2 << 16;
-            tr        = (packed >> 20) & 0xF0;
-            tg        = (packed >> 16) & 0xF0;
-            r         = blend | tr;
-            g         = blend | tg;
-            b         = blend | ((arg2 & 0xF) << 4);
-            if (ang < ang + 0x800) {
-                angStart = ang;
-                limit    = ang + 0x800;
-                do {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                    t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    t2       = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-                    conn           = angStart + ((ang - angStart) * 2);
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    t3             = ang + 0x800;
-                    prim           = gGpuPrimCursor;
-                    t              = t3;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xC00;
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-                    ang = t2;
-                } while (ang < limit);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
-
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
-/// the projected centre. `arg1` is a signed half-extent; the on-screen radius
-/// is `(s16)arg1 * 64 / otz`. `arg2` packs the centre vertex's colour, four
-/// bits per channel (R, G, B from high to low nibble), with the frame
-/// counter's low bit as a flicker; the rim is black.
-static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

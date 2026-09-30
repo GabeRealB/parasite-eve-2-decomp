@@ -42,6 +42,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/glow_draw.h"
 
 #define D_dryfield_night_r08_801805BC (D_dryfield_night_r08_801805AC + 2)
 #define D_dryfield_night_r08_801805CC (D_dryfield_night_r08_801805AC + 4)
@@ -50,7 +51,6 @@
 
 extern SVECTOR D_dryfield_night_r08_8018056C[];
 
-static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams   D_dryfield_night_r08_80181474[1];
@@ -305,10 +305,10 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
 
     switch (gGameSession->location.loc.view) {
         case 3:
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[2], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[2], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805BC[11], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805BC[12], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805BC[13], 1, 0x300);
@@ -320,24 +320,24 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
             break;
         case 2:
         case 5:
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_8018056C[0], 0x200, 0x800, 0x111);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_8018056C[2], 0x200, 0x800, 0x111);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_8018056C[4], 0x200, 0, 0x111);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_8018056C[6], 0x200, 0, 0x111);
+            glowDrawBeam(&D_dryfield_night_r08_8018056C[0], 0x200, 0x800, 0x111);
+            glowDrawBeam(&D_dryfield_night_r08_8018056C[2], 0x200, 0x800, 0x111);
+            glowDrawBeam(&D_dryfield_night_r08_8018056C[4], 0x200, 0, 0x111);
+            glowDrawBeam(&D_dryfield_night_r08_8018056C[6], 0x200, 0, 0x111);
             break;
         case 4:
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805BC[14], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805BC[20], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805BC[21], 1, 0x300);
             break;
         case 6:
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805AC[0], 0x200, 0x800, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805AC[2], 0x200, 0x800, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805AC[6], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805AC[8], 0x200, 0x800, 0x100);
+            glowDrawBeam(&D_dryfield_night_r08_801805AC[0], 0x200, 0x800, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805AC[2], 0x200, 0x800, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805AC[6], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805AC[8], 0x200, 0x800, 0x100);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805AC[13], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805AC[14], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805AC[15], 1, 0x300);
@@ -348,12 +348,12 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805AC[23], 1, 0x300);
             break;
         case 7:
-            func_dryfield_night_r08_8017DB4C(D_dryfield_night_r08_801805AC, 0x200, 0x800, 0x10);
+            glowDrawBeam(D_dryfield_night_r08_801805AC, 0x200, 0x800, 0x10);
             break;
         case 8:
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805CC[0], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805CC[2], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805CC[4], 0x200, 0x800, 0x100);
+            glowDrawBeam(&D_dryfield_night_r08_801805CC[0], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805CC[2], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805CC[4], 0x200, 0x800, 0x100);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805CC[9], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805CC[10], 1, 0x300);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805CC[11], 1, 0x300);
@@ -364,155 +364,15 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805CC[19], 1, 0x300);
             break;
         case 9:
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805DC[0], 0x200, 0, 0x10);
-            func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805DC[2], 0x200, 0x800, 0x100);
+            glowDrawBeam(&D_dryfield_night_r08_801805DC[0], 0x200, 0, 0x10);
+            glowDrawBeam(&D_dryfield_night_r08_801805DC[2], 0x200, 0x800, 0x100);
             func_dryfield_night_r08_8017E334(&D_dryfield_night_r08_801805DC[10], 1, 0x300);
             func_dryfield_night_r08_8017E334(D_dryfield_night_r08_80180664, 1, 0x300);
             break;
     }
 }
 
-/// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
-/// projected through the view matrix; unless the far end is nearer than OTZ
-/// 0x11, gouraud `POLY_G4` wedges around each end (radius `(s16)arg1 * 64 /
-/// otz` at that end) are joined by quads between the two, each fading from the
-/// beam colour on the axis to black at the rim. `arg2` turns the wedges about
-/// the axis. `arg3` packs the colour: the red factor in bits 8-15 and the
-/// green and blue factors in bits 4 and 0, each multiplying an intensity that
-/// alternates between 0x20 and 0x28 with the display frame counter.
-static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                packed;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-    s32                base;
-    u8                 blend;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        p1       = arg0 + 1;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(p1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
-        }
-        extent    = (s16)arg1 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        packed    = arg3 << 16;
-        blend     = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
-        r         = blend * (packed >> 24);
-        g         = blend * ((packed >> 20) & 1);
-        base      = (s16)arg2;
-        b         = blend * (arg3 & 1);
-        ang       = 0;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            p        = prim;
-            p->r2    = r;
-            p->g2    = g;
-            prim->b2 = b;
-            p->r3    = 0;
-            p->g3    = 0;
-            p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
-            t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
-            t2       = ang + 0x400;
-            p->x2    = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, r, g, b);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            t3             = ang - 0x1000;
-            prim           = gGpuPrimCursor;
-            t              = ang - 0x1000;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xE00;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xC00;
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            t        = base - t;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_beam.inc.c"
 
 /// Projects the world point `arg0` through `gGfxViewCoord.workm` and, when its OTZ
 /// is above 0x10, queues one semi-transparent `POLY_FT4` sprite centred on it:

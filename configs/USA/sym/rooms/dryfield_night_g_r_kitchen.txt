@@ -45,3 +45,4 @@ D_dryfield_night_g_r_kitchen_8017EC2C = 0x8017EC2C; // size:0x4 defined:True
 D_dryfield_night_g_r_kitchen_8017EC30 = 0x8017EC30; // size:0x14 defined:True
 
 func_dryfield_night_g_r_kitchen_8017E1E4 = 0x8017E1E4; // type:func
+glowDrawShaft = 0x8017D9FC; // type:func

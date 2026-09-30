@@ -48,6 +48,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182CA0;
 extern SVECTOR D_dryfield_night_motel_balcony_80182CF0;
@@ -83,7 +84,6 @@ typedef struct {
 
 extern _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[];
 
-static void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1);
 static void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg);
 static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused);
@@ -2908,19 +2908,19 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         hi   = 1;
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][0]) {
-        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
+        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][2]) {
-        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C70, 0x180);
+        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C70, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][4]) {
-        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C80, 0x180);
+        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][6]) {
-        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C90, 0x180);
+        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C90, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][8]) {
-        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
+        glowDrawShaft(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
     }
     for (i = 10; i < 18; i++) {
         if (mask & D_dryfield_night_motel_balcony_80182D40[hi][i]) {
@@ -2928,7 +2928,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         }
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][18]) {
-        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
+        glowDrawShaft(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
     }
     if (GameFlag_GetNibble(0x7F) == 1) {
         D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
@@ -3016,130 +3016,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     }
 }
 
-/// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
-/// a fan of gouraud wedges around each projected point, joined by wedges
-/// spanning the two, the sweep oriented along the screen-space line between
-/// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
-/// drawn unless both points project. The lit vertices take a brightness that
-/// flickers with the frame counter.
-static void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
-{
-    SVECTOR*                 p1;
-    OverlayPointPairScratch* block;
-    POLY_G4*                 prim;
-    DisplayState*            ds;
-    s32                      raw;
-    s32                      ang;
-    s32                      angEnd;
-    s32                      limit;
-    s32                      angStart;
-    s32                      t;
-    s32                      t2;
-    s32                      t3;
-    s32                      conn;
-    s32                      scaled;
-    s32                      blend;
-
-    p1 = arg0 + 1;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
-    block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(p1);
-        gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz1);
-            scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / block->otz0;
-            block->r1 = scaled / block->otz1;
-            raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &gDisplayState;
-            ang       = (s16)raw;
-            blend     = (((u8)ds->animFrame & 1) * 0x10) | 0x20;
-            angEnd    = ang + 0x800;
-            if (ang < angEnd) {
-                angStart = ang;
-                limit    = angEnd;
-                do {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, blend, blend, blend);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                    t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    t2       = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-                    conn           = angStart + ((ang - angStart) * 2);
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, blend, blend, blend);
-                    setRGB3(prim, blend, blend, blend);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-
-                    prim           = gGpuPrimCursor;
-                    t3             = ang + 0x800;
-                    t              = t3;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, blend, blend, blend);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xC00;
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-                    ang = t2;
-                } while (ang < limit);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
-}
+#include "../../shared/glow_draw_shaft.inc.c"
 
 /// Projects the point `arg0` through `gGfxViewCoord.workm` and, when the GTE flag
 /// is non-negative, queues one semi-transparent `POLY_FT4` sprite centred on

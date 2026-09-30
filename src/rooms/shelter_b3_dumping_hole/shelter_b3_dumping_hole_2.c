@@ -76,6 +76,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 #define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
 
@@ -377,8 +378,6 @@ extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 
-static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_801866CC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b3_dumping_hole_80186AB8(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
@@ -4093,343 +4092,142 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
     view = Gp_GetViewIndex();
     switch (view) {
         case 2:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x100);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x100);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
             break;
         case 3:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x300);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
             break;
         case 4:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[9], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[9], 0x300, 0x400);
             break;
         case 7:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[0], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[1], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[2], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[3], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[4], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[0], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[1], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[2], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[3], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[4], 0x300, 0x400);
             break;
         case 14:
             if (D_shelter_b3_dumping_hole_8018F4D8 != 0) {
-                func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
-                func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
+                glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
+                glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
             }
             break;
         case 15:
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x100);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x21], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x22], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x23], 0x300, 0x400);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x100);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x21], 0x300, 0x200);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x22], 0x300, 0x300);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x23], 0x300, 0x400);
             break;
         case 17:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 36)[0], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 36)[0], 0x300, 0x400);
             break;
         case 18:
-            func_shelter_b3_dumping_hole_80184638(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x12], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x13], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x19], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1A], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1B], 0x300, 0x200);
+            glowDrawCapsule(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0], 0x200, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x12], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x13], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x19], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1A], 0x300, 0x300);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1B], 0x300, 0x200);
             break;
         case 19:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x400);
             break;
         case 21:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 24)[0], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 24)[1], 0x400, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 24)[0], 0x400, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 24)[1], 0x400, 0x444);
             break;
         case 22:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
             break;
         case 23:
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x400);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x400);
             break;
         case 26:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 26)[0], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 26)[1], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 26)[0], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 26)[1], 0x300, 0x400);
             break;
         case 29:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
             break;
         case 30:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
             break;
         case 31:
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[33], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[34], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[38], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[39], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x400);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x200);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], 0x300, 0x300);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], 0x300, 0x200);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], 0x300, 0x300);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x400);
             break;
         case 34:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[5], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x300);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[5], 0x300, 0x400);
             break;
         case 35:
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[6], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[7], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x400);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[6], 0x300, 0x200);
+            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[7], 0x300, 0x400);
             break;
         case 13:
         case 37:
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[6], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[16], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[25], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[27], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x100);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[33], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[34], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[35], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[38], 0x300, 0x100);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[39], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x300);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[6], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
+            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[16], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[25], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[27], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x100);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], 0x300, 0x200);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], 0x300, 0x300);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], 0x300, 0x100);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], 0x300, 0x200);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x300);
             break;
     }
 }
 
-/// Draws a glowing capsule between the world points `arg0` and `arg0 + 1`,
-/// projected through `gGfxViewCoord.workm`. Each end is a disc of radius
-/// `(s16)arg1 * 64` over its depth; for each 0x400 step across half a turn
-/// from the screen-space angle between the ends, one gouraud `POLY_G4` wedge
-/// is queued at each end and one band joins them. The lit vertices, at the
-/// centres, take the colour packed in `arg2` (one nibble per channel),
-/// flickering with the animation frame. Nothing is drawn when either
-/// projection flags an error.
-static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    void**                   scratch;
-    u8*                      head;
-    OverlayPointPairScratch* block;
-    POLY_G4*                 prim;
-    DisplayState*            ds;
-    SVECTOR*                 p1;
-    s32                      ang;
-    s32                      t;
-    s32                      t3;
-    s32                      t2;
-    s32                      limit;
-    s32                      angStart;
-    s32                      packed;
-    s32                      blend;
-    s32                      tr;
-    s32                      tg;
-    s32                      scaled;
-    s32                      conn;
-    u8                       r;
-    u8                       g;
-    u8                       b;
+#include "../../shared/glow_draw_capsule.inc.c"
 
-    p1       = arg0 + 1;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x1C;
-    block    = (OverlayPointPairScratch*)(head - 0x1C);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(p1);
-        gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
-            scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
-            block->r1 = scaled / block->otz1;
-            ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &gDisplayState;
-            ang       = (s16)ang;
-            blend     = ((u8)ds->animFrame & 1) * 8;
-            packed    = arg2 << 16;
-            tr        = (packed >> 20) & 0xF0;
-            tg        = (packed >> 16) & 0xF0;
-            r         = blend | tr;
-            g         = blend | tg;
-            b         = blend | ((arg2 & 0xF) << 4);
-            if (ang < ang + 0x800) {
-                angStart = ang;
-                limit    = ang + 0x800;
-                do {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                    t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    t2       = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-                    conn           = angStart + ((ang - angStart) * 2);
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    t3             = ang + 0x800;
-                    prim           = gGpuPrimCursor;
-                    t              = t3;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xC00;
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-                    ang = t2;
-                } while (ang < limit);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
-
-/// Draws a glowing disc at the world point `arg0`, projected through
-/// `gGfxViewCoord.workm`: four gouraud `POLY_G4` wedges of radius
-/// `(s16)arg1 * 64` over the depth, dark at the rim. The centre takes the
-/// colour packed in `arg2` (one nibble per channel), flickering with the
-/// animation frame. Nothing is drawn when the projection flags an error.
-static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 /// Per-frame update of a spark or debris effect task. State 0 seeds the work
 /// from `spawnArg1`: the spin angle from its low 12 bits, the frame step from

@@ -55,3 +55,4 @@ D_shelter_b1_access_tunnel_8017FF70 = 0x8017FF70; // size:0x20 defined:True
 D_shelter_b1_access_tunnel_8017FF90 = 0x8017FF90; // size:0xC defined:True
 
 func_shelter_b1_access_tunnel_8017DD60 = 0x8017DD60; // type:func
+glowDrawCapsule = 0x8017DEC0; // type:func

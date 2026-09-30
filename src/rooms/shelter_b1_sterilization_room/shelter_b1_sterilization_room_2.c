@@ -53,6 +53,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 #define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
 
@@ -61,9 +62,6 @@ extern GpEvsCmd D_shelter_b1_sterilization_room_80188E14[];
 
 static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 frame, s16 arg2, s16 arg3);
 
-static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
@@ -1115,10 +1113,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     if (task->state == 0) {
         switch (Gp_GetViewIndex() & 0xFF) {
             case 2:
-                func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                 break;
             case 3:
-                func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                 break;
                 do {
                     case 6:
@@ -1128,21 +1126,21 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 8:
-                        func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
-                        func_shelter_b1_sterilization_room_80183718(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
+                        glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
+                        glowDrawDiamond(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 14:
                         task->state = 1;
                         break;
                     case 19:
-                        func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
+                        glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
                         func_shelter_b1_sterilization_room_80183B8C(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 20:
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1197,7 +1195,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 22:
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1222,7 +1220,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 23:
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1253,7 +1251,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 24:
-                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1316,7 +1314,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 11:
-                func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x4C], 0x300, 0x800);
+                glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x4C], 0x300, 0x800);
                 if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 4; i < 0x10; i += 4) {
@@ -1329,8 +1327,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 10:
-                func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x4D], 0x300, 0x800);
-                func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x4E], 0x300, 0x800);
+                glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x4D], 0x300, 0x800);
+                glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x4E], 0x300, 0x800);
                 if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 0; i < 0xC; i += 4) {
@@ -1479,290 +1477,11 @@ static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 fra
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
-/// Draws a two-point gouraud glow between the projections of `pos[0]` and
-/// `pos[1]`; `size` is a signed half-extent scaled by depth and `rgb` a
-/// 4-bit-per-channel colour.
-static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    OverlayPointPairScratch* block;
-    POLY_G4*                 prim;
-    DisplayState*            ds;
-    SVECTOR*                 p1;
-    s32                      ang;
-    s32                      t;
-    s32                      t3;
-    s32                      t2;
-    s32                      limit;
-    s32                      angStart;
-    s32                      packed;
-    s32                      blend;
-    s32                      tr;
-    s32                      tg;
-    s32                      scaled;
-    s32                      conn;
-    u8                       r;
-    u8                       g;
-    u8                       b;
+#include "../../shared/glow_draw_capsule.inc.c"
 
-    p1    = arg0 + 1;
-    block = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
+#include "../../shared/glow_draw_disc.inc.c"
 
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(p1);
-        gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz1);
-            scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / block->otz0;
-            block->r1 = scaled / block->otz1;
-            ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &gDisplayState;
-            ang       = (s16)ang;
-            blend     = ((u8)ds->animFrame & 1) * 8;
-            packed    = arg2 << 16;
-            tr        = (packed >> 20) & 0xF0;
-            tg        = (packed >> 16) & 0xF0;
-            r         = blend | tr;
-            g         = blend | tg;
-            b         = blend | ((arg2 & 0xF) << 4);
-            if (ang < ang + 0x800) {
-                angStart = ang;
-                limit    = ang + 0x800;
-                do {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                    t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    t2       = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-                    conn           = angStart + ((ang - angStart) * 2);
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    t3             = ang + 0x800;
-                    prim           = gGpuPrimCursor;
-                    t              = t3;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    t        = ang + 0xC00;
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-                    ang = t2;
-                } while (ang < limit);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
-
-/// Draws a gouraud disc of four wedges around the projection of `pos`; `size`
-/// is a signed half-extent scaled by depth and `rgb` a 4-bit-per-channel
-/// colour.
-static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
-
-/// Draws a pulsing diamond glow around the projection of `pos`; `speed`
-/// scales the frame counter driving the pulse and `size` is a signed
-/// half-extent scaled by depth.
-static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    LINE_G3*           line;
-    s32                sine;
-    s32                pulse;
-    s32                radius;
-    s32                i;
-    s32                t1;
-    s32                t2;
-    s32                twice;
-    u16                sx;
-    u16                sy;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x10);
-        block   = (RoomDraw13Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
-        i             = 0;
-        pulse         = sine / 34 + 0x78;
-        block->radius = radius;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, pulse, pulse);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->radius;
-            sx       = block->sx;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->radius;
-            sy       = block->sy;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            i++;
-        } while (i < 2);
-
-        i = 0;
-        do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, 0, pulse, pulse);
-            setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->sx + (block->radius * t1);
-            line->y0 = block->sy - (block->radius * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->radius * t1);
-            line->y2 = block->sy + (block->radius * t2);
-            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
-                    line);
-            Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
-            i = t2;
-        } while (i < 2);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
+#include "../../shared/glow_draw_diamond.inc.c"
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a glow of gouraud `POLY_G4` wedges

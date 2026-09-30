@@ -62,6 +62,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/glow_draw.h"
 
 // Unreferenced leading zero word immediately before the independently addressed task descriptor. It does not align the descriptor, whose address is only word aligned. Preserve the word with the neighboring descriptor; original ownership remains unresolved.
 typedef struct {
@@ -164,7 +165,6 @@ static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
 static void func_shelter_b2_main_corridor_8017F078(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern TaskDesc D_80147E48;
@@ -2236,62 +2236,62 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
             switch (Gp_GetViewIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F7C;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[2], 0x200, 0, 0x111);
+                    glowDrawBeam(&p[0], 0x200, 0, 0x111);
+                    glowDrawBeam(&p[2], 0x200, 0, 0x111);
                     break;
                 }
                 case 3: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x800, 0x10);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[2], 0x200, 0, 0x10);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[4], 0x200, 0, 0x10);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[6], 0x200, 0x800, 0x100);
+                    glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+                    glowDrawBeam(&p[2], 0x200, 0, 0x10);
+                    glowDrawBeam(&p[4], 0x200, 0, 0x10);
+                    glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
                     func_shelter_b2_main_corridor_801806D0(&p[14], 1, 0x300);
                     func_shelter_b2_main_corridor_801806D0(&p[21], 1, 0x300);
                     break;
                 }
                 case 4: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F9C;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x800, 0x10);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[24], 0x200, 0x800, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[28], 0x200, -0x400, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[32], 0x200, 0x800, 0x111);
+                    glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+                    glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
+                    glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
+                    glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
                     break;
                 }
                 case 5:
-                    func_shelter_b2_main_corridor_8017FEE8(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
+                    glowDrawBeam(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
                     break;
                 case 6:
-                    func_shelter_b2_main_corridor_8017FEE8(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
+                    glowDrawBeam(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
                 case 7: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FCC;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0, 0x10);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[2], 0x200, 0x800, 0x100);
+                    glowDrawBeam(&p[0], 0x200, 0, 0x10);
+                    glowDrawBeam(&p[2], 0x200, 0x800, 0x100);
                     break;
                 }
                 case 8: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x800, 0x10);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[24], 0x200, 0x800, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[28], 0x200, -0x400, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[32], 0x200, 0x800, 0x111);
+                    glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+                    glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
+                    glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
+                    glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
                     break;
                 }
                 case 9:
-                    func_shelter_b2_main_corridor_8017FEE8(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
+                    glowDrawBeam(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
                     break;
                 case 10: {
                     SVECTOR* p = D_shelter_b2_main_corridor_8018305C;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x400, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[4], 0x200, 0x800, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[8], 0x200, 0x400, 0x111);
+                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
+                    glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
                     break;
                 }
                 case 11: {
                     SVECTOR* p = D_shelter_b2_main_corridor_8018306C;
-                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x400, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[4], 0x200, 0x800, 0x111);
-                    func_shelter_b2_main_corridor_8017FEE8(&p[8], 0x200, 0x400, 0x111);
+                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
+                    glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
                     break;
                 }
             }
@@ -2655,147 +2655,7 @@ static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32
     SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
-/// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
-/// projected through the view matrix; unless the far end is nearer than OTZ
-/// 0x11, gouraud `POLY_G4` wedges around each end (radius `(s16)arg1 * 64 /
-/// otz` at that end) are joined by quads between the two, each fading from the
-/// beam colour on the axis to black at the rim. `arg2` turns the wedges about
-/// the axis. `arg3` packs the colour: the red factor in bits 8-15 and the
-/// green and blue factors in bits 4 and 0, each multiplying an intensity that
-/// alternates between 0x20 and 0x28 with the display frame counter.
-static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                packed;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-    s32                base;
-    u8                 blend;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        p1       = arg0 + 1;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(p1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
-        }
-        extent    = (s16)arg1 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        packed    = arg3 << 16;
-        blend     = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
-        r         = blend * (packed >> 24);
-        g         = blend * ((packed >> 20) & 1);
-        base      = (s16)arg2;
-        b         = blend * (arg3 & 1);
-        ang       = 0;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            p        = prim;
-            p->r2    = r;
-            p->g2    = g;
-            prim->b2 = b;
-            p->r3    = 0;
-            p->g3    = 0;
-            p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
-            t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
-            t2       = ang + 0x400;
-            p->x2    = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, r, g, b);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            t3             = ang - 0x1000;
-            prim           = gGpuPrimCursor;
-            t              = ang - 0x1000;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xE00;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xC00;
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            t        = base - t;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_beam.inc.c"
 
 /// Draws a flickering glow sprite at the world-space point `arg0`. The point
 /// is projected through the view matrix; unless it is nearer than OTZ 0x11,

@@ -86,3 +86,4 @@ RoomFx_DrawFlashRing = 0x80180154; // type:func
 RoomFx_DrawFlashDisc = 0x80180580; // type:func
 RoomFx_DrawTwinTrail = 0x80180E04; // type:func
 RoomFx_DrawBurstStar = 0x80181484; // type:func
+glowDrawCapsule = 0x8017E6A0; // type:func

@@ -235,3 +235,5 @@ CapCaption_FindKeyedLine = 0x80182FD0; // type:func
 CapCaption_TimedTask = 0x80183024; // type:func
 CapCaption_CancelableTask = 0x80183060; // type:func
 CapCaption_ShowModal = 0x80183144; // type:func
+glowDrawCapsule = 0x80184638; // type:func
+glowDrawDisc = 0x80184E7C; // type:func

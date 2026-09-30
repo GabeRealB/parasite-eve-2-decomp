@@ -32,6 +32,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -338,37 +339,37 @@ void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B18;
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0x800);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[4], 0x200, -0x400);
+            glowDrawCone(&p[0], 0x200, 0x800);
+            glowDrawCone(&p[4], 0x200, -0x400);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B08;
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0x800);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[2], 0x200, 0x800);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[4], 0x200, -0x400);
+            glowDrawCone(&p[0], 0x200, 0x800);
+            glowDrawCone(&p[2], 0x200, 0x800);
+            glowDrawCone(&p[4], 0x200, -0x400);
             break;
         }
         case 4:
         case 6: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B48;
-            func_shelter_b1_north_maintenance_walkway_8017E55C(&p[0], 0x200);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-18], 0x200, 0);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-16], 0x200, 0);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-14], 0x200, 0);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-12], 0x200, -0x400);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-10], 0x200, -0x400);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-8], 0x200, -0x400);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-6], 0x200, 0x800);
+            glowDrawRedDisc(&p[0], 0x200);
+            glowDrawCone(&p[-18], 0x200, 0);
+            glowDrawCone(&p[-16], 0x200, 0);
+            glowDrawCone(&p[-14], 0x200, 0);
+            glowDrawCone(&p[-12], 0x200, -0x400);
+            glowDrawCone(&p[-10], 0x200, -0x400);
+            glowDrawCone(&p[-8], 0x200, -0x400);
+            glowDrawCone(&p[-6], 0x200, 0x800);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184AB8;
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0);
-            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[6], 0x200, -0x400);
+            glowDrawCone(&p[0], 0x200, 0);
+            glowDrawCone(&p[6], 0x200, -0x400);
             break;
         }
     }

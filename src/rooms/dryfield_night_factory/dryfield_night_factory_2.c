@@ -52,6 +52,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
+#include "../../shared/glow_draw.h"
 
 /// The single-entry `TaskDesc` table the room's script task spawns its child
 /// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
@@ -848,7 +849,6 @@ SpriteBatch D_dryfield_night_factory_801899E4[6] = {
 
 static s32  func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_factory_80180DE8(Task* task, s16 step);
-static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's event gate: answers 1 when the request's flag says the event
 /// already happened, 0 (after running the request's cap command) when its
@@ -1562,159 +1562,7 @@ void func_dryfield_night_factory_80181B38(s32 show)
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when it lands in front of
-/// the camera, draws a disc of sixteen gouraud wedges and a four-pointed inner
-/// cross around it. The radii are `(s16)arg1` scaled by 64 and 8 over the
-/// depth. `arg2` packs the tint as four nibbles `[shift][r][g][b]`; bit 0 of
-/// the animation frame, shifted by the top nibble, is added to every channel
-/// so the disc flickers on alternate frames.
-static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    RoomDraw05Scratch* block;
-    POLY_G4*           prim;
-    DisplayState*      ds;
-    s32                packed;
-    s32                blend;
-    s32                size;
-    s32                otz;
-    s32                rOuter;
-    s32                rInner;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                r;
-    s32                g;
-    s32                b;
-    s32                rh;
-    s32                gh;
-    s32                bh;
-
-    {
-        void** scratch;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        block   = (RoomDraw05Scratch*)(*scratch = head - 0x14);
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        size          = (s16)arg1;
-        otz           = block->otz + 1;
-        rOuter        = (size * 64) / otz;
-        block->otz    = otz;
-        ds            = &gDisplayState;
-        blend         = ds->animFrame;
-        block->rOuter = rOuter;
-        rInner        = (size * 8) / block->otz;
-        packed        = arg2 << 16;
-        blend         = blend & 1;
-        blend         = blend << (packed >> 28);
-        r             = blend + ((packed >> 20) & 0xF0);
-        g             = blend + ((packed >> 16) & 0xF0);
-        b             = blend + ((arg2 & 0xF) << 4);
-        block->rInner = rInner;
-        ang           = 0;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            rh = (u8)r >> 1;
-            gh = (u8)g >> 1;
-            bh = (u8)b >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rh, gh, bh);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-
-        r   = (u8)rh;
-        g   = (u8)gh;
-        b   = (u8)bh;
-        ang = 0x200;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang - 0x400)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang - 0x400)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x400)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(ang + 0x400)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang + 0x400)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang + 0x400)) >> 11);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x800)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(ang + 0x800)) >> 12);
-            ang     += 0x800;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-}
+#include "../../shared/glow_draw_tinted_disc.inc.c"
 
 /// Per-frame effect: refreshes the task's composed matrix, then draws
 /// one of three glowing discs at fixed points in the room. The draw set is
@@ -1728,13 +1576,13 @@ void func_dryfield_night_factory_801825F0(Task* task)
     state = 1 << gGameSession->location.loc.view;
     Gp_UpdateCoord(task->extra.coordBody->coord);
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
-        func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
+        glowDrawTintedDisc(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
     }
     if (state & 0xF26C4) {
         if (GameFlag_GetNibble(0x4A) == 1) {
-            func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F0C, 0x80, 0x5A00);
+            glowDrawTintedDisc(&D_dryfield_night_factory_80186F0C, 0x80, 0x5A00);
         } else if (GameFlag_GetNibble(0x4A) == 2) {
-            func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F14, 0x80, 0x50A0);
+            glowDrawTintedDisc(&D_dryfield_night_factory_80186F14, 0x80, 0x50A0);
         }
     }
 }

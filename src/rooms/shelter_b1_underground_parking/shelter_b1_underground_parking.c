@@ -74,6 +74,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
+#include "../../shared/glow_draw.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -359,14 +360,10 @@ static void func_shelter_b1_underground_parking_801848A4(void);
 static void func_shelter_b1_underground_parking_8018491C(void);
 static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
-static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0<\x9E"
 #include "../../shared/telephone.h"
-
-static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
 #include "../../shared/shop.h"
@@ -2838,202 +2835,64 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
         case 2:
         case 10:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                func_shelter_b1_underground_parking_80185A94(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
             } else {
-                func_shelter_b1_underground_parking_80185A94(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
             func_shelter_b1_underground_parking_8018543C(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
+            glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
             break;
         case 3:
         case 7:
         case 11:
         case 12:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                func_shelter_b1_underground_parking_80185A94(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
             } else {
-                func_shelter_b1_underground_parking_80185A94(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
             func_shelter_b1_underground_parking_8018543C(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
+            glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
             break;
         case 8:
         case 13:
-            func_shelter_b1_underground_parking_80184C54(D_shelter_b1_underground_parking_801877A4, 0x200, 0, 0x210);
+            glowDrawBeam(D_shelter_b1_underground_parking_801877A4, 0x200, 0, 0x210);
         case 4:
         case 14:
-            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[0], 0x200, -0x400, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[2], 0x200, -0x400, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[4], 0x200, 0x800, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[6], 0x200, 0x800, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[8], 0x200, 0, 0x111);
+            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[0], 0x200, -0x400, 0x111);
+            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[2], 0x200, -0x400, 0x111);
+            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[4], 0x200, 0x800, 0x111);
+            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[6], 0x200, 0x800, 0x111);
+            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[8], 0x200, 0, 0x111);
             break;
         case 9:
         case 15:
         case 22:
         case 24:
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187784[0], 0x200, 0, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187784[2], 0x200, 0x800, 0x111);
+            glowDrawBeam(&D_shelter_b1_underground_parking_80187784[0], 0x200, 0, 0x111);
+            glowDrawBeam(&D_shelter_b1_underground_parking_80187784[2], 0x200, 0x800, 0x111);
             break;
         case 16:
             func_shelter_b1_underground_parking_8018543C(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
             break;
         case 18:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                func_shelter_b1_underground_parking_80185A94(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
             } else {
-                func_shelter_b1_underground_parking_80185A94(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
             break;
         case 20:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                func_shelter_b1_underground_parking_80185F08(D_shelter_b1_underground_parking_80187714, 0x180, 0x80);
+                glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x180, 0x80);
             } else {
-                func_shelter_b1_underground_parking_80185F08(D_shelter_b1_underground_parking_80187714, 0x60, 0x80);
+                glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x60, 0x80);
             }
             break;
     }
 }
 
-/// Projects the two world-space points `arg0[0]` and `arg0[1]` and, if the
-/// second lies at an OTZ of at least 0x11, queues gouraud wedges around both
-/// and between them, rotated by `arg2`; `arg1` is a signed half-extent. The
-/// inner vertex is scaled by the frame-counter blend byte
-/// `((field_8 & 1) * 8 | 0x20)`: red is `blend * ((arg3 << 16) >> 24)`, green
-/// `blend * (((arg3 << 16) >> 20) & 1)`, blue `blend * (arg3 & 1)`.
-static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u8*                head;
-    RoomDraw11Scratch* block;
-    POLY_G4*           prim;
-    POLY_G4*           p;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                packed;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-    s32                base;
-    u8                 blend;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x18;
-        *scratch = tmp;
-        p1       = arg0 + 1;
-        block    = (RoomDraw11Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(p1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
-    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
-            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
-        }
-        extent    = (s16)arg1 * 64;
-        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
-        r1        = extent / block->otz1;
-        packed    = arg3 << 16;
-        blend     = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
-        r         = blend * (packed >> 24);
-        g         = blend * ((packed >> 20) & 1);
-        base      = (s16)arg2;
-        b         = blend * (arg3 & 1);
-        ang       = 0;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            p        = prim;
-            p->r2    = r;
-            p->g2    = g;
-            prim->b2 = b;
-            p->r3    = 0;
-            p->g3    = 0;
-            p->b3    = 0;
-            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
-            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
-            t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
-            t2       = ang + 0x400;
-            p->x2    = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, r, g, b);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            t3             = ang - 0x1000;
-            prim           = gGpuPrimCursor;
-            t              = ang - 0x1000;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xE00;
-            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
-            t        = ang - 0xC00;
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            t        = base - t;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_beam.inc.c"
 
 /// Projects the world-space point `worldPoint` through `gGfxViewCoord.workm` and, if
 /// the resulting OTZ is at least 0x11, queues four gouraud `POLY_G4` wedges
@@ -3182,238 +3041,9 @@ static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radiu
     } while (i < 3);
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
-/// gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a signed
-/// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
-/// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
-/// `rsin(...) / 34 + 0x78` on green and blue.
-static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    LINE_G3*           line;
-    s32                sine;
-    s32                pulse;
-    s32                radius;
-    s32                i;
-    s32                t1;
-    s32                t2;
-    s32                twice;
-    u16                sx;
-    u16                sy;
+#include "../../shared/glow_draw_diamond.inc.c"
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x10);
-        block   = (RoomDraw13Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
-        i             = 0;
-        pulse         = sine / 34 + 0x78;
-        block->radius = radius;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, pulse, pulse);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->radius;
-            sx       = block->sx;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->radius;
-            sy       = block->sy;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            i++;
-        } while (i < 2);
-
-        i = 0;
-        do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, 0, pulse, pulse);
-            setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->sx + (block->radius * t1);
-            line->y0 = block->sy - (block->radius * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->radius * t1);
-            line->y2 = block->sy + (block->radius * t2);
-            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
-                    line);
-            Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
-            i = t2;
-        } while (i < 2);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
-
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
-/// inner cross wedges around the projected centre. `arg2` is a signed
-/// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and
-/// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
-/// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
-/// blue.
-static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    RoomDraw05Scratch* block;
-    POLY_G4*           prim;
-    s32                pulse;
-    s32                color;
-    s32                half;
-    s32                size;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                u;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x14);
-        block   = (RoomDraw05Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
-    gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        pulse         = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang           = 0;
-        size          = (s16)arg2;
-        block->rOuter = (size * 64) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-        color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            half = (s16)color >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, half, half);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-
-        color = half;
-        ang   = 0x200;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-}
+#include "../../shared/glow_draw_pulsing_disc.inc.c"
 
 static void func_shelter_b1_underground_parking_80186890(s16 arg0)
 {

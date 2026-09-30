@@ -43,6 +43,7 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -61,8 +62,6 @@ extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 /// the second name is the one emitter it may spawn an effect at instead.
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
-
-static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams   D_neo_ark_power_plant_1_80180090[1];
 extern GpObj3A        D_neo_ark_power_plant_1_80181B60[1];
@@ -749,72 +748,72 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
 {
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[35], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[36], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[37], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[38], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[39], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[40], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[41], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[38], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[40], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], 0x200, 0x344);
             break;
         case 3:
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[51], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[26], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[27], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[28], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[29], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[31], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[33], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[34], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[35], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[36], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[37], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[39], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[41], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[51], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[31], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[33], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[34], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], 0x200, 0x122);
             break;
         case 4:
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[45], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[46], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[48], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[49], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[16], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[17], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[18], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[19], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[20], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[21], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[22], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[23], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[24], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[26], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[27], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[28], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[29], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
             break;
         case 5:
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[48], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[49], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[12], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[13], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[14], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[16], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[17], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[18], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[19], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[20], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[21], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[22], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[23], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[24], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x122);
             break;
         case 6:
             if (GameFlag_GetNibble(0x148) != 0) {
@@ -825,26 +824,26 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
                     }
                 }
             } else {
-                func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F1C0, 0x300, 0x334);
+                glowDrawDisc(&D_neo_ark_power_plant_1_8017F1C0, 0x300, 0x334);
             }
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[43], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[0], 0x200, 0x11);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[1], 0x200, 0x11);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[2], 0x200, 0x11);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[3], 0x200, 0x11);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[4], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[5], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[6], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[7], 0x200, 0x122);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[8], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[9], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[10], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[11], 0x200, 0x233);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[12], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[13], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[14], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], 0x200, 0x11);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], 0x200, 0x11);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], 0x200, 0x11);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], 0x200, 0x11);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[6], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[7], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[8], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[9], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[10], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[11], 0x200, 0x233);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
             break;
         case 7:
             if (GameFlag_GetNibble(0x148) != 0) {
@@ -855,93 +854,27 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
                     }
                 }
             } else {
-                func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F1C0, 0x300, 0x334);
+                glowDrawDisc(&D_neo_ark_power_plant_1_8017F1C0, 0x300, 0x334);
             }
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[0], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[1], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[2], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[3], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[4], 0x200, 0x344);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[5], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], 0x200, 0x344);
             break;
         case 8:
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x223);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[43], 0x300, 0x223);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[44], 0x300, 0x223);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[45], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[46], 0x300, 0x334);
-            func_neo_ark_power_plant_1_8017E184(&D_neo_ark_power_plant_1_8017F020[47], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x223);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], 0x300, 0x223);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[44], 0x300, 0x223);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[47], 0x300, 0x334);
             break;
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, unless
-/// the GTE flags the projection, queues four gouraud `POLY_G4` wedges filling a
-/// disc around it, tinted at the centre and black at the rim. `arg1` is the
-/// radius in world units, scaled by depth; `arg2` is the tint as three 4-bit
-/// channels (red at bit 8, green at bit 4, blue at bit 0), with 8 added to each
-/// on odd display frames so the glow flickers. The room draws its steam and
-/// spark glows with it.
-static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 /// Sprite-suppression switch for two of the area's views: 0 shows command 1
 /// of views 5 and 6 and 1 hides it, through `SpriteBatch::hidden`; any other

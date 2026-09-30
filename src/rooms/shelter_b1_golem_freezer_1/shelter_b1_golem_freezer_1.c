@@ -42,6 +42,7 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 #define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
@@ -58,7 +59,6 @@ extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
 
 static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
 static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* arg0, s16* arg1);
-static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -515,84 +515,19 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
     }
     switch (Gp_GetViewIndex() & 0xFF) {
         case 3:
-            func_shelter_b1_golem_freezer_1_8017DC5C(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
+            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
             break;
         case 4:
-            func_shelter_b1_golem_freezer_1_8017DC5C(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x210);
+            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x210);
             break;
         case 2:
         case 5:
-            func_shelter_b1_golem_freezer_1_8017DC5C(D_shelter_b1_golem_freezer_1_8017E740, 0x200, 0x421);
+            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E740, 0x200, 0x421);
             break;
     }
 }
 
-/// Draws a glow disc at the world-space point `arg0`: projects it through
-/// `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues four
-/// gouraud `POLY_G4` wedges around the projected centre. `arg1` is a signed
-/// half-extent; the on-screen radius is `(s16)arg1 * 64 / otz`. `arg2` packs
-/// three RGB nibbles for the centre vertex, OR'd with a flicker of
-/// `(animFrame & 1) * 8`; the rim vertices are black.
-static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {

@@ -65,3 +65,5 @@ RoomFx_DrawFlyingRing = 0x80180C6C; // type:func
 RoomFx_DrawFlyingDisc = 0x80181090; // type:func
 RoomFx_DrawBurst2Glow = 0x801815D0; // type:func
 RoomFx_DrawGround2Quad = 0x80181AFC; // type:func
+glowDrawCone = 0x8017D6E4; // type:func
+glowDrawRedDisc = 0x8017DE60; // type:func

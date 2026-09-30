@@ -47,3 +47,4 @@ D_map_dryfield_full_8017C378 = 0x8017C378; // absolute:True
 D_map_dryfield_full_8017C448 = 0x8017C448; // absolute:True
 
 func_dryfield_night_breezeway_8017E5BC = 0x8017E5BC; // type:func
+glowDrawShaft = 0x8017DB4C; // type:func

@@ -47,3 +47,4 @@ D_shelter_b1_golem_freezer_1_8017E6D0 = 0x8017E6D0; // size:0x6 defined:True
 func_shelter_b1_golem_freezer_1_8017DFFC = 0x8017DFFC; // type:func
 
 func_shelter_b1_golem_freezer_1_8017DA7C = 0x8017DA7C; // type:func
+glowDrawDisc = 0x8017DC5C; // type:func

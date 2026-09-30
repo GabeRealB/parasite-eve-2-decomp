@@ -109,3 +109,4 @@ Reflection_InitPlayer = 0x8017D6F4; // type:func
 Reflection_UpdatePlayer = 0x8017D8A8; // type:func
 Reflection_HeldObjectTask = 0x8017F22C; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;
+glowDrawDisc = 0x80180A0C; // type:func
