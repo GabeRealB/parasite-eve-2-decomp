@@ -4406,7 +4406,7 @@ static void func_actor_403200_80134D40(Task* arg0)
     SCRATCH_PUSH_BYTES(0xC);
     func_actor_403200_80133DD8(arg0);
 
-    frame = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+    frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x12 && work->field_7D8 != frame) {
         s32 id;
         s32 pan;
@@ -4419,7 +4419,7 @@ static void func_actor_403200_80134D40(Task* arg0)
                             (s8)(gpGetObjDepth(arg0->extra.tmd->coords) / 2));
     }
 
-    frame = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+    frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x18 && work->field_7D8 != frame) {
         s32 id;
         s32 pan;
@@ -4432,7 +4432,7 @@ static void func_actor_403200_80134D40(Task* arg0)
                             (s8)(gpGetObjDepth(arg0->extra.tmd->coords) / 2));
     }
 
-    work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+    work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
     model = arg0->extra.tmd->coords;
     if (Mc_SaveData[0].state.field_5C1 != 1) {
@@ -7341,7 +7341,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             sc->period = 0xC;
             break;
     }
-    if (((u32)((work->slots0[1].currentPose.indices.recordIndex & 0x3FF) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
+    if (((u32)((work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
         Gp_SpawnScript18(D_actor_403200_80141C7C, D_actor_403200_80141C88);
     }
 
@@ -7379,7 +7379,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     }
 
     work->field_EFA = 1;
-    switch (work->slots0[1].currentPose.indices.recordIndex & 0x3FF) {
+    switch (work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
         case 9:
             gte_lddp(-(sc->pull + 0x19) / 4);
             gte_ldsv(&sc->dir);
@@ -7442,7 +7442,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             break;
     }
 
-    if (((u32)((work->slots0[1].currentPose.indices.recordIndex & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
+    if (((u32)((work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
         (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_403200_8015FA00, 0) == 0)) {
         SVECTOR* dirp;
         s16      ang;
@@ -7676,7 +7676,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
                 gGameSession->deathRestartDelay     = 0x5A;
             }
         }
-        if (((work->slots0[3].currentPose.indices.recordIndex & 0x3FF) == 0x19) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & 0x3FF))) {
+        if (((work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x19) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
             s32 sfx;
             s32 pan;
             s32 depth;
@@ -7686,13 +7686,13 @@ static void func_actor_403200_8013C84C(Task* arg0)
             depth = (s8)gpGetObjDepth(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(sfx, pan, depth);
         }
-        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->field_7B3 == 0xE) {
-        if (((work->slots0[3].currentPose.indices.recordIndex & 0x3FF) == 0x1E) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & 0x3FF))) {
+        if (((work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x1E) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
             Gp_SpawnPadLerp(4, 0xFF, 8);
         }
-        if (((work->slots0[3].currentPose.indices.recordIndex & 0x3FF) == 0x23) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & 0x3FF))) {
+        if (((work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x23) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
             s32 sfx;
             s32 pan;
 
@@ -7702,7 +7702,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
                                 (s8)gpGetObjDepth(arg0->extra.tmd->coords));
             Gp_SpawnPadLerp(4, 0xFF, 8);
         }
-        if (((work->slots0[3].currentPose.indices.recordIndex & 0x3FF) == 0x27) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & 0x3FF))) {
+        if (((work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x27) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
             s32 sfx;
             s32 pan;
 
@@ -7712,7 +7712,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
                                 (s8)gpGetObjDepth(arg0->extra.tmd->coords));
             Gp_SpawnPadLerp(4, 0xFF, 8);
         }
-        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if ((Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
         D_actor_403200_8015F9C0.value.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
@@ -7831,7 +7831,7 @@ static void func_actor_403200_8013D028(Task* arg0)
     work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&work->field_E3C.c);
 
-    if (work->field_7B3 == 4 && (frame = work->slots0[1].currentPose.indices.recordIndex & 0x3FF) == 0xC &&
+    if (work->field_7B3 == 4 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->field_7AC != frame) {
         work->field_EAC  = 3;
         work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -7856,7 +7856,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    if (work->field_7B3 == 5 && (frame2 = work->slots0[2].currentPose.indices.recordIndex & 0x3FF) == 0x1C &&
+    if (work->field_7B3 == 5 && (frame2 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x1C &&
         work->field_7AC != frame2) {
         work->field_EFA = 0;
         work->field_EAC = 3;
@@ -7872,9 +7872,9 @@ static void func_actor_403200_8013D028(Task* arg0)
     }
 
     if (work->field_7B3 == 4) {
-        work->field_7AC = work->slots0[1].currentPose.indices.recordIndex & 0x3FF;
+        work->field_7AC = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     } else {
-        work->field_7AC = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+        work->field_7AC = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
 
     switch (work->field_6) {
@@ -8300,12 +8300,12 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         work->field_E96 = 0xFA0;
     }
     if (work->field_7B3 == 0xD) {
-        frame = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+        frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x15 && work->field_7D8 != frame) {
             work->field_EAC = 3;
             Gp_SpawnScript18(D_actor_403200_80141C6C, D_actor_403200_80141C74);
         }
-        work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+        work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                 = arg0->extra.tmd->coords;
@@ -8331,7 +8331,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         if (work->field_7B3 == state && work->field_7B0 == 2) {
             work->field_7B6 = 0x60;
             func_actor_403200_80133DD8(arg0);
-            while ((u32)(work->slots0[1].currentPose.indices.recordIndex & 0x3FF) < 0x34) {
+            while ((u32)(work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) < 0x34) {
                 func_actor_403200_80133DD8(arg0);
             }
             work->field_7B6 = 0x10;
@@ -8414,14 +8414,14 @@ static void func_actor_403200_8013E5A8(Task* arg0)
     }
     func_actor_403200_80133DD8(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    state                                 = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+    state                                 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (state == 0x1C && work->field_7D8 != state) {
         work->field_EAC = 3;
         Gp_SpawnScript18(D_actor_403200_80141C5C, D_actor_403200_80141C64);
     }
-    work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & 0x3FF;
+    work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (work->field_7B3 == 0x12) {
-        frame = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x33 && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -8431,7 +8431,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
             SndEvt_EnqueueType6(id, pan,
                                 (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         }
-        frame = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x3D && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -8441,7 +8441,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
             SndEvt_EnqueueType6(id, pan,
                                 (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         }
-        frame = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x4E && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -8451,7 +8451,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
             SndEvt_EnqueueType6(id, pan,
                                 (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         }
-        frame = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x71 && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -8461,7 +8461,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
             SndEvt_EnqueueType6(id, pan,
                                 (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         }
-        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & 0x3FF;
+        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
 }
 
@@ -8757,7 +8757,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
         }
         func_actor_403200_80133DD8(arg0);
-        if (work->field_7B3 == 0x13 && (frame = work->slots0[1].currentPose.indices.recordIndex & 0x3FF) >= 4 && frame < 0xD) {
+        if (work->field_7B3 == 0x13 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
             work->field_EFA = 1;
         } else {
             work->field_EFA = 0;

@@ -3081,7 +3081,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
     reset = 1;
     switch (work->field_82E) {
         case 0: {
-            s32 clip = work->slots[9].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[9].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
             if (clip == 0x58) {
                 old = work->field_848[9];
@@ -3100,7 +3100,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[7].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[7].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0x3E) {
                     old = work->field_848[7];
@@ -3119,7 +3119,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[14].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0x84) {
                     old = work->field_848[14];
@@ -3138,7 +3138,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[17].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[17].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0xA9) {
                     old = work->field_848[17];
@@ -3159,7 +3159,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
             break;
 
         case 10: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
             if (clip == 0x9) {
                 old = work->field_848[1];
@@ -3179,7 +3179,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
         } break;
 
         case 3: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
             if (clip == 0x4) {
                 reset = 0;
@@ -3192,7 +3192,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0x8) {
                     old = work->field_848[1];
@@ -3207,7 +3207,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
             break;
 
         case 6: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
             if (clip == 0x6) {
                 old = work->field_848[1];
@@ -3232,7 +3232,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0xB) {
                     old = work->field_848[1];
@@ -3257,7 +3257,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0xC) {
                     old = work->field_848[1];
@@ -3296,7 +3296,7 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
                 if (clip == 0xD) {
                     old = work->field_848[1];

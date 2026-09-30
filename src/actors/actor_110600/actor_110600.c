@@ -2087,7 +2087,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
     state = (u16)anim->field_892 - 2;
     switch (state) {
         case 1:
-            id14 = anim->slots[14].currentPose.indices.recordIndex & 0x3FF;
+            id14 = anim->slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (id14 == 0xC5) {
                 prev = anim->field_8AC;
                 if (prev != id14) {
@@ -2097,7 +2097,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
                 anim->field_8AC = prev;
                 return 0;
             }
-            id18 = anim->slots[18].currentPose.indices.recordIndex & 0x3FF;
+            id18 = anim->slots[18].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (id18 == 0xFD) {
                 if (anim->field_8AC != 0xFC) {
                     anim->field_8AC = id18;
@@ -2109,7 +2109,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
             anim->field_8AC = 0;
             break;
         case 0:
-            id2 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            id2 = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (id2 == 0x33) {
                 if (anim->field_8AC != id2) {
                     anim->field_8AC = id2;
@@ -2128,28 +2128,28 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
             }
             break;
         case 19:
-            id21 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            id21 = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (id21 == 4 && anim->field_8AC != id21) {
                 anim->field_8AC = id21;
                 return 0x401D0006;
             }
-            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
         case 2:
-            id4 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            id4 = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (id4 == 9 && anim->field_8AC != id4) {
                 anim->field_8AC = id4;
                 return 0x401D000C;
             }
-            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
         case 3:
-            id5 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            id5 = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (id5 == 0xB && anim->field_8AC != id5) {
                 anim->field_8AC = id5;
                 return 0x401D000C;
             }
-            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
     }
     return 0;
@@ -2741,15 +2741,15 @@ static void func_actor_110600_80135454(Task* arg0)
         work->field_0 = 5;
     work->field_8A2 = angle;
     func_actor_110600_80134728(arg0);
-    pose = work->field_4E & 0x3FF;
+    pose = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
     if ((pose == 0x33) && (work->field_888 != pose)) {
         work->field_BE8 = 1;
     }
-    nextPose = work->field_4E & 0x3FF;
+    nextPose = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
     if ((nextPose == 0x26) && (work->field_888 != nextPose)) {
         work->field_BE8 = 2;
     }
-    work->field_888 = (s32)(work->field_4E & 0x3FF);
+    work->field_888 = (s32)(work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK);
     if (work->field_BE8 != 0) {
         if (Actor110600_TickShake() != 0)
             work->field_BE8 = 0;
@@ -2893,7 +2893,7 @@ static void func_actor_110600_80135B84(Task* arg0)
     }
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 4) {
-        switch (work->field_4E & 0x3FF) {
+        switch (work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 0xF:
                 work->field_A90.flags = (u16)(work->field_A90.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 break;
@@ -2903,7 +2903,7 @@ static void func_actor_110600_80135B84(Task* arg0)
         }
     }
     if (work->field_892 == 5) {
-        switch (work->field_4E & 0x3FF) {
+        switch (work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 0x10:
                 work->field_A90.flags = (u16)(work->field_A90.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 break;
@@ -3618,13 +3618,13 @@ static void func_actor_110600_801372CC(Task* arg0)
     Actor110600_RescaleRoot(arg0, work->walker.scale);
 
     if (((work->field_BDC.raw & 0xFFFFFF) == 0x30401) && (work->field_892 != 0x1E)) {
-        if ((work->field_4E & 0x3FF) == 0xB) {
+        if ((work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) == 0xB) {
             D_actor_110600_80147D20[0x24][0x1E] = 6;
             work->field_892                     = 0x1E;
             work->field_88C                     = 1;
         }
         if (work->field_892 != 0x1E) {
-            if (((work->field_4E & 0x3FF) == 4) && (work->field_8AC != (work->field_4E & 0x3FF))) {
+            if (((work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) == 4) && (work->field_8AC != (work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK))) {
                 vec                    = D_actor_110600_80131F1C;
                 tailEffect             = &D_actor_110600_80148698;
                 effectCoord3           = arg0->extra.tmd->coords;
@@ -3716,7 +3716,7 @@ static void func_actor_110600_801377FC(Task* arg0)
         work->field_8A2           = 0;
     }
     func_actor_110600_80134728(arg0);
-    work->field_8AC = work->field_4E & 0x3FF;
+    work->field_8AC = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
     delta.vx        = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -3899,7 +3899,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
     switch (state) {
         case 0:
             func_actor_110600_80134728(arg0);
-            if ((work->field_4E & 0x3FF) == 4) {
+            if ((work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) == 4) {
                 work->field_896 = -0x10;
                 work->field_BE2 = (s16)((u16)work->field_BE2 + 1);
                 return;

@@ -376,49 +376,49 @@ static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
     func_actor_110800_80132368(task);
     switch ((s16)D_actor_110800_80139F10->st.animId) {
         case 4:
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF) == 0xC8) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D0011, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF) == 0xCA) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCA) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000D, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF) == 0xCD) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCD) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000E, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             break;
         case 5:
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF) == 0x115) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x115) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF) == 0x11F) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x11F) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & 0x3FF) == 0xCE) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCE) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & 0x3FF) == 0xD8) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xD8) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             break;
     }

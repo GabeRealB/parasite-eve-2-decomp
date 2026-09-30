@@ -1336,7 +1336,7 @@ void func_mist_parking_801828F0(Task* task)
 
     actor = (GameActor*)(gameGetPtrSlot(3))->work;
     if (D_801156F9 == 0) {
-        idx = actor->field_438[1].nextPose.indices.setIndex - 0x2F;
+        idx = actor->field_438[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
         if ((idx > 0) && (idx < D_mist_parking_8018D82C.count)) {
             flag = D_mist_parking_8018DA28[idx];
         } else {

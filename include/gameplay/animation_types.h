@@ -22,18 +22,33 @@ enum {
     ANIMATION_SLOT_SETTLED       = 0x100 // The boundary pose is held
 };
 
-/// Animation pose source, compared and copied as a complete four-byte key.
+/// Low record-index bits used by actor cue tests; playback uses the full index.
+enum { ANIMATION_POSE_CUE_INDEX_MASK = 0x3FF };
+
+/// An interpolation endpoint's bank keyframe or slot-local buffered pose.
 ///
-/// On this little-endian target, the set index is the low half and the record
-/// index the high half. `ANIMATION_SET_BUFFERED_POSE` ignores the record index
-/// and selects the context's buffer entry for this slot. Other set indices
-/// select the borrowed set table; record indices are absolute within that set.
+/// For a bank pose, `indices.setIndex` selects the owning slot's borrowed set
+/// table and `indices.recordIndex` is an absolute element index in that set's
+/// records, including the track-start offset. Both indices must fit the loaded
+/// tables; the reference carries no pointer, array length or pose encoding.
+/// `ANIMATION_POSE_CUE_INDEX_MASK` extracts the low ten record-index bits used
+/// by actor cue tests without narrowing the stored index or the playback lookup.
+///
+/// `ANIMATION_SET_BUFFERED_POSE` selects the owning slot's entry in its context's
+/// writable pose buffer. Buffering retains the previous record index: pose
+/// lookup ignores it, but whole-key equality and copies still include it.
+/// Buffered references depend on that slot and buffer, so are not portable
+/// between slots. Bank references likewise depend on the slot's set table.
+///
+/// The little-endian word view has the set index in bits 0-15 and the record
+/// index in bits 16-31. `key` compares and transfers both indices together;
+/// equal keys identify the same endpoint only within the same slot and tables.
 typedef union {
-    u32 key;             // Whole reference for equality tests and endpoint transfers
+    u32 key;             // Both indices as one word, including a buffered pose's retained record index
     struct {
-        u16 setIndex;    // Set-table index, or ANIMATION_SET_BUFFERED_POSE
-        u16 recordIndex; // Absolute keyframe record index; ignored for buffered poses
-    } indices;
+        u16 setIndex;    // Owning slot's set-table index, or ANIMATION_SET_BUFFERED_POSE
+        u16 recordIndex; // Absolute keyframe record index; unused only by buffered-pose lookup
+    } indices;           // The two unsigned 16-bit indices used to resolve a bank pose
 } AnimationPoseReference;
 STATIC_ASSERT_SIZEOF(AnimationPoseReference, 4);
 

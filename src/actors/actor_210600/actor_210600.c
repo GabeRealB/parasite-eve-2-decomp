@@ -503,7 +503,7 @@ static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
         func_actor_210600_8014B2C0(task);
         Actor210600_ScaleRotation(task, 0xC00);
 
-        id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
+        id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (id == 7 && work->field_896 != id) {
             memset(&vec, 0, 8);
             eff.coord      = task->extra.tmd->coords;
@@ -511,7 +511,7 @@ static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
             eff.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, task->extra.tmd->coords + 1, &vec, &eff);
         }
-        work->field_896 = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF;
+        work->field_896 = work->rig.slots[0].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
 }
 

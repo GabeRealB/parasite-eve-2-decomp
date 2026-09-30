@@ -3100,7 +3100,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
     reset = 1;
     switch (work->field_82E) {
         case 0: {
-            s32 clip = work->slots[9].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[9].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x58) {
@@ -3118,7 +3118,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[7].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[7].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0x3E) {
@@ -3136,7 +3136,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[14].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0x84) {
@@ -3154,7 +3154,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[17].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[17].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xA9) {
@@ -3173,7 +3173,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
             break;
         case 10: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x9) {
@@ -3191,7 +3191,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         } break;
         case 3: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x4) {
@@ -3205,7 +3205,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0x8) {
@@ -3220,7 +3220,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
             break;
         case 6: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x6) {
@@ -3242,7 +3242,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xB) {
@@ -3264,7 +3264,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xC) {
@@ -3294,7 +3294,7 @@ static s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
+                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xD) {
@@ -3605,13 +3605,13 @@ static void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
         func_actor_323000_80163A30(task);
     }
     if (work->field_82E == 0xE) {
-        if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 7 || (work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 9) {
+        if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 7 || (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002300, &sp10);
         }
-        if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 8) {
+        if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
