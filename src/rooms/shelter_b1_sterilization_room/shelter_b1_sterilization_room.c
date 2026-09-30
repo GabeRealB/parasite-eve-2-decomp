@@ -59,6 +59,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/backdrop_crossfade.h"
 
 /// The "%" suffix appended to a formatted percentage.
 static u8 Telephone_Data_80181A78[];
@@ -171,9 +172,6 @@ static void func_shelter_b1_sterilization_room_8018049C(void);
 static void func_shelter_b1_sterilization_room_80180570(GfxCoord* coord, s16* arg1);
 static void func_shelter_b1_sterilization_room_80180828(Task* task);
 static void func_shelter_b1_sterilization_room_80181244(Task* task);
-static void func_shelter_b1_sterilization_room_801812A0(Task* task);
-
-static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1);
 
 s32  func_shelter_b1_sterilization_room_8017FC78(Task*, s32, DirectionActionRequest* msg, s32);
 s32  func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
@@ -492,9 +490,6 @@ _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[8] = {
     { 6, 2 },
     { 3, 5 },
 };
-
-static void func_shelter_b1_sterilization_room_80180A2C(s32 shade);
-static void func_shelter_b1_sterilization_room_80180BF0(s32 shade);
 
 #include "../../shared/telephone.inc.c"
 
@@ -933,62 +928,11 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task)
     task->state++;
 }
 
-/// Draws the room's two backdrop halves as opaque `SPRT`s in OT slot 8, tinted
-/// by `shade`. The source rows, both the sprites' `v` and the tpage row, follow
-/// the display buffer being drawn.
-static void func_shelter_b1_sterilization_room_80180A2C(s32 shade)
-{
-    SPRT* p;
-    s16   tpageY;
-    u8    u;
-    u8    v;
-
-    if (gDisplayState.drawBuffer == 0) {
-        tpageY = 0;
-        u      = 0;
-        v      = 0;
-    } else {
-        tpageY = 0x100;
-        u      = 0;
-        v      = 0x10;
-    }
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = u;
-    p->v0   = v;
-    p->x0   = -0xA0;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0xC0;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    func_shelter_b1_sterilization_room_80181308(0, tpageY);
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->x0   = 0x20;
-    p->u0   = u;
-    p->v0   = v;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0x80;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    func_shelter_b1_sterilization_room_80181308(0xC0, tpageY);
-}
+#include "../../shared/backdrop_crossfade_live.inc.c"
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-static void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
+void crossfadeDrawBackdrop(s32 shade)
 {
     SPRT* p;
 
@@ -1007,7 +951,7 @@ static void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    func_shelter_b1_sterilization_room_80181308(0x340, 0);
+    crossfadeSetTpage(0x340, 0);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1024,7 +968,7 @@ static void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    func_shelter_b1_sterilization_room_80181308(0x180, 0x100);
+    crossfadeSetTpage(0x180, 0x100);
 }
 
 void func_shelter_b1_sterilization_room_80180D74(Task* task)
@@ -1134,7 +1078,7 @@ static const TaskFuncTable4 D_shelter_b1_sterilization_room_8017D700 = {
     {
         func_shelter_b1_sterilization_room_80180828,
         func_shelter_b1_sterilization_room_80181244,
-        func_shelter_b1_sterilization_room_801812A0,
+        crossfadeOutState,
         taskKill,
     },
 };
@@ -1149,41 +1093,14 @@ void func_shelter_b1_sterilization_room_801811E0(Task* task)
 
 static void func_shelter_b1_sterilization_room_80181244(Task* task)
 {
-    func_shelter_b1_sterilization_room_80180BF0(0x80);
-    func_shelter_b1_sterilization_room_80180A2C(0);
+    crossfadeDrawBackdrop(0x80);
+    crossfadeDrawLive(0);
     if (gGameSession->viewReady != 0) {
         task->killCountdown = 0x80;
         task->state++;
     }
 }
 
-/// Steps `killCountdown` down by 8 each frame, advancing the task once it
-/// reaches zero, and redraws the backdrop with the semi-transparent copy at
-/// that level and the opaque copy at the rest.
-static void func_shelter_b1_sterilization_room_801812A0(Task* task)
-{
-    u16 fade;
+#include "../../shared/backdrop_crossfade_out.inc.c"
 
-    fade                = (u16)task->killCountdown - 8;
-    task->killCountdown = fade;
-    if ((s16)fade <= 0) {
-        task->killCountdown = 0;
-        task->state++;
-    }
-    func_shelter_b1_sterilization_room_80180BF0(task->killCountdown);
-    func_shelter_b1_sterilization_room_80180A2C(0x80 - task->killCountdown);
-}
-
-/// Appends a semi-transparent 15-bit `DR_TPAGE` for VRAM origin (`x`, `y`)
-/// to OT slot 8.
-static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1)
-{
-    DR_TPAGE* p;
-    s32       y;
-
-    y              = arg1;
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setDrawTPage(p, 1, 0, getTPage(2, 1, tpage & 0x3C0, y));
-    addPrim(gGpuCurrentOt + 8, p);
-}
+#include "../../shared/backdrop_crossfade_tpage.inc.c"

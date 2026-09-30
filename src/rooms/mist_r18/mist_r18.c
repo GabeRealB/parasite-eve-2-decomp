@@ -41,6 +41,7 @@
 
 #include "mapui/map_akropolis.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/backdrop_crossfade.h"
 
 extern GpRoomCoordSet D_mist_r18_80186E44[1];
 
@@ -121,8 +122,6 @@ static void func_mist_r18_8017E448(MistR18Sprite* sprite);
 static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY);
 static void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
 static void func_mist_r18_8017E8B8(Task* task);
-static void func_mist_r18_8017E92C(Task* task);
-static void func_mist_r18_8017E994(s32 tpage, s16 arg1);
 static void func_mist_r18_8017ECF4(Task* arg0);
 
 /// The room's task-spawn table; its entries are started by index from the
@@ -168,7 +167,7 @@ static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
 /// blit the backdrop into the framebuffer, fade it in, fade it out, then
 /// `taskKill`.
 static const TaskFuncTable4 D_mist_r18_8017D5DC = {
-    { func_mist_r18_8017DD7C, func_mist_r18_8017E8B8, func_mist_r18_8017E92C, taskKill },
+    { func_mist_r18_8017DD7C, func_mist_r18_8017E8B8, crossfadeOutState, taskKill },
 };
 
 extern GpAreaTmdRec D_mist_r18_80186BD8[3];
@@ -1122,9 +1121,6 @@ s32 D_mist_r18_80186E9C;
 
 s32 D_mist_r18_80186EA0;
 
-static void func_mist_r18_8017DF80(s32 shade);
-static void func_mist_r18_8017E144(s16 shade);
-
 /// Typewriter text task for the room's message box: state 0 measures the
 /// script (or, for a negative per-glyph delay, reveals all of it at once) and
 /// arms the countdown, state 1 draws the revealed glyphs each frame and
@@ -1401,63 +1397,11 @@ static void func_mist_r18_8017DD7C(Task* task)
     task->state++;
 }
 
-/// Redraw the room's two backdrop halves as opaque `SPRT`s in OT slot 8,
-/// tinting both with `shade`. Which display buffer is live shifts the source
-/// rows in the off-screen staging area, so both the sprites' `v` texcoord and
-/// the tpage row handed to `func_mist_r18_8017E994` move with it.
-static void func_mist_r18_8017DF80(s32 shade)
-{
-    SPRT* p;
-    s16   tpageY;
-    u8    u;
-    u8    v;
-
-    if (gDisplayState.drawBuffer == 0) {
-        tpageY = 0;
-        u      = 0;
-        v      = 0;
-    } else {
-        tpageY = 0x100;
-        u      = 0;
-        v      = 0x10;
-    }
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = u;
-    p->v0   = v;
-    p->x0   = -0xA0;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0xC0;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    func_mist_r18_8017E994(0, tpageY);
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->x0   = 0x20;
-    p->u0   = u;
-    p->v0   = v;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0x80;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    func_mist_r18_8017E994(0xC0, tpageY);
-}
+#include "../../shared/backdrop_crossfade_live.inc.c"
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-static void func_mist_r18_8017E144(s16 shade)
+void crossfadeDrawBackdrop(s32 shade)
 {
     SPRT* p;
 
@@ -1476,7 +1420,7 @@ static void func_mist_r18_8017E144(s16 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    func_mist_r18_8017E994(0x340, 0);
+    crossfadeSetTpage(0x340, 0);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1493,7 +1437,7 @@ static void func_mist_r18_8017E144(s16 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    func_mist_r18_8017E994(0x280, 0x100);
+    crossfadeSetTpage(0x280, 0x100);
 }
 
 /// Per-frame entry point of the attached-model task: run the handler its state
@@ -1690,36 +1634,9 @@ static void func_mist_r18_8017E8B8(Task* task)
     }
 }
 
-/// Fade the room back out eight levels a frame, driving both backdrop redraws
-/// with complementary shades, and advance the task's state once the level
-/// bottoms out. `Task::killCountdown` holds the level.
-static void func_mist_r18_8017E92C(Task* task)
-{
-    u16 fade;
+#include "../../shared/backdrop_crossfade_out.inc.c"
 
-    fade                = (u16)task->killCountdown - 8;
-    task->killCountdown = fade;
-    if ((s16)fade <= 0) {
-        task->killCountdown = 0;
-        task->state++;
-    }
-    func_mist_r18_8017E144(task->killCountdown);
-    func_mist_r18_8017DF80(0x80 - task->killCountdown);
-}
-
-/// Append a 15-bit, ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
-/// slot 8.
-static void func_mist_r18_8017E994(s32 tpage, s16 arg1)
-{
-    DR_TPAGE* p;
-    s32       y;
-
-    y              = arg1;
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setDrawTPage(p, 1, 0, getTPage(2, 1, tpage & 0x3C0, y));
-    addPrim(gGpuCurrentOt + 8, p);
-}
+#include "../../shared/backdrop_crossfade_tpage.inc.c"
 
 /// Spawn entry 4 of the room's task table and keep its handle in
 /// `D_mist_r18_80186E98`, which `func_mist_r18_8017EA60` kills.
