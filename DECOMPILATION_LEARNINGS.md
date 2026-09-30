@@ -146117,3 +146117,23 @@ because the target names `gDisplayState.otBuffer` with its old data symbol.
 The unscoped matching build verifies both caller and callee, and the lost-match
 check passes. Preprocessed input SHA256:
 `ecfb60e4de7c62ca6965ffafa604738936ec640c8ded8e4930865168edce5c7e`.
+
+## A shared source split into fragments: unused `static` functions are emitted, unused `static inline` ones are not (src/shared/room_visual_effects*, 2026-09-30)
+
+**Problem.** Several overlays carry the same library but each uses only part of
+it, so one shared `.inc.c` included whole emits functions a given overlay does
+not have.
+
+**What GCC 2.8.1 does at `-O2`.** A plain `static` function is emitted where it
+is defined even when nothing calls it. A `static inline` function that nothing
+calls is not emitted at all. A function marked `inline` is inlined into every
+call site that follows its definition whatever its size - a test helper was
+inlined at over 1,000 instructions per site - so `inline` cannot stand in for a
+function the binary keeps out of line.
+
+**Fix.** Split the shared source into fragments along the boundaries where
+overlays differ, and have each overlay include exactly the fragments it
+carries. Out-of-line helpers stay plain `static`, so they must be in a fragment
+the overlay includes whole; task bodies the overlay's entry points wrap can be
+`static inline`, so an unused variant costs nothing and several may share a
+fragment.
