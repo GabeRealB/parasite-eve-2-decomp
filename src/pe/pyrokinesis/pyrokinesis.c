@@ -44,8 +44,8 @@
 /// probe for a wall; both point `field_C` at the one-element `rec` table
 /// (terminator `field_0 = 2`).
 typedef struct PyroWork {
-    /* 0x00 */ GpObj                 obj;
-    /* 0x20 */ GpObj                 obj2;
+    /* 0x00 */ WorldCollisionBody    obj;
+    /* 0x20 */ WorldCollisionBody    obj2;
     /* 0x40 */ WorldCollisionContact rec;
 } PyroWork;
 STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
@@ -173,24 +173,24 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             } else if (arg0->spawnArg1.value == 1) {
                 arg0->spawnArg1.value = 0;
             }
-            arg0->work         = work;
-            work->obj.coord    = coord;
-            work->obj.ctx.recs = &work->rec;
-            work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
+            arg0->work                 = work;
+            work->obj.coord            = coord;
+            work->obj.context.contacts = &work->rec;
+            work->obj.key              = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
                             ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
                             (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
             work->obj.radius = mem->angle;
-            work->obj.flags  = 1;
+            work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &work->obj);
-            work->rec.flags     = 2;
-            work->obj2.coord    = coord;
-            work->obj2.ctx.recs = &work->rec;
-            work->obj2.key      = 0;
-            work->obj.flags    |= 0x8000;
-            work->obj2.radius   = (s16)((u16)mem->angle << 16 >> 19);
-            work->obj2.flags    = 1;
+            work->rec.flags             = 2;
+            work->obj2.coord            = coord;
+            work->obj2.context.contacts = &work->rec;
+            work->obj2.key              = 0;
+            work->obj.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->obj2.radius           = (s16)((u16)mem->angle << 16 >> 19);
+            work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(7, &work->obj2);
-            work->obj2.flags = (work->obj2.flags & 0x7FFF) | 0x4400;
+            work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_SpawnEff(0x60011, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
@@ -199,7 +199,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             arg0->state = 1;
             func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
             func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 radius     = (mem->index << 9) + 0x380;
                 mem->angle = radius;
@@ -216,7 +216,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
+            if (Gp_FindRec18(work->obj2.context.contacts, 0x100000) != 0) {
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
                 return;
@@ -271,7 +271,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             slotc->coord.t[1]   = coord->coord.t[1];
             slotc->coord.t[2]   = coord->coord.t[2];
             slotc->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
@@ -286,7 +286,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
+            if (Gp_FindRec18(work->obj2.context.contacts, 0x100000) != 0) {
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
                 return;
@@ -328,7 +328,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     Task_Reparent(arg0, spawned->task);
                 }
             }
-            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);

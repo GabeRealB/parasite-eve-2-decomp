@@ -61,15 +61,15 @@
 /// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four
 /// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
 /// `actor_301100`), whose 0x28 run is the `GpActorD4Rec` filled in here: the
-/// object's `ctx.d4rec` points at it and its `recs` at the one-entry `WorldCollisionContact`
+/// object's `context.capsule` points at it and its `recs` at the one-entry `WorldCollisionContact`
 /// collision table at 0x40, which is where the 0x58 bytes end.
 typedef struct ActorsShared80137fb8Work {
     /// Effect velocity: the random direction vector rotated by the actor's
     /// coordinate and scaled by a 0x1000-fraction draw. Its X and Z are added to
     /// the coordinate's translation afterwards, its Y is not.
     /* 0x00 */ SVECTOR vel;
-    /// Display node linked as kind 3 with a `Gp_PackPair` payload.
-    /* 0x08 */ GpObj                 obj;
+    /// Collision body linked as kind 3 with a `Gp_PackPair` payload.
+    /* 0x08 */ WorldCollisionBody    obj;
     /* 0x28 */ GpActorD4Rec          rec;
     /* 0x40 */ WorldCollisionContact rec18[1];
 } ActorsShared80137fb8Work;
@@ -100,7 +100,7 @@ typedef struct ActorsShared8013898cVec {
 /// The enemy's work block: allocated zeroed by the spawn handler and parked in
 /// `Task::work`, then handed to every state handler and message handler of the
 /// entry. It holds the model's root coordinate, two animation contexts each with
-/// a slot per model part and a pose buffer, the four display nodes with a
+/// a slot per model part and a pose buffer, the four collision bodies with a
 /// three-entry contact table apiece, the model's light and colour matrices, and
 /// the per-state counters and latches the handlers share.
 typedef struct ActorsShared80138efcWork {
@@ -115,11 +115,11 @@ typedef struct ActorsShared80138efcWork {
     /* 0x4FC */ GpAnimCtx     anim2;
     /* 0x510 */ AnimationSlot slots2[21];
     /* 0x858 */ byte          poses2[0x150];
-    /// Display nodes: the first on the model's root, the last on part 3, and
+    /// Collision bodies: the first on the model's root, the last on part 3, and
     /// between them the pair on parts 12 and 8 that the handlers switch on and
     /// off through the top two bits of `flags`.
-    /* 0x9A8 */ GpObj objs[4];
-    /// One three-entry contact table per display node. The first is resolved
+    /* 0x9A8 */ WorldCollisionBody objs[4];
+    /// One three-entry contact table per collision body. The first is resolved
     /// against the world; the last is scanned for the hits the enemy takes.
     /* 0xA28 */ WorldCollisionContact contacts[4][3];
     /* 0xB48 */ MATRIX                lightMtx;
@@ -261,7 +261,7 @@ typedef struct ActorsShared80138efcStateTable {
     ActorsShared80138efcState funcs[26];
 } ActorsShared80138efcStateTable;
 
-/* The loops that step the display nodes, the contact tables or the animation
+/* The loops that step the collision bodies, the contact tables or the animation
    slots of the work block walk a scalar byte offset from the block rather than
    indexing the array: the ROM adds the base to the offset on every pass, which
    loop.c produces for a scalar offset but strength-reduces away for an array
@@ -278,7 +278,7 @@ extern AnimationSet* Actor01100_D15604[23];
 /// which shift it into bits 8-15 of their sound ids.
 extern u8 Actor01100_D15670;
 
-/// Pair table the spawn state packs into the display node's `GpObj.key`.
+/// Pair table the spawn state packs into the collision body's `WorldCollisionBody.key`.
 extern GpU16Pair Actor01100_D074F8[6];
 
 /// One of the actor's three state handlers - spawn/setup, per-frame tick and
@@ -1351,7 +1351,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     task->state++;
 }
 
-/// Arms the enemy's four display nodes the first time the state handler runs
+/// Arms the enemy's four collision bodies the first time the state handler runs
 /// with the CD command queue idle: the enemy's own link node is put back on the
 /// list, node 0 takes the model's root coordinate and node 3 the pose 3 slots
 /// along it, both linked as kind 2 with their `flags` halves ORed in and a
@@ -1363,39 +1363,39 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// this overlay's message table and the state advances.
 static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* unusedArg)
 {
-    GpObj* obj;
-    s32    reach;
-    s32    recOff;
-    s32    i;
-    s32    idx;
+    WorldCollisionBody* obj;
+    s32                 reach;
+    s32                 recOff;
+    s32                 i;
+    s32                 idx;
 
     if (CdCmd_IsIdle() & 0xFFFF) {
         Gp_LinkNode(&enemy->node);
-        obj           = &work->objs[0];
-        obj->coord    = task->extra.tmd->coords;
-        obj->ctx.recs = &work->contacts[0][0];
-        obj->pos.vx   = 0;
-        obj->pos.vy   = -0x1D8;
-        obj->pos.vz   = 0;
-        obj->key      = 0x30000;
-        obj->radius   = 0x258;
-        obj->flags    = 1;
+        obj                   = &work->objs[0];
+        obj->coord            = task->extra.tmd->coords;
+        obj->context.contacts = &work->contacts[0][0];
+        obj->pos.vx           = 0;
+        obj->pos.vy           = -0x1D8;
+        obj->pos.vz           = 0;
+        obj->key              = 0x30000;
+        obj->radius           = 0x258;
+        obj->flags            = WORLD_COLLISION_BODY_SPHERE;
         Gp_LinkObj(2, obj);
-        obj->flags |= 0x4000;
-        Gp_InitRec18Table(obj->ctx.recs, 3, 0);
+        obj->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        Gp_InitRec18Table(obj->context.contacts, 3, 0);
 
-        obj           = &work->objs[3];
-        obj->coord    = &task->extra.tmd->coords[3];
-        obj->ctx.recs = &work->contacts[3][0];
-        obj->pos.vx   = 0;
-        obj->pos.vy   = 0;
-        obj->pos.vz   = 0;
-        obj->key      = 0x3000B;
-        obj->radius   = 0x1C2;
-        obj->flags    = 1;
+        obj                   = &work->objs[3];
+        obj->coord            = &task->extra.tmd->coords[3];
+        obj->context.contacts = &work->contacts[3][0];
+        obj->pos.vx           = 0;
+        obj->pos.vy           = 0;
+        obj->pos.vz           = 0;
+        obj->key              = 0x3000B;
+        obj->radius           = 0x1C2;
+        obj->flags            = WORLD_COLLISION_BODY_SPHERE;
         Gp_LinkObj(2, obj);
-        obj->flags |= 0x8000;
-        Gp_InitRec18Table(obj->ctx.recs, 3, 0);
+        obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        Gp_InitRec18Table(obj->context.contacts, 3, 0);
         obj->pos.vx = 0;
         obj->pos.vy = -0xC8;
         obj->pos.vz = 0xC8;
@@ -1409,8 +1409,8 @@ static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcW
             if (i == 0) {
                 idx = 0xC;
             }
-            obj->coord    = &task->extra.tmd->coords[idx];
-            obj->ctx.recs = (WorldCollisionContact*)((u8*)work + recOff);
+            obj->coord            = &task->extra.tmd->coords[idx];
+            obj->context.contacts = (WorldCollisionContact*)((u8*)work + recOff);
             do {
                 if (i == 0) {
                     obj->pos.vx = -0x12C;
@@ -1421,10 +1421,10 @@ static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 obj->pos.vz = 0;
                 obj->radius = reach;
                 obj->key    = Gp_PackObjPair(enemy, 1);
-                obj->flags  = 1;
+                obj->flags  = WORLD_COLLISION_BODY_SPHERE;
                 Gp_LinkObj(3, obj);
-                obj->flags &= 0x3FFF;
-                Gp_InitRec18Table(obj->ctx.recs, 3, 0);
+                obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                Gp_InitRec18Table(obj->context.contacts, 3, 0);
                 recOff += sizeof(work->contacts[0]);
                 i++;
                 obj = &work->objs[i + 1];
@@ -1511,8 +1511,8 @@ static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        GpObj* obj  = &work->objs[i + 1];
-        obj->flags &= 0x3FFF;
+        WorldCollisionBody* obj = &work->objs[i + 1];
+        obj->flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
 }
 
@@ -1906,7 +1906,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
 /// its nonzero answer also closes the actor in.
 ///
 /// Closing in while `field_B92` still counts masks the 0xC000 pair back out of
-/// the two middle display nodes and, the first time only, stages
+/// the two middle collision bodies and, the first time only, stages
 /// the 0xA state through `field_BA6`: that is what hands the next frame to
 /// `Actor01100_Fn01D98`.
 ///
@@ -1917,7 +1917,7 @@ static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 {
     GpLinkNode* lockNode;
     s32         flag;
-    s32         off;
+    s32         bodyByteOffset;
     s32         i;
     u32         dist;
     s16         walk;
@@ -1972,10 +1972,10 @@ static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     if (flag && (work->field_B92 > 0)) {
         work->field_BAA = 0;
         i               = 0;
-        off             = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+        bodyByteOffset  = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
-            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += sizeof(GpObj);
+            ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            bodyByteOffset                                             += sizeof(WorldCollisionBody);
             i++;
         } while (i < 2);
         if (work->field_BA6 == 0) {
@@ -2146,7 +2146,7 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     s32                            blend;
     s32                            animId;
     s32                            i;
-    s32                            off;
+    s32                            bodyByteOffset;
     s32                            savedY;
     s32                            eff;
     s16                            dy;
@@ -2261,11 +2261,11 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
                 if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1.value == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
-                    i   = 0;
-                    off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+                    i              = 0;
+                    bodyByteOffset = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                     do {
-                        ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                        off                                += sizeof(GpObj);
+                        ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                        bodyByteOffset                                             += sizeof(WorldCollisionBody);
                         i++;
                     } while (i < 2);
                     work->field_BA6 = 0;
@@ -2407,19 +2407,19 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// Collision-arm handler: the first frame the latch at 0xBA8 is still clear it
 /// sets motion 2, zeroes the countdown at 0xB8C and steps the latch. Every
 /// later frame increments that countdown. On frame 0x1A it writes a
-/// `Gp_PackObjPair` payload into display node 1's `key` and ORs the
+/// `Gp_PackObjPair` payload into collision body 1's `key` and ORs the
 /// 0xC000 pair-pass bits into its `flags`. While the countdown sits in
 /// `[0x1B, 0x36]` and the latch is still 1, a hit on the recs table at 0xA70
-/// masks those bits back out of both middle display nodes and steps the latch; frame
+/// masks those bits back out of both middle collision bodies and steps the latch; frame
 /// 0x37 does the same mask unconditionally. The frame block's scratch byte at
 /// 0x64 takes 0xC either way, and the trigger at 0xBA9 ends the sub-state by
 /// clearing `state` and the latch.
 static void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpObj* obj;
-    s32    i;
-    s32    off;
-    u16    time;
+    WorldCollisionBody* obj;
+    s32                 i;
+    s32                 bodyByteOffset;
+    u16                 time;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 2;
@@ -2431,15 +2431,15 @@ static void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     if ((s16)time == 0x1A) {
         obj         = &work->objs[1];
         obj->key    = Gp_PackObjPair(enemy, 1);
-        obj->flags |= 0xC000;
+        obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if ((u32)((u16)work->field_B8C - 0x1B) < 0x1C) {
         if ((work->field_BA8 == 1) && (Gp_FindRec18(work->contacts[1], 0) != 0)) {
-            i   = 0;
-            off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+            i              = 0;
+            bodyByteOffset = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
             do {
-                ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                off                                += sizeof(GpObj);
+                ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                bodyByteOffset                                             += sizeof(WorldCollisionBody);
                 i++;
             } while (i < 2);
             work->field_BA8 = (u8)work->field_BA8 + 1;
@@ -2447,11 +2447,11 @@ static void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
     arg->field_64 = 0xC;
     if (work->field_B8C == 0x37) {
-        i   = 0;
-        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+        i              = 0;
+        bodyByteOffset = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
-            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += sizeof(GpObj);
+            ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            bodyByteOffset                                             += sizeof(WorldCollisionBody);
             i++;
         } while (i < 2);
     }
@@ -2461,22 +2461,22 @@ static void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
 }
 
-/// Collision-arm handler for display node 2: the first frame the latch
+/// Collision-arm handler for collision body 2: the first frame the latch
 /// at 0xBA8 is still clear it sets motion 3, zeroes the countdown at 0xB8C and
 /// steps the latch. Every later frame increments that countdown. On frame 0x1A
 /// it calls `Gp_PackObjPair` with pair 2 and ORs the 0xC000 pair-pass bits into
-/// display node 2's `flags`. While the countdown sits in `[0x1B, 0x36]`
+/// collision body 2's `flags`. While the countdown sits in `[0x1B, 0x36]`
 /// and the latch is still 1, a hit on the recs table at 0xAB8 masks those bits
-/// back out of both middle display nodes and steps the latch; frame 0x37 does the same
+/// back out of both middle collision bodies and steps the latch; frame 0x37 does the same
 /// mask unconditionally. The frame block's scratch byte at 0x64 takes 8 either
 /// way, and the trigger at 0xBA9 ends the sub-state by clearing `state` and
 /// the latch.
 static void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpObj* obj;
-    s32    i;
-    s32    off;
-    u16    time;
+    WorldCollisionBody* obj;
+    s32                 i;
+    s32                 bodyByteOffset;
+    u16                 time;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 3;
@@ -2488,15 +2488,15 @@ static void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     if ((s16)time == 0x1A) {
         obj = &work->objs[2];
         Gp_PackObjPair(enemy, 2);
-        obj->flags |= 0xC000;
+        obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if ((u32)((u16)work->field_B8C - 0x1B) < 0x1C) {
         if ((work->field_BA8 == 1) && (Gp_FindRec18(work->contacts[2], 0) != 0)) {
-            i   = 0;
-            off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+            i              = 0;
+            bodyByteOffset = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
             do {
-                ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                off                                += sizeof(GpObj);
+                ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                bodyByteOffset                                             += sizeof(WorldCollisionBody);
                 i++;
             } while (i < 2);
             work->field_BA8 = (u8)work->field_BA8 + 1;
@@ -2504,11 +2504,11 @@ static void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
     arg->field_64 = 8;
     if (work->field_B8C == 0x37) {
-        i   = 0;
-        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+        i              = 0;
+        bodyByteOffset = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
-            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += sizeof(GpObj);
+            ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            bodyByteOffset                                             += sizeof(WorldCollisionBody);
             i++;
         } while (i < 2);
     }
@@ -2819,31 +2819,31 @@ static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 ///
 /// Every later frame increments the countdown, asks `Actor01100_Fn039D0` for
 /// the yaw at 0xB90 and turns the model's `field_46` toward it by at most 0x10,
-/// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into display node
+/// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into collision body
 /// 1 and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the
 /// countdown sits in `[0x17, 0x2B]` and the latch is still 1, a high-bit hit on
 /// the recs at 0xA70 steps the latch to 3. `field_B98` / `field_B94` ramp with
 /// the countdown, the frame block's scratch byte at 0x64 takes 0xC, and frame
-/// 0x2C masks those bits back out of both middle display nodes. The trigger at 0xBA9
+/// 0x2C masks those bits back out of both middle collision bodies. The trigger at 0xBA9
 /// writes rate 0x10 onto slots `[1, 0x14]` of both animation runs and then
 /// either stages state 0xE, or, while the latch is 3, a 1-in-4 draw of that
 /// state versus restarting the motion through `field_BA5`.
 static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR*  vec;
-    GfxCoord* actorCoords;
-    GfxCoord* playerCoords;
-    GfxCoord* actorPart;
-    GfxCoord* playerPart;
-    GfxCoord* pose;
-    GpObj*    obj;
-    Task*     player;
-    s32       dist;
-    s32       yaw;
-    u16       angle;
-    u16       time;
-    u16       reach;
-    u32       rng;
+    SVECTOR*            vec;
+    GfxCoord*           actorCoords;
+    GfxCoord*           playerCoords;
+    GfxCoord*           actorPart;
+    GfxCoord*           playerPart;
+    GfxCoord*           pose;
+    WorldCollisionBody* obj;
+    Task*               player;
+    s32                 dist;
+    s32                 yaw;
+    u16                 angle;
+    u16                 time;
+    u16                 reach;
+    u32                 rng;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 6;
@@ -2895,7 +2895,7 @@ static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     if (work->field_B8C == 0x16) {
         obj         = &work->objs[1];
         obj->key    = Gp_PackObjPair(enemy, 3);
-        obj->flags |= 0xC000;
+        obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->field_B8C == 0x20) {
         SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0008), arg->pan, arg->depth);
     }
@@ -2961,31 +2961,31 @@ static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// Every frame then asks `Actor01100_Fn039D0` for the yaw at 0xB90 and turns
 /// the model's `field_46` toward it by at most 0x10, rebuilds the Y rotation,
 /// increments the countdown and asks again. Frame 0x23 packs pair 4 into
-/// display node 2 and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
+/// collision body 2 and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
 /// While the countdown sits in `[0x24, 0x3B]` and the latch is still 1, a
 /// high-bit hit on the recs at 0xAB8 steps the latch to 3. `field_B9A` /
 /// `field_B96` ramp with the countdown, the frame block's scratch byte at 0x64
 /// takes 8 (with a same-value write on frame 0x2F), and frame 0x3C masks those
-/// bits back out of both middle display nodes. The trigger at 0xBA9 writes rate 0x10
+/// bits back out of both middle collision bodies. The trigger at 0xBA9 writes rate 0x10
 /// onto slots `[1, 0x14]` of both animation runs, zeroes `field_B96`, and then
 /// either stages state 0xE, or, while the latch is 3, a 1-in-4 draw of that
 /// state versus restarting the motion through `field_BA5`.
 static void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR*  vec;
-    GfxCoord* actorCoords;
-    GfxCoord* playerCoords;
-    GfxCoord* actorPart;
-    GfxCoord* playerPart;
-    GfxCoord* pose;
-    GpObj*    obj;
-    Task*     player;
-    s32       dist;
-    s32       yaw;
-    u16       angle;
-    u16       time;
-    u16       reach;
-    u32       rng;
+    SVECTOR*            vec;
+    GfxCoord*           actorCoords;
+    GfxCoord*           playerCoords;
+    GfxCoord*           actorPart;
+    GfxCoord*           playerPart;
+    GfxCoord*           pose;
+    WorldCollisionBody* obj;
+    Task*               player;
+    s32                 dist;
+    s32                 yaw;
+    u16                 angle;
+    u16                 time;
+    u16                 reach;
+    u32                 rng;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 7;
@@ -3038,7 +3038,7 @@ static void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     if (work->field_B8C == 0x23) {
         obj         = &work->objs[2];
         obj->key    = Gp_PackObjPair(enemy, 4);
-        obj->flags |= 0xC000;
+        obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->field_B8C == 0x2D) {
         SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0008), arg->pan, arg->depth);
     }
@@ -3403,15 +3403,15 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
 static void Actor01100_Fn05678(
     GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    TmdObject*    extra;
-    GfxCoord*     coords;
-    PlayerStatus* status;
-    GameActor*    actor;
-    VECTOR        scale;
-    s16           time;
-    s16           walk;
-    s32           i;
-    GpObj*        obj;
+    TmdObject*          extra;
+    GfxCoord*           coords;
+    PlayerStatus*       status;
+    GameActor*          actor;
+    VECTOR              scale;
+    s16                 time;
+    s16                 walk;
+    s32                 i;
+    WorldCollisionBody* obj;
 
     extra = task->extra.tmd;
     if (((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
@@ -3428,7 +3428,7 @@ static void Actor01100_Fn05678(
         enemy->hp       = 0;
         for (i = 0; i < 4; i++) {
             obj         = &work->objs[i];
-            obj->flags &= 0x3FFF;
+            obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         }
         if (enemy->spawnState == 0x10) {
             Gp_SetLightMode(enemy, 2);
@@ -3583,7 +3583,7 @@ static void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// off-diagonal pairs written as zeroed words - then the velocity's X and Z are
 /// added to its translation and a 7-bit draw to the Y, and `composeStamp` is cleared.
 ///
-/// The display node is linked as kind 3 pointing at the coordinate and at the
+/// The collision body is linked as kind 3 pointing at the coordinate and at the
 /// 0x28 record, which takes 0x96 for `end0Radius` / `end1Radius` and points
 /// `recs` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
 /// its `0xC000` flag pair is ORed in on top of `Gp_LinkObj`'s `flags = 3`. The
@@ -3599,7 +3599,7 @@ static void Actor01100_Fn05E68(Task* task)
     GpActorD4Rec*             rec;
     GfxCoord*                 coord;
     GpEffWork*                eff;
-    GpObj*                    obj;
+    WorldCollisionBody*       obj;
     SVECTOR*                  vec;
     s32                       angle;
 
@@ -3642,16 +3642,16 @@ static void Actor01100_Fn05E68(Task* task)
     coord->coord.t[2]  += work->vel.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    obj            = &work->obj;
-    rec            = &work->rec;
-    obj->coord     = coord;
-    obj->ctx.d4rec = rec;
-    obj->pos.vx    = 0;
-    obj->pos.vy    = 0;
-    obj->pos.vz    = 0;
-    obj->radius    = 0;
-    obj->key       = Gp_PackPair(&Actor01100_D074D0[0], 5);
-    obj->flags     = 3;
+    obj                  = &work->obj;
+    rec                  = &work->rec;
+    obj->coord           = coord;
+    obj->context.capsule = rec;
+    obj->pos.vx          = 0;
+    obj->pos.vy          = 0;
+    obj->pos.vz          = 0;
+    obj->radius          = 0;
+    obj->key             = Gp_PackPair(&Actor01100_D074D0[0], 5);
+    obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
 
     rec->recs       = work->rec18;
     rec->end1.vx    = 0;
@@ -3664,7 +3664,7 @@ static void Actor01100_Fn05E68(Task* task)
     rec->end1Radius = 0x96;
     Gp_InitRec18Table(work->rec18, 1, 0);
     Gp_LinkObj(3, obj);
-    obj->flags |= 0xC000;
+    obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     task->exitCallback = Actor01100_Fn073A8;
     SCRATCH_POP_BYTES(8);
@@ -3721,7 +3721,7 @@ static void Actor01100_Fn06198(Task* task)
         fire:
             id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
             SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(soundCoord), (s8)gpGetObjDepth(soundCoord));
-            work->obj.flags    &= 0x3FFF;
+            work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             task->killCountdown = 0x1E;
             task->state        += 1;
         }
@@ -3744,7 +3744,7 @@ static void Actor01100_Fn0638C(Task* task)
     s32                       area;
     s32                       sound;
     s32                       pan;
-    GpObj*                    obj;
+    WorldCollisionBody*       obj;
     GfxCoord*                 coord;
     GpMtxWords*               rotation;
 
@@ -3765,28 +3765,28 @@ static void Actor01100_Fn0638C(Task* task)
     if (effect != NULL) {
         Task_Reparent(task, effect->task);
     }
-    task->killCountdown = 0x5A;
-    rotation            = (GpMtxWords*)&coord->coord;
-    obj                 = &work->obj;
-    rotation->m00_m01   = 0x1000;
-    rotation->m02_m10   = 0;
-    rotation->m11_m12   = 0x1000;
-    rotation->m20_m21   = 0;
-    rotation->m22       = 0x1000;
-    rec                 = work->rec18;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]  += 0x30;
-    obj->coord          = coord;
-    obj->ctx.recs       = rec;
-    obj->pos.vx         = 0;
-    obj->pos.vy         = 0;
-    obj->pos.vz         = 0;
-    obj->radius         = 0x2EE;
-    obj->key            = Gp_PackPair(Actor01100_D074F8, 5);
-    obj->flags          = 1;
+    task->killCountdown   = 0x5A;
+    rotation              = (GpMtxWords*)&coord->coord;
+    obj                   = &work->obj;
+    rotation->m00_m01     = 0x1000;
+    rotation->m02_m10     = 0;
+    rotation->m11_m12     = 0x1000;
+    rotation->m20_m21     = 0;
+    rotation->m22         = 0x1000;
+    rec                   = work->rec18;
+    coord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]    += 0x30;
+    obj->coord            = coord;
+    obj->context.contacts = rec;
+    obj->pos.vx           = 0;
+    obj->pos.vy           = 0;
+    obj->pos.vz           = 0;
+    obj->radius           = 0x2EE;
+    obj->key              = Gp_PackPair(Actor01100_D074F8, 5);
+    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_InitRec18Table(rec, 1, 0);
     Gp_LinkObj(3, obj);
-    obj->flags        |= 0xC000;
+    obj->flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = Actor01100_Fn073A8;
     task->state++;
     Actor01100_Fn073DC(task);
@@ -3845,7 +3845,7 @@ void Actor01100_Fn0663C(Task* task)
     funcs[task->state](task);
 }
 
-/// Exit callback: unlink the four display nodes, relink the second part coord
+/// Exit callback: unlink the four collision bodies, relink the second part coord
 /// under the model's root, then let gameplay tear the enemy down.
 static void Actor01100_Fn0668C(Task* task)
 {
@@ -3864,18 +3864,18 @@ static void Actor01100_Fn0668C(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-/// Message 0x7D5 handler: switches the enemy's model and display nodes between
+/// Message 0x7D5 handler: switches the enemy's model and collision bodies between
 /// hidden and shown. `flags ^ 1` is the requested mode, latched in `field_BA0`
 /// so only a change acts. Mode 1 hides the model and releases the enemy's link
 /// node slot, saving its `field_4` first, and clears the 0xC000 pair off all
-/// four display nodes; mode 0 puts the saved `field_4` back, lifts the hidden
-/// bit, and sets those bits on the first and last display node.
+/// four collision bodies; mode 0 puts the saved `field_4` back, lifts the hidden
+/// bit, and sets those bits on the first and last collision body.
 s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
 {
     ActorsShared80138efcWork* work;
     GpEnemy*                  enemy;
     TmdObject*                model;
-    GpObj*                    obj;
+    WorldCollisionBody*       obj;
     s32                       i;
     s32                       mode;
 
@@ -3889,16 +3889,16 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
             model->flags             &= ~TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags = work->field_BA1;
             obj                       = &work->objs[0];
-            obj->flags               |= 0xC000;
+            obj->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             obj                       = &work->objs[3];
-            obj->flags               |= 0xC000;
+            obj->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
         } else {
             model->flags             |= TMD_OBJECT_HIDDEN;
             work->field_BA1           = enemy->node.state.b.flags;
             enemy->node.state.b.flags = 1;
             for (i = 0; i < 4; i++) {
                 obj         = &work->objs[i];
-                obj->flags &= 0x3FFF;
+                obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
         }
     }
@@ -4057,13 +4057,13 @@ static void Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVec* arg1, s3
 /// idle, `Task::spawnArg1` clear, and the work block's trigger pair
 /// (`field_BC9`, `field_BA9`) both at 1. With them, and only while the squared
 /// distance to the player's slot-3 coordinate stays above 0xA62B10, the
-/// 0xC000 pair is masked back out of both `GpObj` nodes in the motion block,
+/// 0xC000 pair is masked back out of both `WorldCollisionBody` nodes in the motion block,
 /// and one LCG draw picks the next state: 4 for three draws in four, else 0.
 /// `field_BA8` is cleared either way, so the sub-state re-arms from the top.
 static void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpLinkNode* lockNode;
-    s32         off;
+    s32         bodyByteOffset;
     s32         i;
     u8          trigger;
 
@@ -4077,11 +4077,11 @@ static void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
             if (Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
-                i   = 0;
-                off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
+                i              = 0;
+                bodyByteOffset = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                 do {
-                    ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                    off                                += sizeof(GpObj);
+                    ((WorldCollisionBody*)((u8*)work + bodyByteOffset))->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                    bodyByteOffset                                             += sizeof(WorldCollisionBody);
                     i++;
                 } while (i < 2);
                 work->field_BA6 = 0;
@@ -4402,7 +4402,7 @@ static void Actor01100_Fn0736C(Task* arg0)
     }
 }
 
-/// Exit callback of the secondary tasks: takes the work block's display node
+/// Exit callback of the secondary tasks: takes the work block's collision body
 /// back off the object list and kills the task.
 static void Actor01100_Fn073A8(Task* arg0)
 {
@@ -4422,7 +4422,7 @@ static void Actor01100_Fn073DC(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GfxCoord*                 coord;
-    GpObj*                    obj;
+    WorldCollisionBody*       obj;
     struct GpEffWork*         eff;
     s16                       countdown;
 
@@ -4439,12 +4439,12 @@ static void Actor01100_Fn073DC(Task* task)
             }
             if (Gp_CountRec18Hi(&work->rec18[0], 0x10000) != 0) {
                 obj         = &work->obj;
-                obj->flags &= 0x3FFF;
+                obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
         }
         if (task->killCountdown == 0x14) {
             obj         = &work->obj;
-            obj->flags &= 0x3FFF;
+            obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         }
         countdown           = (u16)task->killCountdown - 1;
         task->killCountdown = countdown;

@@ -62,7 +62,7 @@
 /// (`memCalloc(0xD8)` in `func_acropolis_cafeteria_801818DC`, released by
 /// `func_acropolis_cafeteria_80181E3C` through `Gp_UnlinkObj`).
 ///
-/// It opens with the `GpObj` list node linked onto `Gp_ObjLists[4]`, whose
+/// It opens with the `WorldCollisionBody` list node linked onto `Gp_ObjLists[4]`, whose
 /// `field_C` points at the six `WorldCollisionContact` slots that follow it in the same
 /// block. `field_B0` is the spawn-time random seed / countdown
 /// (`(rand() & 0xFFF) + 0x3000`, decremented every frame);
@@ -71,7 +71,7 @@
 /// and `field_CC` the normalised surface direction from `Gfx_MatrixCol2` /
 /// `VectorNormalSS`; `field_D4` is the task's own sub-state.
 typedef struct AcropolisCafeteriaDebris {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact slots[6];
     /* 0xB0 */ s32                   field_B0;
     /* 0xB4 */ s32                   field_B4;
@@ -1932,22 +1932,22 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->flags          = 0;
     RotMatrix(&work->field_C4, &coord->coord);
-    work->field_B0     = (rand() & 0xFFF) + 0x3000;
-    player             = gameGetPtrSlot(3)->extra.tmd->coords;
-    coord->coord.t[0]  = player->coord.t[0];
-    coord->coord.t[1]  = player->coord.t[1] - 0x800;
-    coord->coord.t[2]  = player->coord.t[2] + 0x800;
-    work->obj.ctx.recs = work->slots;
-    work->obj.key      = 0x50000;
-    work->obj.radius   = 0xFA;
-    work->obj.coord    = coord;
-    work->obj.pos.vx   = 0;
-    work->obj.pos.vy   = 0;
-    work->obj.pos.vz   = 0;
-    work->obj.flags    = 1;
+    work->field_B0             = (rand() & 0xFFF) + 0x3000;
+    player                     = gameGetPtrSlot(3)->extra.tmd->coords;
+    coord->coord.t[0]          = player->coord.t[0];
+    coord->coord.t[1]          = player->coord.t[1] - 0x800;
+    coord->coord.t[2]          = player->coord.t[2] + 0x800;
+    work->obj.context.contacts = work->slots;
+    work->obj.key              = 0x50000;
+    work->obj.radius           = 0xFA;
+    work->obj.coord            = coord;
+    work->obj.pos.vx           = 0;
+    work->obj.pos.vy           = 0;
+    work->obj.pos.vz           = 0;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(4, &work->obj);
-    Gp_InitRec18Table(work->obj.ctx.recs, 6, 0);
-    work->obj.flags |= 0x8000;
+    Gp_InitRec18Table(work->obj.context.contacts, 6, 0);
+    work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 }
 
 static void func_acropolis_cafeteria_80181A3C(Task* task)
@@ -1968,7 +1968,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     Gp_UpdateCoord(coord);
     switch (work->field_D4) {
         case 0:
-            if (Gp_FindRec18(work->obj.ctx.recs, 0)) {
+            if (Gp_FindRec18(work->obj.context.contacts, 0)) {
                 work->field_D4++;
                 head[-1]  = coord->coord;
                 direction = &work->field_CC;

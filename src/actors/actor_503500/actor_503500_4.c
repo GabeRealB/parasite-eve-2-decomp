@@ -69,10 +69,10 @@
 typedef struct Actor503500Work224 {
     /* 0x000 */ byte                  pad_0[0x40];
     /* 0x040 */ MATRIX                field_40;
-    /* 0x060 */ GpObj                 obj0;
+    /* 0x060 */ WorldCollisionBody    obj0;
     /* 0x080 */ WorldCollisionContact rec0[8]; // obj0's table; obj1 and obj2 share rec1
-    /* 0x140 */ GpObj                 obj1;
-    /* 0x160 */ GpObj                 obj2;
+    /* 0x140 */ WorldCollisionBody    obj1;
+    /* 0x160 */ WorldCollisionBody    obj2;
     /* 0x180 */ WorldCollisionContact rec1[4];
     /// The 0x224 block's own spawn record, seeded the way
     /// `Actor503500Work::field_E0` is.
@@ -141,9 +141,9 @@ typedef struct Actor503500Work3D8 {
     /* 0x000 */ MATRIX                light;
     /* 0x020 */ MATRIX                color;
     /* 0x040 */ MATRIX                mats[9];
-    /* 0x160 */ GpObj                 obj160;
+    /* 0x160 */ WorldCollisionBody    obj160;
     /* 0x180 */ WorldCollisionContact rec180[8]; // obj160's table, count 8
-    /* 0x240 */ GpObj                 obj240;
+    /* 0x240 */ WorldCollisionBody    obj240;
     /* 0x260 */ WorldCollisionContact rec260[4]; // obj240's table, count 4
     /* 0x2C0 */ GpEffArg              field_2C0; // record this block's effects are spawned with
     /* 0x2C8 */ SVECTOR               pts[9];
@@ -179,7 +179,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
 /// in 16.16) and `field_94` the copy it restores from; `field_A4` is the
 /// forward offset `ApplyMatrixLV` rotates out of `Task::spawnArg2`.
 typedef struct Actor503500WorkC0 {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[4];
     /* 0x80 */ Task*                 field_80;
     /* 0x84 */ Actor503500FixVec     field_84;
@@ -200,7 +200,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 /// `func_actor_503500_80144B40` steps every frame. `field_A8` is the speed,
 /// `Task::spawnArg2` or 0x100000 when the spawner passes none.
 typedef struct Actor503500WorkB4 {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[4];
     /* 0x80 */ Task*                 field_80;
     /* 0x84 */ VECTOR                field_84;
@@ -238,7 +238,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
 /// why this enemy gets a separate view. Its sub-state index is `field_F0`, the
 /// one `func_actor_503500_8013F8AC` dispatches on.
 typedef struct Actor503500WorkF4 {
-    /* 0x00 */ GpObj                 obj; // the display node, as in `Actor503500Work`
+    /* 0x00 */ WorldCollisionBody    obj; // the collision body, as in `Actor503500Work`
     /* 0x20 */ WorldCollisionContact rec[8];
     /* 0xE0 */ GpEffArg              field_E0;
     /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
@@ -263,7 +263,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 /// puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
 /// the one `func_actor_503500_8013D990` dispatches on.
 typedef struct Actor503500Work770E8 {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
     /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
     /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
@@ -285,7 +285,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 /// byte triple. Its sub-state index is `field_F0`, the one
 /// `func_actor_503500_8013CA34` dispatches on.
 typedef struct Actor503500Work776A0 {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
     /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
     /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
@@ -306,7 +306,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
 /// the slot (`spawnArg1 - 4`) that selects this enemy's parent part and
 /// local offset.
 typedef struct Actor503500Work774C0 {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[8];
     /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
     /* 0xE8 */ byte                  pad_E8[0x4];
@@ -337,9 +337,9 @@ static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* work, WorldC
 static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* work, WorldCollisionContact* rec, s32 count);
 static void func_actor_503500_8013EA2C(Task* arg0);
 static void func_actor_503500_8013EC20(Task* arg0, s32 arg1);
-static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
-static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
-static void func_actor_503500_8014215C(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 static void func_actor_503500_8013B460(Task* arg0);
 static void func_actor_503500_8013B8D0(Task* arg0);
@@ -519,20 +519,20 @@ static void func_actor_503500_8013AD64(Task* arg0)
     enemy->recs                = rec;
     enemy->hp                  = enemy->param->hpMax;
 
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = rec;
-    work->obj.pos.vx   = D_actor_503500_8016F0F0[idx].vx;
-    work->obj.pos.vy   = D_actor_503500_8016F0F0[idx].vy;
-    work->obj.pos.vz   = D_actor_503500_8016F0F0[idx].vz;
-    work->obj.key      = 0x30023;
-    work->obj.radius   = 0x5DC;
-    work->obj.flags    = 1;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = rec;
+    work->obj.pos.vx           = D_actor_503500_8016F0F0[idx].vx;
+    work->obj.pos.vy           = D_actor_503500_8016F0F0[idx].vy;
+    work->obj.pos.vz           = D_actor_503500_8016F0F0[idx].vz;
+    work->obj.key              = 0x30023;
+    work->obj.radius           = 0x5DC;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
     work->field_E0.spawnArgLo = 0x600;
     work->field_E0.coord      = coord;
     work->field_E0.spawnArgHi = 3;
-    work->obj.flags          |= 0x8000;
+    work->obj.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     MoveImage(&D_actor_503500_8016F100, 0, 0x105);
     arg0->exitCallback = func_actor_503500_8013BC54;
     arg0->state       += 1;
@@ -774,7 +774,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_EE) {
         case 0:
-            work->obj.flags &= 0x7FFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -994,20 +994,20 @@ static void func_actor_503500_8013BEE4(Task* arg0)
     enemy->recs               = rec;
     enemy->hp                 = enemy->param->hpMax;
 
-    D_actor_503500_801776A0.obj.coord    = coord;
-    D_actor_503500_801776A0.obj.ctx.recs = rec;
-    D_actor_503500_801776A0.obj.key      = 0x30023;
-    D_actor_503500_801776A0.obj.radius   = 0x3E8;
-    D_actor_503500_801776A0.obj.flags    = 1;
-    D_actor_503500_801776A0.obj.pos.vx   = D_actor_503500_8016F1B0.vx;
-    D_actor_503500_801776A0.obj.pos.vy   = D_actor_503500_8016F1B0.vy;
-    D_actor_503500_801776A0.obj.pos.vz   = D_actor_503500_8016F1B0.vz;
+    D_actor_503500_801776A0.obj.coord            = coord;
+    D_actor_503500_801776A0.obj.context.contacts = rec;
+    D_actor_503500_801776A0.obj.key              = 0x30023;
+    D_actor_503500_801776A0.obj.radius           = 0x3E8;
+    D_actor_503500_801776A0.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
+    D_actor_503500_801776A0.obj.pos.vx           = D_actor_503500_8016F1B0.vx;
+    D_actor_503500_801776A0.obj.pos.vy           = D_actor_503500_8016F1B0.vy;
+    D_actor_503500_801776A0.obj.pos.vz           = D_actor_503500_8016F1B0.vz;
     Gp_LinkObj(2, &D_actor_503500_801776A0.obj);
     Gp_InitRec18Table(rec, 8, 0);
     D_actor_503500_801776A0.field_E0.spawnArgLo = 0x600;
     D_actor_503500_801776A0.field_E0.coord      = coord;
     D_actor_503500_801776A0.field_E0.spawnArgHi = 3;
-    D_actor_503500_801776A0.obj.flags          |= 0x8000;
+    D_actor_503500_801776A0.obj.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     func_actor_503500_8013CA74(arg0, 0);
     arg0->exitCallback = func_actor_503500_8013C900;
     arg0->state       += 1;
@@ -1135,7 +1135,7 @@ static void func_actor_503500_8013C558(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_F1) {
         case 0:
-            work->obj.flags                          &= 0x7FFF;
+            work->obj.flags                          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
             Gp_UnlinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -1336,20 +1336,20 @@ static void func_actor_503500_8013CAE4(Task* arg0)
     enemy->recs                      = rec;
     enemy->hp                        = enemy->param->hpMax;
 
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = rec;
-    work->obj.pos.vx   = pos->vx;
-    work->obj.pos.vy   = pos->vy;
-    work->obj.pos.vz   = pos->vz;
-    work->obj.key      = 0x30023;
-    work->obj.radius   = 0x190;
-    work->obj.flags    = 1;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = rec;
+    work->obj.pos.vx           = pos->vx;
+    work->obj.pos.vy           = pos->vy;
+    work->obj.pos.vz           = pos->vz;
+    work->obj.key              = 0x30023;
+    work->obj.radius           = 0x190;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
     work->field_E0.spawnArgLo = 0x600;
     work->field_E0.coord      = coord;
     work->field_E0.spawnArgHi = 3;
-    work->obj.flags          &= 0x7FFF;
+    work->obj.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     func_actor_503500_8013DBA8(arg0, 0);
     arg0->exitCallback = func_actor_503500_8013D85C;
     arg0->state       += 1;
@@ -1574,7 +1574,7 @@ static void func_actor_503500_8013D558(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_F1) {
         case 0:
-            work->obj.flags                          &= 0x7FFF;
+            work->obj.flags                          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
             Gp_UnlinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -1754,7 +1754,7 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
             work->field_EA = 0;
         }
         func_actor_503500_8013DBA8(arg0, 0);
-        work->obj.flags &= 0x7FFF;
+        work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_UnlinkNode(&enemy->node);
         work->field_E8 = 0;
         return;
@@ -1811,7 +1811,7 @@ static void func_actor_503500_8013DC4C(Task* arg0)
         (func_actor_503500_80135E04(arg0->parent, slotB) != 0)) {
         func_actor_503500_8013DBA8(arg0, 1);
         work             = arg0->work;
-        work->obj.flags |= 0x8000;
+        work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         Gp_LinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
     }
 }
@@ -1866,20 +1866,20 @@ static void func_actor_503500_8013DD10(Task* arg0)
     enemy->recs               = rec;
     enemy->hp                 = enemy->param->hpMax;
 
-    D_actor_503500_8017797C.obj.coord    = coord;
-    D_actor_503500_8017797C.obj.ctx.recs = rec;
-    D_actor_503500_8017797C.obj.key      = 0x30023;
-    D_actor_503500_8017797C.obj.radius   = 0x3E8;
-    D_actor_503500_8017797C.obj.flags    = 1;
-    D_actor_503500_8017797C.obj.pos.vx   = D_actor_503500_8016F2D8.vx;
-    D_actor_503500_8017797C.obj.pos.vy   = D_actor_503500_8016F2D8.vy;
-    D_actor_503500_8017797C.obj.pos.vz   = D_actor_503500_8016F2D8.vz;
+    D_actor_503500_8017797C.obj.coord            = coord;
+    D_actor_503500_8017797C.obj.context.contacts = rec;
+    D_actor_503500_8017797C.obj.key              = 0x30023;
+    D_actor_503500_8017797C.obj.radius           = 0x3E8;
+    D_actor_503500_8017797C.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
+    D_actor_503500_8017797C.obj.pos.vx           = D_actor_503500_8016F2D8.vx;
+    D_actor_503500_8017797C.obj.pos.vy           = D_actor_503500_8016F2D8.vy;
+    D_actor_503500_8017797C.obj.pos.vz           = D_actor_503500_8016F2D8.vz;
     Gp_LinkObj(2, &D_actor_503500_8017797C.obj);
     Gp_InitRec18Table(rec, 8, 0);
     D_actor_503500_8017797C.field_E0.spawnArgLo = 0x600;
     D_actor_503500_8017797C.field_E0.coord      = coord;
     D_actor_503500_8017797C.field_E0.spawnArgHi = 3;
-    D_actor_503500_8017797C.obj.flags          |= 0x8000;
+    D_actor_503500_8017797C.obj.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     func_actor_503500_8013EC20(arg0, 0);
     arg0->exitCallback = func_actor_503500_8013EA2C;
     arg0->state       += 1;
@@ -2089,7 +2089,7 @@ static void func_actor_503500_8013E740(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_ED) {
         case 0:
-            work->obj.flags &= 0x7FFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -2298,20 +2298,20 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     enemy->recs                = rec;
     enemy->hp                  = enemy->param->hpMax;
 
-    D_actor_503500_80177A6C.obj.coord    = coord;
-    D_actor_503500_80177A6C.obj.ctx.recs = rec;
-    D_actor_503500_80177A6C.obj.pos.vx   = D_actor_503500_8016F36C.vx;
-    D_actor_503500_80177A6C.obj.pos.vy   = D_actor_503500_8016F36C.vy;
-    D_actor_503500_80177A6C.obj.pos.vz   = D_actor_503500_8016F36C.vz;
-    D_actor_503500_80177A6C.obj.key      = 0x30023;
-    D_actor_503500_80177A6C.obj.radius   = 0x320;
-    D_actor_503500_80177A6C.obj.flags    = 1;
+    D_actor_503500_80177A6C.obj.coord            = coord;
+    D_actor_503500_80177A6C.obj.context.contacts = rec;
+    D_actor_503500_80177A6C.obj.pos.vx           = D_actor_503500_8016F36C.vx;
+    D_actor_503500_80177A6C.obj.pos.vy           = D_actor_503500_8016F36C.vy;
+    D_actor_503500_80177A6C.obj.pos.vz           = D_actor_503500_8016F36C.vz;
+    D_actor_503500_80177A6C.obj.key              = 0x30023;
+    D_actor_503500_80177A6C.obj.radius           = 0x320;
+    D_actor_503500_80177A6C.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &D_actor_503500_80177A6C.obj);
     Gp_InitRec18Table(rec, 8, 0);
     D_actor_503500_80177A6C.field_E0.spawnArgLo = 0x600;
     D_actor_503500_80177A6C.field_E0.coord      = coord;
     D_actor_503500_80177A6C.field_E0.spawnArgHi = 3;
-    D_actor_503500_80177A6C.obj.flags          &= 0x7FFF;
+    D_actor_503500_80177A6C.obj.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     func_actor_503500_8013F9D4(arg0, 3);
     arg0->exitCallback = func_actor_503500_8013F778;
     arg0->state       += 1;
@@ -2489,7 +2489,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_F1) {
         case 0:
-            work->obj.flags &= 0x7FFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -2636,7 +2636,7 @@ static void func_actor_503500_8013F984(Task* arg0)
     if (arg0->killCountdown == 8) {
         func_actor_503500_8013F9D4(arg0, 0);
         work             = arg0->work;
-        work->obj.flags |= 0x8000;
+        work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
 
@@ -2725,32 +2725,32 @@ static void func_actor_503500_8013FA74(Task* arg0)
     enemy->param              = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
     enemy->recs               = rec;
 
-    work->obj160.coord    = part;
-    work->obj160.ctx.recs = rec;
-    work->obj160.pos.vx   = D_actor_503500_8016F3EC.vx;
-    work->obj160.pos.vy   = D_actor_503500_8016F3EC.vy;
-    work->obj160.pos.vz   = D_actor_503500_8016F3EC.vz;
-    work->obj160.key      = 0x30023;
-    work->obj160.radius   = 0x258;
-    work->obj160.flags    = 1;
+    work->obj160.coord            = part;
+    work->obj160.context.contacts = rec;
+    work->obj160.pos.vx           = D_actor_503500_8016F3EC.vx;
+    work->obj160.pos.vy           = D_actor_503500_8016F3EC.vy;
+    work->obj160.pos.vz           = D_actor_503500_8016F3EC.vz;
+    work->obj160.key              = 0x30023;
+    work->obj160.radius           = 0x258;
+    work->obj160.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj160);
     Gp_InitRec18Table(rec, 8, 0);
-    rec2                  = work->rec260;
-    work->obj240.coord    = part;
-    work->obj240.ctx.recs = rec2;
-    work->obj160.flags   &= 0x7FFF;
-    work->obj240.pos.vx   = D_actor_503500_8016F3F4[idx].vx;
-    work->obj240.pos.vy   = D_actor_503500_8016F3F4[idx].vy;
-    work->obj240.pos.vz   = D_actor_503500_8016F3F4[idx].vz;
-    work->obj240.key      = Gp_PackPair(enemy->param->pairTable, 0);
-    work->obj240.radius   = 0x1F4;
-    work->obj240.flags    = 1;
+    rec2                          = work->rec260;
+    work->obj240.coord            = part;
+    work->obj240.context.contacts = rec2;
+    work->obj160.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj240.pos.vx           = D_actor_503500_8016F3F4[idx].vx;
+    work->obj240.pos.vy           = D_actor_503500_8016F3F4[idx].vy;
+    work->obj240.pos.vz           = D_actor_503500_8016F3F4[idx].vz;
+    work->obj240.key              = Gp_PackPair(enemy->param->pairTable, 0);
+    work->obj240.radius           = 0x1F4;
+    work->obj240.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj240);
     Gp_InitRec18Table(rec2, 4, 0);
     work->field_2C0.spawnArgLo = 0x600;
     work->field_2C0.coord      = part;
     work->field_2C0.spawnArgHi = 3;
-    work->obj240.flags        &= 0x7FFF;
+    work->obj240.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     copyVector(&work->field_368, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
     copyVector(&work->field_358, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
@@ -2776,7 +2776,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
             Gp_LinkNode(&enemy->node);
             enemy->hp           = D_actor_503500_8016E7EC[arg0->spawnArg1.value].hpMax;
             work->field_3B2     = 0x1000;
-            work->obj160.flags |= 0x8000;
+            work->obj160.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             func_actor_503500_80142310(arg0, 0);
             break;
     }
@@ -2901,7 +2901,7 @@ static void func_actor_503500_801400A4(Task* arg0)
                 gte_rtv0();
                 gte_stsv(&work->field_368);
                 work->field_39C     = 0x4000000;
-                work->obj240.flags |= 0x8000;
+                work->obj240.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->field_3D0++;
             }
             break;
@@ -2927,7 +2927,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             if (work->field_3D4 != 0) {
                 work->field_3B0     = 0;
-                work->obj240.flags &= 0x7FFF;
+                work->obj240.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_3D0++;
             }
             break;
@@ -3017,7 +3017,7 @@ static void func_actor_503500_80140654(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (phase) {
         case 0:
-            work->obj160.flags &= 0x7FFF;
+            work->obj160.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs         = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -3172,7 +3172,7 @@ static void func_actor_503500_80140BE8(Task* arg0)
 /// state 5 (unless already past it) instead of applying the id's status effect.
 /// The hit effect is pulled to 500 units along the contact offset, and a hit
 /// landing in state 1 drops back to state 0. `arg1` is passed but unused.
-static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
+static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     SVECTOR             pos;
     MATRIX              rot;
@@ -3610,7 +3610,7 @@ static void func_actor_503500_80141F48(Task* arg0)
     if ((s16)level >= 0x1001) {
         Gp_LinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
         work->field_3B2     = 0x1000;
-        work->obj160.flags |= 0x8000;
+        work->obj160.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         func_actor_503500_80142310(arg0, 0);
     }
 }
@@ -3646,7 +3646,7 @@ static void func_actor_503500_80141FC8(Task* arg0)
             if ((s16)level >= 0x1001) {
                 Gp_LinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
                 work->field_3B2     = 0x1000;
-                work->obj160.flags |= 0x8000;
+                work->obj160.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 func_actor_503500_80142310(arg0, 0);
             }
             break;
@@ -3679,13 +3679,13 @@ static void func_actor_503500_801420C4(Task* arg0)
 
 /// Scans `count` `WorldCollisionContact` slots and clears bit 0x8000 of `obj->flags` for
 /// every slot whose `key` high half is 1.
-static void func_actor_503500_8014215C(Task* arg0, GpObj* obj, WorldCollisionContact* rec, s32 count)
+static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* obj, WorldCollisionContact* rec, s32 count)
 {
     s32 i;
 
     for (i = 0; i < count; i++, rec++) {
         if ((rec->key.value & 0xFFFF0000) == 0x10000) {
-            obj->flags &= 0x7FFF;
+            obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
 }
@@ -3749,7 +3749,7 @@ static void func_actor_503500_80142310(Task* arg0, s32 arg1)
     work->field_3AE     = 0;
     work->field_3B0     = 0;
     work->field_39C     = 0x600000;
-    work->obj240.flags &= 0x7FFF;
+    work->obj240.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->killCountdown = 0;
     func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
@@ -3825,17 +3825,17 @@ static void func_actor_503500_801423C8(Task* arg0)
     enemy->recs               = rec;
     enemy->hp                 = enemy->param->hpMax;
 
-    work->obj0.coord    = coord;
-    work->obj0.ctx.recs = rec;
-    work->obj0.pos.vx   = ofs->vx;
-    work->obj0.pos.vy   = ofs->vy;
-    work->obj0.pos.vz   = ofs->vz;
-    work->obj0.key      = 0x30023;
-    work->obj0.radius   = 0x5DC;
-    work->obj0.flags    = 1;
+    work->obj0.coord            = coord;
+    work->obj0.context.contacts = rec;
+    work->obj0.pos.vx           = ofs->vx;
+    work->obj0.pos.vy           = ofs->vy;
+    work->obj0.pos.vz           = ofs->vz;
+    work->obj0.key              = 0x30023;
+    work->obj0.radius           = 0x5DC;
+    work->obj0.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj0);
     Gp_InitRec18Table(rec, 8, 0);
-    work->obj0.flags &= 0x7FFF;
+    work->obj0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     parts = parent->extra.tmd->coords;
     if (slot != 0) {
@@ -3843,16 +3843,16 @@ static void func_actor_503500_801423C8(Task* arg0)
     } else {
         work->obj1.coord = &parts[12];
     }
-    work->obj1.ctx.recs = work->rec1;
-    work->obj1.pos.vx   = 0;
-    work->obj1.pos.vy   = 0;
-    work->obj1.pos.vz   = 0;
-    work->obj1.key      = 0x30023;
-    work->obj1.radius   = 0x320;
-    work->obj1.flags    = 1;
+    work->obj1.context.contacts = work->rec1;
+    work->obj1.pos.vx           = 0;
+    work->obj1.pos.vy           = 0;
+    work->obj1.pos.vz           = 0;
+    work->obj1.key              = 0x30023;
+    work->obj1.radius           = 0x320;
+    work->obj1.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj1);
     Gp_InitRec18Table(work->rec1, 4, 0);
-    work->obj1.flags &= 0x7FFF;
+    work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     parts2 = parent->extra.tmd->coords;
     if (slot != 0) {
@@ -3860,19 +3860,19 @@ static void func_actor_503500_801423C8(Task* arg0)
     } else {
         work->obj2.coord = &parts2[13];
     }
-    work->obj2.ctx.recs = work->rec1;
-    work->obj2.pos.vx   = 0;
-    work->obj2.pos.vy   = 0x190;
-    work->obj2.pos.vz   = 0;
-    work->obj2.key      = 0x30023;
-    work->obj2.radius   = 0x4B0;
-    work->obj2.flags    = 1;
+    work->obj2.context.contacts = work->rec1;
+    work->obj2.pos.vx           = 0;
+    work->obj2.pos.vy           = 0x190;
+    work->obj2.pos.vz           = 0;
+    work->obj2.key              = 0x30023;
+    work->obj2.radius           = 0x4B0;
+    work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj2);
     Gp_InitRec18Table(work->rec1, 4, 0);
     work->field_1E0.spawnArgLo = 0x600;
     work->field_1E0.coord      = coord;
     work->field_1E0.spawnArgHi = 3;
-    work->obj2.flags          &= 0x7FFF;
+    work->obj2.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     func_actor_503500_80144238(arg0, 0);
     arg0->exitCallback = func_actor_503500_80143F78;
     arg0->state       += 1;
@@ -3918,8 +3918,8 @@ static void func_actor_503500_8014271C(Task* arg0)
             if (work->field_223 == 0xC) {
                 switch (frame) {
                     case 0x7A:
-                        work->obj1.flags |= 0x8000;
-                        work->obj2.flags |= 0x8000;
+                        work->obj1.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                        work->obj2.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                         coords            = arg0->parent->extra.tmd->coords;
                         if (work->field_220 != 0) {
                             coord = &coords[6];
@@ -3930,15 +3930,15 @@ static void func_actor_503500_8014271C(Task* arg0)
                                             (s8)(gpGetObjDepth(coord) / 2));
                         break;
                     case 0x90:
-                        work->obj1.flags &= 0x7FFF;
-                        work->obj2.flags &= 0x7FFF;
+                        work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        work->obj2.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                 }
             } else {
                 switch (frame) {
                     case 0x51:
-                        work->obj1.flags |= 0x8000;
-                        work->obj2.flags |= 0x8000;
+                        work->obj1.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                        work->obj2.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                         coords            = arg0->parent->extra.tmd->coords;
                         if (work->field_220 != 0) {
                             coord = &coords[6];
@@ -3949,14 +3949,14 @@ static void func_actor_503500_8014271C(Task* arg0)
                                             (s8)(gpGetObjDepth(coord) / 2));
                         break;
                     case 0x60:
-                        work->obj1.flags &= 0x7FFF;
-                        work->obj2.flags &= 0x7FFF;
+                        work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        work->obj2.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                 }
             }
             if (func_actor_503500_80136014(arg0->parent, side) != 0) {
-                work->obj1.flags &= 0x7FFF;
-                work->obj2.flags &= 0x7FFF;
+                work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->obj2.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_222++;
             }
             break;
@@ -4001,7 +4001,7 @@ static void func_actor_503500_80142980(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_222) {
         case 0:
-            work->obj0.flags &= 0x7FFF;
+            work->obj0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -4019,8 +4019,8 @@ static void func_actor_503500_80142980(Task* arg0)
             work->pos.vx.w        = 0;
             work->pos.vy.w        = 0;
             work->pos.vz.w        = 0;
-            work->obj1.flags     &= 0x7FFF;
-            work->obj2.flags     &= 0x7FFF;
+            work->obj1.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->obj2.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_222++;
             break;
         case 1:
@@ -4195,7 +4195,7 @@ static void func_actor_503500_80142980(Task* arg0)
 /// 0x5DC along the impact direction in the model's frame, offset by the side
 /// vector. Once `field_21C` runs out the health is refilled to a tenth of the
 /// spawn record's maximum.
-static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
+static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR              d;
     SVECTOR             pos;
@@ -4641,8 +4641,8 @@ static void func_actor_503500_80144238(Task* arg0, s32 arg1)
     work->field_21A     = 0;
     arg0->killCountdown = 0;
     func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
-    work->obj1.flags &= 0x7FFF;
-    work->obj2.flags &= 0x7FFF;
+    work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj2.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     SndEvt_EnqueueType7(0x40230009, 1);
 }
 
@@ -4705,17 +4705,17 @@ static void func_actor_503500_80144300(Task* arg0)
     }
     rec = work->rec;
 
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = rec;
-    work->obj.pos.vx   = D_actor_503500_801715AC.vx;
-    work->obj.pos.vy   = D_actor_503500_801715AC.vy;
-    work->obj.pos.vz   = D_actor_503500_801715AC.vz;
-    work->obj.key      = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
-    work->obj.radius   = 0x12C;
-    work->obj.flags    = 1;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = rec;
+    work->obj.pos.vx           = D_actor_503500_801715AC.vx;
+    work->obj.pos.vy           = D_actor_503500_801715AC.vy;
+    work->obj.pos.vz           = D_actor_503500_801715AC.vz;
+    work->obj.key              = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
+    work->obj.radius           = 0x12C;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj);
     Gp_InitRec18Table(rec, 4, 0);
-    work->obj.flags |= 0xC000;
+    work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(0x60189, coord, 0, NULL);
     if (eff == NULL) {
@@ -4767,7 +4767,7 @@ static void func_actor_503500_80144520(Task* arg0)
             if ((s16)work->field_BA >= 6) {
                 work->field_80->spawnArg1.value = 2;
                 work->field_BA                  = 0;
-                work->obj.flags                &= 0x7FFF;
+                work->obj.flags                &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_BC++;
             }
             break;
@@ -4900,17 +4900,17 @@ static void func_actor_503500_801448E8(Task* arg0)
     }
     rec = work->rec;
 
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = rec;
-    work->obj.pos.vx   = D_actor_503500_801715B4.vx;
-    work->obj.pos.vy   = D_actor_503500_801715B4.vy;
-    work->obj.pos.vz   = D_actor_503500_801715B4.vz;
-    work->obj.key      = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
-    work->obj.radius   = 0x898;
-    work->obj.flags    = 1;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = rec;
+    work->obj.pos.vx           = D_actor_503500_801715B4.vx;
+    work->obj.pos.vy           = D_actor_503500_801715B4.vy;
+    work->obj.pos.vz           = D_actor_503500_801715B4.vz;
+    work->obj.key              = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
+    work->obj.radius           = 0x898;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj);
     Gp_InitRec18Table(rec, 4, 0);
-    work->obj.flags |= 0x8000;
+    work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     if (arg0->spawnArg1.value == 0) {
         eff = Gp_SpawnEff(0x6018E, coord, 0, NULL);
@@ -4953,7 +4953,7 @@ static void func_actor_503500_80144B40(Task* arg0)
             work->field_AE++;
             if (D_actor_503500_801715BC[arg0->spawnArg1.value] < work->field_AE) {
                 work->field_AE   = 0;
-                work->obj.flags &= 0x7FFF;
+                work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_B0++;
             }
             break;

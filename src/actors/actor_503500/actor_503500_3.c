@@ -91,7 +91,7 @@ typedef struct Actor503500Work2EC {
     /* 0x000 */ MATRIX                light;
     /* 0x020 */ MATRIX                color;
     /* 0x040 */ MATRIX                mats[9];
-    /* 0x160 */ GpObj                 obj;
+    /* 0x160 */ WorldCollisionBody    obj;
     /* 0x180 */ WorldCollisionContact rec[8];    // Gp_InitRec18Table(rec, 8, 0)
     /* 0x240 */ GpEffArg              field_240; // record the 0x2EC block's effects are spawned with
                                                  /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
@@ -205,7 +205,7 @@ static void func_actor_503500_8013A900(Task* arg0);
 
 /// Re-places a display node and its record table: `arg2` is the node's
 /// `WorldCollisionContact` table and `arg3` the record count.
-static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void func_actor_503500_80138288(Task* arg0);
 static void func_actor_503500_801382F4(Task* arg0);
 static void func_actor_503500_801382FC(Task* arg0);
@@ -255,9 +255,9 @@ Actor503500Work2EC D_actor_503500_80176EE8[2];
 static inline void func_actor_503500_SetBossState(Task* arg0, s16 state);
 static void        func_actor_503500_801360A4(s32 arg0, s16 arg1);
 static void        func_actor_503500_80137678(Task* arg0);
-static void        func_actor_503500_80137C90(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void        func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void        func_actor_503500_80139014(Task* arg0);
-static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void        func_actor_503500_80139A20(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 
 /// State-0 init of the boss: clears and seeds its work block, links the
 /// second body part's display node, spawns slot enemies 1..11 from
@@ -316,20 +316,20 @@ static void func_actor_503500_80132F64(Task* arg0)
     enemy->recs                = recs;
     enemy->hp                  = enemy->param->hpMax;
 
-    work->field_5D4.coord    = part;
-    work->field_5D4.ctx.recs = recs;
-    work->field_5D4.key      = 0x30023;
-    work->field_5D4.radius   = 0x258;
-    work->field_5D4.flags    = 1;
-    work->field_5D4.pos.vx   = D_actor_503500_8016EC50.vx;
-    work->field_5D4.pos.vy   = D_actor_503500_8016EC50.vy;
-    work->field_5D4.pos.vz   = D_actor_503500_8016EC50.vz;
+    work->field_5D4.coord            = part;
+    work->field_5D4.context.contacts = recs;
+    work->field_5D4.key              = 0x30023;
+    work->field_5D4.radius           = 0x258;
+    work->field_5D4.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->field_5D4.pos.vx           = D_actor_503500_8016EC50.vx;
+    work->field_5D4.pos.vy           = D_actor_503500_8016EC50.vy;
+    work->field_5D4.pos.vz           = D_actor_503500_8016EC50.vz;
     Gp_LinkObj(2, &work->field_5D4);
     Gp_InitRec18Table(recs, 8, 0);
     work->field_6E4.spawnArgLo = 0x600;
     work->field_6E4.coord      = part;
     work->field_6E4.spawnArgHi = 3;
-    work->field_5D4.flags     &= 0x7FFF;
+    work->field_5D4.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, i, i, enemy);
@@ -490,10 +490,10 @@ static void func_actor_503500_801334CC(Task* arg0)
         work->field_7CC = 0;
     } else if (count == 0) {
         if (work->field_7E2 != 0) {
-            work->field_5D4.flags |= 0x8000;
+            work->field_5D4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             Gp_LinkNode(&enemy->node);
         } else {
-            work->field_5D4.flags &= 0x7FFF;
+            work->field_5D4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_UnlinkNode(&enemy->node);
         }
     }
@@ -969,7 +969,7 @@ static void func_actor_503500_80134408(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     switch ((s8)work->field_7DA) {
         case 0:
-            work->field_5D4.flags &= 0x7FFF;
+            work->field_5D4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             func_actor_503500_8013611C(arg0->spawnArg1.value);
             Gp_UnlinkNode(&enemy->node);
             enemy->recs     = 0;
@@ -1246,7 +1246,7 @@ static void func_actor_503500_80134C68(Task* arg0)
 /// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
 /// `field_40` starts the death state instead of the id's status effect. `arg1`
 /// is passed by the caller but unused.
-static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
+static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -2632,20 +2632,20 @@ static void func_actor_503500_801372C8(Task* arg0)
     enemy->recs               = rec;
     enemy->hp                 = enemy->param->hpMax;
 
-    D_actor_503500_80176D88.slot40.obj.coord    = coord;
-    D_actor_503500_80176D88.slot40.obj.ctx.recs = rec;
-    D_actor_503500_80176D88.slot40.obj.key      = 0x30023;
-    D_actor_503500_80176D88.slot40.obj.radius   = 0x320;
-    D_actor_503500_80176D88.slot40.obj.flags    = 1;
-    D_actor_503500_80176D88.slot40.obj.pos.vx   = D_actor_503500_8016F068.vx;
-    D_actor_503500_80176D88.slot40.obj.pos.vy   = D_actor_503500_8016F068.vy;
-    D_actor_503500_80176D88.slot40.obj.pos.vz   = D_actor_503500_8016F068.vz;
+    D_actor_503500_80176D88.slot40.obj.coord            = coord;
+    D_actor_503500_80176D88.slot40.obj.context.contacts = rec;
+    D_actor_503500_80176D88.slot40.obj.key              = 0x30023;
+    D_actor_503500_80176D88.slot40.obj.radius           = 0x320;
+    D_actor_503500_80176D88.slot40.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
+    D_actor_503500_80176D88.slot40.obj.pos.vx           = D_actor_503500_8016F068.vx;
+    D_actor_503500_80176D88.slot40.obj.pos.vy           = D_actor_503500_8016F068.vy;
+    D_actor_503500_80176D88.slot40.obj.pos.vz           = D_actor_503500_8016F068.vz;
     Gp_LinkObj(2, &D_actor_503500_80176D88.slot40.obj);
     Gp_InitRec18Table(rec, 8, 0);
     D_actor_503500_80176D88.field_120.spawnArgLo = 0x400;
     D_actor_503500_80176D88.field_120.coord      = coord;
     D_actor_503500_80176D88.field_120.spawnArgHi = 3;
-    D_actor_503500_80176D88.slot40.obj.flags    |= 0x8000;
+    D_actor_503500_80176D88.slot40.obj.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     func_actor_503500_80138490(arg0, 0);
     arg0->exitCallback = func_actor_503500_80138288;
     arg0->state       += 1;
@@ -2732,7 +2732,7 @@ static void func_actor_503500_80137678(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_15D) {
         case 0:
-            work->slot40.obj.flags &= 0x7FFF;
+            work->slot40.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs             = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -2864,7 +2864,7 @@ static void func_actor_503500_80137678(Task* arg0)
 /// that empties `field_40` starts state 2 but still applies the id's status
 /// effect. The hit effect is pulled to 800 units along the contact offset.
 /// `arg1` is passed by the caller but unused.
-static void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
+static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -3189,20 +3189,20 @@ static void func_actor_503500_8013852C(Task* arg0)
     enemy->recs               = rec;
     enemy->hp                 = enemy->param->hpMax;
 
-    work->obj.coord    = part;
-    work->obj.ctx.recs = rec;
-    work->obj.pos.vx   = D_actor_503500_8016F0B0.vx;
-    work->obj.pos.vy   = D_actor_503500_8016F0B0.vy;
-    work->obj.pos.vz   = D_actor_503500_8016F0B0.vz;
-    work->obj.key      = 0x30023;
-    work->obj.radius   = 0x320;
-    work->obj.flags    = 1;
+    work->obj.coord            = part;
+    work->obj.context.contacts = rec;
+    work->obj.pos.vx           = D_actor_503500_8016F0B0.vx;
+    work->obj.pos.vy           = D_actor_503500_8016F0B0.vy;
+    work->obj.pos.vz           = D_actor_503500_8016F0B0.vz;
+    work->obj.key              = 0x30023;
+    work->obj.radius           = 0x320;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
     work->field_240.spawnArgLo = 0x600;
     work->field_240.coord      = part;
     work->field_240.spawnArgHi = 3;
-    work->obj.flags           |= 0x8000;
+    work->obj.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->field_29C.vx         = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vx;
     work->field_29C.vy         = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vy;
     work->field_29C.vz         = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vz;
@@ -3447,7 +3447,7 @@ static void func_actor_503500_80139014(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (phase) {
         case 0:
-            work->obj.flags &= 0x7FFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs      = 0;
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -3575,7 +3575,7 @@ static void func_actor_503500_801395BC(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     switch (phase) {
         case 0:
-            work->obj.flags &= 0x7FFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_UnlinkNode(&enemy->node);
             enemy->recs     = 0;
             work->field_2D8 = 0;
@@ -3683,7 +3683,7 @@ static void func_actor_503500_801398D0(Task* arg0)
 /// that empties `field_40` starts state 5. The hit effect is placed at the
 /// record's contact point, pulled to 800 units from part 8 along the offset
 /// and rotated into its frame. `arg1` is passed by the caller but unused.
-static void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
+static void func_actor_503500_80139A20(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     SVECTOR             pos;
     MATRIX              rot;

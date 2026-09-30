@@ -692,7 +692,7 @@ static inline void _actor03800TickAnim(Task* task);
 
 static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 {
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     WorldCollisionContact* records1;
     WorldCollisionContact* records2;
     WorldCollisionContact* records3;
@@ -739,7 +739,7 @@ static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     work->field_1BC = 0x30026;
     work->field_1C0 = 0xFA;
     work->field_1C2 = 1U;
-    Gp_LinkObj(2, (GpObj*)work->field_1A4);
+    Gp_LinkObj(2, (WorldCollisionBody*)work->field_1A4);
     Gp_InitRec18Table(records1, 3, 0);
     work->field_214 = arg1->extra.tmd->coords;
     records2        = work->field_22C;
@@ -750,7 +750,7 @@ static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     work->field_224 = 0x30026;
     work->field_228 = 0x12C;
     work->field_22A = 1U;
-    Gp_LinkObj(2, (GpObj*)work->field_20C);
+    Gp_LinkObj(2, (WorldCollisionBody*)work->field_20C);
     Gp_InitRec18Table(records2, 4, 0);
     switch (work->field_350) {
         case 0:
@@ -770,7 +770,7 @@ static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
             work->field_22A &= ~0x4200;
             break;
     }
-    obj             = (GpObj*)work->field_28C;
+    obj             = (WorldCollisionBody*)work->field_28C;
     work->field_294 = arg1->extra.tmd->coords;
     records3        = work->field_2AC;
     work->field_29E = -0xFA;
@@ -2078,9 +2078,9 @@ death:
     work->field_2CC = coord->coord;
     arg0->recs      = 0;
     Gp_UnlinkNode(&arg0->node);
-    Gp_UnlinkObj((GpObj*)work->field_1A4);
-    Gp_UnlinkObj((GpObj*)work->field_20C);
-    Gp_UnlinkObj((GpObj*)work->field_28C);
+    Gp_UnlinkObj((WorldCollisionBody*)work->field_1A4);
+    Gp_UnlinkObj((WorldCollisionBody*)work->field_20C);
+    Gp_UnlinkObj((WorldCollisionBody*)work->field_28C);
     Gp_SetLightMode(arg0, 1);
     Gp_ReleaseStateF0Add(arg1, 0x26);
     work->field_354 = 1;

@@ -551,10 +551,10 @@ typedef struct Actor341700Work {
     Actor341700Flags      flags_EC;
     byte                  pad_F0[0x12C];
     byte                  field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
-    GpObj                 obj_2AC;
-    GpObj                 obj_2CC;
+    WorldCollisionBody    obj_2AC;
+    WorldCollisionBody    obj_2CC;
     WorldCollisionContact rec_2EC[8];
-    GpObj                 obj_3AC;
+    WorldCollisionBody    obj_3AC;
     WorldCollisionContact rec_3CC[2]; // records of `obj_3AC`
     GpEffArg              eff_3FC;    // `func_800FDB18`'s arg3; field_0 is the model's second coord part
     byte                  pad_404[0x8];
@@ -608,13 +608,13 @@ typedef struct Actor105500Work {
     byte                  field_154[0x80];
     MATRIX                field_1D4;
     MATRIX                field_1F4;
-    GpObj                 field_214;
+    WorldCollisionBody    field_214;
     WorldCollisionContact field_234[4];
-    GpObj                 field_294;
+    WorldCollisionBody    field_294;
     WorldCollisionContact field_2B4[2];
-    GpObj                 field_2E4;
+    WorldCollisionBody    field_2E4;
     WorldCollisionContact field_304[1];
-    GpObj                 field_31C;
+    WorldCollisionBody    field_31C;
     WorldCollisionContact field_33C[1];
     GpEffArg              field_354;
     VECTOR3               field_35C;
@@ -699,8 +699,8 @@ typedef struct Actor05300Work {
     GpAnimPose            poses[10];
     MATRIX                field_244;
     MATRIX                field_264;
-    GpObj                 node0;
-    GpObj                 node1;
+    WorldCollisionBody    node0;
+    WorldCollisionBody    node1;
     WorldCollisionContact rec18[2];
     GpEffArg              field_2F4;
     MATRIX                field_2FC;
@@ -736,7 +736,7 @@ STATIC_ASSERT_SIZEOF(Actor05300Clip, 0x4);
 /// `Task::work`: a linked collision node with its single record, and the
 /// record the part's death effect is spawned with.
 typedef struct Actor05300Part {
-    GpObj                 obj;
+    WorldCollisionBody    obj;
     WorldCollisionContact rec18[1];
     GpEffArg              field_38; // record this part's death effect is spawned with
     s16                   field_40;
@@ -1385,12 +1385,12 @@ typedef union Actor403200DropCoord {
 STATIC_ASSERT_SIZEOF(Actor403200DropCoord, 0x50);
 
 /// One of the nine back-to-back collision groups in `Actor403200Work` at
-/// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
+/// 0x7F4. `obj` is the `WorldCollisionBody` the gameplay collision list carries and `recs`
 /// is the `WorldCollisionContact` table it fills in for that part, which is why the stride is
 /// 0x98. `obj.field_8` is the part's own coordinate -- what the hit handler
 /// spawns the hit effect on. The same shape as `Actor403200HitGroup`.
 typedef struct Actor403200HitGroup {
-    GpObj                 obj;
+    WorldCollisionBody    obj;
     WorldCollisionContact recs[5];
 } Actor403200HitGroup;
 STATIC_ASSERT_SIZEOF(Actor403200HitGroup, 0x98);
@@ -1441,7 +1441,7 @@ STATIC_ASSERT_SIZEOF(Actor403200EffScratch, 0x10);
 /// `Task::work` slot, so the size below is the allocation, not a guess.
 ///
 /// The spawn states drop the model onto the view coordinate and hang one or two
-/// `GpObj` display nodes off it. `rec0` is the table the first node carries,
+/// `WorldCollisionBody` collision bodies off it. `rec0` is the table the first node carries,
 /// `rec1` the second's; the two matrices are handed out through the task's
 /// `TmdObject::lightMtx` / `colorMtx`. `field_1AA` is a ninth of the model's
 /// height and `field_1AC` the step counter, both re-read by the states that
@@ -1455,9 +1455,9 @@ typedef struct Actor403200GrabWork {
     /// kept tracking the model's world position so the ground marker under it
     /// can be drawn from `coord.workm.t`.
     GfxCoord coord;
-    /// The two display nodes, linked with `prio` 3 and 2.
-    GpObj obj0;
-    GpObj obj1;
+    /// The two collision bodies on object lists 3 and 2.
+    WorldCollisionBody obj0;
+    WorldCollisionBody obj1;
     /// Their collision-record tables.
     WorldCollisionContact rec0;
     WorldCollisionContact rec1;
@@ -1503,7 +1503,7 @@ typedef struct Actor403200DropWork {
     byte                  pad_C[0x4];
     GfxCoord              coord;
     byte                  pad_60[0x50];
-    GpObj                 obj;
+    WorldCollisionBody    obj;
     byte                  pad_D0[0x20];
     WorldCollisionContact rec;
     byte                  pad_108[0x88];
@@ -1662,13 +1662,13 @@ typedef struct Actor403200Work {
     /// Cleared by the state-change reset to mark the work block as re-armed.
     /* 0x7F3 */ u8 field_7F3;
     /// The nine back-to-back collision groups, one per model part: each is the
-    /// `GpObj` the gameplay collision list carries plus the `WorldCollisionContact` table it
+    /// `WorldCollisionBody` the gameplay collision list carries plus the `WorldCollisionContact` table it
     /// fills in.
     /* 0x7F4 */ Actor403200HitGroup hits[9];
     /// The tenth collision object, the one the swipe tick raises `flags` bit
     /// 0x8000 on while the swipe is live.
-    /* 0xD4C */ GpObj        obj;
-    /* 0xD6C */ GpActorD4Rec d4rec;
+    /* 0xD4C */ WorldCollisionBody obj;
+    /* 0xD6C */ GpActorD4Rec       d4rec;
     /// The five records the tenth collision object carries, walked by the swipe
     /// tick for the one whose high half is 0x10000.
     /* 0xD84 */ WorldCollisionContact recs2[5];
@@ -1803,25 +1803,25 @@ typedef struct Actor105600Work {
     /// `Actor05700_Fn01A58`; its `pos.vz` is the pose the state-0
     /// branch of `Actor05700_Fn01318` parks (-0xA7 or 0x109) and its
     /// `radius` the frame count parked alongside it.
-    GpObj                 field_47C;
+    WorldCollisionBody    field_47C;
     GpActorD4Rec          field_49C;
     WorldCollisionContact field_4B4[1];
     /// Second body object; `pos.vz` is the pose the state-0 branch parks
     /// (0x15E) and `flags` the bits whose 0x4000 it raises.
-    GpObj                 field_4CC;
+    WorldCollisionBody    field_4CC;
     WorldCollisionContact field_4EC[5];
     /// Third body object; `flags` is the field whose bit 0x4000 the state-0
     /// branch clears.
-    GpObj                 field_564;
+    WorldCollisionBody    field_564;
     WorldCollisionContact field_584[4];
     /// Fourth body object: `key` is the object `Gp_PackPair` hands it when
     /// `field_698` first reaches the animation's 0x1C mark and `flags` the
     /// bits whose 0x8000 is raised with it and dropped at the 0x28 mark
     /// (`Actor05700_Fn023AC`).
-    GpObj                 field_5E4;
+    WorldCollisionBody    field_5E4;
     WorldCollisionContact field_604[1];
     /// Fifth body object, unlinked with the others by `Actor05700_Fn01A58`.
-    GpObj                 field_61C;
+    WorldCollisionBody    field_61C;
     GpActorD4Rec          field_63C;
     WorldCollisionContact field_654[1];
     TaskDesc*             field_66C;
@@ -1895,16 +1895,16 @@ STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
 
 /// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
-/// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
+/// root's `TmdObject`; the three `WorldCollisionBody` bodies collide against `rec60`
 /// (shared by the first two) and, through the `GpActorD4Rec` between them,
 /// `recD0`. `field_EE` mirrors the placement table's variant flag.
 typedef struct Actor105600FxWork {
     MATRIX                colorMtx;
     MATRIX                lightMtx;
-    GpObj                 obj40;
+    WorldCollisionBody    obj40;
     WorldCollisionContact rec60[1];
-    GpObj                 obj78;
-    GpObj                 obj98;
+    WorldCollisionBody    obj78;
+    WorldCollisionBody    obj98;
     GpActorD4Rec          d4rec;
     WorldCollisionContact recD0[1];
     s16                   field_E8;
@@ -2764,18 +2764,18 @@ static __inline__ void actorAccumulateToView(GfxCoord* coord, MATRIX* mat)
 
 /// Sets up a collision object on `coord` with its record table, position and
 /// radius, links it at priority `prio`, and initialises the table as `kind`.
-static __inline__ void actorLinkWorkObj(GfxCoord* coord, GpObj* obj, WorldCollisionContact* rec,
+static __inline__ void actorLinkWorkObj(GfxCoord* coord, WorldCollisionBody* obj, WorldCollisionContact* rec,
                                         SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
 {
-    obj->coord    = coord;
-    obj->ctx.recs = rec;
-    obj->pos.vx   = pos->vx;
-    obj->pos.vy   = pos->vy;
-    obj->pos.vz   = pos->vz;
-    obj->radius   = field1C;
-    obj->flags    = 1;
+    obj->coord            = coord;
+    obj->context.contacts = rec;
+    obj->pos.vx           = pos->vx;
+    obj->pos.vy           = pos->vy;
+    obj->pos.vz           = pos->vz;
+    obj->radius           = field1C;
+    obj->flags            = 1;
     Gp_LinkObj(prio, obj);
-    Gp_InitRec18Table(obj->ctx.recs, kind, 0);
+    Gp_InitRec18Table(obj->context.contacts, kind, 0);
 }
 
 /// Whether the XZ offset `gap` reaches at least 1000.

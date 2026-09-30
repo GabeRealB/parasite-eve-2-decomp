@@ -68,15 +68,15 @@ typedef struct {
     /* 0x12C */ byte                  field_12C[0x70];
     /* 0x19C */ MATRIX                field_19C;
     /* 0x1BC */ MATRIX                field_1BC;
-    /* 0x1DC */ GpObj                 obj1;
+    /* 0x1DC */ WorldCollisionBody    obj1;
     /* 0x1FC */ WorldCollisionContact rec1[1];
-    /* 0x214 */ GpObj                 obj2;
+    /* 0x214 */ WorldCollisionBody    obj2;
     /* 0x234 */ WorldCollisionContact rec2[6];
-    /* 0x2C4 */ GpObj                 obj3;
+    /* 0x2C4 */ WorldCollisionBody    obj3;
     /* 0x2E4 */ WorldCollisionContact rec3[6];
-    /* 0x374 */ GpObj                 obj4;
+    /* 0x374 */ WorldCollisionBody    obj4;
     /* 0x394 */ WorldCollisionContact rec4[1];
-    /* 0x3AC */ GpObj                 obj5;
+    /* 0x3AC */ WorldCollisionBody    obj5;
     /* 0x3CC */ WorldCollisionContact rec5[1];
     /* 0x3E4 */ GpEffArg              eff0;
     /* 0x3EC */ GpEffArg              eff1;
@@ -659,65 +659,65 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     work->field_494 = 0;
     work->field_49E = 0;
 
-    work->obj1.coord    = coord;
-    work->obj1.ctx.recs = work->rec1;
-    work->obj1.pos.vx   = 0;
-    work->obj1.pos.vy   = 0;
-    work->obj1.pos.vz   = 0;
-    work->obj1.key      = 0;
-    work->obj1.radius   = 0x7D0;
-    work->obj1.flags    = 1;
+    work->obj1.coord            = coord;
+    work->obj1.context.contacts = work->rec1;
+    work->obj1.pos.vx           = 0;
+    work->obj1.pos.vy           = 0;
+    work->obj1.pos.vz           = 0;
+    work->obj1.key              = 0;
+    work->obj1.radius           = 0x7D0;
+    work->obj1.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj1);
     Gp_InitRec18Table(work->rec1, ARRAY_SIZE(work->rec1), 0);
 
-    work->obj2.pos.vy   = -0x12C;
-    work->obj2.pos.vz   = -0xB4;
-    work->obj2.coord    = coord;
-    work->obj2.ctx.recs = work->rec2;
-    work->obj2.pos.vx   = 0;
-    work->obj2.key      = 0x3002B;
-    work->obj2.radius   = 0x12C;
-    work->obj2.flags    = 1;
-    work->obj1.flags   |= 0x8000;
+    work->obj2.pos.vy           = -0x12C;
+    work->obj2.pos.vz           = -0xB4;
+    work->obj2.coord            = coord;
+    work->obj2.context.contacts = work->rec2;
+    work->obj2.pos.vx           = 0;
+    work->obj2.key              = 0x3002B;
+    work->obj2.radius           = 0x12C;
+    work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->obj1.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_LinkObj(2, &work->obj2);
     Gp_InitRec18Table(work->rec2, ARRAY_SIZE(work->rec2), 0);
 
-    work->obj3.coord    = part3;
-    work->obj3.ctx.recs = work->rec3;
-    work->obj3.pos.vx   = 0;
-    work->obj3.pos.vy   = 0;
-    work->obj3.pos.vz   = 0;
-    work->obj3.key      = 0x3002B;
-    work->obj3.radius   = 0x96;
-    work->obj3.flags    = 1;
-    work->obj2.flags   |= 0xC200;
+    work->obj3.coord            = part3;
+    work->obj3.context.contacts = work->rec3;
+    work->obj3.pos.vx           = 0;
+    work->obj3.pos.vy           = 0;
+    work->obj3.pos.vz           = 0;
+    work->obj3.key              = 0x3002B;
+    work->obj3.radius           = 0x96;
+    work->obj3.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->obj2.flags           |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->obj3);
     Gp_InitRec18Table(work->rec3, ARRAY_SIZE(work->rec3), 0);
 
-    work->obj4.coord    = part3;
-    work->obj4.ctx.recs = work->rec4;
-    work->obj4.pos.vx   = 0;
-    work->obj4.pos.vy   = 0x50;
-    work->obj4.pos.vz   = 0x8C;
-    work->obj3.flags   |= 0xC000;
-    work->obj4.key      = Gp_PackPair(D_actor_207200_8014E7CC, 0);
-    work->obj4.radius   = 0x12C;
-    work->obj4.flags    = 1;
+    work->obj4.coord            = part3;
+    work->obj4.context.contacts = work->rec4;
+    work->obj4.pos.vx           = 0;
+    work->obj4.pos.vy           = 0x50;
+    work->obj4.pos.vz           = 0x8C;
+    work->obj3.flags           |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj4.key              = Gp_PackPair(D_actor_207200_8014E7CC, 0);
+    work->obj4.radius           = 0x12C;
+    work->obj4.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj4);
     Gp_InitRec18Table(work->rec4, ARRAY_SIZE(work->rec4), 0);
 
-    work->obj5.coord    = part6;
-    work->obj5.ctx.recs = work->rec5;
-    work->obj5.pos.vx   = 0xFA;
-    work->obj5.pos.vy   = 0;
-    work->obj5.pos.vz   = 0;
-    work->obj4.flags   &= 0x7FFF;
-    work->obj5.key      = Gp_PackPair(D_actor_207200_8014E7CC, 1);
-    work->obj5.radius   = 0x12C;
-    work->obj5.flags    = 1;
+    work->obj5.coord            = part6;
+    work->obj5.context.contacts = work->rec5;
+    work->obj5.pos.vx           = 0xFA;
+    work->obj5.pos.vy           = 0;
+    work->obj5.pos.vz           = 0;
+    work->obj4.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj5.key              = Gp_PackPair(D_actor_207200_8014E7CC, 1);
+    work->obj5.radius           = 0x12C;
+    work->obj5.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj5);
     Gp_InitRec18Table(work->rec5, ARRAY_SIZE(work->rec5), 0);
-    work->obj5.flags &= 0x7FFF;
+    work->obj5.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->eff0.coord      = arg1->extra.tmd->coords + 3;
     work->eff0.spawnArgLo = 0x100;
@@ -762,7 +762,7 @@ static void func_actor_207200_8014B628(Task* arg0)
             work->field_492   = 0;
             work->field_486   = 1;
             Gp_LcgState       = rnd;
-            work->obj1.flags &= 0x7FFF;
+            work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_4AA   = hi % 90;
             Gp_ArmStateF0(1);
         }
@@ -828,12 +828,12 @@ static void func_actor_207200_8014B87C(Task* arg0)
             if (work->field_4A6 == 0 && dist < 0x385 && ABS(angle) < 0x200) {
                 work->field_492   = 0;
                 work->field_49A   = 4;
-                work->obj3.flags &= 0xBFFF;
+                work->obj3.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 break;
             }
             work->field_48C   = 2;
             work->field_498   = 0;
-            work->obj3.flags |= 0x4000;
+            work->obj3.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             if ((u32)(work->field_490 - 20) < 20) {
                 work->field_492 = D_actor_207200_80153F20[(s16)work->field_490 - 20];
             } else {
@@ -934,10 +934,10 @@ static void func_actor_207200_8014B87C(Task* arg0)
                 SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             if ((s16)work->field_490 == 42) {
-                work->obj4.flags |= 0x8000;
+                work->obj4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if ((s16)work->field_490 == 45) {
-                work->obj4.flags &= 0x7FFF;
+                work->obj4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (work->field_4A0 != 0 && (s16)work->field_490 == 45) {
                 id = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40480005;
@@ -965,10 +965,10 @@ static void func_actor_207200_8014B87C(Task* arg0)
         case 5:
             work->field_492 = 0;
             if ((s16)work->field_490 == 30) {
-                work->obj5.flags |= 0x8000;
+                work->obj5.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if ((s16)work->field_490 == 60) {
-                work->obj5.flags &= 0x7FFF;
+                work->obj5.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if ((s16)work->field_490 >= 90) {
                 if (work->field_4A6 != 0) {
@@ -1202,19 +1202,19 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             }
         }
     } else {
-        work->obj4.flags &= 0x7FFF;
-        work->obj5.flags &= 0x7FFF;
+        work->obj4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj5.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     Gp_ClearRec18Occupied(work->rec2);
     Gp_ClearRec18Occupied(work->rec3);
     if (work->field_49A != 0) {
         if (Gp_FindRec18(work->rec4, 0) != 0) {
             work->field_4A0   = 1;
-            work->obj4.flags &= 0x7FFF;
+            work->obj4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ClearRec18Occupied(work->rec4);
         }
         if (Gp_FindRec18(work->rec5, 0) != 0) {
-            work->obj5.flags &= 0x7FFF;
+            work->obj5.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ClearRec18Occupied(work->rec5);
         }
     }
@@ -1246,8 +1246,8 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
             effArg = &work->eff2;
             func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
             func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
-            work->obj4.flags &= 0x7FFF;
-            work->obj5.flags &= 0x7FFF;
+            work->obj4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->obj5.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_UnlinkObj(&work->obj3);
             work->field_4A6     = 1;
             ctx->recs           = work->rec2;
@@ -1447,7 +1447,7 @@ static void func_actor_207200_8014CFEC(Task* arg0)
     work->field_4A6   = 1;
     ctx->recs         = work->rec2;
     ctx->hp           = 1;
-    work->obj3.flags &= 0x7FFF;
+    work->obj3.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UnlinkObj(&work->obj3);
     arg0->killCountdown = 0x14;
 }

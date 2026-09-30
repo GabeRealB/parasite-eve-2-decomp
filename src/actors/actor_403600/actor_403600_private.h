@@ -30,11 +30,11 @@ typedef struct Actor403600Work {
     /* 0x494 */ MATRIX                field_494;
     /* 0x4B4 */ struct GpEnemy*       field_4B4;
     /* 0x4B8 */ GfxCoord              field_4B8;
-    /* 0x508 */ GpObj                 field_508;
+    /* 0x508 */ WorldCollisionBody    field_508;
     /* 0x528 */ WorldCollisionContact field_528[4];
-    /* 0x588 */ GpObj                 field_588;
+    /* 0x588 */ WorldCollisionBody    field_588;
     /* 0x5A8 */ WorldCollisionContact field_5A8[1];
-    /* 0x5C0 */ GpObj                 field_5C0;
+    /* 0x5C0 */ WorldCollisionBody    field_5C0;
     /* 0x5E0 */ byte                  pad_5E0[0x18];
     /* 0x5F8 */ WorldCollisionContact field_5F8[4];
     /* 0x658 */ GpEffArg              field_658;
@@ -144,7 +144,7 @@ STATIC_ASSERT_SIZEOF(Actor403600FxWork, 0x11C);
 typedef struct Actor403600ProjectileWork {
     SVECTOR               trail[32]; // positions over the last 32 frames, newest first; each `pad` is a random angle its quad is turned by
     SVECTOR               velocity;  // step added to the position each frame
-    GpObj                 obj;       // collision body, linked only for the kinds that can hit
+    WorldCollisionBody    obj;       // collision body, linked only for the kinds that can hit
     GpActorD4Rec          shape;     // the capsule `obj` carries
     WorldCollisionContact recs[1];   // contact table of `shape`
     s32                   life;      // frames left before the projectile fades out; forced negative when it hits

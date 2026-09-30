@@ -57,7 +57,7 @@ typedef struct Actor311500Work {
     /* 0x000 */ ActorAnimRig19 rig;
     /// List node `func_actor_311500_801630A4` unlinks on the first step of
     /// state 1. Sits directly in front of the collision table.
-    /* 0x43C */ GpObj field_43C;
+    /* 0x43C */ WorldCollisionBody field_43C;
     /// One-entry contact table the enemy record points at; the damage check
     /// looks here for a hit.
     /* 0x45C */ WorldCollisionContact rec18[1];
@@ -482,20 +482,20 @@ static void func_actor_311500_801629D8(Task* arg0)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &arg0->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->hp                 = 0x32;
-    enemy->node.state.b.flags = 0;
-    enemy->reactionFlags      = 0;
-    enemy->param              = &D_actor_311500_801692C0;
-    work2->field_43C.coord    = &arg0->extra.tmd->coords[2];
-    work2->field_43C.ctx.recs = &work2->rec18[0];
-    work2->field_43C.pos.vx   = 0;
-    work2->field_43C.pos.vy   = 0;
-    work2->field_43C.pos.vz   = 0;
-    work2->field_43C.key      = 0x3000A;
-    work2->field_43C.radius   = 0x190;
-    work2->field_43C.flags    = 1;
+    enemy->hp                         = 0x32;
+    enemy->node.state.b.flags         = 0;
+    enemy->reactionFlags              = 0;
+    enemy->param                      = &D_actor_311500_801692C0;
+    work2->field_43C.coord            = &arg0->extra.tmd->coords[2];
+    work2->field_43C.context.contacts = &work2->rec18[0];
+    work2->field_43C.pos.vx           = 0;
+    work2->field_43C.pos.vy           = 0;
+    work2->field_43C.pos.vz           = 0;
+    work2->field_43C.key              = 0x3000A;
+    work2->field_43C.radius           = 0x190;
+    work2->field_43C.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work2->field_43C);
-    work2->field_43C.flags |= 0x8000;
+    work2->field_43C.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_InitRec18Table(&work2->rec18[0], 1, 0);
     enemy->recs      = &work2->rec18[0];
     arg0->msgTable   = D_actor_311500_80169330;

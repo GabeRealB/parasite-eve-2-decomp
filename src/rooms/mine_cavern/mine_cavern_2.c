@@ -74,7 +74,7 @@
 
 /// Work block a mine_cavern task parks at `Task::work`, allocated with
 /// `memCalloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`
-/// (and by `func_mine_cavern_801836D0`). It carries two `GpObj` display nodes:
+/// (and by `func_mine_cavern_801836D0`). It carries two `WorldCollisionBody` collision bodies:
 /// the `+0x40` one is what `func_mine_cavern_80183890` is given away by - it
 /// clears `obj40.flags` with `andi 0x7FFF` at +0x5E and then passes `&obj40` (a
 /// `+0x40` on the same base pointer) to `Gp_UnlinkObj`, the way
@@ -100,9 +100,9 @@
 typedef struct MineCavernWork {
     /* 0x000 */ MATRIX                light;
     /* 0x020 */ MATRIX                color;
-    /* 0x040 */ GpObj                 obj40;
+    /* 0x040 */ WorldCollisionBody    obj40;
     /* 0x060 */ WorldCollisionContact recs[4];
-    /* 0x0C0 */ GpObj                 objC0;
+    /* 0x0C0 */ WorldCollisionBody    objC0;
     /* 0x0E0 */ WorldCollisionContact recE0;
     /* 0x0F8 */ GfxCoord              coord;
     /* 0x148 */ u16                   field_148;
@@ -3893,12 +3893,12 @@ void func_mine_cavern_80182DC8(Task* arg0)
 /// original keeps it behind them.
 static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
 {
-    MineCavernWork* mem;
-    MineCavernWork* work;
-    GpObj*          obj40;
-    GpObj*          objC0;
-    u16             temp;
-    VECTOR          vec;
+    MineCavernWork*     mem;
+    MineCavernWork*     work;
+    WorldCollisionBody* obj40;
+    WorldCollisionBody* objC0;
+    u16                 temp;
+    VECTOR              vec;
 
     mem        = (MineCavernWork*)memCalloc(0x14C, false);
     work       = mem;
@@ -3918,30 +3918,30 @@ static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     obj40                                 = &work->obj40;
     obj40->coord                          = arg1->extra.tmd->coords;
-    obj40->ctx.recs                       = work->recs;
+    obj40->context.contacts               = work->recs;
     obj40->pos.vx                         = 0;
     obj40->pos.vy                         = -0x320;
     obj40->pos.vz                         = 0;
     obj40->key                            = 0x50000;
     obj40->radius                         = 0x100;
-    obj40->flags                          = 1;
+    obj40->flags                          = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj40);
-    obj40->flags |= 0x8000;
-    Gp_InitRec18Table(obj40->ctx.recs, 4, 0);
-    work->obj40.flags |= 0x8000;
-    objC0              = &work->objC0;
-    objC0->coord       = arg1->extra.tmd->coords;
-    objC0->ctx.recs    = &work->recE0;
-    temp               = ((SVECTOR*)NULL)->vy;
-    objC0->pos.vz      = 0;
-    objC0->radius      = 0xBB8;
-    objC0->flags       = 1;
-    objC0->pos.vy      = temp;
-    objC0->pos.vx      = temp;
+    obj40->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(obj40->context.contacts, 4, 0);
+    work->obj40.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    objC0                   = &work->objC0;
+    objC0->coord            = arg1->extra.tmd->coords;
+    objC0->context.contacts = &work->recE0;
+    temp                    = ((SVECTOR*)NULL)->vy;
+    objC0->pos.vz           = 0;
+    objC0->radius           = 0xBB8;
+    objC0->flags            = WORLD_COLLISION_BODY_SPHERE;
+    objC0->pos.vy           = temp;
+    objC0->pos.vx           = temp;
     Gp_LinkObj(1, objC0);
-    Gp_InitRec18Table(objC0->ctx.recs, 1, 0);
+    Gp_InitRec18Table(objC0->context.contacts, 1, 0);
     work->objC0.key    = 0x22121;
-    work->objC0.flags &= 0x7FFF;
+    work->objC0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
     arg0->param        = &D_mine_cavern_8018EAE4;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -4144,7 +4144,7 @@ static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
     MineCavernWork* work;
 
     work                      = (MineCavernWork*)task->work;
-    work->obj40.flags        &= 0x7FFF;
+    work->obj40.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     enemy->node.state.b.flags = 1;
     Gp_UnlinkObj(&work->obj40);
     work->field_148 = 0;
@@ -4218,7 +4218,7 @@ static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
         case 3:
         case 5:
-            work->objC0.flags &= 0x7FFF;
+            work->objC0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
 
         case 9:

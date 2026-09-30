@@ -16,16 +16,16 @@
 /// Work block of a fired grenade, allocated zeroed by the projectile's spawn
 /// state and kept at `Task::work`. The weapon overlays that fire grenades and
 /// Kyle's thrown-object task carry the same code. It leads with the two
-/// `GpObj` list nodes the exit callback hands back to `Gp_UnlinkObj`: `obj`
-/// is a node whose `ctx.recs` is `rec0` directly, and `obj2` a node whose
-/// `ctx.d4rec` is `d4rec`, reaching `rec1` through that shape's `recs`.
+/// `WorldCollisionBody` list nodes the exit callback hands back to `Gp_UnlinkObj`: `obj`
+/// is a node whose `context.contacts` is `rec0` directly, and `obj2` a node whose
+/// `context.capsule` is `d4rec`, reaching `rec1` through that shape's `recs`.
 /// `field_88` is 16.16: the whole word is the flight timer the flight state
 /// counts, and its high half the per-frame divisor the grenade's step along
 /// `dir` is taken by, so the grenade slows as the timer runs. `dir` is the
 /// launch direction: the muzzle's forward column pitched up and normalised.
 typedef struct WeaponGrenadeWork {
-    GpObj                 obj;
-    GpObj                 obj2;
+    WorldCollisionBody    obj;
+    WorldCollisionBody    obj2;
     WorldCollisionContact rec0[1];
     WorldCollisionContact rec1[1];
     GpActorD4Rec          d4rec;

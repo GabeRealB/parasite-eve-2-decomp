@@ -44,7 +44,7 @@
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, the
 /// display node `obj` the exit callback hands back to `Gp_UnlinkObj`, the
-/// one-entry contact table `rec` that `obj.ctx.recs` addresses, the child
+/// one-entry contact table `rec` that `obj.context.contacts` addresses, the child
 /// task `field_4B8` spawned from `D_actor_323300_8017255C`, and the walk,
 /// which this actor runs without accumulators or an arrival threshold.
 /// `field_500` enables the cue the per-frame runner posts, and `field_502` is
@@ -52,7 +52,7 @@
 typedef struct Actor323300Work {
     ActorAnimRig19        rig;
     ActorModelState       model;
-    GpObj                 obj;
+    WorldCollisionBody    obj;
     WorldCollisionContact rec;
     Task*                 field_4B8;
     ActorWalkState        walk;
@@ -444,9 +444,9 @@ static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
 /// 0x60 is already set (the actor already spawned) or the allocation fails.
 static void func_actor_323300_80161E78(Task* arg0)
 {
-    Actor323300Work* work;
-    TmdObject*       extra;
-    GpObj*           obj;
+    Actor323300Work*    work;
+    TmdObject*          extra;
+    WorldCollisionBody* obj;
 
     if (GameFlag_GetNibble(0x60) != 0 || (work = memCalloc(0x504, 0)) == NULL) {
         Gp_EnemyTaskExit(arg0);
@@ -458,19 +458,19 @@ static void func_actor_323300_80161E78(Task* arg0)
     work->field_500    = 1;
     work->field_502    = -1;
     func_actor_323300_801626D0(arg0);
-    extra         = arg0->extra.tmd;
-    obj           = &work->obj;
-    obj->coord    = extra->coords + 1;
-    obj->ctx.recs = &work->rec;
-    obj->key      = 0x30000;
-    obj->pos.vx   = 0;
-    obj->pos.vy   = 0;
-    obj->pos.vz   = 0;
-    obj->radius   = 0x100;
-    obj->flags    = 1;
+    extra                 = arg0->extra.tmd;
+    obj                   = &work->obj;
+    obj->coord            = extra->coords + 1;
+    obj->context.contacts = &work->rec;
+    obj->key              = 0x30000;
+    obj->pos.vx           = 0;
+    obj->pos.vy           = 0;
+    obj->pos.vz           = 0;
+    obj->radius           = 0x100;
+    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
-    obj->flags |= 0x8000;
-    Gp_InitRec18Table(obj->ctx.recs, 1, 0);
+    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(obj->context.contacts, 1, 0);
     arg0->msgTable = &D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, 0x7D5, 0, 0);
     func_actor_323300_801629F0(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
@@ -538,7 +538,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
 }
 
 /// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
-/// mode word, plus the display-node toggles the 0x504 work block's own `GpObj`
+/// mode word, plus the collision toggles the 0x504 work block's own `WorldCollisionBody`
 /// needs.
 ///
 /// Mode 0 hides the model -- `TmdObject::flags` bit 0x80, the bit
@@ -550,8 +550,8 @@ static void func_actor_323300_80161FE8(Task* arg0)
 /// skips the realloc for the two frames the countdown runs. Anything else
 /// returns 1 and leaves the object alone; the handled modes return 0.
 ///
-/// The node's `GpObj::flags` halfword is the induction variable, strided by one
-/// `GpObj` per step: the block owns a single node, so the walk covers one
+/// The node's `WorldCollisionBody::flags` halfword is the induction variable, strided by one
+/// `WorldCollisionBody` per step: the block owns a single node, so the walk covers one
 /// element, but retail keeps the array shape. Bit 0x8000 is the one
 /// `Gp_RunPairHandler` tests before pairing the node up, so this switch is what
 /// takes the node in and out of the pair walk.
@@ -572,7 +572,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags |= TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
             }
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -580,7 +580,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags &= ~TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= 0x8000;
             }
             Tmd_AllocBuffers(extra);
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -589,7 +589,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags |= TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
             }
             work->field_502 = 2;
             extra->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -598,7 +598,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags &= ~TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= 0x8000;
             }
             extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

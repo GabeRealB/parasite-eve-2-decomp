@@ -43,13 +43,13 @@
 #include "main/tmd_types.h"
 
 /// 0x38 block the flying dart's spawn state allocates with `memCalloc` and
-/// parks in `Task::work`. It leads with the `GpObj` list node
+/// parks in `Task::work`. It leads with the `WorldCollisionBody` list node
 /// `func_m4a1_pyke_8011E4AC` hands back to `Gp_UnlinkObj` on teardown; `rec` is
-/// the single-entry `WorldCollisionContact` collision table `obj.ctx.recs` points at, and its
+/// the single-entry `WorldCollisionContact` collision table `obj.context.contacts` points at, and its
 /// `flags` is set to 2 (the last-element bit) instead of going through
 /// `Gp_InitRec18Table`.
 typedef struct M4a1PykeBeam {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[1];
 } M4a1PykeBeam;
 STATIC_ASSERT_SIZEOF(M4a1PykeBeam, 0x38);
@@ -344,20 +344,20 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
-            work->scale        = (u16)task->spawnArg1.value + 0x180;
-            ang1               = Gp_LcgState * 5 + 0x71357911;
-            work->angle        = (ang1 >> 16) & 0xFFF;
-            task->state        = 1;
-            task->work         = beam;
-            beam->obj.coord    = coord;
-            beam->obj.ctx.recs = beam->rec;
-            beam->obj.key      = 0x21C1E;
-            beam->obj.radius   = work->scale >> 1;
-            Gp_LcgState        = ang1;
-            beam->obj.flags    = 1;
+            work->scale                = (u16)task->spawnArg1.value + 0x180;
+            ang1                       = Gp_LcgState * 5 + 0x71357911;
+            work->angle                = (ang1 >> 16) & 0xFFF;
+            task->state                = 1;
+            task->work                 = beam;
+            beam->obj.coord            = coord;
+            beam->obj.context.contacts = beam->rec;
+            beam->obj.key              = 0x21C1E;
+            beam->obj.radius           = work->scale >> 1;
+            Gp_LcgState                = ang1;
+            beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &beam->obj);
             beam->rec[0].flags = 2;
-            beam->obj.flags   |= 0x8000;
+            beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             /* fallthrough */
         case 1:
             work->scale         = work->scale + 0x10;
@@ -383,7 +383,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
                 func_m4a1_pyke_8011E168(MATRIX_TRANS(&ground.workm),
                                         (s16)((work->scale * 2) / 3));
             }
-            if (Gp_CountRec18Hi(beam->obj.ctx.recs, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(beam->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
                 Gp_ReleaseState1CMem(work, task);
                 return;
@@ -573,8 +573,8 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 /// Hypervelocity carries an identical copy.
 static void func_m4a1_pyke_8011E4AC(Task* task)
 {
-    GpObj* obj = task->work;
-    void*  mem = task->spawnArg2.pointer;
+    WorldCollisionBody* obj = task->work;
+    void*               mem = task->spawnArg2.pointer;
 
     if (obj != NULL) {
         Gp_UnlinkObj(obj);

@@ -12,33 +12,69 @@
 #include "main/coord.h"
 #include "main/session_types.h"
 
-/// One body an actor puts on the world's object lists: a sphere of `radius`
-/// whose centre is `pos`, a local offset under `coord`, and which the contacts
-/// it takes part in name by `key`.
+/// Collision-body kinds and flags stored together in one unsigned halfword.
 ///
-/// `flags` bits 0-2 select what `ctx` points at, which is how the collision
-/// passes reach the `WorldCollisionContact` table recording that body's contacts: 0 nothing,
-/// 1 the table itself, 2 a node whose own table is used, 3 the `GpActorD4Rec`
-/// shape the body carries, 4 a `WorldCollisionMotionContext`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
-/// 0x800 makes the contacts it produces name the node instead of a direction,
-/// and bits 0x4000 and 0x8000 enable the grid and pair passes, which skip a
-/// node whose bit is clear.
-typedef struct _GpObj {
-    struct _GpObj*  next;                   // next on the list
-    struct _GpObj** prev;                   // address of the preceding next link
-    GfxCoord*       coord;                  // transform `pos` is an offset under
+/// KIND_MASK selects the context interpretation; bits 4..7 are the receiving
+/// body index (0..15) copied to contact flags. FLOOR_QUERY adds the motion sphere's
+/// vertical floor test. CLIP_TO_GRID_CONTACT shortens a capsule at its grid
+/// contact; SINGLE_CONTACT also clips it at a pair contact and replaces the
+/// first contact while retaining the other body's encoded address.
+/// ROOM_TRIGGER_ENABLED tests room-transition quads, and VIEW_TRIGGER_ENABLED
+/// tests saved-view quads. GRID_ENABLED and PAIR_ENABLED gate the collision
+/// passes independently. FLAGS_MASK preserves the width of explicit masks.
+enum {
+    WORLD_COLLISION_BODY_NONE                 = 0,
+    WORLD_COLLISION_BODY_SPHERE               = 1,
+    WORLD_COLLISION_BODY_CONTACT_PROXY        = 2,
+    WORLD_COLLISION_BODY_CAPSULE              = 3,
+    WORLD_COLLISION_BODY_MOTION_SPHERE        = 4,
+    WORLD_COLLISION_BODY_KIND_MASK            = 7,
+    WORLD_COLLISION_BODY_LINKED               = 8,
+    WORLD_COLLISION_BODY_FLOOR_QUERY          = 0x200,
+    WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT = 0x400,
+    WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED = 0x1000,
+    WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED = 0x2000,
+    WORLD_COLLISION_BODY_GRID_ENABLED         = 0x4000,
+    WORLD_COLLISION_BODY_PAIR_ENABLED         = 0x8000,
+    WORLD_COLLISION_BODY_FLAGS_MASK           = 0xFFFF
+};
+
+/// A borrowed collision body linked into one of the world's object lists.
+///
+/// `pos` is a signed local offset in game-coordinate units. Spheres use it as
+/// their centre; capsules add it to both local endpoints. The cached `coord`
+/// transform determines the collision calculation's composition space.
+/// `key` is the packed contact category in the high halfword and identity in
+/// the low halfword; zero suppresses recording this body in pair contacts.
+///
+/// Kind 0 has no contact storage, 1 is a sphere with a direct table, 2 borrows
+/// a direct-table body's contacts, 3 supplies capsule/segment geometry and its
+/// table, and 4 is a sphere with motion direction and contacts. Kind 2 has no
+/// grid or pair test in the current dispatch tables. PAIR_ENABLED requires
+/// kind 1..4. Contact tables retain
+/// their final-entry marker and may be shared by several bodies.
+///
+/// Owners initialize the body, context and contact storage before linking,
+/// and keep all borrowed pointers alive until unlinking. Unlinking clears
+/// every flag except the kind, so pass enables and the body index must be
+/// restored before reuse. A SINGLE_CONTACT result retaining this body's
+/// address additionally requires it to stay alive until that result is reset.
+typedef struct WorldCollisionBody {
+    struct WorldCollisionBody*  next;              // Next body on the list; NULL at the tail
+    struct WorldCollisionBody** prev;              // Link containing this body: list head or preceding body's next
+    GfxCoord*                   coord;             // Borrowed transform for the local offset and shape
     union {
-        WorldCollisionContact*       recs;  // kind 1: the body's own contact table
-        struct _GpObj*               node;  // kind 2: the node whose table is used
-        GpActorD4Rec*                d4rec; // kind 3: the shape the body carries
-        WorldCollisionMotionContext* dir;   // kind 4: motion direction and contact table
-    } ctx;                                  // the body's collision context; see the kind bits
-    SVECTOR pos;                            // centre, in the `coord` frame
-    s32     key;                            // identity in the contact records: class << 16 | id
-    u16     radius;                         // collision radius
-    u16     flags;                          // kind, list membership and pass enables; see above
-} GpObj;
-STATIC_ASSERT_SIZEOF(GpObj, 0x20);
+        WorldCollisionContact*       contacts;     // Kind 1: initialized contact table
+        struct WorldCollisionBody*   contactOwner; // Kind 2: body whose context.contacts supplies the table
+        GpActorD4Rec*                capsule;      // Kind 3: local endpoints, end radii and contacts
+        WorldCollisionMotionContext* motion;       // Kind 4: motion direction and contact table
+    } context;                                     // Borrowed payload selected by flags & KIND_MASK
+    SVECTOR pos;                                   // Local sphere centre or capsule origin, in game-coordinate units
+    s32     key;                                   // Packed contact category << 16 | identity; 0 omits pair-contact recording
+    u16     radius;                                // Sphere/trigger radius and floor-query half-height, in game-coordinate units
+    u16     flags;                                 // Kind, LINKED, body index and independent pass options; see above
+} WorldCollisionBody;
+STATIC_ASSERT_SIZEOF(WorldCollisionBody, 0x20);
 
 /// The companion block `Gp_SpawnAlly` allocates (`Mem_Set` size 0xD4) and
 /// `GameActor.field_910` holds: the collision body a companion carries with it,
@@ -61,7 +97,7 @@ STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 typedef struct GpActorD4 {
     /* 0x00 */ byte                  pad_0[0x18];
     /* 0x18 */ GfxCoord              coord;         // the body's transform, a copy of the actor's model coordinate
-    /* 0x68 */ GpObj                 obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
+    /* 0x68 */ WorldCollisionBody    obj;           // the body: a kind-3 node whose `context.capsule` is `shape`
     /* 0x88 */ GpActorD4Rec          shape;         // the capsule the body's collisions are tested with
     /* 0xA0 */ WorldCollisionContact contact;       // the one-entry table `shape` records its contacts in
     /* 0xB8 */ byte                  pad_B8[0xC];

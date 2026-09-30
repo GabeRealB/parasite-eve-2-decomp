@@ -81,10 +81,10 @@ STATIC_ASSERT_SIZEOF(Actor356100TintRow, 0x8);
 /// `Actor01900Work.field_8A4` sits, and `field_98E` / `field_990` the zero-pair
 /// that function clears at +0x8AE / +0x8B0. `field_9BC` holds the 0x180 it
 /// writes; `Actor01900_Fn0AA78` puts the same constant in the neighbouring
-/// `GpObj` field it names `field_8C8.field_1C` (+0x8E4), not this one.
+/// `WorldCollisionBody` field it names `field_8C8.radius` (+0x8E4), not this one.
 /// `field_B5C` / `field_B60` are the two helper tasks the exit callback
 /// kills; same pair as `Actor01900Work` at +0xC38 / +0xC3C, without the three
-/// `GpObj` nodes that teardown unlinks.
+/// `WorldCollisionBody` nodes that teardown unlinks.
 typedef struct Actor356100Work {
     /* 0x000 */ s16 field_0;
     /* 0x002 */ s16 field_2;
@@ -881,7 +881,7 @@ static void func_actor_356100_8016A1D8(Task* arg0);
 /// When the work block's `field_4` flag is set, clears the enemy's link node,
 /// reallocates the model buffers and writes the 0x978..0x982 animation
 /// slots; otherwise clears the model's root `composeStamp`. Same shape as
-/// `Actor01900_Fn0A7C0` without the two `GpObj` flag masks.
+/// `Actor01900_Fn0A7C0` without the two `WorldCollisionBody` flag masks.
 static void func_actor_356100_8016A21C(Task* arg0);
 
 /// Same shape as `func_actor_356100_8016A21C` with `field_97E = 3`.
@@ -907,7 +907,7 @@ static void func_actor_356100_8016A468(Task* arg0);
 /// When the work block's `field_4` flag is set, clears the model's `field_C`,
 /// clears the enemy's link node and writes the 0x978..0x982 animation slots
 /// with `field_9BC` forced to 0x180. Bit 0 of `field_68` forces `field_0` to 7.
-/// Same shape as `Actor01900_Fn0AA78` without its two `GpObj` flag masks.
+/// Same shape as `Actor01900_Fn0AA78` without its two `WorldCollisionBody` flag masks.
 static void func_actor_356100_8016A5DC(Task* arg0);
 
 /// Per-frame tick run under the death-throes clip 0xB / 0xC pair.

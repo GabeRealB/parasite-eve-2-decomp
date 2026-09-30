@@ -20,22 +20,22 @@
 #include "main/tmd_types.h"
 
 typedef struct Actor510900Work {
-    /* 0x000 */ GpObj  obj0;
-    /* 0x020 */ byte   pad_20[0x18];
-    /* 0x038 */ GpObj  obj38;
-    /* 0x058 */ byte   pad_58[0x264];
-    /* 0x2BC */ GpObj  obj2BC;
-    /* 0x2DC */ byte   pad_2DC[0x18];
-    /* 0x2F4 */ GpObj  obj2F4;
-    /* 0x314 */ byte   pad_314[0x128];
-    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::colorMtx
-    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::lightMtx
-    /* 0x47C */ GpObj  obj47C;
+    /* 0x000 */ WorldCollisionBody obj0;
+    /* 0x020 */ byte               pad_20[0x18];
+    /* 0x038 */ WorldCollisionBody obj38;
+    /* 0x058 */ byte               pad_58[0x264];
+    /* 0x2BC */ WorldCollisionBody obj2BC;
+    /* 0x2DC */ byte               pad_2DC[0x18];
+    /* 0x2F4 */ WorldCollisionBody obj2F4;
+    /* 0x314 */ byte               pad_314[0x128];
+    /* 0x43C */ MATRIX             field_43C; ///< colour matrix, handed to TmdObject::colorMtx
+    /* 0x45C */ MATRIX             field_45C; ///< light matrix, handed to TmdObject::lightMtx
+    /* 0x47C */ WorldCollisionBody obj47C;
     /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records), and
     /// the enemy's `GpEnemy::recs`.
     /* 0x49C */ WorldCollisionContact rec49C[3];
-    /* 0x4E4 */ GpObj                 obj4E4;
-    /* 0x504 */ GpObj                 obj504;
+    /* 0x4E4 */ WorldCollisionBody    obj4E4;
+    /* 0x504 */ WorldCollisionBody    obj504;
     /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
     /// `Gp_InitRec18Table` seeds it.
     /* 0x524 */ WorldCollisionContact rec524[1];

@@ -56,7 +56,7 @@ typedef struct _GpRayHitScratch {
 STATIC_ASSERT_SIZEOF(GpRayHitScratch, 0x40);
 
 /// 0x18-byte scratch from the scratch stack used by `func_800DEC80`.
-/// `local` is `GpObj.ctx.d4rec` as `SVECTOR[2]` plus `GpObj.pos`,
+/// `local` is `WorldCollisionBody.context.capsule` as `SVECTOR[2]` plus `WorldCollisionBody.pos`,
 /// rotated by `coord->workm` into `vec` then added to `workm.t`.
 /// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
 typedef struct _GpNormScratch {
@@ -93,8 +93,8 @@ STATIC_ASSERT_SIZEOF(GpFaceHitScratch, 0x80);
 
 /// 0x50-byte scratch from the scratch stack used by `func_800DDC2C` and
 /// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
-/// `GpObj.pos` offset by `ctx.dir->motionDirection` scaled by
-/// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `ctx.d4rec`
+/// `WorldCollisionBody.pos` offset by `context.motion->motionDirection` scaled by
+/// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `context.capsule`
 /// leads with (`func_800DE150`, which passes 1 to `func_800DE2C0`). `mat`
 /// is `gGfxViewCoord.workm * coord->workm`. `pos` holds the rotated endpoints
 /// plus `mat.t[0]/t[2]` and `Gp_GridParams` grid offsets, then passed to
@@ -154,17 +154,17 @@ GpObj4C* Gp_Obj4CList;
 
 #include "world_collision.h"
 
-static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos);
+static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos);
 
-static void func_800DDC2C(GpObj* arg0);
+static void func_800DDC2C(WorldCollisionBody* arg0);
 
-static void func_800DE150(GpObj* arg0);
+static void func_800DE150(WorldCollisionBody* arg0);
 
 static void func_800DE2C0(VECTOR* arg0, s32 arg1);
 
 static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
 
-static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
+static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos)
 {
     u8*     h;
     VECTOR* vec;
@@ -181,7 +181,7 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void func_800DD940(GpObj* arg0)
+void func_800DD940(WorldCollisionBody* arg0)
 {
     u8*                    head;
     GpFloorScratch*        block;
@@ -204,7 +204,7 @@ void func_800DD940(GpObj* arg0)
         if (D_80115450[i] &&
             Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vy < -0xDDA &&
             func_800DD324(i, block->seg, block->ray, arg0)) {
-            slot  = arg0->ctx.dir->contacts;
+            slot  = arg0->context.motion->contacts;
             flags = slot->flags;
             if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                 if ((u32)(slot->key.value & 0xF) < (u32)Gp_GridParams->field_C[i].surfaceClass) {
@@ -229,22 +229,22 @@ void func_800DD940(GpObj* arg0)
     SCRATCH_POP_BYTES(0x50);
 }
 
-static void func_800DDC2C(GpObj* arg0)
+static void func_800DDC2C(WorldCollisionBody* arg0)
 {
     s32            i;
     GpEdgeScratch* block;
     SVECTOR*       motionDirection;
     MATRIX*        mat;
 
-    motionDirection  = &arg0->ctx.dir->motionDirection;
+    motionDirection  = &arg0->context.motion->motionDirection;
     block            = SCRATCH_PUSH(GpEdgeScratch);
     mat              = &block->mat;
-    block->src[0].vx = (u16)arg0->pos.vx + ((motionDirection->vx * (u16)arg0->radius) >> 12);
+    block->src[0].vx = (u16)arg0->pos.vx + ((motionDirection->vx * arg0->radius) >> 12);
     block->src[0].vy = 0;
-    block->src[0].vz = (u16)arg0->pos.vz + ((motionDirection->vz * (u16)arg0->radius) >> 12);
-    block->src[1].vx = (u16)arg0->pos.vx + (-(motionDirection->vx * (u16)arg0->radius) >> 12);
+    block->src[0].vz = (u16)arg0->pos.vz + ((motionDirection->vz * arg0->radius) >> 12);
+    block->src[1].vx = (u16)arg0->pos.vx + (-(motionDirection->vx * arg0->radius) >> 12);
     block->src[1].vy = 0;
-    block->src[1].vz = (u16)arg0->pos.vz + (-(motionDirection->vz * (u16)arg0->radius) >> 12);
+    block->src[1].vz = (u16)arg0->pos.vz + (-(motionDirection->vz * arg0->radius) >> 12);
     Gp_WorldToLocal(&gGfxViewCoord.workm, &arg0->coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
@@ -259,7 +259,7 @@ static void func_800DDC2C(GpObj* arg0)
     SCRATCH_POP(GpEdgeScratch);
 }
 
-void func_800DDDF8(GpObj* obj)
+void func_800DDDF8(WorldCollisionBody* obj)
 {
     GpSegmentHitScratch*   block;
     WorldCollisionContact* slot;
@@ -276,8 +276,8 @@ void func_800DDDF8(GpObj* obj)
 
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, obj) != 0) {
-            slot = obj->ctx.d4rec->recs;
-            if (obj->flags & 0x400) {
+            slot = obj->context.capsule->recs;
+            if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
                                       [Gp_GridParams->field_C[i].surfaceClass]
                                           ->field_1 == 0) {
@@ -321,7 +321,7 @@ void func_800DDDF8(GpObj* obj)
     SCRATCH_POP(GpSegmentHitScratch);
 }
 
-static void func_800DE150(GpObj* arg0)
+static void func_800DE150(WorldCollisionBody* arg0)
 {
     s32            i;
     u8*            head;
@@ -335,7 +335,7 @@ static void func_800DE150(GpObj* arg0)
     SCRATCH_HEAD(void) = head - 0x50;
     block              = (GpEdgeScratch*)(head - 0x50);
     mat                = (MATRIX*)(head - 0x20);
-    src                = (SVECTOR*)arg0->ctx.d4rec;
+    src                = &arg0->context.capsule->end0;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
@@ -549,7 +549,7 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     SCRATCH_POP_BYTES(0x40);
 }
 
-void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     GpNormScratch*         block;
     GpActorD4Rec*          rec;
@@ -558,13 +558,13 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     s32                    flags;
     s32                    i;
 
-    rec   = arg0->ctx.d4rec;
+    rec   = arg0->context.capsule;
     block = SCRATCH_PUSH(GpNormScratch);
     i     = 0;
 
     if (arg3 == 0) {
         if (arg0->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
-            slot = arg0->ctx.d4rec->recs;
+            slot = arg0->context.capsule->recs;
             for (;;) {
                 flags = slot->flags;
                 if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -579,8 +579,8 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                 }
                 slot++;
             }
-        } else if (arg0->flags & 0x400) {
-            slot = arg0->ctx.d4rec->recs;
+        } else if (arg0->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
+            slot = arg0->context.capsule->recs;
             for (;;) {
                 if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                     if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
@@ -597,8 +597,8 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                 slot++;
             }
         }
-    } else if (arg0->flags & 0x400) {
-        slot = arg0->ctx.d4rec->recs;
+    } else if (arg0->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
+        slot = arg0->context.capsule->recs;
         for (;;) {
             if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                 if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
@@ -639,7 +639,7 @@ done_search:
     SCRATCH_POP(GpNormScratch);
 }
 
-void func_800DEF80(GpObj* node, GpObj4C* other)
+void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
 {
     GpQuadHitScratch* block;
     s32               distSq;
@@ -781,7 +781,7 @@ void func_800DEF80(GpObj* node, GpObj4C* other)
     SCRATCH_POP(GpQuadHitScratch);
 }
 
-void func_800DF6AC(GpObj* node, GpObj4C* other, VECTOR3* from)
+void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
 {
     _GpQuadDirScratch* block;
     s32                dist;

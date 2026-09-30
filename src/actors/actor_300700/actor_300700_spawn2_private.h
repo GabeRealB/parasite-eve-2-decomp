@@ -13,7 +13,7 @@
 #include "main/session_types.h"
 
 /// The 0x39C-byte allocation `func_actor_300700_80163510` makes with
-/// `memCalloc` and stores in `Task::work`, then fills with the four `GpObj`
+/// `memCalloc` and stores in `Task::work`, then fills with the four `WorldCollisionBody`
 /// render nodes (`Gp_LinkObj`, shapes 3/2/2/3) and their `WorldCollisionContact` tables.
 ///
 /// This is the work block the overlay's second enemy variant runs on - the
@@ -30,13 +30,13 @@ typedef struct Actor300700Spawn2Work {
     /* 0x17C */ MATRIX                field_17C;
     /* 0x19C */ MATRIX                field_19C;       // TmdObject color matrix
     /* 0x1BC */ MATRIX                field_1BC;       // TmdObject light matrix
-    /* 0x1DC */ GpObj                 obj1;
+    /* 0x1DC */ WorldCollisionBody    obj1;
     /* 0x1FC */ WorldCollisionContact rec1[1];
-    /* 0x214 */ GpObj                 obj2;
+    /* 0x214 */ WorldCollisionBody    obj2;
     /* 0x234 */ WorldCollisionContact rec2[3];
-    /* 0x27C */ GpObj                 obj3;
+    /* 0x27C */ WorldCollisionBody    obj3;
     /* 0x29C */ WorldCollisionContact rec3[4];
-    /* 0x2FC */ GpObj                 obj4;
+    /* 0x2FC */ WorldCollisionBody    obj4;
     /* 0x31C */ WorldCollisionContact rec4[1];
     /* 0x334 */ GfxCoord*             field_334;
     /* 0x338 */ s16                   field_338;

@@ -38,7 +38,7 @@
             } else {                                                                                                                      \
                 if (((rec)->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {                             \
                     _other = _worldCollisionGetObjectContacts(                                                                            \
-                        (GpObj*)((((rec)->response.node.high << 16) & 0xFFFF0000) | (rec)->response.node.low));                           \
+                        (WorldCollisionBody*)((((rec)->response.node.high << 16) & 0xFFFF0000) | (rec)->response.node.low));              \
                     if (_other == NULL) {                                                                                                 \
                         return;                                                                                                           \
                     }                                                                                                                     \
@@ -151,33 +151,33 @@ STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
 
 s32 Gp_PendingObj4CFlag;
 
-s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind);
+s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind);
 
-s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind);
+s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind);
 
-static void Gp_RunPairHandler(GpObj* node);
+static void Gp_RunPairHandler(WorldCollisionBody* node);
 
-static void _worldCollisionRecordPairContact(GpObj* receivingBody, GpObj* contactedBody, _WorldCollisionPairContact* contact);
+static void _worldCollisionRecordPairContact(WorldCollisionBody* receivingBody, WorldCollisionBody* contactedBody, _WorldCollisionPairContact* contact);
 
 /// Contact table selected by the body's shape, or NULL for a body without one.
-static inline WorldCollisionContact* _worldCollisionGetObjectContacts(GpObj* obj)
+static inline WorldCollisionContact* _worldCollisionGetObjectContacts(WorldCollisionBody* obj)
 {
     WorldCollisionContact* recs = NULL;
 
-    switch (obj->flags & 7) {
-        case 0:
+    switch (obj->flags & WORLD_COLLISION_BODY_KIND_MASK) {
+        case WORLD_COLLISION_BODY_NONE:
             break;
-        case 1:
-            recs = obj->ctx.recs;
+        case WORLD_COLLISION_BODY_SPHERE:
+            recs = obj->context.contacts;
             break;
-        case 2:
-            recs = obj->ctx.node->ctx.recs;
+        case WORLD_COLLISION_BODY_CONTACT_PROXY:
+            recs = obj->context.contactOwner->context.contacts;
             break;
-        case 3:
-            recs = obj->ctx.d4rec->recs;
+        case WORLD_COLLISION_BODY_CAPSULE:
+            recs = obj->context.capsule->recs;
             break;
-        case 4:
-            recs = obj->ctx.dir->contacts;
+        case WORLD_COLLISION_BODY_MOTION_SPHERE:
+            recs = obj->context.motion->contacts;
             break;
     }
     return recs;
@@ -224,35 +224,37 @@ void Gp_TickWorldCollision(Task* unused)
         if (Gp_PendingObj4CFlag != 0) {
             Gp_ClearPendingObj4C();
         }
-        func_800E0608(Gp_ObjList0, 0x9007, 0x9004);
+        func_800E0608(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
+                      WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
         if (gGameSession->field_12C == 0) {
-            func_800E06AC(Gp_ObjList0, 0xA007, 0xA004);
+            func_800E06AC(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
+                          WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
         }
     }
 }
 
-static void Gp_RunPairHandler(GpObj* node)
+static void Gp_RunPairHandler(WorldCollisionBody* node)
 {
-    GpObj*      other;
-    GpPairRule* rec;
-    s32         rowOff;
-    s32         temp;
-    u16         flags;
-    u16         handler;
-    u16         swap;
-    u8          kind;
-    u8          otherKind;
+    WorldCollisionBody* other;
+    GpPairRule*         rec;
+    s32                 rowOff;
+    s32                 temp;
+    u16                 flags;
+    u16                 handler;
+    u16                 swap;
+    u8                  kind;
+    u8                  otherKind;
 
     for (; node != NULL; node = node->next) {
         flags = node->flags;
         other = node->next;
-        if (flags & 0x8000) {
-            kind = (node->flags & 7) - 1;
+        if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
+            kind = (node->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
             if (other != NULL) {
                 rowOff = kind << 4;
                 for (; other != NULL; other = other->next) {
-                    if (other->flags & 0x8000) {
-                        otherKind = (other->flags & 7) - 1;
+                    if (other->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
+                        otherKind = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
                         temp      = (otherKind << 2) + rowOff;
                         rec       = &D_8010FA4C[0][0] + (temp >> 2);
                         swap      = rec->swap;
@@ -270,7 +272,7 @@ static void Gp_RunPairHandler(GpObj* node)
 }
 
 /// Records an identified pair contact in the receiving body's initialized table.
-static void _worldCollisionRecordPairContact(GpObj* receivingBody, GpObj* contactedBody, _WorldCollisionPairContact* contact)
+static void _worldCollisionRecordPairContact(WorldCollisionBody* receivingBody, WorldCollisionBody* contactedBody, _WorldCollisionPairContact* contact)
 {
     WorldCollisionContact* rec;
 
@@ -291,7 +293,7 @@ static void _worldCollisionRecordPairContact(GpObj* receivingBody, GpObj* contac
     rec->response.normal = contact->response;
 }
 
-s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind)
+s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
 {
     u8*                           head;
     _WorldCollisionSphereScratch* block;
@@ -338,12 +340,12 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind)
     return ret;
 }
 
-s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
+s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
 {
     // Collision records encode the source address as two halfwords.
     union {
-        GpObj* object;
-        s32    address;
+        WorldCollisionBody* object;
+        s32                 address;
     } sourceAddress;
     u8*                            head;
     _WorldCollisionCapsuleScratch* block;
@@ -378,15 +380,15 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
     head               = SCRATCH_HEAD(u8);
     pos                = (VECTOR3*)(head - 0x78);
     SCRATCH_HEAD(void) = head - sizeof(_WorldCollisionCapsuleScratch);
-    rec                = arg1->ctx.d4rec;
+    rec                = arg1->context.capsule;
     block              = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
     Gp_ObjWorldPos(arg0, pos);
     ends = (VECTOR*)(head - 0x68);
     func_800DEC80(arg1, ends, (SVECTOR*)(head - 0x18), 0);
 
-    block->scaled.vx = (block->normal.vx * (u16)arg0->radius) >> 12;
-    block->scaled.vy = (block->normal.vy * (u16)arg0->radius) >> 12;
-    block->scaled.vz = (block->normal.vz * (u16)arg0->radius) >> 12;
+    block->scaled.vx = (block->normal.vx * arg0->radius) >> 12;
+    block->scaled.vy = (block->normal.vy * arg0->radius) >> 12;
+    block->scaled.vz = (block->normal.vz * arg0->radius) >> 12;
 
     block->planeA.vx = block->end0.vx + block->scaled.vx;
     block->planeA.vy = block->end0.vy + block->scaled.vy;
@@ -416,7 +418,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
     r1      = rec->end0Radius;
     tapered = r1 != rec->end1Radius;
     if (!tapered) {
-        tmp           = (u16)arg0->radius + r1;
+        tmp           = arg0->radius + r1;
         block->hit.vx = (u16)block->planeB.vx + ((block->normal.vx * proj) >> 12);
         block->hit.vy = (u16)block->planeB.vy + ((block->normal.vy * proj) >> 12);
         block->hit.vz = (u16)block->planeB.vz + ((block->normal.vz * proj) >> 12);
@@ -424,7 +426,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
         goto check;
     }
 
-    if (arg1->flags & 0xC00) {
+    if (arg1->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
         gte_SetRotMatrix(&arg1->coord->workm);
         block->scaled.vx = (u16)rec->end0.vx + (u16)arg1->pos.vx;
         block->scaled.vy = (u16)rec->end0.vy + (u16)arg1->pos.vy;
@@ -457,7 +459,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
     r0            = (rec->end0Radius << 12) / rec->end1Radius;
     proj          = (plen << 12) / proj;
     tmp           = r0 - 0x1000;
-    r1            = (u16)arg0->radius;
+    r1            = arg0->radius;
     proj          = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
     block->hit.vx = (u16)block->scaled.vx + (u16)block->planeB.vx;
     block->hit.vy = (u16)block->scaled.vy + (u16)block->planeB.vy;
@@ -505,7 +507,7 @@ check:
     return ret;
 }
 
-void Gp_CollideObjGrid(GpObj* arg0)
+void Gp_CollideObjGrid(WorldCollisionBody* arg0)
 {
     u8*                    head;
     GpGridHitScratch*      block;
@@ -563,7 +565,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                          block->normal.vz * block->pos.vz) >>
                         12) -
                        faceDot;
-                if ((u16)arg0->radius >= ABS((s16)dist)) {
+                if (arg0->radius >= ABS((s16)dist)) {
                     goto edges;
                 }
                 goto next_face;
@@ -574,7 +576,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
 
             fill:
                 slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                slot->distance        = (u16)arg0->radius - dist;
+                slot->distance        = arg0->radius - dist;
                 slot->key.value       = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
                 slot->point.vx        = 0;
                 slot->point.vy        = 0;
@@ -625,7 +627,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                     continue;
                 }
 
-                slot = arg0->ctx.recs;
+                slot = arg0->context.contacts;
                 for (;;) {
                     flags = slot->flags;
                     if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
@@ -647,7 +649,7 @@ done:
     SCRATCH_POP_BYTES(0x88);
 }
 
-void Gp_CollideObjGridDir(GpObj* arg0)
+void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
 {
     u8*                          head;
     GpGridHitScratch*            block;
@@ -672,7 +674,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
     pos                = (VECTOR3*)(head - 0x80);
     SCRATCH_HEAD(void) = head - 0x88;
     block              = (GpGridHitScratch*)(head - 0x88);
-    motionContext      = arg0->ctx.dir;
+    motionContext      = arg0->context.motion;
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
@@ -720,7 +722,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                          block->normal.vz * block->pos.vz) >>
                         12) -
                        faceDot;
-                if ((u16)arg0->radius >= ABS((s16)dist)) {
+                if (arg0->radius >= ABS((s16)dist)) {
                     goto edges;
                 }
                 goto next_face;
@@ -763,7 +765,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                                   block->delta.vz * block->pos.vz) >>
                                  12) -
                                 edgeDot);
-                    if (val - (u16)arg0->radius > 0) {
+                    if (val - arg0->radius > 0) {
                         outside = 1;
                         goto edges_done;
                     }
@@ -780,7 +782,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                     continue;
                 }
 
-                slot = arg0->ctx.dir->contacts;
+                slot = arg0->context.motion->contacts;
                 for (;;) {
                     flags = slot->flags;
                     if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -788,15 +790,15 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                             if (slot->response.normal.vx == Gp_GridParams->field_4[face->normalIndex].vx &&
                                 slot->response.normal.vy == Gp_GridParams->field_4[face->normalIndex].vy &&
                                 slot->response.normal.vz == Gp_GridParams->field_4[face->normalIndex].vz) {
-                                if (slot->distance < (s32)(u16)arg0->radius - (s16)dist) {
-                                    slot->distance = (u16)arg0->radius - dist;
+                                if (slot->distance < (s32)arg0->radius - (s16)dist) {
+                                    slot->distance = arg0->radius - dist;
                                 }
                                 goto next_face;
                             }
                         }
                     } else {
                         slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                        slot->distance        = (u16)arg0->radius - dist;
+                        slot->distance        = arg0->radius - dist;
                         faceKind              = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
                         slot->key.value       = extra | faceKind;
                         slot->point.vx        = 0;
@@ -821,7 +823,7 @@ done:
     SCRATCH_POP_BYTES(0x88);
 }
 
-s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, GpObj* arg3)
+s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3)
 {
     u8*               head;
     GpGridRayScratch* block;

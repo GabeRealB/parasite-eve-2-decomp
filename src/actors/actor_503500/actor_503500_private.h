@@ -26,13 +26,13 @@ struct Actor503500Work;
 struct Task;
 
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
-/// that reach them disagree about. The 0x160 block parks its display node
+/// that reach them disagree about. The 0x160 block parks its collision body
 /// there -- `func_actor_503500_801372C8` links `obj` and
 /// `func_actor_503500_80138288` hands it back to `Gp_UnlinkObj`. The boss
 /// links its node at `field_5D4` instead and uses the run for state flags;
 /// `func_actor_503500_80136014` tests bits 0x102 of the halfword at 0x4C.
 typedef union Actor503500Slot40 {
-    GpObj obj;
+    WorldCollisionBody obj;
     struct {
         /* 0x00 */ byte pad_0[0xC];
         /* 0x0C */ u16  flags_4C;
@@ -59,10 +59,10 @@ typedef struct Actor503500FixVec {
 STATIC_ASSERT_SIZEOF(Actor503500FixVec, 0x10);
 
 typedef struct Actor503500Work {
-    /* 0x000 */ GpObj                 obj; // the display node Gp_UnlinkObj takes
+    /* 0x000 */ WorldCollisionBody    obj; // the collision body Gp_UnlinkObj takes
     /* 0x020 */ WorldCollisionContact rec; // collision table; 0xF0 enemies pass count 8
     /* 0x038 */ byte                  pad_38[0x8];
-    /// Display node of the 0x160 block, which puts its own node here rather
+    /// Collision body of the 0x160 block, which puts its own node here rather
     /// than at 0x0: `func_actor_503500_801372C8` links it (and runs
     /// `Gp_InitRec18Table` over the record area right behind it, at 0x60) and
     /// `func_actor_503500_80138288` hands it back to `Gp_UnlinkObj`.
@@ -73,10 +73,10 @@ typedef struct Actor503500Work {
     /// names `field_7E` inside that run.
     /* 0x060 */ WorldCollisionContact rec60[1];
     /* 0x078 */ byte                  pad_78[0x6];
-    /* 0x07E */ u16                   field_7E; // GpObj::flags of obj[3] in the 0x224 block
+    /* 0x07E */ u16                   field_7E; // WorldCollisionBody::flags of obj[3] in the 0x224 block
     /* 0x080 */ byte                  pad_80[0x60];
     /// Coordinate the 0xF4 block at `D_actor_503500_80177A6C` republishes
-    /// alongside its display node: `func_actor_503500_8013ECBC` stores the
+    /// alongside its collision body: `func_actor_503500_8013ECBC` stores the
     /// task's own `TmdObject::coords` in it and seeds the record's 0x600 / 3
     /// argument pair.
     /* 0x0E0 */ GpEffArg field_E0; // record the block's effects are spawned with
@@ -111,11 +111,11 @@ typedef struct Actor503500Work {
     /* 0x15D */ s8  field_15D; // sub-state phase, cleared with field_15C
     /* 0x15E */ s8  field_15E; // seeded to -1 by func_actor_503500_801372C8
     /* 0x15F */ s8  field_15F; // effect-offset index, taken mod 3
-                               /// The two display nodes of the 0x3D8 block, linked by
+                               /// The two collision bodies of the 0x3D8 block, linked by
                                /// `func_actor_503500_8013FA74` and both handed back to `Gp_UnlinkObj` by
                                /// `func_actor_503500_80141D04`. The 0x224 block puts a node at 0x160 too
                                /// (`Actor503500Work224::obj2`); the shorter blocks stop before it.
-    /* 0x160 */ GpObj obj160;
+    /* 0x160 */ WorldCollisionBody obj160;
     /// Record table of `obj160`, passed with count 8 by
     /// `func_actor_503500_801420C4`, so the 0x3D8 block's table really runs to
     /// 0x240. Only the part before the 0x224 block's `field_221` is named here;
@@ -124,7 +124,7 @@ typedef struct Actor503500Work {
     /* 0x210 */ byte                  pad_210[0x11];
     /* 0x221 */ s8                    field_221; // sub-state index
     /* 0x222 */ byte                  pad_222[0x1E];
-    /* 0x240 */ GpObj                 obj240;
+    /* 0x240 */ WorldCollisionBody    obj240;
     /* 0x260 */ WorldCollisionContact rec260[4]; // obj240's table, count 4
     /* 0x2C0 */ byte                  pad_2C0[0x14];
     /* 0x2D4 */ s16                   field_2D4; // sub-state index of the 0x2EC block
@@ -195,14 +195,14 @@ typedef struct Actor503500Work {
     /* 0x5A4 */ VECTOR   field_5A4; // scale of coord504
     /* 0x5B4 */ VECTOR   field_5B4; // scale of coord554
     /* 0x5C4 */ VECTOR   field_5C4; // scale of model part 16, bit 0x10000
-                                    /// Display node + collision record of the boss's second body part:
+                                    /// Collision body + collision record of the boss's second body part:
                                     /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
                                     /// `func_actor_503500_80136A88` re-places the pair and
                                     /// `func_actor_503500_80136228` hands `field_5D4` back to
                                     /// `Gp_UnlinkObj` on teardown.
-    /* 0x5D4 */ GpObj field_5D4;
+    /* 0x5D4 */ WorldCollisionBody field_5D4;
     /// Record table of `field_5D4`'s node -- `func_actor_503500_80132F64`
-    /// parks this address in that `GpObj` and `func_actor_503500_80136A88`
+    /// parks this address in that `WorldCollisionBody` and `func_actor_503500_80136A88`
     /// re-places the pair with count 8.
     /* 0x5F4 */ WorldCollisionContact rec5F4[8];
     /// Per-frame X / Z step of `field_6C4`, written by
@@ -293,14 +293,14 @@ STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 /// static global: `func_actor_503500_80144300` (0xC0),
 /// `func_actor_503500_801448E8` (0xB4), `func_actor_503500_80144E8C` (0xD0),
 /// `func_actor_503500_801455A4` (0x44), `func_actor_503500_80145A2C` (0xAC)
-/// and `func_actor_503500_8014642C` (0x4CC). Each starts with the `GpObj`
-/// display node their exit callback hands to `Gp_UnlinkObj`, and the ones that
+/// and `func_actor_503500_8014642C` (0x4CC). Each starts with the `WorldCollisionBody`
+/// collision body their exit callback hands to `Gp_UnlinkObj`, and the ones that
 /// place geometry follow it with the `WorldCollisionContact` collision record
 /// (`func_actor_503500_801448E8` derives its `WorldCollisionContact` base as `block + 0x20`).
 /// Only that head is shared; the payload after it differs per task, which is
 /// why this type stops at 0x38.
 typedef struct Actor503500ObjWork {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec;
 } Actor503500ObjWork;
 STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);

@@ -1347,8 +1347,8 @@ static void func_actor_341700_80162B8C(Task* task)
     work->field_82         = root->coord.t[1];
     work->field_84         = root->coord.t[2];
     work->field_451        = 1;
-    work->obj_2AC.flags   &= 0x7FFF;
-    work->obj_2CC.flags   &= 0xBFFF;
+    work->obj_2AC.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj_2CC.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     w3                     = (Actor341700Work*)task->work;
     task->state            = 6;
     w3->field_420          = 0;
@@ -1661,9 +1661,9 @@ static void func_actor_341700_80163600(Task* arg0)
         arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->obj_3AC.flags                  |= 0x8000;
+        work->obj_3AC.flags                  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->obj_3AC.flags &= 0x7FFF;
+        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if (work->field_412 >= 45 && work->field_412 <= 48 && work->field_43A < 0x171) {
         Actor341700Work* w;
@@ -1676,7 +1676,7 @@ static void func_actor_341700_80163600(Task* arg0)
         w->field_418         = 0x10;
         w->field_414         = 1;
         work->field_432      = 0;
-        work->obj_3AC.flags &= 0x7FFF;
+        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_422     += 2;
         return;
     }
@@ -2186,40 +2186,40 @@ static void func_actor_341700_80164B68(Task* task)
 {
     Actor341700Work* work = (Actor341700Work*)task->work;
 
-    work->obj_2AC.coord    = &task->extra.tmd->coords[1];
-    work->obj_2AC.ctx.recs = work->rec_2EC;
-    work->obj_2AC.pos.vx   = 0;
-    work->obj_2AC.pos.vy   = 0;
-    work->obj_2AC.pos.vz   = 0;
-    work->obj_2AC.key      = 0x3002C;
-    work->obj_2AC.radius   = 0x170;
-    work->obj_2AC.flags    = 1;
+    work->obj_2AC.coord            = &task->extra.tmd->coords[1];
+    work->obj_2AC.context.contacts = work->rec_2EC;
+    work->obj_2AC.pos.vx           = 0;
+    work->obj_2AC.pos.vy           = 0;
+    work->obj_2AC.pos.vz           = 0;
+    work->obj_2AC.key              = 0x3002C;
+    work->obj_2AC.radius           = 0x170;
+    work->obj_2AC.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_2AC);
     Gp_InitRec18Table(work->rec_2EC, 8, 0);
-    work->obj_2AC.flags |= 0x8000;
+    work->obj_2AC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    work->obj_3AC.coord    = &task->extra.tmd->coords[1];
-    work->obj_3AC.ctx.recs = work->rec_3CC;
-    work->obj_3AC.pos.vx   = 0;
-    work->obj_3AC.pos.vy   = 0;
-    work->obj_3AC.pos.vz   = 0;
-    work->obj_3AC.key      = Gp_PackObjPair(task->spawnArg2.pointer, 0);
-    work->obj_3AC.radius   = 0x170;
-    work->obj_3AC.flags    = 1;
+    work->obj_3AC.coord            = &task->extra.tmd->coords[1];
+    work->obj_3AC.context.contacts = work->rec_3CC;
+    work->obj_3AC.pos.vx           = 0;
+    work->obj_3AC.pos.vy           = 0;
+    work->obj_3AC.pos.vz           = 0;
+    work->obj_3AC.key              = Gp_PackObjPair(task->spawnArg2.pointer, 0);
+    work->obj_3AC.radius           = 0x170;
+    work->obj_3AC.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_3AC);
     Gp_InitRec18Table(work->rec_3CC, 2, 0);
-    work->obj_3AC.flags &= 0x7FFF;
+    work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    work->obj_2CC.coord    = &task->extra.tmd->coords[1];
-    work->obj_2CC.ctx.recs = work->rec_2EC;
-    work->obj_2CC.pos.vx   = 0;
-    work->obj_2CC.pos.vy   = 0;
-    work->obj_2CC.pos.vz   = 0;
-    work->obj_2CC.key      = 0x3002C;
-    work->obj_2CC.radius   = 0x224;
-    work->obj_2CC.flags    = 1;
+    work->obj_2CC.coord            = &task->extra.tmd->coords[1];
+    work->obj_2CC.context.contacts = work->rec_2EC;
+    work->obj_2CC.pos.vx           = 0;
+    work->obj_2CC.pos.vy           = 0;
+    work->obj_2CC.pos.vz           = 0;
+    work->obj_2CC.key              = 0x3002C;
+    work->obj_2CC.radius           = 0x224;
+    work->obj_2CC.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_2CC);
-    work->obj_2CC.flags |= 0x4000;
+    work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 }
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
@@ -2819,8 +2819,8 @@ static void func_actor_341700_80166114(Task* arg0)
 
     if ((work->field_44C & 0xF) == 1) {
         work->field_451      = 1;
-        work->obj_2AC.flags |= 0x8000;
-        work->obj_2CC.flags &= 0xBFFF;
+        work->obj_2AC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj_2CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         obj->flags          &= (u16)~TMD_OBJECT_HIDDEN;
         if ((arg0->spawnArg1.value & 0xF) != 2) {
             Tmd_AllocBuffers(obj);
@@ -2975,7 +2975,7 @@ static void func_actor_341700_801666F0(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->obj_2CC.flags |= 0x4000;
+        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         next                 = (Actor341700Work*)arg0->work;
         arg0->state          = 3;
         next->field_420      = 0;
@@ -3095,7 +3095,7 @@ static void func_actor_341700_80166B94(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->obj_2CC.flags |= 0x4000;
+        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         next                 = (Actor341700Work*)arg0->work;
         arg0->state          = 3;
         next->field_420      = 0;
@@ -3223,7 +3223,7 @@ static void func_actor_341700_801670B0(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->obj_2CC.flags |= 0x4000;
+        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         next                 = (Actor341700Work*)arg0->work;
         arg0->state          = 3;
         next->field_420      = 0;

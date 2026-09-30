@@ -3347,9 +3347,9 @@ static void func_actor_403900_801368E0(GpEnemy* arg0, Task* arg1)
         case 0:
             arg0->recs = 0;
             Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj((GpObj*)work->field_4E4);
-            Gp_UnlinkObj((GpObj*)work->field_47C);
-            Gp_UnlinkObj((GpObj*)work->field_564);
+            Gp_UnlinkObj((WorldCollisionBody*)work->field_4E4);
+            Gp_UnlinkObj((WorldCollisionBody*)work->field_47C);
+            Gp_UnlinkObj((WorldCollisionBody*)work->field_564);
             Gp_ReleaseStateF0Add(arg1, work->field_716);
             anim = 0x14;
             if (work->field_6F0 == 1) {
@@ -3605,7 +3605,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
             work->field_494 = 0x30027;
             work->field_498 = 0x15E;
             work->field_49A = 1;
-            Gp_LinkObj(2, (GpObj*)work->field_47C);
+            Gp_LinkObj(2, (WorldCollisionBody*)work->field_47C);
             Gp_InitRec18Table(records1, 3, 0);
             work->field_49A |= 0x8000;
             work->field_4EC  = arg1->extra.tmd->coords;
@@ -3617,7 +3617,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
             work->field_4FC  = 0x30027;
             work->field_500  = 0x1F4;
             work->field_502  = 1;
-            Gp_LinkObj(2, (GpObj*)work->field_4E4);
+            Gp_LinkObj(2, (WorldCollisionBody*)work->field_4E4);
             Gp_InitRec18Table(records2, 4, 0);
             work->field_502 |= 0x4200;
             work->field_56C  = &arg1->extra.tmd->coords[8];
@@ -3629,7 +3629,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
             work->field_57C  = Gp_PackPair(D_actor_403900_80153BF0, 1);
             work->field_580  = 0x12C;
             work->field_582  = 1;
-            Gp_LinkObj(3, (GpObj*)work->field_564);
+            Gp_LinkObj(3, (WorldCollisionBody*)work->field_564);
             Gp_InitRec18Table(records3, 1, 0);
             work->field_582 &= 0x7FFF;
             work->field_5DC  = 0;
@@ -3650,7 +3650,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
             work->field_5B4  = 0;
             work->field_5B8  = 0;
             work->field_5BA  = 3;
-            Gp_LinkObj(3, (GpObj*)work->field_59C);
+            Gp_LinkObj(3, (WorldCollisionBody*)work->field_59C);
             Gp_InitRec18Table(records4, 1, 0);
             work->field_5BA &= 0xBFFF;
             work->field_5C4  = gameGetPtrSlot(3)->extra.tmd->coords;
@@ -3661,7 +3661,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
             work->field_5D4  = 0;
             work->field_5D8  = 0x1F4;
             work->field_5DA  = 1;
-            Gp_LinkObj(3, (GpObj*)work->field_5BC);
+            Gp_LinkObj(3, (WorldCollisionBody*)work->field_5BC);
             work->field_62C  = 0;
             work->field_62E  = -0x514;
             work->field_630  = 0x2710;
@@ -3681,7 +3681,7 @@ static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
             work->field_628  = 0;
             work->field_62A  = 3;
             work->field_5DA &= 0xBFFF;
-            Gp_LinkObj(3, (GpObj*)work->field_60C);
+            Gp_LinkObj(3, (WorldCollisionBody*)work->field_60C);
             Gp_InitRec18Table(records5, 1, 0);
             work->field_62A = (work->field_62A & 0x3FFF) | 0xC00;
             arg1->msgTable  = D_actor_403900_801383A0;

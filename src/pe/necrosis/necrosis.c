@@ -38,7 +38,7 @@
 /// One 4-byte row of `D_necrosis_801306BC`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
 /// parameter (plus `field_22 * 0x60` each frame) and is copied into the
-/// first `GpObj.radius`. `field_2` is the last `GpEffWork.age` tick
+/// first `WorldCollisionBody.radius`. `field_2` is the last `GpEffWork.age` tick
 /// of the spawn loop; state 2 waits an extra 0x10 ticks past it. `field_2 +
 /// 0xC` is also the pad-rumble duration at ignition.
 typedef struct NecrosisStep {
@@ -49,11 +49,11 @@ STATIC_ASSERT_SIZEOF(NecrosisStep, 4);
 
 /// Collision pair allocated by `func_necrosis_8012EF34` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1, `obj2` on list 7;
-/// both point `ctx.recs` at the one-element `rec` table (terminator `field_0
+/// both point `context.contacts` at the one-element `rec` table (terminator `field_0
 /// = 2`).
 typedef struct NecrosisWork {
-    /* 0x00 */ GpObj                 obj;
-    /* 0x20 */ GpObj                 obj2;
+    /* 0x00 */ WorldCollisionBody    obj;
+    /* 0x20 */ WorldCollisionBody    obj2;
     /* 0x40 */ WorldCollisionContact rec;
 } NecrosisWork;
 STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
@@ -138,25 +138,25 @@ void func_necrosis_8012EF34(Task* arg0)
             gte_ldv0(&mem->move);
             gte_rtv0();
             gte_stsv(&mem->move);
-            rec                = &work->rec;
-            mem->index         = (Gp_StateC08.field_0 % 10) - 1;
-            arg0->work         = work;
-            work->obj.coord    = coord;
-            work->obj.ctx.recs = rec;
+            rec                        = &work->rec;
+            mem->index                 = (Gp_StateC08.field_0 % 10) - 1;
+            arg0->work                 = work;
+            work->obj.coord            = coord;
+            work->obj.context.contacts = rec;
             work->obj.key =
                 ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
             work->obj.radius = D_necrosis_801306BC[mem->index].field_0;
-            work->obj.flags  = 1;
+            work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &work->obj);
-            rec->flags          = 2;
-            work->obj2.coord    = coord;
-            work->obj2.ctx.recs = rec;
-            work->obj2.key      = 0;
-            work->obj2.radius   = 0x80;
-            work->obj2.flags    = 1;
-            work->obj.flags    |= 0x8000;
+            rec->flags                  = 2;
+            work->obj2.coord            = coord;
+            work->obj2.context.contacts = rec;
+            work->obj2.key              = 0;
+            work->obj2.radius           = 0x80;
+            work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->obj.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             Gp_LinkObj(7, &work->obj2);
-            work->obj2.flags = (work->obj2.flags & 0x7FFF) | 0x4400;
+            work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan              = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)gpGetObjDepth(coord));
@@ -180,7 +180,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
-                work->obj.radius = (u16)work->obj.radius + 0x20;
+                work->obj.radius = work->obj.radius + 0x20;
             } else {
                 mem->age = mem->age - 1;
             }
@@ -195,7 +195,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 arg0->state = 2;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
+            if (Gp_FindRec18(work->obj2.context.contacts, 0x100000) != 0) {
                 mem->move.vx = 0;
                 mem->move.vy = 0;
                 mem->move.vz = 0;

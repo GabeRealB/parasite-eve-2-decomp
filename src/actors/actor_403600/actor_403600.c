@@ -1559,7 +1559,7 @@ void func_actor_403600_80134398(Task* arg0)
     GfxCoord*              ownerCoord;
     Task*                  motionParent;
     Task*                  temp_a0_3;
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     WorldCollisionContact* recs;
     SVECTOR*               temp_s0_4;
     SVECTOR*               temp_s1;
@@ -1664,14 +1664,14 @@ void func_actor_403600_80134398(Task* arg0)
         if (arg0->spawnArg1.value < 0x1000) {
             obj                    = &newWork->obj;
             obj->coord             = coord;
-            obj->ctx.d4rec         = newShape;
+            obj->context.capsule   = newShape;
             obj->pos.vx            = 0;
             obj->pos.vy            = 0;
             obj->pos.vz            = 0;
             obj->radius            = 0;
             recs                   = newWork->recs;
             obj->key               = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
-            obj->flags             = 3;
+            obj->flags             = WORLD_COLLISION_BODY_CAPSULE;
             newShape->recs         = recs;
             newShape->end1.vx      = 0;
             newShape->end1.vy      = 0;
@@ -1683,7 +1683,7 @@ void func_actor_403600_80134398(Task* arg0)
             newShape->end1Radius   = 0xC8;
             Gp_InitRec18Table(recs, 1, 0);
             Gp_LinkObj(3, obj);
-            obj->flags         = obj->flags | 0xC000;
+            obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             arg0->exitCallback = func_actor_403600_80138C68;
         }
         newWork->life = 0x12C;
@@ -1833,7 +1833,7 @@ block_22:
         if (work->life < 0) {
             if (arg0->spawnArg1.value < 0x1000) {
                 Gp_ClearRec18Occupied(work->recs);
-                work->obj.flags = work->obj.flags & 0x3FFF;
+                work->obj.flags = work->obj.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             work->life          = 0x7FFFFFFF;
             arg0->status        = 2;

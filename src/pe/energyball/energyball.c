@@ -41,7 +41,7 @@
 /// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
 /// to before it is launched (`GpEffWork.angle`; half of it is the linked
-/// `GpObj.radius`, twice it the burst's final size) and `field_2` the
+/// `WorldCollisionBody.radius`, twice it the burst's final size) and `field_2` the
 /// per-frame growth step, also the initial upward speed while charging.
 typedef struct EnergyBallStep {
     /* 0x0 */ s16 field_0;
@@ -50,10 +50,10 @@ typedef struct EnergyBallStep {
 STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
 
 /// Collision block allocated by `func_energyball_8012F180` (`memCalloc(0x38)`)
-/// and stored in `Task::work`: `obj` is linked on list 1 with `ctx.recs`
+/// and stored in `Task::work`: `obj` is linked on list 1 with `context.contacts`
 /// pointing at the one-element `rec` table (terminator `field_0 = 2`).
 typedef struct EnergyBallWork {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec;
 } EnergyBallWork;
 STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
@@ -232,18 +232,18 @@ void func_energyball_8012F180(Task* arg0)
                 Gp_UpdateCoord(coord);
             } else {
                 Gp_UpdateCoord(coord);
-                arg0->work         = work;
-                work->obj.ctx.recs = &work->rec;
-                work->obj.coord    = coord;
-                work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
+                arg0->work                 = work;
+                work->obj.context.contacts = &work->rec;
+                work->obj.coord            = coord;
+                work->obj.key              = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
                                 ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
                                 (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
                 work->obj.radius = mem->angle >> 1;
-                work->obj.flags  = 1;
+                work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
                 Gp_LinkObj(1, &work->obj);
                 dir              = &mem->move;
                 work->rec.flags  = 2;
-                work->obj.flags |= 0x8000;
+                work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 arg0->state      = 2;
                 Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
@@ -359,7 +359,7 @@ void func_energyball_8012F180(Task* arg0)
                     return;
                 }
             }
-            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 spawned = Gp_SpawnEff(0x600F9, coord, 0, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);

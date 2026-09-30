@@ -3139,9 +3139,9 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
                 return;
             }
             work->field_04++;
-            actor->field_97B                  = 0;
-            actor->field_983                  = 7;
-            ((GpObj*)actor->field_AC)->flags |= 0x2000;
+            actor->field_97B                               = 0;
+            actor->field_983                               = 7;
+            ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
             Gp_ReleaseStateF0Clear(arg0, 0);
             func_8014A908();
             return;
@@ -3369,10 +3369,10 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
 
-    actor                             = gameGetPtrSlot(3)->work;
-    actor->field_97B                  = 0;
-    actor->field_983                  = 7;
-    ((GpObj*)actor->field_AC)->flags |= 0x2000;
+    actor                                          = gameGetPtrSlot(3)->work;
+    actor->field_97B                               = 0;
+    actor->field_983                               = 7;
+    ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     Display_ReleaseRef();
     Gp_ReleaseStateF0Clear(arg0, 0);
     taskKill(arg0);

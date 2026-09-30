@@ -59,7 +59,7 @@
 /// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
 /// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
 ///
-/// `rec18` is the collision table `obj.ctx.recs` points at and
+/// `rec18` is the collision table `obj.context.contacts` points at and
 /// `func_actor_107600_80134958` hands to `Gp_InitRec18Table` with count 8, so
 /// it really runs to +0x140 and `field_13E` sits inside its last record.
 /// `field_162` is the spawn variant `func_actor_107600_80132ED0` takes from
@@ -89,7 +89,7 @@ typedef struct Actor107600Work {
     /* 0x05A */ s16                   field_5A;  // spin velocity added to field_52
     /* 0x05C */ s16                   field_5C;  // spin velocity added to field_54
     /* 0x05E */ byte                  pad_5E[0x2];
-    /* 0x060 */ GpObj                 obj;
+    /* 0x060 */ WorldCollisionBody    obj;
     /* 0x080 */ WorldCollisionContact rec18[1];  // collision table; count 8 passed to Gp_InitRec18Table
     /* 0x098 */ byte                  pad_98[0xA2];
     /* 0x13A */ u16                   field_13A; // frame counter / countdown of func_actor_107600_80132160
@@ -1492,7 +1492,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                     arg0->spawnArg1.value |= 0x20;
                     Gp_SetLightMode(enemy, 0);
                     enemy->node.state.b.flags = 4;
-                    work->obj.flags          |= 0x8000;
+                    work->obj.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
         case 5:
@@ -1607,7 +1607,7 @@ static void func_actor_107600_801337FC(Task* arg0)
             work->field_154        = 7;
             Gp_UnlinkNode(&enemy->node);
             enemy->recs      = 0;
-            work->obj.flags &= 0x7FFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         case 1:
             work->field_154--;
             if ((s16)work->field_154 <= 0) {
@@ -1728,7 +1728,7 @@ static void func_actor_107600_801339A4(Task* arg0)
             }
             Gp_UnlinkNode(&enemy->node);
             enemy->recs      = 0;
-            work->obj.flags &= 0xBFFF;
+            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         case 1:
             work->field_154++;
             if ((s16)work->field_154 < 0x10) {
@@ -1781,7 +1781,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     SCRATCH_PUSH_BYTES(8);
     work->field_156 = 0;
-    if (Gp_FindRec18(work->obj.ctx.recs, 0) != 0) {
+    if (Gp_FindRec18(work->obj.context.contacts, 0) != 0) {
         for (i = 0; i < 8; i++) {
             if ((work->rec18[i].key.value & 0xFFFF0000) == 0x20000) {
                 work->field_156                        = 1;
@@ -2059,14 +2059,14 @@ static void func_actor_107600_80134958(Task* arg0)
     GfxCoord*              coord = arg0->extra.tmd->coords;
     WorldCollisionContact* rec   = work->rec18;
 
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = rec;
-    work->obj.pos.vx   = 0;
-    work->obj.pos.vy   = -0x250;
-    work->obj.pos.vz   = 0;
-    work->obj.key      = 0x3004C;
-    work->obj.radius   = (work->field_162 == 1) ? 0x220 : 0x190;
-    work->obj.flags    = 1;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = rec;
+    work->obj.pos.vx           = 0;
+    work->obj.pos.vy           = -0x250;
+    work->obj.pos.vz           = 0;
+    work->obj.key              = 0x3004C;
+    work->obj.radius           = (work->field_162 == 1) ? 0x220 : 0x190;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
 }

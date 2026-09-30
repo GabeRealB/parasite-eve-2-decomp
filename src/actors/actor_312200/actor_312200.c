@@ -81,7 +81,7 @@ STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
 ///
 /// `field_8BC` is the display node the spawn handler
 /// `func_actor_312200_80163178` builds in place and hands to `Gp_LinkObj` - the
-/// `GpObj` whose `ctx.recs` is a three-entry `WorldCollisionContact` table at 0x8DC.
+/// `WorldCollisionBody` whose `context.contacts` is a three-entry `WorldCollisionContact` table at 0x8DC.
 /// `func_actor_312200_80163778` clears bit 0x8000 of that node's `flags`.
 typedef struct Actor312200Work {
     /* 0x000 */ s16 field_0;
@@ -126,8 +126,8 @@ typedef struct Actor312200Work {
     /* 0x8B6 */ s16  field_8B6;
     /* 0x8B8 */ s16  field_8B8;
     /* 0x8BA */ byte pad_8BA[0x2];
-    /// Display node: `GpObj` at 0x8BC, its `WorldCollisionContact` table at 0x8DC.
-    /* 0x8BC */ GpObj                 field_8BC;
+    /// Display node: `WorldCollisionBody` at 0x8BC, its `WorldCollisionContact` table at 0x8DC.
+    /* 0x8BC */ WorldCollisionBody    field_8BC;
     /* 0x8DC */ WorldCollisionContact recs[3];
     /* 0x924 */ byte                  pad_924[0x20];
     /// The light / colour matrices the spawn handler stores into
@@ -689,13 +689,13 @@ static void func_actor_312200_80162FB4(Task* task)
 /// (`func_800D7A9C`, start 0, count 3).
 static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    TmdObject*       tmd;
-    Actor312200Work* mem;
-    Actor312200Work* work;
-    GpObj*           node;
+    VECTOR              vec;
+    GfxCoord*           coord;
+    TmdObject*          obj;
+    TmdObject*          tmd;
+    Actor312200Work*    mem;
+    Actor312200Work*    work;
+    WorldCollisionBody* node;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -725,18 +725,18 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     work->field_892      = 1;
     work->field_896.half = 0x10;
     func_actor_312200_80162FB4(task);
-    node           = &work->field_8BC;
-    node->coord    = &task->extra.tmd->coords[3];
-    node->ctx.recs = work->recs;
-    node->pos.vx   = 0;
-    node->pos.vy   = 0;
-    node->pos.vz   = 0;
-    node->key      = 0x3000A;
-    node->radius   = 0x180;
-    node->flags    = 1;
+    node                   = &work->field_8BC;
+    node->coord            = &task->extra.tmd->coords[3];
+    node->context.contacts = work->recs;
+    node->pos.vx           = 0;
+    node->pos.vy           = 0;
+    node->pos.vz           = 0;
+    node->key              = 0x3000A;
+    node->radius           = 0x180;
+    node->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, node);
-    node->flags |= 0x8000;
-    Gp_InitRec18Table(node->ctx.recs, 3, 0);
+    node->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(node->context.contacts, 3, 0);
     task->msgTable      = D_actor_312200_80169F5C;
     work->field_8AC     = 0;
     work->field_8AD     = 1;
@@ -932,7 +932,7 @@ static void func_actor_312200_80163778(Task* task)
         enemy->node.state.b.flags = 1;
         obj->flags               |= TMD_OBJECT_HIDDEN;
         enemy->field_4D           = 0;
-        work->field_8BC.flags    &= 0x7FFF;
+        work->field_8BC.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 }
 

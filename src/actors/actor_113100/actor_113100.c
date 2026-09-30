@@ -53,7 +53,7 @@
 typedef struct Actor113100Work {
     ActorAnimRig20        rig;
     ActorModelState       model;
-    GpObj                 obj;
+    WorldCollisionBody    obj;
     WorldCollisionContact field_4D8;
     ActorWalkState        walk;
     Task*                 field_534;
@@ -1186,22 +1186,22 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
 /// table, installs the exit callback and steps to the next state.
 static void func_actor_113100_80131E58(Task* task)
 {
-    Actor113100Work* work;
-    Task*            child2;
-    Task*            child3;
-    GameLocationKey  key;
-    GameLocationKey* sessionKey2;
-    GameLocationKey* sessionKey3;
-    TmdObject*       model2;
-    TmdObject*       model3;
-    AreaPlacement*   entry2;
-    AreaPlacement*   entry3;
-    GpObj*           obj;
-    u8               areaByte0;
-    u32              raw2;
-    u32              raw3;
-    u32              index2;
-    u32              index3;
+    Actor113100Work*    work;
+    Task*               child2;
+    Task*               child3;
+    GameLocationKey     key;
+    GameLocationKey*    sessionKey2;
+    GameLocationKey*    sessionKey3;
+    TmdObject*          model2;
+    TmdObject*          model3;
+    AreaPlacement*      entry2;
+    AreaPlacement*      entry3;
+    WorldCollisionBody* obj;
+    u8                  areaByte0;
+    u32                 raw2;
+    u32                 raw3;
+    u32                 index2;
+    u32                 index3;
 
     work = memCalloc(0x540, 0);
     if (work == NULL) {
@@ -1263,18 +1263,18 @@ static void func_actor_113100_80131E58(Task* task)
 
     func_actor_113100_80132F24(task);
 
-    obj           = &work->obj;
-    obj->coord    = &task->extra.tmd->coords[1];
-    obj->ctx.recs = &work->field_4D8;
-    obj->key      = 0x30000;
-    obj->radius   = 0x100;
-    obj->pos.vx   = 0;
-    obj->pos.vy   = 0;
-    obj->pos.vz   = 0;
-    obj->flags    = 1;
+    obj                   = &work->obj;
+    obj->coord            = &task->extra.tmd->coords[1];
+    obj->context.contacts = &work->field_4D8;
+    obj->key              = 0x30000;
+    obj->radius           = 0x100;
+    obj->pos.vx           = 0;
+    obj->pos.vy           = 0;
+    obj->pos.vz           = 0;
+    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
-    obj->flags |= 0x8000;
-    Gp_InitRec18Table(obj->ctx.recs, 1, 0);
+    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(obj->context.contacts, 1, 0);
 
     task->msgTable = &D_actor_113100_80144338;
     func_mist_parking_80183BAC(1);
@@ -1530,13 +1530,13 @@ static void func_actor_113100_8013264C(Task* task)
 /// (98.517%).
 s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 {
-    Actor113100Work* work;
-    Actor113100Work* work2;
-    GpObj*           head;
-    GpObj*           node;
-    TmdObject*       obj;
-    s32              i;
-    s32              ret;
+    Actor113100Work*    work;
+    Actor113100Work*    work2;
+    WorldCollisionBody* head;
+    WorldCollisionBody* node;
+    TmdObject*          obj;
+    s32                 i;
+    s32                 ret;
 
     work  = (Actor113100Work*)task->work;
     obj   = task->extra.tmd;
@@ -1549,7 +1549,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags |= TMD_OBJECT_HIDDEN;
             node        = head;
             for (i = 0; i <= 0; i++) {
-                node->flags &= 0x7FFF;
+                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
             }
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1558,7 +1558,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_HIDDEN;
             node        = head;
             for (i = 0; i <= 0; i++) {
-                node->flags &= 0x7FFF;
+                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
             }
             Tmd_AllocBuffers(obj);
@@ -1568,7 +1568,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags |= TMD_OBJECT_HIDDEN;
             node        = head;
             for (i = 0; i <= 0; i++) {
-                node->flags &= 0x7FFF;
+                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
             }
             work2->field_53D = 2;
@@ -1578,7 +1578,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_HIDDEN;
             node        = &work->obj;
             for (i = 0; i <= 0; i++) {
-                node->flags &= 0x7FFF;
+                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
             }
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

@@ -263,7 +263,7 @@ static void Gp_BindDefaultMtx(Task* arg0);
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot);
 
-static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos);
+static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos);
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
 static inline u16 _gpIdParam0(s32 id);
@@ -1754,7 +1754,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     SCRATCH_POP(GpPerspScratch);
 }
 
-static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
+static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos)
 {
     u8*     h;
     VECTOR* vec;

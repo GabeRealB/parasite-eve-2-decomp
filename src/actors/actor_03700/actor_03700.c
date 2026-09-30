@@ -60,7 +60,7 @@ typedef struct Actor103700Work {
     /* 0x104 */ byte                  poses[0x60]; // pose buffer, `func_800B3F84` arg3
     /* 0x164 */ MATRIX                colorMtx;
     /* 0x184 */ MATRIX                lightMtx;
-    /* 0x1A4 */ GpObj                 obj;
+    /* 0x1A4 */ WorldCollisionBody    obj;
     /* 0x1C4 */ WorldCollisionContact records[4];
     /* 0x224 */ GpEffArg              field_224; // hit-spark record for `func_800FDB18`
     /* 0x22C */ SVECTOR               field_22C;
@@ -823,20 +823,20 @@ static void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
         work->slots[i].rate += kind;
     }
     (Gp_IncStateF0Ref)(0);
-    work->field_234.vx = coord->coord.t[0];
-    work->field_234.vy = coord->coord.t[1];
-    work->field_234.vz = coord->coord.t[2];
-    work->obj.radius   = 0xC8;
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = work->records;
-    work->obj.pos.vx   = 0;
-    work->obj.pos.vy   = 0;
-    work->obj.pos.vz   = 0;
-    work->obj.key      = 0x30025;
-    work->obj.flags    = 1;
+    work->field_234.vx         = coord->coord.t[0];
+    work->field_234.vy         = coord->coord.t[1];
+    work->field_234.vz         = coord->coord.t[2];
+    work->obj.radius           = 0xC8;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = work->records;
+    work->obj.pos.vx           = 0;
+    work->obj.pos.vy           = 0;
+    work->obj.pos.vz           = 0;
+    work->obj.key              = 0x30025;
+    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(work->records, 4, 0);
-    work->obj.flags |= 0xC000;
+    work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->state      = 1;
 }
 
@@ -1880,7 +1880,7 @@ static void Actor03700_Fn025C8(Task* task)
     coord                     = ext->coords;
     spawn                     = (GpEnemy*)task->spawnArg2.pointer;
     obj                       = ext;
-    work->obj.flags          &= 0x3FFF;
+    work->obj.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     obj->flags               |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     spawn->node.state.b.flags = 1;
 
@@ -1895,7 +1895,7 @@ static void Actor03700_Fn025C8(Task* task)
         case 1:
             diff = spawn->place->mode - 9;
             if ((s16)--work->field_256 <= 0) {
-                work->obj.flags |= 0xC000;
+                work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (diff < 10) {
                     work->field_24E    = 8;
                     Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
@@ -1988,12 +1988,12 @@ static void Actor03700_Fn029C0(Task* task)
 
     switch (mode) {
         case 0:
-            work->obj.flags        &= 0x3FFF;
+            work->obj.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             obj->flags             |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = 1;
             if (Gp_StateF0.field_1A == 0) {
                 work->field_250    = 1;
-                work->obj.flags   |= 0xC000;
+                work->obj.flags   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
                 work->field_23C.vx = coord->coord.t[0] - (((Gp_LcgState >> 16) & 0x1FF) + 500);
                 Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;

@@ -56,7 +56,7 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1);
 /// 0x20 angle units and keeps its magnitude strictly below 0x1A0 (0x1000 per turn).
 void func_8010BE5C(Task* task, VECTOR3* targetPoint);
 
-void func_8010C980(void* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5);
+void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 // Message handlers addressed by the companion overlays' dispatch tables.
 /// Plays an indexed companion animation and applies its world collision choice.

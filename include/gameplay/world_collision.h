@@ -47,9 +47,9 @@ s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
 /// records push in opposing directions, and 1 otherwise.
 s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 
-void Gp_LinkObj(s32 arg0, GpObj* arg1);
+void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1);
 
-void Gp_UnlinkObj(GpObj* node);
+void Gp_UnlinkObj(WorldCollisionBody* node);
 
 void Gp_LinkObj4A(s32 arg0, GpObj4A* arg1);
 

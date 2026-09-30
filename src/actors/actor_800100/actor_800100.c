@@ -79,13 +79,13 @@ static void func_actor_800100_80165528(Task* arg0);
 /// 0x38 block `func_actor_800100_801624F0` allocates with `memCalloc` when
 /// its task enters state 0 and stores at `Task::work`: the launched
 /// projectile's object plus its one-entry collision table, whose final-entry flag is
-/// set even when empty. `obj.ctx.recs` points at `rec`, `obj.coord` at the task's
+/// set even when empty. `obj.context.contacts` points at `rec`, `obj.coord` at the task's
 /// own coordinate, and `obj.key` is the hit payload `0x21C9E`. The
 /// projectile flies out along `work->angle` while `work->scale` opens, then
 /// drops; `func_actor_800100_801631C8` hands the block back to `Gp_UnlinkObj`
 /// on teardown. Same shape as the m4a1_pyke dart's `M4a1PykeBeam`.
 typedef struct _Actor800100Beam {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[1];
 } Actor800100Beam;
 STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
@@ -1318,20 +1318,20 @@ void func_actor_800100_801624F0(Task* task)
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
-            work->scale        = (u16)task->spawnArg1.value + 0x180;
-            ang1               = Gp_LcgState * 5 + 0x71357911;
-            work->angle        = (ang1 >> 16) & 0xFFF;
-            task->state        = 1;
-            task->work         = beam;
-            beam->obj.coord    = coord;
-            beam->obj.ctx.recs = beam->rec;
-            beam->obj.key      = 0x21C9E;
-            beam->obj.radius   = work->scale >> 1;
-            Gp_LcgState        = ang1;
-            beam->obj.flags    = 1;
+            work->scale                = (u16)task->spawnArg1.value + 0x180;
+            ang1                       = Gp_LcgState * 5 + 0x71357911;
+            work->angle                = (ang1 >> 16) & 0xFFF;
+            task->state                = 1;
+            task->work                 = beam;
+            beam->obj.coord            = coord;
+            beam->obj.context.contacts = beam->rec;
+            beam->obj.key              = 0x21C9E;
+            beam->obj.radius           = work->scale >> 1;
+            Gp_LcgState                = ang1;
+            beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &beam->obj);
             beam->rec[0].flags = 2;
-            beam->obj.flags   |= 0x8000;
+            beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             /* fallthrough */
         case 1:
             work->scale         = work->scale + 0x10;
@@ -1357,7 +1357,7 @@ void func_actor_800100_801624F0(Task* task)
                 func_actor_800100_80162E90(MATRIX_TRANS(&ground.workm),
                                            (s16)((work->scale * 2) / 3));
             }
-            if (Gp_CountRec18Hi(beam->obj.ctx.recs, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(beam->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
                 Gp_ReleaseState1CMem(work, task);
                 return;
@@ -1541,8 +1541,8 @@ static void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
 
 static void func_actor_800100_801631C8(Task* arg0)
 {
-    GpObj* temp_a0;
-    void*  temp_s1;
+    WorldCollisionBody* temp_a0;
+    void*               temp_s1;
 
     temp_a0 = arg0->work;
     temp_s1 = arg0->spawnArg2.pointer;
@@ -1561,7 +1561,7 @@ static void func_actor_800100_80163214(Task* arg0)
     GfxCoord*              third;
     McSaveData*            save;
     WorldCollisionContact* recs;
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     GpActorD4*             d4;
     GpEffWork*             eff;
     Task*                  task;
@@ -1591,11 +1591,11 @@ static void func_actor_800100_80163214(Task* arg0)
     Gp_AnimResetChildSlots(arg0, actor->field_93C);
     Gp_AnimTickChildSlots(arg0);
     recs                        = actor->field_17C;
-    obj                         = (GpObj*)actor->field_AC;
+    obj                         = (WorldCollisionBody*)actor->field_AC;
     actor->field_10             = coord->coord.t[0];
     actor->field_14             = coord->coord.t[1];
     actor->field_18             = coord->coord.t[2];
-    obj->ctx.dir                = &actor->field_88[0];
+    obj->context.motion         = &actor->field_88[0];
     obj->coord                  = coord;
     actor->field_88[0].contacts = recs;
     save                        = &Mc_SaveData[0];
@@ -1608,15 +1608,15 @@ static void func_actor_800100_80163214(Task* arg0)
 
         temp        = save->state.characterId;
         obj->radius = 0x12C;
-        obj->flags  = 4;
+        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
     Gp_InitRec18Table(actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), 0);
-    obj->flags                 |= 0xC200;
+    obj->flags                 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     next                        = arg0->extra.tmd->coords + 4;
-    obj                         = (GpObj*)actor->field_CC;
-    obj->ctx.dir                = &actor->field_88[1];
+    obj                         = (WorldCollisionBody*)actor->field_CC;
+    obj->context.motion         = &actor->field_88[1];
     obj->coord                  = next;
     actor->field_88[1].contacts = recs;
     obj->pos.vx                 = 0;
@@ -1632,10 +1632,10 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
-    obj->flags                 |= 0x8000;
-    obj                         = (GpObj*)actor->field_EC;
+    obj->flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    obj                         = (WorldCollisionBody*)actor->field_EC;
     third                       = arg0->extra.tmd->coords;
-    obj->ctx.dir                = &actor->field_88[2];
+    obj->context.motion         = &actor->field_88[2];
     obj->coord                  = third + 1;
     actor->field_88[2].contacts = recs;
     obj->pos.vx                 = 0;
@@ -1646,11 +1646,11 @@ static void func_actor_800100_80163214(Task* arg0)
 
         temp        = save->state.characterId;
         obj->radius = 0xDC;
-        obj->flags  = 4;
+        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
-    obj->flags            |= 0xC000;
+    obj->flags            |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->field_984       = 7;
     saved                  = Player_Status.field_26;
     Player_Status.field_26 = save->state.companionVariant;
@@ -1696,7 +1696,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     GfxCoord*                 ground;
     GpActorD4*                d4;
     Task*                     task;
-    GpObj*                    objs[2];
+    WorldCollisionBody*       objs[2];
     s32                       dy;
     s32                       i;
     s8                        bits;
@@ -1736,16 +1736,16 @@ static void func_actor_800100_801635F4(Task* arg0)
     d4->coord = *arg0->extra.tmd->coords;
     Gfx_RotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
 
-    objs[0] = (GpObj*)actor->field_AC;
-    objs[1] = (GpObj*)actor->field_EC;
+    objs[0] = (WorldCollisionBody*)actor->field_AC;
+    objs[1] = (WorldCollisionBody*)actor->field_EC;
     for (i = 0; i < 2; i++) {
         bits = actor->field_983;
         if ((bits >> i) & 1) {
             actor->field_984 |= 1 << i;
-            objs[i]->flags   |= 0x4000;
+            objs[i]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         } else if (bits & (8 << i)) {
             actor->field_984 &= ~(1 << i);
-            objs[i]->flags   &= ~0x4000;
+            objs[i]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->field_983 = 0;
@@ -1902,10 +1902,10 @@ static void func_actor_800100_80163C04(Task* arg0)
     if (task != NULL) {
         taskKill(task);
     }
-    Gp_UnlinkObj((GpObj*)actor->field_AC);
-    Gp_UnlinkObj((GpObj*)actor->field_CC);
-    Gp_UnlinkObj((GpObj*)actor->field_EC);
-    Gp_UnlinkObj((GpObj*)actor->field_10C);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_AC);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_CC);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_EC);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_10C);
     Gp_UnlinkObj(&d4->obj);
     taskKill(arg0);
 }
@@ -3447,22 +3447,22 @@ static void func_actor_800100_80166514(Task* arg0)
     GameActor*               actor;
     GfxCoord                 sp10;
     GfxCoord*                src;
-    GpObj*                   obj;
+    WorldCollisionBody*      obj;
     Actor800100PlaceScratch* blk;
     s16                      distance;
 
     actor       = arg0->work;
     src         = actor->field_91C->extra.tmd->coords;
-    obj         = (GpObj*)actor->field_12C;
+    obj         = (WorldCollisionBody*)actor->field_12C;
     sp10        = *src;
-    obj->flags |= 0xC000;
+    obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     scratch                                           = SCRATCH_HEAD_ADDR;
     head                                              = SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch);
     blk                                               = head - 1;
     SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch) = blk;
 
-    Gp_FindRec18(obj->ctx.d4rec->recs, 0);
+    Gp_FindRec18(obj->context.capsule->recs, 0);
     Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
     blk->rot.vx = 0;
     blk->rot.vy = 0x120;
@@ -3752,39 +3752,39 @@ static void func_actor_800100_80166EE8(Task* arg0)
 
 static void func_actor_800100_80166F50(Task* arg0)
 {
-    GameActor*    actor;
-    GpObj*        obj;
-    GpActorD4Rec* rec;
-    GfxCoord*     src;
-    Task*         task;
+    GameActor*          actor;
+    WorldCollisionBody* obj;
+    GpActorD4Rec*       rec;
+    GfxCoord*           src;
+    Task*               task;
 
     actor = arg0->work;
     task  = actor->field_91C;
     if (task != NULL) {
-        obj              = (GpObj*)actor->field_12C;
+        obj              = (WorldCollisionBody*)actor->field_12C;
         rec              = (GpActorD4Rec*)actor->pad_164;
         src              = task->extra.tmd->coords;
         actor->field_3D4 = *src;
         Gfx_RotMatrixX(&actor->field_3D4.workm, 0x400, 0);
-        obj->coord      = &actor->field_3D4;
-        obj->ctx.d4rec  = (GpActorD4Rec*)actor->pad_164;
-        obj->key        = 0x60000;
-        obj->flags      = 3;
-        obj->pos.vx     = 0;
-        obj->pos.vy     = 0;
-        obj->pos.vz     = 0;
-        rec->end1.vx    = 0;
-        rec->end1.vy    = -0x10;
-        rec->end0.vx    = rec->end1.vx;
-        rec->end1.vz    = 0x20;
-        rec->end0.vy    = rec->end1.vy;
-        rec->end0.vz    = rec->end1.vz + D_80112F60[Player_Status.weapon];
-        rec->end1Radius = 1;
-        rec->end0Radius = 1;
-        rec->recs       = actor->aimContacts;
+        obj->coord           = &actor->field_3D4;
+        obj->context.capsule = (GpActorD4Rec*)actor->pad_164;
+        obj->key             = 0x60000;
+        obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
+        obj->pos.vx          = 0;
+        obj->pos.vy          = 0;
+        obj->pos.vz          = 0;
+        rec->end1.vx         = 0;
+        rec->end1.vy         = -0x10;
+        rec->end0.vx         = rec->end1.vx;
+        rec->end1.vz         = 0x20;
+        rec->end0.vy         = rec->end1.vy;
+        rec->end0.vz         = rec->end1.vz + D_80112F60[Player_Status.weapon];
+        rec->end1Radius      = 1;
+        rec->end0Radius      = 1;
+        rec->recs            = actor->aimContacts;
         Gp_LinkObj(1, obj);
         Gp_InitRec18Table(rec->recs, 1, 0);
-        obj->flags |= 0x800;
+        obj->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
     }
 }
 

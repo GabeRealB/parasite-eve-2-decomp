@@ -33,7 +33,7 @@
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
-/// linked by `Gp_LinkObj` at spawn (its `ctx.recs` points at `rec`, the
+/// linked by `Gp_LinkObj` at spawn (its `context.contacts` points at `rec`, the
 /// `WorldCollisionContact` table `Gp_InitRec18Table` fills) and unlinked again by the
 /// exit callback `func_actor_310600_80162A24`.
 ///
@@ -61,7 +61,7 @@ typedef struct Actor310600Work {
     /* 0x47E */ u16                   field_47E;
     /* 0x480 */ MATRIX                light;
     /* 0x4A0 */ MATRIX                color;
-    /* 0x4C0 */ GpObj                 obj;
+    /* 0x4C0 */ WorldCollisionBody    obj;
     /* 0x4E0 */ WorldCollisionContact rec;
     /* 0x4F8 */ s32                   field_4F8;
     /* 0x4FC */ s32                   field_4FC;
@@ -424,8 +424,8 @@ Actor310600MsgEntry D_actor_310600_801796BC[5] = {
 
 static void func_actor_310600_80161E64(Task* task)
 {
-    Actor310600Work* work;
-    GpObj*           obj;
+    Actor310600Work*    work;
+    WorldCollisionBody* obj;
 
     work = memCalloc(0x538, 0);
     if (work == NULL) {
@@ -443,18 +443,18 @@ static void func_actor_310600_80161E64(Task* task)
     work->field_520 = 0;
     Task_SpawnFromTable(D_actor_310600_801796A4, 1, 8, task);
     func_actor_310600_80162A58(task);
-    obj           = &work->obj;
-    obj->coord    = &task->extra.tmd->coords[1];
-    obj->ctx.recs = &work->rec;
-    obj->key      = 0x30000;
-    obj->radius   = 0x100;
-    obj->pos.vx   = 0;
-    obj->pos.vy   = 0;
-    obj->pos.vz   = 0;
-    obj->flags    = 1;
+    obj                   = &work->obj;
+    obj->coord            = &task->extra.tmd->coords[1];
+    obj->context.contacts = &work->rec;
+    obj->key              = 0x30000;
+    obj->radius           = 0x100;
+    obj->pos.vx           = 0;
+    obj->pos.vy           = 0;
+    obj->pos.vz           = 0;
+    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
-    obj->flags |= 0x8000;
-    Gp_InitRec18Table(obj->ctx.recs, 1, 0);
+    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(obj->context.contacts, 1, 0);
     task->msgTable = D_actor_310600_801796BC;
     func_actor_310600_801625F0(task, 0x7D5, 0, 0);
     task->exitCallback = func_actor_310600_80162A24;
@@ -680,13 +680,13 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
 /// walks the other way, and the overlay comes out three instructions short.
 s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    Actor310600Work* work;
-    Actor310600Work* w;
-    TmdObject*       ext;
-    GpObj*           p;
-    GpObj*           obj;
-    s32              i;
-    s32              ret;
+    Actor310600Work*    work;
+    Actor310600Work*    w;
+    TmdObject*          ext;
+    WorldCollisionBody* p;
+    WorldCollisionBody* obj;
+    s32                 i;
+    s32                 ret;
 
     work = (Actor310600Work*)task->work;
     ext  = task->extra.tmd;
@@ -698,7 +698,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags |= TMD_OBJECT_HIDDEN;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
-                p->flags &= 0x7FFF;
+                p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 p++;
             }
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -707,7 +707,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags &= ~TMD_OBJECT_HIDDEN;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
-                p->flags |= 0x8000;
+                p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 p++;
             }
             Tmd_AllocBuffers(ext);
@@ -717,7 +717,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags |= TMD_OBJECT_HIDDEN;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
-                p->flags &= 0x7FFF;
+                p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 p++;
             }
             w->field_477 = 2;
@@ -727,7 +727,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             ext->flags &= ~TMD_OBJECT_HIDDEN;
             p           = obj;
             for (i = 0; i <= 0; i++) {
-                p->flags |= 0x8000;
+                p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 p++;
             }
             ext->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

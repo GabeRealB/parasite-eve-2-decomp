@@ -39,7 +39,7 @@ static void func_kyle_800102_80167DE0(Task* arg0);
 static void func_kyle_800102_80168244(Task* arg0);
 
 /// Spawn state: allocates the work block, seeds the thrown object at the
-/// muzzle coordinate and links its two `GpObj` nodes.
+/// muzzle coordinate and links its two `WorldCollisionBody` nodes.
 static void func_kyle_800102_80167A84(Task* arg0)
 {
     u8*                head;
@@ -91,45 +91,45 @@ static void func_kyle_800102_80167A84(Task* arg0)
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
-    speed              = D_kyle_800102_8017743C[idx];
-    work->field_8C     = 1;
-    work->field_90     = 0;
-    work->obj.coord    = coord;
-    work->obj.ctx.recs = work->rec0;
-    work->obj.pos.vx   = 0;
-    work->obj.pos.vy   = 0;
-    work->obj.pos.vz   = 0;
-    work->field_88.w   = speed << 16;
-    flags              = (u16)arg0->spawnArg1.value | 0x20000;
-    work->obj.key      = flags;
+    speed                      = D_kyle_800102_8017743C[idx];
+    work->field_8C             = 1;
+    work->field_90             = 0;
+    work->obj.coord            = coord;
+    work->obj.context.contacts = work->rec0;
+    work->obj.pos.vx           = 0;
+    work->obj.pos.vy           = 0;
+    work->obj.pos.vz           = 0;
+    work->field_88.w           = speed << 16;
+    flags                      = (u16)arg0->spawnArg1.value | 0x20000;
+    work->obj.key              = flags;
     if (arg0->spawnArg1.value & 0x100000) {
         work->obj.key = flags | 0x80;
     }
     work->obj.radius = 0x94;
-    work->obj.flags  = 1;
+    work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(1, &work->obj);
-    Gp_InitRec18Table(work->obj.ctx.recs, 1, 0);
-    work->obj2.ctx.d4rec   = &work->d4rec;
-    work->obj2.flags       = 3;
-    work->d4rec.recs       = work->rec1;
-    work->obj2.coord       = coord;
-    work->obj2.pos.vx      = 0;
-    work->obj2.pos.vy      = 0;
-    work->obj2.pos.vz      = 0;
-    work->obj2.key         = 0;
-    work->obj2.radius      = 0;
-    work->d4rec.end0.vx    = 0;
-    work->d4rec.end0.vy    = 0;
-    work->d4rec.end0.vz    = 0;
-    work->d4rec.end1.vx    = 0;
-    work->d4rec.end1.vy    = 0;
-    work->d4rec.end0Radius = 1;
-    work->d4rec.end1Radius = 1;
-    work->obj.flags       |= 0xC400;
-    work->d4rec.end1.vz    = -(work->field_88.w >> 10);
+    Gp_InitRec18Table(work->obj.context.contacts, 1, 0);
+    work->obj2.context.capsule = &work->d4rec;
+    work->obj2.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->d4rec.recs           = work->rec1;
+    work->obj2.coord           = coord;
+    work->obj2.pos.vx          = 0;
+    work->obj2.pos.vy          = 0;
+    work->obj2.pos.vz          = 0;
+    work->obj2.key             = 0;
+    work->obj2.radius          = 0;
+    work->d4rec.end0.vx        = 0;
+    work->d4rec.end0.vy        = 0;
+    work->d4rec.end0.vz        = 0;
+    work->d4rec.end1.vx        = 0;
+    work->d4rec.end1.vy        = 0;
+    work->d4rec.end0Radius     = 1;
+    work->d4rec.end1Radius     = 1;
+    work->obj.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->d4rec.end1.vz        = -(work->field_88.w >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.recs, 1, 0);
-    work->obj2.flags |= 0x4400;
+    work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     SCRATCH_POP_BYTES(8);
 }
 
@@ -178,7 +178,7 @@ static void func_kyle_800102_80167DE0(Task* arg0)
             clip = 1;
         }
         work->field_88.w = clip;
-        work->obj.flags &= 0xBFFF;
+        work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         SCRATCH_POP_BYTES(sizeof(WeaponGrenadeScratch));
         work->obj.radius = D_kyle_800102_80177434[blk->sfx - 0xA];
         return;

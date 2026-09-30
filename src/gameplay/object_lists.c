@@ -24,7 +24,7 @@
 #include "main/task_types.h"
 
 /// 0x28-byte scratch from the scratch stack used by `Gp_FindNearestSlot`.
-/// `local` is the collider's `end1` plus `GpObj.pos`,
+/// `local` is the collider's `end1` plus `WorldCollisionBody.pos`,
 /// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
 typedef struct _GpNearScratch {
@@ -90,29 +90,29 @@ STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
 /* Define BSS before API headers to preserve first-declaration order. */
 GpObj4C* Gp_PendingObj4C;
 
-GpObj* Gp_ObjList0;
+WorldCollisionBody* Gp_ObjList0;
 
-GpObj* Gp_ObjList1;
+WorldCollisionBody* Gp_ObjList1;
 
-GpObj* Gp_ObjList2;
+WorldCollisionBody* Gp_ObjList2;
 
-GpObj* Gp_ObjList3;
+WorldCollisionBody* Gp_ObjList3;
 
-GpObj* Gp_ObjList4;
+WorldCollisionBody* Gp_ObjList4;
 
-GpObj* Gp_ObjList5;
+WorldCollisionBody* Gp_ObjList5;
 
-GpObj* Gp_ObjList6;
+WorldCollisionBody* Gp_ObjList6;
 
-GpObj* Gp_ObjList7;
+WorldCollisionBody* Gp_ObjList7;
 
-GpObj* Gp_ObjList8;
+WorldCollisionBody* Gp_ObjList8;
 
 #include "world_collision.h"
 
-/// Nine-entry table of `GpObj` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
+/// Nine-entry table of `WorldCollisionBody` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
 /// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `Gp_UnlinkObj` unlinks.
-extern GpObj** Gp_ObjLists[9];
+extern WorldCollisionBody** Gp_ObjLists[9];
 
 /// Two-entry table of `GpObj4A` list heads. `Gp_LinkObj4A` appends to
 /// `Gp_Obj4ALists[index]`; `Gp_ClearObj4AList` walks and clears that list.
@@ -124,11 +124,11 @@ extern GpObj3A** Gp_Obj3ALists[1];
 
 static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 
-static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1);
+static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1);
 
 static void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1);
 
-GpObj** Gp_ObjLists[9] = {
+WorldCollisionBody** Gp_ObjLists[9] = {
     &Gp_ObjList0,
     &Gp_ObjList1,
     &Gp_ObjList2,
@@ -190,28 +190,28 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     return ret;
 }
 
-void Gp_CollideLists(GpObj* a, GpObj* b)
+void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b)
 {
-    GpObj*      other;
-    GpPairRule* rec;
-    s32         rowOff;
-    s32         temp;
-    u16         flags;
-    u16         handler;
-    u16         swap;
-    u8          kind;
-    u8          otherKind;
+    WorldCollisionBody* other;
+    GpPairRule*         rec;
+    s32                 rowOff;
+    s32                 temp;
+    u16                 flags;
+    u16                 handler;
+    u16                 swap;
+    u8                  kind;
+    u8                  otherKind;
 
     for (; a != NULL; a = a->next) {
         flags = a->flags;
-        if (flags & 0x8000) {
-            kind  = (a->flags & 7) - 1;
+        if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
+            kind  = (a->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
             other = b;
             if (other != NULL) {
                 rowOff = kind << 4;
                 for (; other != NULL; other = other->next) {
-                    if (other->flags & 0x8000) {
-                        otherKind = (other->flags & 7) - 1;
+                    if (other->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
+                        otherKind = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - 1;
                         temp      = (otherKind << 2) + rowOff;
                         rec       = &D_8010FA4C[0][0] + (temp >> 2);
                         swap      = rec->swap;
@@ -228,27 +228,27 @@ void Gp_CollideLists(GpObj* a, GpObj* b)
     }
 }
 
-void Gp_CollideListGrid(GpObj* node)
+void Gp_CollideListGrid(WorldCollisionBody* node)
 {
     u16 flags;
 
     if (Gp_GridParams != 0) {
         for (; node != NULL; node = node->next) {
             flags = node->flags;
-            if (flags & 0x4000) {
-                switch (flags & 7) {
-                    case 0:
+            if (flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
+                switch (flags & WORLD_COLLISION_BODY_KIND_MASK) {
+                    case WORLD_COLLISION_BODY_NONE:
                         break;
-                    case 1:
+                    case WORLD_COLLISION_BODY_SPHERE:
                         Gp_CollideObjGrid(node);
                         break;
-                    case 2:
+                    case WORLD_COLLISION_BODY_CONTACT_PROXY:
                         break;
-                    case 3:
+                    case WORLD_COLLISION_BODY_CAPSULE:
                         func_800DDDF8(node);
                         break;
-                    case 4:
-                        if (node->flags & 0x200) {
+                    case WORLD_COLLISION_BODY_MOTION_SPHERE:
+                        if (node->flags & WORLD_COLLISION_BODY_FLOOR_QUERY) {
                             func_800DD940(node);
                         }
                         Gp_CollideObjGridDir(node);
@@ -259,7 +259,7 @@ void Gp_CollideListGrid(GpObj* node)
     }
 }
 
-void func_800E0608(GpObj* node, s32 mask, s32 match)
+void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match)
 {
     GpObj4C* other;
 
@@ -275,7 +275,7 @@ void func_800E0608(GpObj* node, s32 mask, s32 match)
     }
 }
 
-void func_800E06AC(GpObj* node, s32 mask, s32 match)
+void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
 {
     GpObj4C*   other;
     GameActor* actor;
@@ -299,7 +299,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match)
     }
 }
 
-s32 Gp_PairNop(GpObj* arg0, GpObj* arg1, s32 kind)
+s32 Gp_PairNop(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
 {
     return 0;
 }
@@ -332,7 +332,7 @@ void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
+void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
 {
     VECTOR3* vec;
 
@@ -348,7 +348,7 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
+void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
 {
     GpAxisScratch* block;
     s32            i;
@@ -356,10 +356,10 @@ void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
     SCRATCH_PUSH_BYTES(0x20);
     block              = SCRATCH_HEAD(GpAxisScratch);
     block->local[0].vx = 0;
-    block->local[0].vy = (u16)arg0->pos.vy + (u16)arg0->radius;
+    block->local[0].vy = (u16)arg0->pos.vy + arg0->radius;
     block->local[0].vz = 0;
     block->local[1].vx = 0;
-    block->local[1].vy = (u16)arg0->pos.vy - (u16)arg0->radius;
+    block->local[1].vy = (u16)arg0->pos.vy - arg0->radius;
     block->local[1].vz = 0;
     gte_SetRotMatrix(&arg0->coord->workm);
     for (i = 0; i < 2; i++) {
@@ -584,7 +584,7 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
     return ret;
 }
 
-static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
+static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
 {
     u8*                    head;
     GpNearScratch*         block;
@@ -601,7 +601,7 @@ static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     minDist            = -1;
     index              = 0;
     best               = index;
-    rec                = arg0->ctx.d4rec;
+    rec                = arg0->context.capsule;
     head               = SCRATCH_HEAD(u8);
     slot               = rec->recs;
     SCRATCH_HEAD(void) = (void*)(head - 0x28);
@@ -642,18 +642,18 @@ static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     return best;
 }
 
-void Gp_LinkObj(s32 arg0, GpObj* arg1)
+void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1)
 {
-    u16     flags;
-    GpObj** head;
-    GpObj*  node;
-    GpObj*  temp;
+    u16                  flags;
+    WorldCollisionBody** head;
+    WorldCollisionBody*  node;
+    WorldCollisionBody*  temp;
 
     head  = Gp_ObjLists[arg0];
     flags = arg1->flags;
-    if (!(flags & 0x8)) {
-        if ((flags & 0x7) < 5) {
-            arg1->flags = flags | 0x8;
+    if (!(flags & WORLD_COLLISION_BODY_LINKED)) {
+        if ((flags & WORLD_COLLISION_BODY_KIND_MASK) <= WORLD_COLLISION_BODY_MOTION_SPHERE) {
+            arg1->flags = flags | WORLD_COLLISION_BODY_LINKED;
             temp        = *head;
             if (temp != NULL) {
                 node = temp;
@@ -671,16 +671,16 @@ void Gp_LinkObj(s32 arg0, GpObj* arg1)
     }
 }
 
-void Gp_UnlinkObj(GpObj* node)
+void Gp_UnlinkObj(WorldCollisionBody* node)
 {
-    u16     flags;
-    GpObj*  next;
-    GpObj** prev;
+    u16                  flags;
+    WorldCollisionBody*  next;
+    WorldCollisionBody** prev;
 
     flags = node->flags;
-    if (flags & 0x8) {
+    if (flags & WORLD_COLLISION_BODY_LINKED) {
         next        = node->next;
-        node->flags = flags & 0x7;
+        node->flags = flags & WORLD_COLLISION_BODY_KIND_MASK;
         prev        = node->prev;
         if (next != NULL) {
             *prev      = next;

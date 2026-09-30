@@ -17,7 +17,7 @@ STATIC_ASSERT_SIZEOF(GpEdgePair, 0x4);
 
 /// Pair-dispatch callback from `Gp_PairHandlers`. `kind` is the `handler` of
 /// the `GpPairRule` that selected it.
-typedef s32 (*GpPairFn)(GpObj* a, GpObj* b, s32 kind);
+typedef s32 (*GpPairFn)(WorldCollisionBody* a, WorldCollisionBody* b, s32 kind);
 
 /// One rule of the pair-rule table `D_8010FA4C`: what the collision passes do
 /// when a body of the kind its row names meets one of the kind its column

@@ -361,7 +361,7 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
 /// `radius` at `(x, y, z)` under `coord`, using the actor's `i`th motion context
 /// with contacts stored in `recs`, and keyed by the saved
 /// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags);
 
 static void Gp_InitPlayerWork(Task* arg0);
@@ -4461,10 +4461,10 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
 /// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
 /// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
 /// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags)
 {
-    obj->ctx.dir                = &actor->field_88[i];
+    obj->context.motion         = &actor->field_88[i];
     obj->coord                  = coord;
     actor->field_88[i].contacts = recs;
     obj->pos.vx                 = x;
@@ -4481,7 +4481,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     GameActor*             actor;
     TmdObject*             extra;
     GfxCoord*              coord;
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     WorldCollisionContact* recs;
     s32                    kind;
     s32                    anim;
@@ -4509,18 +4509,18 @@ static void Gp_InitPlayerWork(Task* arg0)
     actor->field_18  = coord->coord.t[2];
 
     recs = actor->field_17C;
-    obj  = (GpObj*)actor->field_AC;
-    _gpLinkPlayerObj(actor, 0, obj, coord, recs, 0, -0x12C, 0, 0x12C, 4);
+    obj  = (WorldCollisionBody*)actor->field_AC;
+    _gpLinkPlayerObj(actor, 0, obj, coord, recs, 0, -0x12C, 0, 0x12C, WORLD_COLLISION_BODY_MOTION_SPHERE);
     Gp_InitRec18Table(actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), 0);
-    obj->flags |= 0xF200;
+    obj->flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    obj = (GpObj*)actor->field_CC;
-    _gpLinkPlayerObj(actor, 1, obj, arg0->extra.tmd->coords + 4, recs, 0, 0x64, 0x28, 0xDC, 0x14);
-    obj->flags |= 0x8000;
+    obj = (WorldCollisionBody*)actor->field_CC;
+    _gpLinkPlayerObj(actor, 1, obj, arg0->extra.tmd->coords + 4, recs, 0, 0x64, 0x28, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (1 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
+    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    obj = (GpObj*)actor->field_EC;
-    _gpLinkPlayerObj(actor, 2, obj, arg0->extra.tmd->coords + 1, recs, 0, 0x52, 0, 0xDC, 0x24);
-    obj->flags |= 0xC000;
+    obj = (WorldCollisionBody*)actor->field_EC;
+    _gpLinkPlayerObj(actor, 2, obj, arg0->extra.tmd->coords + 1, recs, 0, 0x52, 0, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (2 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
+    obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     kind             = actor->field_954;
     anim             = actor->field_93C;
@@ -4547,12 +4547,12 @@ static void Gp_InitPlayerWork(Task* arg0)
 
 static void Gp_PlayerWorkState1(Task* arg0)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GpObj*     objs[2];
-    s32        dy;
-    s32        i;
-    s8         bits;
+    GameActor*          actor;
+    GfxCoord*           coord;
+    WorldCollisionBody* objs[2];
+    s32                 dy;
+    s32                 i;
+    s8                  bits;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -4572,16 +4572,16 @@ static void Gp_PlayerWorkState1(Task* arg0)
         }
     }
 
-    objs[0] = (GpObj*)actor->field_AC;
-    objs[1] = (GpObj*)actor->field_EC;
+    objs[0] = (WorldCollisionBody*)actor->field_AC;
+    objs[1] = (WorldCollisionBody*)actor->field_EC;
     for (i = 0; i < 2; i++) {
         bits = actor->field_983;
         if ((bits >> i) & 1) {
             actor->field_984 |= 1 << i;
-            objs[i]->flags   |= 0x4000;
+            objs[i]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         } else if (bits & (8 << i)) {
             actor->field_984 &= ~(1 << i);
-            objs[i]->flags   &= ~0x4000;
+            objs[i]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->field_983    = 0;
@@ -4591,15 +4591,15 @@ static void Gp_PlayerWorkState1(Task* arg0)
 
 void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
 {
-    GameActor*    actor;
-    GpObj*        obj;
-    GpActorD4Rec* rec;
-    VECTOR*       tmp;
-    Task*         task;
-    s32           scale;
+    GameActor*          actor;
+    WorldCollisionBody* obj;
+    GpActorD4Rec*       rec;
+    VECTOR*             tmp;
+    Task*               task;
+    s32                 scale;
 
     actor = arg0->work;
-    obj   = (GpObj*)actor->field_10C;
+    obj   = (WorldCollisionBody*)actor->field_10C;
     rec   = &actor->field_14C;
     SCRATCH_PUSH(VECTOR);
     tmp  = SCRATCH_HEAD(VECTOR);
@@ -4611,8 +4611,8 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         actor->field_3D4.param.rot.vx = 0;
         actor->field_3D4.param.rot.vy = 0;
         actor->field_3D4.param.rot.vz = 0;
-        obj->ctx.d4rec                = &actor->field_14C;
-        obj->flags                    = 3;
+        obj->context.capsule          = &actor->field_14C;
+        obj->flags                    = WORLD_COLLISION_BODY_CAPSULE;
         obj->pos.vx                   = 0;
         obj->pos.vy                   = 0;
         obj->pos.vz                   = 0;
@@ -4737,11 +4737,11 @@ static void Gp_TeardownSlot0(Task* arg0)
     if (task != NULL) {
         taskKill(task);
     }
-    Gp_UnlinkObj((GpObj*)inner->field_AC);
-    Gp_UnlinkObj((GpObj*)inner->field_CC);
-    Gp_UnlinkObj((GpObj*)inner->field_EC);
-    Gp_UnlinkObj((GpObj*)inner->field_10C);
-    Gp_UnlinkObj((GpObj*)inner->field_12C);
+    Gp_UnlinkObj((WorldCollisionBody*)inner->field_AC);
+    Gp_UnlinkObj((WorldCollisionBody*)inner->field_CC);
+    Gp_UnlinkObj((WorldCollisionBody*)inner->field_EC);
+    Gp_UnlinkObj((WorldCollisionBody*)inner->field_10C);
+    Gp_UnlinkObj((WorldCollisionBody*)inner->field_12C);
     taskKill(arg0);
 }
 
@@ -5541,8 +5541,8 @@ join_50:
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, anim, &inner->field_7A8,
                   inner->field_438);
     func_801066DC(work, 1);
-    actor->field_983                  = 7;
-    ((GpObj*)actor->field_AC)->flags |= 0x2000;
+    actor->field_983                               = 7;
+    ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     return actor->field_91C;
 }
 
@@ -6003,7 +6003,7 @@ s32 Gp_KillPlayerEffs(void)
         actor->field_914 = NULL;
     }
 
-    Gp_UnlinkObj((GpObj*)actor->field_10C);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_10C);
     return 1;
 }
 
@@ -6052,7 +6052,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     actor->field_12A      &= 0x3FFF;
     func_80106350(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     // Select the animation table before resetting or blending its slots.
     actor->field_956 = 1;
@@ -6173,14 +6173,14 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
         next->coord.t[0]   = 0;
         next->coord.t[2]   = 0;
     }
-    actor->field_10                   = coord->coord.t[0];
-    actor->field_14                   = coord->coord.t[1];
-    actor->field_18                   = coord->coord.t[2];
-    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
-    actor->animationSets              = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
-    actor->field_985                  = 0x10;
-    actor->field_983                  = 7;
-    ((GpObj*)actor->field_AC)->flags |= 0x2000;
+    actor->field_10                                = coord->coord.t[0];
+    actor->field_14                                = coord->coord.t[1];
+    actor->field_18                                = coord->coord.t[2];
+    actor->field_93A                               = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
+    actor->animationSets                           = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
+    actor->field_985                               = 0x10;
+    actor->field_983                               = 7;
+    ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
@@ -6248,7 +6248,7 @@ static void func_80104AAC(Task* arg0)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
 }
 
@@ -6278,7 +6278,7 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
     actor->field_12A      &= 0x3FFF;
     func_80106350(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     // Select the animation table before resetting or blending its slots.
     actor->field_956     = 1;
@@ -6380,7 +6380,7 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
 }
 
@@ -6437,7 +6437,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956 = 3;
     actor->field_982 = 1;
@@ -6476,7 +6476,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956 = 4;
     actor->field_982 = 1;
@@ -6518,7 +6518,7 @@ s32 func_80105190(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956 = 4;
     actor->field_982 = 1;
@@ -6561,7 +6561,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956 = 5;
     actor->field_982 = 1;
@@ -6598,7 +6598,7 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
         actor->field_12A &= 0x3FFF;
         func_80106350(arg0, p->weapon, 0);
         if (gGameSession->eventState != 0) {
-            ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+            ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
         }
         actor->field_956 = 1;
         actor->field_982 = 1;
@@ -6638,7 +6638,7 @@ s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956     = 6;
     Gp_StateC08.field_6 |= 1;
@@ -6671,7 +6671,7 @@ s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956 = 0xA;
     actor->field_983 = 0x38;
@@ -6702,7 +6702,7 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
-        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
     actor->field_956 = 7;
     actor->field_934 = arg2;
@@ -6736,7 +6736,7 @@ s32 func_80105754(Task* arg0)
         actor->field_12A &= 0x3FFF;
         func_80106350(arg0, p->weapon, ret);
         if (gGameSession->eventState != 0) {
-            ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+            ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
         }
         actor->field_956 = 0xB;
     } else {
@@ -9063,7 +9063,7 @@ static void func_80109844(Task* arg0)
     switch (inner->field_95E) {
         case 0:
             inner->field_95E   = 1;
-            coord              = ((GpObj*)inner->field_AC)[(s8)inner->field_993].coord;
+            coord              = ((WorldCollisionBody*)inner->field_AC)[(s8)inner->field_993].coord;
             params->spawnArgLo = (temp * 0x20) + 0x120;
             params->spawnArgHi = temp + 1;
             D_80113358.coord   = coord;

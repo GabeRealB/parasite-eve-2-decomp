@@ -273,7 +273,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeModelWork, 0x4);
 
 /// Work block the bridge enemy's task keeps at `Task::work`. `field_4` is the
 /// live flag every state handler of the enemy gates on. `body` and `hit` are
-/// the two linked `GpObj`s -- kind 2 for the model and kind 3 for the hit box
+/// two spherical `WorldCollisionBody`s on list 2 for the model and list 3 for the hit box
 /// -- whose `flags` bit 15 the handlers toggle to enable one and disable the
 /// other, and `recs` / `hitRecs` are their collision record tables.
 /// `lightMtx` / `colorMtx` are the matrices the model's `TmdObject` is pointed
@@ -297,9 +297,9 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x10A */ byte                  pad_10A[0x2];
     /* 0x10C */ s16                   field_10C;
     /* 0x10E */ s16                   field_10E;
-    /* 0x110 */ GpObj                 body;
+    /* 0x110 */ WorldCollisionBody    body;
     /* 0x130 */ WorldCollisionContact recs[3];
-    /* 0x178 */ GpObj                 hit;
+    /* 0x178 */ WorldCollisionBody    hit;
     /* 0x198 */ WorldCollisionContact hitRecs[1];
     /* 0x1B0 */ MATRIX                lightMtx;
     /* 0x1D0 */ MATRIX                colorMtx;
@@ -2485,7 +2485,7 @@ static s16             func_acropolis_bridge_80184024(OverlayWalker* work);
 static void            func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos);
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block);
-static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos);
+static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos);
 static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker);
 static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord);
 static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work);
@@ -5886,8 +5886,8 @@ static void func_acropolis_bridge_8018581C(Task* task)
     }
 }
 
-/// Copies a scratch `SVECTOR3` onto a `GpObj`'s three position halfwords.
-static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)
+/// Copies a scratch `SVECTOR3` onto a `WorldCollisionBody`'s three position halfwords.
+static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos)
 {
     obj->pos.vx = pos->vx;
     obj->pos.vy = pos->vy;
@@ -5947,7 +5947,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 /// One-time setup for the bridge enemy: allocates the 0x294-byte work block,
 /// points the model's light and colour matrices at it, hangs the enemy off the
 /// room's stat block, starts the animation context on three slots, and links
-/// the model and hit-box `GpObj`s (kinds 2 and 3) onto the part coordinates at
+/// the model and hit-box `WorldCollisionBody`s (lists 2 and 3) onto the part coordinates at
 /// `field_8[3]` and `field_8[1]`. The walker half is seeded next: its patrol
 /// tables are the copies embedded in the walker itself, the route is the entry
 /// `D_acropolis_bridge_80191720` holds for this spawn variant, and the scale
@@ -5965,8 +5965,8 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     GfxCoord*                 coord2;
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
-    GpObj*                    link;
-    GpObj*                    link2;
+    WorldCollisionBody*       link;
+    WorldCollisionBody*       link2;
     s32                       variant;
     s32                       step;
     u16                       hp;
@@ -5996,30 +5996,30 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     enemy->hp       = enemy->hpMax;
     func_800B3F84(&work->anim, D_acropolis_bridge_801915C8, obj, work->pad_C0,
                   work->slots);
-    work->field_108 = 0x10;
-    link            = &work->body;
-    link->coord     = &task->extra.tmd->coords[3];
-    link->ctx.recs  = work->recs;
-    link->pos.vx    = 0;
-    link->pos.vy    = 0;
-    link->pos.vz    = 0;
-    link->key       = 0x30029;
-    link->radius    = 0x100;
-    link->flags     = 1;
+    work->field_108        = 0x10;
+    link                   = &work->body;
+    link->coord            = &task->extra.tmd->coords[3];
+    link->context.contacts = work->recs;
+    link->pos.vx           = 0;
+    link->pos.vy           = 0;
+    link->pos.vz           = 0;
+    link->key              = 0x30029;
+    link->radius           = 0x100;
+    link->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, link);
-    link->flags |= 0x8000;
-    Gp_InitRec18Table(link->ctx.recs, 3, 0);
-    pos.vx          = 0;
-    pos.vy          = 0;
-    pos.vz          = 0;
-    link2           = &work->hit;
-    link2->coord    = &task->extra.tmd->coords[1];
-    link2->ctx.recs = work->hitRecs;
+    link->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(link->context.contacts, 3, 0);
+    pos.vx                  = 0;
+    pos.vy                  = 0;
+    pos.vz                  = 0;
+    link2                   = &work->hit;
+    link2->coord            = &task->extra.tmd->coords[1];
+    link2->context.contacts = work->hitRecs;
     bridge_set_obj_pos(link2, &pos);
     link2->radius = 0x100;
-    link2->flags  = 1;
+    link2->flags  = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, link2);
-    Gp_InitRec18Table(link2->ctx.recs, 1, 0);
+    Gp_InitRec18Table(link2->context.contacts, 1, 0);
     work->hit.key   = Gp_PackObjPair(enemy, 0);
     coord->parent   = &gGfxViewCoord;
     work->yaw       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -6203,8 +6203,8 @@ void func_acropolis_bridge_80185F28(Task* task)
     if (work->field_4 != 0) {
         work->walker.state            = 3;
         work->walker.routeData.cursor = 0;
-        work->hit.flags              &= 0x7FFF;
-        work->body.flags             |= 0x8000;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         bridge_reset_scale_mtx_entry(work);
         work->walker.field_5A = 0x60;
         walker                = &work->walker;
@@ -6319,8 +6319,8 @@ void func_acropolis_bridge_801861A0(Task* task)
         walker->field_60          = 6;
         walker->field_5E          = height;
         work->walker.state        = 1;
-        work->hit.flags          |= 0x8000;
-        work->body.flags         |= 0x8000;
+        work->hit.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hit.key             = Gp_PackObjPair(enemy, 0);
         enemy->node.state.b.flags = 0;
         work->field_100           = 2;
@@ -6369,7 +6369,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     if (work->field_4 != 0) {
         work->walker.state            = 3;
         work->walker.routeData.cursor = 0;
-        work->hit.flags              &= 0x7FFF;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         bridge_reset_scale_mtx_entry(work);
         work->walker.field_5A = 0x200;
         walker                = &work->walker;
@@ -6463,7 +6463,7 @@ void func_acropolis_bridge_80186618(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->hit.flags          &= 0x7FFF;
+        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.b.flags = 0;
         work->field_108           = 0x20;
         work->field_100           = 2;
@@ -6571,7 +6571,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->hit.flags          &= 0x7FFF;
+        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.b.flags = 0;
         work->field_108           = 0x20;
         work->field_100           = 2;
@@ -6668,8 +6668,8 @@ void func_acropolis_bridge_80187078(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->hit.flags          &= 0x7FFF;
-        work->body.flags         |= 0x8000;
+        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         enemy->node.state.b.flags = 1;
         work->field_100           = 1;
         work->field_104           = 3;
@@ -6719,8 +6719,8 @@ void func_acropolis_bridge_80187310(Task* task)
 
     if (work->field_4 != 0) {
         Tmd_AllocBuffers(task->extra.tmd);
-        work->hit.flags          &= 0x7FFF;
-        work->body.flags         &= 0x7FFF;
+        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.b.flags = 1;
         work->field_100           = 1;
         work->field_104           = 5;
@@ -6771,8 +6771,8 @@ void func_acropolis_bridge_801874DC(Task* task)
     s32                       step;
 
     if (work->field_4 != 0) {
-        work->hit.flags          &= 0x7FFF;
-        work->body.flags         &= 0x7FFF;
+        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.b.flags = 1;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
@@ -7075,8 +7075,8 @@ void func_acropolis_bridge_80187D04(Task* task)
 
         extra->flags              = TMD_OBJECT_HIDDEN;
         enemy->node.state.b.flags = 1;
-        work->body.flags         &= 0x7FFF;
-        work->hit.flags          &= 0x7FFF;
+        work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
     extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

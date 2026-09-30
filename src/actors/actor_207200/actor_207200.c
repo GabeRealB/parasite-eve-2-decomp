@@ -41,7 +41,7 @@
 
 /// 0x2B0-byte work block the enemy's spawn function allocates with `memCalloc`
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
-/// here). It embeds three `GpObj` list nodes; the first points its `ctx.recs` at
+/// here). It embeds three `WorldCollisionBody` list nodes; the first points its `context.contacts` at
 /// the `GpActorD4Rec` that follows it, the other two point straight at their
 /// own `WorldCollisionContact` table, and `Gp_InitRec18Table` zeroes each table.
 /// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.
@@ -51,12 +51,12 @@ typedef struct ActorShared8014df20Work {
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ GpObj                 field_FC;
+    /* 0x0FC */ WorldCollisionBody    field_FC;
     /* 0x11C */ GpActorD4Rec          field_11C;
     /* 0x134 */ WorldCollisionContact field_134[1];
-    /* 0x14C */ GpObj                 field_14C;
+    /* 0x14C */ WorldCollisionBody    field_14C;
     /* 0x16C */ WorldCollisionContact field_16C[1];
-    /* 0x184 */ GpObj                 field_184;
+    /* 0x184 */ WorldCollisionBody    field_184;
     /* 0x1A4 */ WorldCollisionContact field_1A4[4];
     /* 0x204 */ byte                  pad_204[0x50];
     /* 0x254 */ s32                   field_254; // position restored when the push-back conflicts
@@ -263,46 +263,46 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     work->field_2A8          = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState              = seed;
     Gp_SetLightMode(arg1->spawnArg2.pointer, 2);
-    work->field_11C.end0.vz    = 0x1388;
-    work->field_11C.end0Radius = 0xFA0;
-    work->field_11C.end1Radius = 0x7D0;
-    records1                   = work->field_134;
-    work->field_11C.recs       = records1;
-    work->field_FC.ctx.d4rec   = &work->field_11C;
-    work->field_FC.coord       = coord;
-    work->field_FC.pos.vx      = 0;
-    work->field_FC.pos.vy      = 0;
-    work->field_FC.pos.vz      = 0;
-    work->field_FC.key         = 0;
-    work->field_FC.radius      = 0;
-    work->field_FC.flags       = 3;
+    work->field_11C.end0.vz        = 0x1388;
+    work->field_11C.end0Radius     = 0xFA0;
+    work->field_11C.end1Radius     = 0x7D0;
+    records1                       = work->field_134;
+    work->field_11C.recs           = records1;
+    work->field_FC.context.capsule = &work->field_11C;
+    work->field_FC.coord           = coord;
+    work->field_FC.pos.vx          = 0;
+    work->field_FC.pos.vy          = 0;
+    work->field_FC.pos.vz          = 0;
+    work->field_FC.key             = 0;
+    work->field_FC.radius          = 0;
+    work->field_FC.flags           = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(3, &work->field_FC);
     Gp_InitRec18Table(records1, 1, 0);
-    work->field_14C.coord    = coord;
-    records2                 = work->field_16C;
-    work->field_14C.ctx.recs = records2;
-    work->field_14C.pos.vx   = 0;
-    work->field_14C.pos.vy   = 0;
-    work->field_14C.pos.vz   = 0;
-    work->field_14C.key      = 0;
-    work->field_14C.radius   = 0x7D0;
-    work->field_14C.flags    = 1;
-    work->field_FC.flags     = work->field_FC.flags | 0x8000;
+    work->field_14C.coord            = coord;
+    records2                         = work->field_16C;
+    work->field_14C.context.contacts = records2;
+    work->field_14C.pos.vx           = 0;
+    work->field_14C.pos.vy           = 0;
+    work->field_14C.pos.vz           = 0;
+    work->field_14C.key              = 0;
+    work->field_14C.radius           = 0x7D0;
+    work->field_14C.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->field_FC.flags             = work->field_FC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_LinkObj(3, &work->field_14C);
     Gp_InitRec18Table(records2, 1, 0);
-    records3                 = work->field_1A4;
-    work->field_184.coord    = coord;
-    work->field_184.ctx.recs = records3;
-    work->field_184.pos.vx   = 0;
-    work->field_184.pos.vy   = -0xC8;
-    work->field_184.pos.vz   = 0;
-    work->field_184.key      = 0x3002F;
-    work->field_184.radius   = 0xC8;
-    work->field_184.flags    = 1;
-    work->field_14C.flags    = work->field_14C.flags | 0x8000;
+    records3                         = work->field_1A4;
+    work->field_184.coord            = coord;
+    work->field_184.context.contacts = records3;
+    work->field_184.pos.vx           = 0;
+    work->field_184.pos.vy           = -0xC8;
+    work->field_184.pos.vz           = 0;
+    work->field_184.key              = 0x3002F;
+    work->field_184.radius           = 0xC8;
+    work->field_184.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->field_14C.flags            = work->field_14C.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_LinkObj(2, &work->field_184);
     Gp_InitRec18Table(records3, 4, 0);
-    work->field_184.flags = work->field_184.flags | 0xC200;
+    work->field_184.flags = work->field_184.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->field_2AC       = arg0->place->mode;
     if (work->field_2AC == 1 && arg1->bodyKind == work->field_2AC) {
         obj->texturePageOffset++;
@@ -372,8 +372,8 @@ static void func_actor_207200_8014A1C4(Task* arg0)
             snd = ((ctx->placeKey >> 12) << 8) | id;
             SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
         }
-        work->field_14C.flags &= 0x7FFF;
-        work->field_FC.flags  &= 0x7FFF;
+        work->field_14C.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_FC.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ArmStateF0(1);
     }
     Gp_ClearRec18Occupied(work->field_16C);

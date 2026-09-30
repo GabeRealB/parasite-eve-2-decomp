@@ -56,7 +56,7 @@ typedef struct _GpTurnScratch {
 STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 
 /// 0x40-byte scratch from the scratch stack used by `func_80109BB4`.
-/// `pos` is the world position of the colliding `GpObj` (`pos` rotated by
+/// `pos` is the world position of the colliding `WorldCollisionBody` (`pos` rotated by
 /// `coord->workm`, plus that matrix's translation), later
 /// reused to save the actor's pre-push `coord.t[0]` / `t[2]`. `delta` is
 /// `pos` minus the contact point, `unit` its `VectorNormal`, and `local`
@@ -230,7 +230,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
     GameActor*             actor;
     GfxCoord*              coord;
     WorldCollisionContact* rec;
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     VECTOR*                delta;
     s32                    i;
     s32                    best;
@@ -261,7 +261,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
                     }
                     id = rec->key.parts.id;
                     if (id < 0x46 && D_80113F9C[id] == 1) {
-                        obj = &((GpObj*)actor->field_AC)[(u8)rec->flags >> 4];
+                        obj = &((WorldCollisionBody*)actor->field_AC)[(u8)rec->flags >> 4];
                         gte_SetRotMatrix(&obj->coord->workm);
                         gte_ldv0(&obj->pos);
                         gte_rtv0();
@@ -831,7 +831,7 @@ void func_8010AD64(Task* arg0)
         case 0:
             idx                     = (s8)inner->field_993;
             inner->field_95E        = 1;
-            coord                   = ((GpObj*)inner->field_AC)[idx].coord;
+            coord                   = ((WorldCollisionBody*)inner->field_AC)[idx].coord;
             params->spawnArgLo      = 0xC0;
             params->spawnArgHi      = 2;
             D_80113358.coord        = coord;
@@ -1591,37 +1591,37 @@ void func_8010C180(Task* arg0)
 
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 {
-    GfxCoord*     src;
-    GpActorD4*    block;
-    GpObj*        obj;
-    GpActorD4Rec* rec;
-    s16           vz;
+    GfxCoord*           src;
+    GpActorD4*          block;
+    WorldCollisionBody* obj;
+    GpActorD4Rec*       rec;
+    s16                 vz;
 
-    block           = ((GameActor*)arg0->work)->field_910;
-    src             = arg0->extra.tmd->coords;
-    obj             = &block->obj;
-    rec             = &block->shape;
-    block->coord    = *src;
-    obj->coord      = &block->coord;
-    obj->pos.vz     = -0xA0;
-    obj->key        = 0x60000;
-    obj->ctx.d4rec  = rec;
-    obj->pos.vx     = 0;
-    obj->pos.vy     = 0;
-    obj->flags      = 3;
-    rec->end1.vx    = arg1->vx;
-    rec->end1.vy    = arg1->vy;
-    vz              = arg1->vz;
-    rec->end0.vz    = arg2;
-    rec->end0.vx    = rec->end1.vx;
-    rec->end1Radius = 0x80;
-    rec->end0Radius = 0x80;
-    rec->recs       = &block->contact;
-    rec->end1.vz    = vz;
-    rec->end0.vy    = rec->end1.vy;
+    block                = ((GameActor*)arg0->work)->field_910;
+    src                  = arg0->extra.tmd->coords;
+    obj                  = &block->obj;
+    rec                  = &block->shape;
+    block->coord         = *src;
+    obj->coord           = &block->coord;
+    obj->pos.vz          = -0xA0;
+    obj->key             = 0x60000;
+    obj->context.capsule = rec;
+    obj->pos.vx          = 0;
+    obj->pos.vy          = 0;
+    obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
+    rec->end1.vx         = arg1->vx;
+    rec->end1.vy         = arg1->vy;
+    vz                   = arg1->vz;
+    rec->end0.vz         = arg2;
+    rec->end0.vx         = rec->end1.vx;
+    rec->end1Radius      = 0x80;
+    rec->end0Radius      = 0x80;
+    rec->recs            = &block->contact;
+    rec->end1.vz         = vz;
+    rec->end0.vy         = rec->end1.vy;
     Gp_LinkObj(1, obj);
     Gp_InitRec18Table(rec->recs, 1, 0);
-    obj->flags |= 0xC800;
+    obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
 s32 func_8010C30C(Task* arg0)
@@ -1857,19 +1857,19 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-void func_8010C980(void* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5)
+void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5)
 {
-    arg1->coord    = arg0;
-    arg1->ctx.recs = arg2;
-    arg1->pos.vx   = 0;
-    arg1->pos.vy   = 0;
-    arg1->pos.vz   = 0;
-    arg1->flags    = 1;
-    arg1->key      = arg4 | 0x30000;
-    arg1->radius   = arg5;
+    arg1->coord            = arg0;
+    arg1->context.contacts = arg2;
+    arg1->pos.vx           = 0;
+    arg1->pos.vy           = 0;
+    arg1->pos.vz           = 0;
+    arg1->flags            = WORLD_COLLISION_BODY_SPHERE;
+    arg1->key              = arg4 | 0x30000;
+    arg1->radius           = arg5;
     Gp_LinkObj(2, arg1);
-    arg1->flags |= 0x8000;
-    Gp_InitRec18Table(arg1->ctx.recs, (s16)arg3, 0);
+    arg1->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(arg1->context.contacts, (s16)arg3, 0);
 }
 
 const TaskFuncTable4 D_80097AB0 = { {

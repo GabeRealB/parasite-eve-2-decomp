@@ -10,12 +10,12 @@
 #include "gameplay/collision.h"
 #include "gameplay/effects.h"
 
-/// A `GpObj` list node followed by one `WorldCollisionContact`-sized record. The large
+/// A `WorldCollisionBody` list node followed by one `WorldCollisionContact`-sized record. The large
 /// enemy keeps five and unlinks them one by one as it tears down; the record
 /// of the one at 0x214 becomes the enemy's `recs` once it starts dying.
 typedef struct Actor207200Obj {
-    /* 0x00 */ GpObj obj;
-    /* 0x20 */ byte  field_20[0x18];
+    /* 0x00 */ WorldCollisionBody obj;
+    /* 0x20 */ byte               field_20[0x18];
 } Actor207200Obj;
 STATIC_ASSERT_SIZEOF(Actor207200Obj, 0x38);
 

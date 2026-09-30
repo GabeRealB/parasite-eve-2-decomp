@@ -598,51 +598,51 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
         var_s0 += 1;
     } while (var_s0 < 0x14);
     (Gp_IncStateF0Ref)(0);
-    temp_v0->field_736            = 1;
-    temp_v0->field_658.coord      = &temp_v0->field_4B8;
-    temp_v0->field_658.spawnArgLo = 0x600;
-    temp_v0->field_658.spawnArgHi = 2;
-    temp_v0->field_6E8.vy         = -0x1F4;
-    temp_s0_2                     = temp_v0->field_528;
-    temp_v0->field_738            = 0;
-    temp_v0->field_744            = 0;
-    temp_v0->field_6E8.vx         = 0;
-    temp_v0->field_6E8.vz         = 0xC8;
-    temp_v0->field_508.coord      = temp_s5;
-    temp_v0->field_508.ctx.recs   = temp_s0_2;
-    temp_v0->field_508.pos.vx     = 0;
-    temp_v0->field_508.pos.vy     = 0;
-    temp_v0->field_508.pos.vz     = 0;
-    temp_v0->field_508.key        = 0x30024;
-    temp_v0->field_508.radius     = 0x3E8;
-    temp_v0->field_508.flags      = 1U;
+    temp_v0->field_736                  = 1;
+    temp_v0->field_658.coord            = &temp_v0->field_4B8;
+    temp_v0->field_658.spawnArgLo       = 0x600;
+    temp_v0->field_658.spawnArgHi       = 2;
+    temp_v0->field_6E8.vy               = -0x1F4;
+    temp_s0_2                           = temp_v0->field_528;
+    temp_v0->field_738                  = 0;
+    temp_v0->field_744                  = 0;
+    temp_v0->field_6E8.vx               = 0;
+    temp_v0->field_6E8.vz               = 0xC8;
+    temp_v0->field_508.coord            = temp_s5;
+    temp_v0->field_508.context.contacts = temp_s0_2;
+    temp_v0->field_508.pos.vx           = 0;
+    temp_v0->field_508.pos.vy           = 0;
+    temp_v0->field_508.pos.vz           = 0;
+    temp_v0->field_508.key              = 0x30024;
+    temp_v0->field_508.radius           = 0x3E8;
+    temp_v0->field_508.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &temp_v0->field_508);
     Gp_InitRec18Table(temp_s0_2, 4, 0);
-    temp_s0_3                   = temp_v0->field_5A8;
-    temp_v0->field_588.coord    = temp_s5;
-    temp_v0->field_588.ctx.recs = temp_s0_3;
-    temp_v0->field_588.pos.vx   = 0;
-    temp_v0->field_588.pos.vy   = 0;
-    temp_v0->field_588.pos.vz   = 0x3E8;
-    temp_v0->field_508.flags    = temp_v0->field_508.flags | 0xC200;
-    temp_v0->field_588.key      = Gp_PackPair(&D_actor_403600_80150E9C, 1);
-    temp_v0->field_588.radius   = 0x5DC;
-    temp_v0->field_588.flags    = 1U;
+    temp_s0_3                           = temp_v0->field_5A8;
+    temp_v0->field_588.coord            = temp_s5;
+    temp_v0->field_588.context.contacts = temp_s0_3;
+    temp_v0->field_588.pos.vx           = 0;
+    temp_v0->field_588.pos.vy           = 0;
+    temp_v0->field_588.pos.vz           = 0x3E8;
+    temp_v0->field_508.flags            = temp_v0->field_508.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    temp_v0->field_588.key              = Gp_PackPair(&D_actor_403600_80150E9C, 1);
+    temp_v0->field_588.radius           = 0x5DC;
+    temp_v0->field_588.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &temp_v0->field_588);
     Gp_InitRec18Table(temp_s0_3, 1, 0);
-    temp_s0_4                   = temp_v0->field_5F8;
-    temp_v0->field_5C0.coord    = temp_s5;
-    temp_v0->field_5C0.ctx.recs = temp_s0_4;
-    temp_v0->field_5C0.pos.vx   = 0;
-    temp_v0->field_5C0.pos.vz   = 0;
-    temp_v0->field_5C0.pos.vy   = 0x7D0;
-    temp_v0->field_5C0.key      = 0;
-    temp_v0->field_5C0.radius   = 0x64;
-    temp_v0->field_5C0.flags    = 1U;
-    temp_v0->field_588.flags    = temp_v0->field_588.flags & 0x7FFF;
+    temp_s0_4                           = temp_v0->field_5F8;
+    temp_v0->field_5C0.coord            = temp_s5;
+    temp_v0->field_5C0.context.contacts = temp_s0_4;
+    temp_v0->field_5C0.pos.vx           = 0;
+    temp_v0->field_5C0.pos.vz           = 0;
+    temp_v0->field_5C0.pos.vy           = 0x7D0;
+    temp_v0->field_5C0.key              = 0;
+    temp_v0->field_5C0.radius           = 0x64;
+    temp_v0->field_5C0.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    temp_v0->field_588.flags            = temp_v0->field_588.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(3, &temp_v0->field_5C0);
     Gp_InitRec18Table(temp_s0_4, 4, 0);
-    temp_v0->field_5C0.flags = temp_v0->field_5C0.flags & 0x3FFF;
+    temp_v0->field_5C0.flags = temp_v0->field_5C0.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &rot);
     temp_s0_5 = ratan2(rot.vx, rot.vz);
     rot.vx    = 0;
@@ -2156,7 +2156,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         SndEvt_EnqueueType6(temp_s4, temp_s0_23, (s32)(((temp_v0_24 >> 0x1F) + temp_v0_24) << 0x17) >> 0x18);
                         Task_SpawnFromTable(D_actor_403600_801421A0, 3, 1, arg0);
                         temp_s3->field_776          = 0;
-                        temp_s3->field_5C0.flags    = (u16)(temp_s3->field_5C0.flags & 0xBFFF);
+                        temp_s3->field_5C0.flags    = (u16)(temp_s3->field_5C0.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
                         temp_s7->node.state.b.flags = 1;
                         Gp_ClearNodeSlots(&temp_s7->node);
                         temp_s3->field_73A = 0;
@@ -2451,10 +2451,10 @@ static void func_actor_403600_8013A444(Task* arg0)
                         SndEvt_EnqueueType6(temp_s4, temp_s0_30, (s32)(((temp_v0_36 >> 0x1F) + temp_v0_36) << 0x17) >> 0x18);
                     }
                     if (temp_s3->field_73A == 0x11) {
-                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags | 0x8000);
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     }
                     if (temp_s3->field_73A == 0x15) {
-                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags & 0x7FFF);
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
                     }
                     if (temp_s3->field_73A >= 0x1E) {
                         temp_s3->field_73C = 0U;
@@ -2475,10 +2475,10 @@ static void func_actor_403600_8013A444(Task* arg0)
                         SndEvt_EnqueueType6(temp_s4, temp_s0_32, (s32)(((temp_v0_37 >> 0x1F) + temp_v0_37) << 0x17) >> 0x18);
                     }
                     if (temp_s3->field_73A == 0xA) {
-                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags | 0x8000);
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     }
                     if (temp_s3->field_73A == 0xE) {
-                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags & 0x7FFF);
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
                     }
                     var_v0_14 = temp_s3->field_73A < 0x23;
                 block_266:
@@ -2899,7 +2899,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
     other = work->field_5A8;
     if (Gp_FindRec18(other, 0) != 0) {
         Gp_ClearRec18Occupied(other);
-        work->field_588.flags &= 0x7FFF;
+        work->field_588.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     SCRATCH_POP(Actor403600DamageScratch);
 }
@@ -2970,7 +2970,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
             temp_v0_2->killCountdown                       = 0;
             ((Actor403600Work*)temp_v0_2->work)->field_732 = 1;
         }
-        temp_s1->field_588.flags &= 0x7FFF;
+        temp_s1->field_588.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_PulseState1C80();
         gGameSession->eventState            = 1;
         D_actor_403600_80160568.animationId = 0;
@@ -3606,7 +3606,7 @@ static void func_actor_403600_8013EA04(Task* arg0)
             temp_s2->field_732        = 0;
             temp_s2->field_746        = 1;
             temp_s2->field_73E        = 0x28;
-            temp_s2->field_5C0.flags |= 0x4000;
+            temp_s2->field_5C0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             temp_s2->field_782        = (_actor403600Rand() & 3) * 2;
             temp_s2->field_734        = (_actor403600Rand() % 20) + 0x28;
             func_actor_403600_8013CCEC(arg0, 1);
@@ -3944,35 +3944,35 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     work->field_744 = 0;
     work->field_6C0 =
         &task->extra.tmd->coords[1];
-    work->field_6C4          = 0x100;
-    work->field_6C6          = 1;
-    work->field_6E8.vx       = 0;
-    work->field_6E8.vy       = 0;
-    work->field_6E8.vz       = 0;
-    work->field_73E          = 0;
-    work->field_508.coord    = bodyCoord;
-    work->field_508.ctx.recs = bodyRecs;
-    work->field_508.pos.vx   = 0;
-    work->field_508.pos.vy   = 0;
-    work->field_508.pos.vz   = 0;
-    work->field_508.key      = 0x30024;
-    work->field_508.radius   = 0x3E8;
-    work->field_508.flags    = 1;
+    work->field_6C4                  = 0x100;
+    work->field_6C6                  = 1;
+    work->field_6E8.vx               = 0;
+    work->field_6E8.vy               = 0;
+    work->field_6E8.vz               = 0;
+    work->field_73E                  = 0;
+    work->field_508.coord            = bodyCoord;
+    work->field_508.context.contacts = bodyRecs;
+    work->field_508.pos.vx           = 0;
+    work->field_508.pos.vy           = 0;
+    work->field_508.pos.vz           = 0;
+    work->field_508.key              = 0x30024;
+    work->field_508.radius           = 0x3E8;
+    work->field_508.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->field_508);
     Gp_InitRec18Table(bodyRecs, 4, 0);
-    attackRecs               = work->field_5A8;
-    work->field_588.coord    = bodyCoord;
-    work->field_588.ctx.recs = attackRecs;
-    work->field_588.pos.vx   = 0;
-    work->field_588.pos.vy   = 0;
-    work->field_588.pos.vz   = 0x3E8;
-    work->field_508.flags   |= 0xC200;
-    work->field_588.key      = Gp_PackPair(&D_actor_403600_80150EB0, 0);
-    work->field_588.radius   = 0x5DC;
-    work->field_588.flags    = 1;
+    attackRecs                       = work->field_5A8;
+    work->field_588.coord            = bodyCoord;
+    work->field_588.context.contacts = attackRecs;
+    work->field_588.pos.vx           = 0;
+    work->field_588.pos.vy           = 0;
+    work->field_588.pos.vz           = 0x3E8;
+    work->field_508.flags           |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->field_588.key              = Gp_PackPair(&D_actor_403600_80150EB0, 0);
+    work->field_588.radius           = 0x5DC;
+    work->field_588.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->field_588);
     Gp_InitRec18Table(attackRecs, 1, 0);
-    work->field_588.flags     &= 0x7FFF;
+    work->field_588.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->field_4B8.coord.t[0] = (s32)ownerWork->field_4B8.coord.t[0];
     work->field_4B8.coord.t[1] = (s32)ownerWork->field_4B8.coord.t[1];
     work->field_4B8.coord.t[2] = (s32)ownerWork->field_4B8.coord.t[2];
@@ -4181,10 +4181,10 @@ static void func_actor_403600_801400BC(Task* arg0)
                                     (s32)(((temp_v0_2 >> 0x1F) + temp_v0_2) << 0x17) >> 0x18);
             }
             if (temp_s1->field_73A == 0x11) {
-                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags | 0x8000);
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (temp_s1->field_73A == 0x15) {
-                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags & 0x7FFF);
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             if (temp_s1->field_73A >= 0x1E) {
                 temp_s1->field_73C = 0U;
@@ -4217,10 +4217,10 @@ static void func_actor_403600_801400BC(Task* arg0)
                                     (s32)(((temp_v0_3 >> 0x1F) + temp_v0_3) << 0x17) >> 0x18);
             }
             if (temp_s1->field_73A == 0xA) {
-                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags | 0x8000);
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (temp_s1->field_73A == 0xE) {
-                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags & 0x7FFF);
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             if (temp_s1->field_73A >= 0x23) {
                 temp_s1->field_756 = 8;

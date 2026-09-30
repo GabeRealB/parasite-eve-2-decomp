@@ -56,9 +56,9 @@ typedef struct Actor205200Work {
     /* 0x000 */ ActorAnimRig19        rig;
     /* 0x43C */ MATRIX                field_43C; // color matrix, `TmdObject.colorMtx`
     /* 0x45C */ MATRIX                field_45C; // light matrix, `TmdObject.lightMtx`
-    /* 0x47C */ GpObj                 field_47C;
+    /* 0x47C */ WorldCollisionBody    field_47C;
     /* 0x49C */ WorldCollisionContact field_49C[3];
-    /* 0x4E4 */ GpObj                 field_4E4;
+    /* 0x4E4 */ WorldCollisionBody    field_4E4;
     /* 0x504 */ WorldCollisionContact field_504;
     /* 0x51C */ byte                  pad_51C[0x38];
     /* 0x554 */ GpEffArg              field_554; // record the charge's hit effect is spawned with
@@ -394,29 +394,29 @@ static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
         Gp_AnimResetSlot(&work->rig.anim, i, 1);
         i++;
     } while (i < 0x13);
-    work->field_596          = enemy->place->mode;
-    work->field_47C.pos.vy   = -300;
-    work->field_47C.coord    = coords;
-    work->field_47C.ctx.recs = work->field_49C;
-    work->field_47C.pos.vx   = 0;
-    work->field_47C.pos.vz   = 0;
-    work->field_47C.key      = 0x3003C;
-    work->field_47C.radius   = 300;
-    work->field_47C.flags    = 1;
+    work->field_596                  = enemy->place->mode;
+    work->field_47C.pos.vy           = -300;
+    work->field_47C.coord            = coords;
+    work->field_47C.context.contacts = work->field_49C;
+    work->field_47C.pos.vx           = 0;
+    work->field_47C.pos.vz           = 0;
+    work->field_47C.key              = 0x3003C;
+    work->field_47C.radius           = 300;
+    work->field_47C.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->field_47C);
     Gp_InitRec18Table(work->field_49C, 3, 0);
-    work->field_47C.flags   |= 0x8000;
-    work->field_4E4.coord    = coords;
-    work->field_4E4.ctx.recs = &work->field_504;
-    work->field_4E4.pos.vx   = D_actor_205200_801567B4[work->field_596].vx;
-    work->field_4E4.pos.vy   = D_actor_205200_801567B4[work->field_596].vy;
-    work->field_4E4.pos.vz   = D_actor_205200_801567B4[work->field_596].vz;
-    work->field_4E4.key      = 0;
-    work->field_4E4.radius   = D_actor_205200_801567B0[work->field_596];
-    work->field_4E4.flags    = 1;
+    work->field_47C.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->field_4E4.coord            = coords;
+    work->field_4E4.context.contacts = &work->field_504;
+    work->field_4E4.pos.vx           = D_actor_205200_801567B4[work->field_596].vx;
+    work->field_4E4.pos.vy           = D_actor_205200_801567B4[work->field_596].vy;
+    work->field_4E4.pos.vz           = D_actor_205200_801567B4[work->field_596].vz;
+    work->field_4E4.key              = 0;
+    work->field_4E4.radius           = D_actor_205200_801567B0[work->field_596];
+    work->field_4E4.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->field_4E4);
     Gp_InitRec18Table(&work->field_504, 1, 0);
-    work->field_4E4.flags |= 0x8000;
+    work->field_4E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     task->msgTable         = D_actor_205200_801567D0;
     task->state            = 1;
 }

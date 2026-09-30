@@ -119,7 +119,7 @@ typedef struct Actor403100Entry {
     /* 0x0E */ SVECTOR               position;
     /* 0x16 */ u8                    pad_16[0xA];
     /* 0x20 */ GfxCoord              coord;
-    /* 0x70 */ GpObj                 obj;
+    /* 0x70 */ WorldCollisionBody    obj;
     /* 0x90 */ WorldCollisionContact records[4];
 } Actor403100Entry;
 STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
@@ -198,17 +198,17 @@ typedef struct Actor403100Work {
             byte             pad_12E[0x2E6];
         } legacy;
     } field_B8;
-    /* 0x414 */ GpObj                 field_414;              // display nodes unlinked on death
+    /* 0x414 */ WorldCollisionBody    field_414;              // collision bodies unlinked on death
     /* 0x434 */ WorldCollisionContact initializedContacts[3]; // Three initialized results; the body binding is unproven
-    /* 0x47C */ GpObj                 field_47C;
+    /* 0x47C */ WorldCollisionBody    field_47C;
     /// Contact records the actor's own body collects, under `field_414`:
     /// `func_actor_403100_8013335C` walks all eight for kind-2 hits and
     /// `Gp_ClearRec18Occupied` empties the table each frame.
     /* 0x49C */ WorldCollisionContact pad_49C[8];
-    /* 0x55C */ GpObj                 field_55C;
+    /* 0x55C */ WorldCollisionBody    field_55C;
     /// Contact records from the first attached collider (`field_55C`).
     /* 0x57C */ WorldCollisionContact pad_57C[1];
-    /* 0x594 */ GpObj                 field_594;
+    /* 0x594 */ WorldCollisionBody    field_594;
     /// Contact records from the second attached collider (`field_594`).
     /* 0x5B4 */ WorldCollisionContact pad_5B4[1];
     /* 0x5CC */ byte                  pad_5CC[4];
@@ -3372,7 +3372,7 @@ static inline void     _actor403100ScaleRoot(Task* task, s16 factor);
 static inline void     _actor403100UpdateColor(Task* task, GfxCoord* coord);
 static void            func_actor_403100_801339EC(Task* arg0);
 static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 i);
-static __inline__ void _actor403100SetObjFlags(GpObj* obj, s32 mask, s32 bits);
+static __inline__ void _actor403100SetObjFlags(WorldCollisionBody* obj, s32 mask, s32 bits);
 static void            func_actor_403100_80134D50(Task* arg0);
 static void            func_actor_403100_8013506C(Task* arg0);
 static void            func_actor_403100_801351F8(Task* arg0);
@@ -3555,7 +3555,7 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
     s32                    i;
     u32                    random;
     WorldCollisionContact* records;
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     GfxCoord*              coord;
 
     i      = 0;
@@ -3575,38 +3575,38 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             func_actor_403100_8013D460(joint, arg1);
             identity = &matrix;
             func_actor_403100_8013D460(joint, &end);
-            D_actor_403100_80155814[i].delta.vx     = (s16)(end.vx - arg1->vx);
-            D_actor_403100_80155814[i].delta.vy     = (s16)(end.vy - arg1->vy);
-            D_actor_403100_80155814[i].delta.vz     = (s16)(end.vz - arg1->vz);
-            D_actor_403100_80155814[i].position.vx  = (u16)arg1->vx;
-            D_actor_403100_80155814[i].position.vy  = (u16)arg1->vy;
-            D_actor_403100_80155814[i].position.vz  = (u16)arg1->vz;
-            D_actor_403100_80155814[i].coord.parent = &gGfxViewCoord;
-            matrix.ident.m00_m01                    = 0x1000;
-            matrix.ident.m02_m10                    = 0;
-            identity->ident.m11_m12                 = 0x1000;
-            matrix.ident.m20_m21                    = 0;
-            identity->ident.m22                     = 0x1000;
-            matrix.mat.t[0]                         = (s32)(s16)arg1->vx;
-            matrix.mat.t[1]                         = (s32)(s16)arg1->vy;
-            records                                 = D_actor_403100_80155814[i].records;
-            matrix.mat.t[2]                         = (s32)(s16)arg1->vz;
-            D_actor_403100_80155814[i].coord.coord  = matrix.mat;
-            D_actor_403100_80155814[i].obj.coord    = coord;
-            D_actor_403100_80155814[i].obj.ctx.recs = records;
-            D_actor_403100_80155814[i].obj.pos.vx   = 0;
-            D_actor_403100_80155814[i].obj.pos.vy   = 0;
-            D_actor_403100_80155814[i].obj.pos.vz   = 0;
-            D_actor_403100_80155814[i].obj.key      = Gp_PackPair(D_actor_403100_80147614, 1);
-            D_actor_403100_80155814[i].obj.radius   = 0x32;
-            D_actor_403100_80155814[i].obj.flags    = 1;
-            obj                                     = &D_actor_403100_80155814[i].obj;
+            D_actor_403100_80155814[i].delta.vx             = (s16)(end.vx - arg1->vx);
+            D_actor_403100_80155814[i].delta.vy             = (s16)(end.vy - arg1->vy);
+            D_actor_403100_80155814[i].delta.vz             = (s16)(end.vz - arg1->vz);
+            D_actor_403100_80155814[i].position.vx          = (u16)arg1->vx;
+            D_actor_403100_80155814[i].position.vy          = (u16)arg1->vy;
+            D_actor_403100_80155814[i].position.vz          = (u16)arg1->vz;
+            D_actor_403100_80155814[i].coord.parent         = &gGfxViewCoord;
+            matrix.ident.m00_m01                            = 0x1000;
+            matrix.ident.m02_m10                            = 0;
+            identity->ident.m11_m12                         = 0x1000;
+            matrix.ident.m20_m21                            = 0;
+            identity->ident.m22                             = 0x1000;
+            matrix.mat.t[0]                                 = (s32)(s16)arg1->vx;
+            matrix.mat.t[1]                                 = (s32)(s16)arg1->vy;
+            records                                         = D_actor_403100_80155814[i].records;
+            matrix.mat.t[2]                                 = (s32)(s16)arg1->vz;
+            D_actor_403100_80155814[i].coord.coord          = matrix.mat;
+            D_actor_403100_80155814[i].obj.coord            = coord;
+            D_actor_403100_80155814[i].obj.context.contacts = records;
+            D_actor_403100_80155814[i].obj.pos.vx           = 0;
+            D_actor_403100_80155814[i].obj.pos.vy           = 0;
+            D_actor_403100_80155814[i].obj.pos.vz           = 0;
+            D_actor_403100_80155814[i].obj.key              = Gp_PackPair(D_actor_403100_80147614, 1);
+            D_actor_403100_80155814[i].obj.radius           = 0x32;
+            D_actor_403100_80155814[i].obj.flags            = WORLD_COLLISION_BODY_SPHERE;
+            obj                                             = &D_actor_403100_80155814[i].obj;
             Gp_LinkObj(3, obj);
             Gp_InitRec18Table(records, 4, 0);
             if ((mode << 0x10) == 0) {
-                obj->flags |= 0xC000;
+                obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
-                obj->flags &= 0x3FFF;
+                obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             Gp_UpdateCoord(&D_actor_403100_80155814[i].coord);
             D_actor_403100_80155814[i].coord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3620,50 +3620,50 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
 
 static void func_actor_403100_80132320(Task* arg0)
 {
-    D_actor_403100_80155808->field_47C.coord    = &arg0->extra.tmd->coords[3];
-    D_actor_403100_80155808->field_47C.ctx.recs = D_actor_403100_80155808->pad_49C;
-    D_actor_403100_80155808->field_47C.pos.vz   = 0x300;
-    D_actor_403100_80155808->field_47C.pos.vx   = 0;
-    D_actor_403100_80155808->field_47C.pos.vy   = 0;
-    D_actor_403100_80155808->field_47C.key      = 0x3001F;
-    D_actor_403100_80155808->field_47C.radius   = 0x400;
-    D_actor_403100_80155808->field_47C.flags    = 1;
+    D_actor_403100_80155808->field_47C.coord            = &arg0->extra.tmd->coords[3];
+    D_actor_403100_80155808->field_47C.context.contacts = D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155808->field_47C.pos.vz           = 0x300;
+    D_actor_403100_80155808->field_47C.pos.vx           = 0;
+    D_actor_403100_80155808->field_47C.pos.vy           = 0;
+    D_actor_403100_80155808->field_47C.key              = 0x3001F;
+    D_actor_403100_80155808->field_47C.radius           = 0x400;
+    D_actor_403100_80155808->field_47C.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &D_actor_403100_80155808->field_47C);
     Gp_InitRec18Table(D_actor_403100_80155808->pad_49C, 8, 0);
-    D_actor_403100_80155808->field_47C.flags   |= 0x8000;
-    D_actor_403100_80155808->field_414.coord    = &arg0->extra.tmd->coords[1];
-    D_actor_403100_80155808->field_414.ctx.recs = D_actor_403100_80155808->pad_49C;
-    D_actor_403100_80155808->field_414.pos.vx   = 0;
-    D_actor_403100_80155808->field_414.pos.vy   = 0;
-    D_actor_403100_80155808->field_414.pos.vz   = 0;
-    D_actor_403100_80155808->field_414.key      = 0x3001F;
-    D_actor_403100_80155808->field_414.radius   = 0x800;
-    D_actor_403100_80155808->field_414.flags    = 1;
+    D_actor_403100_80155808->field_47C.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    D_actor_403100_80155808->field_414.coord            = &arg0->extra.tmd->coords[1];
+    D_actor_403100_80155808->field_414.context.contacts = D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155808->field_414.pos.vx           = 0;
+    D_actor_403100_80155808->field_414.pos.vy           = 0;
+    D_actor_403100_80155808->field_414.pos.vz           = 0;
+    D_actor_403100_80155808->field_414.key              = 0x3001F;
+    D_actor_403100_80155808->field_414.radius           = 0x800;
+    D_actor_403100_80155808->field_414.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &D_actor_403100_80155808->field_414);
     Gp_InitRec18Table(D_actor_403100_80155808->initializedContacts, 3, 0);
-    D_actor_403100_80155808->field_55C.key      = 0x3001F;
-    D_actor_403100_80155808->field_414.flags   |= 0x8000;
-    D_actor_403100_80155808->field_55C.coord    = &arg0->extra.tmd->coords[7];
-    D_actor_403100_80155808->field_55C.ctx.recs = D_actor_403100_80155808->pad_57C;
-    D_actor_403100_80155808->field_55C.pos.vx   = -0x200;
-    D_actor_403100_80155808->field_55C.pos.vy   = 0;
-    D_actor_403100_80155808->field_55C.pos.vz   = 0x200;
-    D_actor_403100_80155808->field_55C.radius   = 0x3A0;
-    D_actor_403100_80155808->field_55C.flags    = 1;
+    D_actor_403100_80155808->field_55C.key              = 0x3001F;
+    D_actor_403100_80155808->field_414.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    D_actor_403100_80155808->field_55C.coord            = &arg0->extra.tmd->coords[7];
+    D_actor_403100_80155808->field_55C.context.contacts = D_actor_403100_80155808->pad_57C;
+    D_actor_403100_80155808->field_55C.pos.vx           = -0x200;
+    D_actor_403100_80155808->field_55C.pos.vy           = 0;
+    D_actor_403100_80155808->field_55C.pos.vz           = 0x200;
+    D_actor_403100_80155808->field_55C.radius           = 0x3A0;
+    D_actor_403100_80155808->field_55C.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &D_actor_403100_80155808->field_55C);
     Gp_InitRec18Table(D_actor_403100_80155808->pad_57C, 1, 0);
-    D_actor_403100_80155808->field_594.key      = 0x3001F;
-    D_actor_403100_80155808->field_55C.flags   &= 0x7FFF;
-    D_actor_403100_80155808->field_594.coord    = &arg0->extra.tmd->coords[6];
-    D_actor_403100_80155808->field_594.ctx.recs = D_actor_403100_80155808->pad_5B4;
-    D_actor_403100_80155808->field_594.pos.vx   = -0x200;
-    D_actor_403100_80155808->field_594.pos.vy   = 0;
-    D_actor_403100_80155808->field_594.pos.vz   = 0x180;
-    D_actor_403100_80155808->field_594.radius   = 0x3A0;
-    D_actor_403100_80155808->field_594.flags    = 1;
+    D_actor_403100_80155808->field_594.key              = 0x3001F;
+    D_actor_403100_80155808->field_55C.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    D_actor_403100_80155808->field_594.coord            = &arg0->extra.tmd->coords[6];
+    D_actor_403100_80155808->field_594.context.contacts = D_actor_403100_80155808->pad_5B4;
+    D_actor_403100_80155808->field_594.pos.vx           = -0x200;
+    D_actor_403100_80155808->field_594.pos.vy           = 0;
+    D_actor_403100_80155808->field_594.pos.vz           = 0x180;
+    D_actor_403100_80155808->field_594.radius           = 0x3A0;
+    D_actor_403100_80155808->field_594.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &D_actor_403100_80155808->field_594);
     Gp_InitRec18Table(D_actor_403100_80155808->pad_5B4, 1, 0);
-    D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+    D_actor_403100_80155808->field_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 static void func_actor_403100_80132528(Task* arg0)
 {
@@ -4055,14 +4055,14 @@ static void func_actor_403100_8013335C(Task* arg0)
             D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & 0xF3);
         }
     }
-    if (Gp_FindRec18(D_actor_403100_80155808->field_55C.ctx.recs, 0) != 0) {
+    if (Gp_FindRec18(D_actor_403100_80155808->field_55C.context.contacts, 0) != 0) {
         for (i = 0; i < 1; i++) {
             if ((D_actor_403100_80155808->pad_57C[i].key.value & 0xFFFF0000) == 0x10000) {
                 D_actor_403100_80155808->field_668.b.field_668 = 1;
             }
         }
     }
-    if (Gp_FindRec18(D_actor_403100_80155808->field_594.ctx.recs, 0) != 0) {
+    if (Gp_FindRec18(D_actor_403100_80155808->field_594.context.contacts, 0) != 0) {
         for (i = 0; i < 1; i++) {
             if ((D_actor_403100_80155808->pad_5B4[i].key.value & 0xFFFF0000) == 0x10000) {
                 D_actor_403100_80155808->field_668.b.field_669 = 1;
@@ -4457,7 +4457,7 @@ static void func_actor_403100_801345E0(Task* arg0, Task* arg1)
 }
 
 /* Rewrites a body's pass-enable bits: keeps those in `mask`, then sets `bits`. */
-static __inline__ void _actor403100SetObjFlags(GpObj* obj, s32 mask, s32 bits)
+static __inline__ void _actor403100SetObjFlags(WorldCollisionBody* obj, s32 mask, s32 bits)
 {
     obj->flags = (obj->flags & mask) | bits;
 }
@@ -4512,7 +4512,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, 0x7FFF, 0x4000);
         }
         if (Gp_StateF0.field_4 == 0) {
-            if (Gp_FindRec18(entry->obj.ctx.recs, 0) != 0) {
+            if (Gp_FindRec18(entry->obj.context.contacts, 0) != 0) {
                 for (j = 0; j < 4; j++) {
                     if ((D_actor_403100_80155814[i].records[j].key.value & 0xFFFF0000) == 0x10000 && D_actor_403100_80155810 == 0) {
                         D_actor_403100_80155810 = 0xA;
@@ -5487,11 +5487,11 @@ static void func_actor_403100_80136830(Task* arg0)
 }
 static void func_actor_403100_8013712C(Task* arg0)
 {
-    Actor403100Entry* entries;
-    GpObj*            obj;
-    s32               i;
-    GfxCoord*         coord;
-    Actor403100Work*  work;
+    Actor403100Entry*   entries;
+    WorldCollisionBody* obj;
+    s32                 i;
+    GfxCoord*           coord;
+    Actor403100Work*    work;
 
     coord                                       = arg0->extra.tmd->coords;
     D_actor_403100_8015580C->node.state.b.flags = 8;
@@ -5520,10 +5520,10 @@ static void func_actor_403100_8013712C(Task* arg0)
             entries[i].active = 0;
             Gp_UnlinkObj(obj);
         }
-        /* The display node walks as its own pointer, one entry at a time:
+        /* The collision body walks as its own pointer, one entry at a time:
            spelled `&entries[i].obj` it folds into the walk of `entries[i]`,
            and the ROM keeps the two apart. */
-        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
     D_actor_403100_80155808->field_5FA += 1;
@@ -5654,8 +5654,8 @@ static void func_actor_403100_801375B8(Task* task)
     D_actor_403100_80155808->field_5E2             = 0xC;
     D_actor_403100_80155808->field_5DA             = 2;
     D_actor_403100_80155808->field_5EC             = 0;
-    D_actor_403100_80155808->field_55C.flags      &= 0x7FFF;
-    D_actor_403100_80155808->field_594.flags      &= 0x7FFF;
+    D_actor_403100_80155808->field_55C.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    D_actor_403100_80155808->field_594.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     D_actor_403100_80155808->field_668.b.field_668 = 0;
     D_actor_403100_80155808->field_668.b.field_669 = 0;
     D_actor_403100_80155808->field_5FA            += 1;
@@ -5707,8 +5707,8 @@ static void func_actor_403100_801376D8(Task* arg0)
             D_actor_403100_80155808->field_5DE        = 5;
             D_actor_403100_80155808->field_5DA        = 2;
             D_actor_403100_80155808->field_5FA       += 2;
-            D_actor_403100_80155808->field_55C.flags &= 0x7FFF;
-            D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+            D_actor_403100_80155808->field_55C.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            D_actor_403100_80155808->field_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
         }
         counter                                             = D_actor_403100_80155808->field_5FA;
@@ -5774,8 +5774,8 @@ static void func_actor_403100_801379B4(Task* arg0)
             D_actor_403100_80155808->field_5DE        = 5;
             D_actor_403100_80155808->field_5DA        = 2;
             D_actor_403100_80155808->field_5FA       += 1;
-            D_actor_403100_80155808->field_55C.flags &= 0x7FFF;
-            D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+            D_actor_403100_80155808->field_55C.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            D_actor_403100_80155808->field_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
         }
         D_actor_403100_80155808->field_5E2 = 0xA;
@@ -5853,10 +5853,10 @@ static void func_actor_403100_80137DC4(Task* arg0)
 }
 static void func_actor_403100_80137F4C(Task* task)
 {
-    Actor403100Entry* entry;
-    GpObj*            obj;
-    Actor403100Entry* entries;
-    s32               i;
+    Actor403100Entry*   entry;
+    WorldCollisionBody* obj;
+    Actor403100Entry*   entries;
+    s32                 i;
 
     D_actor_403100_80155808->field_5F6 = 0;
     if (D_actor_403100_80155808->field_65C == 0) {
@@ -5875,7 +5875,7 @@ static void func_actor_403100_80137F4C(Task* task)
             entry->active = 0;
             Gp_UnlinkObj(obj);
         }
-        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
         entry++;
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
@@ -6421,15 +6421,15 @@ static void func_actor_403100_8013922C(Task* arg0)
 }
 static void func_actor_403100_801395EC(Task* arg0)
 {
-    Actor403100Entry* entry;
-    Actor403100Entry* entries;
-    GpObj*            obj;
-    s32               x;
-    s32               i;
-    u16               frame;
-    TmdObject*        model;
-    GfxCoord*         part;
-    GfxCoord*         coords;
+    Actor403100Entry*   entry;
+    Actor403100Entry*   entries;
+    WorldCollisionBody* obj;
+    s32                 x;
+    s32                 i;
+    u16                 frame;
+    TmdObject*          model;
+    GfxCoord*           part;
+    GfxCoord*           coords;
 
     model                              = arg0->extra.tmd;
     coords                             = model->coords;
@@ -6483,7 +6483,7 @@ static void func_actor_403100_801395EC(Task* arg0)
                 entry->active = 0;
                 Gp_UnlinkObj(obj);
             }
-            obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+            obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
             i  += 1;
             entry++;
         } while (i < 0x1C);
@@ -6802,10 +6802,10 @@ static void func_actor_403100_8013A254(Task* task)
 }
 static void func_actor_403100_8013A4C8(Task* arg0)
 {
-    Actor403100Entry* entries;
-    GpObj*            obj;
-    s32               i;
-    Actor403100Work*  work;
+    Actor403100Entry*   entries;
+    WorldCollisionBody* obj;
+    s32                 i;
+    Actor403100Work*    work;
 
     i                                          = 0;
     entries                                    = D_actor_403100_80155814;
@@ -6821,7 +6821,7 @@ static void func_actor_403100_8013A4C8(Task* arg0)
             entries[i].active = 0;
             Gp_UnlinkObj(obj);
         }
-        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
     D_actor_403100_80155808->field_5E2  = 0x10;
@@ -7077,16 +7077,16 @@ static void func_actor_403100_8013AE28(Task* task)
 }
 static void func_actor_403100_8013B128(Task* arg0)
 {
-    Actor403100Entry* entries;
-    Actor403100Work*  work;
-    Actor403100Work*  finalWork;
-    GpObj*            obj;
-    s32               sound;
-    s32               i;
-    s32               pan;
-    s32               depth;
-    GfxCoord*         coords;
-    TmdObject*        model;
+    Actor403100Entry*   entries;
+    Actor403100Work*    work;
+    Actor403100Work*    finalWork;
+    WorldCollisionBody* obj;
+    s32                 sound;
+    s32                 i;
+    s32                 pan;
+    s32                 depth;
+    GfxCoord*           coords;
+    TmdObject*          model;
 
     model                                  = arg0->extra.tmd;
     coords                                 = model->coords;
@@ -7111,7 +7111,7 @@ static void func_actor_403100_8013B128(Task* arg0)
             entries[i].active = 0;
             Gp_UnlinkObj(obj);
         }
-        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
     D_actor_403100_80155808->field_622              = (s16)gGameSession->at4.loc.view;

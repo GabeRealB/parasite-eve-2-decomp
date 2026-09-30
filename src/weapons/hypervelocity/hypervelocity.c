@@ -100,12 +100,12 @@ typedef struct HyperConeScratch {
 STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
 
 /// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
-/// `Task::work`. It leads with the `GpObj` list node `func_hypervelocity_8011F11C`
+/// `Task::work`. It leads with the `WorldCollisionBody` list node `func_hypervelocity_8011F11C`
 /// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry
-/// `WorldCollisionContact` collision table `obj.ctx.recs` points at, and its `flags` is set
+/// `WorldCollisionContact` collision table `obj.context.contacts` points at, and its `flags` is set
 /// to 2 (the last-element bit) instead of going through `Gp_InitRec18Table`.
 typedef struct HyperBeam {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[1];
 } HyperBeam;
 STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
@@ -402,19 +402,19 @@ void func_hypervelocity_8011D830(Task* task)
                 Gp_LcgState                 = Gp_LcgState * 5 + 0x71357911;
                 D_hypervelocity_8012EF0C[i] = ((u32)Gp_LcgState >> 16) & 0xFF;
             }
-            work->scale        = 0xC0;
-            work->angle        = 0x500;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->period       = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            task->work         = beam;
-            beam->obj.ctx.recs = beam->rec;
-            beam->obj.radius   = 0x800;
-            beam->obj.coord    = coord;
-            beam->obj.key      = 0x2161A;
-            beam->obj.flags    = 1;
+            work->scale                = 0xC0;
+            work->angle                = 0x500;
+            Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
+            work->period               = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            task->work                 = beam;
+            beam->obj.context.contacts = beam->rec;
+            beam->obj.radius           = 0x800;
+            beam->obj.coord            = coord;
+            beam->obj.key              = 0x2161A;
+            beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &beam->obj);
             beam->rec[0].flags = 2;
-            beam->obj.flags   |= 0x8000;
+            beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             eff                = Gp_SpawnEff(0x6000D, coord, 0, NULL);
             if (eff != NULL) {
                 Task_Reparent(task, eff->task);
@@ -869,8 +869,8 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
 /// carries an identical copy.
 static void func_hypervelocity_8011F11C(Task* task)
 {
-    GpObj* obj = task->work;
-    void*  mem = task->spawnArg2.pointer;
+    WorldCollisionBody* obj = task->work;
+    void*               mem = task->spawnArg2.pointer;
 
     if (obj != NULL) {
         Gp_UnlinkObj(obj);

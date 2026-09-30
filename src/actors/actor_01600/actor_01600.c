@@ -65,7 +65,7 @@ STATIC_ASSERT_SIZEOF(Actor01600Range, 0x8);
 
 /// Collision body and the eight contact results its owner supplies.
 typedef struct {
-    GpObj                 obj;
+    WorldCollisionBody    obj;
     WorldCollisionContact contacts[8];
 } Actor01600Contacts;
 STATIC_ASSERT_SIZEOF(Actor01600Contacts, 0xE0);
@@ -1490,18 +1490,18 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_2B8 = 0;
     work->field_2BA = 3;
     work->field_2A4 = coord;
-    Gp_LinkObj(3, (struct _GpObj*)work->field_29C);
+    Gp_LinkObj(3, (struct WorldCollisionBody*)work->field_29C);
     Gp_InitRec18Table(table1, 1, 0);
-    table2                       = work->collision.contacts;
-    work->collision.obj.coord    = coord;
-    work->collision.obj.ctx.recs = table2;
-    work->collision.obj.key      = 0x30010;
-    work->collision.obj.radius   = 0x190;
-    work->collision.obj.pos.vx   = 0;
-    work->collision.obj.pos.vy   = -0x190;
-    work->collision.obj.pos.vz   = 0;
-    work->collision.obj.flags    = 1;
-    work->field_2BA             |= 0xC000;
+    table2                               = work->collision.contacts;
+    work->collision.obj.coord            = coord;
+    work->collision.obj.context.contacts = table2;
+    work->collision.obj.key              = 0x30010;
+    work->collision.obj.radius           = 0x190;
+    work->collision.obj.pos.vx           = 0;
+    work->collision.obj.pos.vy           = -0x190;
+    work->collision.obj.pos.vz           = 0;
+    work->collision.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->field_2BA                     |= 0xC000;
     Gp_LinkObj(2, &work->collision.obj);
     Gp_InitRec18Table(table2, 8, 0);
     table3                     = &work->capsuleContact;
@@ -1518,8 +1518,8 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_424            = 0;
     work->field_428            = 0;
     work->field_42A            = 3;
-    work->collision.obj.flags |= 0xC200;
-    Gp_LinkObj(2, (struct _GpObj*)work->field_40C);
+    work->collision.obj.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    Gp_LinkObj(2, (struct WorldCollisionBody*)work->field_40C);
     Gp_InitRec18Table(table3, 1, 0);
     table4           = &work->contact_3EC;
     work->field_3D4  = coord;
@@ -1531,7 +1531,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_3E4  = Gp_PackPair(Actor01600_D09F04, 1);
     work->field_3E8  = 0x12C;
     work->field_3EA  = 1;
-    Gp_LinkObj(3, (struct _GpObj*)work->field_3CC);
+    Gp_LinkObj(3, (struct WorldCollisionBody*)work->field_3CC);
     Gp_InitRec18Table(table4, 1, 0);
     work->field_3EA &= 0x7FFF;
 }
@@ -2706,7 +2706,7 @@ static void Actor01600_Fn020F8(Task* actor)
                 work->field_3EA |= 0x8000;
             }
             if (work->field_50A == 0x17) {
-                work->collision.obj.flags = (u16)(work->collision.obj.flags | 0x4000);
+                work->collision.obj.flags = (u16)(work->collision.obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
                 work->field_3EA          &= 0x7FFF;
             }
             if (work->field_50A >= 0x34) {
@@ -2783,7 +2783,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         work->field_3EA |= 0x8000;
                     }
                     if (work->field_50A == 0x17) {
-                        work->collision.obj.flags = (u16)(work->collision.obj.flags | 0x4000);
+                        work->collision.obj.flags = (u16)(work->collision.obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
                         work->field_3EA          &= 0x7FFF;
                     }
                     if (work->field_50A >= 0x19) {
@@ -3414,10 +3414,10 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
             arg0->node.state.b.flags = 1;
             arg0->recs               = 0;
             Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj((GpObj*)work->field_40C);
-            Gp_UnlinkObj((GpObj*)work->field_29C);
+            Gp_UnlinkObj((WorldCollisionBody*)work->field_40C);
+            Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);
             Gp_UnlinkObj(&work->collision.obj);
-            Gp_UnlinkObj((GpObj*)work->field_3CC);
+            Gp_UnlinkObj((WorldCollisionBody*)work->field_3CC);
             state = &Gp_StateF0;
             if (state->field_1C >= 3) {
                 if (Actor01600_Fn06F78() == 1) {
@@ -4144,7 +4144,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             work->field_52E         = 1;
             Actor01600_Fn00480(arg0);
             if (Gp_StateF0.field_1C == 1) {
-                work->collision.obj.flags &= 0xBFFF;
+                work->collision.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
             obj             = arg0->extra.tmd;
@@ -4876,10 +4876,10 @@ static void Actor01600_Fn06EA4(Task* arg0)
     ctx->node.state.b.flags = 1;
     ctx->recs               = 0;
     Gp_UnlinkNode(&ctx->node);
-    Gp_UnlinkObj((GpObj*)work->field_40C);
-    Gp_UnlinkObj((GpObj*)work->field_29C);
+    Gp_UnlinkObj((WorldCollisionBody*)work->field_40C);
+    Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);
     Gp_UnlinkObj(&work->collision.obj);
-    Gp_UnlinkObj((GpObj*)work->field_3CC);
+    Gp_UnlinkObj((WorldCollisionBody*)work->field_3CC);
     Gp_EnemyTaskExit(arg0);
 }
 
@@ -4939,10 +4939,10 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     ctx->recs   = 0;
     Gp_UnlinkNode(&ctx->node);
     if (!(arg1 & 0xFF)) {
-        Gp_UnlinkObj((GpObj*)work->field_40C);
-        Gp_UnlinkObj((GpObj*)work->field_29C);
+        Gp_UnlinkObj((WorldCollisionBody*)work->field_40C);
+        Gp_UnlinkObj((WorldCollisionBody*)work->field_29C);
         Gp_UnlinkObj(&work->collision.obj);
-        Gp_UnlinkObj((GpObj*)work->field_3CC);
+        Gp_UnlinkObj((WorldCollisionBody*)work->field_3CC);
     }
     Gp_SetLightMode(ctx, 1);
     Gp_ReleaseStateF0Add(arg0, 0x10);

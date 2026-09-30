@@ -9,7 +9,7 @@
 
 /// Collision object and its single record, allocated by the shared setup body.
 typedef struct ActorsShared80135c4cObjWork {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec;
     /* 0x38 */ s16                   field_38; // frame counter used by the projectile tick
     /* 0x3A */ s16                   field_3A;

@@ -119,7 +119,7 @@ typedef struct {
 /// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// The pair table the beam's collision object carries at `GpObj.key`
+/// The pair table the beam's collision object carries at `WorldCollisionBody.key`
 /// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
 extern GpU16Pair D_actor_206100_80155194;
 
@@ -221,7 +221,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
 /// handler `func_actor_206100_8014FBE4` unlinks, alongside the enemy's own
-/// `GpLinkNode`.  Both nodes point their `ctx.recs` at the same six-entry
+/// `GpLinkNode`.  Both nodes point their `context.contacts` at the same six-entry
 /// `WorldCollisionContact` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
@@ -235,19 +235,19 @@ typedef struct Actor206100Work {
     /// `field_51E` is below 0x1E, ahead of the explosion it triggers on that
     /// frame: both are read back as `u16` (the load is `lhu`), so the halving
     /// is unsigned-promoted, and each is stored with a plain `sh`.
-    /* 0x35C */ u16   field_35C;
-    /* 0x35E */ u16   field_35E;
-    /* 0x360 */ u16   field_360;
-    /* 0x362 */ byte  pad_362[0x2];
-    /* 0x364 */ GpObj obj_364;
+    /* 0x35C */ u16                field_35C;
+    /* 0x35E */ u16                field_35E;
+    /* 0x360 */ u16                field_360;
+    /* 0x362 */ byte               pad_362[0x2];
+    /* 0x364 */ WorldCollisionBody obj_364;
     /// The six-entry contact table `func_actor_206100_8014F18C` zeroes and both
-    /// objects above point their `ctx.recs` at.  `func_actor_206100_8014BAA8`
+    /// objects above point their `context.contacts` at.  `func_actor_206100_8014BAA8`
     /// walks it one record a step: `field_4` carries the packed hit id whose
     /// high half selects kind 2, and the walk stops early once `field_52A` goes
     /// up.  The record's own `field_0` / `field_8..field_14` are the occupancy
     /// flags `Gp_ClearRec18Occupied` walks, so nothing here reads them.
     /* 0x384 */ WorldCollisionContact rec_384[6];
-    /* 0x414 */ GpObj                 obj_414;
+    /* 0x414 */ WorldCollisionBody    obj_414;
     /// Post the actor walks out from: `func_actor_206100_8014B698` latches the
     /// root coordinate's three halves here, and `func_actor_206100_8014ED3C`
     /// snaps `t[0]` / `t[2]` back to `field_434` / `field_438` once the walk has
@@ -458,10 +458,10 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 /// `memCalloc(0x68, 0)`s one and parks it in the child's `Task::work`, the
 /// same reuse `Actor206100Work` makes of the parent's slot.
 ///
-/// `obj` is the kind-1 `GpObj` the spawn state `func_actor_206100_8014EEC0`
+/// `obj` is the kind-1 `WorldCollisionBody` the spawn state `func_actor_206100_8014EEC0`
 /// links into the collision list and `func_actor_206100_8014FBE4` unlinks
 /// again on retirement, so the 0x8 before it is not the node's own header and
-/// stays zero.  `rec` is the two-entry `WorldCollisionContact` table `obj.ctx.recs` points at.
+/// stays zero.  `rec` is the two-entry `WorldCollisionContact` table `obj.context.contacts` points at.
 /// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
 /// stores from the actor's coordinate, `field_60` the pair index the setup
 /// hands to `func_actor_206100_8014A70C`, and `field_64` the scale word it
@@ -469,7 +469,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 /// advances `field_5A` and adds `field_58` into the coordinate's `t[1]`.
 typedef struct Actor206100ChildWork {
     /* 0x00 */ byte                  pad_0[0x8];
-    /* 0x08 */ GpObj                 obj;
+    /* 0x08 */ WorldCollisionBody    obj;
     /* 0x28 */ WorldCollisionContact rec[2];
     /* 0x58 */ s16                   field_58;
     /* 0x5A */ s16                   field_5A;
@@ -518,7 +518,7 @@ static void func_actor_206100_8014AF74(Task* task);
 /// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
 static void func_actor_206100_8014F18C(Task* task);
 
-/// Builds the child beam's collision state: links its `GpObj` and initializes
+/// Builds the child beam's collision state: links its `WorldCollisionBody` and initializes
 /// the coordinate the beam is drawn at. `task` is the child spawned by
 /// `func_actor_206100_8014C458`, so its `Task::work` is the
 /// `Actor206100ChildWork` above.
@@ -1934,7 +1934,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         Gp_ClearRec18Occupied(child->rec);
         if ((++task->killCountdown >= 0x5B) || (hit != 0)) {
             task->killCountdown = 0;
-            child->obj.flags   &= 0x3FFF;
+            child->obj.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             mode                = 2;
             task->state        += 1;
         }
@@ -2602,8 +2602,8 @@ static void func_actor_206100_8014CB68(Task* task)
     }
     Fade_DrawOverlay((u8)work->field_51E, (u8)work->field_51E, (u8)work->field_51E, 2);
     if ((s16)work->field_51E == 0xFF) {
-        work->obj_364.flags |= 0x8000;
-        work->obj_414.flags |= 0x8000;
+        work->obj_364.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj_414.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         msg.pos.vx           = 0x690;
         msg.pos.vy           = 0x1388;
         msg.pos.vz           = 0x898;
@@ -3872,25 +3872,25 @@ static void func_actor_206100_8014EEC0(Task* task)
     WorldCollisionContact* rec;
     GfxCoord*              coord;
 
-    child               = (Actor206100ChildWork*)task->work;
-    coord               = task->extra.tmd->coords;
-    task->killCountdown = 0;
-    child->field_64     = 0x100;
-    child->field_60     = 0;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    child->obj.key      = Gp_PackPair(&D_actor_206100_80155194, 0);
-    child->obj.coord    = task->extra.tmd->coords;
-    rec                 = child->rec;
-    child->obj.ctx.recs = rec;
-    child->obj.pos.vx   = 0;
-    child->obj.pos.vy   = 0;
-    child->obj.pos.vz   = 0;
-    child->obj.radius   = 0x140;
-    child->obj.flags    = 1;
+    child                       = (Actor206100ChildWork*)task->work;
+    coord                       = task->extra.tmd->coords;
+    task->killCountdown         = 0;
+    child->field_64             = 0x100;
+    child->field_60             = 0;
+    coord->parent               = &gGfxViewCoord;
+    coord->composeStamp         = GRAPHICS_COORD_DIRTY;
+    child->obj.key              = Gp_PackPair(&D_actor_206100_80155194, 0);
+    child->obj.coord            = task->extra.tmd->coords;
+    rec                         = child->rec;
+    child->obj.context.contacts = rec;
+    child->obj.pos.vx           = 0;
+    child->obj.pos.vy           = 0;
+    child->obj.pos.vz           = 0;
+    child->obj.radius           = 0x140;
+    child->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &child->obj);
     Gp_InitRec18Table(rec, 2, 0);
-    child->obj.flags |= 0xC000;
+    child->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
     func_actor_206100_8014A70C(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
     task->state++;
@@ -3966,28 +3966,28 @@ static void func_actor_206100_8014F18C(Task* task)
 
     work = (Actor206100Work*)task->work;
 
-    work->obj_364.coord    = &task->extra.tmd->coords[1];
-    work->obj_364.ctx.recs = work->rec_384;
-    work->obj_364.pos.vx   = 0;
-    work->obj_364.pos.vy   = 0;
-    work->obj_364.pos.vz   = 0;
-    work->obj_364.key      = 0x3003D;
-    work->obj_364.radius   = 0x400;
-    work->obj_364.flags    = 1;
+    work->obj_364.coord            = &task->extra.tmd->coords[1];
+    work->obj_364.context.contacts = work->rec_384;
+    work->obj_364.pos.vx           = 0;
+    work->obj_364.pos.vy           = 0;
+    work->obj_364.pos.vz           = 0;
+    work->obj_364.key              = 0x3003D;
+    work->obj_364.radius           = 0x400;
+    work->obj_364.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_364);
     Gp_InitRec18Table(work->rec_384, 6, 0);
-    work->obj_364.flags &= 0x7FFF;
+    work->obj_364.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    work->obj_414.coord    = &task->extra.tmd->coords[4];
-    work->obj_414.ctx.recs = work->rec_384;
-    work->obj_414.pos.vx   = 0;
-    work->obj_414.pos.vy   = 0;
-    work->obj_414.pos.vz   = 0;
-    work->obj_414.key      = 0x3003D;
-    work->obj_414.radius   = 0x200;
-    work->obj_414.flags    = 1;
+    work->obj_414.coord            = &task->extra.tmd->coords[4];
+    work->obj_414.context.contacts = work->rec_384;
+    work->obj_414.pos.vx           = 0;
+    work->obj_414.pos.vy           = 0;
+    work->obj_414.pos.vz           = 0;
+    work->obj_414.key              = 0x3003D;
+    work->obj_414.radius           = 0x200;
+    work->obj_414.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_414);
-    work->obj_414.flags &= 0x7FFF;
+    work->obj_414.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
 static void func_actor_206100_8014F284(Task* task)

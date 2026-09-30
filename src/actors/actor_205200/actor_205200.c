@@ -80,7 +80,7 @@ STATIC_ASSERT_SIZEOF(Actor205200CtrlWork, 0x30);
 /// `func_actor_205200_8014AE0C`. `field_78` is the slot the part took in the
 /// controller's `field_0` / `field_18` arrays.
 typedef struct Actor205200Part {
-    /* 0x00 */ GpObj                 obj;
+    /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact recs[3];
     /* 0x68 */ GpEffArg              field_68; // record the part's effects are spawned with
     /* 0x70 */ s16                   field_70; // hit-stun countdown; hits are ignored while non-zero
@@ -666,20 +666,20 @@ static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     arg0->recs       = part->recs;
     arg0->hp         = D_actor_205200_8014C9BC.hpMax;
     (Gp_IncStateF0Ref)(0);
-    part->field_68.spawnArgLo = 0x400;
-    part->field_68.spawnArgHi = 3;
-    part->field_68.coord      = coord;
-    part->obj.coord           = coord;
-    part->obj.ctx.recs        = part->recs;
-    part->obj.pos.vx          = 0;
-    part->obj.pos.vy          = 0;
-    part->obj.pos.vz          = 0;
-    part->obj.key             = 0x30034;
-    part->obj.radius          = 0x1C2;
-    part->obj.flags           = 1;
+    part->field_68.spawnArgLo  = 0x400;
+    part->field_68.spawnArgHi  = 3;
+    part->field_68.coord       = coord;
+    part->obj.coord            = coord;
+    part->obj.context.contacts = part->recs;
+    part->obj.pos.vx           = 0;
+    part->obj.pos.vy           = 0;
+    part->obj.pos.vz           = 0;
+    part->obj.key              = 0x30034;
+    part->obj.radius           = 0x1C2;
+    part->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &part->obj);
     Gp_InitRec18Table(part->recs, 3, 0);
-    part->obj.flags |= 0x8000;
+    part->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     arg1->state      = 1;
 }
 

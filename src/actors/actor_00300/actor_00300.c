@@ -64,9 +64,9 @@
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
 typedef struct Actor00300InitWork {
-    /* 0x00 */ GpObj                 obj0;
+    /* 0x00 */ WorldCollisionBody    obj0;
     /* 0x20 */ WorldCollisionContact rec20;
-    /* 0x38 */ GpObj                 obj38;
+    /* 0x38 */ WorldCollisionBody    obj38;
     /* 0x58 */ GpActorD4Rec          pose;
     /* 0x70 */ WorldCollisionContact rec70;
     /* 0x88 */ s16                   timer;
@@ -79,14 +79,14 @@ typedef struct Actor00300MainWork {
     /* 0x43C */ Task*                 field_43C;
     /* 0x440 */ u8                    field_440[32];
     /* 0x460 */ u8                    field_460[32];
-    /* 0x480 */ GpObj                 obj480;
+    /* 0x480 */ WorldCollisionBody    obj480;
     /* 0x4A0 */ GpActorD4Rec          pose4A0;
     /* 0x4B8 */ WorldCollisionContact rec4B8;
-    /* 0x4D0 */ GpObj                 obj4D0;
+    /* 0x4D0 */ WorldCollisionBody    obj4D0;
     /* 0x4F0 */ WorldCollisionContact rec4F0[3];
-    /* 0x538 */ GpObj                 obj538;
+    /* 0x538 */ WorldCollisionBody    obj538;
     /* 0x558 */ WorldCollisionContact rec558[4];
-    /* 0x5B8 */ GpObj                 obj5B8;
+    /* 0x5B8 */ WorldCollisionBody    obj5B8;
     /* 0x5D8 */ WorldCollisionContact rec5D8;
     /* 0x5F0 */ GfxCoord*             field_5F0;
     /* 0x5F4 */ s16                   field_5F4;
@@ -115,10 +115,10 @@ typedef struct Actor00300AreaConfig {
 STATIC_ASSERT_SIZEOF(Actor00300AreaConfig, 8);
 
 typedef struct Actor100300Work {
-    /* 0x000 */ GpObj                 obj0;
+    /* 0x000 */ WorldCollisionBody    obj0;
     /* 0x020 */ u16                   field_20;
     /* 0x022 */ byte                  pad_22[0x16];
-    /* 0x038 */ GpObj                 obj38;
+    /* 0x038 */ WorldCollisionBody    obj38;
     /* 0x058 */ byte                  pad_58[0x18];
     /* 0x070 */ WorldCollisionContact field_70;
     /* 0x088 */ u16                   field_88;
@@ -127,13 +127,13 @@ typedef struct Actor100300Work {
     /* 0x43C */ Task*                 field_43C;
     /* 0x440 */ byte                  field_440[0x20];
     /* 0x460 */ byte                  field_460[0x20];
-    /* 0x480 */ GpObj                 obj480;
+    /* 0x480 */ WorldCollisionBody    obj480;
     /* 0x4A0 */ WorldCollisionContact rec4A0[2];
-    /* 0x4D0 */ GpObj                 obj4D0;
+    /* 0x4D0 */ WorldCollisionBody    obj4D0;
     /* 0x4F0 */ WorldCollisionContact rec4F0[3];
-    /* 0x538 */ GpObj                 obj538;
+    /* 0x538 */ WorldCollisionBody    obj538;
     /* 0x558 */ WorldCollisionContact rec558[4];
-    /* 0x5B8 */ GpObj                 obj5B8;
+    /* 0x5B8 */ WorldCollisionBody    obj5B8;
     /* 0x5D8 */ WorldCollisionContact rec5D8;
     /* 0x5F0 */ GpEffArg              effArg5F0;
     /* 0x5F8 */ s32                   field_5F8;
@@ -1562,54 +1562,54 @@ static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->field_43C          = childTask;
     work->obj480.coord =
         task->extra.tmd->coords + 2;
-    work->obj480.ctx.d4rec = &work->pose4A0;
-    work->obj480.pos.vx    = 0;
-    work->obj480.pos.vy    = 0;
-    work->obj480.pos.vz    = 0;
-    work->obj480.key       = 0;
-    work->obj480.radius    = 0;
-    work->obj480.flags     = 3U;
+    work->obj480.context.capsule = &work->pose4A0;
+    work->obj480.pos.vx          = 0;
+    work->obj480.pos.vy          = 0;
+    work->obj480.pos.vz          = 0;
+    work->obj480.key             = 0;
+    work->obj480.radius          = 0;
+    work->obj480.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(3, &work->obj480);
     Gp_InitRec18Table(rec4B8, 1, 0);
     rec4F0             = work->rec4F0;
-    work->obj480.flags = (u16)(work->obj480.flags | 0xCC00);
+    work->obj480.flags = (u16)(work->obj480.flags | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->obj4D0.coord =
         (void*)(task->extra.tmd->coords + 3);
-    work->obj4D0.ctx.recs = rec4F0;
-    work->obj4D0.pos.vx   = 0;
-    work->obj4D0.pos.vy   = 0;
-    work->obj4D0.pos.vz   = 0;
-    work->obj4D0.key      = 0x30003;
-    work->obj4D0.radius   = 0x15E;
-    work->obj4D0.flags    = 1U;
+    work->obj4D0.context.contacts = rec4F0;
+    work->obj4D0.pos.vx           = 0;
+    work->obj4D0.pos.vy           = 0;
+    work->obj4D0.pos.vz           = 0;
+    work->obj4D0.key              = 0x30003;
+    work->obj4D0.radius           = 0x15E;
+    work->obj4D0.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj4D0);
     Gp_InitRec18Table(rec4F0, 3, 0);
-    work->obj4D0.flags    = (u16)(work->obj4D0.flags | 0x8000);
-    work->obj538.coord    = (void*)task->extra.tmd->coords;
-    rec558                = work->rec558;
-    work->obj538.key      = 0x30003;
-    work->obj538.ctx.recs = rec558;
-    work->obj538.pos.vx   = 0;
-    work->obj538.pos.vy   = -0x1F4;
-    work->obj538.pos.vz   = 0;
-    work->obj538.radius   = 0x1F4;
-    work->obj538.flags    = 1U;
+    work->obj4D0.flags            = (u16)(work->obj4D0.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj538.coord            = (void*)task->extra.tmd->coords;
+    rec558                        = work->rec558;
+    work->obj538.key              = 0x30003;
+    work->obj538.context.contacts = rec558;
+    work->obj538.pos.vx           = 0;
+    work->obj538.pos.vy           = -0x1F4;
+    work->obj538.pos.vz           = 0;
+    work->obj538.radius           = 0x1F4;
+    work->obj538.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj538);
     Gp_InitRec18Table(rec558, 4, 0);
-    work->obj538.flags    = (u16)(work->obj538.flags | 0x4200);
-    work->obj5B8.coord    = child->task->extra.tmd->coords;
-    rec5D8                = &work->rec5D8;
-    work->obj5B8.ctx.recs = rec5D8;
-    work->obj5B8.pos.vx   = -0x1F4;
-    work->obj5B8.pos.vy   = 0x1F4;
-    work->obj5B8.pos.vz   = 0;
-    work->obj5B8.key      = Gp_PackPair(Actor00300_D15FD8, 0);
-    work->obj5B8.radius   = 0x2BC;
-    work->obj5B8.flags    = 1U;
+    work->obj538.flags            = (u16)(work->obj538.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED));
+    work->obj5B8.coord            = child->task->extra.tmd->coords;
+    rec5D8                        = &work->rec5D8;
+    work->obj5B8.context.contacts = rec5D8;
+    work->obj5B8.pos.vx           = -0x1F4;
+    work->obj5B8.pos.vy           = 0x1F4;
+    work->obj5B8.pos.vz           = 0;
+    work->obj5B8.key              = Gp_PackPair(Actor00300_D15FD8, 0);
+    work->obj5B8.radius           = 0x2BC;
+    work->obj5B8.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj5B8);
     Gp_InitRec18Table(rec5D8, 1, 0);
     gStageSceneMusicEntry = 0xA;
-    work->obj5B8.flags    = (u16)(work->obj5B8.flags & 0x7FFF);
+    work->obj5B8.flags    = (u16)(work->obj5B8.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     task->msgTable        = Actor00300_D16314;
     task->state           = 1;
 }
@@ -1692,7 +1692,7 @@ static void Actor00300_Fn00E54(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->rec558);
 
-    if (work->obj4D0.flags & 0x4000) {
+    if (work->obj4D0.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
         switch (func_800E0C10(work->rec4F0, &scratch->delta, 3, NULL)) {
             case 0:
                 break;
@@ -1843,7 +1843,7 @@ static void Actor00300_Fn00E54(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->rec4F0);
     if (work->rec5D8.flags & 1) {
-        work->obj5B8.flags &= 0x7FFF;
+        work->obj5B8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(&work->rec5D8);
         Gp_SpendMp(0x14);
         work->field_666 += 0x14;
@@ -2336,7 +2336,7 @@ static void Actor00300_Fn02620(Task* arg0)
                 work->field_676 -= 0x100;
             }
             if ((s16)work->field_672 == 0x20) {
-                work->obj5B8.flags |= 0x8000;
+                work->obj5B8.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 sound               = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x4003000A;
                 pan                 = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
@@ -2348,7 +2348,7 @@ static void Actor00300_Fn02620(Task* arg0)
                 random              = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState         = random;
                 work->field_688     = ((u32)random >> 16) & 31;
-                work->obj5B8.flags &= 0x7FFF;
+                work->obj5B8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
     }
@@ -2497,7 +2497,7 @@ static void Actor00300_Fn02CE8(Task* arg0)
             effect              = work->field_654;
             work->field_67A     = 0;
             work->field_67C     = 0;
-            work->obj5B8.flags &= 0x7FFF;
+            work->obj5B8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if (effect != NULL) {
                 effect->task->state = 3;
                 work->field_654     = NULL;
@@ -2517,8 +2517,8 @@ static void Actor00300_Fn02CE8(Task* arg0)
                 enemy->reactionFlags = 0;
                 work->obj4D0.pos.vz  = 0x190;
                 work->field_686      = 2;
-                work->obj4D0.flags  |= 0x4000;
-                work->obj538.flags  &= 0xBFFF;
+                work->obj4D0.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
+                work->obj538.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 return;
             }
             if ((work->field_690 >= 0x78) || (work->field_694 != 0)) {
@@ -3173,46 +3173,46 @@ static void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     gte_ldv0(offset);
     gte_rtv0();
     gte_stlvnl(&scratch->result);
-    coord->parent       = &gGfxViewCoord;
-    coord->coord        = parentCoord->coord;
-    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->result.vx;
-    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->result.vy;
-    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->result.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    objCoord            = arg1->extra.tmd->coords;
-    work->obj0.ctx.recs = &work->rec20;
-    work->obj0.pos.vx   = 0;
-    work->obj0.pos.vy   = 0;
-    work->obj0.pos.vz   = 0;
-    work->obj0.coord    = objCoord;
-    work->obj0.key      = Gp_PackPair(Actor00300_D15FD8, parentWork->field_66A);
-    work->obj0.radius   = 0x1C2;
-    work->obj0.flags    = 1;
+    coord->parent               = &gGfxViewCoord;
+    coord->coord                = parentCoord->coord;
+    coord->coord.t[0]           = parentCoord->coord.t[0] + scratch->result.vx;
+    coord->coord.t[1]           = parentCoord->coord.t[1] + scratch->result.vy;
+    coord->coord.t[2]           = parentCoord->coord.t[2] + scratch->result.vz;
+    coord->composeStamp         = GRAPHICS_COORD_DIRTY;
+    objCoord                    = arg1->extra.tmd->coords;
+    work->obj0.context.contacts = &work->rec20;
+    work->obj0.pos.vx           = 0;
+    work->obj0.pos.vy           = 0;
+    work->obj0.pos.vz           = 0;
+    work->obj0.coord            = objCoord;
+    work->obj0.key              = Gp_PackPair(Actor00300_D15FD8, parentWork->field_66A);
+    work->obj0.radius           = 0x1C2;
+    work->obj0.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj0);
     Gp_InitRec18Table(&work->rec20, 1, 0);
-    work->pose.end1.vz    = -0x1A4;
-    work->pose.end0Radius = 1;
-    work->pose.end1Radius = 1;
-    work->pose.end0.vx    = 0;
-    work->pose.end0.vy    = 0;
-    work->pose.end0.vz    = 0;
-    work->pose.end1.vx    = 0;
-    work->pose.end1.vy    = 0;
-    work->pose.recs       = &work->rec70;
-    work->obj0.flags     |= 0x8000;
-    objCoord2             = arg1->extra.tmd->coords;
-    work->obj38.ctx.d4rec = &work->pose;
-    work->obj38.pos.vx    = 0;
-    work->obj38.pos.vy    = 0;
-    work->obj38.pos.vz    = 0;
-    work->obj38.key       = 0;
-    work->obj38.radius    = 0;
-    work->obj38.flags     = 3;
-    work->obj38.coord     = objCoord2;
+    work->pose.end1.vz          = -0x1A4;
+    work->pose.end0Radius       = 1;
+    work->pose.end1Radius       = 1;
+    work->pose.end0.vx          = 0;
+    work->pose.end0.vy          = 0;
+    work->pose.end0.vz          = 0;
+    work->pose.end1.vx          = 0;
+    work->pose.end1.vy          = 0;
+    work->pose.recs             = &work->rec70;
+    work->obj0.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    objCoord2                   = arg1->extra.tmd->coords;
+    work->obj38.context.capsule = &work->pose;
+    work->obj38.pos.vx          = 0;
+    work->obj38.pos.vy          = 0;
+    work->obj38.pos.vz          = 0;
+    work->obj38.key             = 0;
+    work->obj38.radius          = 0;
+    work->obj38.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->obj38.coord           = objCoord2;
     Gp_LinkObj(3, &work->obj38);
     Gp_InitRec18Table(&work->rec70, 1, 0);
     work->timer        = 0x1E;
-    work->obj38.flags |= 0x4400;
+    work->obj38.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     Task_DetachFromParent(arg1);
     arg1->state = 1;
     SCRATCH_POP(ActorOffsetScratch);

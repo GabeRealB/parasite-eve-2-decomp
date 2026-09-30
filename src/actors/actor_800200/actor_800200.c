@@ -919,7 +919,7 @@ static void func_actor_800200_80162088(Task* arg0)
     GfxCoord*              coord;
     GfxCoord*              next;
     GfxCoord**             addr;
-    GpObj*                 obj;
+    WorldCollisionBody*    obj;
     WorldCollisionContact* recs;
     McSaveData*            save;
     SVECTOR3*              scratch;
@@ -947,11 +947,11 @@ static void func_actor_800200_80162088(Task* arg0)
     Gp_AnimResetChildSlots(arg0, actor->field_93C);
     Gp_AnimTickChildSlots(arg0);
     recs                        = actor->field_17C;
-    obj                         = (GpObj*)actor->field_AC;
+    obj                         = (WorldCollisionBody*)actor->field_AC;
     actor->field_10             = coord->coord.t[0];
     actor->field_14             = coord->coord.t[1];
     actor->field_18             = coord->coord.t[2];
-    obj->ctx.dir                = &actor->field_88[0];
+    obj->context.motion         = &actor->field_88[0];
     obj->coord                  = coord;
     actor->field_88[0].contacts = recs;
     save                        = &Mc_SaveData[0];
@@ -963,16 +963,16 @@ static void func_actor_800200_80162088(Task* arg0)
 
         temp        = save->state.characterId;
         obj->radius = 0xFA;
-        obj->flags  = 4;
+        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         packed      = 0x10000;
         obj->key    = temp | packed;
         Gp_LinkObj(0, obj);
     }
     Gp_InitRec18Table(actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), 0);
-    obj->flags                 |= 0xC200;
-    obj                         = (GpObj*)actor->field_CC;
+    obj->flags                 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    obj                         = (WorldCollisionBody*)actor->field_CC;
     next                        = arg0->extra.tmd->coords;
-    obj->ctx.dir                = &actor->field_88[1];
+    obj->context.motion         = &actor->field_88[1];
     obj->coord                  = next + 4;
     actor->field_88[1].contacts = recs;
     obj->pos.vx                 = 0;
@@ -983,11 +983,11 @@ static void func_actor_800200_80162088(Task* arg0)
 
         temp        = save->state.characterId;
         obj->radius = 0xC8;
-        obj->flags  = 4;
+        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         obj->key    = temp | packed;
         Gp_LinkObj(0, obj);
     }
-    obj->flags                 |= 0x8000;
+    obj->flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     actor->field_984            = 7;
     ((SVECTOR3*)(head - 8))->vx = 0;
     scratch->vy                 = -0x100;
@@ -1006,7 +1006,7 @@ static void func_actor_800200_801622B0(Task* arg0)
     TmdObject*             extra;
     GfxCoord*              coord;
     GpActorD4*             d4;
-    GpObj*                 objs[2];
+    WorldCollisionBody*    objs[2];
     s32                    dy;
     s32                    i;
     s8                     bits;
@@ -1041,16 +1041,16 @@ static void func_actor_800200_801622B0(Task* arg0)
         actor->field_18 = coord->coord.t[2];
     }
     d4->coord = *arg0->extra.tmd->coords;
-    objs[0]   = (GpObj*)actor->field_AC;
-    objs[1]   = (GpObj*)actor->field_CC;
+    objs[0]   = (WorldCollisionBody*)actor->field_AC;
+    objs[1]   = (WorldCollisionBody*)actor->field_CC;
     for (i = 0; i < 2; i++) {
         bits = actor->field_983;
         if ((bits >> i) & 1) {
             actor->field_984 |= 1 << i;
-            objs[i]->flags   |= 0x4000;
+            objs[i]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         } else if (bits & (8 << i)) {
             actor->field_984 &= ~(1 << i);
-            objs[i]->flags   &= ~0x4000;
+            objs[i]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->field_983 = 0;
@@ -1103,8 +1103,8 @@ static void func_actor_800200_801626A0(Task* task)
 
     actor            = (GameActor*)task->work;
     Gp_ActorSlots[1] = NULL;
-    Gp_UnlinkObj((GpObj*)actor->field_AC);
-    Gp_UnlinkObj((GpObj*)actor->field_CC);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_AC);
+    Gp_UnlinkObj((WorldCollisionBody*)actor->field_CC);
     taskKill(task);
 }
 

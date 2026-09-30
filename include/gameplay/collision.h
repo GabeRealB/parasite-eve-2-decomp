@@ -11,7 +11,7 @@
 struct GfxCoord;
 
 /// One 4-byte entry of the tables that name a collision body: the two halves
-/// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `GpObj.key`, taking
+/// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `WorldCollisionBody.key`, taking
 /// the low 12 bits of `field_0` and the low 4 bits of `field_2`. An actor's
 /// spawn tables and the one an enemy's `GpPairSrcE.pairTable` points at hold
 /// these.
