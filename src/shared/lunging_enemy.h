@@ -1,0 +1,39 @@
+/* The shared behaviour of one enemy species that ships as three packages
+ * (actor_02300/05600/05700), which differ only in sound bank and some attack
+ * states. It covers the idle and approach states with their player-proximity
+ * check, the knocked-down and recoil states, the dead state that files the
+ * enemy's pose, and three per-frame helpers: turning the root toward a target
+ * yaw, easing out the hit tilt, and playing an animation's voice cues. Each
+ * package defines its own voice-cue table and per-animation blend lengths
+ * under the shared names.
+ *
+ * Include this header in the prologue and each fragment at its function's
+ * position. The package defines its tables at its own positions under these
+ * names:
+ *
+ *   s16 gLungerAnimBlendFrames[32]  blend-in length per animation, in frames
+ *   s32 gLungerVoiceCues[17]        the voice-cue sound ids of its sound bank
+ */
+
+#ifndef SRC_SHARED_LUNGING_ENEMY_H
+#define SRC_SHARED_LUNGING_ENEMY_H
+
+#include "types.h"
+
+#include "gameplay/enemy.h"
+
+#include "main/task_types.h"
+
+void lungerIdleState(Task* arg0);
+void lungerApproachState(Task* arg0);
+void lungerCheckProximity(Task* arg0);
+void lungerRecoilState(Task* arg0);
+void lungerCollapseState(Task* arg0);
+void lungerDownedShiftState(Task* arg0);
+void lungerDownedFinishState(Task* arg0);
+void lungerTurnTowardTarget(Task* arg0);
+void lungerDecayHitTilt(Task* arg0);
+void lungerPlayAnimCues(Task* arg0);
+void lungerDeadState(GpEnemy* arg0, Task* arg1);
+
+#endif /* SRC_SHARED_LUNGING_ENEMY_H */

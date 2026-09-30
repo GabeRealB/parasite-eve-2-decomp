@@ -44,10 +44,11 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/player_detection.h"
+#include "../../shared/lunging_enemy.h"
 
 /// First frame of each animation, indexed by `Actor105600Work::field_694`;
 /// the state handlers offset it to get the frames their cues fire on.
-extern s16 Actor02300_D03F44[];
+extern s16 gLungerAnimBlendFrames[];
 /// The `Gp_PackPair` entry the lunge parks in the work block's 0x5E4 node.
 extern DamageAttack Actor02300_D159C4[5];
 /// Base sound id of the lunge cue, ORed with the enemy's id nibble.
@@ -79,7 +80,7 @@ extern s16 Actor02300_D159E8[];
 extern s16 Actor02300_D15A44[];
 
 /// Voice-cue sound ids, indexed from `Actor105600Work::field_6D6`.
-extern s32 Actor02300_D15AB4[];
+extern s32 gLungerVoiceCues[];
 /// Sound ids of the burst state's two cues.
 extern s32 Actor02300_D15B00;
 extern s32 Actor02300_D15B04;
@@ -90,7 +91,6 @@ extern TaskFunc Actor02300_D15D38[];
 /// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
 extern s32 Actor02300_D15B08;
 
-static void Actor02300_Fn00CD0(Task* arg0);
 static void Actor02300_Fn03C04(GpEnemy* arg0, Task* task);
 static void Actor02300_Fn03C50(GpEnemy* arg0, Task* task);
 static void Actor02300_Fn03D44(GpEnemy* arg0, Task* task);
@@ -123,25 +123,19 @@ extern AnimationSet Actor02300_D1599C;
 extern TmdSource    Actor02300_D08E50;
 extern TmdSource    Actor02300_D09394;
 extern TmdSource    Actor02300_D096BC;
-void                Actor02300_Fn00AEC(Task*);
 void                Actor02300_Fn00E0C(Task*);
-void                Actor02300_Fn011E8(Task*);
-void                Actor02300_Fn012E0(Task*);
 void                Actor02300_Fn01DF0(Task*);
 void                Actor02300_Fn02290(Task*);
 void                Actor02300_Fn02518(Task*);
 void                Actor02300_Fn0327C(Task*);
-void                Actor02300_Fn03828(Task*);
 void                Actor02300_Fn03908(Task*);
-void                Actor02300_Fn03994(Task*);
 void                Actor02300_Fn03A5C(Task*);
-void                Actor02300_Fn03AE8(Task*);
 void                Actor02300_Fn03BA0(Task*);
 void                Actor02300_Fn03BA8(Task*);
 void                Actor02300_Fn03CE8(Task*);
 void                Actor02300_Fn03EE8(Task*);
 
-s16 Actor02300_D03F44[32] = {
+s16 gLungerAnimBlendFrames[32] = {
     0,
     8,
     8,
@@ -918,7 +912,7 @@ s16 Actor02300_D15A44[56] = {
     0,
 };
 
-s32 Actor02300_D15AB4[17] = {
+s32 gLungerVoiceCues[17] = {
     0,
     0x40170001,
     0x40170002,
@@ -1197,8 +1191,8 @@ AnimationSet* Actor02300_D15CBC[31] = {
 };
 
 TaskFunc Actor02300_D15D38[15] = {
-    Actor02300_Fn03828,
-    Actor02300_Fn00AEC,
+    lungerIdleState,
+    lungerApproachState,
     Actor02300_Fn0327C,
     Actor02300_Fn01DF0,
     Actor02300_Fn02290,
@@ -1206,20 +1200,16 @@ TaskFunc Actor02300_D15D38[15] = {
     Actor02300_Fn03BA0,
     Actor02300_Fn03BA0,
     Actor02300_Fn03908,
-    Actor02300_Fn03994,
+    lungerRecoilState,
     Actor02300_Fn03A5C,
     Actor02300_Fn00E0C,
-    Actor02300_Fn011E8,
-    Actor02300_Fn012E0,
-    Actor02300_Fn03AE8,
+    lungerDownedShiftState,
+    lungerCollapseState,
+    lungerDownedFinishState,
 };
 
 static __inline__ void Actor02300_SpawnDust(Task* actor);
 static void            Actor02300_Fn00084(Task* arg0);
-static void            Actor02300_Fn0150C(Task* arg0);
-static void            Actor02300_Fn01698(Task* arg0);
-static void            Actor02300_Fn018A4(Task* arg0);
-static void            Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1);
 static void            Actor02300_Fn028AC(GpEnemy* enemy, Task* actor);
 static inline void     _actor02300ApplyReaction(Task* actor);
 static inline void     _actor02300StepRoot(Task* actor);
@@ -1560,142 +1550,9 @@ static void Actor02300_Fn00084(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
-/// Approach-cycle state (entry 1 of `Actor02300_D15D38`). State 0 drains the
-/// `field_6DA` budget by `field_69C` (0 while `field_698` is under the
-/// animation's start frame in `Actor02300_D03F44`, 0x14 once past it) and runs
-/// the proximity check `Actor02300_Fn00CD0` every frame; when the budget runs
-/// out it switches to animation 4 and state 1. State 1 waits for `field_698`
-/// to reach 0x60, then either falls back to animation 2 (budget left) or
-/// turns about: animation 3, state 2, a fresh budget of 1000 per unit of the
-/// placement record's `variant`, and `field_6A2` / `field_6A4` set to the
-/// current yaw and its opposite. State 2 turns at `field_69E` = 0x3B until
-/// `field_698` reaches 0x23, then returns to animation 2 and state 0. A set
-/// `field_6B2` or `Gp_StateF0.field_29` overrides everything with animation 2, entry 2
-/// and the shared state-F0 slot.
-void Actor02300_Fn00AEC(Task* arg0)
-{
-    GpEnemy*         spawn;
-    Actor105600Work* work;
-    GfxCoord*        self;
-    u8*              head;
-    s16              state;
-    s16              delta;
-    s32              ang;
-    s32              param;
+#include "../../shared/lunging_enemy_approach.inc.c"
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
-
-    self  = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    spawn = arg0->spawnArg2.pointer;
-    state = work->field_6A8;
-
-    switch (state) {
-        case 0:
-            delta = 0;
-            if (work->field_698 >= Actor02300_D03F44[work->field_694]) {
-                delta = 0x14;
-            }
-            work->field_69C  = delta;
-            work->field_69E  = 0;
-            work->field_6DA -= work->field_69C;
-            if (work->field_6DA <= 0) {
-                work->field_694 = 4;
-                work->field_6AE = 0;
-                work->field_6A8 = 1;
-                work->field_69C = 0;
-            }
-            Actor02300_Fn00CD0(arg0);
-            break;
-        case 1:
-            work->field_69C = 0;
-            work->field_69E = 0;
-            if (work->field_698 >= 0x60) {
-                if (work->field_6DA <= 0) {
-                    param           = spawn->place->variant;
-                    work->field_694 = 3;
-                    work->field_6A8 = 2;
-                    work->field_6DA = param * 1000;
-                    ang             = ratan2(self->coord.m[0][2], self->coord.m[2][2]) & 0xFFF;
-                    work->field_6A2 = ang;
-                    work->field_6A4 = (ang + 0x800) & 0xFFF;
-                } else {
-                    work->field_694 = 2;
-                    work->field_6A8 = 0;
-                }
-            }
-            break;
-        case 2:
-            work->field_69C = 0;
-            work->field_69E = 0x3B;
-            if (work->field_698 >= 0x23) {
-                work->field_694 = 2;
-                work->field_6A8 = 0;
-            }
-            break;
-    }
-
-    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
-        work->field_6A6 = 2;
-        work->field_6A8 = 0;
-        work->field_694 = 2;
-        work->field_6AE = 0;
-        Gp_ArmStateF0(1);
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
-
-/// Proximity check of the approach states. Measures the player's horizontal
-/// distance from the root coordinate through a 0x10-byte scratch stack
-/// block: under 0x5DC one of `Gp_StateF0.prefix.bytes.field_2`'s bit groups raises `field_6B2`;
-/// past it the other two (the second only within 0xBB8) put the enemy into
-/// animation 4 and state 1.
-static void Actor02300_Fn00CD0(Task* arg0)
-{
-    Actor105600Work* work;
-    GfxCoord*        self;
-    s32              dx;
-    s32              distance;
-    s32              dz;
-    s32              trigger;
-    VECTOR*          head;
-    VECTOR*          delta;
-
-    self                         = arg0->extra.tmd->coords;
-    work                         = arg0->work;
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    delta                        = head - 1;
-    head[-1].vx                  = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
-    delta->vy                    = 0;
-    dz                           = Player_Status.coordMtx->t[2] - self->coord.t[2];
-    delta->vz                    = dz;
-    dx                           = head[-1].vx;
-    trigger                      = 0;
-    SCRATCH_STACK_CURSOR(VECTOR) = delta;
-    distance                     = SquareRoot0((dx * dx) + (dz * dz));
-    if (distance < 0x5DC) {
-        if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
-            work->field_6B2 = 1;
-        }
-    } else {
-        if (Gp_StateF0.prefix.bytes.field_2 & 5) {
-            trigger = 1;
-        }
-        if ((Gp_StateF0.prefix.bytes.field_2 & 0x12) && (distance < 0xBB8)) {
-            trigger = 1;
-        }
-        if (trigger != 0) {
-            work->field_694 = 4;
-            work->field_69C = 0;
-            work->field_69E = 0;
-            work->field_6AE = 0;
-            work->field_6A8 = 1;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
+#include "../../shared/lunging_enemy_proximity.inc.c"
 
 /// Entry 0xB of the `field_6A6` state table `Actor02300_D15D38`. State 0 picks
 /// the reaction from `field_6AA` (animation 0x16 into state 1, or 0x1A into
@@ -1750,12 +1607,12 @@ void Actor02300_Fn00E0C(Task* arg0)
             break;
         case 1:
             if (work->field_698 == 0x14) {
-                snd = Actor02300_D15AB4[work->field_6D6 + 0xC] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gLungerVoiceCues[work->field_6D6 + 0xC] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 pan = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 == 0x2C) {
-                snd  = Actor02300_D15AB4[work->field_6D6 + 8] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 pan2 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan2, (s8)gpGetObjDepth(self));
             }
@@ -1779,7 +1636,7 @@ void Actor02300_Fn00E0C(Task* arg0)
             break;
         case 2:
             if (work->field_698 == 0x19) {
-                snd  = Actor02300_D15AB4[work->field_6D6 + 8] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 pan3 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan3, (s8)gpGetObjDepth(self));
             }
@@ -1832,426 +1689,17 @@ void Actor02300_Fn00E0C(Task* arg0)
     }
 }
 
-/// Entry 0xC of the `field_6A6` table. State 0 picks the animation from
-/// `field_6B8`: 1 selects 0x17 into state 1, anything else 0x1B into state 2.
-/// States 1 and 2 wait for `field_698` to reach 0x10 / 0x16, then settle on
-/// the matching idle (0x19 / 0x1D), move to entry 0xB's state 3 and roll a
-/// fresh 6-bit dwell into `field_6AE`.
-void Actor02300_Fn011E8(Task* arg0)
-{
-    Actor105600Work* work;
-    s16              state;
-    s32              next;
+#include "../../shared/lunging_enemy_downed_shift.inc.c"
 
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            next = work->field_6B8;
-            if (next == 1) {
-                work->field_694 = 0x17;
-                work->field_6A8 = next;
-            } else {
-                work->field_694 = 0x1B;
-                work->field_6A8 = 2;
-            }
-            break;
-        case 1:
-            if (work->field_698 >= 0x10) {
-                work->field_694 = 0x19;
-                work->field_6A6 = 0xB;
-                work->field_6A8 = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
-            }
-            break;
-        case 2:
-            if (work->field_698 >= 0x16) {
-                work->field_694 = 0x1D;
-                work->field_6A6 = 0xB;
-                work->field_6A8 = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
-            }
-            break;
-    }
-}
+#include "../../shared/lunging_enemy_collapse.inc.c"
 
-/// Entry 0xD of the `field_6A6` table. State 0 arms the reaction: `field_6AA`
-/// picks animation 0x16 with a 0x42-frame budget or 0x1A with 0x31 frames,
-/// the second body node's pose and radius are parked and its 0x4000 flag
-/// raised, the third node's dropped, and the enemy's `reactionFlags` cleared.
-/// State 1 plays the voice cues of the animation `field_6B8` selects at its
-/// frame marks and, when the `field_6AE` budget runs out, hands the task over
-/// to state 2.
-void Actor02300_Fn012E0(Task* arg0)
-{
-    Actor105600Work* work;
-    GfxCoord*        self;
-    s32              snd;
-    s16              state;
+#include "../../shared/lunging_enemy_turn.inc.c"
 
-    work  = arg0->work;
-    self  = arg0->extra.tmd->coords;
-    state = work->field_6A8;
+#include "../../shared/lunging_enemy_hit_tilt.inc.c"
 
-    switch (state) {
-        case 0:
-            if (work->field_6AA == 0) {
-                work->field_694        = 0x16;
-                work->field_6A8        = 1;
-                work->field_6B8        = 1;
-                work->field_6AE        = 0x42;
-                work->field_4CC.pos.vz = -0xA7;
-            } else {
-                work->field_694        = 0x1A;
-                work->field_6A8        = 1;
-                work->field_6B8        = 2;
-                work->field_6AE        = 0x31;
-                work->field_4CC.pos.vz = 0x109;
-            }
-            work->field_4CC.radius                             = 0x15E;
-            work->field_69C                                    = 0;
-            work->field_69E                                    = 0;
-            work->field_6DE                                    = 1;
-            work->field_4CC.flags                             |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            work->field_564.flags                             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-            ((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
-            work->field_6D4                                    = 1;
-            break;
-        case 1:
-            if (work->field_6DE == 1) {
-                work->field_6DE = 2;
-            }
-            if (work->field_6B8 == 1) {
-                if (work->field_698 == 0x14) {
-                    s32 pan;
+#include "../../shared/lunging_enemy_anim_cues.inc.c"
 
-                    snd = Actor02300_D15AB4[work->field_6D6 + 0xC] |
-                          ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                    pan = (s8)Gp_GetObjPan(self);
-
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
-                }
-                if (work->field_698 == 0x2C) {
-                    s32 pan;
-
-                    snd = Actor02300_D15AB4[work->field_6D6 + 8] |
-                          ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                    pan = (s8)Gp_GetObjPan(self);
-
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
-                }
-            } else if (work->field_698 == 0x19) {
-                s32 pan;
-
-                snd = Actor02300_D15AB4[work->field_6D6 + 8] |
-                      ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan = (s8)Gp_GetObjPan(self);
-
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
-            }
-            work->field_6AE--;
-            if (work->field_6AE <= 0) {
-                arg0->state     = 2;
-                work->field_6A8 = 0;
-                work->field_6D4 = 0;
-            }
-            break;
-    }
-}
-
-/// Steps the yaw `field_6A2` from the root coordinate's own heading toward the
-/// target `field_6A4` by `field_69E` per frame: within half a turn it closes on
-/// the target directly (or, on animation 3, turns the other way by the step),
-/// past that it goes round the long way, snapping onto the target once the
-/// step would overshoot. The result rebuilds the root coordinate's matrix.
-static void Actor02300_Fn0150C(Task* arg0)
-{
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    SVECTOR*         rot;
-    s32              ang;
-    u16              want;
-    s16              diff;
-    s32              adiff;
-    s32              step;
-    s32              ustep;
-    s32              wstep;
-    s32              cur;
-    s32              next;
-    s32              wrapStep;
-
-    rot   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->field_6A4;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
-
-    work->field_6A2 = ang;
-    if (adiff < 0x800) {
-        step  = work->field_69E;
-        ustep = (u16)work->field_69E;
-        if (step >= adiff) {
-            work->field_6A2 = want;
-        } else {
-            if (work->field_694 == 3) {
-                next = ang - ustep;
-            } else {
-                next = work->field_6A2;
-                if (diff <= 0) {
-                    next -= step;
-                } else {
-                    next += step;
-                }
-            }
-            work->field_6A2 = next;
-        }
-    } else {
-        wstep = work->field_69E;
-        if (diff > 0) {
-            if (wstep >= 0x1000 - diff) {
-                goto snap;
-            } else {
-                goto turn;
-            }
-        } else if (wstep >= 0x1000 + diff) {
-            goto snap;
-        } else {
-            goto turn;
-        }
-    snap:
-        work->field_6A2 = work->field_6A4;
-        goto done;
-    turn:
-        if (work->field_694 == 3) {
-            work->field_6A2 = (u16)work->field_6A2 - (u16)work->field_69E;
-        } else {
-            wrapStep = work->field_69E;
-            cur      = work->field_6A2;
-            if (diff > 0) {
-                work->field_6A2 = cur - wrapStep;
-            } else {
-                work->field_6A2 = cur + wrapStep;
-            }
-        }
-    }
-done:
-    rot->vx = 0;
-    rot->vy = work->field_6A2;
-    rot->vz = 0;
-    RotMatrix(rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
-
-/// Applies the decaying hit tilt `field_688` to part 3 of the model: the tilt's
-/// rotation matrix is multiplied into that part's matrix, then X and Y each
-/// step 0x20 toward zero, snapping to zero within 0x20. Once both have
-/// settled, `field_6B4` is cleared.
-static void Actor02300_Fn01698(Task* arg0)
-{
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    MATRIX*          matrix;
-    s32              angleX;
-    s32              angleY;
-    s32              absX;
-    s32              nextX;
-    s32              absY;
-    s32              nextY;
-    s32              active;
-
-    matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    active = 0;
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    RotMatrix(&work->field_688, matrix);
-    gte_MulMatrix0(&coord[3].coord, matrix, &coord[3].coord);
-    angleX = work->field_688.vx;
-    if (angleX != 0) {
-        absX = __builtin_abs(angleX);
-        if (absX < 0x21) {
-            work->field_688.vx = 0;
-        } else {
-            nextX = angleX - 0x20;
-            if (angleX <= 0) {
-                nextX = angleX + 0x20;
-            }
-            work->field_688.vx = nextX;
-            active             = 1;
-        }
-    }
-    angleY = work->field_688.vy;
-    if (angleY != 0) {
-        absY = __builtin_abs(angleY);
-        if (absY < 0x21) {
-            work->field_688.vy = 0;
-        } else {
-            nextY = angleY - 0x20;
-            if (angleY <= 0) {
-                nextY = angleY + 0x20;
-            }
-            work->field_688.vy = nextY;
-            active             = 1;
-        }
-    }
-    if (active == 0) {
-        work->field_6B4 = 0;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
-}
-
-/// Animation sound cues. While the enemy has a voice row (`field_6D6`), reads the
-/// current record of animation slot 1 and plays the row's two cues on the
-/// falling edge of its 0x20 and 0x10 bits, remembering them in `field_6A0`.
-static void Actor02300_Fn018A4(Task* arg0)
-{
-    s32                    snd;
-    s32                    pan;
-    s32                    pan2;
-    Actor105600Work*       work;
-    GfxCoord*              self;
-    const AnimationRecord* rec;
-
-    work = arg0->work;
-    self = arg0->extra.tmd->coords;
-    if (work->field_6D6 != 0) {
-        rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
-        if (rec != NULL) {
-            if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_6A0 & ANIMATION_RECORD_CUE_2)) {
-                snd = Actor02300_D15AB4[work->field_6D6 * 2 - 1] |
-                      ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan = (s8)Gp_GetObjPan(self);
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
-            }
-            if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->field_6A0 & ANIMATION_RECORD_CUE_1)) {
-                snd = Actor02300_D15AB4[work->field_6D6 * 2] |
-                      ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan2 = (s8)Gp_GetObjPan(self);
-                SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(self));
-            }
-            work->field_6A0 = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
-        }
-    }
-}
-
-/// Teardown state of the enemy (entry 2 of `Actor02300_D00078`).
-/// `Gp_StateF0.field_4` gates it: 1 only redraws and 2 hides the model and its lock-on
-/// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
-/// node and collision bodies, releases its state-F0 slot, settles on the idle
-/// `field_6B8` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
-/// restored in that pose, and raises `Gp_StateF0.field_29`. State 1 spawns a spark
-/// every fourth frame. Either way the animation slots advance or are reseeded
-/// and the model is drawn with its ground shadow.
-static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
-{
-    Actor105600Work* work;
-    Actor105600Work* animWork;
-    GfxCoord*        coord;
-    GfxCoord*        root;
-    GfxCoord*        part;
-    SVECTOR*         scratch;
-    VECTOR3          pos;
-    s16              anim;
-    s16              duration;
-    s32              i;
-    u32              random;
-
-    work    = arg1->work;
-    coord   = arg1->extra.tmd->coords;
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
-    switch (Gp_StateF0.field_4) {
-        case 0:
-            arg1->extra.tmd->flags       = 0;
-            arg0->node.state.parts.flags = 0;
-            break;
-        case 1:
-            coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
-            arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
-            root   = arg1->extra.tmd->coords;
-            pos.vx = root->workm.t[0];
-            pos.vy = root->workm.t[1];
-            pos.vz = root->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
-            root   = arg1->extra.tmd->coords;
-            part   = &root[3];
-            pos.vx = part->workm.t[0];
-            pos.vy = root->workm.t[1];
-            pos.vz = part->workm.t[2];
-            Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-            return;
-        case 2:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            return;
-    }
-    switch (work->field_6A8) {
-        case 0:
-            arg0->recs = 0;
-            Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->field_47C);
-            Gp_UnlinkObj(&work->field_564);
-            Gp_UnlinkObj(&work->field_4CC);
-            Gp_UnlinkObj(&work->field_5E4);
-            if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
-                Gp_UnlinkObj(&work->field_61C);
-            }
-            Gp_ReleaseStateF0Add(arg1, work->field_6CA);
-            anim = 0x1D;
-            if (work->field_6B8 == 1) {
-                anim = 0x19;
-            }
-            work->field_694  = anim;
-            work->field_6A8  = 1;
-            arg0->spawnState = (u8)work->field_6B8;
-            Gp_SaveEnemyPose(arg0);
-            Gp_StateF0.field_29 = 1;
-            break;
-        case 1:
-            if (!(work->field_698 & 3)) {
-                scratch->vx = 0;
-                scratch->vz = 0;
-                random      = (Gp_LcgState * 5) + 0x71357911;
-                scratch->vy = -((random >> 0x10) & 0x1FF);
-                Gp_LcgState = random;
-                Gp_SpawnEff(0x600E0, &arg1->extra.tmd->coords[3], 0x400, scratch);
-            }
-            break;
-    }
-    animWork = arg1->work;
-    if (animWork->field_694 != animWork->field_696) {
-        animWork->field_696 = (s16)(u16)animWork->field_694;
-        animWork->field_698 = 0U;
-        duration            = Actor02300_D03F44[animWork->field_694];
-        for (i = 1; i < 0x13; i++) {
-            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, duration);
-        }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    } else {
-        animWork->field_698++;
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&animWork->rig.anim, i);
-        }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    root   = arg1->extra.tmd->coords;
-    pos.vx = root->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
-    root   = arg1->extra.tmd->coords;
-    part   = &root[3];
-    pos.vx = part->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = part->workm.t[2];
-    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
+#include "../../shared/lunging_enemy_dead.inc.c"
 
 /// Per-frame tick for the enemy's charge, sharing `field_6A8` with the rest of
 /// the overlay and measuring the offset to the player through a 0x10-byte
@@ -2319,7 +1767,7 @@ void Actor02300_Fn01DF0(Task* arg0)
                 work->field_5E4.flags = (u16)(work->field_5E4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
                 break;
             }
-            if (work->field_698 >= (Actor02300_D03F44[work->field_694] + 0x52)) {
+            if (work->field_698 >= (gLungerAnimBlendFrames[work->field_694] + 0x52)) {
                 work->field_6A8 = 1;
                 work->field_694 = 6;
             }
@@ -2433,7 +1881,7 @@ void Actor02300_Fn02290(Task* arg0)
             ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
             dz                           = Player_Status.coordMtx->t[2] - self->coord.t[2];
             delta->vz                    = dz;
-            startFrame                   = Actor02300_D03F44[work->field_694];
+            startFrame                   = gLungerAnimBlendFrames[work->field_694];
             frame                        = work->field_698;
             if ((frame >= (startFrame + 0x22)) && ((startFrame + 0x26) >= frame) && (dx = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx * dx) + (dz * dz)) < 0x3E8) == 0))) {
                 work->field_69C = 0x84;
@@ -2442,16 +1890,16 @@ void Actor02300_Fn02290(Task* arg0)
             }
             work->field_69E = 0x14;
             work->field_6A4 = (s16)(ratan2((s32)(s16)delta->vx, (s32)(s16)delta->vz) & 0xFFF);
-            if (work->field_698 == (Actor02300_D03F44[work->field_694] + 0x20)) {
+            if (work->field_698 == (gLungerAnimBlendFrames[work->field_694] + 0x20)) {
                 work->field_5E4.flags = (u16)(work->field_5E4.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_5E4.key   = Gp_PackPair(Actor02300_D159C4, 0);
             }
-            if (work->field_698 == (Actor02300_D03F44[work->field_694] + 0x21)) {
+            if (work->field_698 == (gLungerAnimBlendFrames[work->field_694] + 0x21)) {
                 sound = Actor02300_D15AF8.value | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 pan   = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)gpGetObjDepth(self));
             }
-            if (work->field_698 >= (Actor02300_D03F44[work->field_694] + 0x27)) {
+            if (work->field_698 >= (gLungerAnimBlendFrames[work->field_694] + 0x27)) {
                 work->field_6A8       = 1;
                 work->field_694       = 9;
                 work->field_5E4.flags = (u16)(work->field_5E4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -2783,7 +2231,7 @@ static inline void _actor02300StepRoot(Task* actor)
 
 /// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
 /// new animation, restarts the frame count and cross-fades every slot to it
-/// over the animation's `Actor02300_D03F44` duration.
+/// over the animation's `gLungerAnimBlendFrames` duration.
 static inline void _actor02300TickAnim(Task* actor)
 {
     Actor105600Work* work;
@@ -2794,7 +2242,7 @@ static inline void _actor02300TickAnim(Task* actor)
     if (work->field_694 != work->field_696) {
         work->field_696 = work->field_694;
         work->field_698 = 0;
-        duration        = Actor02300_D03F44[work->field_694];
+        duration        = gLungerAnimBlendFrames[work->field_694];
         for (i = 1; i < 0x13; i++) {
             func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
         }
@@ -2863,14 +2311,14 @@ static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
     Actor02300_Fn00084(actor);
     Actor02300_D15D38[work->field_6A6](actor);
     if (work->field_69E != 0) {
-        Actor02300_Fn0150C(actor);
+        lungerTurnTowardTarget(actor);
     }
     _actor02300StepRoot(actor);
     _actor02300TickAnim(actor);
     if (work->field_6B4 != 0) {
-        Actor02300_Fn01698(actor);
+        lungerDecayHitTilt(actor);
     }
-    Actor02300_Fn018A4(actor);
+    lungerPlayAnimCues(actor);
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
@@ -2923,7 +2371,7 @@ void Actor02300_Fn0327C(Task* actor)
     switch (state) {
         case 0:
             speed = 0;
-            if (work->field_698 >= Actor02300_D03F44[work->field_694]) {
+            if (work->field_698 >= gLungerAnimBlendFrames[work->field_694]) {
                 speed = 0x14;
             }
             work->field_69C = speed;
@@ -3047,45 +2495,7 @@ void Actor02300_Fn0327C(Task* actor)
 
 #include "../../shared/player_detection_segment.inc.c"
 
-/// Entry 0 of the `field_6A6` state table, the idle. State 0 counts
-/// `field_6AE` up to 0x5B frames and then switches to animation 4 and state 1,
-/// running the proximity check `Actor02300_Fn00CD0` every frame meanwhile;
-/// state 1 waits for `field_698` to reach 0x5E and drops back to state 0 with
-/// animation 1. A set `field_6B2` or `Gp_StateF0.field_29` overrides both with
-/// animation 2, entry 2 and the shared state-F0 slot.
-void Actor02300_Fn03828(Task* arg0)
-{
-    Actor105600Work* work;
-    s16              state;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            work->field_6AE++;
-            if (work->field_6AE >= 0x5B) {
-                work->field_694 = 4;
-                work->field_6AE = 0;
-                work->field_6A8 = 1;
-            }
-            Actor02300_Fn00CD0(arg0);
-            break;
-        case 1:
-            if (work->field_698 >= 0x5E) {
-                work->field_694 = 1;
-                work->field_6A8 = 0;
-            }
-            break;
-    }
-
-    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
-        work->field_6A6 = 2;
-        work->field_6A8 = 0;
-        work->field_694 = 2;
-        work->field_6AE = 0;
-        Gp_ArmStateF0(1);
-    }
-}
+#include "../../shared/lunging_enemy_idle.inc.c"
 
 /// Entry 8 of the `field_6A6` state table `Actor02300_D15D38`: step 0 starts
 /// animation 0x11 and clears both dwell counters; step 1 waits for frame 0x37,
@@ -3121,47 +2531,7 @@ void Actor02300_Fn03908(Task* arg0)
     }
 }
 
-/// Entry 9 of the `field_6A6` table: step 0 starts animation 0x12 when
-/// `field_6AA` is 1 (step 1, waits for frame 0x50) and animation 0x13
-/// otherwise (step 2, waits for frame 0x3B); either way the dwell counters are
-/// cleared and the enemy parks on animation 2 (entry 2) when done.
-void Actor02300_Fn03994(Task* arg0)
-{
-    Actor105600Work* work;
-    s32              state;
-    s32              next;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            next = work->field_6AA;
-            if (next == 1) {
-                work->field_694 = 0x12;
-                work->field_6A8 = next;
-            } else {
-                work->field_694 = 0x13;
-                work->field_6A8 = 2;
-            }
-            work->field_69C = 0;
-            work->field_69E = 0;
-            break;
-        case 1:
-            if (work->field_698 >= 0x50) {
-                work->field_694 = 2;
-                work->field_6A6 = 2;
-                work->field_6A8 = 0;
-            }
-            break;
-        case 2:
-            if (work->field_698 >= 0x3B) {
-                work->field_694 = state;
-                work->field_6A6 = state;
-                work->field_6A8 = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/lunging_enemy_recoil.inc.c"
 
 /// Entry 0xA of the `field_6A6` table: step 0 waits for `Gp_TickObjFlag2` on
 /// the spawn context to fire, then starts animation 0x13 and clears
@@ -3192,45 +2562,7 @@ void Actor02300_Fn03A5C(Task* arg0)
     }
 }
 
-/// Entry 0xE of the `field_6A6` table: step 0 starts animation 0x17 when
-/// `field_6B8` is 1 (step 1, waits for frame 0x10) and animation 0x1B
-/// otherwise (step 2, waits for frame 0x16); when done the enemy's handler
-/// chain advances to state 2.
-void Actor02300_Fn03AE8(Task* arg0)
-{
-    Actor105600Work* work;
-    s32              sel;
-    s16              state;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            /* The 32-bit local is load-bearing: an s16 one makes combine fold
-             * the sign-extension into a second `lh` of field_6B8. */
-            sel = work->field_6B8;
-            if (sel == 1) {
-                work->field_694 = 0x17;
-                work->field_6A8 = sel;
-                return;
-            }
-            work->field_694 = 0x1B;
-            work->field_6A8 = 2;
-            return;
-        case 1:
-            if (work->field_698 >= 0x10) {
-                arg0->state     = 2;
-                work->field_6A8 = 0;
-            }
-            return;
-        case 2:
-            if (work->field_698 >= 0x16) {
-                arg0->state     = state;
-                work->field_6A8 = 0;
-            }
-            return;
-    }
-}
+#include "../../shared/lunging_enemy_downed_finish.inc.c"
 
 void Actor02300_Fn03BA0(Task* task)
 {
@@ -3359,7 +2691,7 @@ static void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
 static const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
     Actor02300_Fn028AC,
     Actor02300_Fn02EA0,
-    Actor02300_Fn01A20,
+    lungerDeadState,
 };
 
 /// Per-frame state of the child task `Actor02300_Fn03D44` sets up at part 11
