@@ -202,7 +202,7 @@ D_mine_mesa_80181934 = 0x80181934; // size:0x2C defined:True
 D_mine_mesa_80181960 = 0x80181960; // size:0x30 defined:True
 D_mine_mesa_80189B6C = 0x80189B6C; // size:0x8 defined:True
 D_mine_mesa_80189B74 = 0x80189B74; // size:0x8 defined:True
-D_mine_mesa_80186528 = 0x80186528; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80186528; // size:0x10 defined:True
 
 func_mine_mesa_801811C4 = 0x801811C4; // type:func
 
@@ -215,3 +215,7 @@ func_mine_mesa_8018057C = 0x8018057C; // type:func
 func_mine_mesa_8017ED08 = 0x8017ED08; // type:func
 
 func_mine_mesa_8017E15C = 0x8017E15C; // type:func
+RoomFx_DrawFlashRing = 0x8017F4D4; // type:func
+RoomFx_DrawFlashDisc = 0x8017F900; // type:func
+RoomFx_DrawTwinTrail = 0x80180184; // type:func
+RoomFx_DrawBurstStar = 0x80180804; // type:func
