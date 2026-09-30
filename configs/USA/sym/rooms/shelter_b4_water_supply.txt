@@ -4,7 +4,7 @@ D_shelter_b4_water_supply_8018265C = 0x8018265C; // size:0x14 defined:True
 D_shelter_b4_water_supply_80182670 = 0x80182670; // size:0x10 defined:True
 D_shelter_b4_water_supply_80182680 = 0x80182680; // size:0x10 defined:True
 D_shelter_b4_water_supply_801826E0 = 0x801826E0; // size:0x10 defined:True
-D_shelter_b4_water_supply_801826F0 = 0x801826F0; // size:0xC defined:True
+RoomFx_DiscShades = 0x801826F0; // size:0xC defined:True
 D_shelter_b4_water_supply_80182690 = 0x80182690; // size:0x50 defined:True
 D_shelter_b4_water_supply_801825E4 = 0x801825E4; // size:0xC defined:True
 D_shelter_b4_water_supply_801825F0 = 0x801825F0; // size:0x30 defined:True
@@ -79,3 +79,8 @@ func_shelter_b4_water_supply_801809DC = 0x801809DC; // type:func
 func_shelter_b4_water_supply_80180F34 = 0x80180F34; // type:func
 
 func_shelter_b4_water_supply_80181B94 = 0x80181B94; // type:func
+RoomFx_DrawFlyingSpark = 0x80181158; // type:func
+RoomFx_DrawFlyingRing = 0x801813DC; // type:func
+RoomFx_DrawFlyingDisc = 0x80181800; // type:func
+RoomFx_DrawBurst2Glow = 0x80181D40; // type:func
+RoomFx_DrawGround2Quad = 0x8018226C; // type:func
