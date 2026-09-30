@@ -36,6 +36,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 /// Scratch block one triangle is built in: the GTE depth and flag of its
 /// projection, then its three corners in world space.
@@ -101,7 +102,7 @@ TmdSource D_dryfield_night_motel_loft_8017EAF8 = {
 };
 
 GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
-    { 5102, func_dryfield_night_motel_loft_8017D600 },
+    { 5102, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_loft_8017D5F8 },
     { 5103, func_dryfield_night_motel_loft_8017D6BC },
     { 5104, func_dryfield_night_motel_loft_8017D67C },

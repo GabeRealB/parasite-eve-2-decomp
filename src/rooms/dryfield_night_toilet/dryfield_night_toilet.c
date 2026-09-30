@@ -36,6 +36,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_toilet_8017DA70[];
@@ -48,7 +49,6 @@ extern SVECTOR D_dryfield_night_toilet_8017DAA8[];
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
 extern TaskDesc D_8013E51C[];
 
-s32 func_dryfield_night_toilet_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_toilet_8017D644(Task*, s32, s32, s32);
 s32 func_dryfield_night_toilet_8017D678(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_toilet_8017D680(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -61,7 +61,7 @@ extern GpObj4C        D_dryfield_night_toilet_8017F064[8];
 extern GpRoomCoordSet D_dryfield_night_toilet_8017EE84[1];
 
 GpMsgEntry D_dryfield_night_toilet_8017DA70[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_toilet_8017D5D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
     { 5105, func_dryfield_night_toilet_8017D678 },
     { 5103, func_dryfield_night_toilet_8017D688 },
     { 5104, func_dryfield_night_toilet_8017D680 },
@@ -478,17 +478,7 @@ GpRoomParamRec* D_dryfield_night_toilet_8017F3D8[8] = {
 static void func_dryfield_night_toilet_8017D690(Task* task);
 static void func_dryfield_night_toilet_8017D71C(Task* task);
 
-/// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply and, for a message 0xF that is not report-only (`queryOnly == 0`),
-/// answers game nibble 0x61 plus one. Returns 1.
-s32 func_dryfield_night_toilet_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
-    }
-    return 1;
-}
+#include "../../shared/room_variants_parking_lot.inc.c"
 
 /// Message-table handler for id 0x13F2: on event 5 queues stage sound
 /// 0x52100005. Returns 0.

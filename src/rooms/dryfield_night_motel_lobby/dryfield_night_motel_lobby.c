@@ -45,6 +45,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/room_variants.h"
 
 void func_dryfield_night_motel_lobby_8017FD10(Task* task);
 
@@ -146,13 +147,12 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 s32 func_dryfield_night_motel_lobby_8017FB00(void);
-s32 func_dryfield_night_motel_lobby_8017FB08(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_motel_lobby_8017FB7C(s32, s32, s32);
 s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, DirectionActionRequest* request);
 s32 func_dryfield_night_motel_lobby_8017FCDC(s32, s32, s32);
 
 DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_night_motel_lobby_8017FB08 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantParkingLotMsg } },
     { 5105, { .call0 = func_dryfield_night_motel_lobby_8017FB00 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
     { 5104, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
@@ -188,17 +188,7 @@ s32 func_dryfield_night_motel_lobby_8017FB00(void)
     return 0;
 }
 
-/// Message handler: copies the incoming message onto the outgoing one and, for
-/// message 0xF with `queryOnly` clear, answers in `room` with game-flag nibble
-/// 0x61 plus one. Always returns 1.
-s32 func_dryfield_night_motel_lobby_8017FB08(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
-    }
-    return 1;
-}
+#include "../../shared/room_variants_parking_lot.inc.c"
 
 /// Message handler for the lobby's `arg2 == 3` event: on the first visit it
 /// latches the visit flag and starts the scene, otherwise it fills in the cap

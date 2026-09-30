@@ -62,6 +62,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/room_variants.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -175,7 +176,6 @@ extern GpObj4C        D_dryfield_night_motel_room_6_80185D40[15];
 extern GpRoomCoordSet D_dryfield_night_motel_room_6_80185A30[1];
 s32                   func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
 s32                   func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_night_motel_room_6_80181B7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                   func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                   func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
 void                  func_dryfield_night_motel_room_6_8018189C(Task*);
@@ -201,7 +201,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_motel_room_6_80181B7C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_room_6_80181B74 },
     { 5103, func_dryfield_night_motel_room_6_80181BF8 },
     { 5104, func_dryfield_night_motel_room_6_8018175C },
@@ -1042,25 +1042,7 @@ s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, TaskMessage
     return 0;
 }
 
-/// Handler of message 0x13EE in the room's message table: copies the incoming record onto the outgoing one and,
-/// for message 0x1D with `queryOnly` clear, answers 1 or 3 in `room`
-/// depending on whether flag nibble 0x61 is set. Always returns 1.
-s32 func_dryfield_night_motel_room_6_80181B7C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    s32 nib;
-
-    *out = *in;
-    if (in->areaId == 0x1D && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        nib = GameFlag_GetNibble(0x61);
-        if (nib == 0) {
-            nib = 1;
-        } else {
-            nib = 3;
-        }
-        out->room = nib;
-    }
-    return 1;
-}
+#include "../../shared/room_variants_motel_balcony.inc.c"
 
 /// Handler of message 0x13EF in the room's message table: does nothing.
 s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

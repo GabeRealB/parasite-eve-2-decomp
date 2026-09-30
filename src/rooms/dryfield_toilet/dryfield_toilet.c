@@ -22,6 +22,7 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
+#include "../../shared/room_variants.h"
 
 /// The room task's message table (published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
@@ -52,14 +53,13 @@ static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
 };
 
-s32 func_dryfield_toilet_8017D810(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_toilet_8017D884(Task*, s32, s32, s32);
 s32 func_dryfield_toilet_8017D8B8(void);
 s32 func_dryfield_toilet_8017D8C0(void);
 s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg*, RoomEventMsg*);
 
 DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_toilet_8017D810 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantParkingLotMsg } },
     { 5105, { .call0 = func_dryfield_toilet_8017D8B8 } },
     { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
     { 5104, { .call0 = func_dryfield_toilet_8017D8C0 } },
@@ -173,18 +173,7 @@ static void func_dryfield_toilet_8017D5E4(void)
     }
 }
 
-/// Message handler that answers query 0xF: copies the incoming record onto the
-/// outgoing one and, unless the query is report-only (`queryOnly` set), replies
-/// with game flag nibble 0x61 plus one. Always returns 1, leaving the message
-/// unconsumed.
-s32 func_dryfield_toilet_8017D810(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
-    }
-    return 1;
-}
+#include "../../shared/room_variants_parking_lot.inc.c"
 
 /// Queues stage sound `0x52100005` when `arg2` is 5; otherwise does nothing.
 s32 func_dryfield_toilet_8017D884(Task* task, s32 msgId, s32 arg2, s32 arg3)

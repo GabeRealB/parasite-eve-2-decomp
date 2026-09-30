@@ -8,17 +8,17 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/task_types.h"
+#include "../../shared/room_variants.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[];
 
 s32 func_dryfield_night_motel_room_3_8017D5F4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_motel_room_3_8017D5FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_motel_room_3_8017D684(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_3_8017D68C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_motel_room_3_8017D5FC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
     { 5105, func_dryfield_night_motel_room_3_8017D5F4 },
     { 5103, func_dryfield_night_motel_room_3_8017D68C },
     { 5104, func_dryfield_night_motel_room_3_8017D684 },
@@ -34,27 +34,7 @@ s32 func_dryfield_night_motel_room_3_8017D5F4(Task* task, s32 msgId, TaskMessage
     return 0;
 }
 
-/// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply and, for a message 2 that is not report-only (`queryOnly == 0`),
-/// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
-/// once it has reached 4. Returns 1.
-s32 func_dryfield_night_motel_room_3_8017D5FC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    s32 val;
-    s32 n;
-
-    *out = *in;
-    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = GameFlag_GetNibble(0x7A);
-        if (n >= 4) {
-            val = 3;
-        } else {
-            val = GameFlag_GetNibble(0x61) + 1;
-        }
-        out->room = val;
-    }
-    return 1;
-}
+#include "../../shared/room_variants_main_street.inc.c"
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
 s32 func_dryfield_night_motel_room_3_8017D684(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

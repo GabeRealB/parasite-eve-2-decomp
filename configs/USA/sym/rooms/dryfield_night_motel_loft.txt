@@ -76,3 +76,4 @@ func_dryfield_night_motel_loft_8017E090 = 0x8017E090; // type:func
 
 func_dryfield_night_motel_loft_8017DB64 = 0x8017DB64; // type:func
 glowDrawFlareClipped = 0x8017DE14; // type:func
+roomVariantMotelBalconyMsg = 0x8017D600; // type:func

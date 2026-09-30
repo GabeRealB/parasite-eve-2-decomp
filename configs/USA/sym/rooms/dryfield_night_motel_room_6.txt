@@ -124,3 +124,4 @@ glowDrawPulsingDisc = 0x80182158; // type:func
 glowDrawWideDiamond = 0x80181CD8; // type:func
 roomCutsceneTask = 0x801811F0; // type:func
 roomCutsceneSoundTask = 0x80181A0C; // type:func
+roomVariantMotelBalconyMsg = 0x80181B7C; // type:func

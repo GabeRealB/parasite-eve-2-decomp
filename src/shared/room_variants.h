@@ -3,7 +3,9 @@
  * unless the request is a query, writes `room` for the areas whose room
  * changes with the story. The stage's map overlay carries the resolver for its
  * markers, under the public name rooms call it by; a room that settles a
- * departure's destination itself carries its own copy.
+ * departure's destination itself carries its own copy. The Dryfield rooms
+ * answer message 0x13EE for single neighbouring areas with small handlers of
+ * the same kind.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. A map overlay defines its resolver under its public name by
@@ -17,7 +19,12 @@
 
 #include "gameplay/message.h"
 
+#include "main/task_types.h"
+
 s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1);
 s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1);
+s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+s32 roomVariantParkingLotMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+s32 roomVariantMotelBalconyMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 
 #endif /* SRC_SHARED_ROOM_VARIANTS_H */
