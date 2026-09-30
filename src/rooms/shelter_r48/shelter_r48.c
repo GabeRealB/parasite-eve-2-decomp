@@ -1860,7 +1860,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     }
     ang2 = arg0->killCountdown * 2;
     ang  = arg0->killCountdown;
-    SCRATCH_PUSH(OverlayRippleScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayRippleScratch);
     block = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
     block->origin.vx = gGfxViewCoord.workm.t[0];
@@ -2864,7 +2864,7 @@ static void func_shelter_r48_8017FF74(GfxCoord* arg0, s32 arg1, s32 arg2)
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

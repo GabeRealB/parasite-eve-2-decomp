@@ -1570,7 +1570,7 @@ static void func_actor_405800_80131FC8(s32 otz)
     u_short*           ofs;
 
     extra          = Gp_GetViewSprtExtra();
-    scratch        = SCRATCH_PUSH(ActorsDrawScratch);
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorsDrawScratch);
     scratch->otz   = otz;
     area           = gGpuPrimCursor;
     gGpuPrimCursor = area + 1;

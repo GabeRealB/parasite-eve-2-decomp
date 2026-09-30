@@ -2241,7 +2241,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    blk         = SCRATCH_PUSH(RoomGlowSpriteScratch);
+    blk         = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     blk->pos.vx = coord->workm.t[0];
     blk->pos.vy = coord->workm.t[1];
     blk->pos.vz = coord->workm.t[2];

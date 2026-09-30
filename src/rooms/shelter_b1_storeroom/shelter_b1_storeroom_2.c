@@ -854,7 +854,7 @@ static void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

@@ -4480,7 +4480,7 @@ void func_acropolis_bridge_80181D28(Task* task)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    blk         = SCRATCH_PUSH(RoomGlowSpriteScratch);
+    blk         = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     blk->pos.vx = coord->workm.t[0];
     blk->pos.vy = coord->workm.t[1];
     blk->pos.vz = coord->workm.t[2];
@@ -4693,7 +4693,7 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
     SVECTOR*                   sv;
     s32                        i;
 
-    blk = SCRATCH_PUSH(OverlayFlaggedQuadScratch);
+    blk = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         blk->v[i].vx = D_80111E38[i].x * arg1;

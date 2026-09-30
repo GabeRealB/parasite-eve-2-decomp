@@ -3244,7 +3244,7 @@ static void func_actor_521100_80135024(Task* arg0)
     s32              nextY;
     s32              active;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     matrix = SCRATCH_STACK_CURSOR(MATRIX);
     active = 0;
     work   = arg0->work;

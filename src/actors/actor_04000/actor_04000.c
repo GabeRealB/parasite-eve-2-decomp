@@ -1278,7 +1278,7 @@ static s32 Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, 
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]   += s->delta.vx.w >> 16;

@@ -1477,7 +1477,7 @@ static void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
     s32                      blend;
 
     p1 = arg0 + 1;
-    SCRATCH_PUSH(OverlayPointPairScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
     block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

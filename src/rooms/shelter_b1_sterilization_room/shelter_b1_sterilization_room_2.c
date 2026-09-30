@@ -1505,7 +1505,7 @@ static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1,
     u8                       b;
 
     p1    = arg0 + 1;
-    block = SCRATCH_PUSH(OverlayPointPairScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1626,7 +1626,7 @@ static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1,
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

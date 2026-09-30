@@ -33381,7 +33381,7 @@ alternates registers; splitting into `idx = x * 4 - 5; idx += y` stops the
 tie too, which is what `$v0`/`$a0` pins once compensated for.
 
 The same function's scratch block (`addiu v1,head,-8; sw v1; move s1,v1`) is
-`rect = SCRATCH_PUSH(RECT)`, released with `SCRATCH_STACK_RELEASE_BLOCK(RECT)`: the pushed
+`rect = SCRATCH_STACK_RESERVE_BLOCK(RECT)`, released with `SCRATCH_STACK_RELEASE_BLOCK(RECT)`: the pushed
 value and the local are two pseudos, which a hand-kept `head` / `temp` pair
 only imitated. `func_801030CC` is the example.
 
@@ -48697,7 +48697,7 @@ halfword-to-halfword store shows the difference. Symptom: an otherwise perfect
 function with three `lhu`/`lh` mismatches in a row.
 
 The two spellings also differ in the *base register* after a
-`SCRATCH_PUSH`. `.w >> 16` is an SImode load of `(mem (reg s))`, and CSE
+`SCRATCH_STACK_RESERVE_BLOCK`. `.w >> 16` is an SImode load of `(mem (reg s))`, and CSE
 replaces the bare `s` with its equivalent `head - K`, so combine emits
 `lh -K+2(head)`; `.h.hi` is `(mem (plus s 2))`, which CSE leaves alone, giving
 `lh 2(s)`. Only offset 0 is reached through `head` this way. When the target
@@ -73625,7 +73625,7 @@ helper read it again after:
 
 ```c
 actor = work->work;          /* first read */
-SCRATCH_PUSH(SVECTOR);
+SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
 vec = SCRATCH_STACK_CURSOR(SVECTOR);
 _gpCaptureActorPad(work);    /* reads work->work again, stores through it */
 ```
@@ -87804,7 +87804,7 @@ copy is not always out of its reach. The `OverlayBisectorScratch` push
 (`func_actor_123200_80132B94` and its room/actor copies) has
 `addiu v0,a0,-0xE4` / `move s0,v0`, two field stores, then `sw s0,0(a1)`, and
 had been matched with a `$v0` pin plus a `vz` local holding the store late.
-`SCRATCH_PUSH(T); st = SCRATCH_STACK_CURSOR(T);` followed by the three field stores in
+`SCRATCH_STACK_RESERVE_BLOCK(T); st = SCRATCH_STACK_CURSOR(T);` followed by the three field stores in
 source order matches it outright - sched1 sinks the head store past the fields.
 The same holds for the `GpRingScratch` ring-and-flare body shared by
 `Actor00300_Fn00078` and its actor/room copies (`sh v0,-0x18(a0)` /
@@ -123800,7 +123800,7 @@ Three smaller ones from the same function:
 **Superseded for the same idiom in `func_actor_342000_801625D8`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
 `static __inline__` helper (`gfxScaleMatrixColumns(MATRIX*, VECTOR*)` in `include/main/gfxgte.h`,
-written with `SCRATCH_PUSH`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
+written with `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `sv` stops the `-8(head)` fold. So try the helper
 before reaching for the pins above. The same helper later removed every pin
@@ -131350,13 +131350,13 @@ fails at the overlay checksum, where nothing points at the field.
 Before porting a match, confirm `wc -c <name>_diff` is 0. A score of 100% with a
 non-empty diff means the difference is in a constant.
 
-## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_PUSH`/`SCRATCH_STACK_RELEASE_BLOCK` (Actor02100_Fn01FF0, 2026-09-26)
+## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK` (Actor02100_Fn01FF0, 2026-09-26)
 
 This function once needed five `SOFT_COMPILER_BARRIER()`s and a `SOFT_TOUCH_REG`
 around the scratch head: a hand-computed `head + 0x10` block stored after a
 `head + 0x28` release, a `head - 8` block whose stores had to stay in order, and a
 state store that had to precede a push. All of them went once every block was
-taken with `SCRATCH_PUSH(T)` and given back with `SCRATCH_STACK_RELEASE_BLOCK(T)` at the helper
+taken with `SCRATCH_STACK_RESERVE_BLOCK(T)` and given back with `SCRATCH_STACK_RELEASE_BLOCK(T)` at the helper
 boundaries the code already had. Two things did the work:
 
 - The ROM's back-to-back head stores (`sw head+0x28` then `sw head+0x10`) are a
@@ -131364,7 +131364,7 @@ boundaries the code already had. Two things did the work:
   between them (see "A scratch push the pop overwrites is deleted by `flow`").
   Here that read is the next helper's `work = index->work`: the caller pops the
   previous helper's block, then calls a helper that loads `work` before pushing.
-- `SCRATCH_PUSH(T)` addresses the block's first field off the old head
+- `SCRATCH_STACK_RESERVE_BLOCK(T)` addresses the block's first field off the old head
   (`sh zero,-8(head)`), which is what the hand-written `((SVECTOR*)(head - 8))->vx`
   plus `SOFT_TOUCH_REG(head)` was imitating.
 
@@ -141260,7 +141260,7 @@ parameter as is and compares `(field & 0x7F) != (mode & 0x7F)`.
 
 Same function: the scratch-pad `lui 0x1F80` / `sw 0x1F8003FC` asm, a second
 `&gGfxViewCoord` built by hand and a pop-then-push pair of head stores were
-one inline helper called twice - `SCRATCH_PUSH(MATRIX)`, a coordinate-to-view
+one inline helper called twice - `SCRATCH_STACK_RESERVE_BLOCK(MATRIX)`, a coordinate-to-view
 walk, a write-back, `SCRATCH_STACK_RELEASE_BLOCK(MATRIX)`. CSE folds the first call's pop and
 the second call's push into `sw h+0x20; sw h` on its own.
 ## `li sN,K` right after storing the same `K` through `$v0` wants the stored value in `HImode` (func_actor_120300_80132C60, 2026-09-25)
@@ -141347,7 +141347,7 @@ the seed held it with an empty asm barrier. Writing the field update in place,
 barrier: CSE keeps the incremented value in the register for both divisors and
 the store falls between them. The same function's `move s2,v0` block copy with
 the head store after the field writes is the compound push
-`SCRATCH_PUSH(T); block = SCRATCH_STACK_CURSOR(T);` (see the scratch-push entries
+`SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T);` (see the scratch-push entries
 above). Its copies in other rooms (`dryfield_motel_balcony`, `mine_cavern`,
 `mine_secret_passage`, `neo_ark_north_promenade`, `dryfield_toilet`) carry the
 same pins.
@@ -141806,7 +141806,7 @@ stores lose a load-delay `nop` and the image shrinks. An inline helper taking th
 offsets as `s32` parameters stores them the same way the staging local in the
 entry above does.
 
-### The room fan drawer (`RoomFanScratch`) needs no pins: `SCRATCH_PUSH` and `&block->field`
+### The room fan drawer (`RoomFanScratch`) needs no pins: `SCRATCH_STACK_RESERVE_BLOCK` and `&block->field`
 
 The eight-wedge fan drawer repeated across ~40 room overlays was matched with
 `register ... asm()` pins on the block, prim, angle and scratch head, the GTE
@@ -141818,7 +141818,7 @@ split is what `for (ang = 0; ang < 0x1000; ang += 0x200)` with `ang + 0x100`
 and `ang + 0x200` written inline at the `rsin`/`rcos` calls produces:
 
 ```c
-block = SCRATCH_PUSH(RoomFanScratch);
+block = SCRATCH_STACK_RESERVE_BLOCK(RoomFanScratch);
 block->vec.vx = arg0->workm.t[0];      /* ...vy, vz */
 gte_stsxy(&block->sx);
 gte_stflg(&block->flag);
@@ -141904,7 +141904,7 @@ load. The final code carries no trace of the test.
 as an if/else whose arms make the same call, followed by the store. Sibling
 functions with a real version of that conditional are the clue.
 
-### A late head store of the *copy* register is still `SCRATCH_PUSH` when nothing orders the store (func_800DDC2C, 2026-09-26)
+### A late head store of the *copy* register is still `SCRATCH_STACK_RESERVE_BLOCK` when nothing orders the store (func_800DDC2C, 2026-09-26)
 
 **Symptom.** `lw s0,0(a2)`, `addiu v0,s0,-0x50`, `move s1,v0`, then the block's
 field writes through `s1`, and `sw s1,0(a2)` only just before the next call.
@@ -141912,7 +141912,7 @@ The seed pinned the carve to `$v0` and the scratch address to `$a2`. The plain
 `head = SCRATCH_STACK_CURSOR(u8); block = head - 0x50; ...; SCRATCH_STACK_CURSOR = block;`
 folds the carve into `addiu s1,s0,-0x50`.
 
-**Fix.** `block = SCRATCH_PUSH(GpEdgeScratch);` at the top, with no explicit
+**Fix.** `block = SCRATCH_STACK_RESERVE_BLOCK(GpEdgeScratch);` at the top, with no explicit
 store later. The push's reload is the copy, as in the scratch-push entries
 above, and sched1 then sinks the head store past the in-struct field writes
 by itself, because the scalar store to the fixed head address cannot alias
@@ -141929,7 +141929,7 @@ position, combine folds the carve into the block pointer and the `move` is
 gone. The entry above says only an input-only asm restores the pair here.
 
 **Fix.** The plain compound push, at the top, produces it:
-`SCRATCH_PUSH(T); block = SCRATCH_STACK_CURSOR(T);`. The store to the constant scratch
+`SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T);`. The store to the constant scratch
 address is a scalar reference, so sched1 may move it past the struct stores
 through `block`, and it sinks to where the target has it, still storing the
 carve. local-alloc's `optimize_reg_copy_1` then rewrites that read of the carve
@@ -141947,7 +141947,7 @@ pointer into two givs, and the radius sum `lhu 0x44; lhu 0x1c; addu v1,v1,v0`
 came out with its loads swapped.
 
 **Fix.** Four source changes, no pins:
-- `SCRATCH_PUSH(T)` / `block = SCRATCH_STACK_CURSOR(T)` / `SCRATCH_STACK_RELEASE_BLOCK(T)` with no
+- `SCRATCH_STACK_RESERVE_BLOCK(T)` / `block = SCRATCH_STACK_CURSOR(T)` / `SCRATCH_STACK_RELEASE_BLOCK(T)` with no
   address local. CSE holds `0x1F8003FC` in `s1` for the early exits by
   itself and drops it once dead, so the late pops each build a fresh
   `lui/ori` and cross-jump to one shared `lw/addiu/sw`.
@@ -142296,10 +142296,10 @@ extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & 0xFF7F
 
 Check it in `.flow` by counting `(set (mem … (reg/v N)))` at the field's offset.
 
-## `SCRATCH_PUSH(T)` versus `SCRATCH_STACK_CURSOR(T) - 1` then a store: the push's copy lengthens the head's quantity by one insn (Gfx_OrthonormalBasis, 2026-09-26)
+## `SCRATCH_STACK_RESERVE_BLOCK(T)` versus `SCRATCH_STACK_CURSOR(T) - 1` then a store: the push's copy lengthens the head's quantity by one insn (Gfx_OrthonormalBasis, 2026-09-26)
 
 Both forms load the scratch head once and emit the same `lw / addiu / sw`, but
-`mat = SCRATCH_PUSH(MATRIX)` assigns through the compound assignment's own
+`mat = SCRATCH_STACK_RESERVE_BLOCK(MATRIX)` assigns through the cursor assignment's own
 temporary and then copies it to `mat`. That copy survives to `.lreg` inside the
 loaded head's range. In `Gfx_OrthonormalBasis` the head quantity (8 refs, tied
 to the `head - 0x1A` pointer it dies into) and the first `lhu` temp tied at
@@ -142308,7 +142308,7 @@ exactly 10000 (`3*8/24` against `1*2/2`); the head was born first, so it took
 head `$v1`, which is what three register pins had been forcing.
 
 **Fix.** A `$v0`/`$v1` swap between a scratch head and short temps inside its
-range: try `SCRATCH_PUSH(T)` in place of `SCRATCH_STACK_CURSOR(T) - 1` plus a separate
+range: try `SCRATCH_STACK_RESERVE_BLOCK(T)` in place of `SCRATCH_STACK_CURSOR(T) - 1` plus a separate
 `SCRATCH_STACK_CURSOR(T) = block;` (and the reverse). Statement order will not do it -
 sched1 re-sorts the stores and all orders compile identically.
 
@@ -142388,7 +142388,7 @@ mem->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
 `static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
 is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
 addressed `n($s0)`.
-## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_PUSH(T)` (func_necrosis_8012FE64, 2026-09-26)
+## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_STACK_RESERVE_BLOCK(T)` (func_necrosis_8012FE64, 2026-09-26)
 
 Symptom: the `GpFxQuadScratch` quad drawers (necrosis, apobiosis, energyball)
 store `vec.vx` at `-0x1C(head)` before the block pointer exists, carve it into
@@ -142400,7 +142400,7 @@ store, plus `$a1` pins on the scratch address and a copy of `value`.
 Fix: the compound push, written the obvious way:
 
 ```c
-block         = SCRATCH_PUSH(GpFxQuadScratch);
+block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
 block->vec.vx = arg0->workm.t[0];
 ...
 gte_stsxy(&block->sx);
@@ -142452,7 +142452,7 @@ narrows to QImode and prints as `-0x59` (see "`addiu reg, 0xA7` vs `addiu reg,
 the old `s16 cell` locals imitated; and `u0` is stored before the `% 8` is
 computed because the macro stores it first. With the UVs right, the scratch
 head's `move v1,t1` copy and the rest of the prologue came out of a plain
-`block = SCRATCH_PUSH(GpRingScratch)` with no further help: the prologue hacks
+`block = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch)` with no further help: the prologue hacks
 were compensating for allocation pressure the wrong UV code created. Try the
 macro before steering a quad's setup piecemeal.
 
@@ -142663,7 +142663,7 @@ the child-task pseudos then have both `$v0` and `$a0` preferences in `.greg`,
 where the stripped seed had only `$a0`, and choose `$v0`. This removes the
 setup pin/touch and both loop pins together. Reusing `work` for the child
 tasks instead makes them conflict with the setup's `$v0` and breaks the match.
-The typed `SCRATCH_PUSH/HEAD/POP` macros also replace all repeated scratch
+The typed `SCRATCH_STACK_RESERVE_BLOCK/HEAD/POP` macros also replace all repeated scratch
 address casts unchanged. Evidence: `Gp_DebugPanTask-dehack/base_15` matches
 the seed's 99.972%; `.combine` retains load 696 and copy 707, `.lreg` assigns
 model r273 to 2, and `.greg` gives task r252/r283 preferences `{2,4}`.
@@ -142800,7 +142800,7 @@ the expression's order - reordering `y + arg2` / `arg2 + y` did nothing here.
 **Carve.** Target: `lw v0,0(a1); addiu v0,v0,-0x1C; move s1,v0`, field stores
 through `s1`, and `sw s1,0(a1)` only after the first computed field. That late
 store does not mean the source stored the head late: it is still
-`pos = SCRATCH_PUSH(T);` at the top. The push's value is used by both the head
+`pos = SCRATCH_STACK_RESERVE_BLOCK(T);` at the top. The push's value is used by both the head
 store and the copy into `pos`, so combine cannot fold the carve into `pos`;
 sched1 then sinks the scalar head store past the struct stores (they cannot
 alias it), and `optimize_reg_copy_1` rewrites it to read the copy. Writing
@@ -142912,7 +142912,7 @@ disappears with it, since those were the `u8` zero-extensions.
 
 ## `setSemiTrans(prim, cond)`, not `if (cond) setSemiTrans(prim, 1)`: the dead else-store's label keeps a scratch block in its own register (Gp_DrawEffSprite81, 2026-09-26)
 
-Target: `addiu v0,a3,-0x18; move t1,v0` after `SCRATCH_PUSH`, with every later
+Target: `addiu v0,a3,-0x18; move t1,v0` after `SCRATCH_STACK_RESERVE_BLOCK`, with every later
 access (including `gte_ldv0`) through `t1`, and a code byte stored `0x2D` then
 conditionally `0x2F`. Written `if (mem->angle != 0) setSemiTrans(prim, 1);`,
 cse1's path follows the one-use label through the whole `if` body, so the push
@@ -143138,7 +143138,7 @@ tpage 0x2B, UV column `n * 40`, radius `(s16)arg2 * 39 / otz`) was matched with 
 `u0`/`u1` and a `COMPILER_BARRIER` before the code-byte store. None is needed:
 
 ```c
-block = SCRATCH_PUSH(RoomDraw13Scratch);
+block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
 ...
 setUVWH(prim, idx * 40, 0, 0x27, 0x27);
 setRGB0(prim, blend, blend, blend);
@@ -143206,7 +143206,7 @@ variable (`addiu v1,a1,0xc`, `lhu -0x6(v1)`). Plain indexing,
 `colorMtx->m[0][i]` … `m[2][i]` with a `for (i = 0; i < 3; i++)`, gives the
 single stepped pointer per matrix without help, and `&block->col0` for the GTE
 operand folds to the old head minus 0x10 on its own once the block is taken
-with `SCRATCH_PUSH`.
+with `SCRATCH_STACK_RESERVE_BLOCK`.
 
 ## A table walked with a stepped index keeps `sll`/`addu` per iteration only as `T[base + i * 2]`; a one-ref priority gap is a reused local (Actor02500_Fn012F0, 2026-09-26)
 
@@ -143565,7 +143565,7 @@ moves it into the branch delay slot.
 **Fix.** `trans = &head[-1].trans;` just above `if (slot->poseEncoding == 1)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
-## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_PUSH` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)
+## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_STACK_RESERVE_BLOCK` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)
 
 **Symptom.** A scratch-pad block is carved off the head, then copied at once
 into a second callee-saved register: the head store and one later call read the
@@ -143579,7 +143579,7 @@ copy is born is not rewritten. Writing the head store after the field stores,
 as the hack did, puts it after the copy and it collapses onto one register.
 
 **Fix.** Push first, then take the member pointer:
-`s = SCRATCH_PUSH(GpDirScratch); vec = &s->vec; vec->vx = …;` - later calls
+`s = SCRATCH_STACK_RESERVE_BLOCK(GpDirScratch); vec = &s->vec; vec->vx = …;` - later calls
 that pass `&s->vec` keep the block register because cse's equivalence ends at
 the `if` before them.
 ### Constants pinned to registers across a `POLY_FT4` fill: write the UVs with `setUV4` (Gp_DrawFloorQuad, 2026-09-26)
@@ -143748,7 +143748,7 @@ turns the load into a copy of the value just stored.
 With `head - 0x1C` / `head - 0xC` pointers computed by hand, the scratch block
 also lost `s0` to a matrix pointer at an allocation-priority tie, which a
 third pin (`block asm("s0")`) fixed. The typed scratch macros fixed it without
-a pin: `SCRATCH_PUSH(T); block = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);`, with
+a pin: `SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);`, with
 `&block->dir` in place of a separate `dir` pointer. When a scratch-block
 function pins the block pointer, try the typed push/read/pop form first.
 ## Repeated decay blocks share one function-scope step; a per-node helper returns the member pointer (Gp_TurnPlayer, 2026-09-26)
@@ -143910,13 +143910,13 @@ then masked (`sb v0; andi v1,v0,0xFF`) is `*dest = q; digit = *dest;` with a
   primitive (cursor bump, word store, `setlen`, `addPrim`) in each arm keeps the
   arms apart and cross-jumping merges the common tail.
 
-### `addiu v0,v0,-N; move t2,v0; sw t2,0(scratch)` is `blk = SCRATCH_PUSH(T)`, not a pinned head/block pair (func_acropolis_forked_road_8017EC70, 2026-09-26)
+### `addiu v0,v0,-N; move t2,v0; sw t2,0(scratch)` is `blk = SCRATCH_STACK_RESERVE_BLOCK(T)`, not a pinned head/block pair (func_acropolis_forked_road_8017EC70, 2026-09-26)
 
 A scratch-pad push whose new top is computed into one register, copied to
 another, and the copy both stored back and used as the block pointer, was held
 by `register ... asm()` pins on the coordinate and head pointer plus a
 `SOFT_TOUCH_REG` between the subtraction and the block assignment. It is the
-value of the compound assignment: `blk = SCRATCH_PUSH(RoomQuadScratch);`. The
+value of the cursor assignment: `blk = SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);`. The
 pins, the extra locals (`tbl`, `wm`, `head`) and the `(u16)` casts on the
 `+=` corner updates all went with it; `for` instead of `do/while` also matched.
 
@@ -144036,7 +144036,7 @@ cannot be folded back into `t` either. Read one local per angle as the
 original's style, not as a hack.
 
 The scratch push in the same function needed no pin at all: plain
-`block = SCRATCH_PUSH(T)` gives the `addiu v0` / `move s3,v0` pair, and every
+`block = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the `addiu v0` / `move s3,v0` pair, and every
 `((T*)(head - K))->field` cast access became `block->field`.
 
 ## The anim reseed/tick body's `TOUCH_REG(i)` is two plain `for (i = 1; ...)` loops (Actor00300_Fn04ED4, 2026-09-26)
@@ -144252,14 +144252,14 @@ target also stores `block->in` before the head is written back, which invites
 one instruction short: `mtc2 v0,$8` with no copy. Reload's `find_equiv_reg`
 walks back from the asm, finds `(set (mem s0+24) v0)` with nothing setting
 `s0` in between, and hands the asm `v0` directly. Written as
-`SCRATCH_PUSH(T); block = SCRATCH_STACK_CURSOR(T);`, CSE rewrites the stores to use the
+`SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T);`, CSE rewrites the stores to use the
 push's pseudo, and sched1 places the leftover `block = <push pseudo>` copy
 between the store and the asm. That breaks the equivalence, reload loads into
 its spill register, and post-reload CSE turns the load into the copy. sched1
 also moves the `block->in` stores ahead of the head store, because a constant
 scratch address does not alias the block, so push-first reproduces the
 target's store order too.
-## A scratch head store scheduled between the block's own stores is still `SCRATCH_PUSH` first (func_800D98C4, 2026-09-26)
+## A scratch head store scheduled between the block's own stores is still `SCRATCH_STACK_RESERVE_BLOCK` first (func_800D98C4, 2026-09-26)
 
 Target: `lw s4,head; addiu s0,s4,-0x1C; sw v0,-0x1C(s4); ... sw v0,4(s0); sw s0,head; sw v0,8(s0)`
 - the head store sits between the second and third field stores, so it had
@@ -144267,7 +144267,7 @@ been written by hand at that position with `block = head - 0x1C` and a
 separate `dir = head - 0xC`. That spelling also lost the reloaded
 `move t0,v0; mtc2 t0,$8` of `gte_lddp(block->scale)`: reload found the stored
 value through the load's REG_EQUIV note and used `v0` directly. The typed idiom
-`SCRATCH_PUSH(T); block = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);` with
+`SCRATCH_STACK_RESERVE_BLOCK(T); block = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);` with
 `&block->dir` matched outright: sched1 moves the head store down among the
 field stores, and the `block` copy it leaves between the field store and the
 asm stops reload's equivalence search, as in `func_800D9794`. A head store in
@@ -144652,14 +144652,14 @@ no dependence at all. When a hack steers a primitive-building body, look for
 another function in the file that emits the same primitive with the same
 arithmetic; the shared part is likely a helper both called.
 
-## The `D_80111E38` ground-quad loop is an indexed `for` over `SCRATCH_PUSH`, not a pointer walk (func_pyrokinesis_801304C4, 2026-09-26)
+## The `D_80111E38` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (func_pyrokinesis_801304C4, 2026-09-26)
 
 Target: `addiu v1,v1,-0x38; move t1,v1; sw v1,0(v0)`, then `move a2,t1` as the
 loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
 `&v->vy` giv. Seeds written as `head = SCRATCH_STACK_CURSOR - 0x38; ... do { v->vx = tbl->x
 * s; ...; v++; tbl++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
 (or a `TOUCH_REG`) to get both the head copy and the plain walker. Written the
-way gameplay's `Gp_DrawEffSprite7C` is - `block = SCRATCH_PUSH(GpQuadScratch);
+way gameplay's `Gp_DrawEffSprite7C` is - `block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
 for (i = 0; i < 4; i++) { block->vec[i].vx = D_80111E38[i].x * s; ... }` with
 `+=` on the translation - loop strength reduction produces exactly that walker
 and copy with no hack. The same body sits in energyball, hypervelocity and
@@ -144701,7 +144701,7 @@ raised its allocation priority. Try that before any other lever when a pinned
 local is only ever assigned from an argument.
 ### A scratch push whose head store lands late: check that the other pointer arguments are really scalars (func_apobiosis_80130630, 2026-09-26)
 
-Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = block`, and `TOUCH_REG` on a copy of the first coordinate. `block = SCRATCH_PUSH(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* arg1` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is an `SVECTOR*`. With `arg1->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `block->v1.vx += arg1->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
+Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = block`, and `TOUCH_REG` on a copy of the first coordinate. `block = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* arg1` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is an `SVECTOR*`. With `arg1->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `block->v1.vx += arg1->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
 
 ### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (func_acropolis_plaza_801802C0, 2026-09-26)
 
@@ -144782,13 +144782,13 @@ The inner `return 0`s jump to the return label and the trailing `return 1` is
 reached from the guard as well, so there is no lone `x = 0 / x = 1` diamond for
 store-flag to fold.
 
-## A scratch matrix taken with `SCRATCH_PUSH(MATRIX)`, not load-then-store, before `gte_MulMatrix0` (Actor00300_Fn0340C, 2026-09-27)
+## A scratch matrix taken with `SCRATCH_STACK_RESERVE_BLOCK(MATRIX)`, not load-then-store, before `gte_MulMatrix0` (Actor00300_Fn0340C, 2026-09-27)
 
 `RotMatrix(angles, m)` into a scratch-pad `MATRIX` followed by the nine-macro
 `SetRotMatrix / ldclmv / rtir / stclmv` column sequence had its `m` and the
 destination coordinate swapped between `$s0` and `$s1`, and the seed held them
 with `USE_REG(m)`. The block was taken as `m = head - 1; head = m;` - two
-statements. Writing it as one, `m = SCRATCH_PUSH(MATRIX);`, and the column
+statements. Writing it as one, `m = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);`, and the column
 sequence as `gte_MulMatrix0(dst, m, dst)` (gtemac.h) matched with no pin; the
 pop pairs as `SCRATCH_STACK_RELEASE_BLOCK(MATRIX)`. Look for this spelling wherever a GTE
 column sequence follows a hand-split scratch push.
@@ -144837,7 +144837,7 @@ static __inline__ void _storeNear(Work* work)
 
 The tail also moved the scratch pop *before* the join, so CSE, which restarts
 at the join label, no longer forwarded the popped head into the next
-`SCRATCH_PUSH`'s reload. The tree had faked that with a memory barrier after a
+`SCRATCH_STACK_RESERVE_BLOCK`'s reload. The tree had faked that with a memory barrier after a
 single post-join pop.
 ## A `SOFT_TOUCH_REG` on a sibling-ring head buys one `REG_N_REFS`; the only natural source found, a reload of `firstChild`, also keeps the parent live (Actor02100_Fn011C4, 2026-09-27)
 The body walks `list->firstChild` as a ring (`current = head; do {...} while
@@ -145463,7 +145463,7 @@ the store and the read. Here that meant writing the whole `move` vector after
 
 ## A store off the scratch pointer instead of `head-K`: write `x += ...` on the lvalue, not through a cached local (func_801011D0, 2026-09-27)
 
-After `s = SCRATCH_PUSH(T)`, cse knows `s == head - K`. The target loaded the
+After `s = SCRATCH_STACK_RESERVE_BLOCK(T)`, cse knows `s == head - K`. The target loaded the
 first field as `lw -0x10($s1)` (the head form) but stored it back as
 `sw 0($s0)` (the pointer). Caching the field in a local, `val = s->f; if (val &
 0xFFFF) s->f = val + (val >= 0 ? A : -A);`, put both on `-0x10($s1)` (99.89%),
@@ -145847,7 +145847,7 @@ two sound blocks are never compared and both survive. When a target has two
 identical blocks that each jump to one shared cleanup, write the cleanup out in
 each arm rather than using a `goto`.
 
-## The `move` before `gte_stszotz` comes from `SCRATCH_PUSH`, not a pin
+## The `move` before `gte_stszotz` comes from `SCRATCH_STACK_RESERVE_BLOCK`, not a pin
 
 "A `move` between two registers holding the same pointer is a pin" says only
 `register T* p asm("a0")` reproduces a lone `move $a0, $a1` feeding
@@ -145855,7 +145855,7 @@ each arm rather than using a `goto`.
 same `move` falls out of the plain push, with no second local at all:
 
 ```c
-blk = SCRATCH_PUSH(RoomGlowSpriteScratch);   /* was head/scratch/blk/p + pin */
+blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);   /* was head/scratch/blk/p + pin */
 ...
 gte_stszotz(&blk->otz);
 ...
@@ -145863,7 +145863,7 @@ SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 ```
 
 The object is byte-identical to the pinned version. Before pinning a
-scratch-block copy, rewrite the open-coded `head - N` push as `SCRATCH_PUSH`
+scratch-block copy, rewrite the open-coded `head - N` push as `SCRATCH_STACK_RESERVE_BLOCK`
 and score that first.
 ## Duplicated early-exit bodies count as references until jump2 merges them (func_pyrokinesis_8012EF48, 2026-09-27)
 

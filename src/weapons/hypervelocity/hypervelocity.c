@@ -540,7 +540,7 @@ static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 
        for the same reason. `vert` reaches `hub[i]` through `rim[i]` rather
        than off `sc`, so the `gte_ldv0` / `gte_stsv` address stays a register
        of its own instead of being shared with the field stores. */
-    sc = SCRATCH_PUSH(HyperTrailScratch);
+    sc = SCRATCH_STACK_RESERVE_BLOCK(HyperTrailScratch);
     if (side != 0) {
         back    = (spin << 1) + (age << 8);
         hubSize = 0x80;
@@ -698,7 +698,7 @@ static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin)
     s32                   flag;
     s32                   u;
 
-    sc = SCRATCH_PUSH(OverlayGroundScratch);
+    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         sc->vec[i].vx = D_80111E38[i].x * spin;
@@ -790,7 +790,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
        prologue's register assignment. `vert` reaches `hub[i]` through
        `rim[i]` so the `gte_ldv0` / `gte_stsv` address stays a register of its
        own instead of being shared with the field stores. */
-    sc    = SCRATCH_PUSH(HyperConeScratch);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(HyperConeScratch);
     rise  = age;
     rise  = rise << 7;
     top   = 0x600 - rise;

@@ -1299,7 +1299,7 @@ static void Actor00300_Fn00078(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[1]     = (s32)coord->coord.t[1];
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_PUSH(GpRingScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
     sc->vec.vx = coord->workm.t[0];
     sc->vec.vy = coord->workm.t[1];
@@ -1392,7 +1392,7 @@ static void Actor00300_Fn005D0(GfxCoord* arg0, s32 arg1)
     s32                   flag;
     s32                   u;
 
-    sc = SCRATCH_PUSH(OverlayGroundScratch);
+    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         sc->vec[i].vx = D_80111E38[i].x * arg1;
@@ -1672,7 +1672,7 @@ static void Actor00300_Fn00E54(Task* arg0)
     work     = arg0->work;
     head     = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     self     = arg0->extra.tmd->coords;
-    SCRATCH_PUSH(_Actor00300HitScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(_Actor00300HitScratch);
     scratch = SCRATCH_STACK_CURSOR(_Actor00300HitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
@@ -2770,7 +2770,7 @@ static void Actor00300_Fn0340C(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix = SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     active = 0;
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -3458,7 +3458,7 @@ static s32 Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1)
 
     ret     = 0;
     node    = D_80115550;
-    vec     = SCRATCH_PUSH(VECTOR);
+    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     vec->vx = arg1->vx - arg0->vx;
     vec->vy = arg1->vy - arg0->vy;
     vec->vz = arg1->vz - arg0->vz;

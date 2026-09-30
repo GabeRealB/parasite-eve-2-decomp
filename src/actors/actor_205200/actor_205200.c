@@ -701,7 +701,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     s32                  hitTime;
     s32                  clamped;
 
-    vec   = SCRATCH_PUSH(VECTOR);
+    vec   = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     coord = arg0->extra.tmd->coords;
     part  = (Actor205200Part*)arg0->work;
     enemy = arg0->spawnArg2.pointer;

@@ -2170,7 +2170,7 @@ static void func_actor_800200_80164598(Task* arg0)
 
     actor           = arg0->work;
     coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_PUSH(GpApproachScratch);
+    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
     block->vec.vx   = actor->field_20 - coord->coord.t[0];
     block->vec.vy   = actor->field_24 - coord->coord.t[1];
     block->vec.vz   = actor->field_28 - coord->coord.t[2];
@@ -2408,7 +2408,7 @@ static void func_actor_800200_80164C54(Task* arg0)
 
     actor           = arg0->work;
     coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_PUSH(GpApproachScratch);
+    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
     block->vec.vx   = actor->field_20 - coord->coord.t[0];
     block->vec.vy   = actor->field_24 - coord->coord.t[1];
     block->vec.vz   = actor->field_28 - coord->coord.t[2];
@@ -2478,7 +2478,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
 
     actor           = arg0->work;
     coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_PUSH(GpApproachScratch);
+    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
     block->vec.vx   = actor->field_20 - coord->coord.t[0];
     block->vec.vy   = actor->field_24 - coord->coord.t[1];
     block->vec.vz   = actor->field_28 - coord->coord.t[2];

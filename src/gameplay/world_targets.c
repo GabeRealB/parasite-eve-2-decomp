@@ -80,7 +80,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     GpPerspScratch* block;
 
     src = slot->field_0;
-    SCRATCH_PUSH(GpPerspScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
     block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
     block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
@@ -131,7 +131,7 @@ void Gp_DrawTargetCursor(void)
     for (; node != NULL; node = node->next) {
         if (node->state.b.targeted != 0 && !(node->state.b.flags & 1)) {
             easing               = 0;
-            projection           = SCRATCH_PUSH(WorldCoordProjectionScratch);
+            projection           = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
             projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
             projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
             projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
@@ -215,7 +215,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     SVECTOR*           srcp;
 
     best = NULL;
-    SCRATCH_PUSH(GpLockScanScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLockScanScratch);
     block         = SCRATCH_STACK_CURSOR(GpLockScanScratch);
     actor         = arg0->work;
     coord         = arg0->extra.tmd->coords;
@@ -732,7 +732,7 @@ static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
     GpPerspScratch* block;
     s32             ret;
 
-    block         = SCRATCH_PUSH(GpPerspScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
     block->vec.vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
     block->vec.vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
@@ -847,7 +847,7 @@ void Gp_LoadImages(GpImgRec* arg0)
     s32   done;
 
     done = 0;
-    dest = SCRATCH_PUSH(RECT);
+    dest = SCRATCH_STACK_RESERVE_BLOCK(RECT);
 
     do {
         switch (arg0->field_0) {

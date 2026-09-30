@@ -1708,7 +1708,7 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
     s32                      blend;
 
     p1 = arg0 + 1;
-    SCRATCH_PUSH(OverlayPointPairScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
     block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -2144,7 +2144,7 @@ static void func_dryfield_night_water_hole_8017FF84(GfxCoord* arg0, s32 arg1, s3
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

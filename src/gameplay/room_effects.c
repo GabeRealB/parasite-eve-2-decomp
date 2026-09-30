@@ -1744,7 +1744,7 @@ void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32           ang;
     s32           otz;
 
-    block         = SCRATCH_PUSH(GpArcScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -1797,7 +1797,7 @@ void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
     s32            ang;
     s32            otz;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -1850,7 +1850,7 @@ void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
     s32              u1;
     s32              ang2;
 
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -1903,7 +1903,7 @@ void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     s32            u0;
     s32            u1;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -1955,7 +1955,7 @@ void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* rgb)
     s16            r1;
 
     r1    = arg1 + 0x100;
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -2038,7 +2038,7 @@ void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
     s16            r1;
 
     r1    = arg1 + arg2;
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {

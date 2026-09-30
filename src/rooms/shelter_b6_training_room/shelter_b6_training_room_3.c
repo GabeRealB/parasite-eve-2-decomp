@@ -638,7 +638,7 @@ static void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

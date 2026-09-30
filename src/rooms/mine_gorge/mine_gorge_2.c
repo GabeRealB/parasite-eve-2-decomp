@@ -1147,7 +1147,7 @@ static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32                blend;
     s16                xy;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

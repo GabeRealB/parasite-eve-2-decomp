@@ -173,7 +173,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
 
     ret     = 0;
     node    = D_80115550;
-    vec     = SCRATCH_PUSH(VECTOR);
+    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     vec->vx = arg1->vx - arg0->vx;
     vec->vy = arg1->vy - arg0->vy;
     vec->vz = arg1->vz - arg0->vz;

@@ -937,7 +937,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017E640(SVECTOR* arg0, s1
     s32                rgb;
     s32                radius;
 
-    block = SCRATCH_PUSH(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

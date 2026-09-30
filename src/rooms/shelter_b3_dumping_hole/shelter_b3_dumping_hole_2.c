@@ -4385,7 +4385,7 @@ static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 a
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -4937,7 +4937,7 @@ static void func_shelter_b3_dumping_hole_80186AB8(GfxCoord* arg0, s32 arg1, s32 
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

@@ -21,7 +21,7 @@ static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     arg2         &= 0xFFF;
     pal           = arg3 >> 12;
     arg3         &= 0xFF;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -79,7 +79,7 @@ static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32                   next;
     s32                   outer;
 
-    block         = SCRATCH_PUSH(RoomBillboardScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(RoomBillboardScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -131,7 +131,7 @@ static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
     s32             ang;
     s32             otz;
 
-    block         = SCRATCH_PUSH(RoomFanScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(RoomFanScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

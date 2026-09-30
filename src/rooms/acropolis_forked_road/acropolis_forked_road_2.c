@@ -1699,7 +1699,7 @@ static void func_acropolis_forked_road_8017EC70(GfxCoord* coord, s32 arg1, s16 a
     SVECTOR*         sv;
     s32              i;
 
-    blk = SCRATCH_PUSH(RoomQuadScratch);
+    blk = SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     for (i = 0; i < 4; i++) {
         blk->v[i].vx = D_80111E38[i].x * arg1;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate

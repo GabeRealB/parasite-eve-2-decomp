@@ -532,7 +532,7 @@ static void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
     s32                rgb;
     s32                radius;
 
-    block = SCRATCH_PUSH(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

@@ -50,8 +50,23 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// reservations.
 #define SCRATCH_STACK_CURSOR(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT)
 
-/// Takes one `type` off the stack; the block is then `SCRATCH_STACK_CURSOR(type)`.
-#define SCRATCH_PUSH(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT -= 1)
+/// Reserves one uninitialized block on the downward-growing scratch stack.
+///
+/// `blockType` is a complete, fixed-size object type. The shared cursor in
+/// `SCRATCH_STACK_CURSOR_SLOT` moves down by `sizeof(blockType)` bytes, and
+/// the expression returns the new block's address as `blockType*`. No data is
+/// copied onto the stack, cleared, or read from the reserved block.
+///
+/// Initialize the cursor before use. The entire block must fit below the
+/// cursor slot, clear of other live scratchpad storage, with an address aligned
+/// for `blockType`. No bounds or alignment checks or rounding are performed.
+/// Release reservations in reverse order with `SCRATCH_STACK_RELEASE_BLOCK`
+/// or restore the saved cursor; released storage is available for reuse.
+///
+/// The cursor slot is read and written once. Both occurrences of `blockType`
+/// supply a type, with no value argument to evaluate and no caller variables
+/// captured. The result is a pointer value, not a writable cursor lvalue.
+#define SCRATCH_STACK_RESERVE_BLOCK(blockType) ((blockType*)(*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - sizeof(blockType)))
 
 /// Releases one block from the downward-growing scratch stack.
 ///
@@ -81,7 +96,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
 #define SCRATCH_HEAD_ADDR (SCRATCH_STACK_CURSOR_SLOT)
 
-/// `SCRATCH_STACK_CURSOR`, `SCRATCH_PUSH` and `SCRATCH_STACK_RELEASE_BLOCK` through such a local.
+/// `SCRATCH_STACK_CURSOR`, `SCRATCH_STACK_RESERVE_BLOCK` and `SCRATCH_STACK_RELEASE_BLOCK` through such a local.
 #define SCRATCH_HEAD_AT(head, type) (*(type**)(head))
 
 #define SCRATCH_PUSH_AT(head, type) (*(type**)(head) -= 1)

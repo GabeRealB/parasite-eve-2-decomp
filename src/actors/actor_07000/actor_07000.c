@@ -3421,7 +3421,7 @@ static s32 Actor07000_Fn047F4(GfxCoord* arg0, u32* arg1)
     s32                  angle;
 
     other         = gameGetPtrSlot(3)->extra.tmd->coords;
-    blk           = SCRATCH_PUSH(ActorBearingScratch);
+    blk           = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
     angle         = actorBearingInFrame(blk, arg0, other);
     blk->delta.vx = other->coord.t[0] - arg0->coord.t[0];
     blk->delta.vz = other->coord.t[2] - arg0->coord.t[2];
@@ -3499,7 +3499,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     }
     obj                     = &work->obj;
     rec                     = &work->rec;
-    vec                     = SCRATCH_PUSH(SVECTOR);
+    vec                     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     arg0->work              = work;
     eff                     = Gp_SpawnEff(0x60081, coord, 0, NULL);
     arg0->spawnArg2.pointer = eff->task;

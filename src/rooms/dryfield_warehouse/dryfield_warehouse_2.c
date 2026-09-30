@@ -821,7 +821,7 @@ static void func_dryfield_warehouse_8017E414(GfxCoord* coord, s16 arg1)
     s32              farNext;
     u8               shade;
 
-    SCRATCH_PUSH(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
@@ -941,7 +941,7 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
     s32              next;
 
     level = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
-    SCRATCH_PUSH(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     blk   = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     start = gDisplayState.animFrame & 0xFFF;
     step  = 0x1000 / arg2;

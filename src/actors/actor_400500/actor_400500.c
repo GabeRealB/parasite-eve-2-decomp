@@ -2863,7 +2863,7 @@ static void func_actor_400500_80134D6C(s32 otz)
     u_short*           ofs;
 
     extra          = Gp_GetViewSprtExtra();
-    scratch        = SCRATCH_PUSH(ActorsDrawScratch);
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorsDrawScratch);
     scratch->otz   = otz;
     area           = gGpuPrimCursor;
     gGpuPrimCursor = area + 1;
@@ -4363,7 +4363,7 @@ static inline void _actor400500TurnPart(GfxCoord* part, u16 heading)
 {
     MATRIX* matrix;
 
-    matrix = SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     _actor400500CoordToView(part, matrix);
     RotMatrixY((s16)(heading), matrix);
     func_actor_400500_8013B720(part, matrix);

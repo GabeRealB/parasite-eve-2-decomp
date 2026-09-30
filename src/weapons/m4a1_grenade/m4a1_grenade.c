@@ -308,7 +308,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
     slot                = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
-    blk                 = SCRATCH_PUSH(M4a1GrenadeScratch);
+    blk                 = SCRATCH_STACK_RESERVE_BLOCK(M4a1GrenadeScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:

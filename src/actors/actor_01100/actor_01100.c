@@ -1475,7 +1475,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
         return 0;
     }
     head = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
-    SCRATCH_PUSH(OverlayDeltaFlag);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     blk        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
     blk->moved = 0;
     if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
@@ -2584,7 +2584,7 @@ static __inline__ s32 _actor01100BearingToPlayer(GfxCoord* self)
         angle = 0;
     } else {
         other = Gp_ActorSlots[0]->extra.tmd->coords;
-        blk   = SCRATCH_PUSH(ActorBearingScratch);
+        blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
         angle = actorBearingInFrame(blk, self, other);
         SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     }
@@ -2630,7 +2630,7 @@ static __inline__ s32 _actor01100DistSqToPlayer(GfxCoord* self)
         return 0x7FFFFFFF;
     }
     other   = player->extra.tmd->coords;
-    vec     = SCRATCH_PUSH(SVECTOR);
+    vec     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec->vx = other->workm.t[0] - self->workm.t[0];
     vec->vy = other->workm.t[1] - self->workm.t[1];
     vec->vz = other->workm.t[2] - self->workm.t[2];
@@ -3620,7 +3620,7 @@ static void Actor01100_Fn05E68(Task* task)
     angle               = task->spawnArg1.value;
     task->killCountdown = 0x5A;
 
-    vec         = SCRATCH_PUSH(SVECTOR);
+    vec         = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     vec->vy     = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);
     vec->vx     = rsin(angle);

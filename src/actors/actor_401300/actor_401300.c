@@ -1345,7 +1345,7 @@ static void func_actor_401300_801320A4(GfxCoord* coord, s16 yaw)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
@@ -1366,7 +1366,7 @@ static s32 func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* re
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(recs, &s->delta, count, NULL) != 0) {
         coord->coord.t[0]         += s->delta.vx.w >> 16;
@@ -3050,7 +3050,7 @@ static void func_actor_401300_80136238(Task* arg0)
             work->field_8B6 = 0x200;
         }
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_6C & 0x100) {
@@ -4042,7 +4042,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
             work->field_8B6 = 0x60;
         }
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     s           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     s->delta.vx = work->field_C[work->field_16].x - arg0->extra.tmd->coords->coord.t[0];
     s->delta.vy = 0;
@@ -4117,7 +4117,7 @@ static void func_actor_401300_8013A208(Task* arg0)
         work->field_8B4           = 0;
         work->field_8A6           = 0x1E;
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8B2 = turn->angle;
@@ -4174,7 +4174,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
         return;
     }
     func_actor_401300_80133A3C(arg0);
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8B2 = aim->turn;
@@ -4244,7 +4244,7 @@ static void func_actor_401300_8013AAE8(Task* arg0)
         return;
     }
     work->field_6++;
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->field_6C & 0x100) || work->field_6 >= 0xB) {
@@ -4293,7 +4293,7 @@ static void func_actor_401300_8013AE48(Task* arg0)
         return;
     }
     work->field_6++;
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8B2 < aim->turn) {
@@ -4655,7 +4655,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
             work->field_BF0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4730,7 +4730,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
             work->field_BF0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

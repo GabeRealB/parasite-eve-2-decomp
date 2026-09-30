@@ -975,7 +975,7 @@ static void Actor02100_Fn011C4(Task* arg0)
     head  = list->firstChild;
     work  = arg0->work;
     if (head != NULL) {
-        scratch = SCRATCH_PUSH(Actor02100Fn011C4Scratch);
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor02100Fn011C4Scratch);
         current = head;
         SOFT_TOUCH_REG(head);
         do {
@@ -1189,7 +1189,7 @@ static __inline__ void Actor02100_SetVector(Task* arg0)
     SVECTOR*        shortVec;
 
     work         = arg0->work;
-    shortVec     = SCRATCH_PUSH(SVECTOR);
+    shortVec     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     shortVec->vx = 0;
     shortVec->vy = 0;
     shortVec->vz = 0x2710;
@@ -1450,7 +1450,7 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
     Actor02100Work*           work;
 
     work                  = arg0->work;
-    scratch               = SCRATCH_PUSH(Actor02100Fn014E4Scratch);
+    scratch               = SCRATCH_STACK_RESERVE_BLOCK(Actor02100Fn014E4Scratch);
     work->field_128[0].vx = 0;
     work->field_128[0].vy = 0;
     work->field_128[0].vz = 0x12C;
@@ -1495,7 +1495,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
     s32                     packed2;
     s16                     state;
 
-    root  = SCRATCH_PUSH(Actor02100Fn01FF0Block);
+    root  = SCRATCH_STACK_RESERVE_BLOCK(Actor02100Fn01FF0Block);
     work  = arg0->work;
     state = work->field_174;
     coord = arg0->extra.tmd->coords;
@@ -1890,7 +1890,7 @@ static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
 
     ret     = 0;
     node    = D_80115550;
-    vec     = SCRATCH_PUSH(VECTOR);
+    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     vec->vx = arg1->vx - arg0->vx;
     vec->vy = arg1->vy - arg0->vy;
     vec->vz = arg1->vz - arg0->vz;

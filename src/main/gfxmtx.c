@@ -66,7 +66,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     ScratchRotXYZ* block;
 
-    block = SCRATCH_PUSH(ScratchRotXYZ);
+    block = SCRATCH_STACK_RESERVE_BLOCK(ScratchRotXYZ);
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -131,7 +131,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     ScratchRotXYZ* block;
 
-    block = SCRATCH_PUSH(ScratchRotXYZ);
+    block = SCRATCH_STACK_RESERVE_BLOCK(ScratchRotXYZ);
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -198,7 +198,7 @@ static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     ScratchRotZYX* block;
 
-    block = SCRATCH_PUSH(ScratchRotZYX);
+    block = SCRATCH_STACK_RESERVE_BLOCK(ScratchRotZYX);
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -321,7 +321,7 @@ void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag)
 {
     _GfxAxisRotationScratch* block;
 
-    block = SCRATCH_PUSH(_GfxAxisRotationScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
 
     block->angleSin = rsin(angle);
     block->angleCos = rcos(angle);
@@ -357,7 +357,7 @@ void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag)
 {
     _GfxAxisRotationScratch* block;
 
-    block = SCRATCH_PUSH(_GfxAxisRotationScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
 
     block->angleSin = rsin(angle);
     block->angleCos = rcos(angle);
@@ -393,7 +393,7 @@ void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
 {
     _GfxAxisRotationScratch* block;
 
-    block = SCRATCH_PUSH(_GfxAxisRotationScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxAxisRotationScratch);
 
     block->angleSin = rsin(angle);
     block->angleCos = rcos(angle);
@@ -429,7 +429,7 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 {
     ScratchNormBlock* block;
 
-    block    = SCRATCH_PUSH(ScratchNormBlock);
+    block    = SCRATCH_STACK_RESERVE_BLOCK(ScratchNormBlock);
     block->v = *light;
 
     gte_Lzc(block->v.vx, &block->lzc_min);
@@ -465,7 +465,7 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
     MATRIX*  mat;
     SVECTOR* row;
 
-    mat                  = SCRATCH_PUSH(MATRIX);
+    mat                  = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     *(SVECTOR*)mat->m[1] = *arg2;
     row                  = (SVECTOR*)mat->m[2];
     row->vx              = arg1->vx;

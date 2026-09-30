@@ -837,7 +837,7 @@ static void Actor00700_Fn00334(Task* actor)
     push   = 0;
     lastId = 0;
     work   = actor->work;
-    SCRATCH_PUSH(ActorWallPushFrame);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorWallPushFrame);
     frame  = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
     coord  = actor->extra.tmd->coords;
     ctx    = actor->spawnArg2.pointer;

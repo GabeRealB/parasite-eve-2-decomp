@@ -2226,7 +2226,7 @@ static void func_actor_421600_80132004(GfxCoord* coord, s16 yaw)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
@@ -2341,7 +2341,7 @@ static s32 func_actor_421600_8013285C(GfxCoord* coord, WorldCollisionContact* mo
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]         += s->delta.vx.w >> 16;
@@ -4090,7 +4090,7 @@ static void func_actor_421600_80136138(Task* arg0)
     }
     func_actor_421600_80134604(arg0);
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     blk = head - 1;
     if (zone > playerZone)
         nextZone = zone - 1;
@@ -4548,7 +4548,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->field_8E8, 0x7DB);
         return;
     }
-    scratch = SCRATCH_PUSH(ActorFacingScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);
     if (work->field_82E == 3) {
         work->field_6 = (u16)(work->field_6 + 1);
     }
@@ -6018,7 +6018,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     blk = head - 1;
     if ((s16)zone > work->field_E78) {
         head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
@@ -6150,7 +6150,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     blk = head - 1;
     if ((s8)zone > mode) {
         head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;

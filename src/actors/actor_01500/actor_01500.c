@@ -907,7 +907,7 @@ static void Actor01500_Fn004EC(Task* actor)
     push   = 0;
     lastId = 0;
     work   = actor->work;
-    SCRATCH_PUSH(ActorPushFrame);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorPushFrame);
     frame  = SCRATCH_STACK_CURSOR(ActorPushFrame);
     coord  = actor->extra.tmd->coords;
     result = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
@@ -1114,7 +1114,7 @@ static void Actor01500_Fn00CA4(Task* actor)
     s16              pose2;
     s16              val;
 
-    SCRATCH_PUSH(VECTOR);
+    SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     frame = SCRATCH_STACK_CURSOR(VECTOR);
     work  = actor->work;
     coord = actor->extra.tmd->coords;

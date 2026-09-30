@@ -306,7 +306,7 @@ static void func_actor_105300_80131E3C(Task* arg0)
     s32                snd;
     s32                i;
 
-    scr    = SCRATCH_PUSH(Actor05300Scratch);
+    scr    = SCRATCH_STACK_RESERVE_BLOCK(Actor05300Scratch);
     coord  = arg0->extra.tmd->coords;
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
@@ -771,7 +771,7 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
             arg0->node.state.b.flags = 1;
             return;
     }
-    vec = SCRATCH_PUSH(VECTOR);
+    vec = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     if (part->field_40 != 0) {
         part->field_40--;
         if (part->field_40 <= 0) {

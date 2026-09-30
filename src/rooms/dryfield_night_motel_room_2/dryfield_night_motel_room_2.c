@@ -1145,7 +1145,7 @@ static void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s
     s32                idx;
     u8                 frame;
 
-    block = SCRATCH_PUSH(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

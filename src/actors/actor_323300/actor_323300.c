@@ -1103,7 +1103,7 @@ static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(angle, rotation);

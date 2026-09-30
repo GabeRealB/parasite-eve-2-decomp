@@ -1960,7 +1960,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     s32                        currentWeight;
 
     if (slot->timeSpan != 0) {
-        scratch = SCRATCH_PUSH(_AnimationBlendScratch);
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
@@ -2024,7 +2024,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
     s32                            currentWeight;
 
     if (slot->timeSpan != 0) {
-        scratch = SCRATCH_PUSH(_AnimationBlendScratch);
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
@@ -2128,7 +2128,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose*
 
     slot  = &context->slots[slotIndex];
     coord = &context->coords[slot->coordIndex];
-    SCRATCH_PUSH(_AnimationTickScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
     scratch     = SCRATCH_STACK_CURSOR(_AnimationTickScratch);
     slot->flags = 0;
     // Advance signed sixteenth-frame timing, then follow any control records.
@@ -2781,7 +2781,7 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
         }
     }
 
-    euler     = SCRATCH_PUSH(SVECTOR);
+    euler     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     savedPose = Mc_SaveData[0].state.enemyPoses;
     for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->resumeState == AREA_SAVED_ENEMY_POSE_FREE) {
@@ -2948,7 +2948,7 @@ void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
     GpFloorQuadScratch* block;
     POLY_FT4*           prim;
 
-    block = SCRATCH_PUSH(GpFloorQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpFloorQuadScratch);
     if (arg2 == NULL) {
         block->vec[0].vx = -(arg1 >> 1);
         block->vec[0].vy = 0;
@@ -3609,7 +3609,7 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
     GfxCoord*     viewCoord;
     s32           scale;
 
-    scratch = SCRATCH_PUSH(GpDirScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(GpDirScratch);
     delta   = &scratch->vec;
     // Measure separation after the signed-halfword coordinate truncation.
     delta->vx = contact->point.vx - position->vx;

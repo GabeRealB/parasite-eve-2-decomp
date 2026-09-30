@@ -922,7 +922,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
     POLY_G4*      prim;
     s32           ang;
 
-    block         = SCRATCH_PUSH(GpArcScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];

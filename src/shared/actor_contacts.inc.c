@@ -36,7 +36,7 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
@@ -204,7 +204,7 @@ static s32 ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec,
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]                    += s->delta.vx.w >> 16;
@@ -255,7 +255,7 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
         return 0;
     }
 
-    SCRATCH_PUSH(OverlayBisectorScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
     st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];

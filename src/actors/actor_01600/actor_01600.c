@@ -3333,7 +3333,7 @@ static void Actor01600_Fn03EEC(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_526 == 0) {
-        scratch = SCRATCH_PUSH(Actor01600GroundScratch);
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor01600GroundScratch);
         if (work->field_528 != 0) {
             gte_SetRotMatrix(&coord->workm);
             scratch->offset.vx = 0;
@@ -3527,7 +3527,7 @@ static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
 
     other   = Gp_ActorSlots[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
     coord   = arg0->extra.tmd->coords;
-    scratch = SCRATCH_PUSH(Actor01600AimScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor01600AimScratch);
     vec     = &scratch->dir;
     matrix  = &scratch->mat;
     vec->vx = other->workm.t[0] - coord->workm.t[0];

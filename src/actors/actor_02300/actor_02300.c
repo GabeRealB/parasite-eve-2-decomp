@@ -1289,7 +1289,7 @@ static void Actor02300_Fn00084(Task* arg0)
     work    = arg0->work;
     head    = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     self    = arg0->extra.tmd->coords;
-    SCRATCH_PUSH(Actor105600HitScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor105600HitScratch);
     scratch = SCRATCH_STACK_CURSOR(Actor105600HitScratch);
     enemy   = (GpEnemy*)arg0->spawnArg2.pointer;
 
@@ -2063,7 +2063,7 @@ static void Actor02300_Fn01698(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix = SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     active = 0;
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -3058,7 +3058,7 @@ static s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)
 
     ret     = 0;
     node    = D_80115550;
-    vec     = SCRATCH_PUSH(VECTOR);
+    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     vec->vx = arg1->vx - arg0->vx;
     vec->vy = arg1->vy - arg0->vy;
     vec->vz = arg1->vz - arg0->vz;

@@ -1547,7 +1547,7 @@ static void Actor00100_Fn001FC(GfxCoord* coord, s16 yaw)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
@@ -1663,7 +1663,7 @@ static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, 
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]   += s->delta.vx.w >> 16;
@@ -3497,7 +3497,7 @@ static void Actor00100_Fn0503C(Task* arg0)
 
         return;
     }
-    scratch = SCRATCH_PUSH(ActorFacingScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);
     if ((s16)work->field_82E == 3) {
         work->field_6 += 1;
     }

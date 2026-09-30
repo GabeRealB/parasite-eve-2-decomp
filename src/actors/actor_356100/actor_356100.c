@@ -1349,7 +1349,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
         Gp_ArmStateF0(1);
         return;
     }
-    SCRATCH_PUSH(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim                                   = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_68 & 1) {
@@ -1416,7 +1416,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
     if (Mc_SaveData[0].state.field_5C1 != 1) {
         scratch = SCRATCH_HEAD_ADDR;
         head    = SCRATCH_HEAD_AT(scratch, void);
-        SCRATCH_PUSH(OverlayDeltaFlag);
+        SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
         s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
         s->moved = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
@@ -1460,7 +1460,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
 
     scratch = SCRATCH_HEAD_ADDR;
     head    = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_PUSH(OverlayDeltaFlag);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
@@ -1519,7 +1519,7 @@ static void func_actor_356100_80164158(Task* arg0)
         return;
     }
     work->field_6 = (u16)work->field_6 + 1;
-    SCRATCH_PUSH(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     Actor356100_PushRecords(arg0->extra.tmd->coords, &work->field_A58, 3, 0x10);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
@@ -2206,7 +2206,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
         work->field_B64 = 0;
         return;
     }
-    SCRATCH_PUSH(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     Actor356100_PushRecords(arg0->extra.tmd->coords, &work->field_A58, 3, 0x10);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
@@ -2514,7 +2514,7 @@ static void func_actor_356100_8016804C(Task* arg0)
         work->field_990           = 0;
         work->field_982           = 0x1E;
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_98E = turn->angle;
@@ -2584,7 +2584,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* c
 
     if (save->state.field_5C1 != 1) {
         head = SCRATCH_STACK_CURSOR(u8);
-        SCRATCH_PUSH(OverlayDeltaFlag);
+        SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
         s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
         s->moved = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
@@ -2739,7 +2739,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
     }
     work->field_6 = (s16)((u16)work->field_6 + 1);
     state         = 0xB;
-    SCRATCH_PUSH(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim                                   = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->field_68 & 1) || ((s16)work->field_6 >= state)) {
@@ -2791,7 +2791,7 @@ static void func_actor_356100_80168E44(Task* arg0)
         work->field_990 = 0;
         return;
     }
-    SCRATCH_PUSH(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim        = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     aim->angle = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_98E < aim->angle) {
@@ -3007,7 +3007,7 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    SCRATCH_PUSH(Actor356100GroundCoord);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor356100GroundCoord);
     blk = SCRATCH_STACK_CURSOR(Actor356100GroundCoord);
     if (work->field_0 == 0x1E) {
         MATRIX* m;

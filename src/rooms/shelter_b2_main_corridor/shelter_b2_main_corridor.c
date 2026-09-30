@@ -2619,7 +2619,7 @@ static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -2813,7 +2813,7 @@ static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 
     s32                idx;
     u8                 frame;
 
-    block = SCRATCH_PUSH(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

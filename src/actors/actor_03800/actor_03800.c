@@ -1024,7 +1024,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     reaction = 0;
     lastId   = 0;
     work     = arg0->work;
-    SCRATCH_PUSH(ActorWallPushFrame);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorWallPushFrame);
     frame  = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
     coord  = work->field_344;
     ctx    = arg0->spawnArg2.pointer;

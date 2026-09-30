@@ -549,7 +549,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
     u16                sx;
     u16                sy;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -627,7 +627,7 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     POLY_FT4*      prim;
 
     Gfx_RotMatrixX(&m, gDisplayState.animFrame << 7, 1);
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = 0;
         block->vec[i].vy = (s16)D_80111E38[i].x * 250;

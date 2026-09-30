@@ -4384,7 +4384,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    blk            = SCRATCH_PUSH(AcropolisPlazaBeamScratch);
+    blk            = SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaBeamScratch);
     blk->vec[0].vx = coord->workm.t[0];
     blk->vec[0].vy = coord->workm.t[1];
     blk->vec[0].vz = coord->workm.t[2];
@@ -4604,7 +4604,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    SCRATCH_PUSH(AcropolisPlazaFlareScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaFlareScratch);
     blk         = SCRATCH_STACK_CURSOR(AcropolisPlazaFlareScratch);
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];
@@ -4769,7 +4769,7 @@ void func_acropolis_plaza_80182054(Task* task)
 
     coord = task->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
-    SCRATCH_PUSH(AcropolisPlazaGlowScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaGlowScratch);
     blk         = SCRATCH_STACK_CURSOR(AcropolisPlazaGlowScratch);
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];

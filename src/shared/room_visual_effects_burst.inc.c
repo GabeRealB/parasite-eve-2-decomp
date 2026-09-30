@@ -81,7 +81,7 @@ static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32           next;
     s32           outer;
 
-    block         = SCRATCH_PUSH(GpArcScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -132,7 +132,7 @@ static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb)
     POLY_G4*       prim;
     s32            ang;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

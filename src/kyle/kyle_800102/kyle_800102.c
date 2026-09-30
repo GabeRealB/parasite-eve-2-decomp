@@ -158,7 +158,7 @@ static void func_kyle_800102_80167DE0(Task* arg0)
 
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
-    blk                 = SCRATCH_PUSH(WeaponGrenadeScratch);
+    blk                 = SCRATCH_STACK_RESERVE_BLOCK(WeaponGrenadeScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:

@@ -1087,7 +1087,7 @@ static void Gp_DrawMapCursor(Task* arg0)
         return;
     }
 
-    pos           = SCRATCH_PUSH(GpMapCursorPos);
+    pos           = SCRATCH_STACK_RESERVE_BLOCK(GpMapCursorPos);
     pos->field_14 = 0;
     pos->field_12 = 0;
     pos->field_10 = 0;
@@ -1349,7 +1349,7 @@ static void func_800D0C34(Task* arg0)
             continue;
         }
         if (state == 2 || state == 0x802) {
-            pos            = SCRATCH_PUSH(GpMapCursorPos);
+            pos            = SCRATCH_STACK_RESERVE_BLOCK(GpMapCursorPos);
             pos->field_14  = 0;
             pos->field_12  = 0;
             pos->field_10  = 0;
@@ -1422,7 +1422,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             continue;
         }
         if ((icons[i].field_0 == (s8)Gp_MapRoomId) && (icons[i].field_1 == arg1)) {
-            pos            = SCRATCH_PUSH(GpMapIconPos);
+            pos            = SCRATCH_STACK_RESERVE_BLOCK(GpMapIconPos);
             pos->field_8   = 0;
             pos->field_6   = 0;
             pos->field_4   = 0;
@@ -2870,7 +2870,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
     cur            = mesh->stream;
     tw.y           = 0;
     tw.x           = 0;
-    scratch        = SCRATCH_PUSH(GpMapMarkScratch);
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(GpMapMarkScratch);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     tw.h           = 0xFF;

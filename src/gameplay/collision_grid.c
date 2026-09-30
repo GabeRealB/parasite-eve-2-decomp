@@ -237,7 +237,7 @@ static void func_800DDC2C(WorldCollisionBody* arg0)
     MATRIX*        mat;
 
     motionDirection  = &arg0->context.motion->motionDirection;
-    block            = SCRATCH_PUSH(GpEdgeScratch);
+    block            = SCRATCH_STACK_RESERVE_BLOCK(GpEdgeScratch);
     mat              = &block->mat;
     block->src[0].vx = (u16)arg0->pos.vx + ((motionDirection->vx * arg0->radius) >> 12);
     block->src[0].vy = 0;
@@ -266,7 +266,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
     u16                    flags;
     s32                    i;
 
-    block = SCRATCH_PUSH(GpSegmentHitScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpSegmentHitScratch);
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         D_80115450[i] = 0;
     }
@@ -559,7 +559,7 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
     s32                    i;
 
     rec   = arg0->context.capsule;
-    block = SCRATCH_PUSH(GpNormScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpNormScratch);
     i     = 0;
 
     if (arg3 == 0) {
@@ -651,7 +651,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
     VECTOR *          va, *vb;
     s16               faceDot;
 
-    SCRATCH_PUSH(GpQuadHitScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpQuadHitScratch);
     block = SCRATCH_STACK_CURSOR(GpQuadHitScratch);
     Gp_ObjWorldPosInline(node, &block->nodePos);
     gte_SetRotMatrix(&other->field_8->workm);
@@ -790,7 +790,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
     VECTOR *           va, *vb;
     s16                faceDot;
 
-    SCRATCH_PUSH(_GpQuadDirScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(_GpQuadDirScratch);
     block         = SCRATCH_STACK_CURSOR(_GpQuadDirScratch);
     block->dir.vx = node->coord->coord.t[0] - from->vx;
     block->dir.vy = node->coord->coord.t[1] - from->vy;
@@ -890,7 +890,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     s16               planeDot;
     s16               edgeDot;
 
-    block = SCRATCH_PUSH(GpFaceHitScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpFaceHitScratch);
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->origin);

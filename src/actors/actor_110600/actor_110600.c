@@ -1186,7 +1186,7 @@ static void func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
@@ -1206,7 +1206,7 @@ static s32 func_actor_110600_801322CC(GfxCoord* coord, WorldCollisionContact* mo
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, count, NULL) != 0) {
         coord->coord.t[0]         += s->delta.vx.w >> 16;

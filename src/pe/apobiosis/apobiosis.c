@@ -321,7 +321,7 @@ static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32           next;
     s32           outer;
 
-    block         = SCRATCH_PUSH(GpArcScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -550,7 +550,7 @@ static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16
     s32                    vb;
     s16                    ang;
 
-    block        = SCRATCH_PUSH(ApobiosisShardScratch);
+    block        = SCRATCH_STACK_RESERVE_BLOCK(ApobiosisShardScratch);
     block->v1.vx = block->v0.vx = arg0->workm.t[0];
     block->v1.vy = block->v0.vy = arg0->workm.t[1];
     block->v1.vz = block->v0.vz = arg0->workm.t[2];

@@ -2699,7 +2699,7 @@ static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

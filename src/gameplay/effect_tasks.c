@@ -2080,7 +2080,7 @@ void func_800F289C(Task* arg0)
             }
             arg0->state = 1;
         }
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -2153,7 +2153,7 @@ void Gp_EffSprTask76(Task* arg0)
     s32              rng;
 
     coord = arg0->extra.coordBody->coord;
-    block = SCRATCH_PUSH(GpFxQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     block->vec.vx = coord->workm.t[0];
@@ -2752,7 +2752,7 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
     u8               g;
     u8               b;
 
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -2870,7 +2870,7 @@ void Gp_EffSprTask9E(Task* arg0)
     }
     Gp_UpdateCoord(coord);
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * (u16)mem->scale;
         block->vec[i].vy = 0;
@@ -3052,7 +3052,7 @@ void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
     s32            i;
     POLY_FT4*      prim;
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * arg1;
@@ -3117,7 +3117,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
     POLY_FT4*      prim;
 
     if (shade >= 0 && Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        block = SCRATCH_PUSH(GpQuadScratch);
+        block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
         gte_SetTransMatrix(&GsWSMATRIX);
         for (i = 0; i < 4; i++) {
             block->vec[i].vx = D_80111E38[i].x * size;

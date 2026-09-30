@@ -949,7 +949,7 @@ static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw31Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw31Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

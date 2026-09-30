@@ -441,7 +441,7 @@ static void func_dryfield_night_warehouse_8017D6B4(GfxCoord* coord, s16 arg1)
     s16              green;
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_PUSH(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
@@ -567,7 +567,7 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
     s32              next;
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_PUSH(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     blk   = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     start = gDisplayState.animFrame & 0xFFF;
     step  = 0x1000 / arg2;

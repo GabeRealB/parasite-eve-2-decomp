@@ -1575,7 +1575,7 @@ static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 ar
     SVECTOR*         sv;
     s32              i;
 
-    blk = SCRATCH_PUSH(RoomQuadScratch);
+    blk = SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     for (i = 0; i < 4; i++) {
         blk->v[i].vx = D_80111E38[i].x * arg1;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
@@ -1631,7 +1631,7 @@ static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, WorldCollisionCo
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]                  += s->delta.vx.w >> 16;
@@ -1682,7 +1682,7 @@ static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, WorldCollisionCo
         return 0;
     }
 
-    SCRATCH_PUSH(OverlayBisectorScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
     st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];

@@ -487,7 +487,7 @@ static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 ar
     s32            i;
     POLY_FT4*      prim;
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * arg1;
         block->vec[i].vy = 0;
@@ -878,7 +878,7 @@ static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 ar
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

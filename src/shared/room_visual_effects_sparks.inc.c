@@ -25,7 +25,7 @@ static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 a
     s32                g2;
     s32                b2;
 
-    blk = SCRATCH_PUSH(RoomDraw03Scratch);
+    blk = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw03Scratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;

@@ -1984,7 +1984,7 @@ static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s3
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
     if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
-        block = SCRATCH_PUSH(GpColorScratch);
+        block = SCRATCH_STACK_RESERVE_BLOCK(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
             func_actor_107600_801344E8(arg0, colorMtx, mode);

@@ -426,7 +426,7 @@ static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2
     s32            i;
     POLY_FT4*      prim;
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * arg1;
         block->vec[i].vy = 0;

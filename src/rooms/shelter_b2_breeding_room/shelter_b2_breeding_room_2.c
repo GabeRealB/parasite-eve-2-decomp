@@ -299,7 +299,7 @@ static void func_shelter_b2_breeding_room_8017E3D4(SVECTOR* arg0, s32 arg1, s32 
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw31Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw31Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

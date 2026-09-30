@@ -1349,7 +1349,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
     }
     sinArg = task->killCountdown * 2;
     cosArg = task->killCountdown;
-    SCRATCH_PUSH(OverlayRippleScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayRippleScratch);
     scratch = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
@@ -2264,7 +2264,7 @@ static void func_neo_ark_pavilion_8017F974(GfxCoord* arg0, s32 arg1, s32 arg2)
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

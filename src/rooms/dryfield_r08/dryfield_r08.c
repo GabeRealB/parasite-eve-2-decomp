@@ -716,7 +716,7 @@ static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
     u16                sel;
     s32                sine;
 
-    block         = SCRATCH_PUSH(GpEffFlareScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpEffFlareScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -791,7 +791,7 @@ static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
     u16                sel;
     s32                sine;
 
-    block         = SCRATCH_PUSH(GpEffFlareScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpEffFlareScratch);
     block->vec.vx = arg0->workm.t[0];
     sel           = arg1 >> 12;
     block->vec.vy = arg0->workm.t[1];
@@ -864,7 +864,7 @@ static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw31Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw31Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

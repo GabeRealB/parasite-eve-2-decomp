@@ -1378,7 +1378,7 @@ static void Gp_DrawEffSprite81(Task* arg0)
     body          = arg0->extra.coordBody;
     coord         = body->coord;
     mem           = arg0->spawnArg2.pointer;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];
@@ -1423,7 +1423,7 @@ static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
     s32            i;
     POLY_FT4*      prim;
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * arg1;
         block->vec[i].vy = 0;
@@ -1607,7 +1607,7 @@ void Gp_EffSprTask55(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
     } else {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -1730,7 +1730,7 @@ void Gp_EffSprTask42(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
     } else {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -2180,7 +2180,7 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     size          = mem->pos.vx;
     frame         = mem->index;
     angle         = mem->pos.vz;
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];
@@ -2243,7 +2243,7 @@ static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
     s32            u0;
     s32            u1;
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * arg1;
         block->vec[i].vy = 0;
@@ -2770,7 +2770,7 @@ static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s16            scale;
     s16            count;
 
-    SCRATCH_PUSH(GpRingScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block         = SCRATCH_STACK_CURSOR(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
@@ -3400,7 +3400,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         arg0->state++;
     }
     Gp_UpdateCoord(coord);
-    block         = SCRATCH_PUSH(GpEffFlareScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpEffFlareScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];
@@ -3849,7 +3849,7 @@ void Gp_EffSprTask8D(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpRingScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -3951,7 +3951,7 @@ void Gp_EffSprTask3F(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -4601,7 +4601,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
     actor = arg0->work;
     obj   = (WorldCollisionBody*)actor->field_10C;
     rec   = &actor->field_14C;
-    SCRATCH_PUSH(VECTOR);
+    SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     tmp  = SCRATCH_STACK_CURSOR(VECTOR);
     task = actor->field_91C;
     if (task != NULL) {
@@ -4655,7 +4655,7 @@ s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* ar
     GpDeltaScratch* s;
     s32             ret;
 
-    s   = SCRATCH_PUSH(GpDeltaScratch);
+    s   = SCRATCH_STACK_RESERVE_BLOCK(GpDeltaScratch);
     ret = func_800E0FEC(arg1, s, arg2, arg3);
     if (ret != 0) {
         GP_ROUND_FIXED_AWAY(s->vx.w);
@@ -4784,7 +4784,7 @@ void Gp_UpdatePlayerMove(void)
 
     work  = gameGetPtrSlot(3);
     actor = work->work;
-    SCRATCH_PUSH(SVECTOR);
+    SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec   = SCRATCH_STACK_CURSOR(SVECTOR);
     coord = work->extra.tmd->coords;
     _gpCaptureActorPad(work);
@@ -4923,7 +4923,7 @@ void Gp_StepPlayerMove(Task* arg0)
     GfxCoord*      coord;
     GpMoveScratch* s;
 
-    s     = SCRATCH_PUSH(GpMoveScratch);
+    s     = SCRATCH_STACK_RESERVE_BLOCK(GpMoveScratch);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch ((u16)actor->field_958) {
@@ -5062,7 +5062,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to)
 {
     GpAngleScratch* d;
 
-    SCRATCH_PUSH(GpAngleScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpAngleScratch);
     d          = SCRATCH_STACK_CURSOR(GpAngleScratch);
     d->field_0 = to - from;
     d->field_4 = d->field_0 + 0x1000;
@@ -5336,7 +5336,7 @@ static void func_801030CC(Task* arg0)
     GpImgRec*  img;
 
     actor = arg0->work;
-    rect  = SCRATCH_PUSH(RECT);
+    rect  = SCRATCH_STACK_RESERVE_BLOCK(RECT);
 
     if ((s8)actor->field_987 != 0) {
         actor->field_988--;
@@ -6921,7 +6921,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
     if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
         return 0;
     }
-    block = SCRATCH_PUSH(GpPickScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpPickScratch);
     for (i = 0, bestIdx = 0; i < 6; i++) {
         rec = &arg0[i];
         if (rec->key.value & 0x100000) {
@@ -8043,7 +8043,7 @@ void Gp_PlayerMode2State4(Task* arg0)
 
     actor           = arg0->work;
     coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_PUSH(GpApproachScratch);
+    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
     block->vec.vx   = actor->field_20 - coord->coord.t[0];
     block->vec.vy   = actor->field_24 - coord->coord.t[1];
     block->vec.vz   = actor->field_28 - coord->coord.t[2];

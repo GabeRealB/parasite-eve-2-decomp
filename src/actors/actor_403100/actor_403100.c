@@ -7211,7 +7211,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     middle = &coords[2];
     lower  = &coords[1];
     part   = 3;
-    SCRATCH_PUSH(Actor403100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor403100AimScratch);
     allocated = SCRATCH_STACK_CURSOR(Actor403100AimScratch);
     matrices  = allocated->mats;
     angles    = &allocated->angles;

@@ -1869,7 +1869,7 @@ static void Actor01900_Fn03854(Task* arg0)
             Actor01900_ArmIfPlayerLevel(arg0);
         }
     } else {
-        SCRATCH_PUSH(ActorChaseScratch);
+        SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
         yaw                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if (work->field_68 & 0x100) {
@@ -2092,7 +2092,7 @@ static void Actor01900_Fn042BC(Task* arg0)
     }
     work->field_6++;
     work->field_8++;
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     s = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (Actor01900_Fn03C98(arg0->extra.tmd->coords, &work->field_A28, 0xC, 0x60) != 1) {
         if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_8E8, 0xC) != 1) {
@@ -2212,7 +2212,7 @@ static void Actor01900_Fn04D14(Task* arg0)
         work->field_C40++;
         return;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     s                                     = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
@@ -2518,7 +2518,7 @@ static void Actor01900_Fn06100(Task* arg0)
         work->field_C40 = 0;
         return;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) != 1) {
         Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
@@ -2755,7 +2755,7 @@ static void Actor01900_Fn06F40(Task* arg0)
         }
         return;
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     s           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     s->delta.vx = work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0];
     s->delta.vy = 0;
@@ -2847,7 +2847,7 @@ static void Actor01900_Fn07810(Task* arg0)
         work->field_8B0           = 0;
         work->field_8A2           = 0x1E;
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8AE = turn->angle;
@@ -2902,7 +2902,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
         return;
     }
     Actor01900_Fn01C94(arg0);
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8AE = aim->turn;
@@ -2970,7 +2970,7 @@ static void Actor01900_Fn080A8(Task* arg0)
         return;
     }
     work->field_6++;
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_68 & 0x100) {
@@ -3022,7 +3022,7 @@ static void Actor01900_Fn083E8(Task* arg0)
         work->field_8B0 = 0;
         return;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8AE < aim->turn) {
@@ -3245,7 +3245,7 @@ static void Actor01900_Fn09694(Task* arg0)
         work->field_B48.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

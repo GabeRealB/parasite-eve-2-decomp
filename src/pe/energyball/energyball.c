@@ -463,7 +463,7 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
     POLY_G4*       prim;
     s32            ang;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -515,7 +515,7 @@ static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
     POLY_FT4*        prim;
     s32              ang;
 
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -581,7 +581,7 @@ static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1)
     s32                   flag;
     s32                   u;
 
-    sc = SCRATCH_PUSH(OverlayGroundScratch);
+    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         sc->vec[i].vx = D_80111E38[i].x * arg1;
@@ -661,7 +661,7 @@ static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
     s32            u;
     s16            idx;
 
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         ang                = i << 8;

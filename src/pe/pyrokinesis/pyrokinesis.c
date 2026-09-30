@@ -489,7 +489,7 @@ static void func_pyrokinesis_8012FC34(GfxCoord* arg0, s16 arg1, s16 arg2)
     grn   = ramp >> 17;
     blu   = ramp >> 18;
     r1    = arg1 + 0x100;
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -564,7 +564,7 @@ static void func_pyrokinesis_80130130(GfxCoord* arg0, s16 arg1, s16 arg2)
     POLY_G4*       prim;
     s32            ang;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -617,7 +617,7 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
     POLY_FT4*      prim;
     s32            u;
 
-    block = SCRATCH_PUSH(GpQuadScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         block->vec[i].vx = D_80111E38[i].x * arg1;
@@ -912,7 +912,7 @@ static void func_pyrokinesis_801312B4(GfxCoord* arg0, s16 arg1, s32 arg2, s16 ar
     s16            r1;
 
     r1    = arg1 + arg2;
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -999,7 +999,7 @@ static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 ar
     u16            back;
     MATRIX*        rot;
 
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     if (arg3 != 0) {
         back    = (arg2 << 1) + (arg1 << 8);
         hubSize = 0x80;

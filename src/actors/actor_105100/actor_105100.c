@@ -879,7 +879,7 @@ static void func_actor_105100_80131EBC(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[1]     = (s32)coord->coord.t[1];
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_PUSH(GpRingScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
     sc->vec.vx = coord->workm.t[0];
     sc->vec.vy = coord->workm.t[1];
@@ -975,7 +975,7 @@ static void func_actor_105100_80132414(GfxCoord* arg0, s32 arg1)
     s32                   flag;
     s32                   u;
 
-    sc = SCRATCH_PUSH(OverlayGroundScratch);
+    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 4; i++) {
         sc->vec[i].vx = D_80111E38[i].x * arg1;
@@ -1221,7 +1221,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
     s32                    wait;
 
     flag   = 0;
-    sc     = SCRATCH_PUSH(Actor105100HitScratch);
+    sc     = SCRATCH_STACK_RESERVE_BLOCK(Actor105100HitScratch);
     lastId = 0;
     coord  = arg0->extra.tmd->coords;
     work   = arg0->work;
@@ -2240,7 +2240,7 @@ static void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
         return;
     }
 body:
-    SCRATCH_PUSH(Actor105100ProjScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor105100ProjScratch);
     scratch = SCRATCH_STACK_CURSOR(Actor105100ProjScratch);
     switch (work->field_7A) {
         case 0:

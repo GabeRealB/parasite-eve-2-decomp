@@ -1819,7 +1819,7 @@ void func_acropolis_square_801825DC(Task* task)
     coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    blk         = SCRATCH_PUSH(RoomGlowScratch);
+    blk         = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowScratch);
     blk->vec.vx = (u16)coord->workm.t[0];
     blk->vec.vy = (u16)coord->workm.t[1];
     blk->vec.vz = (u16)coord->workm.t[2];

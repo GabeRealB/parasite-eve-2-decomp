@@ -266,7 +266,7 @@ static void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 a
     u8                       b;
 
     p1    = arg0 + 1;
-    block = SCRATCH_PUSH(OverlayPointPairScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -389,7 +389,7 @@ static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 a
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);

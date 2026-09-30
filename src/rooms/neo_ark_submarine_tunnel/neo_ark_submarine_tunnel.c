@@ -472,7 +472,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
     }
     sinArg = task->killCountdown * 2;
     cosArg = task->killCountdown;
-    SCRATCH_PUSH(OverlayRippleScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayRippleScratch);
     scratch = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];

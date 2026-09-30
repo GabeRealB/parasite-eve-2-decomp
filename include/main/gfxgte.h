@@ -39,7 +39,7 @@ static __inline__ void gfxScaleMatrixColumns(MATRIX* m, VECTOR* scale)
 {
     SVECTOR* sv;
 
-    sv = SCRATCH_PUSH(SVECTOR);
+    sv = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     gte_ReadMatrixColumn(m, 0, sv);
     gte_lddp(scale->vx);
     gte_ldsv(sv);

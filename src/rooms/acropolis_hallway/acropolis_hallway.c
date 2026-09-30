@@ -416,7 +416,7 @@ static s32 func_acropolis_hallway_8017D830(GfxCoord* coord, WorldCollisionContac
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]              += s->delta.vx.w >> 16;
@@ -467,7 +467,7 @@ static s32 func_acropolis_hallway_8017D9D4(GfxCoord* coord, WorldCollisionContac
         return 0;
     }
 
-    SCRATCH_PUSH(OverlayBisectorScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
     st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];

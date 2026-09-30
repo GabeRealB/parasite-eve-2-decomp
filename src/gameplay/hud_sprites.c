@@ -240,7 +240,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     cy = y + 0x23;
     func_800A63B4(cx, cy, 0);
     node  = Gp_LinkList;
-    block = SCRATCH_PUSH(GpXformScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpXformScratch);
     mode  = func_800B9D80(0x400);
     if (node != NULL) {
         do {
@@ -545,7 +545,7 @@ static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
     GpHudScratch* block;
     s32           val;
 
-    block = SCRATCH_PUSH(GpHudScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpHudScratch);
     if (func_800B9D80(0x100000) != 0) {
         block->field_14 = 0x6A;
         block->field_16 = -0x35;
@@ -599,7 +599,7 @@ void Gp_UpdateLinkXforms(void)
         return;
     }
     player = slot->extra.tmd->coords;
-    block  = SCRATCH_PUSH(GpXformScratch);
+    block  = SCRATCH_STACK_RESERVE_BLOCK(GpXformScratch);
     TransposeMatrix(&player->workm, &block->mat);
     for (; node != NULL; node = node->next) {
         if ((node->state.word & 5) == 1) {

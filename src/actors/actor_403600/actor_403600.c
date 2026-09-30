@@ -955,7 +955,7 @@ void func_actor_403600_801320F8(s32 otz)
     u_short*           ofs;
 
     extra          = Gp_GetViewSprtExtra();
-    scratch        = SCRATCH_PUSH(ActorsDrawScratch);
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorsDrawScratch);
     scratch->otz   = otz;
     area           = gGpuPrimCursor;
     gGpuPrimCursor = area + 1;
@@ -1589,7 +1589,7 @@ void func_actor_403600_80134398(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    SCRATCH_PUSH(Actor403600ProjectileScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(Actor403600ProjectileScratch);
     scratch = SCRATCH_STACK_CURSOR(Actor403600ProjectileScratch);
     if (arg0->state == 0) {
         newWork = memCalloc(0x15C, 0);

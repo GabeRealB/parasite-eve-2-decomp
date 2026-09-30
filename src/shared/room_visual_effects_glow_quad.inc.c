@@ -42,7 +42,7 @@ static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_LcgState                                   = random;
-    block                                         = SCRATCH_PUSH(GpRingScratch);
+    block                                         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx                                 = coord->workm.t[0];
     block->vec.vy                                 = coord->workm.t[1];
     block->vec.vz                                 = coord->workm.t[2];

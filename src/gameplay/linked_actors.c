@@ -172,7 +172,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32              pass;
 
     slot   = gameGetPtrSlot(3);
-    sc     = SCRATCH_PUSH(GpCircleScratch);
+    sc     = SCRATCH_STACK_RESERVE_BLOCK(GpCircleScratch);
     coord  = slot->extra.tmd->coords;
     sc->rx = arg1;
     sc->ry = arg2;
@@ -291,7 +291,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     ry2   = (arg2 * arg2) >> 8;
     rx2   = (arg1 * arg1) >> 8;
     node  = Gp_LinkList;
-    SCRATCH_PUSH(SVECTOR);
+    SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec = SCRATCH_STACK_CURSOR(SVECTOR);
 
     if (node != NULL) {
@@ -353,7 +353,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     arg1 += 0x64;
     arg2 += 0x64;
     node  = Gp_LinkList;
-    SCRATCH_PUSH(SVECTOR);
+    SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec = SCRATCH_STACK_CURSOR(SVECTOR);
 
     if (node != NULL) {

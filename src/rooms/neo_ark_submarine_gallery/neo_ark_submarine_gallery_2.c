@@ -1330,7 +1330,7 @@ static void func_neo_ark_submarine_gallery_8017FFB8(GfxCoord* arg0, s32 arg1, s3
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -1530,7 +1530,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_PUSH(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -1599,7 +1599,7 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
     s32                  farNext;
     u8                   shade;
 
-    SCRATCH_PUSH(RoomQuadProjScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadProjScratch);
     blk = SCRATCH_STACK_CURSOR(RoomQuadProjScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;

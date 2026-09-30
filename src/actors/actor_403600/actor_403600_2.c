@@ -485,7 +485,7 @@ static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
 {
     ActorProjectScratch* block;
 
-    block         = SCRATCH_PUSH(ActorProjectScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(ActorProjectScratch);
     block->vec.vx = 0;
     block->vec.vy = 0;
     block->vec.vz = 0;
@@ -2539,7 +2539,7 @@ static void func_actor_403600_8013C864(Task* arg0)
         work->field_734            = 0xFF;
         return;
     }
-    s = SCRATCH_PUSH(Actor403600TargetScratch);
+    s = SCRATCH_STACK_RESERVE_BLOCK(Actor403600TargetScratch);
     if (!(work->field_734 & 1)) {
         s->vector.vx = Player_Status.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
         s->vector.vz = Player_Status.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
@@ -2722,7 +2722,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
     s32                       hpMax;
 
     work    = arg0->work;
-    scratch = SCRATCH_PUSH(Actor403600DamageScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403600DamageScratch);
     enemy   = arg0->spawnArg2.pointer;
     switch (func_800E0C10(work->field_528, &scratch->delta, 4, 0)) {
         case 0:
@@ -4029,7 +4029,7 @@ static __inline__ void _actor403600RotateParts(Task* task)
     MATRIX*          matrix;
 
     work = task->work;
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     matrix = SCRATCH_STACK_CURSOR(MATRIX);
     coord  = task->extra.tmd->coords;
     RotMatrix((SVECTOR*)&work->field_700, matrix);
@@ -4631,7 +4631,7 @@ static void func_actor_403600_80141338(Task* arg0)
     GfxCoord*        coord;
     MATRIX*          matrix;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     matrix = SCRATCH_STACK_CURSOR(MATRIX);
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;

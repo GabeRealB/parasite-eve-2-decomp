@@ -1295,7 +1295,7 @@ static void Actor05500_Fn0143C(Task* arg0)
     s32 pan1;
     u32 random;
 
-    rotation = SCRATCH_PUSH(SVECTOR);
+    rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     work     = arg0->work;
     state    = work->field_39C;
     coord    = arg0->extra.tmd->coords;

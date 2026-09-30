@@ -3592,7 +3592,7 @@ static void func_actor_403000_8013203C(GfxCoord* coord, s16 yaw)
     MATRIX*   rotation;
     GfxCoord* out;
 
-    SCRATCH_PUSH(MATRIX);
+    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
@@ -3613,7 +3613,7 @@ static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* re
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(recs, &s->delta, count, NULL) != 0) {
         coord->coord.t[0]         += s->delta.vx.w >> 16;
@@ -4465,7 +4465,7 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
             break;
     }
 calc:
-    scratch            = SCRATCH_PUSH(Actor403000FacingScratch);
+    scratch            = SCRATCH_STACK_RESERVE_BLOCK(Actor403000FacingScratch);
     coord              = arg0->extra.tmd->coords;
     scratch->target.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     scratch->target.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
@@ -4506,7 +4506,7 @@ static s32 func_actor_403000_80134204(GfxCoord* arg0)
     s8                      row;
     s16                     angle;
 
-    scratch = SCRATCH_PUSH(Actor403000TurnScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000TurnScratch);
     coord   = arg0;
     x       = coord->coord.t[0];
     z       = coord->coord.t[2];
@@ -6421,7 +6421,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
 
     work    = arg0->work;
     player  = gameGetPtrSlot(3);
-    scratch = SCRATCH_PUSH(Actor403000SeekScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000SeekScratch);
     if (work->field_4 != 0) {
         obj             = arg0->extra.tmd;
         work->field_FCA = 0;
@@ -6534,7 +6534,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
 
     work    = arg0->work;
     player  = gameGetPtrSlot(3);
-    scratch = SCRATCH_PUSH(Actor403000SeekScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000SeekScratch);
     if (work->field_4 != 0) {
         obj             = arg0->extra.tmd;
         work->field_FCA = 0;
@@ -6655,7 +6655,7 @@ static void func_actor_403000_8013A678(Task* arg0)
 
     work    = arg0->work;
     player  = gameGetPtrSlot(3);
-    scratch = SCRATCH_PUSH(Actor403000SeekScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000SeekScratch);
     if (work->field_4 != 0) {
         obj             = arg0->extra.tmd;
         work->field_FCA = 0;
@@ -6811,7 +6811,7 @@ static void func_actor_403000_8013ACBC(Task* arg0)
 
     work    = arg0->work;
     player  = gameGetPtrSlot(3);
-    scratch = SCRATCH_PUSH(Actor403000SeekScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000SeekScratch);
     if (work->field_4 != 0) {
         obj             = arg0->extra.tmd;
         work->field_FCA = 0;
@@ -7080,7 +7080,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
         work->field_6                       = 0;
         work->field_ACA                     = 0;
         work->field_FCA                     = 0;
-        scratch                             = SCRATCH_PUSH(Actor403000DropScratch);
+        scratch                             = SCRATCH_STACK_RESERVE_BLOCK(Actor403000DropScratch);
         b                                   = Actor403000_Cell(player->extra.tmd->coords);
         scratch->base                       = b;
         switch (scratch->base) {
@@ -7316,7 +7316,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
 
     work    = arg0->work;
     player  = gameGetPtrSlot(3);
-    scratch = SCRATCH_PUSH(Actor403000SeekScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000SeekScratch);
     if (work->field_4 != 0) {
         obj             = arg0->extra.tmd;
         work->field_FCA = 0;
@@ -7474,7 +7474,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->recordsE98);
             return;
     }
-    scratch = SCRATCH_PUSH(Actor403000UpdateScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000UpdateScratch);
     if (config->hp > 0) {
         func_actor_403000_80134F44(arg1);
     }

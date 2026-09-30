@@ -1552,7 +1552,7 @@ void func_actor_510900_801332EC(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -1648,7 +1648,7 @@ void func_actor_510900_8013371C(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];
@@ -1748,7 +1748,7 @@ void func_actor_510900_80133C84(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
-        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
         block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
         block->vec.vz = coord->workm.t[2];

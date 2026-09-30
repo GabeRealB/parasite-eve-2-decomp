@@ -417,7 +417,7 @@ static void func_necrosis_8012FE64(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u1;
     s32              ang2;
 
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -481,7 +481,7 @@ static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u1;
     s32              ang2;
 
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

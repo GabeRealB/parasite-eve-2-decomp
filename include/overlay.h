@@ -154,7 +154,7 @@ static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)
     OverlayWalkScratch* blk;
 
     SCRATCH_STACK_CURSOR(OverlayWalkScratch)[-1].coord = coord;
-    SCRATCH_PUSH(OverlayWalkScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayWalkScratch);
     blk         = SCRATCH_STACK_CURSOR(OverlayWalkScratch);
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;

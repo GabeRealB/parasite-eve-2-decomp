@@ -3844,7 +3844,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     s32              tx;
     s32              tz;
 
-    SCRATCH_PUSH(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     blk   = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
@@ -3987,7 +3987,7 @@ void func_acropolis_security_room_801817A4(Task* task)
     coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    scratch       = SCRATCH_PUSH(AsrFlashScratch);
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(AsrFlashScratch);
     scratch->v.vx = coord->workm.t[0];
     scratch->v.vy = coord->workm.t[1];
     scratch->v.vz = coord->workm.t[2];
@@ -4050,7 +4050,7 @@ static s32 func_acropolis_security_room_80181C84(GfxCoord* coord, WorldCollision
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]                    += s->delta.vx.w >> 16;
@@ -4101,7 +4101,7 @@ static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, WorldCollision
         return 0;
     }
 
-    SCRATCH_PUSH(OverlayBisectorScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
     st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];

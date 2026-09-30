@@ -559,7 +559,7 @@ static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32
     s32                idx;
     u8                 frame;
 
-    block = SCRATCH_PUSH(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -705,7 +705,7 @@ static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, 
     s32                                off;
     s32                                ang;
 
-    SCRATCH_PUSH(_DryfieldNightMotelLoftTriScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(_DryfieldNightMotelLoftTriScratch);
     blk = SCRATCH_STACK_CURSOR(_DryfieldNightMotelLoftTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // `off` is the corner's byte offset in the block, initialised with the

@@ -1410,7 +1410,7 @@ static s32 func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1)
     s32                  angle;
 
     other         = gameGetPtrSlot(3)->extra.tmd->coords;
-    blk           = SCRATCH_PUSH(ActorBearingScratch);
+    blk           = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
     angle         = actorBearingInFrame(blk, arg0, other);
     blk->delta.vx = other->coord.t[0] - arg0->coord.t[0];
     blk->delta.vz = other->coord.t[2] - arg0->coord.t[2];

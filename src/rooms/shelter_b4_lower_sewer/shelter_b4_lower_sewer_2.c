@@ -1065,7 +1065,7 @@ static void func_shelter_b4_lower_sewer_8017FC14(GfxCoord* arg0, s32 arg1, s32 a
     u8             v1;
 
     idx           = arg1;
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

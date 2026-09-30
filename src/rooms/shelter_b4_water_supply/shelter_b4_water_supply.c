@@ -1795,7 +1795,7 @@ static void func_shelter_b4_water_supply_8017FF7C(GfxCoord* arg0, s16 arg1, s16 
     GpRingScratch* block;
     POLY_FT4*      prim;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

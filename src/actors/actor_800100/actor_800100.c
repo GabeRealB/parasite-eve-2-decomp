@@ -3157,7 +3157,7 @@ static void func_actor_800100_80165C38(Task* arg0)
     GfxCoord*  place;
     u16        state;
 
-    place = SCRATCH_PUSH(GfxCoord);
+    place = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -3647,7 +3647,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
     if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
         return 0;
     }
-    block = SCRATCH_PUSH(GpPickScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpPickScratch);
     for (i = 0, bestIdx = 0; i < 6; i++) {
         rec = &arg0[i];
         if (rec->key.value & 0x100000) {

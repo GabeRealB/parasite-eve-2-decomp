@@ -391,7 +391,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
     if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
-    block          = SCRATCH_PUSH(GpAttnScratch);
+    block          = SCRATCH_STACK_RESERVE_BLOCK(GpAttnScratch);
     block->vec.vx  = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
     block->vec.vy  = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
     block->vec.vz  = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
@@ -445,7 +445,7 @@ static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
 
     base           = &light->head;
     result         = 0;
-    block          = SCRATCH_PUSH(GpAttnScratch);
+    block          = SCRATCH_STACK_RESERVE_BLOCK(GpAttnScratch);
     block->vec.vx  = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
     block->vec.vy  = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
     block->vec.vz  = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
@@ -487,7 +487,7 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
             return result;
         }
     }
-    SCRATCH_PUSH(GpSpotScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpSpotScratch);
     block          = SCRATCH_STACK_CURSOR(GpSpotScratch);
     block->vec.vx  = (light->transform.lighting.composed.t[0] - pos->vx) >> 1;
     block->vec.vy  = (light->transform.lighting.composed.t[1] - pos->vy) >> 1;
@@ -529,7 +529,7 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*             dirMtx;
     MATRIX*             colorMtx;
 
-    block    = SCRATCH_PUSH(GpViewLightScratch);
+    block    = SCRATCH_STACK_RESERVE_BLOCK(GpViewLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
 
@@ -623,7 +623,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECT
     MATRIX*         dirMtx;
     MATRIX*         colorMtx;
 
-    SCRATCH_PUSH(GpLightScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
     block    = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
@@ -652,7 +652,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECT
     MATRIX*         dirMtx;
     MATRIX*         colorMtx;
 
-    SCRATCH_PUSH(GpLightScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
     block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
@@ -684,7 +684,7 @@ static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECT
     MATRIX*         dirMtx;
     MATRIX*         colorMtx;
 
-    SCRATCH_PUSH(GpLightScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
     block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
@@ -1073,7 +1073,7 @@ static void Gp_DebugPanTask(Task* arg0)
     vec.vz = coord->workm.t[2];
 
     if (Pad_RemapState->field_1 == 0x13) {
-        SCRATCH_PUSH(WorldCoordProjectionScratch);
+        SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
         projection          = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
         D_80760618->field_1 = 1;
         func_800D7A9C(extra, &vec, 0, 3);
@@ -1281,7 +1281,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
     if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
-        block = SCRATCH_PUSH(GpColorScratch);
+        block = SCRATCH_STACK_RESERVE_BLOCK(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
             Gp_RemapActorColor(arg0, colorMtx, mode);
@@ -1333,7 +1333,7 @@ static void Gp_LightFalloff(GpPointLight* light)
 
     base           = &light->head;
     result         = 0;
-    block          = SCRATCH_PUSH(GpAttnScratch);
+    block          = SCRATCH_STACK_RESERVE_BLOCK(GpAttnScratch);
     block->vec.vx  = base->transform.lighting.local.t[0] >> 1;
     block->vec.vy  = base->transform.lighting.local.t[1] >> 1;
     block->vec.vz  = base->transform.lighting.local.t[2] >> 1;
@@ -1549,7 +1549,7 @@ static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*         dirMtx;
     MATRIX*         colorMtx;
 
-    SCRATCH_PUSH(GpLightScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
     block    = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
@@ -1578,7 +1578,7 @@ static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*         dirMtx;
     MATRIX*         colorMtx;
 
-    SCRATCH_PUSH(GpLightScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
     block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
@@ -1610,7 +1610,7 @@ static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*         dirMtx;
     MATRIX*         colorMtx;
 
-    SCRATCH_PUSH(GpLightScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpLightScratch);
     block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
@@ -1739,7 +1739,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     GpPerspScratch* block;
 
     src = slot->field_0;
-    SCRATCH_PUSH(GpPerspScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
     block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
     block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;

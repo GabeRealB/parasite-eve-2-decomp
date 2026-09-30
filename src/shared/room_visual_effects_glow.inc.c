@@ -14,7 +14,7 @@ static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2)
     s32                   t2;
     s32                   u;
 
-    block         = SCRATCH_PUSH(RoomBillboardScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(RoomBillboardScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];

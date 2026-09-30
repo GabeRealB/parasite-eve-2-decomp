@@ -2533,7 +2533,7 @@ static void func_actor_401800_80135F58(Task* arg0)
         Gp_ArmStateF0(1);
         return;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_68 & 1) {
@@ -3852,7 +3852,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
         }
         return;
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     s           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     s->delta.vx = work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0];
     s->delta.vy = 0;
@@ -3949,7 +3949,7 @@ static void func_actor_401800_8013AB64(Task* arg0)
         work->field_8B0           = 0;
         work->field_8A2           = 0x1E;
     }
-    SCRATCH_PUSH(ActorTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8AE = turn->angle;
@@ -4016,7 +4016,7 @@ static void func_actor_401800_8013AF1C(Task* arg0)
         return;
     }
     func_actor_401800_80133EB8(arg0);
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8AE = aim->turn;
@@ -4086,7 +4086,7 @@ static void func_actor_401800_8013B444(Task* arg0)
         return;
     }
     work->field_6++;
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_68 & 1) {
@@ -4140,7 +4140,7 @@ static void func_actor_401800_8013B784(Task* arg0)
         work->field_8B0 = 0;
         return;
     }
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8AE < aim->turn) {
@@ -4369,7 +4369,7 @@ static void func_actor_401800_8013CD98(Task* arg0)
     }
     work->field_6++;
     work->field_8++;
-    SCRATCH_PUSH(ActorChaseScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     s = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) != 1) {
         if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_8E8, 0xC) != 1) {

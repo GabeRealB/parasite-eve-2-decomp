@@ -1102,7 +1102,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
         if (mode == 9) {
             Gp_UpdateCoord(coord);
             head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
-            SCRATCH_PUSH(OverlaySpriteScratch);
+            SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
             block         = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
             block->vec.vx = coord->workm.t[0];
             block->vec.vy = coord->workm.t[1];
@@ -1522,7 +1522,7 @@ static s32 func_acropolis_cafeteria_80181ED4(GfxCoord* coord, WorldCollisionCont
     OverlayDeltaFlag* s;
     s32               val;
 
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         coord->coord.t[0]                += s->delta.vx.w >> 16;
@@ -1573,7 +1573,7 @@ static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, WorldCollisionCont
         return 0;
     }
 
-    SCRATCH_PUSH(OverlayBisectorScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
     st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];

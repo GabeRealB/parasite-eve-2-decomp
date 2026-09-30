@@ -2573,7 +2573,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     Gp_UpdateCoord(coord);
     head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
     vx   = coord->workm.t[0];
-    SCRATCH_PUSH(OverlaySpriteScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
     block         = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
     block->vec.vx = vx;
     block->vec.vy = coord->workm.t[1];

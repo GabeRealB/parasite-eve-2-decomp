@@ -282,7 +282,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s
     s32                rgb;
     s32                radius;
 
-    block = SCRATCH_PUSH(RoomDraw25Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

@@ -3197,7 +3197,7 @@ static void func_actor_403900_80136184(Task* arg0)
     s32                      i;
     s32                      j;
 
-    sc         = SCRATCH_PUSH(Actor402200TrailScratch);
+    sc         = SCRATCH_STACK_RESERVE_BLOCK(Actor402200TrailScratch);
     work       = arg0->work;
     sc->dir.vx = work->field_6FC[1] - work->field_6FC[0];
     sc->dir.vy = work->field_700[1] - work->field_700[0];
@@ -3410,7 +3410,7 @@ static void func_actor_403900_80136D9C(s32 otz)
     u_short*           ofs;
 
     extra          = Gp_GetViewSprtExtra();
-    scratch        = SCRATCH_PUSH(ActorsDrawScratch);
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorsDrawScratch);
     scratch->otz   = otz;
     area           = gGpuPrimCursor;
     gGpuPrimCursor = area + 1;

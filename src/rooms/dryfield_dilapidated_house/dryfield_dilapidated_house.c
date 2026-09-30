@@ -3444,7 +3444,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
     s32              farNext;
     u8               shade;
 
-    SCRATCH_PUSH(RoomQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
     blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
@@ -3667,7 +3667,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
     s32                        lo;
     s32                        fade;
 
-    SCRATCH_PUSH(OverlayFlaggedQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
     blk = SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -3843,7 +3843,7 @@ static void func_dryfield_dilapidated_house_80182A18(GfxCoord* arg0, s16 arg1, s
     grn   = ramp >> 17;
     blu   = ramp >> 18;
     r1    = arg1 + 0x100;
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -3919,7 +3919,7 @@ static void func_dryfield_dilapidated_house_80182F14(GfxCoord* arg0, s16 arg1, s
     POLY_G4*       prim;
     s32            ang;
 
-    block         = SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -3970,7 +3970,7 @@ static void func_dryfield_dilapidated_house_801832A8(GfxCoord* arg0, s16 arg1, s
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
 
-    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -4036,7 +4036,7 @@ static void func_dryfield_dilapidated_house_80183728(GfxCoord* arg0, s16 arg1, s
     s16            r1;
 
     r1    = arg1 + arg2;
-    block = SCRATCH_PUSH(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
