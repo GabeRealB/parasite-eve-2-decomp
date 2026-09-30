@@ -48,6 +48,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/dryfield_night_motel_balcony.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig, the walk state, and
@@ -80,7 +81,7 @@ typedef struct Actor335800MainWork {
 } Actor335800MainWork;
 STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
 
-/// Optional start animation for `func_actor_335800_80162C80`: the preset's
+/// Optional start animation for `actorMotionStartWalk`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are 0xD and 1.
 typedef GpSpawnAnimArg Actor335800SpawnAnim;
 
@@ -97,7 +98,7 @@ extern GpEvsCmd       D_actor_335800_80166098[];
 
 /// Animation bank tables of the parent and the child block.
 extern AnimationSet*  D_actor_335800_8016EAC4[5];
-extern AnimationSet** D_actor_335800_8016EAD8[1];
+extern AnimationSet** gActorMotionAnimBanks[1];
 extern AnimationSet*  D_actor_335800_80172E90[2];
 extern AnimationSet** D_actor_335800_80172E98[1];
 
@@ -127,17 +128,13 @@ extern Actor335800MsgEntry D_actor_335800_80172EA8[];
 
 static void func_actor_335800_80162640(Task* arg0);
 static void func_actor_335800_80162844(Task* task);
-static void func_actor_335800_80162B3C(Task* arg0);
 static void func_actor_335800_80162E8C(Task* task);
 static void func_actor_335800_80162F08(Task* task);
 static void func_actor_335800_80162F7C(Task* arg0);
 static void func_actor_335800_80162F9C(Task* arg0);
 static void func_actor_335800_80162FF4(Task* arg0);
 static void func_actor_335800_80162FFC(Task* task);
-static void func_actor_335800_80163064(Task* task);
 static void func_actor_335800_80163124(Task* task);
-static void func_actor_335800_801631A4(Task* arg0);
-s32         func_actor_335800_801632A4(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 static void func_actor_335800_80163568(Task* task);
 static void func_actor_335800_8016373C(Task* arg0);
 static void func_actor_335800_80163AA0(Task* arg0);
@@ -170,10 +167,10 @@ static const TaskFuncTable3 D_actor_335800_80161E30 = { {
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_335800_80161E3C = { {
-    func_actor_335800_80163064,
+    actorMotionFaceTarget,
     func_actor_335800_80163124,
-    func_actor_335800_80162B3C,
-    func_actor_335800_801631A4,
+    actorMotionArrive,
+    actorMotionTurnToYaw,
 } };
 
 /// The constant local-space offset `func_actor_335800_80163124` rotates for
@@ -238,8 +235,6 @@ extern GpCopyArg            D_actor_335800_80164E24;
 extern GpOverlayIds         D_actor_335800_80165050;
 extern GpOverlayIds         D_actor_335800_80165058;
 extern ActorTransform       D_actor_335800_80164EA4[5];
-s32                         func_actor_335800_80162C80(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
-s32                         func_actor_335800_801632A4(Task*, s32, AnimationPlayRequest*, s32);
 s32                         func_actor_335800_801633C0(Task*, s32, ActorTransform* args);
 s32                         func_actor_335800_8016343C(Task*, s32, s32);
 s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
@@ -848,7 +843,7 @@ AnimationSet* D_actor_335800_8016EAC4[5] = {
     &D_actor_335800_8016EA9C,
 };
 
-AnimationSet** D_actor_335800_8016EAD8[1] = {
+AnimationSet** gActorMotionAnimBanks[1] = {
     D_actor_335800_8016EAC4,
 };
 
@@ -859,10 +854,10 @@ TaskDesc D_actor_335800_8016EADC[3] = {
 };
 
 Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
-    { 2003, { .call1 = func_actor_335800_801632A4 } },
+    { 2003, { .call1 = actorMotionPlayAnim } },
     { 2004, { .call3 = func_actor_335800_801633C0 } },
     { 2005, { .call5 = func_actor_335800_8016343C } },
-    { 2013, { .call4 = func_actor_335800_80162C80 } },
+    { 2013, { .call4 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_335800_8016354C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1366,106 +1361,9 @@ static void func_actor_335800_80162844(Task* task)
     }
 }
 
-/// Arrival check for the parent block: once the X/Z distances from the root
-/// coordinate to `target` stop shrinking below `limit`, plays anim 0x7D3,
-/// clears `step` and advances `walk.motionStep`; otherwise records the distances.
-static void func_actor_335800_80162B3C(Task* arg0)
-{
-    Actor335800MainWork* work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
+#include "../../shared/actor_motion_arrive.inc.c"
 
-    work  = (Actor335800MainWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
-    }
-    d.vx = dx;
-    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_335800_801632A4(arg0, 0x7D3, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
-        work->walk.motionStep++;
-        return;
-    }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
-}
-
-/// Placement handler for the parent block: stores the spawn position and
-/// rotation, then applies a start preset exactly as `func_actor_335800_801632A4`
-/// does (inlined here).
-s32 func_actor_335800_80162C80(Task* task, s32 arg1, ActorTransform* place, Actor335800SpawnAnim* anim)
-{
-    Actor335800MainWork*  work;
-    Actor335800MainWork*  w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
-
-    w                   = (Actor335800MainWork*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->field_0;
-        w->model.nextAnimId = anim->field_4;
-    } else {
-        preset.animationId  = 0xD;
-        w->model.nextAnimId = 1;
-    }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-    msg  = &preset;
-    work = (Actor335800MainWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_335800_8016EAD8[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
-    return 0;
-}
+#include "../../shared/actor_motion_start.inc.c"
 
 /// State dispatcher of the child part tasks: copies the three-handler table
 /// onto the stack and runs the entry `Task::state` selects.
@@ -1551,36 +1449,7 @@ static void func_actor_335800_80162FFC(Task* task)
     fns.funcs[work->walk.motionStep](task);
 }
 
-/// Step 0: turns the root part to face `work->walk.target`, taking the yaw of the
-/// normalised offset from the part's own translation with `ratan2` and
-/// rebuilding the local matrix from that yaw alone, then advances the step.
-static void func_actor_335800_80163064(Task* task)
-{
-    Actor335800MainWork* work;
-    GfxCoord*            coord;
-    VECTOR               delta;
-    SVECTOR              dir;
-    SVECTOR              rot;
-
-    work  = (Actor335800MainWork*)task->work;
-    coord = task->extra.tmd->coords;
-
-    delta.vx = work->walk.target.vx - coord->coord.t[0];
-    delta.vy = work->walk.target.vy - coord->coord.t[1];
-    delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
-
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
-
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->walk.motionStep++;
-}
+#include "../../shared/actor_motion_face.inc.c"
 
 /// Step 1: rotates the constant forward offset `D_actor_335800_80161E4C`
 /// through the root part's matrix into `work->walk.step`, opens the per-axis stop
@@ -1602,90 +1471,9 @@ static void func_actor_335800_80163124(Task* task)
     work->walk.motionStep++;
 }
 
-/// Turn-to-face handler: Euler-extracts the root coordinate into `vec`, and
-/// while the yaw gap to `work->walk.rotY` is at least 0x41 it steps `vec.vy`
-/// toward it by 0x40, taking the step on an `s32` widening of the extracted
-/// yaw; otherwise it snaps the yaw to the target and plays anim 0x7D3 with a
-/// preset carrying the `model.nextAnimId` byte, clearing the two body counters.
-/// Either way the root coordinate is rebuilt as the identity matrix rotated by
-/// `vec`.
-static void func_actor_335800_801631A4(Task* arg0)
-{
-    Actor335800MainWork* work;
-    GpMtxWords*          words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
+#include "../../shared/actor_motion_turn.inc.c"
 
-    coord = arg0->extra.tmd->coords;
-    work  = (Actor335800MainWork*)arg0->work;
-
-    Gp_ExtractEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
-        } else {
-            vec.vy = vy + 0x40;
-        }
-    } else {
-        vec.vy                      = work->walk.rotY;
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_335800_801632A4(arg0, 0x7D3, &preset, 0);
-        work->walk.motion     = 0;
-        work->walk.motionStep = 0;
-    }
-
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
-
-/// Animation preset handler for the parent block, the 20-slot twin of
-/// `func_actor_335800_80163E20`: re-seeds the slot array off bank table
-/// `D_actor_335800_8016EAD8` when the preset's bank index changes, then
-/// restarts or resets every slot and ticks them.
-s32 func_actor_335800_801632A4(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor335800MainWork* work;
-    TmdObject*           ext;
-    s32                  i;
-
-    work = (Actor335800MainWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_335800_8016EAD8[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
-    return 0;
-}
+#include "../../shared/actor_motion_play.inc.c"
 
 /// Message 0x7D4 handler of the parent block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
@@ -1804,7 +1592,7 @@ static void func_actor_335800_80163568(Task* task)
     }
 }
 
-/// Approach test for the child block, the twin of `func_actor_335800_80162B3C`:
+/// Approach test for the child block, the twin of `actorMotionArrive`:
 /// once the X/Z distance to `target` stops shrinking below `limit`, plays anim
 /// 0x7D3, clears `step` and advances the state; otherwise records the distance.
 static void func_actor_335800_8016373C(Task* arg0)
@@ -1848,7 +1636,7 @@ static void func_actor_335800_8016373C(Task* arg0)
 }
 
 /// Placement handler for the child block, the twin of
-/// `func_actor_335800_80162C80`: stores the spawn position and rotation, then
+/// `actorMotionStartWalk`: stores the spawn position and rotation, then
 /// applies a start preset exactly as `func_actor_335800_80163E20` does
 /// (inlined here).
 s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Actor335800SpawnAnim* anim)
@@ -2091,7 +1879,7 @@ static void func_actor_335800_80163D20(Task* arg0)
 }
 
 /// Message 0x7D3 handler of the child block, the 19-slot counterpart of
-/// `func_actor_335800_801632A4`: re-seeds the slot array off bank table
+/// `actorMotionPlayAnim`: re-seeds the slot array off bank table
 /// `D_actor_335800_80172E98` when the preset's bank index changes, then
 /// restarts or resets every slot and ticks them.
 s32 func_actor_335800_80163E20(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)

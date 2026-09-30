@@ -35,6 +35,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_garage.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
 /// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
@@ -127,10 +128,10 @@ extern _Actor135400MessageEntry D_actor_135400_8013F8E4[4];
 extern s16 D_actor_135400_8013F8C4[];
 
 /// Animation banks the two 0x7D3 handlers re-seed their slots from, indexed by
-/// the request's `field_0`: `D_actor_135400_8013A4A8` for the main task,
+/// the request's `field_0`: `gActorMotionAnimBanks` for the main task,
 /// `D_actor_135400_8013F8D4` for the second task.
 extern AnimationSet*  D_actor_135400_8013A494[5];
-extern AnimationSet** D_actor_135400_8013A4A8[1];
+extern AnimationSet** gActorMotionAnimBanks[1];
 extern AnimationSet*  D_actor_135400_8013F8A8[7];
 extern AnimationSet** D_actor_135400_8013F8D4[1];
 
@@ -148,7 +149,6 @@ static void func_actor_135400_801324CC(Task* task);
 static void func_actor_135400_8013252C(Task* task);
 static void func_actor_135400_80132614(Task* arg0);
 static void func_actor_135400_80132634(Task* task);
-s32         func_actor_135400_80132650(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
 s32         func_actor_135400_8013276C(Task* task, s32 anim, ActorTransform* args, s32 arg3);
 s32         func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 static void func_actor_135400_80132B60(Task* arg0);
@@ -197,7 +197,6 @@ s32              func_actor_135400_80132E40(Task*, s32, ActorTransform* args, s3
 s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
 void             func_actor_135400_80132AF4(Task*);
 
-s32  func_actor_135400_80132650(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_135400_8013276C(Task*, s32, ActorTransform* args, s32);
 s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
 s32  func_actor_135400_801328DC(Task*, s32, ActorCommand* msg, s32);
@@ -393,7 +392,7 @@ AnimationSet* D_actor_135400_8013A494[5] = {
     &D_actor_135400_8013A46C,
 };
 
-AnimationSet** D_actor_135400_8013A4A8[1] = {
+AnimationSet** gActorMotionAnimBanks[1] = {
     D_actor_135400_8013A494,
 };
 
@@ -404,7 +403,7 @@ TaskDesc D_actor_135400_8013A4AC[3] = {
 };
 
 _Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
-    { 2003, { .animation = func_actor_135400_80132650 } },
+    { 2003, { .animation = actorMotionPlayAnim } },
     { 2004, { .placement = func_actor_135400_8013276C } },
     { 2005, { .mode = func_actor_135400_801327E8 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_135400_801328DC } },
@@ -685,11 +684,11 @@ static void func_actor_135400_80132064(Task* arg0)
     func_actor_135400_801327E8(arg0, 0x7D5, 1, 0);
     if (GameFlag_GetNibble(0x6C) <= 0) {
         func_actor_135400_8013276C(arg0, 0x7D4, &places.field_0, 0);
-        func_actor_135400_80132650(arg0, 0x7D3, &anim[0], 0);
+        actorMotionPlayAnim(arg0, 0x7D3, &anim[0], 0);
         func_dryfield_night_garage_80180414(0);
     } else {
         func_actor_135400_8013276C(arg0, 0x7D4, &places.field_18, 0);
-        func_actor_135400_80132650(arg0, 0x7D3, &anim[1], 0);
+        actorMotionPlayAnim(arg0, 0x7D3, &anim[1], 0);
     }
     arg0->exitCallback = func_actor_135400_80132614;
     arg0->state       += 1;
@@ -851,39 +850,7 @@ static void func_actor_135400_80132634(Task* task)
     ext->colorMtx = &work->model.color;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_135400_80132650(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
-{
-    Actor135400MainWork* work;
-    TmdObject*           ext;
-    s32                  i;
-
-    work = (Actor135400MainWork*)task->work;
-    ext  = task->extra.tmd;
-    if (params->source.index != work->model.bank) {
-        work->model.bank = params->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_135400_8013A4A8[work->model.bank], ext, work->rig.poses, work->rig.slots);
-    }
-    work->model.animId = params->animationId;
-    if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
-    return 0;
-}
+#include "../../shared/actor_motion_play.inc.c"
 
 /// The main task's 0x7D4 handler: drops the placement's translation into the
 /// root part's local matrix and its Euler angles into the coordinate's `rot`

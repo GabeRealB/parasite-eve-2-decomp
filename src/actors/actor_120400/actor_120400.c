@@ -31,6 +31,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block of the parent task, allocated zeroed by its spawn routine and
 /// kept at `Task::work`: a twenty-part rig, the walk state, and
@@ -47,10 +48,10 @@ typedef struct Actor120400MainWork {
 STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 
 /// Animation source indexed by the bank id the presets latch:
-/// `D_actor_120400_8013E744[work->model.bank]` is the bank handed to
+/// `gActorMotionAnimBanks[work->model.bank]` is the bank handed to
 /// `func_800B3F84`.
 extern AnimationSet*  D_actor_120400_8013E6D0[29];
-extern AnimationSet** D_actor_120400_8013E744[1];
+extern AnimationSet** gActorMotionAnimBanks[1];
 
 /// Optional start animation for `func_actor_120400_80132398`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are 0x10 and 1.
@@ -79,16 +80,12 @@ extern Actor120400MsgEntry D_actor_120400_8013E76C[];
 
 static void func_actor_120400_80131E5C(Task* arg0);
 static void func_actor_120400_80132050(Task* arg0);
-static void func_actor_120400_80132254(Task* arg0);
 static void func_actor_120400_801326B0(Task* task);
 static void func_actor_120400_801327B4(Task* task);
 static void func_actor_120400_801327D4(Task* task);
 static void func_actor_120400_801327F0(Task* arg0);
 static void func_actor_120400_801327F8(Task* task);
-static void func_actor_120400_80132860(Task* task);
 static void func_actor_120400_80132920(Task* task);
-static void func_actor_120400_801329A0(Task* arg0);
-s32         func_actor_120400_80132AA0(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 /// Spawn, tick and teardown handlers of the two child tasks, dispatched by
 /// `func_actor_120400_8013254C`.
@@ -110,10 +107,10 @@ static const TaskFuncTable3 D_actor_120400_80131E30 = { {
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_120400_80131E3C = { {
-    func_actor_120400_80132860,
+    actorMotionFaceTarget,
     func_actor_120400_80132920,
-    func_actor_120400_80132254,
-    func_actor_120400_801329A0,
+    actorMotionArrive,
+    actorMotionTurnToYaw,
 } };
 
 /// The constant local-space offset the walk rotates into its velocity:
@@ -124,7 +121,6 @@ extern TmdSource D_actor_120400_8013783C;
 extern TmdSource D_actor_120400_80137C90;
 extern TmdSource D_actor_120400_801380E4;
 s32              func_actor_120400_80132398(Task*, s32, ActorTransform* place, Actor120400SpawnAnim*);
-s32              func_actor_120400_80132AA0(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_120400_80132BBC(Task*, s32, ActorTransform* args);
 s32              func_actor_120400_80132C38(Task*, s32, s32, s32);
 s32              func_actor_120400_80132D14(void);
@@ -875,7 +871,7 @@ AnimationSet* D_actor_120400_8013E6D0[29] = {
     &D_actor_120400_8013E6A8,
 };
 
-AnimationSet** D_actor_120400_8013E744[1] = {
+AnimationSet** gActorMotionAnimBanks[1] = {
     D_actor_120400_8013E6D0,
 };
 
@@ -886,7 +882,7 @@ TaskDesc D_actor_120400_8013E748[3] = {
 };
 
 Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
-    { 2003, { .call1 = func_actor_120400_80132AA0 } },
+    { 2003, { .call1 = actorMotionPlayAnim } },
     { 2004, { .call2 = func_actor_120400_80132BBC } },
     { 2005, { .call4 = func_actor_120400_80132C38 } },
     { 2013, { .call3 = func_actor_120400_80132398 } },
@@ -1034,50 +1030,7 @@ static void func_actor_120400_80132050(Task* arg0)
     }
 }
 
-/// Walk step 2, the arrival check: takes the X/Z distance from the root
-/// coordinate to `target`. While it keeps shrinking below `limit` it is stored
-/// as the new `limit`; once it no longer does, the target has been reached or
-/// passed, so the step plays the preset carrying the `model.nextAnimId` byte through
-/// the 0x7D3 handler, stops the velocity `step` and advances `walk.motionStep`.
-static void func_actor_120400_80132254(Task* arg0)
-{
-    Actor120400MainWork* work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
-
-    work  = (Actor120400MainWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
-    }
-    d.vx = dx;
-    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_120400_80132AA0(arg0, 0x7D3, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
-        work->walk.motionStep++;
-        return;
-    }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
-}
+#include "../../shared/actor_motion_arrive.inc.c"
 
 /// Message 0x7DD handler of the parent: starts the walk sequence toward a
 /// placement. The position and rotation are copied into `target` and
@@ -1086,7 +1039,7 @@ static void func_actor_120400_80132254(Task* arg0)
 /// animation's id and companion byte (0x10 and 1 when absent), 1, 5 and 1 --
 /// and then applied in-line. A changed bank id latches `model.bank` and reseeds
 /// the animation through `func_800B3F84` with the bank this overlay's
-/// `D_actor_120400_8013E744` selects; `model.animId` takes the preset's animation
+/// `gActorMotionAnimBanks` selects; `model.animId` takes the preset's animation
 /// id, and a preset asking for slots while `model.ticking` says the slots are
 /// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
 /// the `Gp_AnimResetSlot` one, followed by a `Gp_AnimTickIndex` pass over the
@@ -1126,7 +1079,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_120400_8013E744[work->model.bank], ext, work->rig.poses,
+        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
     work->model.animId = msg->animationId;
@@ -1232,36 +1185,7 @@ static void func_actor_120400_801327F8(Task* task)
     fns.funcs[work->walk.motionStep](task);
 }
 
-/// Walk step 0: turns the root part to face `target`, taking the yaw of the
-/// normalised offset from the part's own translation with `ratan2` and
-/// rebuilding the local matrix from that yaw alone, then advances the step.
-static void func_actor_120400_80132860(Task* task)
-{
-    Actor120400MainWork* work;
-    GfxCoord*            coord;
-    VECTOR               delta;
-    SVECTOR              dir;
-    SVECTOR              rot;
-
-    work  = (Actor120400MainWork*)task->work;
-    coord = task->extra.tmd->coords;
-
-    delta.vx = work->walk.target.vx - coord->coord.t[0];
-    delta.vy = work->walk.target.vy - coord->coord.t[1];
-    delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
-
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
-
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->walk.motionStep++;
-}
+#include "../../shared/actor_motion_face.inc.c"
 
 /// Walk step 1: rotates the constant forward offset `D_actor_120400_80131E4C`
 /// through the root part's matrix into `step`, opens the arrival threshold to
@@ -1283,91 +1207,9 @@ static void func_actor_120400_80132920(Task* task)
     work->walk.motionStep++;
 }
 
-/// Walk step 3, the turn to the placement yaw: Euler-extracts the root
-/// coordinate into `vec`, and while the yaw gap to `walk.rotY` is at least
-/// 0x41 steps `vec.vy` toward it by 0x40, taking the step on an `s32` widening
-/// of the extracted yaw. Otherwise it snaps the yaw to the target, plays the
-/// preset carrying the `model.nextAnimId` byte through the 0x7D3 handler and clears
-/// `walk.motion` / `walk.motionStep`, which returns the parent to idle. Either way the
-/// root coordinate is rebuilt as the identity matrix rotated by `vec`.
-static void func_actor_120400_801329A0(Task* arg0)
-{
-    Actor120400MainWork* work;
-    GpMtxWords*          words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
+#include "../../shared/actor_motion_turn.inc.c"
 
-    coord = arg0->extra.tmd->coords;
-    work  = (Actor120400MainWork*)arg0->work;
-
-    Gp_ExtractEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
-        } else {
-            vec.vy = vy + 0x40;
-        }
-    } else {
-        vec.vy                      = work->walk.rotY;
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_120400_80132AA0(arg0, 0x7D3, &preset, 0);
-        work->walk.motion     = 0;
-        work->walk.motionStep = 0;
-    }
-
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
-
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_120400_80132AA0(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor120400MainWork* work;
-    TmdObject*           ext;
-    s32                  i;
-
-    work = (Actor120400MainWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        func_800B3F84(&work->rig.anim, D_actor_120400_8013E744[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
-    return 0;
-}
+#include "../../shared/actor_motion_play.inc.c"
 
 /// Message 0x7D4 handler of the parent: places the root part at the message's
 /// position and Euler angles, rebuilding the rotation from them and clearing

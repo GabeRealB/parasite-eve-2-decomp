@@ -101,7 +101,7 @@ D_actor_335800_8016E94C = 0x8016E94C; // size:0x128 defined:True
 D_actor_335800_8016EA74 = 0x8016EA74; // size:0x28 defined:True
 D_actor_335800_8016EA9C = 0x8016EA9C; // size:0x28 defined:True
 D_actor_335800_8016EAC4 = 0x8016EAC4; // size:0x14 defined:True
-D_actor_335800_8016EAD8 = 0x8016EAD8; // size:0x4 defined:True
+gActorMotionAnimBanks = 0x8016EAD8; // size:0x4 defined:True
 D_actor_335800_8016EADC = 0x8016EADC; // size:0x24 defined:True
 D_actor_335800_8016EB00 = 0x8016EB00; // size:0x30 defined:True
 D_actor_335800_8016EB30 = 0x8016EB30; // size:0x2AC defined:True
@@ -121,3 +121,8 @@ D_actor_335800_80172E9C = 0x80172E9C; // size:0xC defined:True
 D_actor_335800_80172EA8 = 0x80172EA8; // size:0x30 defined:True
 
 D_dryfield_night_motel_balcony_80182834 = 0x80182834; // absolute:True
+actorMotionArrive = 0x80162B3C; // type:func
+actorMotionFaceTarget = 0x80163064; // type:func
+actorMotionTurnToYaw = 0x801631A4; // type:func
+actorMotionPlayAnim = 0x801632A4; // type:func
+actorMotionStartWalk = 0x80162C80; // type:func

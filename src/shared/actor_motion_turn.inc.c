@@ -1,0 +1,52 @@
+/* Part of the actor motion library; see actor_motion.h. */
+
+/// Walk step 3, the turn to the placement yaw: Euler-extracts the root
+/// coordinate into `vec`, and while the yaw gap to `walk.rotY` is at least
+/// 0x41 steps `vec.vy` toward it by 0x40, taking the step on an `s32` widening
+/// of the extracted yaw. Otherwise it snaps the yaw to the target, plays the
+/// preset carrying the `model.nextAnimId` byte through the 0x7D3 handler and clears
+/// `walk.motion` / `walk.motionStep`, which returns the parent to idle. Either way the
+/// root coordinate is rebuilt as the identity matrix rotated by `vec`.
+void actorMotionTurnToYaw(Task* arg0)
+{
+    ActorMotionWork*     work;
+    GpMtxWords*          words;
+    GfxCoord*            coord;
+    SVECTOR              vec;
+    AnimationPlayRequest preset;
+    s32                  vy;
+    s16                  diff;
+
+    coord = arg0->extra.tmd->coords;
+    work  = (ActorMotionWork*)arg0->work;
+
+    Gp_ExtractEuler(&vec, &coord->coord);
+    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    if (ABS(diff) >= 0x41) {
+        vy = vec.vy;
+        if (diff < 0) {
+            vec.vy = vy - 0x40;
+        } else {
+            vec.vy = vy + 0x40;
+        }
+    } else {
+        vec.vy                      = work->walk.rotY;
+        preset.source.index         = 0;
+        preset.animationId          = work->model.nextAnimId;
+        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+        preset.blendFrames          = 5;
+        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        actorMotionPlayAnim(arg0, 0x7D3, &preset, 0);
+        work->walk.motion     = 0;
+        work->walk.motionStep = 0;
+    }
+
+    words          = (GpMtxWords*)&coord->coord;
+    words->m00_m01 = ONE;
+    words->m02_m10 = 0;
+    words->m11_m12 = ONE;
+    words->m20_m21 = 0;
+    words->m22     = ONE;
+    RotMatrix(&vec, &coord->coord);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
