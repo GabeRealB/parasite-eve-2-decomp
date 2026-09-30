@@ -14,7 +14,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// 0x68-byte scratch block `func_m249_8011D1DC` takes from `G_SCRATCH_HEAD`.
+/// 0x68-byte scratch block `func_m249_8011D1DC` takes from the scratch stack.
 /// Only the trailing coordinate is used: `Gp_PickNearestRec18` writes the
 /// chosen impact point into its `workm.t`, and that same coordinate is then
 /// handed to `Gp_PlayObjSfx` as the sound source.

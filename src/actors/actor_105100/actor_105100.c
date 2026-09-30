@@ -58,7 +58,7 @@
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
-/// 0x30-byte scratch `func_actor_105100_80132C2C` takes from `G_SCRATCH_HEAD`:
+/// 0x30-byte scratch `func_actor_105100_80132C2C` takes from the scratch stack:
 /// `delta` is the player offset whose length feeds `Gp_ComputeDamage`, and
 /// `ofs` is the spark offset handed to `Gp_SpawnEff`.
 typedef struct Actor105100HitScratch {
@@ -95,7 +95,7 @@ typedef struct Actor105100ProjWork {
 STATIC_ASSERT_SIZEOF(Actor105100ProjWork, 0x80);
 
 /// 0x38-byte scratch the projectile's per-frame handler takes from
-/// `G_SCRATCH_HEAD`: `rot` is the jitter offset it adds to the coordinate and,
+/// the scratch stack: `rot` is the jitter offset it adds to the coordinate and,
 /// in the launch step, the rotation `RotMatrix` turns into `mat` before the
 /// GTE multiplies it into the coordinate; `vec` is the offset to the player
 /// the aiming step orients along. The size is pinned by the handler, which
@@ -1799,7 +1799,7 @@ static void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1)
 }
 
 /// The attack body, run while `field_5A2` is set. It carves an
-/// `ActorAttackScratch` from `G_SCRATCH_HEAD` and steps `field_5A4`:
+/// `ActorAttackScratch` from the scratch stack and steps `field_5A4`:
 /// state 0 records which side of the player it is on (`field_5A0`), plays its
 /// grab animation and spawns the effect; state 1 drags the player towards the
 /// actor for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the

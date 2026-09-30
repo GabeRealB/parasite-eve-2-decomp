@@ -1188,7 +1188,7 @@ typedef struct Actor402200Work {
 } Actor402200Work;
 STATIC_ASSERT_SIZEOF(Actor402200Work, 0x71C);
 
-/// 0x18-byte block `func_actor_402200_80132E34` takes from `G_SCRATCH_HEAD`
+/// 0x18-byte block `func_actor_402200_80132E34` takes from the scratch stack
 /// to place the actor relative to the player: `in` is the offset rotated
 /// through the player's root coordinate into `out`.
 typedef struct Actor402200OffsetScratch {
@@ -1197,7 +1197,7 @@ typedef struct Actor402200OffsetScratch {
 } Actor402200OffsetScratch;
 STATIC_ASSERT_SIZEOF(Actor402200OffsetScratch, 0x18);
 
-/// 0x48-byte block `func_actor_402200_80135D5C` takes from `G_SCRATCH_HEAD`
+/// 0x48-byte block `func_actor_402200_80135D5C` takes from the scratch stack
 /// to aim the actor: `m` is the root's world matrix brought local to the
 /// fourth part, `out` the GTE's rotated offset, and `pts` the two world points
 /// (root-based aim point, fourth-part offset) projected through `GsWSMATRIX`
@@ -1220,7 +1220,7 @@ typedef struct Actor402200FrameStep {
 } Actor402200FrameStep;
 STATIC_ASSERT_SIZEOF(Actor402200FrameStep, 4);
 
-/// 0x30-byte block `func_actor_402200_80131F54` takes from `G_SCRATCH_HEAD`:
+/// 0x30-byte block `func_actor_402200_80131F54` takes from the scratch stack:
 /// `delta` receives the `func_800E0C10` push-back and is then reused for the
 /// offset to the player, and `ofs` is the spark offset handed to
 /// `func_800FDB18`.
@@ -1347,7 +1347,7 @@ typedef struct Actor323000Work {
 } Actor323000Work;
 STATIC_ASSERT_SIZEOF(Actor323000Work, 0x934);
 
-/// 0x1C-byte block `func_actor_323000_801645A4` pushes on `G_SCRATCH_HEAD`:
+/// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:
 /// the model root's world position for `Gp_UpdateActorColor`, and the local
 /// point walked up the coordinate chain into view space.
 typedef struct Actor323000TickScratch {
@@ -1916,7 +1916,7 @@ typedef struct Actor105600FxWork {
 } Actor105600FxWork;
 STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
 
-/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02548`:
+/// 0x40-byte scratch carved off the scratch stack by `Actor05600_Fn02548`:
 /// the converted matrix, the `gte_rtv0` output and the two vectors fed through
 /// it (`rot` and `vec` are also the pair handed to `Actor05600_Fn02950`).
 typedef struct Actor105600AimScratch {
@@ -1927,7 +1927,7 @@ typedef struct Actor105600AimScratch {
 } Actor105600AimScratch;
 STATIC_ASSERT_SIZEOF(Actor105600AimScratch, 0x40);
 
-/// 0x48-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02950`:
+/// 0x48-byte scratch carved off the scratch stack by `Actor05600_Fn02950`:
 /// the beam is walked in eight steps from `vec` to `rot`, each step projected
 /// into `cur` (packed screen xy) and `curZ` (OTZ). `xs`/`ys` hold the two
 /// projected ends followed by the four offset corners the ribbon polygons are
@@ -1945,7 +1945,7 @@ typedef struct Actor105600BeamScratch {
 } Actor105600BeamScratch;
 STATIC_ASSERT_SIZEOF(Actor105600BeamScratch, 0x48);
 
-/// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
+/// 0x38-byte scratch carved off the scratch stack by
 /// `Actor05600_Fn031B0`. `rot` first holds the local offset the root
 /// coordinate is translated by (through `gte_rtv0` into `pos`), then the
 /// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column

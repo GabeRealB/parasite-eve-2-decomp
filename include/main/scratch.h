@@ -13,39 +13,40 @@
 /// other scratchpad users read to check the space below the active stack.
 enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 
-/// The scratch-pad stack: temporary blocks carved off the top of the
-/// PlayStation's 1 KB scratch pad, which grows downward from the pointer kept
-/// in its last word. A function takes a block by moving that pointer down by
-/// the block's size and gives it back by moving it up again, in reverse order.
-/// The cursor must be initialized and suitably aligned, with enough free space
-/// for every nested reservation. Released blocks must not survive another
-/// scratch allocation.
+/// Address of the writable cursor slot for the downward-growing scratch stack.
 ///
-/// These are macros, not inline functions: the stack pointer's address is a
-/// constant, and GCC keeps it in a register across the load and the store only
-/// when the expression is written in the function itself. Inlined from a
-/// function body, the same update is addressed twice and scheduled differently.
-#define G_SCRATCH_HEAD PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)
+/// Expands to a constant `void**` addressing the final four bytes of the
+/// PlayStation's 1 KiB scratchpad RAM. The slot stores an absolute pointer to
+/// the current top block; an empty stack points to the slot itself. Evaluating
+/// this macro performs no memory access or reservation. Dereference it to read
+/// or replace the cursor; cast the slot to `type**` for an element-sized update.
+///
+/// The slot and its stack are shared across overlays. Initialize the cursor
+/// before use, keep it aligned for each reserved block, and keep all blocks
+/// below the slot and clear of other live scratchpad storage. Reservations
+/// move the cursor down and releases move it up in reverse order. No bounds or
+/// lifetime checks are provided; released blocks must not remain in use.
+#define SCRATCH_STACK_CURSOR_SLOT ((void**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET))
 
 /// The stack pointer seen as a `type*`: reads the top block, or, assigned,
 /// moves the top to a block the caller computed.
-#define SCRATCH_HEAD(type) (*(type**)G_SCRATCH_HEAD)
+#define SCRATCH_HEAD(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT)
 
 /// Takes one `type` off the stack; the block is then `SCRATCH_HEAD(type)`.
-#define SCRATCH_PUSH(type) (*(type**)G_SCRATCH_HEAD -= 1)
+#define SCRATCH_PUSH(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT -= 1)
 
 /// Gives one `type` back to the stack.
-#define SCRATCH_POP(type) (*(type**)G_SCRATCH_HEAD += 1)
+#define SCRATCH_POP(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT += 1)
 
 /// Takes `n` bytes off the stack.
-#define SCRATCH_PUSH_BYTES(n) (*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - (n))
+#define SCRATCH_PUSH_BYTES(n) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - (n))
 
 /// Gives `n` bytes back to the stack.
-#define SCRATCH_POP_BYTES(n) (*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + (n))
+#define SCRATCH_POP_BYTES(n) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + (n))
 
 /// The address of the stack pointer, for a function that keeps it in a local
 /// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
-#define SCRATCH_HEAD_ADDR ((void**)G_SCRATCH_HEAD)
+#define SCRATCH_HEAD_ADDR (SCRATCH_STACK_CURSOR_SLOT)
 
 /// `SCRATCH_HEAD`, `SCRATCH_PUSH` and `SCRATCH_POP` through such a local.
 #define SCRATCH_HEAD_AT(head, type) (*(type**)(head))

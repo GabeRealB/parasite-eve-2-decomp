@@ -78,7 +78,7 @@ typedef struct GpActorD4 {
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PlayerMode2State4`.
+/// 0x14-byte scratch from the scratch stack used by `Gp_PlayerMode2State4`.
 /// `field_0` is the clamped `func_80103E7C` turn delta applied to
 /// `GameActor.field_52`. `vec` is the target-minus-current offset
 /// (`GameActor.field_20/24/28` minus `GfxCoord.coord.t`).

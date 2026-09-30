@@ -54,7 +54,7 @@
 #include "overlay.h"
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
-/// `G_SCRATCH_HEAD` to lay one patrol node out: `m` receives a copy of the
+/// the scratch stack to lay one patrol node out: `m` receives a copy of the
 /// walker coordinate's matrix, `v` the facing column `Gfx_MatrixCol2` reads
 /// out of it once it has been rotated and scaled by the GTE, and `i` the node
 /// index the two loops below walk.
@@ -1825,7 +1825,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
 /// resolves the one-based character ID in `field_6E` against `Player_Status`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`. The
-/// working frame is carved off `G_SCRATCH_HEAD` and handed back once the
+/// working frame is carved off the scratch stack and handed back once the
 /// coordinate has been rebuilt. Same body as the acropolis bridge room's
 /// `func_acropolis_bridge_8018532C`.
 static void func_actor_110600_80133A94(OverlayWalker* walker)
@@ -1845,7 +1845,7 @@ static void func_actor_110600_80133A94(OverlayWalker* walker)
 /// rescales it uniformly: `ratan2` of the rotation's Z basis gives the yaw,
 /// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// `scale` on all three axes. The working matrix lives in a frame carved off
-/// `G_SCRATCH_HEAD`, which is handed back once the rotation has been copied
+/// the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. Written as an inline so the four scratch-head accesses
 /// stay absolute; see `Actor444000_ShrinkRotation` in `actor_444000_5.c`.
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)

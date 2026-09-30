@@ -110,7 +110,7 @@ typedef struct AcropolisBridgeQuadCorner {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadCorner, 0x4);
 
 /// 0x2C-byte scratch block the bridge's dust-cloud task takes from
-/// `G_SCRATCH_HEAD`. `vec` holds the four billboard corners, projected with
+/// the scratch stack. `vec` holds the four billboard corners, projected with
 /// one `RTPS` plus one `RTPT` straight into the `POLY_FT4`; `otz` is the
 /// `gte_stszotz` depth the primitive is linked into the OT at. `flag` and
 /// `sxy` are the `gte_stflg` / `gte_stsxy` slots of the same layout the
@@ -124,7 +124,7 @@ typedef struct AcropolisBridgeQuadScratch {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
 /// 0x1C-byte scratch block the bridge's debris billboard
-/// (`func_acropolis_bridge_80182F8C`) takes from `G_SCRATCH_HEAD`. `vec` is the
+/// (`func_acropolis_bridge_80182F8C`) takes from the scratch stack. `vec` is the
 /// piece's world position copied out of its `GfxCoord` (`workm.t`) and
 /// projected with a single `RTPS` through `GsWSMATRIX`: `sx` / `sy` are the
 /// projected centre, `flag` the `gte_stflg` result the draw is gated on and
@@ -143,7 +143,7 @@ typedef struct AcropolisBridgeSpriteScratch {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeSpriteScratch, 0x1C);
 
 /// 0x18-byte scratch block the bridge's axis-aligned debris billboard
-/// (`func_acropolis_bridge_801833A0`) takes from `G_SCRATCH_HEAD`. Same
+/// (`func_acropolis_bridge_801833A0`) takes from the scratch stack. Same
 /// projection as `AcropolisBridgeSpriteScratch` - `vec` is the piece's world
 /// position out of `workm.t`, `sx` / `sy` the projected centre, `flag` the
 /// `gte_stflg` gate and `otz` the `gte_stszotz` depth biased by 1 - but the
@@ -312,7 +312,7 @@ typedef struct AcropolisBridgeEnemyWork {
 } AcropolisBridgeEnemyWork;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeEnemyWork, 0x294);
 
-/// 0xC-byte scratchpad block the per-frame tick carves off `G_SCRATCH_HEAD` to
+/// 0xC-byte scratchpad block the per-frame tick carves off the scratch stack to
 /// stage the collision record it hands to the damage path: the record's three
 /// packed coordinates followed by its `field_4` attack id, which is also the
 /// "was there a hit" flag.
@@ -4272,7 +4272,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 
 /// One frame of the bridge's twinkling dust spark: the task coordinate's
 /// translation is projected through `GsWSMATRIX` with a single `RTPS` into an
-/// `OverlaySpriteScratch` block taken from `G_SCRATCH_HEAD`, and two
+/// `OverlaySpriteScratch` block taken from the scratch stack, and two
 /// `POLY_FT4`s are linked into the OT at that depth. The first is an upright
 /// 0x1680 / otz square whose 0x10-wide texture cell is picked by
 /// `work->age % 6`, drawn with texture blending off (`code |= 3`). The
@@ -4297,7 +4297,7 @@ void func_acropolis_bridge_801812F4(Task* task)
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     work->age   = task->spawnArg1.value;
-    scratch     = (void**)G_SCRATCH_HEAD;
+    scratch     = SCRATCH_STACK_CURSOR_SLOT;
     head        = *scratch;
     blk         = (OverlaySpriteScratch*)(head - 0x18);
     otzp        = &blk->otz;
@@ -4403,7 +4403,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
-    scratch   = (void**)G_SCRATCH_HEAD;
+    scratch   = SCRATCH_STACK_CURSOR_SLOT;
     i         = 0;
     m         = &coord->workm;
     tbl       = D_acropolis_bridge_8018990C;
@@ -4592,7 +4592,7 @@ void func_acropolis_bridge_80182394(Task* task)
     GfxCoord*        coord;
     GpEffWork*       work;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     coord    = task->extra.coordBody->coord;
     head     = *scratch;
     block    = (RoomMoteScratch*)(head - 0xC);
@@ -4681,7 +4681,7 @@ void func_acropolis_bridge_80182694(Task* task)
 /// Draws the flash the bridge collapse throws off as a screen-facing quad: the
 /// unit quad `D_80111E38` scaled to `arg1` half-size, rotated by the task's own
 /// `GfxCoord` (`workm`) and then projected through `GsWSMATRIX` into a
-/// 0x28-byte `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and
+/// 0x28-byte scratch stack block. The first corner goes through `rtps` and
 /// the other three through `rtpt`; a GTE error (`gte_stflg` sign bit) drops the
 /// quad rather than drawing it. The `POLY_FT4` is the 0x38x0x38 cell at
 /// `(0, 0x38)` of tpage 0x2B, modulated by the grey `arg2` and drawn
@@ -4896,7 +4896,7 @@ static void func_acropolis_bridge_80182F8C(GfxCoord* coord, u16 frame, s16 size,
     s32                           u;
     s32                           uu;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
     block   = (AcropolisBridgeSpriteScratch*)(head - sizeof(AcropolisBridgeSpriteScratch));
     depth   = block;
@@ -4974,7 +4974,7 @@ static void func_acropolis_bridge_801833A0(GfxCoord* coord, u16 frame, s16 size)
     s8                            vTop;
     s8                            vBot;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
     block   = (AcropolisBridgeDebrisScratch*)(head - sizeof(AcropolisBridgeDebrisScratch));
     depth   = block;
@@ -5064,7 +5064,7 @@ static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }
@@ -7045,7 +7045,7 @@ static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
     u8*     head;
     VECTOR* pos;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     pos      = (VECTOR*)(head - 0x10);
     *scratch = pos;

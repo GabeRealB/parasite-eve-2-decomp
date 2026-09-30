@@ -61,7 +61,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// 0x60-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawAimCircle` to draw the
+/// 0x60-byte scratch from the scratch stack used by `Gp_DrawAimCircle` to draw the
 /// wireframe targeting sphere. `vec` is the point being rotated / projected,
 /// `mat` the rotation loaded into the GTE, `rx` / `ry` the two radii taken from
 /// the caller and `radius` the per-ring radius derived from them. `dp` / `flag`

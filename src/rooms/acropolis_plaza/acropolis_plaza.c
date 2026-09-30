@@ -69,7 +69,7 @@
 
 /// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
 /// origin, `sx` / `sy` its projected screen position, and `half` the radius
-/// scaled by inverse depth. The draw task takes 0x14 bytes from G_SCRATCH_HEAD.
+/// scaled by inverse depth. The draw task takes 0x14 bytes from the scratch stack.
 typedef struct AcropolisPlazaGlowScratch {
     /* 0x00 */ s32     otz;
     /* 0x04 */ s32     half;

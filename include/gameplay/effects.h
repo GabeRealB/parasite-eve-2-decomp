@@ -57,7 +57,7 @@ typedef struct _GpArcScratch {
 } GpArcScratch;
 STATIC_ASSERT_SIZEOF(GpArcScratch, 0x1C);
 
-/// 0x118-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawBandEx`. Holds
+/// 0x118-byte scratch from the scratch stack used by `Gp_DrawBandEx`. Holds
 /// the two 16-vertex rings of a shaded band: `inner[i]` is the ring of
 /// radius `arg1` and `outer[i]` the ring of radius `arg1 + arg2`, both built
 /// in the XZ plane by `rsin` / `rcos`, rotated by the coordinate's `workm`
@@ -148,7 +148,7 @@ typedef struct _GpQuadCorner {
 } GpQuadCorner;
 STATIC_ASSERT_SIZEOF(GpQuadCorner, 0x4);
 
-/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite7C` and
+/// 0x38-byte scratch from the scratch stack used by `Gp_DrawEffSprite7C` and
 /// `Room_Draw16`. `vec[]` holds the four rotated + translated quad corners
 /// fed to the GTE; `otz` is `gte_stszotz` (then incremented by the sprite
 /// helpers, not by `Room_Draw16`), `flag` is `gte_stflg`, and `sxy0` (RTPS

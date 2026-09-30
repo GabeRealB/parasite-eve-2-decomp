@@ -283,7 +283,7 @@ typedef struct Actor401300PursuitScratch {
 } Actor401300PursuitScratch;
 STATIC_ASSERT_SIZEOF(Actor401300PursuitScratch, 0x24);
 
-/// 0x24-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013E930` takes: the
+/// 0x24-byte scratch stack block `func_actor_401300_8013E930` takes: the
 /// offset to the player (full width for the distance, halfwords for the yaw),
 /// the clamped lunge range and the wrapped turn.
 typedef struct Actor401300LungeScratch {

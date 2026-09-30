@@ -754,7 +754,7 @@ static void func_actor_207200_8014AF2C(Task* arg0)
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
+/// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
 static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)

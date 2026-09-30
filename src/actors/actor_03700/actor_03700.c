@@ -89,7 +89,7 @@ typedef struct Actor103700Work {
     /* 0x26C */ u16                   field_26C;
 } Actor103700Work;
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn03130`:
+/// 0x2C-byte scratch from the scratch stack used by `Actor03700_Fn03130`:
 /// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
 typedef struct Actor103700HoldScratch {
     /* 0x00 */ GpDelayArg           query;
@@ -2128,7 +2128,7 @@ case1:
 /// accepted, starts the grab on the actor's animation slot (message 0x3FF) and
 /// flags `Actor103700Work::field_262`. The task's own unit is held for as long
 /// as `GameActor::field_954` stays out of mode 2; the two message buffers come
-/// from one 0x2C-byte `G_SCRATCH_HEAD` push.
+/// from one 0x2C-byte scratch stack push.
 static s32 Actor03700_Fn03130(Task* task)
 {
     Actor103700Work*        work;

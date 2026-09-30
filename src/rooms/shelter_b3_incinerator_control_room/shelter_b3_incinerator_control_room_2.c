@@ -417,7 +417,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);
@@ -549,7 +549,7 @@ static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -643,7 +643,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;

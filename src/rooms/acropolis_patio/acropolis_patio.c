@@ -1988,7 +1988,7 @@ void func_acropolis_patio_8017E100(Task* task)
 /// are clear), its animation column from bits 8-9, and that column's grey level
 /// from `D_acropolis_patio_8017D5E8` - and keeps only the anchor index. Every
 /// frame it projects the coordinate's translation through `GsWSMATRIX` into a
-/// 0x14-byte `G_SCRATCH_HEAD` block and, at `otz` 0x11 or further, queues one
+/// 0x14-byte scratch stack block and, at `otz` 0x11 or further, queues one
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
 /// `width * 39 / otz`, so the sprite shrinks with distance. The grey steps by
 /// 0x10 on the parity of `DisplayState::animFrame`, which is the flicker.
@@ -2007,7 +2007,7 @@ void func_acropolis_patio_8017E324(Task* task)
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block = (RoomShaftScratch*)*scratch;
         if (task->state == 0) {

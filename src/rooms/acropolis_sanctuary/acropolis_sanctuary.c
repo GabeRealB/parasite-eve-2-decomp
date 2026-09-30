@@ -150,7 +150,7 @@ typedef struct AcsBlockerShift {
 } AcsBlockerShift;
 
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
-/// `G_SCRATCH_HEAD`: `v` holds the three corners of the shard's triangle,
+/// the scratch stack: `v` holds the three corners of the shard's triangle,
 /// first scaled by `GpEffWork::angle` through the GTE's `gpf` interpolator
 /// and rotated by the task's own `workm`, then offset by that matrix's
 /// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
@@ -164,7 +164,7 @@ typedef struct AcsMosaicScratch {
 STATIC_ASSERT_SIZEOF(AcsMosaicScratch, 0x20);
 
 /// Per-frame scratch the sanctuary's mosaic-tile task builds at
-/// `G_SCRATCH_HEAD`: `v` holds the four corners of the tile's quad, each
+/// the scratch stack: `v` holds the four corners of the tile's quad, each
 /// rotated by the task's own `workm` and then offset by that matrix's
 /// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
 /// taken from. Unlike `AcsMosaicScratch` the corners are not scaled, because a
@@ -2020,7 +2020,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// Draws one frame of a whole mosaic tile: a semi-transparent textured quad
 /// whose four corners are the size class's own corner offsets, rotated by the
 /// task's own `workm` and then projected through `GsWSMATRIX` into an
-/// `AcsTileScratch` block taken from `G_SCRATCH_HEAD`. The first corner goes
+/// `AcsTileScratch` block taken from the scratch stack. The first corner goes
 /// through `rtps` and the other three through `rtpt`; tiles inside `otz` 0x11
 /// are dropped. The texture window is the tile's own `row` / `col` origin
 /// stretched by its `field_0` / `field_2` extent, so the quad shows its own
@@ -2060,7 +2060,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].quad;
     coord = arg0->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x28;
     blk      = (AcsTileScratch*)(head - 0x28);
@@ -2204,7 +2204,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// `D_acropolis_sanctuary_80182710`, scaled about the origin by the shard's
 /// size (`angle`) with the GTE's `gpf` interpolator and rotated by the
 /// task's own `workm`, then projected through `GsWSMATRIX` with `rtpt` into an
-/// `AcsMosaicScratch` block taken from `G_SCRATCH_HEAD`; shards inside `otz`
+/// `AcsMosaicScratch` block taken from the scratch stack; shards inside `otz`
 /// 0x11 are dropped. The texture window is the tile's `row` / `col` corner
 /// stretched by the same size factor, so the shard shows its own piece of the
 /// mosaic sheet.
@@ -2247,7 +2247,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         return;
     }
     Gp_UpdateCoord(coord);
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x20;
     blk      = (AcsMosaicScratch*)(head - 0x20);
@@ -2369,7 +2369,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 
 /// Draws one frame of the sanctuary's flame sprite. The task's coordinate is
 /// refreshed and projected through `GsWSMATRIX` into an `RoomShaftScratch` block
-/// taken from `G_SCRATCH_HEAD`; the projected point becomes the centre of a
+/// taken from the scratch stack; the projected point becomes the centre of a
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
 /// `field_24 * 0x27 / otz`, so the flame shrinks with distance and is dropped
 /// entirely inside `otz` 0x11. `Task::spawnArg1` is unpacked once, on the first
@@ -2398,7 +2398,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         *scratch = head - 0x14;
         blk      = (RoomShaftScratch*)(head - 0x14);

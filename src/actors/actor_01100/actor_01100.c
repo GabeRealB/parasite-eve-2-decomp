@@ -3183,7 +3183,7 @@ static void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 }
 
 /// Distance to actor slot 3, squared, through the scratch pool. Each access of
-/// `G_SCRATCH_HEAD` is its own inline so the address stays a rematerialized
+/// `SCRATCH_STACK_CURSOR_SLOT` is its own inline so the address stays a rematerialized
 /// `lui`/`lw` of `0x1F8003FC`, and the macro writes the caller's variable so
 /// the distance is one pseudo.
 static __inline__ u8* Actor104900_ScratchRead(void)

@@ -64,7 +64,7 @@
 extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
 /// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
-/// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
+/// from the scratch stack for one spark line. `a` / `b` are the two random
 /// endpoints, rotated by the coord's `workm` and offset by its translation;
 /// `otz` is `SZ3 >> 2` of the second `RTPS`, `flag` the GTE flag word (bit 31
 /// rejects the line), and `x0..y1` the two projected screen points.
@@ -81,7 +81,7 @@ typedef struct AhlpSparkScratch {
 STATIC_ASSERT_SIZEOF(AhlpSparkScratch, 0x20);
 
 /// 0x1C scratch block `func_acropolis_helicopter_landing_pad_80181064` takes
-/// from `G_SCRATCH_HEAD` for one lens-flare sprite. `pos` is the coord's
+/// from the scratch stack for one lens-flare sprite. `pos` is the coord's
 /// world translation, `otz` is `SZ3 >> 2` of the `RTPS`, `flag` the GTE flag
 /// word (bit 31 rejects the sprite), `sx` / `sy` the projected centre and
 /// `dx` / `dy` the rotated half-extents of the quad's two diagonals.
@@ -799,7 +799,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// non-zero (switching the slot off once it reaches 4) and unless the
 /// current view's bit is set in the light's
 /// `D_acropolis_helicopter_landing_pad_80184EE0` mask. Otherwise `pos` is
-/// projected through `gGfxViewCoord.workm` into a `G_SCRATCH_HEAD` block and,
+/// projected through `gGfxViewCoord.workm` into a scratch stack block and,
 /// when the GTE flag word is clean, the record is refreshed and two rings of
 /// flat-shaded `POLY_G4` fans are linked into the OT at the light's `otz`: 16
 /// wedges of the outer radius (a dim `level >> 1` layer under a `level` one)
@@ -832,7 +832,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
         if (mask == 0) {
             return;
         }
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         *scratch = head - 0x14;
         blk      = (RoomDraw05Scratch*)(head - 0x14);
@@ -1019,7 +1019,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             }
             arg0->state++;
         }
-        scratch     = (void**)G_SCRATCH_HEAD;
+        scratch     = SCRATCH_STACK_CURSOR_SLOT;
         head        = *scratch;
         *scratch    = head - 0x1C;
         blk         = (AhlpFlareScratch*)(head - 0x1C);
@@ -1219,7 +1219,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     u16               lvl;
 
     Gp_UpdateCoord(coord);
-    scratch     = (void**)G_SCRATCH_HEAD;
+    scratch     = SCRATCH_STACK_CURSOR_SLOT;
     head        = *scratch;
     *scratch    = head - 0x20;
     blk         = (AhlpSparkScratch*)(head - 0x20);
@@ -1293,7 +1293,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     u16               lvl;
 
     Gp_UpdateCoord(coord);
-    scratch     = (void**)G_SCRATCH_HEAD;
+    scratch     = SCRATCH_STACK_CURSOR_SLOT;
     head        = *scratch;
     *scratch    = head - 0x20;
     blk         = (AhlpSparkScratch*)(head - 0x20);
@@ -1463,7 +1463,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             mem->move.vz = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
             arg0->state++;
         }
-        scratch     = (void**)G_SCRATCH_HEAD;
+        scratch     = SCRATCH_STACK_CURSOR_SLOT;
         head        = *scratch;
         *scratch    = head - 0x1C;
         blk         = (AhlpFlareScratch*)(head - 0x1C);
@@ -1586,7 +1586,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// `rec`: adds its integer part to X and Z, rounds a fractional remainder of
 /// X or Z one unit away from zero, and keeps the applied delta in
 /// `D_acropolis_helicopter_landing_pad_80187F88`. Returns 1 when the delta's
-/// X or Z is non-zero. Works in a 0x14 block from `G_SCRATCH_HEAD`.
+/// X or Z is non-zero. Works in a 0x14 block from the scratch stack.
 static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;

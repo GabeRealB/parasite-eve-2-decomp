@@ -798,7 +798,7 @@ static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0xC);
         block   = (RoomDraw25Scratch*)tmp;
@@ -922,7 +922,7 @@ static void func_neo_ark_bridge_8017F0C4(GfxCoord* arg0, s32 arg1, s32 arg2)
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -1129,7 +1129,7 @@ static void func_neo_ark_bridge_8017F8B4(GfxCoord* arg0, s32 arg1, s32 arg2, s32
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);

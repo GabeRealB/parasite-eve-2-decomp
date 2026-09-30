@@ -1050,7 +1050,7 @@ static void func_dryfield_underpass_8017DB20(GfxCoord* arg0, SVECTOR* arg1, s32 
     s32               rgb;
     s16               xy;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x14;
     block    = (RoomShaftScratch*)(head - 0x14);

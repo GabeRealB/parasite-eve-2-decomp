@@ -2277,15 +2277,15 @@ static void func_actor_521100_80133104(Task* arg0)
     u32              rng;
     Actor521100Work* work;
 
-    head                                       = ((ActorScratchStack*)G_SCRATCH_HEAD)->head;
-    vec                                        = head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = vec;
-    work                                       = arg0->work;
-    frame                                      = (s16)work->field_68A;
-    clipPtr                                    = &D_actor_521100_8015F894[work->field_686];
-    clip                                       = *clipPtr;
-    clipId                                     = (u16)*clipPtr;
-    coord                                      = arg0->extra.tmd->coords;
+    head                                                  = ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head;
+    vec                                                   = head - 1;
+    ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head = vec;
+    work                                                  = arg0->work;
+    frame                                                 = (s16)work->field_68A;
+    clipPtr                                               = &D_actor_521100_8015F894[work->field_686];
+    clip                                                  = *clipPtr;
+    clipId                                                = (u16)*clipPtr;
+    coord                                                 = arg0->extra.tmd->coords;
     if (frame == (clip + 0x1A)) {
         effect      = 0x60188;
         kind        = 0xC;
@@ -2336,7 +2336,7 @@ static void func_actor_521100_80133104(Task* arg0)
         work->field_6AE = 0;
         work->field_68E = part;
     }
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = (SVECTOR*)((ActorScratchStack*)G_SCRATCH_HEAD)->head + 1;
+    ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head = (SVECTOR*)((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head + 1;
 }
 
 /// Runs one frame of the burn-out sequence timed off the clip the slots are

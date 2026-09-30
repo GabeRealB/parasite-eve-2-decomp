@@ -7,7 +7,7 @@
 #include "common.h"
 
 /// 0x90-byte scratchpad frame `ActorsShared80163354` carves off
-/// `G_SCRATCH_HEAD` to draw a textured quad between two model parts: both
+/// the scratch stack to draw a textured quad between two model parts: both
 /// parts' view-space matrices, their positions, the four widened corners and
 /// `RotTransPers4`'s outputs.
 typedef struct ActorsShared80163354Scratch {

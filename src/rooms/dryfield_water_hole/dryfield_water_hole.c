@@ -1741,7 +1741,7 @@ static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVE
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x28;
         *scratch = tmp;
@@ -1909,7 +1909,7 @@ static void func_dryfield_water_hole_8017EDE4(GfxCoord* arg0, s32 arg1, s32 arg2
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

@@ -3338,7 +3338,7 @@ static inline void Actor402200_DrawShadow(Task* arg0)
 
 /// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
 /// coordinates, tint and shadow and mode 2 hides the model, both returning
-/// without giving back the 8-byte `G_SCRATCH_HEAD` block. Otherwise the
+/// without giving back the 8-byte scratch stack block. Otherwise the
 /// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
 /// state 1 sprays a randomly angled effect every fourth frame, and state 2
 /// projects the actor before moving on to 3.

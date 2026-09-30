@@ -2650,7 +2650,7 @@ static __inline__ s32 Actor401000_HasHeightClamp(GameLocationKey* session)
 }
 
 /// Root-coordinate step, the 401000 twin of `func_actor_401300_80132C78`:
-/// carve the 0x20-byte `ActorStepDelta` off `G_SCRATCH_HEAD`, fill its delta
+/// carve the 0x20-byte `ActorStepDelta` off the scratch stack, fill its delta
 /// from the `rec` obstacle record, clamp the Y step to ±0x12C while a
 /// height-clamp row matches, hand the XZ step to the GTE normalisation once it
 /// passes 0x96, and step the root coordinate by each component. Reports
@@ -2917,7 +2917,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
 }
 
 /// Turn-aim state body, the 401000 twin of `Actor01900_Fn04D14`: take a 0x10
-/// chase scratch off `G_SCRATCH_HEAD` and, on the live-actor flag, key the
+/// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// two animation nodes, the frame counter and the `field_C06` clip phase.
 /// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
 /// toward `gameGetPtrSlot(3)` goes in `playerYaw`, the wrapped yaw toward
@@ -3054,7 +3054,7 @@ static void func_actor_401000_801365C8(Task* arg0)
 }
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_801376E4`: carve the
-/// chase scratch off `G_SCRATCH_HEAD`, and while the live-actor flag is up
+/// chase scratch off the scratch stack, and while the live-actor flag is up
 /// reset the display nodes and rebuild the actor's facing. The turn direction
 /// comes off the wrapped yaw toward the player, the yaw itself out of the
 /// root's own rotation, and the pair (`field_C00` / `field_C02`) is what the
@@ -3147,7 +3147,7 @@ static void func_actor_401000_80136E20(Task* arg0)
 }
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_80137D78`: carve the
-/// aim scratch off `G_SCRATCH_HEAD`, and while the live-actor flag is up reset
+/// aim scratch off the scratch stack, and while the live-actor flag is up reset
 /// the display nodes and rebuild the actor's facing. The turn direction
 /// (`field_C08`) is drawn from `Gp_LcgState` on the first entry, and each entry
 /// swings the facing toward the player by `field_C12` plus a 0x171 bias until
@@ -3897,7 +3897,7 @@ static void func_actor_401000_801394EC(Task* arg0)
 }
 
 /// Walk the actor at the player: on the live-actor flag it restarts the
-/// 0x12 clip and clears the spawn pose, then takes a 0xC-byte `G_SCRATCH_HEAD`
+/// 0x12 clip and clears the spawn pose, then takes a 0xC-byte scratch stack
 /// turn block, aims it at `Player_Status.coordMtx` through
 /// `actorPositionYaw`, clamps the turn to +-0x40 and adds the facing
 /// yaw back in before rebuilding the root coordinate. The obstacle walk

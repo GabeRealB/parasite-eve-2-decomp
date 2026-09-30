@@ -1796,7 +1796,7 @@ static void func_shelter_b2_septic_tank_8017F194(GfxCoord* arg0, s32 arg1, s32 a
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -2007,7 +2007,7 @@ static void func_shelter_b2_septic_tank_8017F984(GfxCoord* arg0, s32 arg1, s32 a
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -2126,7 +2126,7 @@ static void func_shelter_b2_septic_tank_80180054(SVECTOR* arg0, s32 arg1, s32 ar
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -2275,7 +2275,7 @@ static void func_shelter_b2_septic_tank_8018083C(SVECTOR* worldPoint, s32 radius
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - sizeof(*block));
         block   = (RoomDraw25Scratch*)tmp;

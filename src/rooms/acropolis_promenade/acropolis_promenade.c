@@ -2014,7 +2014,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// One frame of the promenade's twinkling star: two semi-transparent
 /// `POLY_FT4`s stacked on the same screen point, centred on the task's own
 /// coordinate frame. The frame's translation is projected through `GsWSMATRIX`
-/// into a 0x18-byte `G_SCRATCH_HEAD` block, and both quads are dropped
+/// into a 0x18-byte scratch stack block, and both quads are dropped
 /// entirely inside `otz` 0x11.
 ///
 /// The lower quad is upright, of half-extent `0x1680 / otz`, and animates
@@ -2044,7 +2044,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     work->age   = task->spawnArg1.value;
-    scratch     = (void**)G_SCRATCH_HEAD;
+    scratch     = SCRATCH_STACK_CURSOR_SLOT;
     head        = *scratch;
     blk         = (OverlaySpriteScratch*)(head - 0x18);
     otzp        = &blk->otz;
@@ -2129,7 +2129,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 /// `D_acropolis_promenade_80181AE4` are scaled to +/-0x300 in `vx` / `vz` (with
 /// `vy` left at zero, so the quad is horizontal), rotated by the task's own
 /// `workm`, offset by that matrix's translation and then projected through
-/// `GsWSMATRIX` into an `RoomQuadScratch` block taken from `G_SCRATCH_HEAD`. The
+/// `GsWSMATRIX` into an `RoomQuadScratch` block taken from the scratch stack. The
 /// first corner goes through `rtps` and the other three through `rtpt`, the
 /// same split the sanctuary's mosaic tiles use.
 ///
@@ -2156,7 +2156,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    scratch   = (void**)G_SCRATCH_HEAD;
+    scratch   = SCRATCH_STACK_CURSOR_SLOT;
     head      = *scratch;
     work->age = task->spawnArg1.value;
     *scratch  = head - 0x24;
@@ -2217,7 +2217,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 
 /// Glow sprite task: queues one camera-facing, semi-transparent `POLY_FT4`
 /// centred on the task's coordinate frame. The frame's translation is
-/// projected through `GsWSMATRIX` into a 0x14-byte `G_SCRATCH_HEAD` block, and
+/// projected through `GsWSMATRIX` into a 0x14-byte scratch stack block, and
 /// the quad is a square of half-extent `0x6180 / otz` around the projected
 /// point, so it shrinks with distance; nothing is drawn at `otz` 0x10 or less.
 ///
@@ -2327,7 +2327,7 @@ static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }

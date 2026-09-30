@@ -649,7 +649,7 @@ static void func_shelter_1f_bulwark_8017DF00(SVECTOR* worldPoint, s32 radiusScal
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - sizeof(*block));
         block   = (RoomDraw25Scratch*)tmp;

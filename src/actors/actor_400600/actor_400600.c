@@ -197,7 +197,7 @@ typedef struct Actor400600Work {
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
 /// 0x3C-byte scratchpad frame `func_actor_400600_801383E4` carves off
-/// `G_SCRATCH_HEAD`: the four widened corners of the quad and
+/// the scratch stack: the four widened corners of the quad and
 /// `RotTransPers4`'s outputs. Same tail as `ActorsShared80163354Scratch`.
 typedef struct Actor400600QuadScratch {
     /* 0x00 */ SVECTOR corner0;
@@ -1645,7 +1645,7 @@ static inline void     _actor400600SetCoordRotation(GfxCoord* coord, s16 angle);
 
 /// `func_actor_400600_80139948`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
-/// `G_SCRATCH_HEAD` access in the absolute `lui`/`lw` form instead of a
+/// the cursor slot access in the absolute `lui`/`lw` form instead of a
 /// register CSE would otherwise hoist the address into.
 static __inline__ void Actor400600_RebuildRotation(Task* arg0)
 {
@@ -4854,7 +4854,7 @@ static void func_actor_400600_801398E0(Task* arg0)
 
 /// Wraps the actor's pitch, yaw and roll (`field_80`, `field_82`, `field_84`)
 /// to 12 bits and rebuilds the model root's rotation from them: an identity
-/// matrix taken off `G_SCRATCH_HEAD` is turned by roll, pitch and then yaw,
+/// matrix taken off the scratch stack is turned by roll, pitch and then yaw,
 /// and its 3x3 copied into the root coordinate, whose translation is left
 /// alone.
 static void func_actor_400600_80139948(Task* arg0)
@@ -5149,7 +5149,7 @@ static void func_actor_400600_8013A26C(Task* arg0)
 }
 
 /// Colours the actor from its model's second coordinate: takes a 0x10-byte
-/// `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's world
+/// `VECTOR` off the scratch stack, fills it with that coordinate's world
 /// position and hands it to `Gp_UpdateActorColor` for the task's `spawnArg2`,
 /// with no blend parameters.
 static void func_actor_400600_8013A2C0(Task* task)

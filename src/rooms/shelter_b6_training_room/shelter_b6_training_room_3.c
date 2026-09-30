@@ -53,7 +53,7 @@ STATIC_ASSERT_SIZEOF(ShelterB6TrainingRoomRingStorage, 20);
 extern ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404;
 
 /// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
-/// `G_SCRATCH_HEAD`: the two world points the textured strip joins, the first
+/// the scratch stack: the two world points the textured strip joins, the first
 /// point's projected depth, the GTE flag of the latest projection, the strip's
 /// perspective-scaled half-width rotated into screen space, and both points'
 /// screen positions.
@@ -69,7 +69,7 @@ typedef struct {
 } _ShelterB6TrainingRoomRibbonScratch;
 
 /// Scratchpad block `func_shelter_b6_training_room_80181368` takes from
-/// `G_SCRATCH_HEAD`: the six world-space points of the band's raised rim and of
+/// the scratch stack: the six world-space points of the band's raised rim and of
 /// its ground rim, then the projected depth, GTE flag and packed screen
 /// positions of the quad being emitted (`sxy0` for `top[i]`, `sxy1`..`sxy3`
 /// for `top[i + 1]`, `base[i]` and `base[i + 1]`).
@@ -513,7 +513,7 @@ static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);
@@ -870,7 +870,7 @@ static void func_shelter_b6_training_room_8017F540(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -1043,7 +1043,7 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
     if (D_shelter_b6_training_room_80185C90 == NULL) {
         return;
     }
-    scratch        = (void**)G_SCRATCH_HEAD;
+    scratch        = SCRATCH_STACK_CURSOR_SLOT;
     head           = *scratch;
     block          = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->base.vx = D_shelter_b6_training_room_80185C90->workm.t[0];
@@ -1180,7 +1180,7 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
     if (Gp_TraceGroundCoord(from, &c0) != 1 || Gp_TraceGroundCoord(to, &c1) != 1) {
         return;
     }
-    scratch        = (void**)G_SCRATCH_HEAD;
+    scratch        = SCRATCH_STACK_CURSOR_SLOT;
     head           = *scratch;
     block          = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->base.vx = c0.workm.t[0];
@@ -1459,7 +1459,7 @@ static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GfxCoord* coo
     height   = period + (u16)shape->yOff;
     rBase   += (u16)shape->rInner;
     rTop     = rBase + mem->step + (u16)shape->rExtra;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = (u8*)*scratch;
     *scratch = head - 0x78;
     block    = (_ShelterB6TrainingRoomBandScratch*)(head - 0x78);
@@ -1606,7 +1606,7 @@ static void func_shelter_b6_training_room_80181BAC(GfxCoord* coord, s16 arg1, s1
     s16              u;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -1672,7 +1672,7 @@ static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg
     s16                                  ang;
     u16                                  vz;
 
-    scratch                                                        = (void**)G_SCRATCH_HEAD;
+    scratch                                                        = SCRATCH_STACK_CURSOR_SLOT;
     head                                                           = *scratch;
     ((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->from.vx = (u16)arg0->workm.t[0];
     block                                                          = (_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28);

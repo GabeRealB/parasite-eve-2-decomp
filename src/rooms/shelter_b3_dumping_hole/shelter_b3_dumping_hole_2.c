@@ -4273,7 +4273,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);
@@ -4885,7 +4885,7 @@ static void func_shelter_b3_dumping_hole_801866CC(GfxCoord* arg0, u16 arg1, s16 
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);

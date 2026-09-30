@@ -85,7 +85,7 @@ typedef union Actor405800Flags83C {
 } Actor405800Flags83C;
 STATIC_ASSERT_SIZEOF(Actor405800Flags83C, 0x4);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_405800_80133800`
+/// 0x18-byte scratch from the scratch stack used by `func_actor_405800_80133800`
 /// to project the third model part's origin. `vec` is the zero vector fed to
 /// RTPS through that part's `workm`; `sxy` is `gte_stsxy`, `p` is `gte_stdp`,
 /// `flag` is `gte_stflg`, and `otz` is `gte_stszotz`.
@@ -1482,7 +1482,7 @@ static __inline__ void _actor405800SetBehaviour(Task* task, s16 id);
 
 /// `func_actor_405800_80139FC4`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
-/// `G_SCRATCH_HEAD` access in the absolute `lui`/`lw` form instead of a
+/// the cursor slot access in the absolute `lui`/`lw` form instead of a
 /// register CSE would otherwise hoist the address into.
 static __inline__ void Actor405800_RebuildRotation(Task* arg0)
 {
@@ -4422,7 +4422,7 @@ static void func_actor_405800_80138788(Task* arg0)
 }
 
 /// Colours the actor from its model's second coordinate: takes a 0x10-byte
-/// `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's world
+/// `VECTOR` off the scratch stack, fills it with that coordinate's world
 /// position and hands it to `Gp_UpdateActorColor` for the task's `spawnArg2`,
 /// with no blend parameters.
 static void func_actor_405800_801387DC(Task* task)
@@ -5365,7 +5365,7 @@ static void func_actor_405800_80139FB0(Task* task, s16 arg1)
 
 /// Wraps the actor's pitch, yaw and roll (`field_80`, `field_82`, `field_84`)
 /// to 12 bits and rebuilds the model root's rotation from them: an identity
-/// matrix taken off `G_SCRATCH_HEAD` is turned by roll, pitch and then yaw,
+/// matrix taken off the scratch stack is turned by roll, pitch and then yaw,
 /// and its 3x3 copied into the root coordinate, whose translation is left
 /// alone.
 static void func_actor_405800_80139FC4(Task* arg0)

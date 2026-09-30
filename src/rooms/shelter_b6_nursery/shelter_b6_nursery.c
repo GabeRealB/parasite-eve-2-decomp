@@ -1420,7 +1420,7 @@ static void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -1513,7 +1513,7 @@ static void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;
@@ -1875,7 +1875,7 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
     u16              col;
     u16              row;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -1939,7 +1939,7 @@ static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);

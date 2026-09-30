@@ -66,7 +66,7 @@
 #include "rooms/room_common.h"
 
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
-/// `G_SCRATCH_HEAD`: the projected centre `sx` / `sy`, its `otz` and GTE
+/// the scratch stack: the projected centre `sx` / `sy`, its `otz` and GTE
 /// `flag`, and the on-screen `radius`. Nothing here reads the bytes between
 /// `radius` and `sx`, so what the block keeps there is unknown.
 typedef struct {
@@ -1781,7 +1781,7 @@ static void func_shelter_b2_laboratory_80180AB4(SVECTOR* arg0, s32 arg1, s32 arg
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);
@@ -1912,7 +1912,7 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
         block   = (_DrawScratch*)tmp;
@@ -2006,7 +2006,7 @@ static void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;

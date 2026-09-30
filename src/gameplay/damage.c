@@ -29,7 +29,7 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_RollEnemyChance`.
+/// 0x20-byte scratch from the scratch stack used by `Gp_RollEnemyChance`.
 /// `local` first holds `GpEnemy.bodyPos`, which `field_18->workm` rotates
 /// into `world`; `world` then gets `workm.t[]` added to become a world
 /// position, and `local` is reused for the delta against the player

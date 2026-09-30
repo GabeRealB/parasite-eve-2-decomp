@@ -476,7 +476,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
 /// Draws one mote of the room's ambient effect: the unit quad `D_80111E38`
 /// scaled by `arg1`, rotated by the mote's own coordinate and offset by its
 /// world translation, then projected through `GsWSMATRIX` (the first corner
-/// with `rtps`, the other three with `rtpt`) in a 0x38-byte `G_SCRATCH_HEAD`
+/// with `rtps`, the other three with `rtpt`) in a 0x38-byte scratch stack
 /// block. When the GTE flag is non-negative it queues one `POLY_FT4` (tpage
 /// 0x2B, clut 0x4390, an 8x8 texel tile at 0,0x28). `arg2` is the fade level:
 /// zero draws the raw texture, otherwise the quad is semi-transparent and
@@ -602,7 +602,7 @@ static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 ar
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -812,7 +812,7 @@ static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 ar
     s32              ang2;
     u16              vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     TOUCH_REG_USE(arg2, scratch);
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];

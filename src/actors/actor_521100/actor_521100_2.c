@@ -597,7 +597,7 @@ static void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 
     func_actor_521100_80136290(spawnArg2, task);
 }
-/// The scale-in's colour step: takes a 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`,
+/// The scale-in's colour step: takes a 0x10-byte `VECTOR` off the scratch stack,
 /// fills it with the world position of the model's *second* attach coordinate
 /// (the one the shrink is scaling) and hands it to `Gp_UpdateActorColor` as the
 /// colour target. The same draw then overwrites the three components with
@@ -778,7 +778,7 @@ static void func_actor_521100_80136820(void)
 }
 
 /// Scale-in step body, run while `field_484` is 1: takes a 0x30-byte scratch
-/// from `G_SCRATCH_HEAD`, splats an identity rotation into it and hands it to
+/// from the scratch stack, splats an identity rotation into it and hands it to
 /// `ScaleMatrix` with a `(0x1000, field_488, 0x1000)` vector, then multiplies
 /// the product into the attach coordinate whose rotation step 0 snapshotted
 /// into `field_48C`. The scale drops 0x10 a frame; under 0x101 the step

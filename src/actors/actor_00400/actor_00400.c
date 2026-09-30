@@ -99,7 +99,7 @@ typedef struct Actor100400MarkerWork {
 } Actor100400MarkerWork;
 STATIC_ASSERT_SIZEOF(Actor100400MarkerWork, 0x64);
 
-/// 0x1C-byte scratch `Actor00400_Fn03318` carves off `G_SCRATCH_HEAD` to hold
+/// 0x1C-byte scratch `Actor00400_Fn03318` carves off the scratch stack to hold
 /// `RotTransPers4`'s outputs for the quad it projects: the four screen-space
 /// corners, the perspective term, the clip flags and the average depth used as
 /// the OT key.
@@ -119,7 +119,7 @@ STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
 /// steers toward; `field_6` selects the kind, where 1 is only eligible for
 /// the record `field_64A` already points at.
 
-/// 0x1C-byte scratch taken off `G_SCRATCH_HEAD` by `Actor00400_Fn031A4` while
+/// 0x1C-byte scratch taken off the scratch stack by `Actor00400_Fn031A4` while
 /// it searches `Actor100400Work.field_608` for the nearest record: `delta`
 /// holds the XZ difference from `field_5E4`, `best` the smallest distance seen
 /// so far and `index` the record being tested.
@@ -3041,7 +3041,7 @@ static void Actor00400_Fn03920(Task* arg0)
 }
 
 /// Colours the actor from the second attach coordinate of its model through a
-/// 0x10-byte `VECTOR` taken off `G_SCRATCH_HEAD`, then hides the root
+/// 0x10-byte `VECTOR` taken off the scratch stack, then hides the root
 /// coordinate while `field_65F` is set.
 static __inline__ void Actor00400_UpdateColor(Task* arg0, GfxCoord* coord,
                                               Actor100400Work* work, TmdObject* ctx)

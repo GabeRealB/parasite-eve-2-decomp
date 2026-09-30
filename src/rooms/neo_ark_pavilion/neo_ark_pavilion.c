@@ -2008,7 +2008,7 @@ static void func_neo_ark_pavilion_8017ED98(GfxCoord* arg0, s32 arg1, s32 arg2)
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -2215,7 +2215,7 @@ static void func_neo_ark_pavilion_8017F588(GfxCoord* arg0, s32 arg1, s32 arg2, s
     s32              ang2;
     u16              vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     TOUCH_REG_USE(arg2, scratch);
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
@@ -3113,7 +3113,7 @@ static void func_neo_ark_pavilion_801823C0(GfxCoord* arg0, s32 arg1, s32 arg2, s
     u16            vz;
 
     tex                                     = arg1;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -3459,7 +3459,7 @@ static void func_neo_ark_pavilion_801834D4(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

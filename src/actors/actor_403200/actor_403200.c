@@ -2996,7 +2996,7 @@ static __inline__ void Actor403200_StepForward(GfxCoord* coord)
 /// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
 /// the rotation from it and `ScaleMatrix` applies `xz` on both horizontal axes
 /// and `y` on the vertical one. The working matrix lives in a frame carved off
-/// `G_SCRATCH_HEAD`, handed back once the rotation has been copied onto the
+/// the scratch stack, handed back once the rotation has been copied onto the
 /// coordinate; as an inline the scratch-head accesses stay absolute.
 static __inline__ void Actor403200_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
 {
@@ -5520,7 +5520,7 @@ static void func_actor_403200_80137CCC(GpEnemy* enemy, Task* task)
 /// only yaws in place -- 0x40 on phase 1 and -0x3C on phase 3 of every four
 /// frames -- and nothing else happens. Once it reaches zero the enemy homes on
 /// `D_actor_403200_8015F8F8`: the offset from the model root to that point is
-/// squared against `field_98` in a `VECTOR3` borrowed off `G_SCRATCH_HEAD`, and
+/// squared against `field_98` in a `VECTOR3` borrowed off the scratch stack, and
 /// the task steps on when the enemy is inside that radius. `field_96` then ties
 /// the spin rate to the step count (`field_98 += field_96 / 8`), the offset is
 /// normalised and scaled by `field_98` through the GTE's `gpf` interpolator, and

@@ -2498,7 +2498,7 @@ static void Actor07000_Fn029F0(Task* arg0, GfxCoord* arg1)
     MATRIX*            matrix;
     Actor107000Work*   work;
 
-    scratch = (ActorScratchStack*)G_SCRATCH_HEAD;
+    scratch = (ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT;
     vec     = scratch->head;
     work    = arg0->work;
     vec--;

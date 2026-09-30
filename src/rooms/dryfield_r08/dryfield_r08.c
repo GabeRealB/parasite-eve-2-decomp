@@ -942,7 +942,7 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDiscScratch*)tmp;
     }

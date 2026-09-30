@@ -767,7 +767,7 @@ static void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);
@@ -1488,7 +1488,7 @@ static void func_mine_secret_passage_80180020(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

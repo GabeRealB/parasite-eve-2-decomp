@@ -2021,7 +2021,7 @@ static void func_shelter_b4_reservoir_80180530(GfxCoord* arg0, s32 arg1, s32 arg
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -2231,7 +2231,7 @@ static void func_shelter_b4_reservoir_80180D20(GfxCoord* arg0, s32 arg1, s32 arg
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -2401,7 +2401,7 @@ static void func_shelter_b4_reservoir_80181668(GfxCoord* coord, u16 frame, s16 s
     s16            xy;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -2485,7 +2485,7 @@ static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);
@@ -2624,7 +2624,7 @@ static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }
@@ -2947,7 +2947,7 @@ static void func_shelter_b4_reservoir_80183298(GfxCoord* arg0, s32 arg1, s32 arg
     u16            vz;
 
     tex                                     = arg1;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -3289,7 +3289,7 @@ static void func_shelter_b4_reservoir_801843AC(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

@@ -45,7 +45,7 @@ typedef struct TonfaSwing {
 } TonfaSwing;
 STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
 
-/// 0x2C-byte scratch `func_tonfa_baton_8011D6B0` carves off `G_SCRATCH_HEAD`
+/// 0x2C-byte scratch `func_tonfa_baton_8011D6B0` carves off the scratch stack
 /// for one trail segment: `v` is the quad's four corners, taken from the
 /// translation of the two trail coordinates at each end of the segment, `flag`
 /// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its

@@ -70,7 +70,7 @@ s16 func_actor_510900_8013BE84(Task*);
 // Only the leading view ID is read; retain the following halfwords.
 extern u16 D_actor_510900_80167CE4[4];
 
-/// 0x10-byte scratch `func_actor_510900_80138F44` takes from `G_SCRATCH_HEAD`
+/// 0x10-byte scratch `func_actor_510900_80138F44` takes from the scratch stack
 /// to rebuild the collision face this actor occupies. `center` starts as the
 /// fixed local offset of the body's footprint and becomes that offset rotated
 /// into world space, translated by the actor coordinate and clamped to the
@@ -108,7 +108,7 @@ typedef struct Actor510900ChildAnim {
 } Actor510900ChildAnim;
 STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
 
-/// 0x18 scratch block `func_actor_510900_8013A9BC` takes from `G_SCRATCH_HEAD`
+/// 0x18 scratch block `func_actor_510900_8013A9BC` takes from the scratch stack
 /// for the frame it starts the grab on; only the trailing `SVECTOR` is used,
 /// as the spawn argument of both effects.
 typedef struct Actor510900GrabScratch {
@@ -137,7 +137,7 @@ typedef struct Actor510900ChildFx {
 } Actor510900ChildFx;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
 
-/// 0x28-byte scratch `func_actor_510900_80139C10` takes from `G_SCRATCH_HEAD`
+/// 0x28-byte scratch `func_actor_510900_80139C10` takes from the scratch stack
 /// every frame the child effect turns: `rot` is the yaw it spins by (and then
 /// the offset the trail effect is spawned along), `mtx` the rotation
 /// `RotMatrix` builds from it and composes into the coordinate.
@@ -147,7 +147,7 @@ typedef struct Actor510900ChildFxTickScratch {
 } Actor510900ChildFxTickScratch;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFxTickScratch, 0x28);
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_510900_8013A310`:
+/// 0x2C-byte scratch from the scratch stack used by `func_actor_510900_8013A310`:
 /// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
 typedef struct Actor510900HitScratch {
     /* 0x00 */ GpDelayArg           query;

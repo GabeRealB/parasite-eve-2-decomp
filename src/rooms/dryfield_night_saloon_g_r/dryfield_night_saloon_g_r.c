@@ -2521,7 +2521,7 @@ static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord)
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x24;
         *scratch = tmp;
@@ -2631,7 +2631,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x28;
         *scratch = tmp;

@@ -3193,7 +3193,7 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -3342,7 +3342,7 @@ static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s3
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - sizeof(*block));
         block   = (RoomDraw25Scratch*)tmp;
@@ -3475,7 +3475,7 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -3569,7 +3569,7 @@ static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;

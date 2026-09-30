@@ -426,7 +426,7 @@ static void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s3
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -1121,7 +1121,7 @@ static void func_shelter_b1_transfer_tunnel_8017FAC0(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

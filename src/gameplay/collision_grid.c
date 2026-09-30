@@ -18,7 +18,7 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
+/// 0x40-byte scratch from the scratch stack used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
 /// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
 /// results passed to `func_800DE2C0`.
@@ -30,7 +30,7 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `func_800DE2C0`.
+/// 0x28-byte scratch from the scratch stack used by `func_800DE2C0`.
 /// `vec` is the XZ endpoint difference, normalised into `nrm`. `cell`
 /// holds a grid-cell centre; `d` holds the endpoint extension or the
 /// distance from the cell centre to the point or segment being marked.
@@ -42,7 +42,7 @@ typedef struct _GpMarkScratch {
 } GpMarkScratch;
 STATIC_ASSERT_SIZEOF(GpMarkScratch, 0x28);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DE7CC`.
+/// 0x40-byte scratch from the scratch stack used by `func_800DE7CC`.
 /// `from` / `to` are the two probe endpoints promoted to VECTOR; `delta`
 /// is `from - to`, normalised into `dir` for `func_800DD324`; `hit` is the
 /// intersection that function writes back, which becomes the next `from`.
@@ -55,7 +55,7 @@ typedef struct _GpRayHitScratch {
 } GpRayHitScratch;
 STATIC_ASSERT_SIZEOF(GpRayHitScratch, 0x40);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEC80`.
+/// 0x18-byte scratch from the scratch stack used by `func_800DEC80`.
 /// `local` is `GpObj.ctx.d4rec` as `SVECTOR[2]` plus `GpObj.pos`,
 /// rotated by `coord->workm` into `vec` then added to `workm.t`.
 /// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
@@ -65,7 +65,7 @@ typedef struct _GpNormScratch {
 } GpNormScratch;
 STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
 
-/// 0x98-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEF80`.
+/// 0x98-byte scratch from the scratch stack used by `func_800DEF80`.
 /// Transformed quad corners and normal are tested against `nodePos`;
 /// `delta` and `cross` hold each edge's separating-plane calculation.
 typedef struct _GpQuadHitScratch {
@@ -79,7 +79,7 @@ typedef struct _GpQuadHitScratch {
 } GpQuadHitScratch;
 STATIC_ASSERT_SIZEOF(GpQuadHitScratch, 0x98);
 
-/// 0x80-byte scratch from `G_SCRATCH_HEAD` used by `func_800DFCCC`.
+/// 0x80-byte scratch from the scratch stack used by `func_800DFCCC`.
 /// `origin` holds the transformed quad origin, then the segment-plane hit.
 /// `edge` and `cross` hold each edge's separating-plane calculation.
 typedef struct _GpFaceHitScratch {
@@ -91,7 +91,7 @@ typedef struct _GpFaceHitScratch {
 } GpFaceHitScratch;
 STATIC_ASSERT_SIZEOF(GpFaceHitScratch, 0x80);
 
-/// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C` and
+/// 0x50-byte scratch from the scratch stack used by `func_800DDC2C` and
 /// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
 /// `GpObj.pos` offset by `ctx.dir->motionDirection` scaled by
 /// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `ctx.d4rec`
@@ -106,7 +106,7 @@ typedef struct _GpEdgeScratch {
 } GpEdgeScratch;
 STATIC_ASSERT_SIZEOF(GpEdgeScratch, 0x50);
 
-/// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DD940`.
+/// 0x50-byte scratch from the scratch stack used by `func_800DD940`.
 /// `seg` holds the object's vertical world-space segment, `origin` saves its
 /// first endpoint, and `ray` holds the direction and the latest intersection.
 /// `delta` measures the displacement from `origin` to that intersection.
@@ -118,7 +118,7 @@ typedef struct _GpFloorScratch {
 } GpFloorScratch;
 STATIC_ASSERT_SIZEOF(GpFloorScratch, 0x50);
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDDF8`.
+/// 0x30-byte scratch from the scratch stack used by `func_800DDDF8`.
 /// `pos` holds the world-space segment from `func_800DEC80`; `ray[0]`
 /// is its normalized direction and `ray[1]` receives the intersection
 /// from `func_800DD324` before it is copied into a collision record.
@@ -128,7 +128,7 @@ typedef struct _GpSegmentHitScratch {
 } GpSegmentHitScratch;
 STATIC_ASSERT_SIZEOF(GpSegmentHitScratch, 0x30);
 
-/// 0xB0-byte scratch from `G_SCRATCH_HEAD` used by `func_800DF6AC`: the
+/// 0xB0-byte scratch from the scratch stack used by `func_800DF6AC`: the
 /// quad-test block `func_800DEF80` works in, followed by `dir`, the normalised
 /// offset of the object's origin from the point the caller passes. The test
 /// goes no further unless `dir` points against the quad's normal.

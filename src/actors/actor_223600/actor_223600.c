@@ -1189,9 +1189,9 @@ static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 /// coordinate along its own axes on the GTE and swings part 1 through the
 /// flourish, in a longer form for the nibble-0 context than for the others;
 /// state 2 only widens `field_176`. The scratch block comes off
-/// `G_SCRATCH_HEAD` under three names -- `head`, whose negative index the
+/// the scratch stack under three names -- `head`, whose negative index the
 /// world-X step reads, `vec`, which the column and normalise calls take, and
-/// `gte`, which the GTE round trip reads back -- and the two `G_SCRATCH_HEAD`
+/// `gte`, which the GTE round trip reads back -- and the two the scratch stack
 /// pointers are the carve and the release, each materialised where it is used.
 static void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 {

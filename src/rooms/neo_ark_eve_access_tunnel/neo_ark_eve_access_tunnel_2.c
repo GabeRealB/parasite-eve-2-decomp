@@ -260,7 +260,7 @@ static void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);

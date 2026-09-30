@@ -943,7 +943,7 @@ static void func_mist_parking_80184A18(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -1037,7 +1037,7 @@ static void func_mist_parking_80184E8C(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;
@@ -1181,7 +1181,7 @@ static void func_mist_parking_80185814(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);

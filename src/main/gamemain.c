@@ -48,7 +48,7 @@ enum {
     DISPLAY_BACKGROUND_STRIP_COUNT     = 20U,
 };
 
-#define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
+#define GameResetScratchHead() *SCRATCH_STACK_CURSOR_SLOT = SCRATCH_STACK_CURSOR_SLOT
 
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.

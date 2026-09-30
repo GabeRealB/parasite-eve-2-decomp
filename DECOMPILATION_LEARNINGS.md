@@ -447,7 +447,7 @@ while making just this read scalar MEM. It conflicts with the scalar head
 store, while later struct work/coords/flag reads can move independently.
 This alone produced identical assembly (base_2), but changed dependencies.
 Then initialize `coord`, read `flag = work->field_47C`, and only afterwards
-assign `pos = (VECTOR*)*(u32*)G_SCRATCH_HEAD` (base_7).
+assign `pos = (VECTOR*)*(u32*)SCRATCH_STACK_CURSOR_SLOT` (base_7).
 
 In base_7's backward sched1, copy UID41 wins at T-2 over coordinate calculation
 UID33; flag UID36 follows at T-3. Thus the computed head remains live through
@@ -614,7 +614,7 @@ The object dump's `sb r0; sb r1; sb g0; sb g1` order is not a reason to write
 field stores. `setRGB0`/`setRGB1`/`setRGB2`/`setRGB3` with the channel products
 inlined — the sibling's spelling — CSE to the same temps and schedule to that
 store order, but they do not create the extra locals that push `0xFFFFFF` off
-`$t1`. That one change is 100%. Compound `G_SCRATCH_HEAD` push, unpinned.
+`$t1`. That one change is 100%. Compound `SCRATCH_STACK_CURSOR_SLOT` push, unpinned.
 
 `base_2.c` 95.000% named stores; `base_5.c` 100%. Input hash
 `1f5eb2e8da96de6e1b8088835d37d289b10756ca631aa527a5aee78b73a04d7b` (`base_2.i`).
@@ -967,7 +967,7 @@ and pop. They differ in how the pop is spelled:
 
 ```c
 /* RescaleYaw(coord, scale) -- scaled form, and the one to avoid here */
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;                        /* head stays live to the pop */
 blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
 *scratch = blk;
@@ -978,12 +978,12 @@ coord->composeStamp           = 0;
 coord->coord.m[2][2] = m22;
 
 /* ResetYaw(coord) -- unit-scale form, the target's */
-head                    = *(void**)G_SCRATCH_HEAD;
+head                    = *SCRATCH_STACK_CURSOR_SLOT;
 blk                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
-*(void**)G_SCRATCH_HEAD = blk;
+*SCRATCH_STACK_CURSOR_SLOT = blk;
 ...
 coord->composeStamp              = 0;
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x34;
 ```
 
 The scaled form's pop reads `*scratch` through a variable, so `flow` CSEs it to
@@ -992,7 +992,7 @@ last matrix copy - across the block's three calls. `.lreg` reports it as
 `used 4 times across 30 insns in block 35; crosses 3 calls; pointer`, so
 local-alloc gives it a call-saved register (`$s2`) and the coordinate, with
 only three refs, is pushed to the next free one (`$s4`). The unit-scale form's
-pop re-loads `*(void**)G_SCRATCH_HEAD` fresh; the loaded value becomes the
+pop re-loads `*SCRATCH_STACK_CURSOR_SLOT` fresh; the loaded value becomes the
 matrix pointer itself, the pop temp is short-lived, and it takes a call-used
 register (`$v0`) - exactly what the target does. Check `.lreg` for a
 `crosses N calls` on a pointer that is only used twice before swapping in the
@@ -2155,8 +2155,8 @@ head = *(u8**)(head + 0x3FC);
 `Actor01900_Fn06904` is the worked example. `Actor00100_Fn04270` solved the
 same pair with `register … asm("s3")` / `asm("s4")` pins.
 
-Two C stores through `G_SCRATCH_HEAD` CSE `0x1F8003FC` into an extra `$s5`.
-Keep one C alloc store (`*(T**)G_SCRATCH_HEAD = blk` → `lui $at` / `sw`) and
+Two C stores through `SCRATCH_STACK_CURSOR_SLOT` CSE `0x1F8003FC` into an extra `$s5`.
+Keep one C alloc store (`*(T**)SCRATCH_STACK_CURSOR_SLOT = blk` → `lui $at` / `sw`) and
 release with the `ActorsShared80139ee4` `lui`/`sw 0x1F8003FC` asm pair so the
 reload is not hoisted into the first matrix `lhu` delay.
 
@@ -2830,14 +2830,14 @@ load/store gives two block-0 local quantities with the same
 `refs=3 span=12 priority=2500` and no suggestions. The tracer reports
 `q1[%hi(gGpuPrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
 tie goes to the quantity born first (the `lui` that fills the `ori` of
-`G_SCRATCH_HEAD`). Extra then takes `$a0` globally (`move a0, v0` /
+`SCRATCH_STACK_CURSOR_SLOT`). Extra then takes `$a0` globally (`move a0, v0` /
 `slt ..., s0`). The target wants `addiu a0, a2, -N` / `move s8, a0` /
 `move a1, v0`.
 
 `USE_REG(allocated)` *after* the cursor store and *before* the copy into
 the long-lived scratch pointer adds a fourth ref at the existing death
 point, so the span stays ~12. Priority `4/12 = 3333` sits between the
-`G_SCRATCH_HEAD` address (still first, `$v1`) and the cursor `%hi`
+`SCRATCH_STACK_CURSOR_SLOT` address (still first, `$v1`) and the cursor `%hi`
 (`$a1`). Allocated wins `$a0`; extra is `$a1`; `slt` still needs a
 separate copy of `$s0` (next entry). Putting `USE_REG` earlier, or using
 `SOFT_TOUCH_REG` (`+r` new def), either takes `$v1` first or ties
@@ -2845,7 +2845,7 @@ allocated onto the scratch pointer.
 
 ```c
 allocated = head - 0x14;
-*(void**)G_SCRATCH_HEAD = allocated;
+*SCRATCH_STACK_CURSOR_SLOT = allocated;
 gGpuPrimCursor = area + 1;
 USE_REG(allocated);
 scratch = (Scratch*)allocated;
@@ -5542,7 +5542,7 @@ latch into `rimRad`/`hubRad`, `rot = &coord->workm`, and
 
 Two TU-local differences from the weapon original are load-bearing:
 
-- Allocate through `G_SCRATCH_HEAD` with `register u8* head asm("v0")` (the
+- Allocate through `SCRATCH_STACK_CURSOR_SLOT` with `register u8* head asm("v0")` (the
   same pin as `func_pyrokinesis_801312B4` in this TU). Unpinned coalesces to
   `addiu s3, v0, -0x118` / `sw s3` and scores 99.67% with
   `branch=4 regs=2 delete=1`. The hypervelocity original's
@@ -5975,7 +5975,7 @@ That extra later reference flips the pair to `andi v0, a0, 0xFFFF` /
 before the extend is still required so `u1` keeps `$a2` and `arg2` is copied
 to `$a3` at the prologue.
 
-## `TOUCH_REG_USE(arg, scratch)` puts `G_SCRATCH_HEAD`'s `lui`/`ori` before the incoming `$a2` copy
+## `TOUCH_REG_USE(arg, scratch)` puts `SCRATCH_STACK_CURSOR_SLOT`'s `lui`/`ori` before the incoming `$a2` copy
 
 `Room_Draw27` and `Room_Draw19` share a body except the UV column is
 `(s16)value << 5` vs `(arg1 & 0xFFFF) << 5`. That delta lives after the flag
@@ -5985,7 +5985,7 @@ branch, so it does not flip the prologue: both compile to
 sw s0 / move s0, a2 / sw s4 / lui s4 / ori s4
 ```
 
-`Room_Draw19` wants the `$s4` pair first. After `scratch = (void**)G_SCRATCH_HEAD`,
+`Room_Draw19` wants the `$s4` pair first. After `scratch = SCRATCH_STACK_CURSOR_SLOT`,
 `TOUCH_REG_USE(arg2, scratch)` makes the `$a2` copy take the address as an input,
 so `-fschedule-insns2` emits `sw s4` / `lui` / `ori` / `sw s0` / `move s0, a2`.
 Barriers on `scratch` alone, `USE_REG(arg2)`, and `TOUCH_REG_USE(scratch, arg2)`
@@ -5994,7 +5994,7 @@ Barriers on `scratch` alone, `USE_REG(arg2)`, and `TOUCH_REG_USE(scratch, arg2)`
 ## `SOFT_TOUCH_REG_USE(arg, scratch)` lets `%hi(GsWSMATRIX)` sit between the `$a2` copy and the remaining saves
 
 `TOUCH_REG_USE` is `asm volatile`, so it is a scheduling barrier. After it has
-put `G_SCRATCH_HEAD`'s `lui`/`ori` before `move s0, a2`, the barrier also stops
+put `SCRATCH_STACK_CURSOR_SLOT`'s `lui`/`ori` before `move s0, a2`, the barrier also stops
 an unrelated `lui %hi(GsWSMATRIX)` from moving *above* the remaining
 `sw ra`/`s4`/`s3`/`s2`/`s1`. The target wants
 
@@ -6094,7 +6094,7 @@ registers (`rOuter=$a0`, `otz=$v0`, `rInner=$v1`) and does not need this.
 
 ## Combined `*scratch = tmp` assignment keeps the add in `$v0` without a pin
 
-A 0xC `G_SCRATCH_HEAD` bump that wants
+A 0xC `SCRATCH_STACK_CURSOR_SLOT` bump that wants
 
 ```
 lui    v1, 0x1F80
@@ -6830,10 +6830,10 @@ Assign `color = 0x606060` in the same branch so `lui a2, 0x60` fills the
 constant in `$a1` and delays `la a1, Gp_StrE`. `func_800C22D8` is the
 example.
 
-## Save incoming `$a2` first, then split `G_SCRATCH_HEAD` so `lui` sits in the prologue
+## Save incoming `$a2` first, then split `SCRATCH_STACK_CURSOR_SLOT` so `lui` sits in the prologue
 
 A 3-arg function that keeps `arg2` in `$s4` and then allocates from
-`G_SCRATCH_HEAD` wants:
+`SCRATCH_STACK_CURSOR_SLOT` wants:
 
 ```
 sw     s4, 0x20(sp)
@@ -6845,7 +6845,7 @@ lw     s2, 0(v0)
 ```
 
 A 3-arg function that keeps `value` in `$s4` and `arg2` in `$s5`, then
-allocates from `G_SCRATCH_HEAD` into `$v1` (not `$v0`), wants:
+allocates from `SCRATCH_STACK_CURSOR_SLOT` into `$v1` (not `$v0`), wants:
 
 ```
 sw     s4, 0x20(sp)
@@ -6862,7 +6862,7 @@ Copy `value` first, empty non-volatile `asm("" : "+r"(id))` so that store
 lands before `arg2`, then `lui`/`ori` with a fake input dependency on
 `arg2` pinned to `$s5` / scratch to `$v1`. `Gp_AttachActorObj` is the example.
 
-Pin `G_SCRATCH_HEAD` to `$v1` and the `(head - N)` temp to `$v0` so the
+Pin `SCRATCH_STACK_CURSOR_SLOT` to `$v1` and the `(head - N)` temp to `$v0` so the
 delayed `lui 0x1F80` survives a `gGameSession` load in `$v0`, and the
 push is `addiu v0, s2, -N` / `move s0, v0` / delay-slot `sw v0, 0(v1)`
 instead of `addiu s0` / `sw s0`. Coalescing the temp into the live
@@ -6872,7 +6872,7 @@ instead of `addiu s0` / `sw s0`. Coalescing the temp into the live
 register void**          scratch asm("v1");
 register GpColorScratch* tmp asm("v0");
 
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
 tmp      = (GpColorScratch*)(head - 0x30);
 block    = tmp;
@@ -6899,7 +6899,7 @@ Give the copy its own `$v0` scope — the two live ranges are disjoint, so GCC
 head load so the scheduler cannot hoist the field `lhu` above `lw head`:
 
 ```c
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 head    = *scratch;
 asm volatile("" ::"r"(head)); /* lw head stays ahead of the field load */
 {
@@ -6925,7 +6925,7 @@ colouring, so only the two `$v0` scopes are left:
 ```c
 register u8* head asm("a0");   /* function scope */
 
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 head    = *scratch;            /* lw a0, 0(a1) */
 ```
 
@@ -6950,18 +6950,18 @@ block->col0.vz = src->z;
 Do not keep a scratch pointer live from alloc to free. A local `scratch`
 that is used at both ends is allocated to an extra `$s` register and
 grows the frame (`0x30` with `$s5` instead of `0x28`). Write two
-independent `G_SCRATCH_HEAD` accesses so the compiler reloads into `$v1`
+independent `SCRATCH_STACK_CURSOR_SLOT` accesses so the compiler reloads into `$v1`
 and can put `lui 0x1F80` in the first-branch jump delay:
 
 ```c
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 8;
 /* ... */
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 8;
 ```
 
 `Gp_CopyCoordOffset` is the example.
 
-`scratch = (void**)G_SCRATCH_HEAD` first hoists `lui`/`ori` above `sw s4`.
+`scratch = SCRATCH_STACK_CURSOR_SLOT` first hoists `lui`/`ori` above `sw s4`.
 `register s32 thresh asm("s4"); thresh = arg2;` without a use delays
 `move s4, a2` into the later `beqz` delay (the copy is only needed on
 the call-clobber path). `asm volatile` after the copy keeps `move s4`
@@ -8762,9 +8762,9 @@ it back above gave an all-zero 100%.
 
 ```c
 /* Matches Fn01388: one block from the carve through the guard's branch */
-head                  = *(u8**)G_SCRATCH_HEAD;
-*(u8**)G_SCRATCH_HEAD = head - sizeof(Scratch);
-s                     = (Scratch*)*(u8**)G_SCRATCH_HEAD;
+head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head - sizeof(Scratch);
+s                     = (Scratch*)*(u8**)SCRATCH_STACK_CURSOR_SLOT;
 if (D_80072729 == 1 || gGameSession->field_4D == 1) {
     return 0;
 }
@@ -17528,7 +17528,7 @@ layout-matching type (e.g. `FlatLight`) instead of including libgs.
 
 ## Scratch-head light direction: 0x18 block, SVECTOR at +0x10
 
-`G_SCRATCH_HEAD` (`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is the address of the pointer slot for a downward-growing scratch arena.
+`SCRATCH_STACK_CURSOR_SLOT` (`(void**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is the address of the pointer slot for a downward-growing scratch arena.
 Helpers that call `Gfx_NormalizeLightDir` to normalize a light direction use:
 
 ```c
@@ -17576,7 +17576,7 @@ at `-0x10`.
 ## `static __inline__` forces scratch-head rematerialisation (not s-reg CSE)
 
 `Gfx_SetFlatLight` takes `MATRIX* dirMtx/colorMtx` and keeps
-`scratch = (void**)G_SCRATCH_HEAD` in a callee-saved reg (`lui`/`ori` + `$sN`).
+`scratch = SCRATCH_STACK_CURSOR_SLOT` in a callee-saved reg (`lui`/`ori` + `$sN`).
 `Gfx_SetDefaultFlatLight` is the same body writing to globals `&GsLIGHTWSMATRIX` /
 `&D_80074080`, but the ROM rematerialises `0x1F8003FC` on every access
 (`lui $r,0x1f80` / `lw|sw 0x3fc($r)`) and only uses five s-regs (frame `0x28`).
@@ -18753,7 +18753,7 @@ register void** scratch asm("v1");
 register void*  head asm("a3");
 register void*  temp asm("v0");
 
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
 temp     = (u8*)head - 8;
 param1   = temp;
@@ -18764,12 +18764,12 @@ param1[3] = 0;
 ```
 
 Free paths after a `jal` must rematerialize with a bare
-`*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8` (do not keep the
+`*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 8` (do not keep the
 `scratch` local live across the call). `CdCmd_EnqueueLoadFile` is the pure example.
 
 ## Nested `register asm` blocks so `$v0`/`$v1` can be reused
 
-The 8-byte scratch alloc above wants `$v1` = `G_SCRATCH_HEAD` and `$v0` =
+The 8-byte scratch alloc above wants `$v1` = `SCRATCH_STACK_CURSOR_SLOT` and `$v0` =
 head (`addiu v0, -8; move s1, v0; sw s1`). A later packed key wants the
 same two registers for a different pair:
 
@@ -19382,7 +19382,7 @@ if ((half << 16) == 0) { /* sll; bnez zero-check on the low half */
 Do **not** use a packed `{u8; u16}` view of `field_1`/`field_2` — GCC 2.8.1
 emits byte-wise loads/stores for the "unaligned" u16. Pair with
 `pad = index` plus a short-lived `register void** scratch asm("a0")` block so
-`$a0` holds `G_SCRATCH_HEAD` for the alloc and is free to reuse as the second
+`$a0` holds `SCRATCH_STACK_CURSOR_SLOT` for the alloc and is free to reuse as the second
 bank's `field_1` pointer. `Pad_TickEventBanks` is the pure example.
 
 ## Separate cleanup tails: early `return` + distinct base pointers
@@ -20581,7 +20581,7 @@ When the target does:
 
 ```
 lw   t0, 0x10(a3)     /* src = arg->field_10  first */
-lw   v1, 0(a0)        /* head = *G_SCRATCH_HEAD */
+lw   v1, 0(a0)        /* head = *SCRATCH_STACK_CURSOR_SLOT */
 …                     /* lo-load of a global, etc. */
 addiu v1, v1, -0x88   /* head stays in $v1 */
 sw   v1, 0(a0)
@@ -20604,7 +20604,7 @@ adjusted pointer into the pinned `v1` register:
     register ScratchModelBlock* head asm("v1");
     void*                       tmp;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     src      = arg0->field_10;          /* lw t0 first */
     tmp      = *scratch;                /* unpinned load */
     stream   = src->field_20;
@@ -20623,7 +20623,7 @@ Split `hi = load; hi &= 0xFFFF0000` (do not pin `hi` to `$a1` while computing
 the mask) so the target emits `lw a1,4(v0)` / `lui v0,0xffff` / `and a1,a1,v0`
 rather than preloading the mask into `$a1`. Free the scratch pointer after the
 block and rematerialize the restore with a bare
-`*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88`.
+`*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x88`.
 
 `tmdProcessStream` is the pure example.
 
@@ -21271,7 +21271,7 @@ column 0:
 
 ```c
 block = (_GfxAxisRotationScratch*)(head - 0x24);
-*(_GfxAxisRotationScratch**)G_SCRATCH_HEAD = block;
+*(_GfxAxisRotationScratch**)SCRATCH_STACK_CURSOR_SLOT = block;
 p = block;                          /* early: dies into s0 after angle */
 
 p->angleSin = rsin(angle);
@@ -21286,7 +21286,7 @@ shape).
 
 ## Separate scratch-head temps: `lui v0` prologue vs `lui v1` free
 
-When the target loads `G_SCRATCH_HEAD` into `$v0` only for the prologue
+When the target loads `SCRATCH_STACK_CURSOR_SLOT` into `$v0` only for the prologue
 (`lw s4,0(v0)` / `sw block,0(v0)`) and reloads it into `$v1` at free
 (`lw v0,0(v1)` / `addiu` / `sw`), a single live `void** scratch` variable is
 coloured into `$v1` for *both* sites (~99.8%).
@@ -21295,14 +21295,14 @@ Split the accesses so the prologue has no named address temp that must also
 serve the free path:
 
 ```c
-head = *(u8**)G_SCRATCH_HEAD;              /* address in v0 */
+head = *(u8**)SCRATCH_STACK_CURSOR_SLOT;              /* address in v0 */
 block = (_GfxAxisRotationScratch*)(head - 0x24);
-*(_GfxAxisRotationScratch**)G_SCRATCH_HEAD = block;
+*(_GfxAxisRotationScratch**)SCRATCH_STACK_CURSOR_SLOT = block;
 
 /* … body … */
 
 {
-    void** scratch = (void**)G_SCRATCH_HEAD; /* address in v1, value in v0 */
+    void** scratch = SCRATCH_STACK_CURSOR_SLOT; /* address in v1, value in v0 */
     *scratch = (u8*)*scratch + 0x24;
 }
 ```
@@ -22617,12 +22617,12 @@ entry) 4 low. Two more consequences worth keeping in mind:
 When the target opens a scratch-arena function as:
 
 ```
-lw    s3, 0(v1)          # head = *G_SCRATCH_HEAD
+lw    s3, 0(v1)          # head = *SCRATCH_STACK_CURSOR_SLOT
 lh    a0, 0(s0)          # first call arg
 addiu v0, s3, -0x34      # p = head - size
 move  s2, v0             # block = p
 jal   rsin
- sw   v0, 0(v1)          # delay: *G_SCRATCH_HEAD = p
+ sw   v0, 0(v1)          # delay: *SCRATCH_STACK_CURSOR_SLOT = p
 ```
 
 a single `block = head - size; *s = block` coalesces into `addiu s2,...` /
@@ -22631,7 +22631,7 @@ a single `block = head - size; *s = block` coalesces into `addiu s2,...` /
 Force the intermediate in `$v0` and assign both ways:
 
 ```c
-void** s = (void**)G_SCRATCH_HEAD;
+void** s = SCRATCH_STACK_CURSOR_SLOT;
 u8* head = (u8*)*s;
 register void* p asm("v0");
 ScratchRotXYZ* block;
@@ -22642,7 +22642,7 @@ block = p;
 block->sin_x = rsin(angles->vx); /* sw v0 fills the jal delay */
 ```
 
-Reload `G_SCRATCH_HEAD` in a nested block at the end (do **not** keep `s`
+Reload `SCRATCH_STACK_CURSOR_SLOT` in a nested block at the end (do **not** keep `s`
 live) so the epilogue re-materialises it in `$v1` rather than pinning a
 callee-saved reg. `Gfx_RotMatrixXYZ` is the pure example.
 
@@ -27983,11 +27983,11 @@ one-expression form stuck at 98% with only those two registers swapped.
 
 ## Scratch-head `+r` barrier so `&global` lui fills the load delay
 
-A function that allocates from `G_SCRATCH_HEAD` and also takes
+A function that allocates from `SCRATCH_STACK_CURSOR_SLOT` and also takes
 `&D_global` wants:
 
 ```
-lw    t1, 0(v0)          /* head = *G_SCRATCH_HEAD */
+lw    t1, 0(v0)          /* head = *SCRATCH_STACK_CURSOR_SLOT */
 lui   t0, %hi(D_global)  /* delay fill */
 addiu a2, t1, -8
 sw    a2, 0(v0)
@@ -28011,7 +28011,7 @@ the later `&D_global` cannot hoist past the load. Pin the loaded head to
 ```c
 register u8* head asm("t1");
 
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 __asm__ volatile("" : "+r"(scratch));
 head   = *scratch;
 params = &D_global;
@@ -29162,7 +29162,7 @@ example; 97.8% with only those four setup insns swapped.
 
 ## Leaf scratch alloc: `tmp` then `s = tmp` for `move a0, v0`
 
-A no-call `G_SCRATCH_HEAD` helper that keeps the block pointer in `$a0`
+A no-call `SCRATCH_STACK_CURSOR_SLOT` helper that keeps the block pointer in `$a0`
 emits:
 
 ```
@@ -29180,7 +29180,7 @@ move  a0, v0
 lets the add live in `$v0` while `$a0` is still the arena pointer:
 
 ```c
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 color    = 0x808008;          /* named local → $a1 */
 head     = *scratch;
 tmp      = (T*)(head - 0x10);
@@ -29188,7 +29188,7 @@ tmp      = (T*)(head - 0x10);
 s        = tmp;               /* move a0, v0 */
 ```
 
-Free by rematerialising `*(void**)G_SCRATCH_HEAD` — `$a0` now holds `s`,
+Free by rematerialising `*SCRATCH_STACK_CURSOR_SLOT` — `$a0` now holds `s`,
 so a saved `scratch` local would need another register. `func_8010133C`
 is the example. Direct `s = head - N` stuck at 95.8% with `$a0`/`$a1`
 swapped and no `move`.
@@ -29221,8 +29221,8 @@ __asm__ volatile("" : "+r"(block) : "r"(tmp));
 ```
 
 Because `$v0` is reserved, rematerialise the free through `tmp` as well
-(`tmp = (s32)G_SCRATCH_HEAD; *(void**)tmp = (u8*)*(void**)tmp + 0xC`).
-The idiomatic `*(void**)G_SCRATCH_HEAD = …` steals `$a0` for the `lui`
+(`tmp = (s32)SCRATCH_STACK_CURSOR_SLOT; *(void**)tmp = (u8*)*(void**)tmp + 0xC`).
+The idiomatic `*SCRATCH_STACK_CURSOR_SLOT = …` steals `$a0` for the `lui`
 and breaks the `lhu a0` return. `func_80103E7C` is the example.
 Without the `"r"(tmp)` read the first `tmp = head - N` was deleted
 (98.1%, lone `addiu a0`).
@@ -29269,7 +29269,7 @@ sw    s1, 0(v1)
 ```
 
 needs three things together. `done = 0` first so `$s3` is zeroed
-before the scratch address. Then take `G_SCRATCH_HEAD` *before*
+before the scratch address. Then take `SCRATCH_STACK_CURSOR_SLOT` *before*
 assigning the unused `0xFF`, or `li s4` lands above the `lui`/`ori`.
 The `0xFF` is never read; pin it to `$s4` and mention it after the
 free so the save/restore stays:
@@ -29279,14 +29279,14 @@ register void* temp asm("v0");
 register s32   max asm("s4");
 
 done    = 0;
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 max     = 0xFF;
 head    = *scratch;
 temp    = (u8*)head - 8;
 dest    = temp;
 *scratch = dest; /* sw s1, not sw v0 */
 ...
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 8;
 asm("" :: "r"(max));
 ```
 
@@ -31341,7 +31341,7 @@ new stack slot and grows the frame. `Gp_MenuRootTask` is the example.
 
 ## Keep scratch `head` and `vec` both live so `$v1` is not coalesced into `$a2`
 
-An 8-byte `G_SCRATCH_HEAD` alloc that later becomes the `SVECTOR*`
+An 8-byte `SCRATCH_STACK_CURSOR_SLOT` alloc that later becomes the `SVECTOR*`
 argument of a call wants the decremented pointer in `$v1`, then a
 late `move a2, v1` in an earlier `slti` delay:
 
@@ -31671,7 +31671,7 @@ two flag checks still want a non-barrier way to stay unmerged.
 
 ## Scratch alloc that stores from `$v0` needs a separate head temp
 
-`G_SCRATCH_HEAD` push that the target writes back from `$v0`:
+`SCRATCH_STACK_CURSOR_SLOT` push that the target writes back from `$v0`:
 
 ```
 lw    v0, 0(v1)
@@ -32473,7 +32473,7 @@ Passing `id` into the call becomes `move a2, v1` instead of `lhu a2, 0(v1)`.
 
 ## Scratch alloc in `$v0`/`$v1`, pin the block, name the 3-arg src
 
-A downward `G_SCRATCH_HEAD` alloc that is then guarded by a NULL check
+A downward `SCRATCH_STACK_CURSOR_SLOT` alloc that is then guarded by a NULL check
 wants the head pointer in `$v0` and the subtracted pointer in `$v1`,
 with the store *before* the branch and the saved block copy in the
 `beqz` delay slot:
@@ -32499,7 +32499,7 @@ does not become the call's `$a1`:
 register void** scratch asm("v0");
 register u8*    tmp asm("v1");
 
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
 actor    = arg0->actor;
 tmp      = head - 0x84;
@@ -32680,9 +32680,9 @@ Pinning `cfg` here, or writing `slot = Gp_GetItemSlot(id)` directly,
 restores `lui s2` / `move a0` in the delay slot. `Gp_DiscardWarnTask` is the
 example.
 
-## Free scratch through `G_SCRATCH_HEAD`, not a live pointer, so it re-`lui`s `$a0`
+## Free scratch through `SCRATCH_STACK_CURSOR_SLOT`, not a live pointer, so it re-`lui`s `$a0`
 
-A `scratch = (void**)G_SCRATCH_HEAD` that is still live at
+A `scratch = SCRATCH_STACK_CURSOR_SLOT` that is still live at
 `*scratch = (u8*)*scratch + N` stays in a callee-saved register (`$s1`).
 That steals `$s1` from an argument and adds a saved `$s2`. The target of
 a short function that only needs `$s0` (block) and `$s1` (out-arg)
@@ -32701,7 +32701,7 @@ sw    v1, 0(a0)
 Write the free through the symbol:
 
 ```c
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x10;
 ```
 
 `func_800EA1A8` is the example. The longer sibling `Gp_TraceGroundCoord` keeps
@@ -34379,7 +34379,7 @@ register T*     tmp asm("v0");
 register s32    blend asm("v1");
 register Packed* p asm("v1");
 
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 tmp      = *scratch;
 tmp -= 1;
 *scratch = tmp;
@@ -36087,7 +36087,7 @@ rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 
 Inlining the 0xC angle wrap (`func_80103E7C`) leaves the three `lhu` /
 `j join` paths with a free delay. A later `func_800B9D80(0x2000)` wants
-`li a0, 0x2000` in those delays, not a hoisted `lui` of `G_SCRATCH_HEAD`
+`li a0, 0x2000` in those delays, not a hoisted `lui` of `SCRATCH_STACK_CURSOR_SLOT`
 for the wrap pop. Assign the flag inside every arm so the `li` is live at
 the join:
 
@@ -36107,9 +36107,9 @@ if (ABS(a) < ABS(b) && ABS(a) < ABS(c)) {
 A single `flag = 0x2000` after the `if` lets `-fschedule-insns` steal the
 delays for the next independent `lui`. `Gp_AimYawToLock` is the example.
 
-## Overwrite-form `G_SCRATCH_HEAD` load via `lui` then `p + 0x3FC`
+## Overwrite-form `SCRATCH_STACK_CURSOR_SLOT` load via `lui` then `p + 0x3FC`
 
-`val = *(void**)G_SCRATCH_HEAD` CSEs the 0x1F8003FC address with an
+`val = *SCRATCH_STACK_CURSOR_SLOT` CSEs the 0x1F8003FC address with an
 earlier store (`lui a2` / `ori` / `lw 0(a2)`). The target overwrites the
 address register: `lui v0, 0x1F80` / `lw v0, 0x3FC(v0)`, then
 `lui at` / `sw 0x3FC(at)` for the store. Load the high half first and
@@ -36119,7 +36119,7 @@ index the 0x3FC offset so the dest is the same register:
 asm("lui %0, 0x1F80" : "=r"(val) : "r"(dep));
 val = (s32) * (void**)((u8*)val + 0x3FC);
 val += 0xC;
-*(void**)G_SCRATCH_HEAD = (void*)val;
+*SCRATCH_STACK_CURSOR_SLOT = (void*)val;
 ```
 
 The dummy `"r"(dep)` pins the `lui` after an earlier load (e.g. `lbu`)
@@ -36388,7 +36388,7 @@ t >>= 20;
 ## Pin `$t2` / `$v1` together so `sw ra` sits after `ori` of the scratch head
 
 A live `obj = index` copy wants `move t2, a0` first, but pinning only the
-object lets GCC emit `lui/ori` of `G_SCRATCH_HEAD` *before* the copy (or
+object lets GCC emit `lui/ori` of `SCRATCH_STACK_CURSOR_SLOT` *before* the copy (or
 save `$ra` immediately after `move t2, a0`, filling the `ori` delay with
 the load). Pin both and barrier them as a pair so the prologue is
 `move t2, a0` / `lui v1, 0x1F80` / `ori v1, 0x3FC` / `sw ra`:
@@ -36398,7 +36398,7 @@ register GpObj* obj asm("t2");
 register void** scratch asm("v1");
 
 obj     = arg0;
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 asm volatile("" : "+r"(obj), "+r"(scratch));
 head = *scratch;
 found = 0;
@@ -37203,7 +37203,7 @@ The `Gfx_SetDefaultFlatLight` note above (inline helper → `lui 0x1F80` /
 being called several times. `Gp_SpawnViewCoordTask` calls its helper once and still
 gets the rematerialised form. Writing the same body straight into the caller —
 with a plain constant, a `volatile` cast, an intervening `memory` barrier, or a
-`void** scratch = (void**)G_SCRATCH_HEAD` local — always CSEs the address into a
+`void** scratch = SCRATCH_STACK_CURSOR_SLOT` local — always CSEs the address into a
 callee-saved register. When the target rematerialises `0x1F8003FC`, move the
 whole alloc/use/free block into a `static __inline__` helper; nothing else
 reproduces it.
@@ -37922,7 +37922,7 @@ file, diff the two maspsx command lines first.
 
 ## Store the new scratch head before assigning the block for the extra `move`
 
-A `G_SCRATCH_HEAD` alloc whose block pointer feeds a loop wants three
+A `SCRATCH_STACK_CURSOR_SLOT` alloc whose block pointer feeds a loop wants three
 registers in the target, not two:
 
 ```
@@ -38938,7 +38938,7 @@ diff worse.
 
 ## Keep a scratchpad base pointer live with an empty asm to stop reuse
 
-In the `G_SCRATCH_HEAD` idiom (`head = *scratch; block = head - N;`) the head
+In the `SCRATCH_STACK_CURSOR_SLOT` idiom (`head = *scratch; block = head - N;`) the head
 pointer is dead after the last `gte_st*` store, so GCC reuses its register for
 the store address: `addiu t1, t1, -0x10` instead of the target's
 `addiu v0, t1, -0x10`. `__asm__ volatile("" ::"r"(head));` after the last
@@ -38950,7 +38950,7 @@ argument then swaps saved registers (here `register u8* rgb asm("s7") = arg3;`).
 
 ## Split a scratchpad base from its dereference to retain `lui` plus displacement
 
-Writing `head = *(u8**)G_SCRATCH_HEAD;` lets GCC 2.8.1 fold the address to
+Writing `head = *(u8**)SCRATCH_STACK_CURSOR_SLOT;` lets GCC 2.8.1 fold the address to
 `0x1F8003FC`, materialize it as `lui`/`ori`, and CSE the resulting register into
 a later store. When the target instead uses `lui reg, 0x1F80` followed by
 `lw reg, 0x3FC(reg)`, preserve the address decomposition as two statements:
@@ -38962,7 +38962,7 @@ head = *(u8**)(head + 0x3FC);
 
 In `Actor00100_Fn04270`, this replaced three instruction-emitting inline-asm
 `lui` statements while reproducing the exact object. A single-expression
-`G_SCRATCH_HEAD` load scored 96.966% because the folded address also removed
+`SCRATCH_STACK_CURSOR_SLOT` load scored 96.966% because the folded address also removed
 two independent scratch-head store-address materializations.
 
 ## `+=` on an `s16` field lets the scheduler braid the XYZ updates; write both sides through `*(u16*)&`
@@ -39224,7 +39224,7 @@ sweep this statement through the block before reaching for anything else.
 
 ## Do not pin the scratch-alloc pair when later temps need those registers
 
-`Gp_DrawEffSpriteE2` allocates a `G_SCRATCH_HEAD` block into `$v1` (the
+`Gp_DrawEffSpriteE2` allocates a scratch stack block into `$v1` (the
 `lui 0x1F80` / `ori 0x3FC` pointer) and `$t0` (the loaded head), so
 `register void** scratch asm("v1")` / `register u8* head asm("t0")` looks like
 the obvious way to reproduce the prologue. It reproduces the prologue and
@@ -39868,17 +39868,17 @@ much of the tail survives cross-jumping. `Gp_EffLineTask92` is the pure example.
 
 ## Read the scratch pointer back instead of computing it into a local
 
-`G_SCRATCH_HEAD` bump code has two shapes that allocate registers differently:
+`SCRATCH_STACK_CURSOR_SLOT` bump code has two shapes that allocate registers differently:
 
 ```c
 /* block gets the callee-saved reg the bump computed in — often wrong */
-block = (GpEffLineScratch*)((u8*)*(void**)G_SCRATCH_HEAD - 0x20);
-*(void**)G_SCRATCH_HEAD = block;
+block = (GpEffLineScratch*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x20);
+*SCRATCH_STACK_CURSOR_SLOT = block;
 
 /* store first, then read back: CSE turns the reload into `move s1,v0`,   */
 /* which is what the target has, and shifts the other s-regs down one     */
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x20;
-block = (GpEffLineScratch*)*(void**)G_SCRATCH_HEAD;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x20;
+block = (GpEffLineScratch*)*SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 The second form cost nothing semantically and moved `Gp_EffLineTask92` from
@@ -40097,11 +40097,11 @@ one edit; the `.lreg`/`.sched` pair is where the WAR shows up.
 
 ## Bump the scratch head in place (`-=`) rather than storing a precomputed block pointer
 
-Allocating from `G_SCRATCH_HEAD` as
+Allocating from `SCRATCH_STACK_CURSOR_SLOT` as
 
 ```c
-block = (GpEffTileScratch*)(*(u8**)G_SCRATCH_HEAD - 0x14);
-*(u8**)G_SCRATCH_HEAD = (u8*)block;
+block = (GpEffTileScratch*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x14);
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)block;
 ```
 
 is one instruction short of the target and loads the caller's other fields
@@ -40109,13 +40109,13 @@ first. The target has an extra `move s1, v0` and loads the scratch head before
 anything else, which comes from decrementing in place and re-reading:
 
 ```c
-*(u8**)G_SCRATCH_HEAD -= 0x14;
-block = (GpEffTileScratch*)*(u8**)G_SCRATCH_HEAD;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT -= 0x14;
+block = (GpEffTileScratch*)*(u8**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 The re-read is CSE'd into the copy, and the read-modify-write pins the `lw` to
 the top of the block. The matching release at the end is the mirror image,
-`*(u8**)G_SCRATCH_HEAD += 0x14;`, which re-materialises the `lui`/`ori` of
+`*(u8**)SCRATCH_STACK_CURSOR_SLOT += 0x14;`, which re-materialises the `lui`/`ori` of
 0x1F8003FC after the intervening calls instead of burning a callee-saved
 register on it.
 
@@ -40263,7 +40263,7 @@ keeps it in `$s5` (filling the init-block `bnez` delay slot with
 `move s5, s1`) and re-shuffles `head`/`coord` onto `$s0`/`$s3`:
 
 ```c
-scratch  = (void**)G_SCRATCH_HEAD;
+scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
 block    = (GpEffBeamScratch*)(head - 0x1C);
 *scratch = block;
@@ -40340,7 +40340,7 @@ stays in a caller-saved register instead of being promoted to `$s0`.
 
 ## Unpin the scratch `block` instead of pinning the `head` temp
 
-The `G_SCRATCH_HEAD` push wants `lw v1` / `addiu v1,v1,-0x18` / `sw v1,0(v0)`
+The `SCRATCH_STACK_CURSOR_SLOT` push wants `lw v1` / `addiu v1,v1,-0x18` / `sw v1,0(v0)`
 plus a separate `move s0, v1`. With `register GpEffFt4Scratch* block asm("s0")`
 GCC 2.8.1 coalesces the `head` temp straight into `$s0` and the `move`
 disappears, no matter how the push is written (plain local, `*head -= 0x18`
@@ -40370,8 +40370,8 @@ leaves `$v0`/`$v1` free for the `mfhi`s:
 GpEffFt4Scratch* block;   /* not pinned */
 u8*              head;
 
-head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x18;
-*(void**)G_SCRATCH_HEAD = head;
+head                    = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x18;
+*SCRATCH_STACK_CURSOR_SLOT = head;
 block                   = (GpEffFt4Scratch*)head;
 ```
 
@@ -44298,7 +44298,7 @@ the countdown and button-failure arms instead retains the earlier call and
 does not match. `func_mist_shooting_gallery_80184C0C` scratch `base_13.c`
 matches at 100% without hacks; direct duplication (`base_2.c`) scores 87.184%.
 
-## Scratch-head `*(u8**)G_SCRATCH_HEAD`: one use per block, or CSE takes a register
+## Scratch-head `*(u8**)SCRATCH_STACK_CURSOR_SLOT`: one use per block, or CSE takes a register
 
 `memory_address()` leaves a large `CONST_INT` address inside the `MEM`, so a
 *single* access compiles to the absolute form the assembler expands
@@ -44314,7 +44314,7 @@ sw   $18, 0($3)
 ```
 
 `Gp_WorldToLocal` and `Gp_DrawMapCursor` want that register form and write
-`scratch = (void**)G_SCRATCH_HEAD; head = *scratch; ... *scratch = blk;`. When
+`scratch = SCRATCH_STACK_CURSOR_SLOT; head = *scratch; ... *scratch = blk;`. When
 the target keeps both absolute, hide the load's address from CSE the way
 `Gp_AimYawToLock` does, and leave the store as the plain macro:
 
@@ -44324,7 +44324,7 @@ register u8* h;
 __asm__ volatile("lui %0, 0x1F80" : "=r"(h));
 h   = *(u8**)(h + 0x3FC);
 blk = (T*)(h - 0x34);
-*(T**)G_SCRATCH_HEAD = blk;
+*(T**)SCRATCH_STACK_CURSOR_SLOT = blk;
 ```
 
 Reusing one variable for the `lui` result and the loaded pointer is what makes
@@ -44554,7 +44554,7 @@ and lets unit 1's `.rodata` start at the generated table; the later
 
 ## `static __inline__` keeps a constant scratch address out of a register
 
-`G_SCRATCH_HEAD` is the integer constant `0x1F8003FC`, and the MIPS expander
+`SCRATCH_STACK_CURSOR_SLOT` is the integer constant `0x1F8003FC`, and the MIPS expander
 cannot use it as an address directly: it emits one `(set (reg) (const_int
 0x1F8003FC))` per access. With a single access, `combine` folds the register
 back in and the access prints as the `lw $v0,0x1F8003FC` / `sw $v0,0x1F8003FC`
@@ -44571,14 +44571,14 @@ each constant ends up with a single use again. `Actor01600_Fn04054` went from
 ```c
 static __inline__ void update_actor_color(Actor01600Ctx* ctx, GfxCoord* attach)
 {
-    u8*     head  = *(u8**)G_SCRATCH_HEAD;
+    u8*     head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     VECTOR* block = (VECTOR*)(head - 0x10);
 
-    *(VECTOR**)G_SCRATCH_HEAD = block;
+    *(VECTOR**)SCRATCH_STACK_CURSOR_SLOT = block;
     block->vx = attach->workm.t[0];
     /* … */
     Gp_UpdateActorColor(ctx, block, 0, 0);
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x10;
 }
 ```
 
@@ -44901,14 +44901,14 @@ case 1:
 
 ## Store the scratch pointer before deriving the block pointer to keep the `move`
 
-The `G_SCRATCH_HEAD` alloc idiom has two shapes that differ by exactly one
+The `SCRATCH_STACK_CURSOR_SLOT` alloc idiom has two shapes that differ by exactly one
 instruction, and which one the target has depends only on statement order.
 Deriving the block pointer first,
 
 ```c
-head                  = *(u8**)G_SCRATCH_HEAD;
+head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
 blk                   = (Actor02100Sight*)(head - 0x20);
-*(u8**)G_SCRATCH_HEAD = (u8*)blk;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)blk;
 ```
 
 makes `blk` the destination of the `addsi3` itself, so `blk`'s callee-saved
@@ -44924,8 +44924,8 @@ CSE a temporary to forward, and the assignment to `blk` survives as a real
 copy insn because the temporary is still live at the store:
 
 ```c
-head                  = *(u8**)G_SCRATCH_HEAD;
-*(u8**)G_SCRATCH_HEAD = head - 0x20;
+head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 0x20;
 blk                   = (Actor02100Sight*)(head - 0x20);
 ```
 
@@ -47581,7 +47581,7 @@ matches — verify with `./tools/build-and-verify.sh`, not with the scratch scor
 
 A scratchpad allocation whose block is later handed to a GTE `asm` operand can
 need **two** live pointers, not one. `func_m4a1_grenade_8011D654` carves 0x28
-bytes off `G_SCRATCH_HEAD` and passes the block to `gte_ldv0`; the target keeps
+bytes off `SCRATCH_STACK_CURSOR_SLOT` and passes the block to `gte_ldv0`; the target keeps
 `$s0` for the head store and the `vy`/`vz` writes and a *second* callee-saved
 `$s7` for the `lwc2` pair, with `move s7, s0` sitting in the `bnez` delay slot
 of the `memCalloc == NULL` test. Writing the obvious single variable gives one
@@ -47599,7 +47599,7 @@ branch:
 work = memCalloc(sizeof(M4a1GrenadeWork), 0);
 vec  = blk;
 if (work == NULL) {
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    *SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x28;
     taskKill(arg0);
     return;
 }
@@ -47613,7 +47613,7 @@ remaining values shift up one register each (`extra` ends in `$fp`).
 ## The same scratch-pointer copy, but spanning a GTE `FLAG` test
 
 `func_m4a1_javelin_8011EE78` is the entry above without a `memCalloc`: it
-carves 0x14 bytes off `G_SCRATCH_HEAD` for one projected `LINE_G2`, and the
+carves 0x14 bytes off `SCRATCH_STACK_CURSOR_SLOT` for one projected `LINE_G2`, and the
 target keeps both `$a3` (the block, live for every later field access) and a
 `move t0, a3` used *only* as the `gte_stszotz` operand inside the
 `gte_stflg` / `bltz` guard. The rule generalises past `memCalloc`: the extra
@@ -47624,7 +47624,7 @@ above the first GTE call keeps it:
 
 ```c
 sc   = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
-*(M4a1JavelinLineScratch**)G_SCRATCH_HEAD = sc;
+*(M4a1JavelinLineScratch**)SCRATCH_STACK_CURSOR_SLOT = sc;
 otz0 = &sc->otz0;                 /* becomes `move t0, a3` */
 gte_SetTransMatrix(&GsWSMATRIX);
 ...
@@ -47636,7 +47636,7 @@ The *second* `gte_stszotz(&sc->otz1)` must stay written at its use site:
 `head - 0x10` is not an already-computed expression, so it becomes the
 target's own `addiu v0, t1, -0x10` rather than a copy.
 
-## Write `G_SCRATCH_HEAD` out at both ends, never as a local
+## Write `SCRATCH_STACK_CURSOR_SLOT` out at both ends, never as a local
 
 The pair `head = *scratch; ... *scratch = ... ` reads naturally with a
 `void** scratch` local, but `0x1F8003FC` is a constant the compiler will happily
@@ -47644,7 +47644,7 @@ rematerialise, and the ROM does: `lui/ori` at entry and a *second* `lui/ori`
 after the `jal` in the tail. A local forces one pseudo whose live range spans
 the call, so GCC spends a callee-saved register on it — `sw s0, 0x10(sp)`, `$ra`
 pushed to 0x14, and a `lw s0` in the epilogue, four instructions the target does
-not have. Spelling `*(u8**)G_SCRATCH_HEAD` at each use recovers it; adjacent
+not have. Spelling `*(u8**)SCRATCH_STACK_CURSOR_SLOT` at each use recovers it; adjacent
 uses in the entry block still share one `lui/ori` through CSE.
 
 ## `Gfx_ViewWorldMtx` versus `gGfxViewCoord.workm` is a relocation-name diff only
@@ -50747,8 +50747,8 @@ so neither of its setters gets the boost and the ties fall the wrong way.
 Giving the second value its own local,
 
 ```c
-head  = *(void**)G_SCRATCH_HEAD;
-*(void**)G_SCRATCH_HEAD = head - 0x50;
+head  = *SCRATCH_STACK_CURSOR_SLOT;
+*SCRATCH_STACK_CURSOR_SLOT = head - 0x50;
 block = (GpEdgeScratch*)(head - 0x50);
 mat   = (MATRIX*)(head - 0x20);      /* not `head -= 0x20` */
 Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
@@ -52149,7 +52149,7 @@ sibling and its body can be pasted verbatim, renaming only the callees.
 ## Scratch-head codegen has two forms in one function: the caller's local pair, the inlined helper's `$at`
 
 `func_acropolis_security_room_80181E28` allocates a 0xE4 block from
-`G_SCRATCH_HEAD` in the caller and a 0x20 block twice more inside what turned
+`SCRATCH_STACK_CURSOR_SLOT` in the caller and a 0x20 block twice more inside what turned
 out to be an inlined helper. The ROM mixes both `0x1F8003FC` forms:
 
 ```
@@ -52171,14 +52171,14 @@ sw   a2, 0x3FC(at)
 CSE'd onto one pseudo and come out as `lui`/`ori` + `0(reg)`. The two forms
 therefore mean two different source shapes in the *same* function:
 
-- a `void** scratch = (void**)G_SCRATCH_HEAD;` local, whose load/store pair is
+- a `void** scratch = SCRATCH_STACK_CURSOR_SLOT;` local, whose load/store pair is
   the register form, and
 - a `static __inline__` helper containing the rest of the alloc/use/free, whose
   accesses rematerialise (same effect as the `Gfx_SetDefaultFlatLight` /
   `Gp_SpawnViewCoordTask` notes above, applied to only part of a function).
 
 The inline helper also breaks the store-to-load forwarding that otherwise
-collapses `*scratch = block;` followed by `head = *(void**)G_SCRATCH_HEAD;`
+collapses `*scratch = block;` followed by `head = *SCRATCH_STACK_CURSOR_SLOT;`
 into an `addiu` off the value just stored. Neither a `volatile` cast nor an
 intervening `memory` barrier reproduces the reload; moving the block into the
 helper does.
@@ -52239,11 +52239,11 @@ same register in a disjoint scope:
 {
     register GfxCoord* parent asm("v0");
     parent = coord;
-    ((AsrWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch)))->coord = parent;
+    ((AsrWalkScratch*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - sizeof(AsrWalkScratch)))->coord = parent;
 }
 {
     register u8* tmp asm("v0");
-    tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch);
+    tmp = (u8*)*SCRATCH_STACK_CURSOR_SLOT - sizeof(AsrWalkScratch);
     blk = (AsrWalkScratch*)tmp;
 }
 ```
@@ -52972,7 +52972,7 @@ the ROM does.
 ## A `move` between two registers holding the same pointer is a pin, not `TOUCH_REG`
 
 `func_acropolis_fountain_8017DD44` takes a 0x14-byte block off
-`G_SCRATCH_HEAD`, keeps it in `$a1`, and copies it to `$a0` for one use — the
+`SCRATCH_STACK_CURSOR_SLOT`, keeps it in `$a1`, and copies it to `$a0` for one use — the
 `gte_stszotz` operand:
 
 ```
@@ -53067,7 +53067,7 @@ order before reshaping the ranges.
 ## `local_alloc` and `global_alloc` rank by the same formula, in the same direction
 
 `func_acropolis_east_elevator_hall_8017FAAC` projects one world point through
-`GsWSMATRIX` into a 0xC-byte `G_SCRATCH_HEAD` block and links a `TILE_1` into
+`GsWSMATRIX` into a 0xC-byte `SCRATCH_STACK_CURSOR_SLOT` block and links a `TILE_1` into
 the OT. The unpinned C scored 99.6% with `regs=9`, and the whole diff was two
 block-local pointers trading registers: the scratch pointer wanted `$v1` and got
 `$a0`, while the `lui %hi(gGpuPrimCursor)` base wanted `$a0` and got `$v1`.
@@ -54961,7 +54961,7 @@ the `Gfx_ViewWorldMtx` versus `gGfxViewCoord.workm` entry above.
 
 ## Where the unrelated store goes decides the scratch-head reserve's copy
 
-The `G_SCRATCH_HEAD` reserve idiom is three statements: read the head, publish
+The `SCRATCH_STACK_CURSOR_SLOT` reserve idiom is three statements: read the head, publish
 `head - N`, and keep `head - N` as the typed block pointer. GCC 2.8.1 CSEs the
 two `head - N` occurrences into one pseudo, so the only degrees of freedom are
 whether that pseudo needs a copy into the long-lived block register and where
@@ -55443,7 +55443,7 @@ attempt per position of the store that feeds the swapped pair and score them all
 It is a seven-build sweep and it is mechanical, where reasoning about the
 scheduler from `.sched` is neither.
 
-## Pin `G_SCRATCH_HEAD` to `$a1` so value moves to `$a3` and `GsWSMATRIX` uses `$t0`
+## Pin `SCRATCH_STACK_CURSOR_SLOT` to `$a1` so value moves to `$a3` and `GsWSMATRIX` uses `$t0`
 
 A ring helper whose second argument arrives in `$a1` and then reuses `$a1`
 as the scratch-head pointer compiles as:
@@ -55723,7 +55723,7 @@ decrement, write the decrement as a statement on a local and test the local.
 Re-deriving `x - 1` inside the condition keeps `x` live and hands 2.8.1 a
 constant compare instead.
 
-## Put the pinned `G_SCRATCH_HEAD` block last among the entry-block statements
+## Put the pinned `SCRATCH_STACK_CURSOR_SLOT` block last among the entry-block statements
 
 The weapon firing state machines all open the same way: borrow 0x50 bytes of
 the hardware scratchpad into a `spot` local, then load `actor`, `coord` and the
@@ -55735,9 +55735,9 @@ callee-saved copy and the store-back:
 {
     register u8* tmp asm("v0");
 
-    tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
+    tmp                     = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x50;
     spot                    = (GfxCoord*)tmp;
-    *(void**)G_SCRATCH_HEAD = tmp;
+    *SCRATCH_STACK_CURSOR_SLOT = tmp;
 }
 ```
 
@@ -56562,7 +56562,7 @@ that is a live-range change the later schedulers will not undo.
 `func_m4a1_hammer_8011E29C` (weapons) is byte-for-byte
 `func_mist_shooting_gallery_801826C4` (rooms) apart from two added
 `block->otz++` statements — same struct layout, same UV constants, same
-register allocation, same 0x20-byte `G_SCRATCH_HEAD` block. Yet
+register allocation, same 0x20-byte `SCRATCH_STACK_CURSOR_SLOT` block. Yet
 `overlay_dup_index.py find` reported no copies: the index groups exact bodies,
 so a two-instruction delta hides the twin, and it never looks across families
 anyway.
@@ -56598,7 +56598,7 @@ the *doc comments*, which are written when a function is matched and spell out
 its arithmetic in exactly the vocabulary the target asm gives you.
 
 `func_m4a1_javelin_8011F0AC` has an almost line-for-line twin in
-`src/gameplay/3CD8_9CC8.c` (`Gp_DrawFxQuad`) — same 0x1C `G_SCRATCH_HEAD` block,
+`src/gameplay/3CD8_9CC8.c` (`Gp_DrawFxQuad`) — same 0x1C `SCRATCH_STACK_CURSOR_SLOT` block,
 same single `RTPS`, same `POLY_FT4` — and `overlay_dup_index.py find` reported
 nothing, because the index compares disassembly text across *overlays* and
 cannot see a body living in the main `gameplay` unit. It would not have matched
@@ -56618,7 +56618,7 @@ grep `include/` as well as `src/`. Porting the twin took one attempt against a
 92.98% m2c baseline.
 
 Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
-`include/gameplay/3FB8.h` are a catalogue of `G_SCRATCH_HEAD` layouts
+`include/gameplay/3FB8.h` are a catalogue of `SCRATCH_STACK_CURSOR_SLOT` layouts
 (`GpRingScratch`, `GpFxQuadScratch`, `GpEffBeamScratch`, `GpEffFlareScratch`,
 `GpEffTileScratch`, …). Any overlay function whose prologue is `lw` from
 `0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
@@ -56723,7 +56723,7 @@ chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
 ## A 0x118 scratchpad block is `Gp_DrawBandEx`
 
 The previous entry's "scratch size is the strongest fingerprint" rule has one
-more entry worth writing down: a `- 0x118` off `G_SCRATCH_HEAD` is the
+more entry worth writing down: a `- 0x118` off `SCRATCH_STACK_CURSOR_SLOT` is the
 `GpBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
 (gameplay `3CD8_9CC8.c`). `func_pyrokinesis_801312B4` is that function with the
 colour source swapped and the trailing `DR_TPAGE` replaced by
@@ -56888,7 +56888,7 @@ Use `u32`, not `s32`: with `s32` the shift comes out as `sra` and `force_to_mode
 then rewrites `& 0xF0` into `li $v1, -0x10` + `and`, costing two extra
 instructions.
 
-## Getting the spare `move` after a `G_SCRATCH_HEAD` carve
+## Getting the spare `move` after a `SCRATCH_STACK_CURSOR_SLOT` carve
 
 The carve preamble sometimes keeps a second copy of the block pointer:
 
@@ -56899,12 +56899,12 @@ sw    $v1, 0x0($v0)
 ```
 
 Assigning the variable first and then storing it (`sc = head - N;
-*G_SCRATCH_HEAD = sc;`) gives one register and no copy. Store first, then
+*SCRATCH_STACK_CURSOR_SLOT = sc;`) gives one register and no copy. Store first, then
 assign, and the copy appears:
 
 ```c
-head                  = *(u8**)G_SCRATCH_HEAD;
-*(u8**)G_SCRATCH_HEAD = head - sizeof(Scratch);
+head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head - sizeof(Scratch);
 sc                    = (Scratch*)(head - sizeof(Scratch));
 ```
 
@@ -57864,9 +57864,9 @@ wants the register. m2c prints the tell — the first field as the bare local an
 the later ones as `M2C_FIELD(&local, T, 2)`. This took
 `func_acropolis_bridge_80187078` from 96.7% to 100%.
 
-### Two `G_SCRATCH_HEAD` alloc/release pairs in one function: put each in its own `static __inline__` helper
+### Two `SCRATCH_STACK_CURSOR_SLOT` alloc/release pairs in one function: put each in its own `static __inline__` helper
 
-`G_SCRATCH_HEAD` is the constant address `0x1F8003FC`, and every access in a
+`SCRATCH_STACK_CURSOR_SLOT` is the constant address `0x1F8003FC`, and every access in a
 matching body is its own `lui` plus a `%lo` offset:
 
 ```
@@ -57898,7 +57898,7 @@ each one keeps its `lui`. `func_acropolis_bridge_801863A8` borrows a scratch
 `VECTOR` twice, in two different `if` arms, and went 80% -> 96% purely by
 moving each borrow into its own helper.
 
-The release (`*(u8**)G_SCRATCH_HEAD = *(void**)G_SCRATCH_HEAD + 0x10;`) has to
+The release (`*(u8**)SCRATCH_STACK_CURSOR_SLOT = *SCRATCH_STACK_CURSOR_SLOT + 0x10;`) has to
 go inside the helper too, even when the target emits it several statements
 later: left in the caller it is a lone read-modify-write of the constant
 address and CSE'd it back to `lui`/`ori`. Moving it into the helper — i.e.
@@ -57917,7 +57917,7 @@ helper between the two sites cost 2.5 points.
 
 ## Anchor a `lui $v0, 0x1F80` with a non-volatile asm and an input operand
 
-The documented way to keep one `G_SCRATCH_HEAD` access in the absolute form
+The documented way to keep one `SCRATCH_STACK_CURSOR_SLOT` access in the absolute form
 when CSE wants to materialise `0x1F8003FC` into a register is
 
 ```c
@@ -58091,7 +58091,7 @@ it hides the arity from every other reader of the header.
 
 ## Split the scratch frame: outer function hoists the head address, `static __inline__` body rematerialises it
 
-`G_SCRATCH_HEAD` accesses come out in two shapes, and a single function can
+`SCRATCH_STACK_CURSOR_SLOT` accesses come out in two shapes, and a single function can
 need both. GCC 2.8.1 puts the constant address in a register as soon as a
 basic block references it twice (`lui`/`ori` + `lw|sw 0($reg)`); a block that
 references it once emits the absolute form the assembler expands
@@ -58111,16 +58111,16 @@ static __inline__ void walkerStep(Work* w, u8* head, Scratch* block) { … }
 
 void func_…(Work* w)
 {
-    head                  = *(u8**)G_SCRATCH_HEAD;   /* lui/ori, 3 refs here */
-    *(u8**)G_SCRATCH_HEAD = head - 0x28;
-    block                 = (Scratch*)*(u8**)G_SCRATCH_HEAD;
+    head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;   /* lui/ori, 3 refs here */
+    *(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 0x28;
+    block                 = (Scratch*)*(u8**)SCRATCH_STACK_CURSOR_SLOT;
     walkerStep(w, head, block);                      /* every ref inside is absolute */
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x28;
+    *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)*(u8**)SCRATCH_STACK_CURSOR_SLOT + 0x28;
 }
 ```
 
 `func_acropolis_bridge_8018532C` went from 88% to 97% on that split alone. The
-third reference (`block = *G_SCRATCH_HEAD` after the store) is not redundant:
+third reference (`block = *SCRATCH_STACK_CURSOR_SLOT` after the store) is not redundant:
 CSE folds it to `move $s0, $v0`, which is the target's extra copy into the
 callee-saved register.
 
@@ -58443,7 +58443,7 @@ sll   $v0, $v0, 16       # reuses the stored value…
 sra   $v0, $v0, 16
 ```
 
-Passing `d` moves the loads below the helper's `*(u8**)G_SCRATCH_HEAD = head -
+Passing `d` moves the loads below the helper's `*(u8**)SCRATCH_STACK_CURSOR_SLOT = head -
 0xC`, which kills the entry, and the target's plain reload comes back:
 
 ```
@@ -58549,7 +58549,7 @@ example; it was the last instruction between 99.97% and 100%.
 
 ## A `move` in the preheader can be a struct field re-read, not a second local
 
-`func_acropolis_bridge_801843A0` stages a pointer in its `G_SCRATCH_HEAD` block
+`func_acropolis_bridge_801843A0` stages a pointer in its `SCRATCH_STACK_CURSOR_SLOT` block
 and then reads through it three times per loop iteration. The target hoists that
 pointer into the preheader as a plain register copy, sitting in the loop guard's
 delay slot:
@@ -59084,7 +59084,7 @@ static __inline__ s16 bearingXY(SVECTOR3* p, SVECTOR3* eye) { /* … */ return r
 
 Hoisting the shared part into the caller and selecting only the `ratan2`
 arguments with two locals produces the same instruction *count* but keeps the
-`G_SCRATCH_HEAD` constant in a callee-saved register, because the accesses then
+`SCRATCH_STACK_CURSOR_SLOT` constant in a callee-saved register, because the accesses then
 sit in one basic block (see "`static __inline__` keeps a constant scratch
 address out of a register"). The helper form is what restores the per-access
 `lui $a3, 0x1F80` / `lui $at, 0x1F80` macro expansion *and* hands the loop a
@@ -59182,7 +59182,7 @@ the assignment gives it one and pins the `move` to the top of the function:
 ```c
 coord = arg0;
 SOFT_TOUCH_REG(coord);
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 ## Which of a split `head` / `blk` pair gets stored decides the copy direction
@@ -62315,7 +62315,7 @@ copy: a barrier ends the scheduling region, so the argument copy loses the call
 as a successor, its priority collapses and it sinks to the end of the region
 instead of being hoisted 30 instructions ahead of the `jal`.
 
-## Identify a `G_SCRATCH_HEAD` draw helper by its scratch-block layout, then grep `include/` for that struct
+## Identify a `SCRATCH_STACK_CURSOR_SLOT` draw helper by its scratch-block layout, then grep `include/` for that struct
 
 The GTE draw helpers all open the same way: load `*(void**)0x1F8003FC`, back the
 pointer up by the block size, write the coordinate's `workm.t[]` low halves as an
@@ -62558,7 +62558,7 @@ pair is right when the target has *two* loads (`lh` plus `lhu`), as
 
 ## Give a local an argument-register conflict with a dummy `asm` output, not a pin
 
-The `G_SCRATCH_HEAD` draw helpers (`func_plasma_8012FB10`,
+The `SCRATCH_STACK_CURSOR_SLOT` draw helpers (`func_plasma_8012FB10`,
 `func_combustion_80130184`) all open the same way: save `value`, materialise
 `0x1F8003FC` into `$a1`, then `lw` the scratch head. The head pointer wants to
 be in `$t0`, and the obvious way to get it there — `register u8* head
@@ -62766,7 +62766,7 @@ different points in the block, and every barrier variant all scored the same.
 after its last use, at the end of the function:
 
 ```c
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    *SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x1C;
     DEF_REG(head);   /* __asm__ volatile("" : "=r"(head)) — emits nothing */
 }
 ```
@@ -62774,7 +62774,7 @@ after its last use, at the end of the function:
 `DEF_REG` is output-only, so it emits no MIPS and leaves `head` holding
 garbage that nothing reads; what it changes is that `head` now has a second
 def, and block 0's schedule comes out in the target's order. The permuter
-found the same effect first as `head = *(void**)G_SCRATCH_HEAD;` in the tail
+found the same effect first as `head = *SCRATCH_STACK_CURSOR_SLOT;` in the tail
 statement — that is a real load and reaches 99.965%, but it pins the tail's
 loaded value to `head`'s register (`t0`) where the target uses `v0`. The
 empty-asm def gives the def without the register.
@@ -63236,7 +63236,7 @@ The same function's prologue was then off by one local-alloc colouring
 (`head` in `$v0`/`r1` in `$a0` instead of `$a0`/`$a1`) that no reshaping of the
 three statements involved would move. What fixed it was hoisting the *unrelated*
 radius arithmetic (`r1 += row->rInner; r0 = r1 + …`) above the
-`G_SCRATCH_HEAD` load/store block. The instructions still schedule identically,
+`SCRATCH_STACK_CURSOR_SLOT` load/store block. The instructions still schedule identically,
 but sched1 breaks its ties by source position, the `rInner` temp is born
 earlier relative to `head`, and local-alloc's priority order flips so `rInner`
 takes `$v0` before `head` is coloured. When a colouring diff resists every
@@ -65311,7 +65311,7 @@ address took `$v0`, its loaded head took `$v1`, and `Gp_LinkList`'s high address
 took `$a0`. The target wanted `$a0`, `$v0`, `$v1`, respectively. Inlining the
 scratch address did not change the allocation.
 
-A `void* work` first holding `G_SCRATCH_HEAD`, then reassigned to the enemy
+A `void* work` first holding `SCRATCH_STACK_CURSOR_SLOT`, then reassigned to the enemy
 base before the `Gp_ClaimSlot18` call, matched without pins or empty asm.
 The `.lreg` dump changed the scratch pointer from a block-local pseudo
 (3 uses / 7 insns) to a reused pseudo (11 uses / 30 insns, three deaths).
@@ -65998,8 +65998,8 @@ the depth increment between the cursor load and the two stores, as required.
 The final scratch allocation copy needed only statement order:
 
 ```c
-head = (u8*)*(void**)G_SCRATCH_HEAD - 0x78;
-*(void**)G_SCRATCH_HEAD = head;
+head = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x78;
+*SCRATCH_STACK_CURSOR_SLOT = head;
 block = (GpEffRingScratch*)head;
 ```
 
@@ -66310,7 +66310,7 @@ and the dot-product allocation.
 The two late failure paths must remain separate. Build the first scratch-head
 address as `sp = (void**)0x1F800000; SOFT_TOUCH_REG(sp);`
 `sp = (void**)((s32)sp | 0x3FC);`, then release and return zero. The edge-loop
-failure uses the ordinary `G_SCRATCH_HEAD` constant. Explicit release/return
+failure uses the ordinary `SCRATCH_STACK_CURSOR_SLOT` constant. Explicit release/return
 statements allow only the final add/store tail to cross-jump; a shared C label
 for the entire failure path loses five target instructions.
 
@@ -66470,7 +66470,7 @@ Check `.lreg` and `.greg` before introducing a pinned comparison temporary.
 ## The first statement decides the allocation for a repeated body
 
 `func_actor_207000_8014FDA4` is the same body as the already-matched
-`ActorsShared8013a2c0` — a 0x10-byte `VECTOR` off `G_SCRATCH_HEAD` filled from
+`ActorsShared8013a2c0` — a 0x10-byte `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT` filled from
 `((TmdObject*)task->extra)->coords[1]` and handed to `Gp_UpdateActorColor` — and
 transcribing the sibling's C verbatim scored 76.8% with `regs=15 reorder=2`. The
 offsets were all correct; what was wrong was the allocation of the *whole* body,
@@ -68191,7 +68191,7 @@ immediates off by exactly 16) but the `VECTOR*` was correct and retyping it
 would have broken the carve. m2c had written the carve as
 `temp_s0 = temp_s1 - 0x10` against a `VECTOR*` head, so C scaled a byte offset
 by `sizeof(VECTOR)`: `addiu s0,s1,-0x100` where the target has `-0x10`, and
-`+0x100` for `*(VECTOR**)G_SCRATCH_HEAD += 0x10`. The fix is to state the
+`+0x100` for `*(VECTOR**)SCRATCH_STACK_CURSOR_SLOT += 0x10`. The fix is to state the
 carve in element units (`temp_s1 - 1`) or, as every sibling here writes it,
 against a `u8*` head:
 
@@ -70765,14 +70765,14 @@ load/store gives two block-0 local quantities with the same
 `refs=3 span=12 priority=2500` and no suggestions. The tracer reports
 `q1[%hi(gGpuPrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
 tie goes to the quantity born first (the `lui` that fills the `ori` of
-`G_SCRATCH_HEAD`). Extra then takes `$a0` globally (`move a0, v0` /
+`SCRATCH_STACK_CURSOR_SLOT`). Extra then takes `$a0` globally (`move a0, v0` /
 `slt ..., s0`). The target wants `addiu a0, a2, -N` / `move s8, a0` /
 `move a1, v0`.
 
 `USE_REG(allocated)` *after* the cursor store and *before* the copy into
 the long-lived scratch pointer adds a fourth ref at the existing death
 point, so the span stays ~12. Priority `4/12 = 3333` sits between the
-`G_SCRATCH_HEAD` address (still first, `$v1`) and the cursor `%hi`
+`SCRATCH_STACK_CURSOR_SLOT` address (still first, `$v1`) and the cursor `%hi`
 (`$a1`). Allocated wins `$a0`; extra is `$a1`; `slt` still needs a
 separate copy of `$s0` (next entry). Putting `USE_REG` earlier, or using
 `SOFT_TOUCH_REG` (`+r` new def), either takes `$v1` first or ties
@@ -70780,7 +70780,7 @@ allocated onto the scratch pointer.
 
 ```c
 allocated = head - 0x14;
-*(void**)G_SCRATCH_HEAD = allocated;
+*SCRATCH_STACK_CURSOR_SLOT = allocated;
 gGpuPrimCursor = area + 1;
 USE_REG(allocated);
 scratch = (Scratch*)allocated;
@@ -72514,17 +72514,17 @@ a success.
 
 ## A scratchpad-head dance needs `static __inline__`, or cse unifies its address
 
-`G_SCRATCH_HEAD` is the constant address `0x1F8003FC`, and `expand` never leaves
+`SCRATCH_STACK_CURSOR_SLOT` is the constant address `0x1F8003FC`, and `expand` never leaves
 a constant address in a MEM: `memory_address` in `explow.c` runs
 `force_reg (Pmode, x)` on any `CONSTANT_ADDRESS_P` address "by passing constant
 addresses thru registers we get a chance to cse them". So each of the four
 accesses in an allocate/restore pair
 
 ```c
-sc = (Scratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Scratch));
-*(Scratch**)G_SCRATCH_HEAD = sc;
+sc = (Scratch*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - sizeof(Scratch));
+*(Scratch**)SCRATCH_STACK_CURSOR_SLOT = sc;
 /* ... */
-*(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Scratch);
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + sizeof(Scratch);
 ```
 
 starts as its own pseudo holding `0x1F8003FC`. Inside one basic block cse's
@@ -72557,7 +72557,7 @@ and the copy matches.
 **The release half needs its own inline when it lives in the caller.**
 `func_actor_444000_8013D96C` runs that dance six times over, and the natural
 split puts the allocate-rotate-copy body in one `static __inline__` and leaves
-`*(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Scratch);` in the
+`*(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + sizeof(Scratch);` in the
 caller, between the two coordinate flag clears. That costs more than the two
 `lui`s it looks like: the caller's pair goes through `memory_address` and comes
 out as `(mem (reg 145))`, the inlined push stays `(mem (const_int 528483324))`,
@@ -72990,9 +72990,9 @@ The extra register held a *second live pointer with the same value*. The
 function carves an `SVECTOR` off the scratchpad head and hands it to the GTE:
 
 ```c
-head                       = *(u8**)G_SCRATCH_HEAD;
+head                       = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
 dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
-*(SVECTOR**)G_SCRATCH_HEAD = dir;
+*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = dir;
 ```
 
 `head` (`$s4`), `dir` (`$s1`) and a third pseudo (`$s3`) are all live across the
@@ -73230,7 +73230,7 @@ it. `func_actor_444000_8013A3AC` is the example.
 
 `memory_address()` in `explow.c` forces a constant MEM address into a pseudo
 at expand time - the comment there is literally "By passing constant addresses
-thru registers we get a chance to cse them". So `*(u8**)G_SCRATCH_HEAD`
+thru registers we get a chance to cse them". So `*(u8**)SCRATCH_STACK_CURSOR_SLOT`
 expands to `(set (reg) (const_int 0x1F8003FC))` plus `(mem (reg))`, never
 `(mem (const_int 0x1F8003FC))`. Only `combine` folds it back, and only when the
 address pseudo has a *single* use; CSE merges the per-access pseudos into one
@@ -74029,7 +74029,7 @@ moment the store is), so the pair moves together.
 
 ## Scratchpad-head accesses share a CSE'd register unless the helper is inlined
 
-`*(u8**)G_SCRATCH_HEAD` compiles two ways in this tree, and the difference is
+`*(u8**)SCRATCH_STACK_CURSOR_SLOT` compiles two ways in this tree, and the difference is
 whether the accesses sit in a `static __inline__` helper:
 
 ```
@@ -74061,13 +74061,13 @@ carved block is the other half, and it goes the other way: a target that stores
 a *block-local* register and copies into the call-crossing one needs the stored
 expression written twice.
 
-`func_actor_105100_80136574` carves 0x30 bytes off `G_SCRATCH_HEAD`, and the
+`func_actor_105100_80136574` carves 0x30 bytes off `SCRATCH_STACK_CURSOR_SLOT`, and the
 obvious spelling scores 93.55%:
 
 ```c
-head = *(void**)G_SCRATCH_HEAD;
+head = *SCRATCH_STACK_CURSOR_SLOT;
 blk  = (T*)((u8*)head - 0x30);
-*(void**)G_SCRATCH_HEAD = blk;
+*SCRATCH_STACK_CURSOR_SLOT = blk;
 ```
 
 Its `.lreg` block 0 has one pseudo for the subtraction — `reg 86 = reg 85 - 48`
@@ -74084,8 +74084,8 @@ addu  s0, v1, zero     ; ... and blk arrives as a copy
 which is two separate computations of `head - 0x30`:
 
 ```c
-head = *(void**)G_SCRATCH_HEAD;
-*(void**)G_SCRATCH_HEAD = (u8*)head - 0x30;   /* its own (set ...) */
+head = *SCRATCH_STACK_CURSOR_SLOT;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)head - 0x30;   /* its own (set ...) */
 blk  = (T*)((u8*)head - 0x30);
 ```
 
@@ -74329,7 +74329,7 @@ guarded block, which no longer matches at all. This was worth 94.4% → 98.4% on
 
 ## Scratch frame: address the pre-decrement head to get `-0x24(head)` instead of `8(sc)`
 
-An overlay that carves a struct off `G_SCRATCH_HEAD` and then writes an
+An overlay that carves a struct off `SCRATCH_STACK_CURSOR_SLOT` and then writes an
 identity rotation into the matrix inside it can emit either
 
 ```
@@ -76092,7 +76092,7 @@ the scratchpad head is a `u8*`, and the target of the matrix copy is a field of
 a known struct, so
 
 ```c
-m = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+m = (MATRIX*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x20);
 func_actor_107600_80132C4C(m, &coord->coord);
 ```
 
@@ -76106,7 +76106,7 @@ delay-slot store included. `func_actor_107600_80132B7C` (95.96% -> 100%).
 
 ## The *load*'s `MEM_IN_STRUCT_P` decides whether a constant-address store sinks past it
 
-A scratchpad publish store `*(MATRIX**)G_SCRATCH_HEAD = m;` is
+A scratchpad publish store `*(MATRIX**)SCRATCH_STACK_CURSOR_SLOT = m;` is
 `(set (mem:SI (reg p)) ...)` where `p` is a pseudo set once from
 `(const_int 0x1F8003FC)` and carrying a `REG_EQUAL` note. Two pieces of
 `sched.c` turn that into a *fixed* address: `init_dependency_caches`
@@ -76296,7 +76296,7 @@ Example: `func_actor_107600_80134EF4`.
 
 ## A live call result pushes the scratch-head reload from `$v0` into `$v1` - and that is what costs the `nop`
 
-**Symptom.** `func_actor_107600_80134D9C` carves a `VECTOR` off `G_SCRATCH_HEAD`,
+**Symptom.** `func_actor_107600_80134D9C` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
 calls `func_80103D8C` for an XZ distance, then releases the block with
 `*scratch = (u8*)*scratch + 0x10;`. It scored 93.57% with `regs=3 insert=2
 delete=1`: the reload came out in `$v0`, which forced it *after* the store of
@@ -79686,9 +79686,9 @@ to 98.974% with only this transformation:
 ```c
 /* before */
 scratch = head - 1;
-*(Scratch**)G_SCRATCH_HEAD = scratch;
+*(Scratch**)SCRATCH_STACK_CURSOR_SLOT = scratch;
 /* after */
-scratch = (*(Scratch**)G_SCRATCH_HEAD = head - 1);
+scratch = (*(Scratch**)SCRATCH_STACK_CURSOR_SLOT = head - 1);
 ```
 
 The nested form expands arithmetic into a temporary, stores it, then copies
@@ -80118,7 +80118,7 @@ four classes (`shape`, `fields`, `calls`, `cflow`), and that agreement is the
 signal. Settle byte-identity with `diff` on the two `.s` files, where the only
 expected differences are the label names and the address columns. Here the port
 was then verbatim: only the scratch-pointer decrement had to become an lvalue
-assignment (`*(u8**)G_SCRATCH_HEAD -= 8`), which is what makes the target emit
+assignment (`*(u8**)SCRATCH_STACK_CURSOR_SLOT -= 8`), which is what makes the target emit
 the `lw / addiu / sw` triple and read the decremented value back.
 
 The promotion this body wants was attempted and reverted, the fourth such
@@ -80323,7 +80323,7 @@ Inputs: `base_5.c` (`base_5.i`
 
 ## Source order against an unknown-pointer store decides whether CSE keeps a struct pointer: the original's reloads are the evidence
 
-`func_actor_105700_80133878` carves eight bytes off `G_SCRATCH_HEAD` and then
+`func_actor_105700_80133878` carves eight bytes off `SCRATCH_STACK_CURSOR_SLOT` and then
 reads `value->field_1C` and `arg1->field_2C->field_8`, storing the variant
 halfword and position through `field_2C` in two of its `D_801153F4` cases. The
 target reloads `field_2C` in both of those cases — `lw $v0, 0x2c($s3)` in case
@@ -80333,7 +80333,7 @@ same C written with the carve first compiles the entry load into a single
 pseudo that stays live into both cases and drops four instructions (240 vs 244,
 94.22% → with `stack=0 branch=10 regs=19 delete=4` left over).
 
-**Cause.** `*(u8**)G_SCRATCH_HEAD -= 8` is a store through a pointer of unknown
+**Cause.** `*(u8**)SCRATCH_STACK_CURSOR_SLOT -= 8` is a store through a pointer of unknown
 provenance, so `cse.c` invalidates every memory equivalence it cannot prove
 disjoint — including `mem[value+0x2C]`, which is exactly the kind of
 constant-offset `mem/s` entry the neighbouring-field entry above describes.
@@ -80344,7 +80344,7 @@ deeper loads **before** the carve restores the target's shape:
 ```c
 work    = arg1->field_1C;
 coord   = arg1->field_2C->field_8;
-scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+scratch = (SVECTOR*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT -= 8);
 ```
 
 Scheduling then reorders the block freely — the emitted order is still the
@@ -80355,7 +80355,7 @@ first scored 100%.
 **Symptom to look for.** Extra `lw` of a pointer that an earlier block already
 loaded, in blocks reached by a compare chain from the same predecessor, with no
 call or store in between that obviously aliases. The original ordering usually
-had one: check whether the routine carves scratch (`G_SCRATCH_HEAD`), publishes
+had one: check whether the routine carves scratch (`SCRATCH_STACK_CURSOR_SLOT`), publishes
 a `Task`, or otherwise writes through a pointer before the later use. A
 `delete` penalty that is exactly the count of those reloads (plus their
 load-delay `nop`s) is the fingerprint.
@@ -87453,7 +87453,7 @@ source shape: the body is `actorPositionYaw` / `actorNormalizeYaw`
 plain `while (1) { if (v >= -0x800) break; v += 0x1000; }` keeps the top test
 (the return's sign extension supplies the `sll` at the exit label), and the
 inlined scratch dance gives the absolute forms, while the caller's own
-`*(T**)G_SCRATCH_HEAD -= 1; p = *(T**)G_SCRATCH_HEAD;` and `+= 1` keep
+`*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1; p = *(T**)SCRATCH_STACK_CURSOR_SLOT;` and `+= 1` keep
 `lui`/`ori`. 85% to 100% in one step. Before fighting a wrap loop or scratch
 address forms, `grep -rn "0x1194\|NormalizeYaw" include/actors src/actors` for a
 helper whose body the function already contains.
@@ -87583,10 +87583,10 @@ still slides it (and the dependent stores) down next to the pop:
 
 ```c
 blk->dx *= blk->dx;
-*(OverlayRangeScratch**)G_SCRATCH_HEAD = blk;
+*(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
 blk->dz *= blk->dz;
 blk->r  *= blk->r;
-*(u8**)G_SCRATCH_HEAD = head;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head;
 ret = blk->dx + blk->dz >= blk->r;   /* after the pop: slt + xori */
 ```
 
@@ -87650,8 +87650,8 @@ loop variable, is what gets stored and passed.
 
 ## `0x2C(x)` vs `-8(head)` after a scratch pop: read through `vec->vx`, not `head[-1].vx`
 
-A scratch pop (`x = *G_SCRATCH_HEAD; *G_SCRATCH_HEAD = x + 0x34`) followed by
-a step-forward push (`head = *G_SCRATCH_HEAD; vec = head - 1; ...`) left the
+A scratch pop (`x = *SCRATCH_STACK_CURSOR_SLOT; *SCRATCH_STACK_CURSOR_SLOT = x + 0x34`) followed by
+a step-forward push (`head = *SCRATCH_STACK_CURSOR_SLOT; vec = head - 1; ...`) left the
 target's X read as `lh v1, 0x2C($s2)` (off the reloaded `x`), with `vec` in
 `$s0 = $s2 + 0x2C`. Reading `head[-1].vx` gave `-8($s2)` with `head` as a
 third call-crossing pseudo, which also moved `x` out of `$s2` (regs=11).
@@ -87684,15 +87684,15 @@ count matches is a spelling choice in the C, and this project has usually
 already matched one. The dumps then confirm the mechanism; they are a poor
 place to *discover* it.
 
-## `addiu v0,head,-K` + `move sN,v0` at a scratch push: `*(T**)G_SCRATCH_HEAD -= 1; s = *G_SCRATCH_HEAD`
+## `addiu v0,head,-K` + `move sN,v0` at a scratch push: `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1; s = *SCRATCH_STACK_CURSOR_SLOT`
 
 `Actor01900_Fn06F40` opens a 0xC block with the head load scheduled late (after
 the first field's operands, just before its `sh v0,-0xC(a1)`), then
 `addiu v0,a1,-0xC` / `move s4,v0`, and the head store `sw s4,0(a0)` only after
-the second field. Written as `head = *G_SCRATCH_HEAD; s = head - 1;` the block
+the second field. Written as `head = *SCRATCH_STACK_CURSOR_SLOT; s = head - 1;` the block
 pointer is computed straight into `$s4` (no copy) and the head load is emitted
 first; everything else matched (99.30%, `delete=2`, `insert=1`). The sibling
-push form `*(T**)G_SCRATCH_HEAD -= 1; s = *(T**)G_SCRATCH_HEAD;` with the fields
+push form `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1; s = *(T**)SCRATCH_STACK_CURSOR_SLOT;` with the fields
 written through `s->` is the whole fix: the decremented value is a short-lived
 pseudo, the reload CSEs into the `move`, and the store still lands after the
 field writes. Read the copy as the signature of the compound push. The same
@@ -87710,8 +87710,8 @@ register, so no unpinned C split of it reproduces the copy. The compound push
 closes it unpinned:
 
 ```c
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x10;
-block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x10;
+block                   = (VECTOR*)*SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 The stored value stays a short-lived pseudo (local-alloc colours it `$v0`) and
@@ -87744,8 +87744,8 @@ scheduling complaint at all: the scratch push is written the way its matched
 sibling `func_actor_800100_80165C38` writes it,
 
 ```c
-    place                            = (GfxCoord*)((u8*)*(void**)G_SCRATCH_HEAD - 0x50);
-    *(GfxCoord**)G_SCRATCH_HEAD = place;
+    place                            = (GfxCoord*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x50);
+    *(GfxCoord**)SCRATCH_STACK_CURSOR_SLOT = place;
 ```
 
 one pseudo carries both the later uses and the memory store, and `.greg` shows
@@ -87756,7 +87756,7 @@ lower register is to move the store off the global pseudo. Spelling the push as
 two expressions of the same value
 
 ```c
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = (u8*)head - 0x50;
     place    = (GfxCoord*)((u8*)head - 0x50);
@@ -92784,8 +92784,8 @@ order is the leftover.
 
 Same function, unrelated and already covered above: the scratchpad prologue
 needed the store-then-re-read shape
-(`head = *(u8**)G_SCRATCH_HEAD; *(u8**)G_SCRATCH_HEAD = head - 0x1C;
-scratch = *(u8**)G_SCRATCH_HEAD;`) to keep `addiu v0 / move s0,v0 / sw v0`
+(`head = *(u8**)SCRATCH_STACK_CURSOR_SLOT; *(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 0x1C;
+scratch = *(u8**)SCRATCH_STACK_CURSOR_SLOT;`) to keep `addiu v0 / move s0,v0 / sw v0`
 rather than fusing into `addiu s0,v0,-0x1c`, and rewriting its `goto` loop as
 `for (;;) { ... if (kind == -1) break; ... }` rotated the loop and duplicated
 the exit test, dropping 100% to 75.1% (`insert=15 delete=7`).
@@ -95740,8 +95740,8 @@ lets cse2 fold it to `return 1`, which then cross-jumps onto an unrelated
 `func_actor_510900_80138D38` pushes a `MATRIX` onto the scratch stack and then
 reads two pointers out of its argument:
 
-    matrix                = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(u8**)G_SCRATCH_HEAD = (u8*)matrix;
+    matrix                = (MATRIX*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x20);
+    *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)matrix;
     work                  = arg0->field_1C;
     coord                 = &arg0->field_2C->field_8->field_0;
     RotMatrix(&work->field_570, matrix);
@@ -95764,8 +95764,8 @@ the dependence appears, and the block schedules in source order — 100.00%:
 
     typedef struct ActorScratchStack { u32 sp; } ActorScratchStack;
 
-    matrix = (MATRIX*)(((ActorScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    matrix = (MATRIX*)(((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->sp - 0x20);
+    ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->sp = (u32)matrix;
 
 `ActorScratchStack` in `include/actors/actor_100300.h` is the same trick,
 and `Actor00300ByteView` beside it is the reverse case. So when a store and a
@@ -97300,8 +97300,8 @@ Inputs: `base.i` (m2c statement inside the `if`, 90.53%)
 with the rescale of `ActorsShared80135a60` folded in behind it. Every scratch
 access in the target is the absolute form (`lui $s4,0x1F80` / `lw $s4,0x3FC($s4)`
 and `lui $at,0x1F80` / `sw $s0,0x3FC($at)`), so the obvious transcription --
-`head = *(u8**)G_SCRATCH_HEAD; blk = head - 0x34; *(Scratch**)G_SCRATCH_HEAD = blk;
-... *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;` -- stalls at 89.96%:
+`head = *(u8**)SCRATCH_STACK_CURSOR_SLOT; blk = head - 0x34; *(Scratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
+... *(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + 0x34;` -- stalls at 89.96%:
 `cse` merges the four constant addresses into one pseudo, which global-alloc then
 keeps in a callee-saved register (`lui/ori` + `sw $s0,0($s5)`), burning a seventh
 `s` register. Entries above give the fix; what is missing is the *tell*.
@@ -97331,16 +97331,16 @@ reconstruct one:
 ```c
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 {
-    head  = *(u8**)G_SCRATCH_HEAD;
+    head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     coord = ((TmdObject*)task->extra)->coords;
     blk   = (ActorScaleRotScratch*)(head - 0x34);
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = blk;
+    *(ActorScaleRotScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
     ... ratan2 / Gfx_RotMatrixY / ScaleMatrix / nine matrix shorts ...
     m22 = *(u16*)&blk->m.m[2][2];
     coord->composeStamp = 0;
     coord->coord.m[2][2] = m22;
     ((TmdObject*)task->extra)->coords->composeStamp = 0;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;
+    *(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + 0x34;
 }
 ```
 
@@ -101847,7 +101847,7 @@ No pins, no empty asm, no permuter run. Session:
 
 ### Two back-to-back `sw …, 0x3FC($at)` after three `mult`s is the scratch range-test inline (func_actor_401300_801397F8, 2026-09-16)
 
-**Symptom.** A delta `SVECTOR` is squared through a 0xC-byte `G_SCRATCH_HEAD`
+**Symptom.** A delta `SVECTOR` is squared through a 0xC-byte `SCRATCH_STACK_CURSOR_SLOT`
 block: `lw a1,0x3fc(a1)`, `sw dx,-0xc(a1)`, `addiu a0,a1,-0xc`, three
 `mult`/`mflo`, then `lui at; sw a0,0x3fc(at)` / `lui at; sw a1,0x3fc(at)`
 adjacent, the compare reloading only `dx` from memory, and `slt; xori 1; bnez`.
@@ -103436,13 +103436,13 @@ Writing the store's operand out as its own expression instead of reusing the
 variable is worth 100.000%:
 
 ```c
-head                      = *(u8**)G_SCRATCH_HEAD;
-*(MATRIX**)G_SCRATCH_HEAD = (MATRIX*)(head - 0x20);
+head                      = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
+*(MATRIX**)SCRATCH_STACK_CURSOR_SLOT = (MATRIX*)(head - 0x20);
 scratch                   = (MATRIX*)(head - 0x20);
 ```
 
 The mechanism is the *set* of insns, not their order. The second
-`G_SCRATCH_HEAD` occurrence expands to its own pseudo for the literal address -
+`SCRATCH_STACK_CURSOR_SLOT` occurrence expands to its own pseudo for the literal address -
 `.rtl` uid 16 becomes `(set (reg:SI 87) (const_int 528483324))` where the
 shared-variable form had `(set (reg/v:SI 83) (plus:SI (reg/v:SI 84) ...))` - so
 the entry block's RTL gains two insns and every later `INSN_LUID` shifts by two.
@@ -104271,7 +104271,7 @@ the canonical register and substitutes it into the store (no `move`). The match
 is `scratch->angle = mag = angle;` with the compares written against
 `scratch->angle` - the assignment makes the store's source the extended value,
 and the field re-read becomes the separate copy. `mag` is otherwise unused.
-In the same function, one `G_SCRATCH_HEAD` push/pop in the middle of the body
+In the same function, one `SCRATCH_STACK_CURSOR_SLOT` push/pop in the middle of the body
 needed `static __inline__` push and pop helpers, and the `mtc2`/`lhu` GTE block
 a third inline taking the vector, for the extra `move s3,s0` register.
 
@@ -106594,10 +106594,10 @@ source `base_1.c` `b710ee457e74265ef28a6713a757d7338a6e2560d6683f1fc2b112d3594dd
 (100.000%), source `base_4.c`
 `45966e84edb9d9fc63c9d08d6599881eec238762979ae3ce37770580dbe27059`.
 
-## A constant `G_SCRATCH_HEAD` address folds into the memory operand only inside an inlined body
+## A constant `SCRATCH_STACK_CURSOR_SLOT` address folds into the memory operand only inside an inlined body
 
 `func_actor_521100_80135F2C` (the actor_521100 step body) stalled at 84.892%
-with `regs=35`: the target reaches `G_SCRATCH_HEAD` as `lui $s1,%hi` +
+with `regs=35`: the target reaches `SCRATCH_STACK_CURSOR_SLOT` as `lui $s1,%hi` +
 `lw $s1,%lo($s1)` and `lui $at,%hi` + `sw $s0,%lo($at)`, where the build emitted
 `lui $s1,0x1F80` / `ori $s1,$s1,0x3FC` and loaded through that register - which
 then stays live across the two calls, costing an extra callee-saved save and
@@ -106607,7 +106607,7 @@ Both forms are the *same C*; what decides is where it was expanded. Statements
 that come out of an inlined body (the `insn/i` uid marker) reach the allocator
 with the constant already folded into the memory operand, and the assembler then
 expands `lw $s1,528483324` into `lui $s1,%hi` / `lw $s1,%lo($s1)`. In a plain
-function the same `*(SVECTOR**)G_SCRATCH_HEAD` first forces the address into a
+function the same `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` first forces the address into a
 pseudo (`li $r,0x1F800000` / `ori $r,$r,0x3FC`) and nothing later takes it out.
 
 So a move block whose scratch accesses are folded is an inlined helper, not a
@@ -107597,9 +107597,9 @@ written, and why the helper's `amount` is a plain `s16` parameter rather than a 
 site: the same inlined helper compiled from another 401300-family TU shows the identical
 `lh`/`lhu` pair.
 
-## A `G_SCRATCH_HEAD` access only keeps its `lui %hi` / `lw %lo(reg)` form when it lives inside an inline helper (`func_actor_401800_8013945C`, 2026-09-16)
+## A `SCRATCH_STACK_CURSOR_SLOT` access only keeps its `lui %hi` / `lw %lo(reg)` form when it lives inside an inline helper (`func_actor_401800_8013945C`, 2026-09-16)
 
-`*(SVECTOR**)G_SCRATCH_HEAD` - i.e. `*(T*)((u8*)((void*)0x1F800000) + 0x3FC)` - compiles two
+`*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` - i.e. `*(T*)((u8*)((void*)0x1F800000) + 0x3FC)` - compiles two
 different ways depending on whether the statement is written in the body of a
 `static __inline__` function or directly in the function that uses it:
 
@@ -108059,7 +108059,7 @@ re-materialise the two expressions feeding them.
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
 the same store. The TU's `overlayOutOfRange` helper writes
-`*(OverlayRangeScratch**)G_SCRATCH_HEAD = blk;` after `blk->dz` / `blk->r`
+`*(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;` after `blk->dz` / `blk->r`
 and after `dx *= dx`; the target has it immediately after the `dx` store, before
 `dz` and `r`.
 
@@ -108077,7 +108077,7 @@ store can only follow the `r` store:
 ```
 
 Moving the statement up one slot in the helper —
-`blk = (...)  (head - 0xC); blk->dx = d->vx; *(RangeScratch**)G_SCRATCH_HEAD = blk; blk->dz = d->vz; ...` —
+`blk = (...)  (head - 0xC); blk->dx = d->vx; *(RangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk; blk->dz = d->vz; ...` —
 gave 100.000% with every penalty zero, and the unscoped build still matched the
 helper's two other call sites in the same TU (`func_actor_401800_8013A034`,
 `func_actor_80137714`), which turn out to be insensitive to the order.
@@ -108425,8 +108425,8 @@ M2C_FIELD(temp_v1_2, s32 *, 8) = ...;
 
 Those two stores to the head — the second putting the *original* pointer back —
 are the signature of the `*_OutOfRange` helper the whole actor family carries:
-it takes a block below `G_SCRATCH_HEAD`, squares `dx`/`dz`/`r` in it, then
-restores the head. `*(T**)G_SCRATCH_HEAD = blk; ... *(u8**)G_SCRATCH_HEAD = head;`
+it takes a block below `SCRATCH_STACK_CURSOR_SLOT`, squares `dx`/`dz`/`r` in it, then
+restores the head. `*(T**)SCRATCH_STACK_CURSOR_SLOT = blk; ... *(u8**)SCRATCH_STACK_CURSOR_SLOT = head;`
 with the two casts m2c kept is the give-away; nothing else in the corpus stores
 the head twice, once with a `-0xC` value.
 
@@ -109216,7 +109216,7 @@ Three things made it one-shot:
 
 Where the twin stops helping is where a helper got *inlined differently*: the
 target's inlined `overlayOutOfRange` stores `blk->r` before `blk->dz` and
-issues both `*G_SCRATCH_HEAD` stores after the three `mult`s, where the helper's
+issues both `*SCRATCH_STACK_CURSOR_SLOT` stores after the three `mult`s, where the helper's
 literal source order is dx, dz, r, square, store-head. That is the scheduler
 moving independent store/load pairs around a `static __inline__` body, not a
 different helper — do not go looking for a second `RangeScratch` function.
@@ -109228,17 +109228,17 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## A scratch block's `-= 1` push is what makes the pointer's `addiu`/`move` pair
 
-Carving a typed block below `G_SCRATCH_HEAD` two ways differs by one
+Carving a typed block below `SCRATCH_STACK_CURSOR_SLOT` two ways differs by one
 instruction, and the shorter spelling is the wrong one:
 
 ```c
 /* emits addiu $s4,$a1,-0xC — one insn, misses the move */
-turn = (ActorTurnScratch*)((u8*)*(void**)G_SCRATCH_HEAD - 0xC);
+turn = (ActorTurnScratch*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0xC);
 turn->delta.vx = ...;
 
 /* emits addiu $v0,$a1,-0xC ; move $s4,$v0 — the target's pair */
-*(ActorTurnScratch**)G_SCRATCH_HEAD -= 1;
-turn = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+*(ActorTurnScratch**)SCRATCH_STACK_CURSOR_SLOT -= 1;
+turn = *(ActorTurnScratch**)SCRATCH_STACK_CURSOR_SLOT;
 turn->delta.vx = ...;
 ```
 
@@ -109305,7 +109305,7 @@ spelling will produce it and the function belongs in `tools/difficult_functions`
 
 Related, from the same session: the scratch-pointer push documented above ("A
 scratch block's `-= 1` push") also appears as an assignment expression —
-`chase = (*(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1);` with the
+`chase = (*(Actor401000ChaseScratch**)SCRATCH_STACK_CURSOR_SLOT = head - 1);` with the
 delta written from `&head[-1].delta`. Written as two statements the inlined
 `pos` parameter coalesces with `chase` (one `addiu` instead of `addiu`+`move`),
 the function compiles one instruction short and every later branch
@@ -109734,7 +109734,7 @@ SImode use, so `sltiu $v0,$v1,5` came out as `andi v1,v1,0xff` plus a duplicated
 `j`. Widening it to `s32` removed both and took the score from 91.792% to
 97.878%. (The existing `u8`-local entry above is the converse — check the target
 for the mask before widening.) A `lui`/`ori` of the scratch head that appears
-twice, once at the top and once at each switch exit, is just `G_SCRATCH_HEAD`
+twice, once at the top and once at each switch exit, is just `SCRATCH_STACK_CURSOR_SLOT`
 used both to bump the pointer and to read it back. Input: `base_12.i`
 `86ee1783f1069ad1cc9e6320a8f21cdd7adea9e9373a52e17371752325243942`.
 
@@ -110452,8 +110452,8 @@ lui    at, (0x1F8003FC >> 16)
 sw     a1, (0x1F8003FC & 0xFFFF)(at)
 ```
 
-Writing those accesses the obvious way — `head = *(void**)G_SCRATCH_HEAD;`,
-`*(void**)G_SCRATCH_HEAD = blk;`, `*(void**)G_SCRATCH_HEAD = head;` — instead
+Writing those accesses the obvious way — `head = *SCRATCH_STACK_CURSOR_SLOT;`,
+`*SCRATCH_STACK_CURSOR_SLOT = blk;`, `*SCRATCH_STACK_CURSOR_SLOT = head;` — instead
 compiles to one materialised address used as a base:
 
 ```
@@ -110952,12 +110952,12 @@ callee-saved registers: the coordinate (live across `Gfx_MatrixCol2` /
 `func_actor_421600_80138D24` wants `head` in `$s1` and the coordinate in
 `$s2`.
 
-Writing the tail as `*(SVECTOR**)G_SCRATCH_HEAD += 1;` is correct and produces
+Writing the tail as `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT += 1;` is correct and produces
 the right instructions, but if the reload is written out into `head` itself
 
 ```c
         head                       = *(SVECTOR**)(scratch + 0x3FC);
-        *(SVECTOR**)G_SCRATCH_HEAD = head + 1;
+        *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = head + 1;
 ```
 
 `head`'s live range stretches past the gte block and gains two references, so
@@ -110969,7 +110969,7 @@ takes `$s1` back and drops the function to 100.000%.
 
 ```c
         top                        = *(SVECTOR**)(scratch2 + 0x3FC);
-        *(SVECTOR**)G_SCRATCH_HEAD = top + 1;
+        *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = top + 1;
 ```
 
 Recognise it by the shape of the leftover: an otherwise exact match where
@@ -112367,7 +112367,7 @@ is not the lever. Compiler SHA256
 
 **Symptom.** `func_actor_356100_80167818` reached 97.778% with `regs=16` and every
 instruction, block and branch correct except one register pair: the 0xC
-`G_SCRATCH_HEAD` squared-distance block put its block pointer in `$v1` and the
+`SCRATCH_STACK_CURSOR_SLOT` squared-distance block put its block pointer in `$v1` and the
 radius constant in `$a0`, where the target has the block pointer in `$a0` and the
 constant in `$v1`. That block was the *only* difference in the whole function.
 
@@ -112381,10 +112381,10 @@ RTL*: they differ in how many intermediate pseudos they create and in what order
 `local-alloc.c` breaks an equal-priority tie with `return q1 - q2`
 (`qty_compare_1`), so pseudo numbering alone decides which of two simultaneously
 free registers the block pointer wins. The 400100 shape (`scratch = head - 1;`
-through the typed pointer, `G_SCRATCH_HEAD` armed before the field stores) numbers
+through the typed pointer, `SCRATCH_STACK_CURSOR_SLOT` armed before the field stores) numbers
 the constant first and hands it `$a0`; the 401300 shape (`u8* head`, the first
 store through a fresh `((Scratch*)(head - 0xC))` temporary, `blk` assigned after
-it, `G_SCRATCH_HEAD` armed after the first multiply) numbers the block pointer
+it, `SCRATCH_STACK_CURSOR_SLOT` armed after the first multiply) numbers the block pointer
 first.
 
 **Fix.** Give the overlay the 401300-shaped helper rather than reusing the 400100
@@ -112699,11 +112699,11 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_356100_8016382C-vacuum`.
 
-## `G_SCRATCH_HEAD` wants the address expanded at every use, not cached in a register (func_actor_356100_801668FC, 2026-09-16)
+## `SCRATCH_STACK_CURSOR_SLOT` wants the address expanded at every use, not cached in a register (func_actor_356100_801668FC, 2026-09-16)
 
 **Problem.** Every function in this overlay family that walks a scratch block
-starts from `G_SCRATCH_HEAD` (`0x1F8003FC`). Written the obvious way — the
-`G_SCRATCH_HEAD` macro, or the literal `*(u8**)0x1F8003FC` — `cse` hoists the
+starts from `SCRATCH_STACK_CURSOR_SLOT` (`0x1F8003FC`). Written the obvious way — the
+`SCRATCH_STACK_CURSOR_SLOT` macro, or the literal `*(u8**)0x1F8003FC` — `cse` hoists the
 constant into a pseudo and the allocator parks it in a callee-saved register for
 the whole function:
 
@@ -112957,7 +112957,7 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_80166018-vacuum`; matching candidate `base_2.c`.
 
-## A scratch reserve written as `*(T**)G_SCRATCH_HEAD -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
+## A scratch reserve written as `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
 
 **Problem.** This tick takes a 0xC-byte turn block and, inside it, a 0x14-byte
 `OverlayDeltaFlag`. The turn block matched immediately; the delta block was
@@ -112986,10 +112986,10 @@ s = p;
 *scratch = s;
 
 /* 100.000% — the reserve as the overlay writes it everywhere else */
-scratch = (void**)G_SCRATCH_HEAD;
+scratch = SCRATCH_STACK_CURSOR_SLOT;
 head    = *scratch;
-*(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
-s       = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
+*(OverlayDeltaFlag**)SCRATCH_STACK_CURSOR_SLOT -= 1;
+s       = *(OverlayDeltaFlag**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 **Mechanism.** The compound assignment leaves the decremented pointer in a
@@ -113015,7 +113015,7 @@ pair. Reach for the reserve idiom, not a pin.
 
 Note the contrast with the `func_actor_356100_801668FC` entry above: that
 function needed the `PLAYSTATION_SCRATCHPAD_BASE` address kept unfolded per use. Here the plain
-`G_SCRATCH_HEAD` macro produced retail's `lui at,0x1f80` + `0x3fc($at)` store
+`SCRATCH_STACK_CURSOR_SLOT` macro produced retail's `lui at,0x1f80` + `0x3fc($at)` store
 shape with no `base`/`slot` splitting at all — the address was never hoisted,
 because the two blocks that use it are short and the value dies at each use.
 
@@ -113038,12 +113038,12 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_8016804C-vacuum`; matching candidate `base_6.c`.
 
-## A `G_SCRATCH_HEAD` reservation must be written as the read-modify-write it is, or the target's `move $sN, $v0` copy never appears
+## A `SCRATCH_STACK_CURSOR_SLOT` reservation must be written as the read-modify-write it is, or the target's `move $sN, $v0` copy never appears
 
-Reserving a scratch block off `G_SCRATCH_HEAD` by naming the old head first
+Reserving a scratch block off `SCRATCH_STACK_CURSOR_SLOT` by naming the old head first
 
 ```c
-head = *(u8**)G_SCRATCH_HEAD;
+head = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
 turn = (ActorTurnScratch*)(head - 0xC);
 ```
 
@@ -113062,11 +113062,11 @@ global allocno (live across the calls that follow) and the temp it is copied
 from is not, so `combine_regs` leaves the copy for global-alloc:
 
 ```c
-turn = (ActorTurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
+turn = (ActorTurnScratch*)(*(u32*)SCRATCH_STACK_CURSOR_SLOT -= 0xC);
 ```
 
 The store the expression performs *is* the reservation, so no separate
-`*(T**)G_SCRATCH_HEAD = turn;` statement may follow. `G_SCRATCH_HEAD` is
+`*(T**)SCRATCH_STACK_CURSOR_SLOT = turn;` statement may follow. `SCRATCH_STACK_CURSOR_SLOT` is
 `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` to update its 32-bit address in bytes, or to `T**` to step the stored pointer by `sizeof(T)` per element.
 `func_actor_401300_80134BA4` uses byte steps through `sc = (SVECTOR*)SCRATCH_PUSH_BYTES(8);`.
 Writing the head into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
@@ -113106,13 +113106,13 @@ Scratch `nonmatchings/func_actor_356100_80167A7C-vacuum`; best candidate
 
 ## `head[-1].vx` in a scratch-release helper gives the released pointer its own register
 
-A `G_SCRATCH_HEAD` step helper that reads its X component back through the
+A `SCRATCH_STACK_CURSOR_SLOT` step helper that reads its X component back through the
 pre-release name
 
 ```c
-head = *(SVECTOR**)G_SCRATCH_HEAD;
+head = *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT;
 vec  = head - 1;
-*(SVECTOR**)G_SCRATCH_HEAD = vec;
+*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = vec;
 ...
 coord->coord.t[0] += head[-1].vx;   /* one register too many */
 ```
@@ -113130,7 +113130,7 @@ expression and fold to `blk + 0x2C`, keeping the block pointer in the register
 the release left it in. 100.000% with `regs` 10 → 0.
 
 The same helper pair also wants the release written straight through the macro,
-`*(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;`, rather than through a
+`*(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + 0x14;`, rather than through a
 saved `void** scratch`: the saved pointer was what let `lreg` keep the
 `0x1F8003FC` constant in `$s5` for that one store, a `lui`/`ori` pair the target
 does not have (2 `insert` penalties). A *matching* helper in the same TU can
@@ -114417,7 +114417,7 @@ Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
 
 `memory_address` (explow.c) starts every constant address the same way —
 `if (! cse_not_expected && CONSTANT_P (x) && CONSTANT_ADDRESS_P (x)) x =
-force_reg (Pmode, x);` — so `*(void**)G_SCRATCH_HEAD` expands to
+force_reg (Pmode, x);` — so `*SCRATCH_STACK_CURSOR_SLOT` expands to
 `(set (reg 85) (const_int 528483324))` plus `(mem (reg 85))`, and only later
 passes can take that register away again. CSE cannot: MIPS defines
 `ADDRESS_COST(ADDR) = REG_P (ADDR) ? 1 : mips_address_cost (ADDR)`, and
@@ -114431,7 +114431,7 @@ Which pseudos survive is then decided by how many times the address is used.
 scratch-word addresses (`lui $s4,(0x1F8003FC>>16)` + `lw
 $s4,(0x1F8003FC&0xFFFF)($s4)` for the load, `lui $at,...` + `sw ...` for the
 store, twice more for the bump). Writing the load as the literal
-`*(void**)G_SCRATCH_HEAD` and the store/bump through a base *variable*
+`*SCRATCH_STACK_CURSOR_SLOT` and the store/bump through a base *variable*
 (`pad = PLAYSTATION_SCRATCHPAD_BASE; *(void**)(pad + SCRATCH_STACK_HEAD_BYTE_OFFSET) = blk;`) reproduces the load
 exactly — its pseudo has one use, never reaches local-alloc, and the address
 comes out inline with the load's destination register doubling as the base —
@@ -116278,14 +116278,14 @@ Four steps, each an instance of rules already in this file, took it from 86.5% t
   `$a1` (= `coord + 4`) alive from the `ctc3` block to the last of the five
   stores.
 - 99.3 -> 99.7% (`regs` 17 -> 0): the pool push. `vec = (SVECTOR*)(head - 8);
-  *(u8**)G_SCRATCH_HEAD = (u8*)vec;` leaves `head` and `vec` at (refs 4, span 36)
+  *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)vec;` leaves `head` and `vec` at (refs 4, span 36)
   and (refs 6, span 64), so `head` outranks `vec` and takes `$s0`; writing the
   store as the expression and deriving `vec` **after** it gives `vec` the shorter
   span it needs for `$s0`:
 
 ```c
-head                  = *(u8**)G_SCRATCH_HEAD;
-*(u8**)G_SCRATCH_HEAD = head - 8;
+head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 8;
 vec                   = (SVECTOR*)(head - 8);
 ```
 
@@ -117013,7 +117013,7 @@ Inputs: walked pointer 97.851% `40d669ad834c7f34` (`reorder=1`); indexed 98.347%
 
 ## A constant address folds into the memory operand only inside an inlined body
 
-`G_SCRATCH_HEAD` dereferences compile two ways, and the C expression is not what
+`SCRATCH_STACK_CURSOR_SLOT` dereferences compile two ways, and the C expression is not what
 picks between them.  At the top level of a function cc1 forces the constant into
 a pseudo -- `memory_address`, `explow.c`, "By passing constant addresses thru
 registers we get a chance to cse them", taken whenever `!cse_not_expected`, i.e.
@@ -117021,9 +117021,9 @@ at any `-O` -- so the address costs a `lui`/`ori` in one register and every
 access is a `0($base)` form:
 
 ```c
-    head = *(u8**)G_SCRATCH_HEAD;
+    head = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     ...
-    *(void**)G_SCRATCH_HEAD = block;
+    *SCRATCH_STACK_CURSOR_SLOT = block;
 ```
 
 Expanded as a `static __inline__` body the same statements keep
@@ -117054,7 +117054,7 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     VECTOR*        block;
 
     coord     = &((TmdObject*)task->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
+    scratch   = SCRATCH_STACK_CURSOR_SLOT;
     head      = *scratch;
     block     = (VECTOR*)(head - 0x10);
     block->vx = coord->workm.t[0];
@@ -117710,7 +117710,7 @@ word goes in C").
 
 ## `$s3`/`$s4` swap between a scratch pointer and a coordinate: read the squares back through the scratch (func_actor_103700_8013224C, 2026-09-17)
 
-A collision loop stores three differences into a `G_SCRATCH_HEAD` block and
+A collision loop stores three differences into a scratch stack block and
 passes their squared length to `SquareRoot0`. Written with locals
 (`dx = ...; scratch->delta.vx.w = dx; ... SquareRoot0(dx * dx + ...)`), every
 instruction matched except that the scratch pointer and `coord` had swapped
@@ -118496,7 +118496,7 @@ sym files, or splat rejects the duplicate symbol.
 
 ### Where a plain field load is expanded decides sched1's order of the scratch-head copy (func_actor_102400_80132A28, 2026-09-17)
 
-Symptom at 99.18%: after `scratch = (…)(*(u8**)G_SCRATCH_HEAD -= 0x58)`, the jal
+Symptom at 99.18%: after `scratch = (…)(*(u8**)SCRATCH_STACK_CURSOR_SLOT -= 0x58)`, the jal
 delay slot held `addiu a0,s2,0x60` and a `nop` sat early on. The target hoists
 `addiu a0`, loads `index->field_2C` into v1 rather than v0, and puts `move s3,v0`
 (the scratch copy) in the slot.
@@ -123118,7 +123118,7 @@ plus the one extra call scored 100.000% on the first attempt.
 
 Port the source, not the asm, but re-score after conforming it to the host TU.
 The scratch idiom differs between sibling overlays and compiles the same either
-way: `actor_800100` writes `scratch = (void**)G_SCRATCH_HEAD;` from
+way: `actor_800100` writes `scratch = SCRATCH_STACK_CURSOR_SLOT;` from
 `main/mem.h`, while `actor_800200` and this overlay's own
 `func_actor_800300_80162D74` write `*(u8**)0x1F8003FC` directly. Rewriting the
 matching body into the local idiom reproduced the object byte for byte
@@ -123742,7 +123742,7 @@ only if its destination is a real object.
 ## The scratchpad pointer must be spelled `lui` + `0x3FC`, and CSE folds its first access onto the head unless a touch keeps it out of the address table (func_actor_342000_801628C8, 2026-09-17)
 
 `func_actor_342000_801628C8` scales a rotation matrix by a per-axis vector
-through a scratchpad `SVECTOR`, and the ROM reaches `G_SCRATCH_HEAD` four times
+through a scratchpad `SVECTOR`, and the ROM reaches `SCRATCH_STACK_CURSOR_SLOT` four times
 as a `lui` plus a `0x3FC` displacement:
 
 ```
@@ -123755,8 +123755,8 @@ lhu    t4,0(s0)          /* the column gather ... */
 sh     t4,0(v0)          /* ... lands at 0(v0), not -8(head) */
 ```
 
-`G_SCRATCH_HEAD` is a constant expression in this project, so
-`*(SVECTOR**)G_SCRATCH_HEAD` materialises `0x1F8003FC` into a register
+`SCRATCH_STACK_CURSOR_SLOT` is a constant expression in this project, so
+`*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` materialises `0x1F8003FC` into a register
 (`lui a0,0x1f80; ori a0,a0,0x3fc; lw v0,0(a0)`), and `update_equiv_regs`
 (`local-alloc.c`) only rematerialises a constant address when its register is
 referenced exactly twice *and* lives in more than one basic block. `actor_401800`
@@ -123770,7 +123770,7 @@ reproduces it here:
     __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
 ```
 
-The other half is the `sh t4,0(v0)`: with a plain `sv = *(SVECTOR**)G_SCRATCH_HEAD - 1;`
+The other half is the `sh t4,0(v0)`: with a plain `sv = *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT - 1;`
 the pseudo's value sits in CSE's table as `(plus head -8)`, and `find_best_addr`
 (`cse.c`) picks the *dearest* form on an `ADDRESS_COST` tie - "for two addresses
 of equal cost, choose the one with the highest `rtx_cost` value as that has the
@@ -124909,7 +124909,7 @@ Inputs: `base_3.i` (100.000%)
 ## The scratch vector's second name is a re-derived expression, and cse makes the copy
 
 The "step forward" idiom every actor family carries — scratch vector off
-`G_SCRATCH_HEAD`, `Gfx_MatrixCol2` + `VectorNormalSS`, `gpf 12`, store back,
+`SCRATCH_STACK_CURSOR_SLOT`, `Gfx_MatrixCol2` + `VectorNormalSS`, `gpf 12`, store back,
 add into `coord.t` — is one variable in the inline copies
 (`Actor201200_StepForward` and friends). `func_actor_311900_80162658` is the
 standalone version and keeps the pointer in *two* registers, `$s0` for the
@@ -124929,10 +124929,10 @@ the argvec, so input and output are one rtx and there is nothing to copy. What
 does produce it is writing the address expression a second time:
 
 ```c
-head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+head                       = *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT;
 vec                        = head - 1;
 gte                        = head - 1;   /* cse -> move s3,s0 */
-*(SVECTOR**)G_SCRATCH_HEAD = vec;
+*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = vec;
 ```
 
 Both definitions are `(set (reg) (plus (reg 82) (const_int -8)))` in the
@@ -128488,14 +128488,14 @@ The per-frame handler reserves 0xC off the scratch head, then carves an `SVECTOR
 inside an `if`. Written with the pointer macro —
 
 ```c
-*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0xC;
+*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0xC;
 ...
 if (D_80072729 != 1) {
-    head = *(SVECTOR**)G_SCRATCH_HEAD;
+    head = *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT;
     vec  = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = vec;
     ...
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT += 1;
 }
 ```
 
@@ -129791,10 +129791,10 @@ instructions:
 instruction short. The natural order
 
 ```c
-head                        = *(Turn**)G_SCRATCH_HEAD;
+head                        = *(Turn**)SCRATCH_STACK_CURSOR_SLOT;
 head[-1].dx                 = ...;      /* sh $v0, -0xC($a0) */
 turn                        = head - 1;
-*(Turn**)G_SCRATCH_HEAD     = turn;
+*(Turn**)SCRATCH_STACK_CURSOR_SLOT     = turn;
 ```
 
 compiles the bump to a single `addiu $s1, $a0, -0xC`, while the ROM has
@@ -129811,7 +129811,7 @@ copy. A second pseudo exists in the ROM, and it is *not* a second variable -
 the same expression was already computed for an earlier statement:
 
 ```c
-*(Turn**)G_SCRATCH_HEAD = head - 1;     /* the store operand must be a reg:
+*(Turn**)SCRATCH_STACK_CURSOR_SLOT = head - 1;     /* the store operand must be a reg:
                                            the sum lands in a local temp */
 turn                    = head - 1;     /* cse2 folds to that temp: a copy */
 ```
@@ -129895,11 +129895,11 @@ linear list".
 
 ## A large absolute address is `lui $at` inline but `lui`+`ori` through a pointer variable, and one variable per use site keeps each range short (func_actor_223600_8014BBF4, 2026-09-17)
 
-Scratch-pad code reaches `G_SCRATCH_HEAD` (`0x1F8003FC`) two ways in the same
+Scratch-pad code reaches `SCRATCH_STACK_CURSOR_SLOT` (`0x1F8003FC`) two ways in the same
 function, and they are different code. Written inline,
 
 ```c
-head = *(Actor223600Turn**)G_SCRATCH_HEAD;
+head = *(Actor223600Turn**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 GCC hands the assembler a MEM with an absolute address and gets its `$at`
@@ -130619,7 +130619,7 @@ first no matter how the statements are written.
 cflow, all starred). Diffing the two `.s` files opcode-by-opcode showed 674 vs
 671 instructions differing in exactly one region. Porting that matched body -
 which reads `self = index->field_2C->field_8` *before* decrementing
-`G_SCRATCH_HEAD` and the enemy pointer *after* - put the spilled use ahead of
+`SCRATCH_STACK_CURSOR_SLOT` and the enemy pointer *after* - put the spilled use ahead of
 the store in the RTL stream, and the entry matched on the first build.
 
 **Rule of thumb.** When the brief lists a starred `similar` candidate, diff the
@@ -131210,13 +131210,13 @@ it costs nothing:
 
 ```c
 /* deleted: GCC sees two adjacent stores to the same slot */
-*(u8**)G_SCRATCH_HEAD = head + 0x28;
-*(u8**)G_SCRATCH_HEAD = (u8*)block;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head + 0x28;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)block;
 
 /* kept, no barrier: the read between them clears last_mem_set */
-*(u8**)G_SCRATCH_HEAD = head + 0x28;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head + 0x28;
 work = arg0->field_1C;
-*(u8**)G_SCRATCH_HEAD = (u8*)block;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)block;
 ```
 
 Which reference it is matters, because it is also scheduled. Reconstructing one such
@@ -131469,7 +131469,7 @@ A scratch-block prologue that keeps one variable
 
 ```c
 scratch               = (Scratch*)(head - 0x3C);
-*(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)scratch;
 ...
 VectorNormalS(&scratch->vec, &scratch->normal);
 ```
@@ -131485,7 +131485,7 @@ Splitting the C the same way produces it:
 
 ```c
 newHead               = head - 0x3C;          /* stored, and passed  */
-*(u8**)G_SCRATCH_HEAD = newHead;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = newHead;
 scratch               = (Scratch*)newHead;    /* everything after the call */
 ...
 VectorNormalS((VECTOR*)newHead, &scratch->normal);
@@ -131522,12 +131522,12 @@ saying they are inlined so the scratch-head address is rematerialised.
 ```c
 static __inline__ void updateColor(Ctx* ctx, GfxCoord* attach)
 {
-    u8*     head  = *(u8**)G_SCRATCH_HEAD;
+    u8*     head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     VECTOR* block = (VECTOR*)(head - 0x10);
 
-    *(VECTOR**)G_SCRATCH_HEAD = block;
+    *(VECTOR**)SCRATCH_STACK_CURSOR_SLOT = block;
     ...
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x10;
 }
 ```
 
@@ -134813,7 +134813,7 @@ member the real type does declare is the one place to stop.
 
 ## A scratch block's type is the bytes its users agree on, not the largest reserve
 
-Routines that carve a block off `G_SCRATCH_HEAD` each write their own byte
+Routines that carve a block off `SCRATCH_STACK_CURSOR_SLOT` each write their own byte
 count, and one can reserve more than the block uses: `Gfx_MatrixToEuler`
 reserves 0x30 for the same `MATRIX`-plus-sine-and-cosine block that
 `Gfx_RotMatrixX`/`Y`/`Z` reserve 0x24 for. Sizing the type to the larger reserve
@@ -135284,7 +135284,7 @@ dz = blk->z;
 dz2 = dz * dz;
 blk->z = dz2;
 blk->radius *= blk->radius;
-*(u8**)G_SCRATCH_HEAD = head;
+*(u8**)SCRATCH_STACK_CURSOR_SLOT = head;
 __asm__("" : "=r"(dz), "+r"(dz2) : "m"(blk->radius));
 return blk->x + dz2 >= blk->radius;
 ```
@@ -138321,8 +138321,8 @@ sh    a0,2(t1)
 ```
 
 Every plain spelling (`vec` then `block = vec`, `head - 1`, casts, a second
-read of `G_SCRATCH_HEAD`, an integer `head`) collapses to one `addiu t1`: CSE or
-combine folds the single-use temp into the copy. `*(T**)G_SCRATCH_HEAD -= 1`
+read of `SCRATCH_STACK_CURSOR_SLOT`, an integer `head`) collapses to one `addiu t1`: CSE or
+combine folds the single-use temp into the copy. `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1`
 keeps the pair but stores the temp to the head immediately, while this target
 stores `block` after the vy store.
 
@@ -138602,7 +138602,7 @@ drift toward their consumers, check whether yours are SImode single sets.
 The remaining gap closed with two further spellings: `setUV4` (its store order
 u0,v0,u1,v1,u2,... is what keeps `u1` in its own register) and, for the scratch
 block's `addiu v0,head,-0x18` / `move t1,v0` pair whose copy is the value later
-stored to `G_SCRATCH_HEAD`, the explicit `__asm__("move %0,%1")` already used by
+stored to `SCRATCH_STACK_CURSOR_SLOT`, the explicit `__asm__("move %0,%1")` already used by
 `func_dryfield_night_motel_balcony_8018221C`. The compound push stores the carve
 instead (98.87%), and `SOFT_TOUCH_REG` on the carve leaves the reload move ahead
 of the `lhu` (99.07%), as the scratch-push entries above predict.
@@ -139312,7 +139312,7 @@ color = work;
 work <<= 16;
 half  = work >> 17;
 ...
-work = (s32)G_SCRATCH_HEAD;   /* last mention: keeps `work` canonical */
+work = (s32)SCRATCH_STACK_CURSOR_SLOT;   /* last mention: keeps `work` canonical */
 *(u8**)work += 0x18;
 ```
 

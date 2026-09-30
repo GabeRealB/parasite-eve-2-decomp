@@ -62,7 +62,7 @@
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_mine_refuge_80182ADC[4];
 
-/// Scratch block `func_mine_refuge_80180710` takes from `G_SCRATCH_HEAD`.
+/// Scratch block `func_mine_refuge_80180710` takes from the scratch stack.
 /// `otz`, `flag` and `sx`/`sy` receive the projection of the glow's centre;
 /// `rOuter` and `rInner` are its two on-screen radii, derived from that `otz`.
 /// Nothing in the function touches the leading bytes.
@@ -992,7 +992,7 @@ void func_mine_refuge_8017FFBC(Task* task)
 /// `arg1` also picks the 40-texel-wide texture column `(s16)arg1 * 40`, rows
 /// 0..0x27. The sprite's on-screen half-extent is `(s16)arg2 * 39 / otz`, and
 /// its grey level alternates between 0x20 and 0x30 with the frame counter.
-/// A 0x10-byte scratch block is taken from `G_SCRATCH_HEAD` and returned.
+/// A 0x10-byte scratch block is taken from the scratch stack and returned.
 static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
@@ -1038,7 +1038,7 @@ static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. A 0x18-byte scratch block in the
-/// `GpRingScratch` layout is taken from `G_SCRATCH_HEAD` and returned.
+/// `GpRingScratch` layout is taken from the scratch stack and returned.
 static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*            head;
@@ -1059,7 +1059,7 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
         block   = (GpRingScratch*)tmp;
@@ -1136,7 +1136,7 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// otz`. Only the centre vertex is lit, on green and blue, with a level of
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78` so the glow pulses; the half-radius
 /// copies take that level and every other wedge half of it. The scratch block is returned to
-/// `G_SCRATCH_HEAD` on exit.
+/// the scratch stack on exit.
 static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                 scratch;
@@ -1152,7 +1152,7 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32                    t2;
     s32                    u;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
     block   = (MineRefugeGlowScratch*)(*scratch = head - 0x1C);
 
@@ -1270,7 +1270,7 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// centre colour. `arg2` packs three RGB nibbles for the centre vertex, each
 /// offset by `(animFrame & 1) << 5` so the glow flickers on alternate frames.
 /// Unlike the room's other draws it never returns its 0x10-byte scratch block
-/// to `G_SCRATCH_HEAD`.
+/// to the scratch stack.
 static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
@@ -1287,7 +1287,7 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32                g;
     s32                b;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
     block   = (RoomDraw13Scratch*)(*scratch = head - 0x10);
 

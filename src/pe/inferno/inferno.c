@@ -51,7 +51,7 @@ typedef struct InfernoFanParam {
 } InfernoFanParam;
 STATIC_ASSERT_SIZEOF(InfernoFanParam, 0x6);
 
-/// 0x70-byte scratch `func_inferno_8012FF34` carves off `G_SCRATCH_HEAD` for
+/// 0x70-byte scratch `func_inferno_8012FF34` carves off the scratch stack for
 /// one ring. `inner` and `outer` are the six rim points of each edge of the
 /// ring, built by `rsin` / `rcos`, rotated by the effect coordinate's `workm`
 /// and offset by its translation. `sxy0` is where `inner[i]` projects to

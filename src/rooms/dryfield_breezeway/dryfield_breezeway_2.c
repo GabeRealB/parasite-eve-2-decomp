@@ -1752,7 +1752,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 
 /// Draws a red light shaft at a point. `data` is rotated by
 /// `coord`'s `workm` and offset by its translation, then projected through
-/// `GsWSMATRIX` into a 0x14-byte `G_SCRATCH_HEAD` block; nothing is drawn when
+/// `GsWSMATRIX` into a 0x14-byte scratch stack block; nothing is drawn when
 /// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses red as `rsin(animFrame * arg2) / 34 + 0x78`.
@@ -1771,7 +1771,7 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2
     s32               t2;
 
     Gp_UpdateCoord(coord);
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x14;
     block    = (RoomShaftScratch*)(head - 0x14);
@@ -1859,7 +1859,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
         block   = (RoomGlowScratch*)tmp;
@@ -2125,7 +2125,7 @@ void func_dryfield_breezeway_80181264(Task* task)
 }
 
 /// Draws `task`'s effect as a camera-facing 16x16 `POLY_FT4` sprite at the
-/// translation of its body's single coordinate, through a 0x1C-byte `G_SCRATCH_HEAD`
+/// translation of its body's single coordinate, through a 0x1C-byte scratch stack
 /// block. Nothing is drawn when the projection flags a negative result. The
 /// frame is `index & 7` along row 0xF0 of texture page 0x2B, and the quad's
 /// half extent is `pos.vx * 23 / otz`, rotated by the angle in `pos.vz`.

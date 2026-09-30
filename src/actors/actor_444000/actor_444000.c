@@ -101,7 +101,7 @@ typedef struct Actor444000EventWork {
 } Actor444000EventWork;
 STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 
-/// Scratchpad frame `func_actor_444000_8013482C` carves off `G_SCRATCH_HEAD`
+/// Scratchpad frame `func_actor_444000_8013482C` carves off the scratch stack
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
 /// `Actor403200Work::field_7C4`, and later the normalised, GPF-scaled step the
@@ -134,7 +134,7 @@ typedef struct Actor444000F0CWork {
 STATIC_ASSERT_SIZEOF(Actor444000F0CWork, 0x1C0);
 
 /// 0x4C-byte scratchpad frame `func_actor_444000_8013EC84` carves off
-/// `G_SCRATCH_HEAD` for the escort-order tick. `delta` is the player-relative
+/// the scratch stack for the escort-order tick. `delta` is the player-relative
 /// offset in the arena plane whose length is `dist` -- under 0xB54 the player is
 /// dragged back along `dir` to a fixed range -- and `pos` is the host's fifth
 /// part carried into view space, which the yaw `angle` and the final message
@@ -3749,7 +3749,7 @@ static void func_actor_444000_80134688(GfxCoord* coord, s32 id)
 
 /// Walk `coord` a fixed 0x32/0x1000 of its own forward axis (column 2 of its
 /// rotation, normalised and GPF-scaled) and flag it for rebuild. The direction
-/// vector lives in an `SVECTOR` carved off `G_SCRATCH_HEAD` and handed straight
+/// vector lives in an `SVECTOR` carved off the scratch stack and handed straight
 /// back; written as an inline so those scratch-head accesses stay absolute, the
 /// same reason as `Actor444000_ShrinkRotation` above.
 static __inline__ void Actor444000_StepForward(GfxCoord* coord)
@@ -4011,7 +4011,7 @@ static void func_actor_444000_8013482C(Task* task)
 /// each body with. The same shape as `Actor444000_ScaleRotation` below, except
 /// the vertical scale arrives as an `s16`, which is what puts its sign
 /// extension at the `scale.vy` store rather than at the call site. The working
-/// matrix lives in a frame carved off `G_SCRATCH_HEAD`, handed back once the
+/// matrix lives in a frame carved off the scratch stack, handed back once the
 /// rotation has been copied onto the coordinate.
 static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 {
@@ -4701,7 +4701,7 @@ static void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
 /// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
 /// the yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
 /// applies 0.5 on all three axes. The working matrix lives in a frame carved
-/// off `G_SCRATCH_HEAD`, which is handed back once the rotation has been copied
+/// off the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. Written as an inline so the four scratch-head accesses
 /// stay absolute; see `Actor444000_RebuildRotation` in `actor_444000_4.c`.
 static __inline__ void Actor444000_ShrinkRotation(GfxCoord* coord)
@@ -4870,7 +4870,7 @@ static void func_actor_444000_801381B0(GpEnemy* enemy, Task* task)
 /// rescales it: `ratan2` of the rotation's Z basis gives the yaw,
 /// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// `xz` on both horizontal axes and `y` on the vertical one. The working
-/// matrix lives in a frame carved off `G_SCRATCH_HEAD`, which is handed back
+/// matrix lives in a frame carved off the scratch stack, which is handed back
 /// once the rotation has been copied onto the coordinate. Written as an inline
 /// so the four scratch-head accesses stay absolute, like
 /// `Actor444000_ShrinkRotation` above.
@@ -5687,7 +5687,7 @@ static void func_actor_444000_8013A1C4(GpEnemy* enemy, Task* task)
 /// only yaws in place -- 0x40 on phase 1 and -0x3C on phase 3 of every four
 /// frames -- and nothing else happens. Once it reaches zero the enemy homes on
 /// `D_actor_444000_80161890`: the offset from the model root to that point is
-/// squared against `field_98` in a `VECTOR3` borrowed off `G_SCRATCH_HEAD`, and
+/// squared against `field_98` in a `VECTOR3` borrowed off the scratch stack, and
 /// the task steps on when the enemy is inside that radius. `field_96` then ties
 /// the spin rate to the step count (`field_98 += field_96 / 8`), the offset is
 /// normalised and scaled by `field_98` through the GTE's `gpf` interpolator, and
@@ -5983,7 +5983,7 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
 /// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
 /// the rotation from it, and `ScaleMatrix` widens it to 1.0 / 0.0 / 1.0 so the
 /// model flattens vertically. The working matrix lives in a frame carved off
-/// `G_SCRATCH_HEAD`, which is handed back before the coordinate is refreshed.
+/// the scratch stack, which is handed back before the coordinate is refreshed.
 static __inline__ void Actor444000_RebuildRotation(Task* task)
 {
     GfxCoord*             coord = task->extra.tmd->coords;
@@ -6089,7 +6089,7 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg)
 
 /// Rebuilds the host's root coordinate from its own facing yaw with a uniform
 /// 1.0 scale, marks the model for a rebuild and arms the first state. The
-/// matrix lives in a frame taken off `G_SCRATCH_HEAD`, which is handed back
+/// matrix lives in a frame taken off the scratch stack, which is handed back
 /// once the rotation has been copied out; inlined so each scratch-head access
 /// keeps its own `lui` instead of sharing a CSE'd register.
 static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* work)
@@ -7215,7 +7215,7 @@ static void func_actor_444000_8013D810(Task* arg0)
 }
 
 /// Hands the scratchpad frame `Actor444000_FlattenRotation` borrowed back to
-/// `G_SCRATCH_HEAD`. Written as an inline like the rotation itself: only
+/// the scratch stack. Written as an inline like the rotation itself: only
 /// inline-expanded code keeps the absolute `lui $at` form of the scratch-head
 /// accesses, so a release written straight into the caller does not match.
 static __inline__ void Actor444000_ReleaseRotScratch(void)
@@ -7227,7 +7227,7 @@ static __inline__ void Actor444000_ReleaseRotScratch(void)
 /// flattens it vertically: `ratan2` of the rotation's Z basis gives the yaw,
 /// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// 1.0 / `vy` / 1.0. The working matrix lives in a frame carved off
-/// `G_SCRATCH_HEAD`; the caller releases it with
+/// the scratch stack; the caller releases it with
 /// `Actor444000_ReleaseRotScratch` once it has cleared the coordinate again.
 static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy)
 {

@@ -983,7 +983,7 @@ static __inline__ void Actor04400_SetWorkState(Task* task, s16 state)
 }
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
-/// taken off `G_SCRATCH_HEAD`.
+/// taken off the scratch stack.
 static __inline__ void Actor04400_UpdateColor(void* enemy, GfxCoord* coord)
 {
     VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
@@ -1093,7 +1093,7 @@ static __inline__ s32 Actor04400_IsHit(Task* arg0)
 
 /// Wraps the pitch / heading / roll at 0x78..0x7C to 12 bits and rebuilds the
 /// model root's rotation from them (Z, then X, then the heading) in a matrix
-/// taken off `G_SCRATCH_HEAD`.
+/// taken off the scratch stack.
 static __inline__ void Actor04400_UpdateRotation(Task* arg0)
 {
     Actor104400Work* work  = (Actor104400Work*)arg0->work;

@@ -138,7 +138,7 @@ typedef struct AsrSpriteFrame {
 STATIC_ASSERT_SIZEOF(AsrSpriteFrame, 0xA);
 
 /// 0x14-byte scratch block `func_acropolis_security_room_80180A78` takes from
-/// `G_SCRATCH_HEAD` while it draws the security laser. `a` and `b` are the two
+/// the scratch stack while it draws the security laser. `a` and `b` are the two
 /// endpoints of the beam in the emitter's local frame; each is rotated by the
 /// emitter's `GfxCoord::workm` and then biased by that matrix's
 /// translation, so both end up in world space. `otz` receives `SZ3 >> 2` from
@@ -3729,7 +3729,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
 
     coord = task->extra.coordBody->coord;
     if ((0xC >> (gGameSession->at4.loc.view - 1)) & 1) {
-        scratch   = (void**)G_SCRATCH_HEAD;
+        scratch   = SCRATCH_STACK_CURSOR_SLOT;
         head      = *scratch;
         blk       = (AsrBeamScratch*)(head - 0x14);
         blk->a.vx = -0x427;

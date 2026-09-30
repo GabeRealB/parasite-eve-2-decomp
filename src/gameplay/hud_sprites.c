@@ -90,7 +90,7 @@ typedef struct _GBytes18 {
 #include "main/wipsys.h"
 #include <psyq/rand.h>
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_HudTrackEnemy`.
+/// 0x1C-byte scratch from the scratch stack used by `Gp_HudTrackEnemy`.
 /// `field_14` / `field_16` are the current screen X/Y; `field_18` /
 /// `field_1A` hold the signed deltas before and after `>> 3`.
 typedef struct _GpHudScratch {
@@ -121,7 +121,7 @@ typedef union GpHudBarScratch {
 } GpHudBarScratch;
 STATIC_ASSERT_SIZEOF(GpHudBarScratch, 0x30);
 
-/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `Gp_UpdateLinkXforms`.
+/// 0x48-byte scratch from the scratch stack used by `Gp_UpdateLinkXforms`.
 /// `mat` is the transpose of the player `workm`; `vec` at +0x40 is the
 /// packed SVECTOR that `gte_stsv` / translation add-sub share. The
 /// `stsv` dest pointer is `original_head - 8`, the same address as `vec`.
@@ -133,7 +133,7 @@ typedef struct _GpXformScratch {
 STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
 
 /// Working state of a relative transform between two coordinate frames, carved
-/// from the scratch arena that `G_SCRATCH_HEAD` heads.
+/// from the scratch stack.
 ///
 /// `rot` is the source frame's rotation transposed, so that multiplying a
 /// matrix by it yields that matrix's orientation relative to the source;

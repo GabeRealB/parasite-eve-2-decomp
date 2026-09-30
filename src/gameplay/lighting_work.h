@@ -20,7 +20,7 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ProjectToSxy`.
+/// 0x14-byte scratch from the scratch stack used by `Gp_ProjectToSxy`.
 /// `vec` is the packed `SVECTOR` fed to RTPS. `p` / `flag` / `otz` hold
 /// IR0, FLAG, and `SZ3 >> 2`.
 typedef struct _GpPerspScratch {

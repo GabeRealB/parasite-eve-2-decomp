@@ -240,7 +240,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
 /// projected through `GsWSMATRIX` into a zeroed scratch block popped from
-/// `G_SCRATCH_HEAD` and, when the GTE flag is non-negative, one
+/// the scratch stack and, when the GTE flag is non-negative, one
 /// semi-transparent `POLY_FT4` (tpage 0x2B) is queued with its corners on two
 /// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
 /// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
@@ -264,7 +264,7 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1
     idx      = arg1;
     idx     &= 0xFFF;
     bank     = arg1 >> 12;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (GpFxQuadScratch*)(head - 0x1C);
@@ -317,7 +317,7 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
 /// projected through `GsWSMATRIX` into a zeroed scratch block popped from
-/// `G_SCRATCH_HEAD` and, when the GTE flag is non-negative, one
+/// the scratch stack and, when the GTE flag is non-negative, one
 /// semi-transparent `POLY_FT4` (tpage 0x2C) is queued with its corners on two
 /// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
 /// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
@@ -338,7 +338,7 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1
 
     bank     = arg1 >> 12;
     arg1    &= 0xFFF;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (GpFxQuadScratch*)(head - 0x1C);
@@ -537,7 +537,7 @@ static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 tex
     s32                                             angle;
     s32                                             quarterTurnAngle;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     block    = (_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block));
     *scratch = block;
@@ -605,7 +605,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1
     s32            v1;
     s16            xy;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     block    = (GpRingScratch*)(head - 0x18);
     *scratch = block;
@@ -652,7 +652,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1
 /// Draws a glowing disc at the point (0, -0xC4, 0) in `arg0`'s local frame:
 /// the point is rotated by `workm`, offset by its translation and projected
 /// through `GsWSMATRIX` into a zeroed scratch block popped from
-/// `G_SCRATCH_HEAD`. When the GTE flag is non-negative, four Gouraud
+/// the scratch stack. When the GTE flag is non-negative, four Gouraud
 /// `POLY_G4` quarter-wedges of radius `arg2 * 64 / otz` are queued, each lit
 /// at the centre vertex and black on the rim. `arg3` packs the centre colour
 /// as three 4-bit channels (red in bits 8-11, green 4-7, blue 0-3); a one-bit

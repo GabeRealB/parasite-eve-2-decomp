@@ -85,7 +85,7 @@ typedef struct _GpEffRingScratch {
 } GpEffRingScratch;
 STATIC_ASSERT_SIZEOF(GpEffRingScratch, 0x78);
 
-/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
+/// 0x10-byte scratch from the scratch stack used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
 /// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are
 /// stepped s16 coordinates (`x += 0x40`, `y -= 0x50`).
@@ -98,7 +98,7 @@ typedef struct _GpScratch10 {
 } GpScratch10;
 STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
 
-/// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_80103E7C`.
+/// 0xC-byte scratch from the scratch stack used by `func_80103E7C`.
 /// `field_0` / `field_4` / `field_8` are the wrap candidates
 /// `tgt - cur`, `tgt - cur + 0x1000`, and `tgt - cur - 0x1000`.
 /// The function returns the candidate with the smallest absolute value.
@@ -109,7 +109,7 @@ typedef struct _GpAngleScratch {
 } GpAngleScratch;
 STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `Gp_StepPlayerMove`.
+/// 0x40-byte scratch from the scratch stack used by `Gp_StepPlayerMove`.
 /// `scale` is `D_80112E10[field_958]` (signed, stored as a word). `angle`
 /// holds `0x640000` then the yaw passed to `Gfx_RotMatrixY`. `saved` is a
 /// copy of `GfxCoord.coord` around that rotate. `vec` is the matrix
@@ -152,7 +152,7 @@ typedef struct _GpYawScratch {
 } GpYawScratch;
 STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PlayerMode2State3`.
+/// 0x2C-byte scratch from the scratch stack used by `Gp_PlayerMode2State3`.
 /// `mtx` receives a copy of the actor coordinate's `coord` matrix, pitched by
 /// `Gfx_RotMatrixX`; `dir` (at `head - 0xC`) is that matrix's third column
 /// normalized by `VectorNormalSS`, and `div` is the frame count the direction
@@ -164,7 +164,7 @@ typedef struct _GpDashScratch {
 } GpDashScratch;
 STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 
-/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimPitchToLock`,
+/// 0x84-byte scratch from the scratch stack used by `Gp_AimPitchToLock`,
 /// `Gp_AimPitchToLockAlt`, `Gp_AimPitchRec`, and `Gp_AimPitchDirect`. `coord` is a
 /// temp `GfxCoord`. `delta` is lock position minus that coord's
 /// translation; `lock` is `Gp_GetLockPos` output; `rot` is the

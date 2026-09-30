@@ -170,7 +170,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;

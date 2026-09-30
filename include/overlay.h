@@ -82,7 +82,7 @@ typedef struct OverlayWaveRec6 {
 STATIC_ASSERT_SIZEOF(OverlayWaveRec6, 0x6);
 
 /// The scratch-pad block the padded screen-wave mesh takes from
-/// `G_SCRATCH_HEAD` for one frame: a copy of the row and column wave records
+/// the scratch stack for one frame: a copy of the row and column wave records
 /// the mesh's vertices are displaced by.
 typedef struct OverlayWaveScratch {
     OverlayWaveRec rows[30];
@@ -90,7 +90,7 @@ typedef struct OverlayWaveScratch {
 } OverlayWaveScratch;
 STATIC_ASSERT_SIZEOF(OverlayWaveScratch, 0x138);
 
-/// The scratch-pad block the world-space walk takes from `G_SCRATCH_HEAD`:
+/// The scratch-pad block the world-space walk takes from the scratch stack:
 /// `coord` is the frame the walk stands on, climbing the `GfxCoord::parent`
 /// parent chain until it runs out, `vec` the vector being carried up, `out`
 /// the GTE result it is refreshed from after each frame, and `flag` the GTE

@@ -836,7 +836,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017DEC4(SVECTOR* arg0, s3
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -1769,7 +1769,7 @@ static void func_shelter_b2_south_maintenance_walkway_801810AC(GfxCoord* arg0, s
     u16            vz;
 
     tex                                     = arg1;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -2116,7 +2116,7 @@ static void func_shelter_b2_south_maintenance_walkway_801821C0(GfxCoord* arg0, s
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

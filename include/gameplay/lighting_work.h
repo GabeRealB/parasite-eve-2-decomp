@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_UpdateActorColor`.
+/// 0x30-byte scratch from the scratch stack used by `Gp_UpdateActorColor`.
 /// `mtx` holds the previous-mode 3x3 copy. `col0` / `col1` are the
 /// current and previous columns packed for GPF/GPL.
 typedef struct _GpColorScratch {

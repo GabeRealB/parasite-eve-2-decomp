@@ -536,7 +536,7 @@ static void func_actor_205200_8014BF28(Task* arg0)
 }
 
 /// The attack body, run while `field_588` is set. It carves an
-/// `ActorAttackScratch` from `G_SCRATCH_HEAD` and steps `field_58A`:
+/// `ActorAttackScratch` from the scratch stack and steps `field_58A`:
 /// state 0 records which side of the player it is on (`field_58E`), plays its grab
 /// animation and spawns the effect; state 1 drags the player towards the actor
 /// for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the

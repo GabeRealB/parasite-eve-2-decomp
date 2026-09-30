@@ -1501,7 +1501,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
 /// zero), the animation column into `angle` (bits 8-9) and that column's grey
 /// level into `period` - and leaves only the day index behind. Every frame it then projects the
 /// coordinate's translation through `GsWSMATRIX` with a single `RTPS` into a
-/// 0x14-byte `G_SCRATCH_HEAD` block and, for anything at `otz` 0x11 or
+/// 0x14-byte scratch stack block and, for anything at `otz` 0x11 or
 /// further, queues one semi-transparent `POLY_FT4` on tpage 0x2B whose
 /// half extent is `scale * 39 / otz`, so the lamp shrinks with distance. The
 /// grey alternates by 0x10 on the parity of `DisplayState::field_8`, which is
@@ -1522,7 +1522,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block = (RoomShaftScratch*)*scratch;
         if (task->state == 0) {

@@ -2594,7 +2594,7 @@ static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part
     y        = f28 + (u16)row->yOff;
     r1      += (u16)row->rInner;
     r0       = r1 + work->step + (u16)row->rExtra;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = (u8*)*scratch;
     *scratch = head - 0x118;
     block    = (GpBandScratch*)(head - 0x118);
@@ -2804,7 +2804,7 @@ static void func_shelter_r48_8017FB7C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -3471,7 +3471,7 @@ static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 co
     s32              tr;
     s32              tg;
 
-    scratch       = (void**)G_SCRATCH_HEAD;
+    scratch       = SCRATCH_STACK_CURSOR_SLOT;
     head          = *scratch;
     block         = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->tip.vy = 0x800;
@@ -3627,7 +3627,7 @@ static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }

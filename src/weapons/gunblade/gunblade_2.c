@@ -25,7 +25,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/// 0x68-byte scratch `func_gunblade_8011E040` carves off `G_SCRATCH_HEAD`.
+/// 0x68-byte scratch `func_gunblade_8011E040` carves off the scratch stack.
 /// `coord` is the sound source handed to `Gp_PickNearestRec18` and
 /// `Gp_PlayObjSfx` (the lock-on target's position is written into its
 /// `workm.t`), `dir` receives the blade's forward column from

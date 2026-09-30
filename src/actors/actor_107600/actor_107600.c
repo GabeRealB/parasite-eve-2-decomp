@@ -150,7 +150,7 @@ typedef struct Actor107600Pair {
 } Actor107600Pair;
 
 /// 0x34-byte scratch block `func_actor_107600_80134248` takes from
-/// `G_SCRATCH_HEAD` to draw one `POLY_FT4`. `v` holds the four corners
+/// the scratch stack to draw one `POLY_FT4`. `v` holds the four corners
 /// (the offset table plus the coordinate's translation and the caller's
 /// position), projected through `workm` by one `RTPS` and one `RTPT` into
 /// `sxy` (each a packed `gte_stsxy` word, x low and y high). `otz` is the
@@ -1156,7 +1156,7 @@ static void func_actor_107600_80132AC0(Task* arg0)
 }
 
 /// Copies the world position of the model's first attach coordinate onto a
-/// 0x10-byte `VECTOR` carved off `G_SCRATCH_HEAD` and hands it to
+/// 0x10-byte `VECTOR` carved off the scratch stack and hands it to
 /// `Gp_UpdateActorColor` for the enemy in `Task::spawnArg2` with no blend
 /// parameters. Same shape as `func_actor_107600_801349E0`, a different callee.
 static void func_actor_107600_80132B0C(Task* arg0)
@@ -1182,7 +1182,7 @@ static void func_actor_107600_80132B0C(Task* arg0)
 
 /// Rebuilds the model root's rotation from the work block's three angles: wrap
 /// each to 12 bits, build the rotation in a scratch matrix carved off
-/// `G_SCRATCH_HEAD`, then copy its 3x3 into the part's `GfxCoord::coord`.
+/// the scratch stack, then copy its 3x3 into the part's `GfxCoord::coord`.
 /// The copy is a call to `func_actor_107600_80132C4C`.
 static void func_actor_107600_80132B7C(Task* arg0)
 {
@@ -2072,7 +2072,7 @@ static void func_actor_107600_80134958(Task* arg0)
 }
 
 /// Copies the world position of the model's first attach coordinate onto a
-/// 0x10-byte `VECTOR` carved off `G_SCRATCH_HEAD` and hands it to
+/// 0x10-byte `VECTOR` carved off the scratch stack and hands it to
 /// `func_actor_107600_80134608` with no blend parameters.
 static void func_actor_107600_801349E0(Task* arg0)
 {
@@ -2255,7 +2255,7 @@ static void func_actor_107600_80134D70(Task* arg0)
 
 /// Measures the XZ offset from this model's own attach coordinate to the one on
 /// the `Gp_ActorSlots[0]` actor's model, in a 0x10-byte `VECTOR` carved off
-/// `G_SCRATCH_HEAD` the way `func_actor_107600_80134E5C` carves its block, and
+/// the scratch stack the way `func_actor_107600_80134E5C` carves its block, and
 /// leaves the distance in `Actor107600Work.field_14C`. With no slot-0 actor the
 /// carve is undone and nothing is measured. The distance is only stored once the
 /// scratch block has been handed back, which is the order the original compiled
@@ -2291,7 +2291,7 @@ static void func_actor_107600_80134D9C(Task* arg0)
 
 /// Rotates a fixed 0x10-byte offset by the coordinate's own `coord` matrix and
 /// leaves the result in that matrix's translation row. The offset is carved off
-/// `G_SCRATCH_HEAD` the way `func_actor_107600_80132B0C` carves its VECTOR, but
+/// the scratch stack the way `func_actor_107600_80132B0C` carves its VECTOR, but
 /// is filled with (0, -0x180, 0) and rotated in place by `ApplyMatrixLV`, which
 /// also folds in the matrix's existing translation. `func_actor_107600_80132ED0`
 /// calls this on the coordinate it then hands to `Gp_UpdateCoord`.

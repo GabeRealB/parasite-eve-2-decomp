@@ -919,7 +919,7 @@ static void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, 
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -1013,7 +1013,7 @@ static void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, 
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;

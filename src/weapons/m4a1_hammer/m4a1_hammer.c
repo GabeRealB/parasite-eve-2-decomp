@@ -33,7 +33,7 @@
 #include "main/tmd_types.h"
 
 /// 0x20-byte scratch block `func_m4a1_hammer_8011E29C` carves off
-/// `G_SCRATCH_HEAD` for the hammer's shock trail.
+/// the scratch stack for the hammer's shock trail.
 ///
 /// `vec` is the effect coordinate's world position (`workm.t`) truncated to
 /// s16; it and the caller's endpoint `SVECTOR` are projected by one `RTPS`

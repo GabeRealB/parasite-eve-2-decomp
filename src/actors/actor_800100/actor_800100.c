@@ -54,7 +54,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/// Ground position and collision offset borrowed from G_SCRATCH_HEAD by
+/// Ground position and collision offset borrowed from the scratch stack by
 /// func_actor_800100_801635F4.
 typedef struct {
     /* 0x00 */ VECTOR3 pos;
@@ -90,7 +90,7 @@ typedef struct _Actor800100Beam {
 } Actor800100Beam;
 STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
 
-/// 0x5C-byte block from `G_SCRATCH_HEAD` used by
+/// 0x5C-byte block from the scratch stack used by
 /// `func_actor_800100_80166514`: the `GfxCoord` it hands to
 /// `Gp_PlaceCoordOffset` / `func_actor_800100_801668C0`, the `rot` offset
 /// applied to it, and the planar contact distance retained for the placement offset.
@@ -102,7 +102,7 @@ typedef struct _Actor800100PlaceScratch {
 } Actor800100PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
 
-/// 0x20-byte block from `G_SCRATCH_HEAD` used by
+/// 0x20-byte block from the scratch stack used by
 /// `func_actor_800100_80164710` and `func_actor_800100_80164B9C`: the lock
 /// position `Gp_GetLockPos` fills (also the `VECTOR3` handed to
 /// `func_80103C74`), and the `rot` vector above it whose `vx`/`vz`
@@ -116,7 +116,7 @@ typedef struct _Actor800100LockScratch {
 } Actor800100LockScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LockScratch, 0x20);
 
-/// 0x1C-byte block from `G_SCRATCH_HEAD` used by
+/// 0x1C-byte block from the scratch stack used by
 /// `func_actor_800100_8016666C` to draw the vertical `LINE_G2` that
 /// `func_actor_800100_80166514` puts on the placed coordinate. `origin` is the
 /// vector pushed through the coordinate's `workm` first — always (0, 0, 0), so
@@ -133,7 +133,7 @@ typedef struct _Actor800100LineScratch {
 } Actor800100LineScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
 
-/// 0x30-byte block from `G_SCRATCH_HEAD` used by
+/// 0x30-byte block from the scratch stack used by
 /// `func_actor_800100_80162E90` to draw the projectile's ground splash: the
 /// four corners of the unit quad `D_80111E38`, each scaled to the splash
 /// half-size, rotated flat into view space by `gGfxViewCoord.workm` and moved to
@@ -156,7 +156,7 @@ typedef struct _Actor800100QuadCorner {
 } Actor800100QuadCorner;
 STATIC_ASSERT_SIZEOF(Actor800100QuadCorner, 4);
 
-/// 0x44-byte block from `G_SCRATCH_HEAD` used by `func_actor_800100_801668C0`
+/// 0x44-byte block from the scratch stack used by `func_actor_800100_801668C0`
 /// to draw the textured sheet `func_actor_800100_80166514` places: the four
 /// `v` corners are the `D_actor_800100_80161F10` (y, z) pairs offset by the
 /// coordinate's world `t`, projected through `GsWSMATRIX` into `sxy`, and
@@ -1472,7 +1472,7 @@ static void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 a
 /// Draws the projectile's ground splash at the traced ground point `pos`: the
 /// unit quad `D_80111E38` scaled to `width` half-size, laid flat by
 /// `gGfxViewCoord.workm`, and projected through `GsWSMATRIX` into a 0x30-byte
-/// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
+/// scratch stack block. The first corner goes through `rtps` and the other
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.
 static void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
 {
@@ -1805,7 +1805,7 @@ static void func_actor_800100_801635F4(Task* arg0)
 /// list `D_actor_800100_80167200` / `D_actor_800100_80167210` named by the
 /// sequence number (`field_987` / `field_98A`), ending the sequence when its
 /// list runs out. Every upload posts its image over an 8-byte `RECT` borrowed
-/// from `G_SCRATCH_HEAD` and gives it back at the end of the call.
+/// from the scratch stack and gives it back at the end of the call.
 static void func_actor_800100_80163A58(Task* arg0)
 {
     void**      scratch;
@@ -2158,7 +2158,7 @@ done:
 }
 
 /// Lock-on drive for the actor's `field_95E` state machine. Builds a `VECTOR3`
-/// at `G_SCRATCH_HEAD - 0x10` from the lock node (`Gp_GetLockPos`, or the
+/// at `the scratch stack - 0x10` from the lock node (`Gp_GetLockPos`, or the
 /// linked object's coord when `actor->field_90C` is set but flagged), plays the
 /// 5/6 child-slot animation on entry, mirrors `field_93E` into `field_975` and
 /// resets the actor's move once the aim is close enough.
@@ -2223,7 +2223,7 @@ static void func_actor_800100_801643F4(Task* arg0)
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
-/// `G_SCRATCH_HEAD - 0x10` (`Gp_GetLockPos`, or `Gp_FindLockNodePad` when
+/// `the scratch stack - 0x10` (`Gp_GetLockPos`, or `Gp_FindLockNodePad` when
 /// `field_90C` is flagged) and measures the distance to it with
 /// `func_8010BCF4`. Close enough latches `field_95E` to 1 and plays the slot-7
 /// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
@@ -2368,7 +2368,7 @@ static void func_actor_800100_80164710(Task* arg0)
 }
 
 /// Third arm of the lock-on drive, running the actor's `field_95E` state
-/// machine over a `VECTOR3` carved from `G_SCRATCH_HEAD`. Case 0 latches the
+/// machine over a `VECTOR3` carved from the scratch stack. Case 0 latches the
 /// state and `field_95A`, aims at the lock node and plays the 5/6 child-slot
 /// animation with a random `field_934` hold; it falls into case 1, which
 /// mirrors `field_93E` into `field_975` and, once the aim distance reaches
@@ -2478,7 +2478,7 @@ static void func_actor_800100_80164940(Task* arg0)
 /// once the step passes `((Gp_LcgState >> 16) & 0x3F) + 0x28` the actor
 /// latches into the `0xA` / child-slot-1 chain, keeping the old `field_956` in
 /// `field_960` and clearing the aim offset on `field_910`. Otherwise it carves
-/// a 0x20-byte `Actor800100LockScratch` off `G_SCRATCH_HEAD`, fills `lock`
+/// a 0x20-byte `Actor800100LockScratch` off the scratch stack, fills `lock`
 /// either from the lock node (`Gp_GetLockPos`) or from the player's model
 /// coordinate, runs the `field_95E` switch, measures the aim spread across
 /// `rot`, and drops back to child slot 9 when the roll loses. Both arms end by

@@ -87,7 +87,7 @@ typedef struct MistShootingGallerySpawn {
 } MistShootingGallerySpawn;
 STATIC_ASSERT_SIZEOF(MistShootingGallerySpawn, 0xC);
 
-/// 0x20-byte scratch block taken from `G_SCRATCH_HEAD` by the gallery's tracer
+/// 0x20-byte scratch block taken from the scratch stack by the gallery's tracer
 /// draw helper (`func_mist_shooting_gallery_801826C4`).
 ///
 /// `vec` is the effect coordinate's world position (`workm.t`) truncated to
@@ -2116,7 +2116,7 @@ static void func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 a
     s16              u;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -2184,7 +2184,7 @@ static void func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, 
     s16                             ang;
     u16                             vz;
 
-    scratch                                                  = (void**)G_SCRATCH_HEAD;
+    scratch                                                  = SCRATCH_STACK_CURSOR_SLOT;
     head                                                     = *scratch;
     ((MistShootingGalleryBeamScratch*)(head - 0x20))->vec.vx = (u16)coord->workm.t[0];
     block                                                    = (MistShootingGalleryBeamScratch*)(head - 0x20);

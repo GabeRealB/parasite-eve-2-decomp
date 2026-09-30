@@ -62,7 +62,7 @@ typedef struct Actor02100Fn011C4Scratch {
 } Actor02100Fn011C4Scratch;
 STATIC_ASSERT_SIZEOF(Actor02100Fn011C4Scratch, 0x40);
 
-/// 0x20-byte scratch block taken from `G_SCRATCH_HEAD` by
+/// 0x20-byte scratch block taken from the scratch stack by
 /// `Actor02100_Fn00DCC`: the world-space delta between the two coordinates,
 /// then the two endpoints as `SVECTOR`s for the line-of-sight test.
 typedef struct Actor02100Sight {
@@ -72,7 +72,7 @@ typedef struct Actor02100Sight {
 } Actor02100Sight;
 STATIC_ASSERT_SIZEOF(Actor02100Sight, 0x20);
 
-/// 8-byte block taken from `G_SCRATCH_HEAD` by `Actor02100_Fn034E0`: the
+/// 8-byte block taken from the scratch stack by `Actor02100_Fn034E0`: the
 /// projected screen position (`stsxy`) and the quartered depth (`stszotz`).
 typedef struct Actor02100Screen {
     /* 0x0 */ DVECTOR sxy;
@@ -80,7 +80,7 @@ typedef struct Actor02100Screen {
 } Actor02100Screen;
 STATIC_ASSERT_SIZEOF(Actor02100Screen, 8);
 
-/// 0x28-byte scratch `Actor02100_Fn01FF0` takes from `G_SCRATCH_HEAD` while it
+/// 0x28-byte scratch `Actor02100_Fn01FF0` takes from the scratch stack while it
 /// re-aims the actor. `shortVec` is the local offset fed to the GTE,
 /// `transformed` that offset rotated by the coordinate's matrix and translated
 /// by its position, and `delta` the same point mapped back into the
@@ -121,7 +121,7 @@ typedef union Actor02100Fn01FF0Timing {
 } Actor02100Fn01FF0Timing;
 STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Timing, 0x10);
 
-/// 0x3C-byte block `Actor02100_Fn02924` takes from `G_SCRATCH_HEAD` while it
+/// 0x3C-byte block `Actor02100_Fn02924` takes from the scratch stack while it
 /// draws one beam between the two screen points in `Actor02100Work`. `delta` is
 /// the span between those points, which `VectorNormalS` turns into `normal`;
 /// the y component of `normal` is then negated, so that scaling the pair by a
@@ -841,7 +841,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
 
 #undef STOP_SOUND
 
-/// Line-of-sight scan. Takes a 0x20-byte block from `G_SCRATCH_HEAD`, builds
+/// Line-of-sight scan. Takes a 0x20-byte block from the scratch stack, builds
 /// the world-space delta from this actor's coordinate to the player's (entry 0
 /// of the player's coordinate array in mode 4, entry 3 otherwise) and, when the
 /// player is in front of the actor, checks the distance against the sight range
@@ -1106,7 +1106,7 @@ cleanup:
 /// position; `Gp_OrientAlong` turns the vector that remains into the facing
 /// matrix at `field_144`. The near vector at `field_128[1]` and the far vector
 /// at `field_B0`, mirrored into `field_E8`, are then rotated through that
-/// matrix. Each step borrows scratch from `G_SCRATCH_HEAD` and releases it.
+/// matrix. Each step borrows scratch from the scratch stack and releases it.
 ///
 /// `Actor02100_OrientScratch`, `Actor02100_UpdateVectors` and
 /// `Actor02100_SetVector` do the same three steps for their own callers. This
@@ -1182,7 +1182,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
 
 /// Rewrites the far vector: a fixed 0x2710 offset rotated by the facing matrix
 /// into `field_B0`, mirrored into `field_E8`. The offset is built in an
-/// `SVECTOR` borrowed from `G_SCRATCH_HEAD` for the rotation.
+/// `SVECTOR` borrowed from the scratch stack for the rotation.
 static __inline__ void Actor02100_SetVector(Task* arg0)
 {
     Actor02100Work* work;
@@ -1203,7 +1203,7 @@ static __inline__ void Actor02100_SetVector(Task* arg0)
 
 /// Stores the near vector the GTE has just rotated into `field_128[1]`,
 /// advances it by the fixed 0x12C offset and releases the input block the
-/// rotation borrowed from `G_SCRATCH_HEAD`.
+/// rotation borrowed from the scratch stack.
 static __inline__ void _actor02100StoreNearVector(Actor02100Work* work)
 {
     gte_stsv(&work->field_128[1]);
@@ -1442,7 +1442,7 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
 /// Refreshes the two vectors the actor's facing matrix defines: the near one at
 /// `field_128[1]`, rotated from the length in `field_182` and advanced by 0x12C,
 /// and then the far one through `Actor02100_SetVector`. The near rotation's
-/// input is built in a block borrowed from `G_SCRATCH_HEAD`, and `field_128[0]`
+/// input is built in a block borrowed from the scratch stack, and `field_128[0]`
 /// is reset to the fixed 0x12C offset it starts from.
 static __inline__ void Actor02100_UpdateVectors(Task* arg0)
 {
@@ -1466,7 +1466,7 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
     Actor02100_SetVector(arg0);
 }
 
-/// Releases the block `Actor02100_OrientScratch` leaves on `G_SCRATCH_HEAD`.
+/// Releases the block `Actor02100_OrientScratch` leaves on the scratch stack.
 static __inline__ void Actor02100_ReleaseScratch28(void)
 {
     SCRATCH_POP(Actor02100Fn01FF0Scratch);

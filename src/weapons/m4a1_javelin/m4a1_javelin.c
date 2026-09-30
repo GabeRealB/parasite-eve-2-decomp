@@ -53,7 +53,7 @@ typedef struct M4a1JavelinVecLo {
     /* 0x8 */ u16  vz;
 } M4a1JavelinVecLo;
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x14-byte scratch from the scratch stack used by
 /// `func_m4a1_javelin_8011EE78` for one projected tracer line. Each endpoint is
 /// pushed through `GsWSMATRIX` with a single `RTPS`; `flag` is the shared
 /// `gte_stflg` of whichever projection just ran, `otz0` / `otz1` are the two

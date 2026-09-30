@@ -54,7 +54,7 @@ typedef struct M4a1PykeBeam {
 } M4a1PykeBeam;
 STATIC_ASSERT_SIZEOF(M4a1PykeBeam, 0x38);
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011E168`
+/// 0x30-byte scratch from the scratch stack used by `func_m4a1_pyke_8011E168`
 /// for the dart's ground splash. `vec` holds the four corners of the unit quad
 /// `D_80111E38`, scaled to the splash half-size, rotated flat into view space
 /// by `gGfxViewCoord.workm` and translated to `pos`; `sxy` is where they project
@@ -496,7 +496,7 @@ static void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 /// Draws the dart's ground splash: the unit quad `D_80111E38` scaled to
 /// `width` half-size, laid flat by `gGfxViewCoord.workm` and moved to the traced
 /// ground point `pos`, then projected through `GsWSMATRIX` into a 0x30-byte
-/// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
+/// scratch stack block. The first corner goes through `rtps` and the other
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.
 static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 {

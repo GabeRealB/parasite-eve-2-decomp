@@ -472,7 +472,7 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 /// Draws a flickering tapered beam between `arg1` and `arg2` in `arg0`'s
 /// local space. Both points are rotated by the coordinate's `workm`, offset by
 /// its translation and projected through `GsWSMATRIX`, using a 0x28-byte block
-/// taken from `G_SCRATCH_HEAD`. Nothing is drawn when the far end's `otz` is
+/// taken from the scratch stack. Nothing is drawn when the far end's `otz` is
 /// below 0x11; the near end's is raised to at least 0x10. The ends get the
 /// screen radii `(s16)arg3 * 64 / otz`.
 ///
@@ -500,7 +500,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SV
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x28;
         *scratch = tmp;
@@ -637,7 +637,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x28;
         *scratch = tmp;

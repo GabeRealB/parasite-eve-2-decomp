@@ -42,7 +42,7 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
+/// 0x14-byte scratch from the scratch stack used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
 /// `GameActor.field_52`.
@@ -55,7 +55,7 @@ typedef struct _GpTurnScratch {
 } GpTurnScratch;
 STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_80109BB4`.
+/// 0x40-byte scratch from the scratch stack used by `func_80109BB4`.
 /// `pos` is the world position of the colliding `GpObj` (`pos` rotated by
 /// `coord->workm`, plus that matrix's translation), later
 /// reused to save the actor's pre-push `coord.t[0]` / `t[2]`. `delta` is

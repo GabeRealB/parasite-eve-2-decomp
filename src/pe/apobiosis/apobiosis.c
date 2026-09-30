@@ -32,7 +32,7 @@
 #include "main/tmd_types.h"
 
 /// 0x28-byte scratch block `func_apobiosis_80130630` takes from
-/// `G_SCRATCH_HEAD` to draw one burst shard. `v0` is the effect coordinate's
+/// the scratch stack to draw one burst shard. `v0` is the effect coordinate's
 /// world position and `v1` that position plus the offset vector `arg1`;
 /// both are projected through `GsWSMATRIX` with one `RTPS` each,
 /// giving `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever

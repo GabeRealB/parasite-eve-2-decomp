@@ -1366,7 +1366,7 @@ static __inline__ void enter_state(Task* arg0, s32 state)
 }
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte
-/// `VECTOR` taken off `G_SCRATCH_HEAD`. Inlined so each scratch-head access
+/// `VECTOR` taken off the scratch stack. Inlined so each scratch-head access
 /// keeps its own `lui` instead of sharing a CSE'd register.
 static __inline__ void update_color(void* enemy, GfxCoord* coord)
 {
@@ -1414,7 +1414,7 @@ static __inline__ s16 take_hit(Task* arg0)
 
 /// Wraps the pitch / heading / roll at 0x78..0x7C to 12 bits and rebuilds the
 /// model root's rotation from them (Z, then X, then the heading) in a matrix
-/// taken off `G_SCRATCH_HEAD`, copying the 3x3 into the root coordinate.
+/// taken off the scratch stack, copying the 3x3 into the root coordinate.
 static __inline__ void update_rotation(Task* arg0)
 {
     Actor341700Work* work  = (Actor341700Work*)arg0->work;

@@ -1188,7 +1188,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
 
 /// Draws one frame of a pair of red-shaded gradient quads and then retires
 /// the task. The task coordinate's origin is projected once through
-/// `GsWSMATRIX` (`RTPS`) into a 0x14-byte `G_SCRATCH_HEAD` block; anything
+/// `GsWSMATRIX` (`RTPS`) into a 0x14-byte scratch stack block; anything
 /// nearer than `otz` 0x11 is not drawn. The red level pulses with the global
 /// counter `gDisplayState.animFrame` times `spawnArg1`'s low byte, folded into a 0..0x80
 /// triangle; `spawnArg1`'s second byte sets the quads' extent, divided by
@@ -1324,7 +1324,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    scratch       = (void**)G_SCRATCH_HEAD;
+    scratch       = SCRATCH_STACK_CURSOR_SLOT;
     head          = *scratch;
     block         = (RoomShaftScratch*)(head - 0x14);
     otzp          = &block->otz;

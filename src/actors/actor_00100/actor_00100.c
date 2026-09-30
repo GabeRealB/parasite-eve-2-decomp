@@ -216,7 +216,7 @@ typedef struct Actor00100ProjectScratch {
 } Actor00100ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
 
-/// 0x70-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn01388`, the
+/// 0x70-byte scratch from the scratch stack used by `Actor00100_Fn01388`, the
 /// 16-slot variant of the `Actor00100_Fn00508` walk. `flags` keeps the current
 /// record's `field_4` bit 0x80, which gates `blocked` for kind 0x10000.
 typedef struct Actor00100AvoidScratch16 {

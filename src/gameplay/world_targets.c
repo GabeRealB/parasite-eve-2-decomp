@@ -42,7 +42,7 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
+/// 0x38-byte scratch from the scratch stack used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
 /// `gGfxViewCoord.workm` rotates it into `self`, the world-space aim origin.
 /// `node` is the candidate `Gp_LinkList` node's world position; both are

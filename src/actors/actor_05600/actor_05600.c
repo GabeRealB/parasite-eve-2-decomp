@@ -2226,7 +2226,7 @@ static void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
 /// the companion, counts the strikes in `field_6BC` / `field_6BE` and picks the
 /// follow-up clip from them; state 4 fires the effect burst; states 5 and 6
 /// hand back to the other handlers. The delta vector and its normal are carved
-/// off `G_SCRATCH_HEAD` and released on the way out.
+/// off the scratch stack and released on the way out.
 void Actor05600_Fn01E1C(Task* arg0)
 {
     s16              diff;
@@ -3310,7 +3310,7 @@ void Actor05600_Fn041E4(Task* arg0)
 
 /// Tests the segment from `arg0` to `arg1` against the collision faces on the
 /// `D_80115550` list: the segment's direction is normalised in a 0x10-byte
-/// block carved off `G_SCRATCH_HEAD`, and every face with bit 0x40 of
+/// block carved off the scratch stack, and every face with bit 0x40 of
 /// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
 /// the last test's result otherwise.
 static s32 Actor05600_Fn045E4(SVECTOR* arg0, SVECTOR* arg1)

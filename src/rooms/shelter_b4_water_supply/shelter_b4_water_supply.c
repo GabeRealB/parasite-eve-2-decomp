@@ -1539,7 +1539,7 @@ static void func_shelter_b4_water_supply_8017F3A0(GfxCoord* arg0, s32 arg1, s32 
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -1750,7 +1750,7 @@ static void func_shelter_b4_water_supply_8017FB90(GfxCoord* arg0, s32 arg1, s32 
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -1864,7 +1864,7 @@ static void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 a
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -2165,7 +2165,7 @@ static void func_shelter_b4_water_supply_80181158(GfxCoord* arg0, s32 arg1, s32 
     u16            vz;
 
     tex                                     = arg1;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -2516,7 +2516,7 @@ static void func_shelter_b4_water_supply_8018226C(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

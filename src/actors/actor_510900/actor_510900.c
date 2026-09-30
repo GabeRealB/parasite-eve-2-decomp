@@ -49,7 +49,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-/// 0x24-byte scratch `func_actor_510900_80134284` takes from `G_SCRATCH_HEAD`
+/// 0x24-byte scratch `func_actor_510900_80134284` takes from the scratch stack
 /// to draw one frame of the debris trail. `vec0` is the effect coordinate's
 /// `workm.t[]` before the per-frame drift is added and `vec1` the same after,
 /// so the two `RTPS` projections give the ends of the trail `LINE_F2`.

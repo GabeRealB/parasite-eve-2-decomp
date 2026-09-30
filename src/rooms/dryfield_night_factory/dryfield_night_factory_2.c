@@ -1857,7 +1857,7 @@ static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 ar
     {
         void** scratch;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         block   = (RoomDraw05Scratch*)(*scratch = head - 0x14);
     }

@@ -48,7 +48,7 @@ typedef struct {
     /* 0x4 */ s32 field_4;
 } GpActorPathStep;
 
-/// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800200_801622B0` takes for the
+/// 0x18-byte scratch stack block `func_actor_800200_801622B0` takes for the
 /// ground-quad heading it copies into the three `GameActor.field_88` records.
 typedef struct {
     /* 0x00 */ byte    pad_0[0x10];

@@ -1911,7 +1911,7 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     s32                blend;
     s16                xy;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     tmp      = head - 0x10;
     block    = (RoomDraw13Scratch*)tmp;

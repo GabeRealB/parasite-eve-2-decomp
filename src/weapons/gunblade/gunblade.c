@@ -28,7 +28,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// 0x2C-byte scratch `func_gunblade_8011D70C` carves off `G_SCRATCH_HEAD` for
+/// 0x2C-byte scratch `func_gunblade_8011D70C` carves off the scratch stack for
 /// one beam segment: `v` is the quad's four corners, taken from the
 /// translation of the two trail coordinates at each end of the segment, `flag`
 /// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its

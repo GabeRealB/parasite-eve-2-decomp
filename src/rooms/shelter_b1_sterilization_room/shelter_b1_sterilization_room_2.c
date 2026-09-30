@@ -1434,7 +1434,7 @@ static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 fra
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
+    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
@@ -1695,7 +1695,7 @@ static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1,
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -1789,7 +1789,7 @@ static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1,
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDiscScratch*)tmp;

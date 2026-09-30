@@ -400,7 +400,7 @@
 
 #include "weapons/tonfa_baton.h"
 
-/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
+/// 0x10-byte scratch from the scratch stack used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
 /// starts as `(0, 0x1000, 0)`, is rotated by `gGfxViewCoord.workm`, then added
 /// onto `pos` and passed to `func_800DE7CC`.

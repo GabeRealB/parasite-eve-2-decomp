@@ -2362,7 +2362,7 @@ static void func_shelter_b2_main_corridor_8017F078(GfxCoord* arg0, s32 arg1, s32
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -2560,7 +2560,7 @@ static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32
     s32              ang2;
     u16              vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     TOUCH_REG_USE(arg2, scratch);
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
@@ -2694,7 +2694,7 @@ static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;

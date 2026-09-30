@@ -48,7 +48,7 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
 }
 
 /// Walks the first `count` contact records (stopping at a zero key) and keeps,
-/// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
+/// in a scratch block carved off the scratch stack, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.

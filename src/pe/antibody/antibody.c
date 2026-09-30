@@ -48,7 +48,7 @@ typedef struct AntibodyStep {
 STATIC_ASSERT_SIZEOF(AntibodyStep, 0xE);
 
 /// 0x28-byte scratch block `func_antibody_80130428` takes from
-/// `G_SCRATCH_HEAD` to draw one antibody arc. `v0` is the effect
+/// the scratch stack to draw one antibody arc. `v0` is the effect
 /// coordinate's world position and `v1` the player's second part coordinate;
 /// both are projected through `GsWSMATRIX` with one `RTPS` each, giving
 /// `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever

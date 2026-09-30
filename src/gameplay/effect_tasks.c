@@ -52,7 +52,7 @@ typedef struct _GpEffSprRec {
 } GpEffSprRec;
 STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffTileTaskA4`.
+/// 0x14-byte scratch from the scratch stack used by `Gp_EffTileTaskA4`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` receives `gte_stszotz`, `flag` `gte_stflg` and `sxy`
 /// `gte_stsxy` of the single RTPS that places the spark `TILE`.
@@ -64,7 +64,7 @@ typedef struct _GpEffTileScratch {
 } GpEffTileScratch;
 STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffLineTask92` and
+/// 0x20-byte scratch from the scratch stack used by `Gp_EffLineTask92` and
 /// `Gp_EffLineTaskA3`.
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
 /// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.pos`) in

@@ -36,7 +36,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800300_80162064` takes for the
+/// 0x18-byte scratch stack block `func_actor_800300_80162064` takes for the
 /// ground-quad heading it copies into the three `GameActor.field_88` records.
 /// `func_800EA1A8` also fills the block as a `VECTOR3` from `coord->workm.t`.
 typedef struct {

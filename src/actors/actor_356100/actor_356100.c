@@ -763,7 +763,7 @@ static void func_actor_356100_80163508(Task* arg0);
 /// Per-clip transition values indexed by the current and requested clip.
 extern s8 D_actor_356100_801728CC[][45];
 
-/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_356100_80168E44` takes: the
+/// 0x10-byte scratch stack block `func_actor_356100_80168E44` takes: the
 /// offset from the actor to the player, then the facing yaw it settles on.
 typedef struct Actor356100AimScratch {
     /* 0x0 */ SVECTOR delta;
@@ -782,7 +782,7 @@ typedef struct Actor356100AimScratch {
 } Actor356100AimScratch;
 STATIC_ASSERT_SIZEOF(Actor356100AimScratch, 0x10);
 
-/// 0x68-byte `G_SCRATCH_HEAD` block `func_actor_356100_80169854` takes while it
+/// 0x68-byte scratch stack block `func_actor_356100_80169854` takes while it
 /// builds the ground coordinate it draws an effect quad on: the coordinate the
 /// function fills (`coord.parent` parented to `gGfxViewCoord`) plus the world
 /// position `v` its two parent walks leave there.
@@ -1373,7 +1373,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
 
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
 /// movement is frozen, normalising the column with the GTE first and giving the
-/// 8-byte `G_SCRATCH_HEAD` block back afterwards. The guardless sibling of
+/// 8-byte scratch stack block back afterwards. The guardless sibling of
 /// `actorMoveForwardNonzero`, reading the X component back through
 /// `vec`; same body as `Actor01900_StepForward` / `actorMoveForward`.
 static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
@@ -1401,7 +1401,7 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
 
 /// Pushes `coord` out of the `WorldCollisionContact` records `rec` by `func_800E0C10`'s
 /// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
-/// 0x14-byte `OverlayDeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
+/// 0x14-byte `OverlayDeltaFlag` block is reserved off the scratch stack, so
 /// the two spellings of the block in the body reach it the same way the
 /// original does — the negative offsets off `head` for the X component and the
 /// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
@@ -1574,7 +1574,7 @@ static void func_actor_356100_80164158(Task* arg0)
 }
 
 /// Turn-aim state body, the 356100 twin of `Actor01900_Fn04D14`: take a 0x10
-/// chase scratch off `G_SCRATCH_HEAD` and, on the live-actor flag, key the
+/// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// animation nodes, the frame counter and the `field_B4E` clip phase. Once
 /// `field_8` has counted 7 frames the arm aims at the player — the yaw toward
 /// `gameGetPtrSlot(3)` goes in `target`, the wrapped yaw toward
@@ -2573,7 +2573,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* c
 }
 
 /// `Actor356100_PushRecords` testing the freeze flag through a `McSaveData*`,
-/// and giving the 0x14 bytes back through `G_SCRATCH_HEAD` itself rather than a
+/// and giving the 0x14 bytes back through the scratch stack itself rather than a
 /// saved `void**` — the saved pointer keeps the 0x1F8003FC constant live in a
 /// register across the release.
 static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)

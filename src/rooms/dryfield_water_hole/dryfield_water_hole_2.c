@@ -175,7 +175,7 @@ static void func_dryfield_water_hole_8017F5D4(GfxCoord* arg0, s32 arg1, s32 arg2
     s32              ang2;
     u16              vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     TOUCH_REG_USE(arg2, scratch);
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];

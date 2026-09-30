@@ -854,7 +854,7 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 
 /// Draws a pulsing glow at `arg1` in `arg0`'s space. `arg1` is rotated by
 /// `arg0`'s `workm` and offset by its translation, then projected through
-/// `GsWSMATRIX` with a single `RTPS` into a 0x14-byte `G_SCRATCH_HEAD` block;
+/// `GsWSMATRIX` with a single `RTPS` into a 0x14-byte scratch stack block;
 /// nothing is drawn when its `otz` is 16 or less. `arg3` is a signed
 /// half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`; two
 /// gouraud `POLY_G4` wedges and two `LINE_G3` diagonals cross the projected
@@ -874,7 +874,7 @@ static void func_dryfield_gas_station_80180B4C(GfxCoord* arg0, SVECTOR* arg1, s3
     s32               t2;
 
     Gp_UpdateCoord(arg0);
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x14;
     block    = (RoomShaftScratch*)(head - 0x14);
@@ -969,7 +969,7 @@ static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
         block   = (RoomGlowScratch*)tmp;

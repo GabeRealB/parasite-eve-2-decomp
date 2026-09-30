@@ -1228,7 +1228,7 @@ static inline void     _actor02300Draw(Task* actor, GfxCoord* coord);
 static void            Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor);
 
 /// Dust puff of the per-frame state: every third call spawns a spark effect at
-/// part 3 with a random upward offset, out of an 8-byte `G_SCRATCH_HEAD` block.
+/// part 3 with a random upward offset, out of an 8-byte scratch stack block.
 static __inline__ void Actor02300_SpawnDust(Task* actor)
 {
     Actor105600Work* work;
@@ -1648,7 +1648,7 @@ void Actor02300_Fn00AEC(Task* arg0)
 }
 
 /// Proximity check of the approach states. Measures the player's horizontal
-/// distance from the root coordinate through a 0x10-byte `G_SCRATCH_HEAD`
+/// distance from the root coordinate through a 0x10-byte scratch stack
 /// block: under 0x5DC one of `Gp_StateF0.prefix.bytes.field_2`'s bit groups raises `field_6B2`;
 /// past it the other two (the second only within 0xBB8) put the enemy into
 /// animation 4 and state 1.
@@ -2255,7 +2255,7 @@ static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
 
 /// Per-frame tick for the enemy's charge, sharing `field_6A8` with the rest of
 /// the overlay and measuring the offset to the player through a 0x10-byte
-/// `G_SCRATCH_HEAD` block. State 0 waits out the wind-up: from frame 0x47 it
+/// scratch stack block. State 0 waits out the wind-up: from frame 0x47 it
 /// mirrors `field_6D0` into `field_6CE` and commits to the charge
 /// (`field_69C` = 0x84) unless the player is already 1000 units away, zeroes
 /// the cycle counter `field_6B6` on frame 0x46, and hands over to state 1 on
@@ -2400,7 +2400,7 @@ void Actor02300_Fn01DF0(Task* arg0)
 
 /// Per-frame tick for the enemy's lunge cycle, sharing the `field_6A8` state
 /// with the rest of the overlay. State 0 measures the offset to the player
-/// through a 0x10-byte `G_SCRATCH_HEAD` block: over the window from frame 0x22
+/// through a 0x10-byte scratch stack block: over the window from frame 0x22
 /// to 0x26 of the current animation the enemy commits to the lunge
 /// (`field_69C` = 0x84) unless the player is already 1000 units away, aims
 /// `field_6A4` at them every frame, raises the 0x5E4 node's 0x8000 flag on
@@ -2880,7 +2880,7 @@ static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
     _actor02300Draw(actor, coord);
 }
 
-/// The lunge's own tick, run out of a 0x10-byte `G_SCRATCH_HEAD` block. State
+/// The lunge's own tick, run out of a 0x10-byte scratch stack block. State
 /// 0 is the wind-up: it holds `field_69C` at 0 until the animation reaches its
 /// start frame, aims `field_6A4` at the player and compares it with the
 /// enemy's own facing `field_6A2` - past 0x581 apart it gives up and turns
@@ -3047,7 +3047,7 @@ void Actor02300_Fn0327C(Task* actor)
 
 /// Tests the segment from `arg0` to `arg1` against the collision faces on the
 /// `D_80115550` list: the segment's direction is normalised in a 0x10-byte
-/// block carved off `G_SCRATCH_HEAD`, and every face with bit 0x40 of
+/// block carved off the scratch stack, and every face with bit 0x40 of
 /// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
 /// the last test's result otherwise.
 static s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)

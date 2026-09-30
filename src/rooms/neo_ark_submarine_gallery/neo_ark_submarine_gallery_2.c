@@ -1052,7 +1052,7 @@ static void func_neo_ark_submarine_gallery_8017F3DC(GfxCoord* arg0, s32 arg1, s3
     POLY_FT4*      prim;
     s32            prod;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;
@@ -1264,7 +1264,7 @@ static void func_neo_ark_submarine_gallery_8017FBCC(GfxCoord* arg0, s32 arg1, s3
     s32              ang2;
     u16              vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_STACK_CURSOR_SLOT;
     TOUCH_REG_USE(arg2, scratch);
     head                                      = *scratch;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
@@ -1396,7 +1396,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);

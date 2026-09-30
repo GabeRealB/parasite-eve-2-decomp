@@ -38,7 +38,7 @@
 
 #include "weapons/weapon.h"
 
-/// 0x34-byte scratch the flight state takes from `G_SCRATCH_HEAD`. The
+/// 0x34-byte scratch the flight state takes from the scratch stack. The
 /// `GpDeltaScratch` at 0x20 is handed to `func_800E0FEC` and also holds the
 /// per-frame translation the state adds onto the projectile coordinate;
 /// `sfx` is the attachment id the explosion effect and sound are keyed on.
@@ -83,7 +83,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
     slot  = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
     /* Reloaded rather than reused: the store leaves the block address in a
        caller-saved register and the copy into `spot` is a second read of
-       `G_SCRATCH_HEAD` that CSE folds back onto it, which is what keeps the
+       `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
     SCRATCH_PUSH_BYTES(0x50);
     spot = SCRATCH_HEAD(GfxCoord);

@@ -330,7 +330,7 @@ STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
 
 extern SVECTOR D_actor_421600_80151260;
 
-/// The attack tick takes 0x14 bytes from G_SCRATCH_HEAD for its direction,
+/// The attack tick takes 0x14 bytes from the scratch stack for its direction,
 /// wrapped angles, arena zone and player contact reply.
 typedef struct Actor421600AttackScratch {
     /* 0x00 */ SVECTOR vec;
@@ -5081,7 +5081,7 @@ static void func_actor_421600_80138D24(Task* arg0)
 /// Re-arms the model the way `func_actor_421600_8013848C` does -- buffers
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
 /// then walks the 0xB8C `WorldCollisionContact` table through `func_actor_421600_8013285C`.
-/// Takes two `SVECTOR`s off `G_SCRATCH_HEAD` and fills the XZ offset of the
+/// Takes two `SVECTOR`s off the scratch stack and fills the XZ offset of the
 /// model coordinate from `Player_Status.coordMtx` (the player's coordinate matrix),
 /// forms the yaw difference against the model's own facing (row 2 of its
 /// matrix), wraps it into `[-0x800, 0x800]` into `field_840` and re-aims the
@@ -6079,7 +6079,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
 /// does, and zone 5 abandons the tick into state 7. Any other zone picks the
 /// neighbouring entry of the 8-byte pose table `D_actor_421600_80151158` --
 /// `zone - 1` above the table's midpoint `mode`, `zone + 1` at or below it --
-/// and copies all three halfwords into a 0xC block taken off `G_SCRATCH_HEAD`,
+/// and copies all three halfwords into a 0xC block taken off the scratch stack,
 /// which becomes the XZ direction from the actor to that pose.
 ///
 /// `mode` and the `(s8)` casts on `zone` are load-bearing, and so is the

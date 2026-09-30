@@ -253,7 +253,7 @@ typedef union Actor403000Event {
     u16 w[2];
 } Actor403000Event;
 
-/// 0x34-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x34-byte scratch from the scratch stack used by
 /// `func_actor_403000_80134F44`: `pos` and `id` are the first damage record
 /// found on the four hit tables, `d`/`dist` the player's offset from the model
 /// and its length, `rel` the hit position relative to the model, `damage` the
@@ -270,7 +270,7 @@ typedef struct Actor403000DamageScratch {
 } Actor403000DamageScratch;
 STATIC_ASSERT_SIZEOF(Actor403000DamageScratch, 0x34);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x28-byte scratch from the scratch stack used by
 /// `func_actor_403000_801384E8`: `dir` holds the display object's first
 /// matrix column, normalised and scaled down into the push vector.
 typedef struct Actor403000PushScratch {
@@ -280,7 +280,7 @@ typedef struct Actor403000PushScratch {
 } Actor403000PushScratch;
 STATIC_ASSERT_SIZEOF(Actor403000PushScratch, 0x28);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x28-byte scratch from the scratch stack used by
 /// `func_actor_403000_801386E8`: `d` is the player's offset from the model and
 /// `dist` its length, `target` the camera target relative to the model,
 /// `angle` the clamped turn and `ret` the reply to message 0x3F9.
@@ -295,7 +295,7 @@ typedef struct Actor403000LungeScratch {
 } Actor403000LungeScratch;
 STATIC_ASSERT_SIZEOF(Actor403000LungeScratch, 0x28);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x28-byte scratch from the scratch stack used by
 /// `func_actor_403000_80137084`: `d` is the camera target's offset from the
 /// model and `dist` its length, `target` the same offset for the heading,
 /// `angle` the clamped turn, `cell` / `playerCell` the waypoint-grid cells.
@@ -312,7 +312,7 @@ typedef struct Actor403000ChaseScratch {
 } Actor403000ChaseScratch;
 STATIC_ASSERT_SIZEOF(Actor403000ChaseScratch, 0x28);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x28-byte scratch from the scratch stack used by
 /// `func_actor_403000_801377C8`: `d`/`dist` the player's offset from the model
 /// and its length, `target` the camera target relative to the model,
 /// `playerYaw`/`aimYaw` the player's facing and the reversed heading to the
@@ -332,7 +332,7 @@ typedef struct Actor403000GrabScratch {
 } Actor403000GrabScratch;
 STATIC_ASSERT_SIZEOF(Actor403000GrabScratch, 0x28);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x14-byte scratch from the scratch stack used by
 /// `func_actor_403000_8013B238`: `vec` is the waypoint relative to the
 /// coordinate and later the scaled matrix columns, `index` the waypoint picked
 /// from `base` plus `field_FD5`, `angle` the wrapped heading error.
@@ -360,7 +360,7 @@ typedef struct Actor403000DropScratch {
 } Actor403000DropScratch;
 STATIC_ASSERT_SIZEOF(Actor403000DropScratch, 0x28);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0x14-byte scratch from the scratch stack used by
 /// `func_actor_403000_8013C2D4`: `facing` and `base` are the player's and the
 /// actor's waypoint-grid cells, `index` the waypoint picked from `base` plus
 /// `field_FD1`, `vec` it relative to the coordinate and `angle` the clamped turn.
@@ -375,7 +375,7 @@ typedef struct Actor403000SeekScratch {
 } Actor403000SeekScratch;
 STATIC_ASSERT_SIZEOF(Actor403000SeekScratch, 0x14);
 
-/// 0xC-byte scratch from `G_SCRATCH_HEAD` used by
+/// 0xC-byte scratch from the scratch stack used by
 /// `func_actor_403000_80134204`: `index` picks the next waypoint out of
 /// `D_actor_403000_80158CE0`, `target` is it relative to the coordinate and
 /// `turn` the +1/-1 steering result.
@@ -387,7 +387,7 @@ typedef struct Actor403000TurnScratch {
 } Actor403000TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403000TurnScratch, 0xC);
 
-/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_403000_80133FC0` takes: the
+/// 0xC-byte scratch stack block `func_actor_403000_80133FC0` takes: the
 /// player's position relative to the model, then the wrapped facing error.
 typedef struct Actor403000FacingScratch {
     /* 0x00 */ SVECTOR target;
@@ -404,7 +404,7 @@ STATIC_ASSERT_SIZEOF(Actor403000Sxy, 0x4);
 
 /// 0xB4-byte trail scratch block: a parented coordinate, its view-space origin,
 /// and the current/previous projected point used to draw the trail segments.
-/// `func_actor_403000_80132AE0` returns it to `G_SCRATCH_HEAD`;
+/// `func_actor_403000_80132AE0` returns it to the scratch stack;
 /// `func_actor_403000_801330D4` only updates the point history and keeps it.
 typedef struct Actor403000TrailScratch {
     /* 0x00 */ GfxCoord       coord;
@@ -422,7 +422,7 @@ typedef struct Actor403000TrailScratch {
 } Actor403000TrailScratch;
 STATIC_ASSERT_SIZEOF(Actor403000TrailScratch, 0xB4);
 
-/// 0x38-byte `G_SCRATCH_HEAD` block `func_actor_403000_8013C864` takes each
+/// 0x38-byte scratch stack block `func_actor_403000_8013C864` takes each
 /// frame: `d` and `dist` are the player's offset from the model and its length
 /// (even frames), `to`/`from` the two world positions handed to `func_800E0308`
 /// as the line-of-sight segment (odd frames), `ofs` the flare offset passed to

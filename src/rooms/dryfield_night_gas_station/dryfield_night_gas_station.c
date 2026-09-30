@@ -3556,7 +3556,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
     u8                       b;
 
     p1       = arg0 + 1;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x1C;
     block    = (OverlayPointPairScratch*)(head - 0x1C);

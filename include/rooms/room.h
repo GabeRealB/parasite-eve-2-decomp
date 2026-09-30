@@ -170,7 +170,7 @@ typedef struct RoomStreamWork {
 STATIC_ASSERT_SIZEOF(RoomStreamWork, 0x14);
 
 /// The scratch block a room's mote or mist-puff drawer takes from
-/// `G_SCRATCH_HEAD` for one projection: `vec` is the point's world position,
+/// the scratch stack for one projection: `vec` is the point's world position,
 /// projected with a single `RTPS` through `GsWSMATRIX`, and `otz` the depth
 /// the resulting tile is linked into the ordering table at; a depth below
 /// 0x11 drops it.
@@ -180,7 +180,7 @@ typedef struct RoomMoteScratch {
 } RoomMoteScratch;
 STATIC_ASSERT_SIZEOF(RoomMoteScratch, 0xC);
 
-/// The scratch block a room's beam drawer takes from `G_SCRATCH_HEAD`: the
+/// The scratch block a room's beam drawer takes from the scratch stack: the
 /// beam's base in world space and the tip offset from it, and both points'
 /// projections - `otz0`, `sx0` and `sy0` for `base`, `otz1`, `sx1` and `sy1`
 /// for `tip`. `r0` and `r1` are the wedge radii at each end.
@@ -199,7 +199,7 @@ typedef struct RoomBeamScratch {
 } RoomBeamScratch;
 STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
 
-/// The scratch block a room's glow-sprite drawer takes from `G_SCRATCH_HEAD`:
+/// The scratch block a room's glow-sprite drawer takes from the scratch stack:
 /// `pos` is the task coordinate's translation, projected through `GsWSMATRIX`
 /// into `sxy`; `otz` is the resulting depth and `half` the half extent the
 /// camera-facing quad is drawn at, divided by `otz` so the sprite shrinks with
@@ -212,7 +212,7 @@ typedef struct RoomGlowSpriteScratch {
 } RoomGlowSpriteScratch;
 STATIC_ASSERT_SIZEOF(RoomGlowSpriteScratch, 0x14);
 
-/// The scratch block a room's disc drawer takes from `G_SCRATCH_HEAD`: the
+/// The scratch block a room's disc drawer takes from the scratch stack: the
 /// depth of the projected centre, the two on-screen radii derived from it, the
 /// GTE flag word and the projected centre.
 typedef struct RoomDiscScratch {
@@ -237,7 +237,7 @@ typedef struct RoomQuadProjScratch {
 } RoomQuadProjScratch;
 STATIC_ASSERT_SIZEOF(RoomQuadProjScratch, 0x38);
 
-/// The scratch block a room's light-shaft drawer takes from `G_SCRATCH_HEAD`
+/// The scratch block a room's light-shaft drawer takes from the scratch stack
 /// for one shaft: the depth of its projection and its four corners in world
 /// space - the two roots, then the tip reached from each.
 typedef struct RoomLightShaftScratch {

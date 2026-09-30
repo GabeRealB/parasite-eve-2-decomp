@@ -180,7 +180,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Slot, 0x8);
 /// `func_actor_206100_8014C274`.
 extern Actor206100Slot D_actor_206100_80158CBC[2];
 
-/// 0xC-byte scratch `func_actor_206100_8014ED3C` takes off `G_SCRATCH_HEAD` to
+/// 0xC-byte scratch `func_actor_206100_8014ED3C` takes off the scratch stack to
 /// hold the actor's position mirrored through the origin and its distance from
 /// it: `delta` is the negated root coordinate (`vy` is left unwritten, the walk
 /// is planar) and `dist` the `SquareRoot0` of the two written squares.
@@ -2333,7 +2333,7 @@ static const TaskFuncTable9 D_actor_206100_80149E70 = {
     },
 };
 
-/// Push the model's second coordinate's world position onto `G_SCRATCH_HEAD`
+/// Push the model's second coordinate's world position onto the scratch stack
 /// and hand it to `Gp_UpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
 /// inlined the way `actorUpdateModelColor` and `actorUpdateModelColor`
 /// inline it -- and it has to stay an inlined copy.  Only while expanding an

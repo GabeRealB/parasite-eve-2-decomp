@@ -67,7 +67,7 @@
 
 #include "rooms/shelter_b1_underground_parking.h"
 
-/// 0x10-byte scratch block `func_800D4270` carves off `G_SCRATCH_HEAD` for the
+/// 0x10-byte scratch block `func_800D4270` carves off the scratch stack for the
 /// GTE round trip: `vx`/`vy`/`vz` receive the scaled vertex (`gte_stsv`) and
 /// `offX`/`offY` are the screen-space offsets added to it.
 typedef struct _GpMapMarkScratch {
@@ -81,7 +81,7 @@ typedef struct _GpMapMarkScratch {
 } GpMapMarkScratch;
 STATIC_ASSERT_SIZEOF(GpMapMarkScratch, 0x10);
 
-/// 0xC-byte scratchpad block `Gp_DrawMapIcons` carves off `G_SCRATCH_HEAD` to
+/// 0xC-byte scratchpad block `Gp_DrawMapIcons` carves off the scratch stack to
 /// stage one map icon position before it is turned into a `SPRT_16`.
 typedef struct _GpMapIconPos {
     /* 0x0 */ u16 x;
@@ -94,7 +94,7 @@ typedef struct _GpMapIconPos {
 STATIC_ASSERT_SIZEOF(GpMapIconPos, 0xC);
 
 /// 0x1C-byte scratch block `Gp_DrawMapCursor` / `func_800D0614` carve off
-/// `G_SCRATCH_HEAD` to stage the player cursor position on the map screen.
+/// the scratch stack to stage the player cursor position on the map screen.
 /// `x` / `y` are the map coordinates; only the tail from 0xC on is written.
 typedef struct _GpMapCursorPos {
     /* 0x00 */ byte pad_0[0xC];

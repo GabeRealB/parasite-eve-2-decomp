@@ -111,7 +111,7 @@ typedef struct {
 } _Actor207200LargeWork;
 STATIC_ASSERT_SIZEOF(_Actor207200LargeWork, 0x4AC);
 
-/// 0x48-byte block `func_actor_207200_8014BEF4` takes from `G_SCRATCH_HEAD`:
+/// 0x48-byte block `func_actor_207200_8014BEF4` takes from the scratch stack:
 /// `d` receives the `func_800E0C10` push-back, then the offset to the player
 /// or to a push record, which `norm` holds normalised.
 typedef struct Actor207200DmgScratch {
@@ -1293,7 +1293,7 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
 }
 
 /// `func_actor_207200_8014D70C`'s body, inlined: push the model's second coordinate's
-/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
+/// world position onto the scratch stack and hand it to `Gp_UpdateActorColor`.
 static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Task* actor)
 {
     GfxCoord* coord;
@@ -1669,7 +1669,7 @@ static void func_actor_207200_8014D65C(Task* arg0)
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
+/// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
 static void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)

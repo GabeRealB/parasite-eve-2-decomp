@@ -219,7 +219,7 @@ s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
 
 /* Inline bodies behind `Actor01900_Fn080A8`. Same shapes as
  * `actor_400100_facing.h` and `ActorsShared80135a60`; inlining is what keeps
- * each `G_SCRATCH_HEAD` access out of a register CSE would share. */
+ * each `SCRATCH_STACK_CURSOR_SLOT` access out of a register CSE would share. */
 
 extern TmdSource Actor01900_D102C8;
 s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*);
@@ -2993,7 +2993,7 @@ static void Actor01900_Fn080A8(Task* arg0)
 }
 
 /// Turn the actor toward the player at up to 0x28 per call. Takes a 0x10-byte
-/// scratch block from `G_SCRATCH_HEAD` for the offset to the player and the
+/// scratch block from the scratch stack for the offset to the player and the
 /// yaw, steps `field_8AE` toward that yaw, then rebuilds the root coordinate's
 /// Y rotation from its own facing. The `field_4` branch is the state's entry.
 static void Actor01900_Fn083E8(Task* arg0)

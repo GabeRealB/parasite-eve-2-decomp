@@ -1491,7 +1491,7 @@ static void func_neo_ark_submarine_tunnel_8017FC58(GfxCoord* arg0, s32 arg1, s32
     u16            vz;
 
     tex                                     = arg1;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -1836,7 +1836,7 @@ static void func_neo_ark_submarine_tunnel_80180D6C(GfxCoord* arg0, s32 arg1)
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

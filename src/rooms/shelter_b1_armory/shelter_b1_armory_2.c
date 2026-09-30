@@ -611,7 +611,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -758,7 +758,7 @@ static void func_shelter_b1_armory_8018111C(SVECTOR* worldPoint, s32 radiusScale
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - sizeof(*block));
         block   = (RoomDraw25Scratch*)tmp;
@@ -842,7 +842,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
     {
         void** scratch;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         block   = (RoomDraw05Scratch*)(*scratch = head - 0x14);
     }

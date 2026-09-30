@@ -23,7 +23,7 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_FindNearestSlot`.
+/// 0x28-byte scratch from the scratch stack used by `Gp_FindNearestSlot`.
 /// `local` is the collider's `end1` plus `GpObj.pos`,
 /// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
@@ -36,7 +36,7 @@ typedef struct _GpNearScratch {
 } GpNearScratch;
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0FEC`.
+/// 0x40-byte scratch from the scratch stack used by `func_800E0FEC`.
 /// Each `WorldCollisionContact` whose `key` high halfword is `0x10` contributes to
 /// one accumulator, selected by `key` bits `0xF00`: kind 0 sums
 /// `distance * response.normal` into `acc[0]`, kind 1 writes the lift
@@ -49,7 +49,7 @@ typedef struct _GpPushScratch {
 } GpPushScratch;
 STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
 
-/// 0x34-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0C10`.
+/// 0x34-byte scratch from the scratch stack used by `func_800E0C10`.
 /// `acc[0]` sums `response.normal * distance` for every contributing
 /// `WorldCollisionContact` that sits at or above the floor cutoff (`response.normal.vy >=
 /// -0xDDA`); records below it instead accumulate into `acc[1].vy` and
@@ -62,7 +62,7 @@ typedef struct _GpSlideScratch {
 } GpSlideScratch;
 STATIC_ASSERT_SIZEOF(GpSlideScratch, 0x34);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0994`.
+/// 0x20-byte scratch from the scratch stack used by `func_800E0994`.
 /// `local[0]` / `local[1]` are `(0, pos.vy +/- radius, 0)` in the
 /// object's local space, rotated by `coord->workm` into `vec` then added
 /// to `workm.t` to give the two world points `arg1[0]` / `arg1[1]`.
@@ -73,7 +73,7 @@ typedef struct _GpAxisScratch {
 } GpAxisScratch;
 STATIC_ASSERT_SIZEOF(GpAxisScratch, 0x20);
 
-/// 0x4C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_OrientAlong`.
+/// 0x4C-byte scratch from the scratch stack used by `Gp_OrientAlong`.
 /// `vec` is the `VectorNormalS` result, reused as the `RotMatrix` angle
 /// vector. `mat1` is RotY(yaw), then RotY * RotX(-pitch). `mat2` is
 /// RotX(-pitch), then RotZ(roll). `pitch` / `yaw` are `ratan2` angles

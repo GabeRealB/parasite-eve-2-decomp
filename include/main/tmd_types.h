@@ -170,7 +170,7 @@ STATIC_ASSERT(OFFSET_OF(TmdAllocation, object) == 0, tmd_allocation_object_offse
 STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == sizeof(TmdObject), tmd_allocation_coords_offset);
 
 /// One frame of the scratch a model's packet stream is walked in: what
-/// `tmdProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream
+/// `tmdProcessStream` pushes on the scratch stack and passes to every stream
 /// command it runs.
 ///
 /// The frame carries the walk itself — which record is being run, how long its

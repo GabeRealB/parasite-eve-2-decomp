@@ -32,7 +32,7 @@
 #include "rooms/room.h"
 
 /// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
-/// `G_SCRATCH_HEAD`: the 32 rotated ring points and the disc centre, the
+/// the scratch stack: the 32 rotated ring points and the disc centre, the
 /// quad's depth and GTE flag, and the four projected corners of one quad.
 typedef struct {
     SVECTOR pts[32];
@@ -501,7 +501,7 @@ static void func_shelter_b2_pod_bottom_8017DECC(GfxCoord* arg0, u16 arg1, s16 ar
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
 /// projected through `GsWSMATRIX` into a scratch block popped from
-/// `G_SCRATCH_HEAD` and, when the GTE flag is non-negative, one `POLY_FT4` is
+/// the scratch stack and, when the GTE flag is non-negative, one `POLY_FT4` is
 /// queued one depth step behind it. Its corners sit on two perpendicular screen
 /// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
 /// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
@@ -591,7 +591,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 a
     u8             blu;
 
     r1       = arg1 + 0x200;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpBandScratch);
     *scratch = head;
     red      = arg2 >> 1;
@@ -753,7 +753,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GfxCoord* coord
     y        = f28 + (u16)row->yOff;
     r1      += (u16)row->rInner;
     r0       = r1 + work->step + (u16)row->rExtra;
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = (u8*)*scratch;
     *scratch = head - 0x118;
     block    = (GpBandScratch*)(head - 0x118);
@@ -909,7 +909,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
 }
 
 /// Projects `coord`'s world position through `GsWSMATRIX` into a scratch block
-/// popped from `G_SCRATCH_HEAD` and, when the GTE flag is non-negative, queues
+/// popped from the scratch stack and, when the GTE flag is non-negative, queues
 /// twenty gouraud `POLY_G4` wedges fanned about the projected point. The radii
 /// are `(s16)arg1 * 64 / otz` (outer) and `(s16)arg1 * 8 / otz` (inner). Each
 /// of the first eight steps draws a half-bright wedge at the outer radius and
@@ -1115,7 +1115,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
 
 /// Draws one Gouraud triangle as a fan blade about `arg2`. `arg0`'s world
 /// position is projected through `GsWSMATRIX` into a scratch block popped from
-/// `G_SCRATCH_HEAD`; the apex sits on that point in `rgb`, and the two black
+/// the scratch stack; the apex sits on that point in `rgb`, and the two black
 /// outer corners sit at angles `arg2 - 0x20` and `arg2 + 0x20`, `arg1` scaled
 /// down by the projected depth away. A negative GTE flag drops the triangle.
 static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
@@ -1129,7 +1129,7 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
     s32            ang2;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_STACK_CURSOR_SLOT;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -1237,7 +1237,7 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
     s32                             ang;
     u8*                             head;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(_ShelterB2PodBottomRingScratch);
     *scratch = head;
     block    = (_ShelterB2PodBottomRingScratch*)head;
@@ -1362,7 +1362,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
     s32              mid;
     s32              blend;
 
-    scratch       = (void**)G_SCRATCH_HEAD;
+    scratch       = SCRATCH_STACK_CURSOR_SLOT;
     head          = *scratch;
     block         = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->tip.vy = -(size << 4);

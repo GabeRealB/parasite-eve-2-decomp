@@ -213,7 +213,7 @@ release:
 /// and projected through `GsWSMATRIX`; wedge `i` picks its texture column
 /// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
 /// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
-/// Works out of a `GpBandScratch` taken from `G_SCRATCH_HEAD`.
+/// Works out of a `GpBandScratch` taken from the scratch stack.
 static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2)
 {
     u8*              head;

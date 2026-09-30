@@ -1362,7 +1362,7 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 
 /// Draws the fountain's water-spray sprite for the current frame. The task's
 /// coordinate is refreshed and projected through `GsWSMATRIX` into a
-/// `G_SCRATCH_HEAD` block; the resulting screen point becomes the centre of a
+/// scratch stack block; the resulting screen point becomes the centre of a
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x4382, the 0x28x0x27 cell at
 /// u 0x50) whose half-extent is `0x4E00 / otz`, so the spray shrinks with
 /// distance and is dropped entirely inside `otz` 0x11. The grey level
@@ -1386,7 +1386,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     coord = task->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x1040C0 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch     = (void**)G_SCRATCH_HEAD;
+        scratch     = SCRATCH_STACK_CURSOR_SLOT;
         head        = *scratch;
         blk         = (RoomShaftScratch*)(head - 0x14);
         otzp        = &blk->otz;

@@ -152,7 +152,7 @@ typedef struct _GpSndMaskRec {
 STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
 
 /// 8-byte RGB555-unpacked vector. `Gp_BlendRgb555` allocates three of
-/// these (0x18 bytes) from `G_SCRATCH_HEAD`: src0, src1, then the GTE
+/// these (0x18 bytes) from the scratch stack: src0, src1, then the GTE
 /// lerp result. Channels are 5-bit values shifted left 7.
 typedef struct _GpRgbScratch {
     /* 0x00 */ u16 r;
@@ -162,7 +162,7 @@ typedef struct _GpRgbScratch {
 } GpRgbScratch;
 STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `worldCollisionCalcContactViewOffset`.
+/// 0x28-byte scratch from the scratch stack used by `worldCollisionCalcContactViewOffset`.
 /// `vec` is the `arg1->pos - arg0` delta (normalized in place);
 /// `mtx` is the transpose of `gGfxViewCoord.workm`.
 typedef struct _GpDirScratch {
@@ -171,7 +171,7 @@ typedef struct _GpDirScratch {
 } GpDirScratch;
 STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawFloorQuad`.
+/// 0x40-byte scratch from the scratch stack used by `Gp_DrawFloorQuad`.
 /// `vec[]` holds the four corners of an axis-aligned XZ square of side
 /// `size` anchored at the caller's origin; each is projected with a
 /// separate RTPS. `dp` / `flag` / `otz` receive `gte_stdp` / `gte_stflg` /

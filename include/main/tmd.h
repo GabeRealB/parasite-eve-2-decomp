@@ -57,7 +57,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags);
 /// It builds the half selected by `TmdObject.nextBufferHalf`, then toggles the
 /// selector for the next build or draw pass. A caller that needs both halves
 /// to carry the change calls it twice in a row. Its scratch frame is pushed on
-/// `G_SCRATCH_HEAD` for the length of the walk, and the place the session is in
+/// the scratch stack for the length of the walk, and the place the session is in
 /// picks between the two handlers a record asking for a semi-transparent layer
 /// has.
 void tmdProcessStream(TmdObject* obj);

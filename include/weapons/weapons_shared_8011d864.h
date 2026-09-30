@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-/// 0x24-byte scratch block the muzzle-flash quad takes from `G_SCRATCH_HEAD`
+/// 0x24-byte scratch block the muzzle-flash quad takes from the scratch stack
 /// for one muzzle-flash quad. `v` is built in muzzle-local space, rotated by
 /// the muzzle coordinate's `workm` and translated by its `t`, then projected
 /// through `GsWSMATRIX`; `otz` is the `gte_stszotz` of that projection, which

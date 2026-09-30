@@ -448,7 +448,7 @@ static void func_actor_210600_8014B2C0(Task* task)
 
 /// Rebuilds the model's root part rotation around the yaw it already faces and
 /// rescales it uniformly through a 0x34-byte block borrowed from
-/// `G_SCRATCH_HEAD`, which is handed back once the rotation has been copied
+/// the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. The same code as `func_actor_210600_8014B7B0`,
 /// expanded in place where the update body calls it.
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
@@ -592,7 +592,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg)
 
 /// Rebuilds `coord`'s rotation as a pure Y rotation by the yaw it currently
 /// faces (`ratan2` of `-m[2][0], m[2][2]`), uniformly scaled by `scale`,
-/// through a 0x34-byte block borrowed from `G_SCRATCH_HEAD` and handed back
+/// through a 0x34-byte block borrowed from the scratch stack and handed back
 /// once the matrix is copied. Marks the coordinate dirty. Nothing in the
 /// overlay calls it: the update body carries the same code inline.
 static void func_actor_210600_8014B7B0(GfxCoord* coord, s16 scale)

@@ -239,7 +239,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s3
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;
@@ -429,7 +429,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s3
     {
         void** scratch;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         block   = (RoomDraw05Scratch*)(*scratch = head - 0x14);
     }
@@ -1093,7 +1093,7 @@ static void func_shelter_b2_north_maintenance_walkway_80180D48(GfxCoord* arg0, s
     s32            prod;
     s32            u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     head    -= 0x38;
     *scratch = head;

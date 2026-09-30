@@ -12,7 +12,7 @@ typedef union {
     } h;
 } GpFixed16;
 
-/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_801011D0`.
+/// 0x10-byte scratch from the scratch stack used by `func_801011D0`.
 /// Words at 0/4/8 are the 16.16 deltas from `func_800E0FEC`; if the
 /// fractional half is nonzero they are stepped away from zero by 0x10000
 /// and the high half is added onto `GfxCoord.coord.t[]`.

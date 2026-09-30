@@ -962,7 +962,7 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
 /// Queues one flickering, screen-aligned textured sprite at `arg1` in
 /// `arg0`'s local space. The point is rotated by the coordinate's `workm`,
 /// offset by its translation and projected through `GsWSMATRIX`, using a
-/// 0x14-byte block taken from `G_SCRATCH_HEAD`; nothing is drawn when the
+/// 0x14-byte block taken from the scratch stack; nothing is drawn when the
 /// projected `otz` is below 0x11.
 ///
 /// The primitive is a semi-transparent `POLY_FT4` on tpage 0x2B. `arg2` picks
@@ -986,7 +986,7 @@ static void func_dryfield_saloon_g_r_8017DBB4(GfxCoord* arg0, SVECTOR* arg1, s32
     s32               rgb;
     s16               xy;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x14;
     block    = (RoomShaftScratch*)(head - 0x14);
@@ -1076,7 +1076,7 @@ static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord)
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x24;
         *scratch = tmp;
@@ -1162,7 +1162,7 @@ static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord)
 /// Draws a flickering tapered beam between `arg1` and `arg2` in `arg0`'s
 /// local space. Both points are rotated by the coordinate's `workm`, offset by
 /// its translation and projected through `GsWSMATRIX`, using a 0x28-byte block
-/// taken from `G_SCRATCH_HEAD`. Nothing is drawn when the far end's `otz` is
+/// taken from the scratch stack. Nothing is drawn when the far end's `otz` is
 /// below 0x11; the near end's is raised to at least 0x10. The ends get the
 /// screen radii `(s16)arg3 * 64 / otz`.
 ///
@@ -1190,7 +1190,7 @@ static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVE
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x28;
         *scratch = tmp;

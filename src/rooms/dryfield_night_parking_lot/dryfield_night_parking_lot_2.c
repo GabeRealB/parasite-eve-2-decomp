@@ -730,7 +730,7 @@ static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg
         void** scratch;
         u8*    tmp;
 
-        scratch  = (void**)G_SCRATCH_HEAD;
+        scratch  = SCRATCH_STACK_CURSOR_SLOT;
         head     = *scratch;
         tmp      = head - 0x18;
         *scratch = tmp;

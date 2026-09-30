@@ -1350,7 +1350,7 @@ static void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
         block   = (RoomDraw13Scratch*)tmp;
@@ -1444,7 +1444,7 @@ static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         block   = (RoomDraw05Scratch*)tmp;

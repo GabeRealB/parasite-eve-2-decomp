@@ -115,7 +115,7 @@ typedef struct {
 } _WorldCollisionCapsuleScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleScratch, 0x8C);
 
-/// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `Gp_CollideObjGrid`.
+/// 0x88-byte scratch from the scratch stack used by `Gp_CollideObjGrid`.
 /// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
 /// (`Gp_LocalToGrid`). `verts` holds the face corners rotated by
 /// `Gp_GridParams->field_0->workm` and translated by that matrix, `normal` the
@@ -134,7 +134,7 @@ typedef struct _GpGridHitScratch {
 } GpGridHitScratch;
 STATIC_ASSERT_SIZEOF(GpGridHitScratch, 0x88);
 
-/// 0x70-byte scratch from `G_SCRATCH_HEAD` used by `func_800DD324`, the
+/// 0x70-byte scratch from the scratch stack used by `func_800DD324`, the
 /// ray / face intersection test. Same tail layout as `GpGridHitScratch`
 /// without the object position and cell: `verts` are the face corners rotated
 /// by `Gp_GridParams->field_0->workm` and translated by that matrix, `normal`

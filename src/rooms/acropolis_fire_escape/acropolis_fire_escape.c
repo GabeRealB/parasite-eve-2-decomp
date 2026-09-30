@@ -67,7 +67,7 @@
 
 extern GpObj4C D_acropolis_fire_escape_8018252C[12];
 
-/// Block the room's glow and flare tasks carve off `G_SCRATCH_HEAD` for one
+/// Block the room's glow and flare tasks carve off the scratch stack for one
 /// frame. `vec` is the task coordinate's world translation, projected through
 /// `GsWSMATRIX` into `sx` / `sy` with `otz` as its depth. `radius` and
 /// `radius2` are two screen radii scaled by the inverse of that depth; the glow

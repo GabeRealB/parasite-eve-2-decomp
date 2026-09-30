@@ -88,7 +88,7 @@ typedef struct _GpLightCapture {
 } GpLightCapture;
 STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_LightFalloff` /
+/// 0x20-byte scratch from the scratch stack used by `Gp_LightFalloff` /
 /// `Gp_LightPoint` / `Gp_LightPointRoom`.
 /// `vec` is the halved local position (`Gp_LightFalloff`) or the halved
 /// world position less a world `VECTOR3` (`Gp_LightPoint` / `Gp_LightPointRoom`).
@@ -105,7 +105,7 @@ typedef struct _GpAttnScratch {
 } GpAttnScratch;
 STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_LightCone`.
+/// 0x2C-byte scratch from the scratch stack used by `Gp_LightCone`.
 /// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
 /// `Gfx_NormalizeLightDir` result at `head - 0x1C`. `distSq` / `outerSq`
 /// / `innerSq` / `scale` match `GpAttnScratch`. `cosAng` is
@@ -140,7 +140,7 @@ typedef struct {
 } GpSolveSlotView;
 STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794` /
+/// 0x1C-byte scratch from the scratch stack used by `func_800D9794` /
 /// `func_800D98C4` / `func_800D9A30`. `in` is the direction
 /// `func_800D98C4` / `func_800D9A30` feed to `Gfx_NormalizeLightDir`.
 /// `dir` is that output (then overwritten by the GPF-scaled color).
@@ -152,7 +152,7 @@ typedef struct _GpLightScratch {
 } GpLightScratch;
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
-/// 0x3C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D759C`.
+/// 0x3C-byte scratch from the scratch stack used by `func_800D759C`.
 /// `in` is the light's negated local position fed to `Gfx_NormalizeLightDir`. `dir` is
 /// that output, then the view-rotated copy, then the GPF-scaled color.
 /// `mtx` is `Transpose(gGfxViewCoord.workm) * parent->workm` (rotation only).

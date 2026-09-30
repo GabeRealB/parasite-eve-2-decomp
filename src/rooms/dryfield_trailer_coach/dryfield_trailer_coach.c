@@ -2047,7 +2047,7 @@ void func_dryfield_trailer_coach_80182950(Task* task)
 
 /// Draws a pulsing light shaft at a point in `arg0`'s space. `arg1` is rotated
 /// by the coordinate's `workm` and offset by its translation, then projected
-/// through `GsWSMATRIX` into a 0x14-byte `G_SCRATCH_HEAD` block; nothing is
+/// through `GsWSMATRIX` into a 0x14-byte scratch stack block; nothing is
 /// drawn when `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses cyan as `rsin(animFrame * arg2) / 34 + 0x78`.
@@ -2066,7 +2066,7 @@ static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, 
     s32               t2;
 
     Gp_UpdateCoord(arg0);
-    scratch  = (void**)G_SCRATCH_HEAD;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     *scratch = head - 0x14;
     block    = (RoomShaftScratch*)(head - 0x14);
@@ -2167,35 +2167,35 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
         void** scratch;
         u8*    tmp;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
-        tmp     = (*scratch = head - 0x18);
+        tmp     = (*scratch = head - sizeof(RoomGlowScratch));
         block   = (RoomGlowScratch*)tmp;
     }
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
     gte_rtv0();
-    gte_stsv(&((RoomGlowScratch*)(head - 0x18))->vec);
+    gte_stsv(&((RoomGlowScratch*)(head - sizeof(RoomGlowScratch)))->vec);
     block->vec.vx += coord->workm.t[0];
     block->vec.vy += coord->workm.t[1];
     block->vec.vz += coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((RoomGlowScratch*)(head - sizeof(RoomGlowScratch)))->vec);
     gte_rtps();
-    gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
+    gte_stsxy(&((RoomGlowScratch*)(head - sizeof(RoomGlowScratch)))->sx);
     gte_stszotz(&block->otz);
-    if (((RoomGlowScratch*)(head - 0x18))->otz > 16) {
+    if (((RoomGlowScratch*)(head - sizeof(RoomGlowScratch)))->otz > 16) {
         pulse         = rsin(gDisplayState.animFrame * (s16)arg2);
         ang           = 0;
         size          = (s16)arg3;
-        block->rOuter = (size * 64) / ((RoomGlowScratch*)(head - 0x18))->otz;
+        block->rOuter = (size * 64) / ((RoomGlowScratch*)(head - sizeof(RoomGlowScratch)))->otz;
         work          = pulse / 34 + 0x78;
         color         = work;
         work        <<= 16;
         half          = work >> 17;
-        block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
+        block->rInner = (size * 8) / ((RoomGlowScratch*)(head - sizeof(RoomGlowScratch)))->otz;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -2285,8 +2285,8 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    work = (s32)G_SCRATCH_HEAD;
-    SCRATCH_POP_BYTES_AT(work, 0x18);
+    work = (s32)SCRATCH_STACK_CURSOR_SLOT;
+    SCRATCH_POP_BYTES_AT(work, sizeof(RoomGlowScratch));
 }
 
 /// Picks the trailer's shaft drawer for the current camera view. The

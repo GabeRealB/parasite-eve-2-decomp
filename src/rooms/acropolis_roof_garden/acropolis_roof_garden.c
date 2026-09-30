@@ -1168,7 +1168,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 ///
 /// When it does draw, the task's coordinate is refreshed and projected through
 /// `GsWSMATRIX` into a 0x14-byte `RoomShaftScratch` block taken from
-/// `G_SCRATCH_HEAD`, and the projected point becomes the centre of a
+/// the scratch stack, and the projected point becomes the centre of a
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
 /// `scale * 0x27 / otz`, so the sprite shrinks with distance and is dropped
 /// entirely inside `otz` 0x11. `Task::spawnArg1` is unpacked once, on the first
@@ -1198,7 +1198,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1) {
             Gp_UpdateCoord(coord);
-            scratch  = (void**)G_SCRATCH_HEAD;
+            scratch  = SCRATCH_STACK_CURSOR_SLOT;
             head     = *scratch;
             *scratch = head - sizeof(RoomShaftScratch);
             blk      = (RoomShaftScratch*)(head - sizeof(RoomShaftScratch));

@@ -230,7 +230,7 @@ typedef struct Actor01600RotScratch {
 } Actor01600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
 
-/// 0x7C-byte scratch from `G_SCRATCH_HEAD` that `Actor01600_Fn045A8` aims from:
+/// 0x7C-byte scratch from the scratch stack that `Actor01600_Fn045A8` aims from:
 /// `delta` takes the world-space offset from the actor to the player, `dir` the
 /// same offset written as an `SVECTOR` and then replaced by that offset turned
 /// into the actor's own frame, and `mat` the transpose of the actor's rotation
@@ -245,7 +245,7 @@ typedef struct Actor01600AimScratch {
 } Actor01600AimScratch;
 STATIC_ASSERT_SIZEOF(Actor01600AimScratch, 0x7C);
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Actor01600_Fn04C64`: `vec`
+/// 0x30-byte scratch from the scratch stack used by `Actor01600_Fn04C64`: `vec`
 /// takes (0, 0, `distance`), `mat` the yaw rotation `RotMatrixY` builds from
 /// the work block's `field_4EC`, and `out` the `vec` turned by it - the
 /// displacement the actor keeps in `field_42C` / `field_430`.
@@ -299,7 +299,7 @@ typedef struct Actor01600GroundScratch {
 } Actor01600GroundScratch;
 STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 
-/// 0x3C-byte `G_SCRATCH_HEAD` block `Actor01600_Fn06974` steps the attachment
+/// 0x3C-byte scratch stack block `Actor01600_Fn06974` steps the attachment
 /// coordinate in: the step vector the coordinate's facing is rotated into, the
 /// `SVECTOR` `Gfx_MatrixCol2` reads that facing into, the rotation
 /// `RotMatrixY` builds for the yaw and the yaw itself.
@@ -1352,7 +1352,7 @@ GpXformArg Actor01600_D12890;
 
 static __inline__ void update_actor_color(GpEnemy* ctx, GfxCoord* attach);
 
-/// Takes a 0x10-byte `VECTOR` from `G_SCRATCH_HEAD`, fills it with `attach`'s
+/// Takes a 0x10-byte `VECTOR` from the scratch stack, fills it with `attach`'s
 /// world position and hands it to `Gp_UpdateActorColor`. Inlined so the
 /// scratch-head address is rematerialised on every access.
 static __inline__ void update_actor_color(GpEnemy* ctx, GfxCoord* attach)
@@ -4630,7 +4630,7 @@ static void Actor01600_Fn06744(Task* arg0)
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
+/// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters.
 static void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)

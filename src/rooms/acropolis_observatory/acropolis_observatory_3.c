@@ -66,7 +66,7 @@ typedef struct AobSceneWork {
 } AobSceneWork;
 STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 
-/// 0x18 block the observatory's lens-flare task takes off `G_SCRATCH_HEAD` for
+/// 0x18 block the observatory's lens-flare task takes off the scratch stack for
 /// one frame. `pos` is the model's world position (`GfxCoord::workm`
 /// translation) loaded into the GTE as V0; `sx`/`sy`, `otz` and `flag` are the
 /// `rtps` results read back with `gte_stsxy`, `gte_stszotz` and `gte_stflg`.
@@ -989,7 +989,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
 }
 
 /// Draws the observatory's lens flare: the model's world position is projected
-/// through `GsWSMATRIX` into an `AobFlareScratch` block off `G_SCRATCH_HEAD`,
+/// through `GsWSMATRIX` into an `AobFlareScratch` block off the scratch stack,
 /// and, when the `rtps` reports no error, the projected point becomes the
 /// centre of a semi-transparent `POLY_FT4` on tpage 0x2B. The depth used for
 /// both the size and the ordering-table slot is the raw `otz` pulled 0x40
@@ -1012,7 +1012,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
-    scratch     = (void**)G_SCRATCH_HEAD;
+    scratch     = SCRATCH_STACK_CURSOR_SLOT;
     head        = *scratch;
     blk         = (AobFlareScratch*)(head - sizeof(AobFlareScratch));
     blk->pos.vx = (u16)coord->workm.t[0];
