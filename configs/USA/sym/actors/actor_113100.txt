@@ -204,3 +204,4 @@ D_actor_113100_80144250 = 0x80144250; // size:0x90 defined:True
 D_actor_113100_801442E0 = 0x801442E0; // size:0x4 defined:True
 
 func_mist_parking_80183BAC = 0x80183BAC; // absolute:True
+modelPlacementAttachChild = 0x80132CF4; // type:func

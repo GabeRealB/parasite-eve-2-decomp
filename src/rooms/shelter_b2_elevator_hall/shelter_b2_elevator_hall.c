@@ -66,6 +66,7 @@
 #include "../../shared/glow_draw.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/shelter_elevator.h"
 
 /// Task descriptor `roomEventGate` spawns when a
 /// gated event fires.
@@ -101,16 +102,15 @@ extern SVECTOR  D_shelter_b2_elevator_hall_801838B0[];
 static void func_shelter_b2_elevator_hall_8017DCBC(Task* task);
 static void func_shelter_b2_elevator_hall_8017DD00(Task* task);
 
-void func_shelter_b2_elevator_hall_8017D8E4(Task*);
-s32  func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_elevator_hall_8017DC70(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_elevator_hall_8017DC80(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b2_elevator_hall_8017DC70(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC80(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, TaskMessageArg);
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
-TaskDesc D_shelter_b2_elevator_hall_8018379C = { 0, 32, func_shelter_b2_elevator_hall_8017D8E4, { .model = NULL } };
+TaskDesc D_shelter_b2_elevator_hall_8018379C = { 0, 32, shelterElevatorTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_elevator_hall_801837A8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_hall_8017DAD4 },
@@ -497,73 +497,7 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/room_event_task.inc.c"
 
-/// Elevator task: sends player-weapon message 0 and waits for the cap to go
-/// idle, then picks the destination from the cap event key (0xB: area 9 warp 3,
-/// 0xC: area 0x1B warp 2, 0xD: area 0x2A warp 3; any other key sends message 1
-/// and ends the task). Once the voice line in `spawnArg1` has finished it
-/// resolves the destination through `func_map_shelter_80179A04`, stores the resolved warp
-/// and room in the save location and spawns task 0x11.
-void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
-{
-    RoomEventMsg msg;
-    RoomEventMsg msg2;
-
-    switch (task->state) {
-        case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_StateF0.field_4 = 1;
-            goto next;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                Gp_StateF0.field_4 = 0;
-                goto next;
-            }
-            break;
-        case 2:
-            Gp_StateF0.field_4 = 1;
-            switch (Gp_GetCapEventKey()) {
-                case 0xB:
-                    Mc_SaveData[0].state.location.loc.area = 9;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
-                    break;
-                case 0xC:
-                    Mc_SaveData[0].state.location.loc.area = 0x1B;
-                    Mc_SaveData[0].state.location.loc.warp = 2;
-                    break;
-                case 0xD:
-                    Mc_SaveData[0].state.location.loc.area = 0x2A;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
-                    break;
-                default:
-                    Gp_MsgPlayerWeapon(1);
-                    Gp_StateF0.field_4 = 0;
-                    taskKill(task);
-                    break;
-            }
-            goto next;
-        case 3:
-            if (SndVoice_HasActiveId(task->spawnArg1.value) != 0) {
-                break;
-            }
-        next:
-            task->state++;
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            msg.room      = 1;
-            msg.queryOnly = ROOM_EVENT_EXECUTE;
-            msg.areaId    = Mc_SaveData[0].state.location.loc.area;
-            msg.warp      = Mc_SaveData[0].state.location.loc.warp;
-            msg2          = msg;
-            func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.warp = msg2.warp;
-            Mc_SaveData[0].state.location.loc.room = msg2.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/shelter_elevator_task.inc.c"
 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Messages 0x21 and 0x1C build a request for the gate

@@ -22,6 +22,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/model_placement.h"
 
 /// Work block the spawn handler allocates (`memCalloc(0x4C4)`) and parks in
 /// `Task::work`. It opens with the animation context the preset handler hands
@@ -77,7 +78,6 @@ extern AnimationSet** D_actor_213000_80157DDC[1];
 
 static void func_actor_213000_8014A0DC(Task* task);
 static void func_actor_213000_8014A158(Task* task);
-static void func_actor_213000_8014A1B8(Task* task);
 static void func_actor_213000_8014A2C4(Task* task);
 static void func_actor_213000_8014A5D0(Task* task);
 static void func_actor_213000_8014A6AC(Task* task);
@@ -655,7 +655,7 @@ static void func_actor_213000_8014A158(Task* task)
 /// State table of the child spawned from table entry 4: setup, tick, kill.
 static const TaskFuncTable3 D_actor_213000_80149E30 = {
     {
-        func_actor_213000_8014A1B8,
+        modelPlacementAttachChild,
         func_actor_213000_8014A2C4,
         taskKill,
     },
@@ -671,44 +671,7 @@ void func_actor_213000_8014A160(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Setup state of the child spawned from table entry 4: hides the child's
-/// model, then mirrors the parent's (`spawnArg2`) model flag bits 0x80 and 0x4
-/// as the tick state does. It draws the model at order-table offset -2, hangs
-/// the child's root coordinate off the parent's part `spawnArg1`, shares the
-/// parent's light and colour matrices, reparents the task under the parent and
-/// steps to the tick state.
-static void func_actor_213000_8014A1B8(Task* task)
-{
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-
-    parent      = task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
-    } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    obj->otOffset      = -2;
-    coords            += task->spawnArg1.value;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    root->parent       = coords;
-    obj->lightMtx      = parentObj->lightMtx;
-    obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
-    task->state++;
-}
+#include "../../shared/model_placement_attach.inc.c"
 
 /// Tick state of the child spawned from table entry 4: shows or hides the
 /// child's model with the parent's (`spawnArg2`), copying bit 0x80, and

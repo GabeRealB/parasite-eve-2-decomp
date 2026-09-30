@@ -42,6 +42,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/screen_fade.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
@@ -133,8 +134,6 @@ void func_actor_120500_80132920(void);
 extern TmdSource D_actor_120500_8013762C;
 void             func_actor_120500_80131E58(Task*);
 void             func_actor_120500_8013241C(Task*);
-void             func_actor_120500_80132708(Task*);
-void             func_actor_120500_801327E4(Task*);
 void             func_actor_120500_80132A04(Task*, s32, s32);
 void             func_actor_120500_80132A74(Task*, s32, ActorTransform* placement);
 
@@ -322,8 +321,8 @@ Actor120500MessageEntry D_actor_120500_80138408[2] = {
 
 TaskDesc D_actor_120500_80138418[3] = {
     { 0, 192, func_actor_120500_80131E58, { .model = NULL } },
-    { 0, 192, func_actor_120500_80132708, { .model = NULL } },
-    { 0, 192, func_actor_120500_801327E4, { .model = NULL } },
+    { 0, 192, screenFadeInTask, { .model = NULL } },
+    { 0, 192, screenFadeOutTask, { .model = NULL } },
 };
 
 TaskDesc D_actor_120500_8013843C = { 0, 192, taskKill, { .model = NULL } };
@@ -685,84 +684,9 @@ done_4C8:
     func_800D7A9C(mdl, &args.pos, 0, 3);
 }
 
-/// Fade from black, entry 1 of the actor's task table.
-///
-/// State 0 allocates the channel block and seeds all three channels at 0xFF;
-/// a failed allocation kills the task. State 1 runs every frame: it draws a
-/// subtractive `Fade_DrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never
-/// drawn), then lowers all three channels by `Task::spawnArg1`, the fade rate.
-/// Once `r` has gone negative the screen is clear and the task kills itself.
-void func_actor_120500_80132708(Task* arg0)
-{
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
+#include "../../shared/screen_fade_in.inc.c"
 
-    fade = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
-            if (fade->r >= 0) {
-                return;
-            }
-            taskKill(arg0);
-            break;
-    }
-}
-
-/// Fade to black, entry 2 of the actor's task table.
-///
-/// State 0 allocates the channel block and clears it; a failed allocation
-/// kills the task. State 1 runs every frame: it draws a subtractive
-/// `Fade_DrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never drawn),
-/// then raises all three channels by `Task::spawnArg1`, the fade rate. Once
-/// `r` reaches 0x100 the screen is black and the task kills itself.
-void func_actor_120500_801327E4(Task* arg0)
-{
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
-
-    work = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work         = alloc;
-            work->b      = 0;
-            work->g      = 0;
-            work->r      = 0;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1.value;
-            work->g += (u16)arg0->spawnArg1.value;
-            work->b += (u16)arg0->spawnArg1.value;
-            if (work->r >= 0x100) {
-                taskKill(arg0);
-            }
-            break;
-    }
-}
+#include "../../shared/screen_fade_out.inc.c"
 
 /// Request setters, reached from the tables in the actor's data: each arms one
 /// code/phase pair of the actor's work block with `arg0` and restarts its

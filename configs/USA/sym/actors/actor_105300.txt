@@ -41,3 +41,4 @@ D_actor_105300_8013D3B0 = 0x8013D3B0; // size:0xC defined:True
 func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // absolute:True
 
 func_neo_ark_power_plant_2_8017FD88 = 0x8017FD88; // absolute:True
+modelPlacementSetScaled = 0x801336D4; // type:func

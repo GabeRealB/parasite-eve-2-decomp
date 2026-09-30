@@ -46,6 +46,7 @@
 #include "rooms/neo_ark_power_plant_1.h"
 
 #include "rooms/neo_ark_power_plant_2.h"
+#include "../../shared/model_placement.h"
 
 extern GpPairSrcE         D_actor_105300_8013D3A0;
 extern Actor05300SpawnPos D_actor_105300_80133A20[2];
@@ -82,7 +83,6 @@ extern s16            D_actor_105300_80133A2C[];
 static void func_actor_105300_80133530(Task* arg0);
 static void func_actor_105300_801335B8(Task* arg0);
 static void func_actor_105300_80133610(Task* arg0);
-static void func_actor_105300_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
 static void func_actor_105300_80133838(GpEnemy* arg0, Task* arg1);
 
 extern AnimationSet D_actor_105300_8013C9D0;
@@ -389,7 +389,7 @@ end:
 /// `D_actor_105300_8013D3EC` and moves to state 2 on its terminator; state 2
 /// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
 /// entry of `D_actor_105300_80133A18`. The row's `field_2` is the scale
-/// `func_actor_105300_801336D4` applies to the saved coordinate matrix
+/// `modelPlacementSetScaled` applies to the saved coordinate matrix
 /// `field_2FC`, 0x1000 when no row was read, and while the session's
 /// `viewReady` is 1 the per-view row of `D_actor_105300_8013D3C4` is enqueued
 /// with the work block's sound id.
@@ -441,7 +441,7 @@ static void func_actor_105300_8013222C(Task* arg0)
             }
             break;
     }
-    func_actor_105300_801336D4(arg0, &work->field_2FC, scale, 1);
+    modelPlacementSetScaled(arg0, &work->field_2FC, scale, 1);
     if (gGameSession->viewReady == 1) {
         SndEvt_EnqueueTypeA(work->field_31C, D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_0,
                             D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_2);
@@ -579,7 +579,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
                     }
                     break;
             }
-            func_actor_105300_801336D4(arg1, &work->field_2FC, scale, 0);
+            modelPlacementSetScaled(arg1, &work->field_2FC, scale, 0);
             if (!(work->field_328 & 3)) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 x           = (Gp_LcgState >> 16) & 0x3FF;
@@ -1041,52 +1041,7 @@ static void func_actor_105300_80133610(Task* arg0)
     }
 }
 
-/// Sets the model's coordinate to `arg1` scaled by `arg2` and marks it for
-/// recomputation. The scale is built in a 0x30-byte block borrowed from the
-/// scratchpad: an identity rotation is written word-wise and `ScaleMatrix`
-/// scales it, on all three axes when `arg3` is non-zero and on Y alone when it
-/// is zero.
-///
-/// The scratchpad head is written twice, from two separate computations of
-/// `head - 0x30`. CSE cannot substitute a value that holds no register, so the
-/// store keeps the block-local `$v1` while `blk` - which crosses both calls -
-/// is copied into `$s0` by `reload_cse_regs`. Folding the two into one
-/// variable allocates `blk`'s register for the store as well and loses the
-/// copy, the delay-slot fill and the frame layout.
-static void func_actor_105300_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
-{
-    ActorScaleScratch* head;
-    ActorScaleScratch* blk;
-    GfxCoord*          coord;
-
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1;
-    blk                                     = head - 1;
-    coord                                   = arg0->extra.tmd->coords;
-
-    if (arg3 == 0) {
-        blk->scale.vx = 0x1000;
-        blk->scale.vy = arg2;
-        blk->scale.vz = 0x1000;
-    } else {
-        blk->scale.vx = arg2;
-        blk->scale.vy = arg2;
-        blk->scale.vz = arg2;
-    }
-
-    coord->coord = *arg1;
-
-    blk->mat.ident.m00_m01 = 0x1000;
-    blk->mat.ident.m02_m10 = 0;
-    blk->mat.ident.m11_m12 = 0x1000;
-    blk->mat.ident.m20_m21 = 0;
-    blk->mat.ident.m22     = 0x1000;
-
-    ScaleMatrix(&blk->mat.mat, &blk->scale);
-    MulMatrix(&coord->coord, &blk->mat.mat);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
-}
+#include "../../shared/model_placement_scale.inc.c"
 
 /// State handlers of the part task, indexed by `Task::state`: spawn, per-frame
 /// hit reaction and teardown.

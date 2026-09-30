@@ -7,12 +7,12 @@
 
 /// The eight-segment swing trails, one array per end of the baton. Every entry
 /// is parented to `gGfxViewCoord`.
-extern GfxCoord D_tonfa_baton_8012BBEC[8];
+extern GfxCoord gBladeTrailBase[8];
 
-extern GfxCoord D_tonfa_baton_8012BE6C[8];
+extern GfxCoord gBladeTrailTip[8];
 
 /// Primitive/blend selector for the trail, seeded by state 0 from
-/// `Task::spawnArg1` and passed to `func_tonfa_baton_8011D6B0` every frame.
+/// `Task::spawnArg1` and passed to `bladeTrailDraw` every frame.
 extern s16 D_tonfa_baton_8012C0EC;
 
 #endif // SRC_WEAPONS_TONFA_BATON_TONFA_BATON_PRIVATE_H

@@ -57,6 +57,7 @@
 
 #include "overlay.h"
 #include "../../shared/room_events.h"
+#include "../../shared/screen_fade.h"
 
 extern ActorTransform D_dryfield_water_tower_80181A70[3];
 
@@ -341,8 +342,8 @@ extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2];
 
 /// The room script's task table: entry 0 is the room task
 /// `func_dryfield_water_tower_8017FD64` itself, which the cap script spawns in
-/// its state 3, entry 1 the fade-out task `func_dryfield_water_tower_80180038`
-/// and entry 2 the fade-in task `func_dryfield_water_tower_8017FF5C`, which the
+/// its state 3, entry 1 the fade-out task `screenFadeOutTask`
+/// and entry 2 the fade-in task `screenFadeInTask`, which the
 /// room task's state 1 starts with the fade rate 8.
 extern TaskDesc D_dryfield_water_tower_8018277C[];
 
@@ -388,8 +389,6 @@ extern GpRoomCoordSet D_dryfield_water_tower_801874E4[1];
 extern GpGridParams D_dryfield_water_tower_801835C4[1];
 extern GpObj4C      D_dryfield_water_tower_8018665C[14];
 void                func_dryfield_water_tower_8017FD64(Task*);
-void                func_dryfield_water_tower_8017FF5C(Task*);
-void                func_dryfield_water_tower_80180038(Task*);
 void                func_dryfield_water_tower_80180114(void);
 void                func_dryfield_water_tower_80180134(void);
 void                func_dryfield_water_tower_80180154(void);
@@ -739,8 +738,8 @@ GpEvsCmd D_dryfield_water_tower_80182674[11] = {
 
 TaskDesc D_dryfield_water_tower_8018277C[3] = {
     { 0, 192, func_dryfield_water_tower_8017FD64, { .model = NULL } },
-    { 0, 192, func_dryfield_water_tower_80180038, { .model = NULL } },
-    { 0, 192, func_dryfield_water_tower_8017FF5C, { .model = NULL } },
+    { 0, 192, screenFadeOutTask, { .model = NULL } },
+    { 0, 192, screenFadeInTask, { .model = NULL } },
 };
 
 u16 D_dryfield_water_tower_801827A0[22] = {
@@ -3079,84 +3078,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
     func_dryfield_water_tower_8017FBE8(task);
 }
 
-/// The room's fade-in task, entry 2 of `D_dryfield_water_tower_8018277C`: the
-/// reverse of the fade-out `func_dryfield_water_tower_80180038`. State 0
-/// allocates the `OverlayFadeWork` block into `Task::work` and saturates its
-/// three channels at 0xFF; a failed allocation kills the task. Every state-1
-/// frame draws the overlay tinted `r`/`g`/`r` with `Fade_DrawOverlay` and
-/// lowers each channel by `Task::spawnArg1`, the fade rate; once `r` falls
-/// below zero the task kills itself.
-void func_dryfield_water_tower_8017FF5C(Task* arg0)
-{
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
+#include "../../shared/screen_fade_in.inc.c"
 
-    work = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work         = alloc;
-            work->b      = 0xFF;
-            work->g      = 0xFF;
-            work->r      = 0xFF;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r -= (u16)arg0->spawnArg1.value;
-            work->g -= (u16)arg0->spawnArg1.value;
-            work->b -= (u16)arg0->spawnArg1.value;
-            if ((s16)work->r < 0) {
-                taskKill(arg0);
-            }
-            break;
-    }
-}
-
-/// The room's fade-out task: state 0 allocates the 8-byte `OverlayFadeWork` block
-/// into `Task::work` and clears its three channels, and every state-1 frame
-/// draws them with `Fade_DrawOverlay` and raises each by `Task::spawnArg1`, the
-/// fade rate. The red channel is the one watched: once it passes 0x100 the fade
-/// has run its course and the task kills itself. The task is the second
-/// descriptor of `D_dryfield_water_tower_8018277C`, the table whose entry 0 is
-/// the room script task. The table's entry 2, `func_dryfield_water_tower_8017FF5C`,
-/// runs the same body backwards, from saturated channels falling past zero.
-void func_dryfield_water_tower_80180038(Task* arg0)
-{
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
-
-    work = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work         = alloc;
-            work->b      = 0;
-            work->g      = 0;
-            work->r      = 0;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1.value;
-            work->g += (u16)arg0->spawnArg1.value;
-            work->b += (u16)arg0->spawnArg1.value;
-            if ((s16)work->r >= 0x100) {
-                taskKill(arg0);
-            }
-            break;
-    }
-}
+#include "../../shared/screen_fade_out.inc.c"
 
 /// Record handler (opcode 0x0D) of one of the room's script tables: queues
 /// CD command 0x82.

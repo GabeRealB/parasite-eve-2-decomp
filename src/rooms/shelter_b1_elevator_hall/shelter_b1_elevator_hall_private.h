@@ -18,7 +18,6 @@ extern TaskDesc D_shelter_b1_elevator_hall_80182CE8;
 extern RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_shelter_b1_elevator_hall_8017D620(Task*);
 
 s32 func_shelter_b1_elevator_hall_8017D810(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

@@ -37,6 +37,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/model_placement.h"
 
 extern GpImgRec D_actor_511000_80146F94[2];
 
@@ -112,7 +113,6 @@ static void func_actor_511000_80131E78(Task* arg0);
 static void func_actor_511000_80132048(Task* arg0);
 static void func_actor_511000_801321A8(Task* task);
 static void func_actor_511000_80132224(Task* task);
-static void func_actor_511000_80132284(Task* task);
 static void func_actor_511000_80132390(Task* task);
 static void func_actor_511000_80132480(Task* task);
 static void func_actor_511000_801325A4(Task* task);
@@ -150,7 +150,7 @@ static const TaskFuncTable3 D_actor_511000_80131E24 = {
 /// also follows the spawner's visibility: the attach state, the flag-mirroring
 /// tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E30 = {
-    func_actor_511000_80132284,
+    modelPlacementAttachChild,
     func_actor_511000_80132390,
     taskKill,
 };
@@ -2253,38 +2253,7 @@ void func_actor_511000_8013222C(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_actor_511000_80132284(Task* task)
-{
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-
-    parent      = task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
-    } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    obj->otOffset      = -2;
-    coords            += task->spawnArg1.value;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    root->parent       = coords;
-    obj->lightMtx      = parentObj->lightMtx;
-    obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
-    task->state++;
-}
+#include "../../shared/model_placement_attach.inc.c"
 
 /// Tick state of the child in the second state table: copies the spawner's
 /// model flag bits 0x80 (hidden) and 0x4 (draw buffers allocated) onto this

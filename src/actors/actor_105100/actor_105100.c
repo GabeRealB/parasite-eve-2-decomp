@@ -56,6 +56,7 @@
 
 #include "rooms/shelter_b6_training_room.h"
 #include "../../shared/fireball.h"
+#include "../../shared/model_placement.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -230,7 +231,6 @@ static void func_actor_105100_80136318(Task* arg0);
 static void func_actor_105100_80136408(Task* arg0);
 static void func_actor_105100_801364CC(Task* arg0);
 static void func_actor_105100_80136524(Task* arg0);
-static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
 static void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1);
 static void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1);
 
@@ -989,7 +989,7 @@ static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
     }
     func_actor_105100_80136408(arg1);
     func_actor_105100_80134130(arg1);
-    func_actor_105100_80136574(arg1, &work->field_560, work->field_594, 1);
+    modelPlacementSetScaled(arg1, &work->field_560, work->field_594, 1);
     if (work->field_5A8 != 0) {
         func_shelter_b6_training_room_8018294C(arg1);
     }
@@ -1846,7 +1846,7 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
             if (work->field_594 >= 0x201) {
                 work->field_594 = (u16)work->field_594 - 0x50;
             }
-            func_actor_105100_80136574(actor, &work->field_560, work->field_594, 0);
+            modelPlacementSetScaled(actor, &work->field_560, work->field_594, 0);
             if ((s16)++work->field_59A >= 0x3C) {
                 work->field_598 = 4;
             }
@@ -2821,52 +2821,7 @@ static void func_actor_105100_80136524(Task* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x9C4, 0x80);
 }
 
-/// Sets the model's root coordinate to `arg1` scaled by `arg2`, and marks it
-/// for recomputation. The scale is built in a 0x30-byte block borrowed from
-/// the scratchpad: an identity rotation is written word-wise and
-/// `ScaleMatrix` scales it, on all three axes when `arg3` is non-zero and on
-/// Y alone when it is zero.
-///
-/// The scratchpad head is written twice, from two separate computations of
-/// `head - 0x30`. CSE cannot substitute a value that holds no register, so
-/// the store keeps the block-local `$v1` while `blk` - which crosses both
-/// calls - is copied into `$s0` by `reload_cse_regs`. Folding the two into one
-/// variable allocates `blk`'s register for the store as well and loses the
-/// copy, the delay-slot fill and the frame layout.
-static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
-{
-    ActorScaleScratch* head;
-    ActorScaleScratch* blk;
-    GfxCoord*          coord;
-
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1;
-    blk                                     = head - 1;
-    coord                                   = arg0->extra.tmd->coords;
-
-    if (arg3 == 0) {
-        blk->scale.vx = 0x1000;
-        blk->scale.vy = arg2;
-        blk->scale.vz = 0x1000;
-    } else {
-        blk->scale.vx = arg2;
-        blk->scale.vy = arg2;
-        blk->scale.vz = arg2;
-    }
-
-    coord->coord = *arg1;
-
-    blk->mat.ident.m00_m01 = 0x1000;
-    blk->mat.ident.m02_m10 = 0;
-    blk->mat.ident.m11_m12 = 0x1000;
-    blk->mat.ident.m20_m21 = 0;
-    blk->mat.ident.m22     = 0x1000;
-
-    ScaleMatrix(&blk->mat.mat, &blk->scale);
-    MulMatrix(&coord->coord, &blk->mat.mat);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
-}
+#include "../../shared/model_placement_scale.inc.c"
 
 void func_actor_105100_8013667C(Task* arg0)
 {

@@ -34,67 +34,7 @@ static void func_shelter_b1_elevator_hall_8017DC20(Task* task);
 
 RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 
-void func_shelter_b1_elevator_hall_8017D620(Task* task)
-{
-    RoomEventMsg msg;
-    RoomEventMsg msg2;
-
-    switch (task->state) {
-        case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_StateF0.field_4 = 1;
-            goto next;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                Gp_StateF0.field_4 = 0;
-                goto next;
-            }
-            break;
-        case 2:
-            Gp_StateF0.field_4 = 1;
-            switch (Gp_GetCapEventKey()) {
-                case 0xB:
-                    Mc_SaveData[0].state.location.loc.area = 9;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
-                    break;
-                case 0xC:
-                    Mc_SaveData[0].state.location.loc.area = 0x1B;
-                    Mc_SaveData[0].state.location.loc.warp = 2;
-                    break;
-                case 0xD:
-                    Mc_SaveData[0].state.location.loc.area = 0x2A;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
-                    break;
-                default:
-                    Gp_MsgPlayerWeapon(1);
-                    Gp_StateF0.field_4 = 0;
-                    taskKill(task);
-                    break;
-            }
-            goto next;
-        case 3:
-            if (SndVoice_HasActiveId(task->spawnArg1.value) != 0) {
-                break;
-            }
-        next:
-            task->state++;
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            msg.room      = 1;
-            msg.queryOnly = ROOM_EVENT_EXECUTE;
-            msg.areaId    = Mc_SaveData[0].state.location.loc.area;
-            msg.warp      = Mc_SaveData[0].state.location.loc.warp;
-            msg2          = msg;
-            func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.warp = msg2.warp;
-            Mc_SaveData[0].state.location.loc.room = msg2.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/shelter_elevator_task.inc.c"
 
 s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {

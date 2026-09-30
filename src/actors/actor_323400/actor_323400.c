@@ -38,6 +38,7 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_messages.h"
 
 /// Psy-Q `RotMatrixY`.
 
@@ -124,7 +125,6 @@ static const GpEnemyTaskFuncTable3 D_actor_323400_80161E34 = {
 extern TmdSource D_actor_323400_80169878;
 s32              func_actor_323400_80164764(Task*, s32, s32);
 s32              func_actor_323400_80164824(Task*);
-s32              func_actor_323400_80164874(Task*, s32, ActorTransform* placement);
 s32              func_actor_323400_80164974(Task*, s32, ActorCommand* msg, s32);
 s32              func_actor_323400_80164A50(Task*, s32, AnimationPlayRequest*, s32);
 void             func_actor_323400_8016475C(void);
@@ -3009,7 +3009,7 @@ Actor323400MessageEntry D_actor_323400_801711D4[7] = {
     { 2015, { .call5 = func_actor_323400_8016475C } },
     { 2005, { .call4 = func_actor_323400_80164764 } },
     { 2006, { .call0 = func_actor_323400_80164824 } },
-    { 2004, { .call3 = func_actor_323400_80164874 } },
+    { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
     { 2003, { .call1 = func_actor_323400_80164A50 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -3804,28 +3804,7 @@ s32 func_actor_323400_80164824(Task* task)
     return 1;
 }
 
-/// Handler for message 0x7D4: writes `placement` onto the actor's root
-/// coordinate (translation, then yaw / pitch / roll), then reads the resulting
-/// yaw back out of the matrix's third row and caches it in `field_16`.
-///
-/// The `TmdObject` is re-read from `Task::extra` for every access because the
-/// stores and the `Gfx_RotMatrix*` calls in between may alias it.
-s32 func_actor_323400_80164874(Task* task, s32 arg1, ActorTransform* placement)
-{
-    Actor323000Work* work;
-
-    work                                = (Actor323000Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_16                        = ratan2(-task->extra.tmd->coords->coord.m[2][0],
-                                                   task->extra.tmd->coords->coord.m[2][2]);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw_first.inc.c"
 
 /// Handler for message 0x7DB: copies the payload's three leading bytes into
 /// the work block and, when its `code` is 0x1602, picks the state from `mode`:

@@ -23,7 +23,8 @@ typedef struct ActorStateWork {
     /* 0x0 */ s16 state;
 } ActorStateWork;
 
-/// The prefix of every work block actorMsgPlaceRecordYaw is used with: `yaw`
+/// The prefix of every work block actorMsgPlaceRecordYaw and
+/// actorMsgPlaceYawFirst are used with: `yaw`
 /// is the heading taken from the root coordinate's Z axis after the placement
 /// rotations are applied.
 typedef struct ActorYawWork {
@@ -33,6 +34,7 @@ typedef struct ActorYawWork {
 
 s32 actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement);
 s32 actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement);
+s32 actorMsgPlaceYawFirst(Task* task, s32 arg1, ActorTransform* placement);
 s32 actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2);
 
 #endif /* SRC_SHARED_ACTOR_MESSAGES_H */

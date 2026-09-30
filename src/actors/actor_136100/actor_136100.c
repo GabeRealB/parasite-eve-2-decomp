@@ -43,6 +43,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_main_street.h"
+#include "../../shared/screen_fade.h"
 
 extern ActorTransform D_actor_136100_8013F334[2];
 
@@ -182,7 +183,6 @@ void             func_actor_136100_80132284(Task*);
 void             func_actor_136100_80133690(void);
 void             func_actor_136100_8013379C(s32);
 void             func_actor_136100_80133BC8(Task*);
-void             func_actor_136100_801344AC(Task*);
 void             func_actor_136100_80134588(Task*);
 void             func_actor_136100_8013467C(void);
 void             func_actor_136100_801346EC(Task*, s32, s32);
@@ -1200,7 +1200,7 @@ TaskDesc D_actor_136100_80140744[6] = {
     { 0, 192, NULL, { .model = NULL } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_136100_801320E0, { .model = &D_actor_136100_8013A9D8 } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_136100_80132284, { .model = &D_actor_136100_8013AFCC } },
-    { 0, 192, func_actor_136100_801344AC, { .model = NULL } },
+    { 0, 192, screenFadeInTask, { .model = NULL } },
     { 0, 192, func_actor_136100_80134588, { .model = NULL } },
 };
 
@@ -2325,42 +2325,7 @@ void func_actor_136100_80133BC8(Task* arg0)
     Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &message.floorOffset);
 }
 
-/// Fade-in task, entry 4 of the actor's task table: on its first tick it
-/// allocates the 8-byte channel block and seeds all three channels to 0xFF,
-/// then every frame draws the fade overlay and steps each channel down by
-/// `spawnArg1`, killing itself once `r` has gone negative.
-void func_actor_136100_801344AC(Task* arg0)
-{
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
-
-    fade = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
-            if (fade->r >= 0) {
-                return;
-            }
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/screen_fade_in.inc.c"
 
 /// Display-fade task: on its first tick it allocates the 8-byte `r`/`g`/`b`
 /// block, then every frame draws the fade overlay and steps all three channels

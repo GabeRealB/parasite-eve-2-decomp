@@ -161,3 +161,4 @@ D_actor_120400_8013E680 = 0x8013E680; // size:0x28 defined:True
 D_actor_120400_8013E6A8 = 0x8013E6A8; // size:0x28 defined:True
 D_actor_120400_8013E6D0 = 0x8013E6D0; // size:0x74 defined:True
 D_actor_120400_8013E744 = 0x8013E744; // size:0x4 defined:True
+modelPlacementAttachChild = 0x801325A4; // type:func

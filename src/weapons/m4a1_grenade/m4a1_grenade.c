@@ -37,6 +37,7 @@
 #include "main/wipsys_types.h"
 
 #include "weapons/weapon.h"
+#include "../../shared/grenade_shell.h"
 
 /// 0x34-byte scratch the flight state takes from the scratch stack. The
 /// `GpDeltaScratch` at 0x20 is handed to `func_800E0FEC` and also holds the
@@ -48,8 +49,6 @@ typedef struct M4a1GrenadeScratch {
     /* 0x30 */ s32            sfx;
 } M4a1GrenadeScratch;
 STATIC_ASSERT_SIZEOF(M4a1GrenadeScratch, 0x34);
-
-static void func_m4a1_grenade_8011DE24(Task* task);
 
 static void func_m4a1_grenade_8011D1EC(Task* arg0);
 static void func_m4a1_grenade_8011D654(Task* arg0);
@@ -224,7 +223,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
         return;
     }
     arg0->work         = work;
-    arg0->exitCallback = func_m4a1_grenade_8011DE24;
+    arg0->exitCallback = grenadeShellExit;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx              = 0;
@@ -395,16 +394,7 @@ static void func_m4a1_grenade_8011DDF8(Task* task)
     }
 }
 
-/// Exit callback: unlinks both collision nodes the spawn state linked and kills
-/// the task. Grenade Pistol and MM1 carry identical copies.
-static void func_m4a1_grenade_8011DE24(Task* task)
-{
-    WeaponGrenadeWork* work = task->work;
-
-    Gp_UnlinkObj(&work->obj);
-    Gp_UnlinkObj(&work->obj2);
-    taskKill(task);
-}
+#include "../../shared/grenade_shell_exit.inc.c"
 
 void func_m4a1_grenade_8011DE68(Task* task)
 {
@@ -412,7 +402,7 @@ void func_m4a1_grenade_8011DE68(Task* task)
         func_m4a1_grenade_8011D654,
         func_m4a1_grenade_8011D994,
         func_m4a1_grenade_8011DDF8,
-        func_m4a1_grenade_8011DE24,
+        grenadeShellExit,
     };
 
     states[task->state](task);

@@ -49,6 +49,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/screen_fade.h"
 
 /// Work block of the warehouse's cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_warehouse_8017E090` and parked in `Task::work`. `owner` is
@@ -87,7 +88,6 @@ extern GpGridParams D_dryfield_warehouse_801809AC[1];
 extern GpGridParams D_dryfield_warehouse_80181038[1];
 
 void func_dryfield_warehouse_8017E090(Task*);
-void func_dryfield_warehouse_8017E22C(Task*);
 void func_dryfield_warehouse_8017E308(Task*);
 
 void func_dryfield_warehouse_8017DA58(s32);
@@ -171,7 +171,7 @@ GpEvsCmd D_dryfield_warehouse_8017FA00[11] = {
 TaskDesc D_dryfield_warehouse_8017FB08[3] = {
     { 0, 192, func_dryfield_warehouse_8017E090, { .model = NULL } },
     { 0, 192, func_dryfield_warehouse_8017E308, { .model = NULL } },
-    { 0, 192, func_dryfield_warehouse_8017E22C, { .model = NULL } },
+    { 0, 192, screenFadeInTask, { .model = NULL } },
 };
 
 SVECTOR D_dryfield_warehouse_8017FB2C[16] = {
@@ -718,42 +718,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
     }
 }
 
-/// Screen-fade task running the other way from `func_dryfield_warehouse_8017E308`:
-/// on its first tick it allocates the 8-byte block and saturates all three
-/// channels at 0xFF, then every frame it draws the fade overlay and lowers each
-/// channel by `Task::spawnArg1`. Once `r` falls below 0 the screen is clear and
-/// the task kills itself.
-void func_dryfield_warehouse_8017E22C(Task* arg0)
-{
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
-
-    fade = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
-            if (fade->r < 0) {
-                taskKill(arg0);
-            }
-            break;
-    }
-}
+#include "../../shared/screen_fade_in.inc.c"
 
 /// Screen-fade task: on its first tick it allocates the 8-byte `r`/`g`/`b`
 /// block and seeds all three channels to 0, then every frame it draws the fade

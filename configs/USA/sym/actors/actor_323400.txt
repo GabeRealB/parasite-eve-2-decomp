@@ -119,3 +119,4 @@ ActorContact_FindPush = 0x80162198; // type:func
 ActorContact_Steer = 0x801624E0; // type:func
 ActorContact_PushContact = 0x80162A2C; // type:func
 ActorContact_Push = 0x80162BD0; // type:func
+actorMsgPlaceYawFirst = 0x80164874; // type:func

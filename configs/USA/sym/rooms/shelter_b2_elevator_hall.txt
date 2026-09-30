@@ -91,3 +91,4 @@ glowDrawCapsule = 0x8017DFB8; // type:func
 glowDrawTintedDisc = 0x8017E7FC; // type:func
 roomEventGate = 0x8017D610; // type:func
 roomEventTask = 0x8017D774; // type:func
+shelterElevatorTask = 0x8017D8E4; // type:func

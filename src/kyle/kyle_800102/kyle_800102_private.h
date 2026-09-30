@@ -7,12 +7,13 @@
 #include "types.h"
 
 /// Launch offset per attachment index, in the muzzle coordinate's local space.
-extern SVECTOR D_kyle_800102_80177424[2];
+extern SVECTOR gGrenadeShellMuzzleOffsets[2];
 
 /// Launch speed per attachment index, shifted left 16 into `field_88`.
-extern u8 D_kyle_800102_8017743C[4];
+extern u8 gGrenadeShellSpeeds[4];
 
-/// Impact clip id per attachment, indexed by `sfx - 0xA`.
-extern u16 D_kyle_800102_80177434[4];
+/// Collision radius the shell takes on detonation, per attachment, indexed by
+/// `sfx - 0xA`.
+extern u16 gGrenadeShellBlastRadii[4];
 
 #endif // SRC_KYLE_KYLE_800102_KYLE_800102_PRIVATE_H

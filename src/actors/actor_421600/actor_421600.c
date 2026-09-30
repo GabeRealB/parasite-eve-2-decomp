@@ -120,7 +120,7 @@ typedef struct Actor421600Work {
     /* 0x00A */ byte                pad_A[2];
     /* 0x00C */ Actor421600Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
-    /// Yaw the placement handler `func_actor_421600_8013E52C` reads back off
+    /// Yaw the placement handler `actorMsgPlaceYawFirst` reads back off
     /// the root coordinate after writing it.
     /* 0x016 */ s16  field_16;
     /* 0x018 */ byte pad_18[0x42];
@@ -501,7 +501,6 @@ extern AnimationSet D_actor_421600_8014DA04;
 extern TmdSource    D_actor_421600_80143A54;
 s32                 func_actor_421600_80132A00(Task*, s32, ActorCommand* request);
 s32                 func_actor_421600_8013E4EC(Task*);
-s32                 func_actor_421600_8013E52C(Task*, s32, ActorTransform* placement);
 s32                 func_actor_421600_8013E62C(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_421600_8013E654(Task*);
 static void         func_actor_421600_8013EEC8(Task*);
@@ -2088,7 +2087,7 @@ Actor421600MessageEntry D_actor_421600_80151118[8] = {
     { 2015, { .call5 = func_actor_421600_8013E424 } },
     { 2005, { .call4 = actorMsgSetVisibility } },
     { 2006, { .call0 = func_actor_421600_8013E4EC } },
-    { 2004, { .call3 = func_actor_421600_8013E52C } },
+    { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
     { 2003, { .call1 = func_actor_421600_8013E62C } },
     { 5108, { .call0 = func_actor_421600_8013E654 } },
@@ -7146,28 +7145,7 @@ return_one:
     return 1;
 }
 
-/// Handler for message 0x7D4: write `placement` onto the actor's root
-/// coordinate (translation, then yaw / pitch / roll), then read the resulting
-/// yaw back out of the matrix's third row and cache it in the work block.
-///
-/// The `TmdObject` is re-read from `Task::extra` for every access because the
-/// stores and the `Gfx_RotMatrix*` calls in between may alias it.
-s32 func_actor_421600_8013E52C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    Actor421600Work* work;
-
-    work                                = (Actor421600Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_16                        = ratan2(-task->extra.tmd->coords->coord.m[2][0],
-                                                   task->extra.tmd->coords->coord.m[2][2]);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw_first.inc.c"
 
 /// Handler for message 0x7D3: latch the requested animation id into
 /// `field_82E` and restart the state machine at state 1.

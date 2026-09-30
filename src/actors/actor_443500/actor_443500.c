@@ -39,6 +39,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_r47.h"
+#include "../../shared/model_placement.h"
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
@@ -63,7 +64,6 @@ STATIC_ASSERT_SIZEOF(Actor443500Work, 0x4C4);
 
 static void func_actor_443500_80132078(Task* task);
 static void func_actor_443500_801321F0(Task* task);
-static void func_actor_443500_80132594(Task* task);
 static void func_actor_443500_801326A0(Task* task);
 static void func_actor_443500_801327A4(Task* arg0);
 static void func_actor_443500_801327C4(Task* task);
@@ -74,7 +74,7 @@ static void func_actor_443500_80132A68(s32 arg0);
 /// State table of the actor's child task (`TaskDesc` entry 1): setup, the
 /// per-frame flag mirror and `taskKill`.
 static const TaskFuncTable3 D_actor_443500_80131E24 = {
-    { func_actor_443500_80132594, func_actor_443500_801326A0, taskKill }
+    { modelPlacementAttachChild, func_actor_443500_801326A0, taskKill }
 };
 
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn
@@ -2648,45 +2648,7 @@ void func_actor_443500_8013253C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Setup state of the actor's child task (first entry of
-/// `D_actor_443500_80131E24`): hides the child's model, then mirrors the
-/// parent's (`spawnArg2`) hidden bit 0x80 and buffers-live bit 0x4 as the
-/// per-frame state does. It draws the model at order-table offset -2, hangs
-/// the child's root coordinate off the parent's part `spawnArg1`, shares the
-/// parent's light and colour matrices, reparents the task under the parent and
-/// steps to the next state.
-static void func_actor_443500_80132594(Task* task)
-{
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-
-    parent      = task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
-    } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    obj->otOffset      = -2;
-    coords            += task->spawnArg1.value;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    root->parent       = coords;
-    obj->lightMtx      = parentObj->lightMtx;
-    obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
-    task->state++;
-}
+#include "../../shared/model_placement_attach.inc.c"
 
 /// Per-frame state of the actor's child task: mirrors the hidden bit 0x80 and
 /// the buffers-live bit 0x4 of the parent's `TmdObject` - the task the spawn

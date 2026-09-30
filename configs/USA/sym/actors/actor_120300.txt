@@ -214,3 +214,4 @@ D_dryfield_garage_8017DD6C = 0x8017DD6C; // absolute:True
 D_dryfield_garage_8017DEA4 = 0x8017DEA4; // absolute:True
 
 D_dryfield_garage_8017E1F4 = 0x8017E1F4; // absolute:True
+screenFadeOutTask = 0x80133B5C; // type:func

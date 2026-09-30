@@ -95,3 +95,4 @@ RoomFx_DrawGround2Quad = 0x801826A8; // type:func
 glowDrawCapsule = 0x8017DFB0; // type:func
 roomEventGate = 0x8017D62C; // type:func
 roomEventTask = 0x8017D790; // type:func
+shelterElevatorTask = 0x8017D900; // type:func

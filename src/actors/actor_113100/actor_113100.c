@@ -38,6 +38,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/mist_parking.h"
+#include "../../shared/model_placement.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a twenty-part rig and the model state, the
@@ -121,7 +122,6 @@ static void func_actor_113100_8013264C(Task* task);
 s32         func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
 static void func_actor_113100_80132B30(Task* task);
 static void func_actor_113100_80132BDC(Task* task);
-static void func_actor_113100_80132CF4(Task* task);
 static void func_actor_113100_80132E00(Task* task);
 static void func_actor_113100_80132EF0(Task* task);
 static void func_actor_113100_80132F24(Task* task);
@@ -144,7 +144,7 @@ static const TaskFuncTable3 D_actor_113100_80131E24 = { {
 /// the parent's part, mirror its flags every frame, then `taskKill`.
 /// Dispatched by `func_actor_113100_80132C9C`.
 static const TaskFuncTable3 D_actor_113100_80131E30 = { {
-    func_actor_113100_80132CF4,
+    modelPlacementAttachChild,
     func_actor_113100_80132E00,
     taskKill,
 } };
@@ -1728,44 +1728,7 @@ void func_actor_113100_80132C9C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Setup state of the child task whose state table is
-/// `D_actor_113100_80131E30`: hides the child's model, then mirrors the parent's
-/// (`spawnArg2`) model flag bits 0x80 and 0x4 as the tick state does. It draws
-/// the model at order-table offset -2, hangs the child's root coordinate off the
-/// parent's part `spawnArg1`, shares the parent's light and colour matrices,
-/// reparents the task under the parent and steps to the next state.
-static void func_actor_113100_80132CF4(Task* task)
-{
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-
-    parent      = task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
-    } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    obj->otOffset      = -2;
-    coords            += task->spawnArg1.value;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    root->parent       = coords;
-    obj->lightMtx      = parentObj->lightMtx;
-    obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
-    task->state++;
-}
+#include "../../shared/model_placement_attach.inc.c"
 
 /// Tick state of the child task whose state table is
 /// `D_actor_113100_80131E30`: copies the parent's (`spawnArg2`) model flag bits

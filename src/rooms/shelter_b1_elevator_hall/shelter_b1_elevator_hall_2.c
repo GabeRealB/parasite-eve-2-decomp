@@ -53,6 +53,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/shelter_elevator.h"
 
 #define D_shelter_b1_elevator_hall_80182D04 (D_shelter_b1_elevator_hall_80182CF4 + 2)
 #define D_shelter_b1_elevator_hall_80182D14 (D_shelter_b1_elevator_hall_80182CF4 + 4)
@@ -72,7 +73,7 @@ extern GpObj4C        D_shelter_b1_elevator_hall_80184288[10];
 extern GpObj4C        D_shelter_b1_elevator_hall_80184580[6];
 extern GpRoomCoordSet D_shelter_b1_elevator_hall_80184270[1];
 
-TaskDesc D_shelter_b1_elevator_hall_80182CAC = { 0, 32, func_shelter_b1_elevator_hall_8017D620, { .model = NULL } };
+TaskDesc D_shelter_b1_elevator_hall_80182CAC = { 0, 32, shelterElevatorTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { 5102, func_shelter_b1_elevator_hall_8017D810 },

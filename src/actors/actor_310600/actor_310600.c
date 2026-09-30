@@ -30,6 +30,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/acropolis_cafeteria.h"
+#include "../../shared/model_placement.h"
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
@@ -116,7 +117,6 @@ static void func_actor_310600_80161FA0(Task* task);
 static void func_actor_310600_8016231C(Task* arg0);
 s32         func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3);
 s32         func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
-static void func_actor_310600_801627A4(Task* task);
 static void func_actor_310600_801628B0(Task* task);
 static void func_actor_310600_80162948(Task* task);
 static void func_actor_310600_801629C4(Task* task);
@@ -130,7 +130,7 @@ static void func_actor_310600_80162B98(Task* task);
 /// State handlers of the child part task, which `func_actor_310600_8016274C`
 /// runs by `Task::state`: setup, tick and exit.
 static const TaskFuncTable3 D_actor_310600_80161E24 = { {
-    func_actor_310600_801627A4,
+    modelPlacementAttachChild,
     func_actor_310600_801628B0,
     taskKill,
 } };
@@ -747,45 +747,7 @@ void func_actor_310600_8016274C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Setup state of the child task whose handlers open
-/// `D_actor_310600_80161E24`: hides the child's model, then mirrors the
-/// parent's (`spawnArg2`) model flag bits 0x80 and 0x4 as the tick state
-/// `func_actor_310600_801628B0` does. It draws the model at order-table offset
-/// -2, hangs the child's root coordinate off the parent's part `spawnArg1`,
-/// shares the parent's light and colour matrices, reparents the task under the
-/// parent and steps to the next state.
-static void func_actor_310600_801627A4(Task* task)
-{
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-
-    parent      = task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
-    } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    obj->otOffset      = -2;
-    coords            += task->spawnArg1.value;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    root->parent       = coords;
-    obj->lightMtx      = parentObj->lightMtx;
-    obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
-    task->state++;
-}
+#include "../../shared/model_placement_attach.inc.c"
 
 /// Keeps a child model's visibility in step with its parent's: bits 0x80
 /// (hidden) and 0x4 (buffers released) of the parent task's `TmdObject` - the

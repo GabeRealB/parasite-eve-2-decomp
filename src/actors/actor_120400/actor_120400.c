@@ -30,6 +30,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/model_placement.h"
 
 /// Work block of the parent task, allocated zeroed by its spawn routine and
 /// kept at `Task::work`: a twenty-part rig, the walk state, and
@@ -79,7 +80,6 @@ extern Actor120400MsgEntry D_actor_120400_8013E76C[];
 static void func_actor_120400_80131E5C(Task* arg0);
 static void func_actor_120400_80132050(Task* arg0);
 static void func_actor_120400_80132254(Task* arg0);
-static void func_actor_120400_801325A4(Task* task);
 static void func_actor_120400_801326B0(Task* task);
 static void func_actor_120400_801327B4(Task* task);
 static void func_actor_120400_801327D4(Task* task);
@@ -93,7 +93,7 @@ s32         func_actor_120400_80132AA0(Task* task, s32 arg1, AnimationPlayReques
 /// Spawn, tick and teardown handlers of the two child tasks, dispatched by
 /// `func_actor_120400_8013254C`.
 static const TaskFuncTable3 D_actor_120400_80131E24 = { {
-    func_actor_120400_801325A4,
+    modelPlacementAttachChild,
     func_actor_120400_801326B0,
     taskKill,
 } };
@@ -1156,44 +1156,7 @@ void func_actor_120400_8013254C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Spawn state of a child task: its model starts hidden and then takes the
-/// parent model's bits 0x80 and 0x4 as the tick does, allocating its buffers
-/// while bit 0x4 is clear. The model is linked at ordering-table offset -2, its
-/// root coordinate hangs off the parent's coordinate `spawnArg1`, it shares
-/// the parent's light and colour matrices, and the task is reparented under
-/// the parent before the state advances.
-static void func_actor_120400_801325A4(Task* task)
-{
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-
-    parent      = task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coords      = parentObj->coords;
-    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    root        = obj->coords;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
-    } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    obj->otOffset      = -2;
-    coords            += task->spawnArg1.value;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    root->parent       = coords;
-    obj->lightMtx      = parentObj->lightMtx;
-    obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
-    task->state++;
-}
+#include "../../shared/model_placement_attach.inc.c"
 
 /// Per-frame tick of a child task: copies the parent model's hidden bit (0x80)
 /// and bit 0x4 onto the child's own model. While the parent's bit 0x4 is

@@ -31,208 +31,13 @@
 #include "main/tmd_types.h"
 
 #include "weapons/weapon.h"
+#include "../../shared/grenade_shell.h"
 
-static void func_kyle_800102_80168270(Task* arg0);
-
-static void func_kyle_800102_80167A84(Task* arg0);
-static void func_kyle_800102_80167DE0(Task* arg0);
 static void func_kyle_800102_80168244(Task* arg0);
 
-/// Spawn state: allocates the work block, seeds the thrown object at the
-/// muzzle coordinate and links its two `WorldCollisionBody` nodes.
-static void func_kyle_800102_80167A84(Task* arg0)
-{
-    u8*                head;
-    SVECTOR*           blk;
-    SVECTOR*           vec;
-    MATRIX*            mtx;
-    TmdObject*         extra;
-    GfxCoord*          coord;
-    GfxCoord*          muzzle;
-    WeaponGrenadeWork* work;
-    s32                idx;
-    s32                flags;
-    s32                speed;
+#include "../../shared/grenade_shell_spawn.inc.c"
 
-    head                          = SCRATCH_STACK_CURSOR(u8);
-    blk                           = (SVECTOR*)(head - 8);
-    SCRATCH_STACK_CURSOR(SVECTOR) = blk;
-    extra                         = arg0->extra.tmd;
-    idx                           = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
-    coord                         = extra->coords;
-    muzzle                        = coord->parent;
-    work                          = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec                           = blk;
-    if (work == NULL) {
-        SCRATCH_STACK_RELEASE_BYTES(8);
-        taskKill(arg0);
-        return;
-    }
-    arg0->work         = work;
-    arg0->exitCallback = func_kyle_800102_80168270;
-    arg0->state++;
-    Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
-    blk->vx              = D_kyle_800102_80177424[idx].vx;
-    blk->vy              = D_kyle_800102_80177424[idx].vy;
-    blk->vz              = D_kyle_800102_80177424[idx].vz;
-    muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(muzzle);
-    coord->workm = muzzle->workm;
-    gte_SetRotMatrix(&muzzle->workm);
-    gte_SetTransMatrix(&muzzle->workm);
-    gte_ldv0(vec);
-    gte_rtv0tr();
-    gte_stlvnl(coord->workm.t);
-    mtx = &coord->coord;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
-    Gfx_RotMatrixX(mtx, -0x400, 0);
-    Gfx_MatrixCol2(mtx, &work->dir);
-    VectorNormalSS(&work->dir, &work->dir);
-    speed                      = D_kyle_800102_8017743C[idx];
-    work->field_8C             = 1;
-    work->field_90             = 0;
-    work->obj.coord            = coord;
-    work->obj.context.contacts = work->rec0;
-    work->obj.pos.vx           = 0;
-    work->obj.pos.vy           = 0;
-    work->obj.pos.vz           = 0;
-    work->field_88.w           = speed << 16;
-    flags                      = (u16)arg0->spawnArg1.value | 0x20000;
-    work->obj.key              = flags;
-    if (arg0->spawnArg1.value & 0x100000) {
-        work->obj.key = flags | 0x80;
-    }
-    work->obj.radius = 0x94;
-    work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->obj);
-    Gp_InitRec18Table(work->obj.context.contacts, 1, 0);
-    work->obj2.context.capsule = &work->d4rec;
-    work->obj2.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->d4rec.recs           = work->rec1;
-    work->obj2.coord           = coord;
-    work->obj2.pos.vx          = 0;
-    work->obj2.pos.vy          = 0;
-    work->obj2.pos.vz          = 0;
-    work->obj2.key             = 0;
-    work->obj2.radius          = 0;
-    work->d4rec.end0.vx        = 0;
-    work->d4rec.end0.vy        = 0;
-    work->d4rec.end0.vz        = 0;
-    work->d4rec.end1.vx        = 0;
-    work->d4rec.end1.vy        = 0;
-    work->d4rec.end0Radius     = 1;
-    work->d4rec.end1Radius     = 1;
-    work->obj.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->d4rec.end1.vz        = -(work->field_88.w >> 10);
-    Gp_LinkObj(1, &work->obj2);
-    Gp_InitRec18Table(work->d4rec.recs, 1, 0);
-    work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
-
-/// Flight state of Kyle's thrown object. Detonates when the shot has touched
-/// world geometry (`rec0` with 0x30000), when a wall record it hit is solid,
-/// or when the flight timer runs past 0xDFFFF; otherwise it steps the object
-/// by `dir / field_88.h.hi`, lets gravity pull `dir.vy` down, and trails smoke
-/// every `field_8C` frames - a divisor that grows by one every seven frames up
-/// to four, so the trail thins as the object slows.
-///
-/// The shot is parameterised through `Task::spawnArg1`: its low byte is the
-/// attachment id driving the explosion effect, the byte above it seeds the
-/// sound bank, and bit 0x100000 marks the shot that plays the fixed
-/// `0x40660002` clip instead.
-static void func_kyle_800102_80167DE0(Task* arg0)
-{
-    WeaponGrenadeScratch* blk;
-    WeaponGrenadeWork*    work;
-    GfxCoord*             coord;
-    GpRoomParamRec*       param;
-    s32                   idx;
-    s32                   clip;
-    s32                   step;
-    s32                   sfxarg;
-    s32                   sfxbase;
-
-    work                = (WeaponGrenadeWork*)arg0->work;
-    coord               = arg0->extra.tmd->coords;
-    blk                 = SCRATCH_STACK_RESERVE_BLOCK(WeaponGrenadeScratch);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
-    explode:
-        blk->field_30 = arg0->spawnArg1.value & 0xFF00;
-        blk->sfx      = (u8)arg0->spawnArg1.value;
-        arg0->state   = 2;
-        Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
-        if (arg0->spawnArg1.value & 0x100000) {
-            Gp_PlayObjSfx(coord, 0x40660002, 1);
-        } else {
-            sfxbase = blk->field_30 << 8;
-            sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000005;
-            Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
-        }
-        clip = 8;
-        if (blk->sfx == 0xB) {
-            clip = 1;
-        }
-        work->field_88.w = clip;
-        work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
-        work->obj.radius = D_kyle_800102_80177434[blk->sfx - 0xA];
-        return;
-    }
-
-    if (Gp_CountRec18Hi(work->rec1, 0x100000) == 0) {
-        goto try_rec0;
-    }
-    func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
-    idx = func_800E1ACC((u8*)&idx);
-check:
-    param = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
-    if (param->field_1 == 0) {
-        if (param->field_2 != 0) {
-            goto explode;
-        }
-        arg0->state = 3;
-        goto move;
-    }
-    if (idx == 1 && Mc_SaveData[0].state.location.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.location.loc.stage - 2) < 2U) {
-        goto explode;
-    }
-    goto move;
-try_rec0:
-    if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) {
-        func_800E0FEC(work->rec0, &blk->delta, 1, &idx);
-        idx = func_800E1ACC((u8*)&idx);
-        goto check;
-    }
-move:
-    blk->delta.vx.w     = work->dir.vx / work->field_88.h.hi;
-    blk->delta.vy.w     = work->dir.vy / work->field_88.h.hi;
-    blk->delta.vz.w     = work->dir.vz / work->field_88.h.hi;
-    coord->coord.t[0]  += blk->delta.vx.w;
-    coord->coord.t[1]  += blk->delta.vy.w;
-    coord->coord.t[2]  += blk->delta.vz.w;
-    work->d4rec.end1.vz = -(work->field_88.w >> 9);
-    work->field_88.w   += 0x1800;
-    if (work->field_88.w > 0xDFFFF) {
-        goto explode;
-    }
-    work->dir.vy   = work->dir.vy + 0x10;
-    step           = work->field_90 + 1;
-    work->field_90 = step;
-    if (work->field_8C < 4 && step % 7 == 0) {
-        work->field_8C = work->field_8C + 1;
-    }
-    if (work->field_90 % work->field_8C == 0) {
-        Gp_SpawnEff(0x60070, coord, 0, NULL);
-    }
-    Gp_ClearRec18Occupied(work->rec0);
-    Gp_ClearRec18Occupied(work->rec1);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
-}
+#include "../../shared/grenade_shell_fly.inc.c"
 
 static void func_kyle_800102_80168244(Task* arg0)
 {
@@ -245,21 +50,14 @@ static void func_kyle_800102_80168244(Task* arg0)
     }
 }
 
-static void func_kyle_800102_80168270(Task* arg0)
-{
-    WeaponGrenadeWork* work = (WeaponGrenadeWork*)arg0->work;
-
-    Gp_UnlinkObj(&work->obj);
-    Gp_UnlinkObj(&work->obj2);
-    taskKill(arg0);
-}
+#include "../../shared/grenade_shell_exit.inc.c"
 void func_kyle_800102_801682B4(Task* task)
 {
     TaskFunc states[4] = {
-        func_kyle_800102_80167A84,
-        func_kyle_800102_80167DE0,
+        grenadeShellSpawn,
+        grenadeShellFly,
         func_kyle_800102_80168244,
-        func_kyle_800102_80168270,
+        grenadeShellExit,
     };
 
     states[task->state](task);

@@ -82,3 +82,4 @@ D_actor_213000_80157D60 = 0x80157D60; // size:0x28 defined:True
 D_actor_213000_80157D88 = 0x80157D88; // size:0x28 defined:True
 D_actor_213000_80157DB0 = 0x80157DB0; // size:0x2C defined:True
 D_actor_213000_80157DDC = 0x80157DDC; // size:0x4 defined:True
+modelPlacementAttachChild = 0x8014A1B8; // type:func

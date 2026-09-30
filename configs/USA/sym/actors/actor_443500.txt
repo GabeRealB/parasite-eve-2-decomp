@@ -459,3 +459,4 @@ D_shelter_r47_80187618 = 0x80187618; // absolute:True
 D_shelter_r47_8018828C = 0x8018828C; // absolute:True
 
 D_shelter_r47_8018A638 = 0x8018A638; // absolute:True
+modelPlacementAttachChild = 0x80132594; // type:func

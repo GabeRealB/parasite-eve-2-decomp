@@ -7,8 +7,8 @@
 /// parented to `gGfxViewCoord`. The sweep state overwrites slot
 /// `GpEffWork::age & 7` each frame and the ribbon is drawn between the
 /// two rings.
-extern GfxCoord D_m4a1_bayonet_8012D398[8];
+extern GfxCoord gBladeTrailBase[8];
 
-extern GfxCoord D_m4a1_bayonet_8012D618[8];
+extern GfxCoord gBladeTrailTip[8];
 
 #endif // SRC_WEAPONS_M4A1_BAYONET_M4A1_BAYONET_PRIVATE_H

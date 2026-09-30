@@ -43,6 +43,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_garage.h"
+#include "../../shared/screen_fade.h"
 
 /// Work block this overlay hangs off `Task::work`; each pair at
 /// 0x4C0 and 0x4C8 is a request code plus its phase counter, reset together.
@@ -131,7 +132,6 @@ void             func_actor_120300_80132004(Task*);
 void             func_actor_120300_801321C8(Task*);
 void             func_actor_120300_80133330(s32);
 void             func_actor_120300_801337C4(Task*);
-void             func_actor_120300_80133B5C(Task*);
 void             func_actor_120300_80133C38(Task*, s32, s32);
 void             func_actor_120300_80133C6C(Task*, s32, ActorTransform* placement);
 void             func_actor_120300_80133D04(s32);
@@ -1299,7 +1299,7 @@ TaskDesc D_actor_120300_80141B6C[5] = {
     { 0, 192, func_actor_120300_80133F14, { .model = NULL } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_120300_80132004, { .model = &D_actor_120300_80139EDC } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_120300_801321C8, { .model = &D_actor_120300_8013A4D0 } },
-    { 0, 192, func_actor_120300_80133B5C, { .model = NULL } },
+    { 0, 192, screenFadeOutTask, { .model = NULL } },
 };
 
 Task* D_actor_120300_80141BA8;
@@ -2143,44 +2143,7 @@ void func_actor_120300_801337C4(Task* arg0)
     ScaleMatrix(tmd->colorMtx, &scratch.draw.vec);
 }
 
-/// Fade task, entry 4 of the actor's task table: darkens the screen to black.
-///
-/// State 0 allocates the channel block and clears it; a failed allocation
-/// kills the task. State 1 runs every frame: it draws a subtractive
-/// `Fade_DrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never drawn),
-/// then raises all three channels by `Task::spawnArg1`, the fade rate. Once
-/// `r` reaches 0x100 the task kills itself.
-void func_actor_120300_80133B5C(Task* arg0)
-{
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
-
-    work = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work         = alloc;
-            work->b      = 0;
-            work->g      = 0;
-            work->r      = 0;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1.value;
-            work->g += (u16)arg0->spawnArg1.value;
-            work->b += (u16)arg0->spawnArg1.value;
-            if (work->r >= 0x100) {
-                taskKill(arg0);
-            }
-            break;
-    }
-}
+#include "../../shared/screen_fade_out.inc.c"
 
 /// Message 0x7D5 handler: a nonzero `arg2` shows the task's model (clears
 /// `TmdObject` flag 0x80), zero hides it. `arg1` is the message id.
