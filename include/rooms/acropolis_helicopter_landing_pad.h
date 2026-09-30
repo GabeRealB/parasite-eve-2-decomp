@@ -14,7 +14,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2];
 
 extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D3C;
 

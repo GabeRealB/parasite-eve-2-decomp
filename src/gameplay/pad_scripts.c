@@ -78,30 +78,31 @@ static const TaskFuncTable5 Gp_ScriptBStates;
 
 static void Gp_StepScriptA(Task* task)
 {
-    GpState18*   state;
-    GpScriptCmd* table;
-    GpScriptRec* recs;
-    u16          cmd;
-    s32          opcode;
-    u8           tmp;
+    GpState18*    state;
+    PadScriptCmd* table;
+    GpScriptRec*  recs;
+    u16           cmd;
+    s32           opcode;
+    u8            tmp;
 
-    state                  = (GpState18*)task->work;
-    table                  = state->field_0;
-    recs                   = state->field_4;
-    cmd                    = table[state->field_E].field_0;
-    opcode                 = cmd & 0xFF;
+    state  = (GpState18*)task->work;
+    table  = state->field_0;
+    recs   = state->field_4;
+    cmd    = table[state->field_E].holdCommand;
+    opcode = cmd & 0xFF;
+    // The saved word's opcode is this lane's state until the next step.
     state->field_A.command = cmd;
 
-    if (opcode != 0) {
-        if (opcode == 1) {
+    if (opcode != PAD_SCRIPT_STOP) {
+        if (opcode == PAD_SCRIPT_PLAY) {
             state->field_12 = cmd >> 8;
             state->field_10 = recs[state->field_12].field_2;
             Gp_SpawnPadHold(state->field_10);
             state->field_E++;
-        } else if (opcode == 2) {
+        } else if (opcode == PAD_SCRIPT_WAIT) {
             state->field_10 = cmd >> 8;
             state->field_E++;
-        } else if (opcode == 3) {
+        } else if (opcode == PAD_SCRIPT_LOOP) {
             tmp = state->field_14;
             if (tmp == 0) {
                 tmp             = cmd >> 8;
@@ -112,11 +113,11 @@ static void Gp_StepScriptA(Task* task)
                 state->field_14 = tmp;
                 state->field_E++;
             }
-        } else if (opcode == 4) {
+        } else if (opcode == PAD_SCRIPT_JUMP) {
             if (state->field_14 == 0) {
                 state->field_E++;
             } else {
-                state->field_E = table[state->field_E].field_0 >> 8;
+                state->field_E = table[state->field_E].holdCommand >> 8;
             }
             Gp_StepScriptA(task);
         }
@@ -125,30 +126,31 @@ static void Gp_StepScriptA(Task* task)
 
 static void Gp_StepScriptB(Task* task)
 {
-    GpState18*   state;
-    GpScriptCmd* table;
-    GpScriptRec* recs;
-    u16          cmd;
-    s32          opcode;
-    u8           tmp;
+    GpState18*    state;
+    PadScriptCmd* table;
+    GpScriptRec*  recs;
+    u16           cmd;
+    s32           opcode;
+    u8            tmp;
 
-    state                  = (GpState18*)task->work;
-    table                  = state->field_0;
-    recs                   = state->field_4;
-    cmd                    = table[state->field_F].field_2;
-    opcode                 = cmd & 0xFF;
+    state  = (GpState18*)task->work;
+    table  = state->field_0;
+    recs   = state->field_4;
+    cmd    = table[state->field_F].lerpCommand;
+    opcode = cmd & 0xFF;
+    // The saved word's opcode is this lane's state until the next step.
     state->field_C.command = cmd;
 
-    if (opcode != 0) {
-        if (opcode == 1) {
+    if (opcode != PAD_SCRIPT_STOP) {
+        if (opcode == PAD_SCRIPT_PLAY) {
             state->field_13 = cmd >> 8;
             state->field_11 = recs[state->field_13].field_2;
             Gp_SpawnPadLerpScaled(state->field_11, recs[state->field_13].field_0, recs[state->field_13].field_1, state->field_8);
             state->field_F++;
-        } else if (opcode == 2) {
+        } else if (opcode == PAD_SCRIPT_WAIT) {
             state->field_11 = cmd >> 8;
             state->field_F++;
-        } else if (opcode == 3) {
+        } else if (opcode == PAD_SCRIPT_LOOP) {
             tmp = state->field_15;
             if (tmp == 0) {
                 tmp             = cmd >> 8;
@@ -159,11 +161,11 @@ static void Gp_StepScriptB(Task* task)
                 state->field_15 = tmp;
                 state->field_F++;
             }
-        } else if (opcode == 4) {
+        } else if (opcode == PAD_SCRIPT_JUMP) {
             if (state->field_15 == 0) {
                 state->field_F++;
             } else {
-                state->field_F = table[state->field_F].field_2 >> 8;
+                state->field_F = table[state->field_F].lerpCommand >> 8;
             }
             Gp_StepScriptB(task);
         }
@@ -415,6 +417,7 @@ static const TaskFuncTable3 Gp_Script18States = { {
     taskKill,
 } };
 
+// Indexed by the lane opcode: stop, play, wait, loop, jump.
 static const TaskFuncTable5 Gp_ScriptAStates = { {
     Gp_ScriptAState0,
     Gp_TickScriptADelay,
@@ -423,6 +426,7 @@ static const TaskFuncTable5 Gp_ScriptAStates = { {
     Gp_ScriptAState4,
 } };
 
+// Indexed by the lane opcode: stop, play, wait, loop, jump.
 static const TaskFuncTable5 Gp_ScriptBStates = { {
     Gp_ScriptBState0,
     Gp_TickScriptBDelay,

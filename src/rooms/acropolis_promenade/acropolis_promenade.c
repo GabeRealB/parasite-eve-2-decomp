@@ -121,9 +121,9 @@ extern TaskDesc D_acropolis_promenade_80181148[];
 /// Per-frame path the promenade's streamed scene walks the player's matrix
 /// along, indexed backwards by `0x45 - gCdCmdQueue.movieFrame`, plus the script
 /// pair the scene runs.
-extern SVECTOR     D_acropolis_promenade_80181184[];
-extern GpScriptCmd D_acropolis_promenade_80186224[6];
-extern GpScriptRec D_acropolis_promenade_8018623C[2];
+extern SVECTOR      D_acropolis_promenade_80181184[];
+extern PadScriptCmd D_acropolis_promenade_80186224[6];
+extern GpScriptRec  D_acropolis_promenade_8018623C[2];
 
 extern ApmGlowCorner D_acropolis_promenade_80181AE4[];
 
@@ -1441,13 +1441,13 @@ GpViewRec D_acropolis_promenade_80186050[13] = {
     { { { { 3076, 0, -2704 }, { -116, 4092, -133 }, { 2701, 177, 3073 } }, { 1791, 1265, 5187 } }, 257 },
 };
 
-GpScriptCmd D_acropolis_promenade_80186224[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 5635, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_promenade_80186224[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 22), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_promenade_8018623C[2] = {

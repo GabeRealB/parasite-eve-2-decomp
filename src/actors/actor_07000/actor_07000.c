@@ -366,10 +366,10 @@ DamageAttack Actor07000_D06924 = { 30, 7 };
 
 EnemyParams Actor07000_D06928 = { &Actor07000_D06924, 70, 6, 12, 3, 100, 20, 100, 0 };
 
-u32 Actor07000_D06938[3] = {
-    0x1010001,
-    0x2010000,
-    0,
+PadScriptCmd Actor07000_D06938[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
 u32 Actor07000_D06944[3] = {
@@ -996,7 +996,7 @@ extern DamageAttack Actor07000_D06924;
 
 extern EnemyParams Actor07000_D06928;
 
-extern u32 Actor07000_D06938[];
+extern PadScriptCmd Actor07000_D06938[];
 
 extern u32 Actor07000_D06944[];
 

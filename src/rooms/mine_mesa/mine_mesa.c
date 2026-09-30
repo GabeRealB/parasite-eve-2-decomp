@@ -219,7 +219,7 @@ extern ActorCommand         D_mine_mesa_80184650;
 extern ActorCommand         D_mine_mesa_80184654;
 extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
-extern GpScriptCmd          D_mine_mesa_80189A80[4];
+extern PadScriptCmd         D_mine_mesa_80189A80[4];
 extern GpScriptRec          D_mine_mesa_80189A90[3];
 extern ActorTransform       D_mine_mesa_801843C4;
 extern ActorTransform       D_mine_mesa_801843DC;
@@ -2511,11 +2511,11 @@ GpRoomParamRec* D_mine_mesa_80189A60[8] = {
     D_mine_mesa_80189A38,
 };
 
-GpScriptCmd D_mine_mesa_80189A80[4] = {
-    { 0, 513 },
-    { 0, 257 },
-    { 0, 513 },
-    { 0, 0 },
+PadScriptCmd D_mine_mesa_80189A80[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_mine_mesa_80189A90[3] = {

@@ -530,7 +530,7 @@ extern SVECTOR D_actor_503500_8017158C;
 
 extern SVECTOR D_actor_503500_80171594;
 
-extern GpScriptCmd D_actor_503500_8017159C[2];
+extern PadScriptCmd D_actor_503500_8017159C[2];
 
 extern GpScriptRec D_actor_503500_801715A4[2];
 

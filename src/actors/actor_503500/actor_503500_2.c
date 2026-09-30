@@ -93,8 +93,8 @@ extern ActorCommand         D_actor_503500_8014BC20;
 extern ActorCommand         D_actor_503500_8014BC24;
 extern ActorCommand         D_actor_503500_8014BC28;
 extern GpCopyArg            D_actor_503500_8014B9CC;
-extern GpScriptCmd          D_actor_503500_8014D2F0[2];
-extern GpScriptCmd          D_actor_503500_8014D300[3];
+extern PadScriptCmd         D_actor_503500_8014D2F0[2];
+extern PadScriptCmd         D_actor_503500_8014D300[3];
 extern GpScriptRec          D_actor_503500_8014D2F8[2];
 extern GpScriptRec          D_actor_503500_8014D30C[3];
 extern ActorTransform       D_actor_503500_8014BAD8;
@@ -764,9 +764,9 @@ GpEvsCmd D_actor_503500_8014D158[17] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpScriptCmd D_actor_503500_8014D2F0[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_503500_8014D2F0[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_503500_8014D2F8[2] = {
@@ -774,10 +774,10 @@ GpScriptRec D_actor_503500_8014D2F8[2] = {
     { 0, 0, 8, 0 },
 };
 
-GpScriptCmd D_actor_503500_8014D300[3] = {
-    { 1, 257 },
-    { 0, 513 },
-    { 0, 0 },
+PadScriptCmd D_actor_503500_8014D300[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_503500_8014D30C[3] = {

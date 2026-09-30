@@ -231,17 +231,17 @@ extern EnemyParams D_actor_444000_80144A38;
 extern EnemyParams D_actor_444000_80144A48;
 extern EnemyParams D_actor_444000_80144A58;
 
-extern s16         D_actor_444000_80144A68;
-extern s32         D_actor_444000_80144A6C;
-extern s16         D_actor_444000_80144A70;
-extern s16         D_actor_444000_80144A72;
-extern GpScriptCmd D_actor_444000_80144A74[2];
-extern GpScriptRec D_actor_444000_80144A7C[2];
-extern GpScriptCmd D_actor_444000_80144A84[2];
-extern GpScriptRec D_actor_444000_80144A8C[2];
+extern s16          D_actor_444000_80144A68;
+extern s32          D_actor_444000_80144A6C;
+extern s16          D_actor_444000_80144A70;
+extern s16          D_actor_444000_80144A72;
+extern PadScriptCmd D_actor_444000_80144A74[2];
+extern GpScriptRec  D_actor_444000_80144A7C[2];
+extern PadScriptCmd D_actor_444000_80144A84[2];
+extern GpScriptRec  D_actor_444000_80144A8C[2];
 /// Script pair the drag tick spawns every `period` frames.
-extern GpScriptCmd D_actor_444000_80144A94[3];
-extern GpScriptRec D_actor_444000_80144AA0[2];
+extern PadScriptCmd D_actor_444000_80144A94[3];
+extern GpScriptRec  D_actor_444000_80144AA0[2];
 
 /// Animation-set tables: the host's two blocks, escort 0's two and escort 1's.
 extern AnimationSet* D_actor_444000_80161448[];
@@ -626,9 +626,9 @@ s16 D_actor_444000_80144A70 = 0;
 
 s16 D_actor_444000_80144A72 = 0;
 
-GpScriptCmd D_actor_444000_80144A74[2] = {
-    { 1, 257 },
-    { 0, 0 },
+PadScriptCmd D_actor_444000_80144A74[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_444000_80144A7C[2] = {
@@ -636,9 +636,9 @@ GpScriptRec D_actor_444000_80144A7C[2] = {
     { 255, 53, 27, 1 },
 };
 
-GpScriptCmd D_actor_444000_80144A84[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_444000_80144A84[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_444000_80144A8C[2] = {
@@ -646,10 +646,10 @@ GpScriptRec D_actor_444000_80144A8C[2] = {
     { 0, 0, 7, 0 },
 };
 
-GpScriptCmd D_actor_444000_80144A94[3] = {
-    { 0, 1 },
-    { 0, 257 },
-    { 0, 0 },
+PadScriptCmd D_actor_444000_80144A94[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_444000_80144AA0[2] = {

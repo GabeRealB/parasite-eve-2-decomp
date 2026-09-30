@@ -707,8 +707,8 @@ Task* Gp_LookupSlot4(s32 arg0)
 
 static void Gp_ScriptInit(Task* arg0)
 {
-    GpState34*   mem;
-    GpScriptCmd* script;
+    GpState34*    mem;
+    PadScriptCmd* script;
 
     mem = memCalloc(0x34, 0);
     if (mem == NULL) {

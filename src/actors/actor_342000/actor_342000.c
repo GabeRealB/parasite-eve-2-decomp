@@ -417,7 +417,7 @@ extern ActorTransform D_actor_342000_80164878[2];
 
 extern ActorTransform D_actor_342000_801648D0;
 
-extern s32 D_80144A74;
+extern PadScriptCmd D_80144A74[2];
 
 extern s32 D_80144A7C;
 

@@ -135,7 +135,7 @@ extern TaskDesc D_dryfield_night_factory_80186DE0[];
 
 extern GpGridParams D_dryfield_night_factory_80187BF0;
 
-extern GpScriptCmd D_dryfield_night_factory_8018A7BC[3];
+extern PadScriptCmd D_dryfield_night_factory_8018A7BC[3];
 
 extern GpScriptRec D_dryfield_night_factory_8018A7C8[3];
 

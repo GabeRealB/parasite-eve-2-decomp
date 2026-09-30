@@ -185,9 +185,9 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
 
-extern void func_80143490(s32 arg0);
-extern s32  D_80144A74;
-extern s32  D_80144A7C;
+extern void         func_80143490(s32 arg0);
+extern PadScriptCmd D_80144A74[2];
+extern s32          D_80144A7C;
 
 /// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
 extern AnimationSet* D_actor_341900_801639A4[2];

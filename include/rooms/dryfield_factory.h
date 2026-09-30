@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 
 // Stage-2 pad scripts referenced by the factory task in both stage variants.
-extern GpScriptCmd D_dryfield_factory_8018A39C[3];
+extern PadScriptCmd D_dryfield_factory_8018A39C[3];
 
 extern GpScriptRec D_dryfield_factory_8018A3A8[3];
 

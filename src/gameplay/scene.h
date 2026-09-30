@@ -8,7 +8,7 @@
 
 /// Complete 0x18-byte pad-script work allocation, also the prefix of GpState34.
 typedef struct _GpState18 {
-    /* 0x00 */ GpScriptCmd*   field_0;
+    /* 0x00 */ PadScriptCmd*  field_0;
     /* 0x04 */ GpScriptRec*   field_4;
     /* 0x08 */ s16            field_8;
     /* 0x0A */ GpScriptOpcode field_A;

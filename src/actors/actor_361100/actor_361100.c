@@ -90,8 +90,8 @@ extern Task* D_actor_361100_80171BE0;
 extern TaskDesc D_actor_361100_80165C58[];
 
 /// Script pair handed to `Gp_SpawnScript18` on every even frame of the blink.
-extern GpScriptCmd D_actor_361100_80166AD0[2];
-extern GpScriptRec D_actor_361100_80166AD8;
+extern PadScriptCmd D_actor_361100_80166AD0[2];
+extern GpScriptRec  D_actor_361100_80166AD8;
 
 extern AnimationSet*  D_actor_361100_8016BAD0[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -200,7 +200,7 @@ extern ActorCommand         D_actor_361100_80165E7C;
 extern ActorCommand         D_actor_361100_80165E80;
 extern GpCopyArg            D_actor_361100_80165C98;
 extern GpOverrideArg        D_actor_361100_80165DC8;
-extern GpScriptCmd          D_actor_361100_80166AB8[3];
+extern PadScriptCmd         D_actor_361100_80166AB8[3];
 extern GpScriptRec          D_actor_361100_80166AC4[3];
 extern ActorTransform       D_actor_361100_80165D68;
 extern ActorTransform       D_actor_361100_80165D80;
@@ -655,10 +655,10 @@ GpEvsCmd D_actor_361100_80166848[26] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpScriptCmd D_actor_361100_80166AB8[3] = {
-    { 2818, 1 },
-    { 513, 257 },
-    { 0, 0 },
+PadScriptCmd D_actor_361100_80166AB8[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 11), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_361100_80166AC4[3] = {
@@ -667,9 +667,9 @@ GpScriptRec D_actor_361100_80166AC4[3] = {
     { 0, 0, 8, 0 },
 };
 
-GpScriptCmd D_actor_361100_80166AD0[2] = {
-    { 0, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_361100_80166AD0[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_361100_80166AD8 = { 255, 255, 1, 1 };

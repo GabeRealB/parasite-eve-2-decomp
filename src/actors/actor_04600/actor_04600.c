@@ -156,8 +156,8 @@ extern EnemyParams  Actor04600_D04160;
 
 /// The two script arguments the first enemy's death hands to
 /// `Gp_SpawnScript18`.
-extern u32 Actor04600_D04170[];
-extern u32 Actor04600_D0417C[];
+extern PadScriptCmd Actor04600_D04170[];
+extern u32          Actor04600_D0417C[];
 
 /// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
 // Typed callback views for the task message dispatcher.
@@ -234,10 +234,10 @@ DamageAttack Actor04600_D0415C = { 30, 7 };
 
 EnemyParams Actor04600_D04160 = { &Actor04600_D0415C, 70, 6, 12, 3, 100, 20, 100, 0 };
 
-u32 Actor04600_D04170[3] = {
-    0x1010001,
-    0x2010000,
-    0,
+PadScriptCmd Actor04600_D04170[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
 u32 Actor04600_D0417C[3] = {

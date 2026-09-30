@@ -176,12 +176,12 @@ AnimationPlayRequest D_neo_ark_power_plant_2_80180260 = { { .sets = D_neo_ark_po
 
 ActorTransform D_neo_ark_power_plant_2_80180274 = { { 4000, -5000, -1540, 0 }, { 0, -2275, 0, 0 } };
 
-GpScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
-    { 257, 1 },
-    { 258, 1282 },
-    { 0x2803, 3843 },
-    { 4, 4 },
-    { 0, 0 },
+PadScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 5) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 40), PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 15) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_neo_ark_power_plant_2_801802A0[2] = {

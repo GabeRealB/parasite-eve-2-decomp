@@ -126,11 +126,11 @@ GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
-    { 256, 257 },
-    { 771, 0 },
-    { 1024, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80183748[2] = {

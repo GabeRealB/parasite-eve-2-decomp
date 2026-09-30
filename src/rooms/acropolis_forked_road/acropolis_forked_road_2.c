@@ -75,12 +75,12 @@
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
 /// The script pair the streamed scene runs.
-extern GpScriptCmd D_acropolis_forked_road_80185058[6];
-extern GpScriptRec D_acropolis_forked_road_80185070[2];
+extern PadScriptCmd D_acropolis_forked_road_80185058[6];
+extern GpScriptRec  D_acropolis_forked_road_80185070[2];
 
 /// The script pair the return ride runs.
-extern GpScriptCmd D_acropolis_forked_road_80185038[6];
-extern GpScriptRec D_acropolis_forked_road_80185050[2];
+extern PadScriptCmd D_acropolis_forked_road_80185038[6];
+extern GpScriptRec  D_acropolis_forked_road_80185050[2];
 
 /// The fourteen spawn offsets of the forked road's ambient effects, indexed
 /// 0..13 by the first-frame burst below.
@@ -1140,13 +1140,13 @@ GpViewRec D_acropolis_forked_road_80184E88[12] = {
     { { { { 1174, 0, -3924 }, { -167, 4092, -50 }, { 3920, 174, 1173 } }, { 5150, 1500, 1530 } }, 235 },
 };
 
-GpScriptCmd D_acropolis_forked_road_80185038[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 4099, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_forked_road_80185038[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 16), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_forked_road_80185050[2] = {
@@ -1154,13 +1154,13 @@ GpScriptRec D_acropolis_forked_road_80185050[2] = {
     { 60, 60, 1, 0 },
 };
 
-GpScriptCmd D_acropolis_forked_road_80185058[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 9731, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_forked_road_80185058[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 38), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_forked_road_80185070[2] = {

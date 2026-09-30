@@ -217,8 +217,8 @@ extern SVECTOR    D_acropolis_bridge_80189A4C;
 
 /// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
 /// bridge cutscene starts.
-extern GpScriptCmd D_acropolis_bridge_80190B8C[6];
-extern GpScriptRec D_acropolis_bridge_80190BA4[6];
+extern PadScriptCmd D_acropolis_bridge_80190B8C[6];
+extern GpScriptRec  D_acropolis_bridge_80190BA4[6];
 
 extern s16 D_acropolis_bridge_801915E4[][6];
 
@@ -350,7 +350,7 @@ extern GpObj4C      D_acropolis_bridge_8018B7E8[7];
 extern GpObj4C      D_acropolis_bridge_8018B9FC[7];
 
 extern GpRoomCoordSet D_acropolis_bridge_80190A0C[1];
-extern GpScriptCmd    D_acropolis_bridge_80190BBC[6];
+extern PadScriptCmd   D_acropolis_bridge_80190BBC[6];
 extern GpScriptRec    D_acropolis_bridge_80190BD4[5];
 void                  func_acropolis_bridge_8017D954(void);
 void                  func_acropolis_bridge_8017F2D0(s32);
@@ -2034,7 +2034,14 @@ GpViewRec D_acropolis_bridge_80190A24[10] = {
     { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 0x3552, 1930, 1439 } }, 230 },
 };
 
-GpScriptCmd D_acropolis_bridge_80190B8C[6] = { { 1025, 1 }, { 258, 257 }, { 21763, 513 }, { 4, 769 }, { 512, 1281 }, { 0, 0 } };
+PadScriptCmd D_acropolis_bridge_80190B8C[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 85), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 5) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+};
 
 GpScriptRec D_acropolis_bridge_80190BA4[6] = {
     { 120, 110, 30, 1 },
@@ -2045,13 +2052,13 @@ GpScriptRec D_acropolis_bridge_80190BA4[6] = {
     { 50, 45, 60, 1 },
 };
 
-GpScriptCmd D_acropolis_bridge_80190BBC[6] = {
-    { 1, 257 },
-    { 771, 513 },
-    { 4, 769 },
-    { 1025, 256 },
-    { 0, 769 },
-    { 0, 3584 },
+PadScriptCmd D_acropolis_bridge_80190BBC[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 14) }
 };
 
 GpScriptRec D_acropolis_bridge_80190BD4[5] = {

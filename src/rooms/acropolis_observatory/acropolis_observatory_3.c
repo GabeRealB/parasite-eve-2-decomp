@@ -830,13 +830,13 @@ GpViewRec D_acropolis_observatory_80183360[8] = {
     { { { { 3757, 0, 1630 }, { 1140, 2928, -2626 }, { -1165, 2863, 2686 } }, { 1914, 9275, 7324 } }, 230 },
 };
 
-GpScriptCmd D_acropolis_observatory_80183480[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 4867, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_observatory_80183480[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 19), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_observatory_80183498[2] = {
@@ -844,13 +844,13 @@ GpScriptRec D_acropolis_observatory_80183498[2] = {
     { 60, 60, 1, 0 },
 };
 
-GpScriptCmd D_acropolis_observatory_801834A0[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 4867, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_observatory_801834A0[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 19), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_observatory_801834B8[2] = {

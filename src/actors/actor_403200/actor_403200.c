@@ -161,12 +161,12 @@ extern s16 D_actor_403200_80141C5A;
 
 /// Script pairs spawned on the per-frame body's and the death sequence's cues,
 /// and on the frames the launch tick's phase selects.
-extern GpScriptCmd D_actor_403200_80141C5C[2];
-extern GpScriptRec D_actor_403200_80141C64[2];
-extern GpScriptCmd D_actor_403200_80141C6C[2];
-extern GpScriptRec D_actor_403200_80141C74[2];
-extern GpScriptCmd D_actor_403200_80141C7C[3];
-extern GpScriptRec D_actor_403200_80141C88[2];
+extern PadScriptCmd D_actor_403200_80141C5C[2];
+extern GpScriptRec  D_actor_403200_80141C64[2];
+extern PadScriptCmd D_actor_403200_80141C6C[2];
+extern GpScriptRec  D_actor_403200_80141C74[2];
+extern PadScriptCmd D_actor_403200_80141C7C[3];
+extern GpScriptRec  D_actor_403200_80141C88[2];
 
 /// Pair descriptors the host and its escorts publish as `Enemy::param`;
 /// `hpMax` is the hit-point pool each one starts with.
@@ -412,9 +412,9 @@ s16 D_actor_403200_80141C58 = 0;
 
 s16 D_actor_403200_80141C5A = 0;
 
-GpScriptCmd D_actor_403200_80141C5C[2] = {
-    { 1, 257 },
-    { 0, 0 },
+PadScriptCmd D_actor_403200_80141C5C[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_403200_80141C64[2] = {
@@ -422,9 +422,9 @@ GpScriptRec D_actor_403200_80141C64[2] = {
     { 255, 53, 27, 1 },
 };
 
-GpScriptCmd D_actor_403200_80141C6C[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_403200_80141C6C[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_403200_80141C74[2] = {
@@ -432,10 +432,10 @@ GpScriptRec D_actor_403200_80141C74[2] = {
     { 0, 0, 7, 0 },
 };
 
-GpScriptCmd D_actor_403200_80141C7C[3] = {
-    { 0, 1 },
-    { 0, 257 },
-    { 0, 0 },
+PadScriptCmd D_actor_403200_80141C7C[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_403200_80141C88[2] = {

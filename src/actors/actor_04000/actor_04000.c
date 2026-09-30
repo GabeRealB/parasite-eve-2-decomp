@@ -204,10 +204,10 @@ DamageAttack Actor04000_D07078[3] = {
 
 EnemyParams Actor04000_D07084 = { Actor04000_D07078, 1, 8, 28, 4, 100, 100, 100, 0 };
 
-GpScriptCmd Actor04000_D07094[3] = {
-    { 1, 257 },
-    { 0, 513 },
-    { 0, 0 },
+PadScriptCmd Actor04000_D07094[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec Actor04000_D070A0[3] = {
@@ -1149,7 +1149,7 @@ extern Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6];
 
 extern AnimationPlayRequest Actor04000_D0C530;
 
-extern GpScriptCmd Actor04000_D07094[3];
+extern PadScriptCmd Actor04000_D07094[3];
 
 extern GpScriptRec Actor04000_D070A0[3];
 

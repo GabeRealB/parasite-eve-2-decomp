@@ -113,12 +113,12 @@ ActorCommand D_neo_ark_power_plant_1_8017EB58 = { { .loc = { 5, 16 } }, 2 };
 
 ActorCommand D_neo_ark_power_plant_1_8017EB5C = { { .loc = { 5, 16 } }, 3 };
 
-GpScriptCmd D_neo_ark_power_plant_1_8017EB60[5] = {
-    { 257, 1 },
-    { 258, 1282 },
-    { 0x2803, 3843 },
-    { 4, 4 },
-    { 0, 0 },
+PadScriptCmd D_neo_ark_power_plant_1_8017EB60[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 5) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 40), PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 15) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_neo_ark_power_plant_1_8017EB74[2] = {

@@ -124,7 +124,7 @@ typedef struct Actor01200StateTable {
 } Actor01200StateTable;
 
 extern EnemyParams   Actor01200_D04034;
-extern GpScriptCmd   Actor01200_D04044[3];
+extern PadScriptCmd  Actor01200_D04044[3];
 extern GpScriptRec   Actor01200_D04050[3];
 extern AnimationSet* Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
@@ -166,10 +166,10 @@ DamageAttack Actor01200_D04030[1] = {
 
 EnemyParams Actor01200_D04034 = { Actor01200_D04030, 1, 6, 20, 3, 100, 0, 100, 0 };
 
-GpScriptCmd Actor01200_D04044[3] = {
-    { 1, 257 },
-    { 0, 513 },
-    { 0, 0 },
+PadScriptCmd Actor01200_D04044[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec Actor01200_D04050[3] = {

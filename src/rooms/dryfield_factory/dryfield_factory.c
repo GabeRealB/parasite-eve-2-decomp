@@ -710,7 +710,11 @@ GpRoomParamRec* D_dryfield_factory_8018A37C[8] = {
     D_dryfield_factory_8018A35C,
 };
 
-GpScriptCmd D_dryfield_factory_8018A39C[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };
+PadScriptCmd D_dryfield_factory_8018A39C[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+};
 
 GpScriptRec D_dryfield_factory_8018A3A8[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
 

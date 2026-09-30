@@ -66,12 +66,12 @@ extern Task* D_acropolis_helicopter_landing_pad_80187F80;
 
 /// Three `Gp_SpawnScript18` argument pairs used by the state timeline in
 /// `func_acropolis_helicopter_landing_pad_8017DE78`, one pair per phase.
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2];
-extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2];
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4];
-extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2];
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4];
-extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D78[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2];
+extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D48[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4];
+extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D60[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4];
+extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D78[2];
 
 static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
 static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
@@ -630,16 +630,16 @@ GpViewRec D_acropolis_helicopter_landing_pad_80187968[27] = {
     { { { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, { 292, 673, 6887 } }, 207 },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
-    { 256, 1 },
-    { 1280, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 5), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D3C = { 120, 70, 20, 1 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
-    { 1, 257 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2] = {
@@ -647,11 +647,11 @@ GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2] = {
     { 255, 220, 25, 1 },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4] = {
-    { 1, 257 },
-    { 2563, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 10), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2] = {
@@ -659,11 +659,11 @@ GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2] = {
     { 220, 180, 25, 1 },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
-    { 1, 257 },
-    { 2563, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 10), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D78[2] = {

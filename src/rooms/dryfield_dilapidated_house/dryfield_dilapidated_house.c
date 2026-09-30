@@ -276,9 +276,9 @@ extern GpObj4C                    D_dryfield_dilapidated_house_80188D08[9];
 extern GpObj4C                    D_dryfield_dilapidated_house_80188FB4[9];
 extern WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22];
 extern GpRoomCoordSet             D_dryfield_dilapidated_house_801898FC[1];
-extern GpScriptCmd                D_dryfield_dilapidated_house_80189B30[2];
-extern GpScriptCmd                D_dryfield_dilapidated_house_80189B40[4];
-extern GpScriptCmd                D_dryfield_dilapidated_house_80189B5C[2];
+extern PadScriptCmd               D_dryfield_dilapidated_house_80189B30[2];
+extern PadScriptCmd               D_dryfield_dilapidated_house_80189B40[4];
+extern PadScriptCmd               D_dryfield_dilapidated_house_80189B5C[2];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B38[2];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B50[3];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B64[2];
@@ -1640,9 +1640,9 @@ GpAreaApplyRec D_dryfield_dilapidated_house_80189B24[3] = {
     { 255, 0, 0, 0 },
 };
 
-GpScriptCmd D_dryfield_dilapidated_house_80189B30[2] = {
-    { 1, 257 },
-    { 0, 0 },
+PadScriptCmd D_dryfield_dilapidated_house_80189B30[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_dryfield_dilapidated_house_80189B38[2] = {
@@ -1650,11 +1650,11 @@ GpScriptRec D_dryfield_dilapidated_house_80189B38[2] = {
     { 200, 255, 8, 1 },
 };
 
-GpScriptCmd D_dryfield_dilapidated_house_80189B40[4] = {
-    { 0, 1 },
-    { 513, 514 },
-    { 4, 257 },
-    { 0, 0 },
+PadScriptCmd D_dryfield_dilapidated_house_80189B40[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_dryfield_dilapidated_house_80189B50[3] = {
@@ -1663,9 +1663,9 @@ GpScriptRec D_dryfield_dilapidated_house_80189B50[3] = {
     { 180, 60, 1, 0 },
 };
 
-GpScriptCmd D_dryfield_dilapidated_house_80189B5C[2] = {
-    { 1, 257 },
-    { 0, 512 },
+PadScriptCmd D_dryfield_dilapidated_house_80189B5C[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 2) }
 };
 
 GpScriptRec D_dryfield_dilapidated_house_80189B64[2] = {

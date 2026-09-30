@@ -445,7 +445,7 @@ extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018AFF4;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B008;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B01C;
 extern ActorCommand                        D_shelter_b3_dumping_hole_8018B078;
-extern GpScriptCmd                         D_shelter_b3_dumping_hole_8018AFAC[2];
+extern PadScriptCmd                        D_shelter_b3_dumping_hole_8018AFAC[2];
 extern GpScriptRec                         D_shelter_b3_dumping_hole_8018AFB4[2];
 extern ActorTransform                      D_shelter_b3_dumping_hole_8018B030;
 extern ActorTransform                      D_shelter_b3_dumping_hole_8018B048;
@@ -894,9 +894,9 @@ AnimationSet D_shelter_b3_dumping_hole_8018AF84 = {
     { NULL, D_shelter_b3_dumping_hole_8018A29C, NULL, NULL, D_shelter_b3_dumping_hole_8018A3EC, NULL, NULL, NULL },
 };
 
-GpScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_shelter_b3_dumping_hole_8018AFB4[2] = {

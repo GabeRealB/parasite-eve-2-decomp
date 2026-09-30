@@ -7,7 +7,7 @@
 #include "gameplay/message.h"
 
 struct _GpEvsCmd;
-struct _GpScriptCmd;
+struct PadScriptCmd;
 struct _GpScriptRec;
 
 /// Key an event script uses to select a scene/audio stream.
@@ -32,7 +32,7 @@ typedef union GpEvsOperand {
     struct _GpEvsCmd*     commands;
     AnimationPlayRequest* animation;
     EvsSceneKey*          overlays;
-    struct _GpScriptCmd*  padCommands;
+    struct PadScriptCmd*  padCommands;
     struct _GpScriptRec*  padRecords;
     TaskMessageArg        message;
     TaskSpawnArg          spawn;
