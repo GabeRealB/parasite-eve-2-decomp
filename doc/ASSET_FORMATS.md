@@ -498,7 +498,7 @@ Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 |---|---|---|---|---|
 | `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 (`TEXT_GLYPH_TABLE_MEDIUM`) | `0x26` |
 | `_gFontGlyphsLarge` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than `TEXT_GLYPH_TABLE_MEDIUM` (0) and `TEXT_GLYPH_TABLE_SMALL` (5) | `0x80` |
-| `Font_Glyphs2` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | `0` |
+| `_gFontGlyphsSmall` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | `0` |
 
 `Ui_DrawTextUnderline` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`.
 `_gFontGlyphsLarge` sits 128 lines down the 256-tall font page; drawing it

@@ -12018,7 +12018,7 @@ case 0:
     table = _gFontGlyphsMedium;
     break;
 case 5:
-    table = Font_Glyphs2;
+    table = _gFontGlyphsSmall;
     break;
 default:
     table = _gFontGlyphsLarge;

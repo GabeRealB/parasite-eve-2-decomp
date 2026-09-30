@@ -617,7 +617,7 @@ placement. The known embedded ones:
 | Asset | Where | Note |
 |---|---|---|
 | Memory-card save header | `Mc_SaveHeaderMagic` + the block after it (main `.data`) | `"SC"` magic, Shift-JIS title, 16-colour CLUT, three 16x16 4bpp icon frames |
-| UI font glyph metrics | `_gFontGlyphsMedium`, `_gFontGlyphsLarge`, `Font_Glyphs2` (main `.data`) | 224/224/91 x `_FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
+| UI font glyph metrics | `_gFontGlyphsMedium`, `_gFontGlyphsLarge`, `_gFontGlyphsSmall` (main `.data`) | 224/224/91 x `_FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
 | Meshes and animation banks | gameplay `.data` trailing region and room/actor `.pe2pkg` overlays | no separate chunk type; see [`doc/OVERLAYS.md`](doc/OVERLAYS.md) |
 
 **Undecided - look at each case before moving it:** clip tables, and dialogue
