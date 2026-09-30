@@ -212,12 +212,12 @@ void memFreeFromHeap(void* ptr, bool auxHeap)
 
 void Mem_InitAux(void)
 {
-    InitHeap3((ulong*)gMemActiveAuxHeap, GActiveAuxHeapSize);
+    InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
 }
 
 void Mem_Init()
 {
-    InitHeap3((ulong*)gMemActiveAuxHeap, GActiveAuxHeapSize);
+    InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
     InitHeap3(gMemPrimaryHeapBase, G_HEAP_SIZE);
 }
 

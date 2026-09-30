@@ -9,13 +9,19 @@ extern u8* Gpu_PrimHeapBase;
 
 extern size_t Gpu_PrimHeapSize;
 
-/// Base address of the auxiliary heap the game is currently allocating from.
+/// Base of the RAM region selected for auxiliary allocations and image decoding.
 ///
-/// The auxiliary heap is not one fixed region: the game can make the whole of
-/// the memory reserved for image data available to it, or only the part of
-/// that memory beyond the primary heap, and `Mem_SetActiveAuxHeap` switches
-/// between the two.
-extern u8* gMemActiveAuxHeap;
+/// `GActiveAuxHeapSize` is its heap extent in bytes, including heap3 metadata.
+/// Image-memory configuration normally selects storage after the GPU primitive
+/// reservation; `Mem_SetActiveAuxHeap` can select the whole image-memory region.
+/// This storage is separate from the fixed primary heap. Selecting a region
+/// only updates the base/size pair; `Mem_Init` or `Mem_InitAux` initializes a
+/// nonempty region before heap operations.
+///
+/// Stage image decoding writes expanded DCT data directly at this base for
+/// MDEC. Reinitializing or repurposing the storage invalidates its allocations;
+/// the heap must be reinitialized after decoding before allocation resumes.
+extern void* gMemActiveAuxHeap;
 
 /// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;

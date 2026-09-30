@@ -132084,10 +132084,10 @@ The primary base is a `.data` word holding a fixed address; the aux bases are
 re-derived with either address written as a literal emits `lui`/`addiu` and
 stops matching.
 
-The aux heap is two base/size pairs rather than one region: the pair the game
-configures while it loads an image slot, and the pair currently installed.
-`Mem_SetActiveAuxHeap` copies the first into the second, or points the second
-at the whole image area from its base — the start of the memory reserved for
+The aux heap has a selected base/size pair, `gMemActiveAuxHeap` and
+`GActiveAuxHeapSize`, plus saved pairs for the configured auxiliary region and
+the whole image-memory region. `Mem_SetActiveAuxHeap` copies either saved pair
+into the selected pair. The whole region starts at the memory reserved for
 image data, not the game's primary heap, which is a fixed region lower in RAM —
 so the installed base is not always a region of its own. A body that
 reads a base and the size beside it as one unit is reading the pair as the game

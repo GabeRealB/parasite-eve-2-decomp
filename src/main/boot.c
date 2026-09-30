@@ -43,7 +43,7 @@ size_t GAuxHeapSize;
 
 u8* Gpu_PrimHeapBase;
 
-u8* gMemActiveAuxHeap;
+void* gMemActiveAuxHeap;
 
 size_t Gpu_PrimHeapSize;
 
@@ -124,7 +124,7 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
         Mem_AuxRegionBase  = (u8*)0x80179950;
         Mem_AuxRegionBytes = 0x836B0;
         Gpu_PrimHeapBase   = (u8*)0x80179950;
-        gMemActiveAuxHeap  = (u8*)0x80189950;
+        gMemActiveAuxHeap  = (void*)0x80189950;
         GActiveAuxHeapSize = 0x4D6B0;
     } else {
         Mem_AuxRegionBase  = (u8*)entries[arg1].pixels;
