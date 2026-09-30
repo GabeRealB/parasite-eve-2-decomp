@@ -146,7 +146,7 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
 {
     GfxCoord* parent;
 
-    // Visit ancestors before composing; the parity bit records visits, not rebuilds.
+    // Clear the previous visit's parity without changing the cached rebuild stamp.
     parent              = coord->parent;
     coord->composeStamp = (coord->composeStamp << 1) >> 1;
     if (parent == root) {
@@ -177,7 +177,7 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
         }
     }
     if (parity != 0) {
-        coord->composeStamp |= GRAPHICS_COORD_PARITY_BIT;
+        coord->composeStamp |= GRAPHICS_COORD_VISIT_PARITY_BIT;
     }
 }
 

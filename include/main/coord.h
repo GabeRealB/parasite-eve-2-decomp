@@ -10,8 +10,7 @@
 enum {
     GRAPHICS_COORD_DIRTY          = 0,
     GRAPHICS_COORD_SUPPLIED_CACHE = 1, // Nonzero stamp preserving a caller-supplied cache on a parentless node
-    GRAPHICS_COORD_STAMP_MASK     = 0x7FFFFFFF,
-    GRAPHICS_COORD_PARITY_BIT     = 0x80000000
+    GRAPHICS_COORD_STAMP_MASK     = 0x7FFFFFFF
 };
 
 /// A graphics transform node with a local matrix and a cached composition through its ancestors.
