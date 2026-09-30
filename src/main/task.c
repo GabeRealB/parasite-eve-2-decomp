@@ -8,7 +8,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
-#include "text.h"
 #include "main/tmd_types.h"
 
 #include "gameplay/display.h"
@@ -200,14 +199,14 @@ void taskKill(Task* task)
         task->killCountdown     = TASK_MODEL_RELEASE_DELAY_TICKS;
         task->callback          = taskCountdownCallback;
         task->state             = 0;
-        task->exitCallback      = textNoopCallback;
+        task->exitCallback      = taskNoopCallback;
         return;
 
     case2:
         modelObjectUnlinkDisp2d(&task->extra.coordBody->link);
         task->killCountdown = 1;
-        task->callback      = textNoopCallback;
-        task->exitCallback  = textNoopCallback;
+        task->callback      = taskNoopCallback;
+        task->exitCallback  = taskNoopCallback;
         task->killCountdown--;
         if (task->killCountdown != 0) {
             return;
@@ -222,8 +221,8 @@ void taskKill(Task* task)
 
     def_case:
         task->killCountdown = 1;
-        task->callback      = textNoopCallback;
-        task->exitCallback  = textNoopCallback;
+        task->callback      = taskNoopCallback;
+        task->exitCallback  = taskNoopCallback;
         task->killCountdown--;
         if (task->killCountdown != 0) {
             return;
@@ -467,7 +466,7 @@ void Task_RequestKill(Task* task, s32 arg1)
 
     task->status           = TASK_STATUS_STOP_REQUESTED;
     task->extraState.value = arg1;
-    task->callback         = textNoopCallback;
+    task->callback         = taskNoopCallback;
 
     temp = task->firstChild;
     if (temp != NULL) {

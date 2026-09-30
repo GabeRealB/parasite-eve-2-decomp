@@ -128,7 +128,7 @@ static const char Text_ZeroDigit[];
 static const char Text_MaxNineDigits[];
 
 static TaskDesc D_8005EDA0[] = {
-    { 0x0, 0xC0, textNoopCallback },
+    { 0x0, 0xC0, taskNoopCallback },
     { 0x0, 0xC0, taskCountdownCallback },
     { 0x0, 0xC0, Title_Dispatch },
     { 0x0, 0xC0, GameFlow_StateByField34 },
@@ -201,7 +201,7 @@ static UiObjectDesc Ui_OverlayLoadingDesc[] = {
     { 2, 0xFF70, 0xFF98, 0x120, 0x90, 0x38, 0, 0, 0xC0, Ui_WaitCdThenOverlay, 0 },
 };
 
-void textNoopCallback(Task* task)
+void taskNoopCallback(Task* unusedTask)
 {
 }
 

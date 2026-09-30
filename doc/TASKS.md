@@ -124,11 +124,15 @@ Each node’s `callback` runs. Two early-outs:
    the immediate path also unlinks and frees the task during this call.
 
 Type 1 often swaps `callback` to `taskCountdownCallback` with
-`killCountdown = 2` instead of freeing immediately. Type 0/2 typically park
-`callback` on the empty stub `textNoopCallback` for one frame.
+`killCountdown = 2` instead of freeing immediately. Normal teardown installs
+`taskNoopCallback` as `exitCallback` to suppress repeated cleanup. For type 0/2
+it also replaces `callback` with this inert handler; `bodyKind` is marked
+released during the same teardown call, and the execution pass collects the
+task after its callback returns.
 
 `Task_RequestKill` marks `status = 0xFF` and stashes a result in `extraState`;
-`Task_PollKill` reads that and then calls `exitCallback`.
+it installs `taskNoopCallback` to suspend frame updates. `Task_PollKill` reads
+the request and then calls `exitCallback`.
 
 ### 1.5 Lists
 
@@ -187,7 +191,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
-| `00` | `C0` | `textNoopCallback` | Empty stub; also the deferred-kill callback |
+| `00` | `C0` | `taskNoopCallback` | Inert handler; also suppresses updates and repeated teardown |
 | `01` | `C0` | `taskCountdownCallback` | Decrement `killCountdown`, then kill |
 | `02` | `C0` | `Title_Dispatch` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |

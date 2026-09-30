@@ -43,6 +43,13 @@ void Task_ExecDefaultList();
 
 void Task_ExecListFiltered(TaskNode* node, s32 filter);
 
+/// Inert task callback for idle tasks and stop or teardown handoffs.
+///
+/// `unusedTask` is ignored, retaining the `TaskFunc` signature. Installed as
+/// `callback`, it suppresses frame updates; installed as `exitCallback`, it
+/// suppresses repeated teardown. The caller owns task and resource release.
+void taskNoopCallback(Task* unusedTask);
+
 /// Task callback that counts a task's `killCountdown` down and releases the body
 /// it owns when the count reaches zero: a TMD model comes off the model list and
 /// has its buffer and object freed, a 2D display is freed, and a task owning
