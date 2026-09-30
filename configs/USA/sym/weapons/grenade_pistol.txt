@@ -1,0 +1,5 @@
+// Overlay-local symbols for the Grenade Pistol. The MM1 is this source built
+// again; its objdiff target takes these names by position.
+grenadeShellSpawn = 0x8011D3A0; // type:func
+grenadeShellFly = 0x8011D6FC; // type:func
+grenadeShellExit = 0x8011DB8C; // type:func
