@@ -210,10 +210,10 @@ static void Gp_ScriptTaskState1(Task* arg0)
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
-            req.field_8    = 0x808008;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 0;
+            req.colorRgb   = 0x808008;
+            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req.alignment  = TEXT_ALIGNMENT_LEFT;
+            req.drawMode   = TEXT_DRAW_QUEUED;
             Text_DrawString(&req, Gp_StrDemoWait);
         }
         return;
@@ -224,10 +224,10 @@ static void Gp_ScriptTaskState1(Task* arg0)
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
-            req.field_8    = 0x808008;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 0;
+            req.colorRgb   = 0x808008;
+            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req.alignment  = TEXT_ALIGNMENT_LEFT;
+            req.drawMode   = TEXT_DRAW_QUEUED;
             Text_DrawString(&req, Gp_StrDemoPause);
         }
         return;

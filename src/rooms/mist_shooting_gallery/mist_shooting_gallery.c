@@ -1171,38 +1171,38 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req1.x          = obj->panel.contentOriginX.unsignedValue + xOff;
             req1.y          = obj->panel.contentOriginY.unsignedValue + y;
             req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req1.field_8    = 0x606060;
-            req1.glyphTable = 0;
-            req1.centerMode = 0;
-            req1.field_E    = 3;
+            req1.colorRgb   = 0x606060;
+            req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req1.alignment  = TEXT_ALIGNMENT_LEFT;
+            req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             Text_DrawString(&req1, D_mist_shooting_gallery_80184F98[i].name);
 
             req2.x          = obj->panel.contentOriginX.unsignedValue + 0x6E + xOff;
             req2.y          = obj->panel.contentOriginY.unsignedValue + y;
             req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req2.field_8    = 0x606060;
-            req2.glyphTable = 0;
-            req2.centerMode = 2;
-            req2.field_E    = 3;
+            req2.colorRgb   = 0x606060;
+            req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req2.alignment  = TEXT_ALIGNMENT_RIGHT;
+            req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             Text_DrawString(&req2, Text_ItoaSigned(buf, points));
 
             req3.x          = obj->panel.contentOriginX.unsignedValue + 0x91 + xOff;
             req3.y          = obj->panel.contentOriginY.unsignedValue + y;
             req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req3.field_8    = 0x606060;
-            req3.glyphTable = 0;
-            req3.centerMode = 2;
-            req3.field_E    = 3;
+            req3.colorRgb   = 0x606060;
+            req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req3.alignment  = TEXT_ALIGNMENT_RIGHT;
+            req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             Text_DrawString(&req3, Text_ItoaSigned(buf, kills));
             subtotal = kills * points;
 
             req4.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
             req4.y          = obj->panel.contentOriginY.unsignedValue + y;
             req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req4.field_8    = 0x606060;
-            req4.glyphTable = 0;
-            req4.centerMode = 2;
-            req4.field_E    = 3;
+            req4.colorRgb   = 0x606060;
+            req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req4.alignment  = TEXT_ALIGNMENT_RIGHT;
+            req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             Text_DrawString(&req4, Text_ItoaSigned(buf, subtotal));
             total += subtotal;
             y     += 0xB;
@@ -1216,20 +1216,20 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     bottom1         = obj->panel.contentOriginY.unsignedValue - 6;
     req1.y          = obj->panel.contentBottom.unsignedValue + bottom1;
     req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.field_8    = 0x606060;
-    req1.glyphTable = 5;
-    req1.centerMode = 2;
-    req1.field_E    = 1;
+    req1.colorRgb   = 0x606060;
+    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req1.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
     bottom2         = obj->panel.contentOriginY.unsignedValue - 4;
     req2.y          = obj->panel.contentBottom.unsignedValue + bottom2;
     req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.field_8    = 0x606060;
-    req2.glyphTable = 0;
-    req2.centerMode = 2;
-    req2.field_E    = 3;
+    req2.colorRgb   = 0x606060;
+    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req2, Text_ItoaSigned(buf, total));
 
     Ui_DrawHBar(&(obj)->panel, xOff, -xOff, obj->panel.contentTop.signedValue + 0xA);
@@ -1238,37 +1238,37 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req3.x          = obj->panel.contentOriginX.unsignedValue + 0x1E + xOff;
     req3.y          = obj->panel.contentOriginY.unsignedValue + y;
     req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.field_8    = 0x606060;
-    req3.glyphTable = 5;
-    req3.centerMode = 1;
-    req3.field_E    = 1;
+    req3.colorRgb   = 0x606060;
+    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req3.alignment  = TEXT_ALIGNMENT_CENTER;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, "NMC");
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + 0x73 + xOff;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
     req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.field_8    = 0x606060;
-    req4.glyphTable = 5;
-    req4.centerMode = 2;
-    req4.field_E    = 1;
+    req4.colorRgb   = 0x606060;
+    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req4.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req4.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req4, "SCORE");
 
     req5.x          = obj->panel.contentOriginX.unsignedValue + 0x96 + xOff;
     req5.y          = obj->panel.contentOriginY.unsignedValue + y;
     req5.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req5.field_8    = 0x606060;
-    req5.glyphTable = 5;
-    req5.centerMode = 2;
-    req5.field_E    = 1;
+    req5.colorRgb   = 0x606060;
+    req5.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req5.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req5.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req5, "KILL");
 
     req6.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req6.y          = obj->panel.contentOriginY.unsignedValue + y;
     req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req6.field_8    = 0x606060;
-    req6.glyphTable = 5;
-    req6.centerMode = 2;
-    req6.field_E    = 1;
+    req6.colorRgb   = 0x606060;
+    req6.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req6.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req6.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req6, "TOTAL");
 
     obj->field_2E = 0;
@@ -1366,19 +1366,19 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req1.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
     req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.field_8    = color;
-    req1.glyphTable = 5;
-    req1.centerMode = 0;
-    req1.field_E    = 1;
+    req1.colorRgb   = color;
+    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req1.alignment  = TEXT_ALIGNMENT_LEFT;
+    req1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req2.y          = obj->panel.contentOriginY.unsignedValue + y;
     req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.field_8    = color;
-    req2.glyphTable = 0;
-    req2.centerMode = 2;
-    req2.field_E    = 3;
+    req2.colorRgb   = color;
+    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req2, Text_ItoaSigned(buf, score));
 
     Ui_DrawHBar(&(obj)->panel, xOff, -xOff, top + 0x1B);
@@ -1387,19 +1387,19 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req3.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
     req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.field_8    = color;
-    req3.glyphTable = 5;
-    req3.centerMode = 0;
-    req3.field_E    = 1;
+    req3.colorRgb   = color;
+    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req3.alignment  = TEXT_ALIGNMENT_LEFT;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, "BONUS BP");
 
     req4.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
     req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.field_8    = 0x37A78;
-    req4.glyphTable = 0;
-    req4.centerMode = 2;
-    req4.field_E    = 3;
+    req4.colorRgb   = 0x37A78;
+    req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req4.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
 
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -1489,10 +1489,10 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req1.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
     req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.field_8    = 0x606060;
-    req1.glyphTable = 5;
-    req1.centerMode = 0;
-    req1.field_E    = 1;
+    req1.colorRgb   = 0x606060;
+    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req1.alignment  = TEXT_ALIGNMENT_LEFT;
+    req1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req1, "HP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
 
@@ -1506,10 +1506,10 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
     req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.field_8    = 0x606060;
-    req2.glyphTable = 5;
-    req2.centerMode = 0;
-    req2.field_E    = 1;
+    req2.colorRgb   = 0x606060;
+    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req2.alignment  = TEXT_ALIGNMENT_LEFT;
+    req2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req2, "MP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
 
@@ -1538,10 +1538,10 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req3.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
     req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.field_8    = 0x606060;
-    req3.glyphTable = 5;
-    req3.centerMode = 0;
-    req3.field_E    = 1;
+    req3.colorRgb   = 0x606060;
+    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req3.alignment  = TEXT_ALIGNMENT_LEFT;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, "EXP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
 
@@ -1570,10 +1570,10 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req4.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
     req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.field_8    = 0x606060;
-    req4.glyphTable = 5;
-    req4.centerMode = 0;
-    req4.field_E    = 1;
+    req4.colorRgb   = 0x606060;
+    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req4.alignment  = TEXT_ALIGNMENT_LEFT;
+    req4.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req4, "BP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
 }
@@ -1629,19 +1629,19 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label0.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label0.otIndex    = obj->panel.otIndex.signedValue + 1;
     rating            = &missionLevels.entries[Mc_SaveData[0].state.gameMode];
-    label0.field_8    = 0x606060;
-    label0.glyphTable = 5;
-    label0.centerMode = 0;
-    label0.field_E    = 1;
+    label0.colorRgb   = 0x606060;
+    label0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    label0.alignment  = TEXT_ALIGNMENT_LEFT;
+    label0.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&label0, D_mist_shooting_gallery_8017D828);
 
     value0.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value0.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
     value0.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value0.field_8    = 0x606060;
-    value0.glyphTable = 0;
-    value0.centerMode = 2;
-    value0.field_E    = 3;
+    value0.colorRgb   = 0x606060;
+    value0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    value0.alignment  = TEXT_ALIGNMENT_RIGHT;
+    value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value0, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
     Ui_DrawHBar(&(obj)->panel, col + 6, -x + 5, row + 0xD);
@@ -1651,19 +1651,19 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label1.otIndex    = obj->panel.otIndex.signedValue + 1;
     rating            = &conditions.entries[Mc_SaveData[0].state.gameMode];
-    label1.field_8    = 0x606060;
-    label1.glyphTable = 5;
-    label1.centerMode = 0;
-    label1.field_E    = 1;
+    label1.colorRgb   = 0x606060;
+    label1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    label1.alignment  = TEXT_ALIGNMENT_LEFT;
+    label1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&label1, D_mist_shooting_gallery_8017D838);
 
     value1.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
     value1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value1.field_8    = 0x606060;
-    value1.glyphTable = 0;
-    value1.centerMode = 2;
-    value1.field_E    = 3;
+    value1.colorRgb   = 0x606060;
+    value1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    value1.alignment  = TEXT_ALIGNMENT_RIGHT;
+    value1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value1, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 
@@ -1672,19 +1672,19 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label2.otIndex    = obj->panel.otIndex.signedValue + 1;
     rating            = &enemyLevels.entries[Mc_SaveData[0].state.gameMode];
-    label2.field_8    = 0x606060;
-    label2.glyphTable = 5;
-    label2.centerMode = 0;
-    label2.field_E    = 1;
+    label2.colorRgb   = 0x606060;
+    label2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    label2.alignment  = TEXT_ALIGNMENT_LEFT;
+    label2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&label2, D_mist_shooting_gallery_8017D844);
 
     value2.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
     value2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value2.field_8    = 0x606060;
-    value2.glyphTable = 0;
-    value2.centerMode = 2;
-    value2.field_E    = 3;
+    value2.colorRgb   = 0x606060;
+    value2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    value2.alignment  = TEXT_ALIGNMENT_RIGHT;
+    value2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value2, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 
@@ -1693,19 +1693,19 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label3.otIndex    = obj->panel.otIndex.signedValue + 1;
     rating            = &supplyLevels.entries[Mc_SaveData[0].state.gameMode];
-    label3.field_8    = 0x606060;
-    label3.glyphTable = 5;
-    label3.centerMode = 0;
-    label3.field_E    = 1;
+    label3.colorRgb   = 0x606060;
+    label3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    label3.alignment  = TEXT_ALIGNMENT_LEFT;
+    label3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&label3, D_mist_shooting_gallery_8017D850);
 
     value3.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
     value3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value3.field_8    = 0x606060;
-    value3.glyphTable = 0;
-    value3.centerMode = 2;
-    value3.field_E    = 3;
+    value3.colorRgb   = 0x606060;
+    value3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    value3.alignment  = TEXT_ALIGNMENT_RIGHT;
+    value3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value3, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 }
@@ -2217,10 +2217,10 @@ void func_mist_shooting_gallery_8018055C(UiList* prompt, UiObject* obj)
     menu.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
     menu.req.y          = (prompt->field_1A - 3) + obj->panel.contentOriginY.unsignedValue;
     menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    menu.req.field_8    = prompt->field_1C;
-    menu.req.glyphTable = 4;
-    menu.req.field_E    = 1;
-    menu.req.centerMode = 0;
+    menu.req.colorRgb   = prompt->field_1C;
+    menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+    menu.req.drawMode   = TEXT_DRAW_OUTLINED;
+    menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
     Text_DrawString(&menu.req, course->name);
 
     mode = prompt->field_C;

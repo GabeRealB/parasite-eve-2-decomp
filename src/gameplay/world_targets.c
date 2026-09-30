@@ -439,25 +439,25 @@ static void Gp_UpdateLockSlots(void)
         req.x          = x14;
         req.y          = y;
         req.otIndex    = ot;
-        req.field_8    = 0x37A78;
-        req.glyphTable = 5;
-        req.centerMode = 2;
-        req.field_E    = 1;
+        req.colorRgb   = 0x37A78;
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        req.alignment  = TEXT_ALIGNMENT_RIGHT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
 
         val = slot->field_4;
         if (val < 0) {
-            req.field_8 = 0x808008;
-            val         = -val;
+            req.colorRgb = 0x808008;
+            val          = -val;
         }
         if (val >= 0x2710) {
             val = 0x270F;
         }
 
-        req.x       = x14;
-        req.field_E = 0;
+        req.x        = x14;
+        req.drawMode = TEXT_DRAW_QUEUED;
         Text_DrawString(reqp, Text_ItoaSigned(bufp, val));
-        req.x       = x14;
-        req.field_E = 4;
+        req.x        = x14;
+        req.drawMode = TEXT_DRAW_OUTLINE_ONLY;
         Text_DrawString(reqp, Text_ItoaSigned(bufp, val));
 
         rect.x = x - 0x10;

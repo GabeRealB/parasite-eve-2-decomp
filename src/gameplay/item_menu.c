@@ -700,10 +700,10 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrMove2);
     selected = arg0->field_C;
     if ((selected == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
@@ -783,10 +783,10 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrSwitch);
 
     selected = arg0->field_C;

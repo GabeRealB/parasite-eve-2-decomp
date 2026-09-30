@@ -106,10 +106,10 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
         req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = color;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
@@ -228,10 +228,10 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
             nameReq.y          = arg0->panel.contentOriginY.unsignedValue + y;
             ot                 = arg0->panel.otIndex.signedValue + 1;
             nameReq.otIndex    = ot;
-            nameReq.field_8    = 0x606060;
-            nameReq.glyphTable = 5;
-            nameReq.centerMode = 0;
-            nameReq.field_E    = 1;
+            nameReq.colorRgb   = 0x606060;
+            nameReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+            nameReq.alignment  = TEXT_ALIGNMENT_LEFT;
+            nameReq.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&nameReq, D_80114D80[i]);
             swap = 0;
             if (i == two) {
@@ -264,10 +264,10 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
                 valReq.y          = arg0->panel.contentOriginY.unsignedValue + 0xB + y;
                 valReq.otIndex    = arg0->panel.otIndex.signedValue + 1;
-                valReq.field_8    = color;
-                valReq.glyphTable = 0;
-                valReq.centerMode = two;
-                valReq.field_E    = 3;
+                valReq.colorRgb   = color;
+                valReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+                valReq.alignment  = two;
+                valReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                 Text_DrawString(&valReq, Text_ItoaSignedPlus(buf, *pItem));
             } else {
                 {
@@ -277,10 +277,10 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
                 valReq.y          = arg0->panel.contentOriginY.unsignedValue + 0xB + y;
                 valReq.otIndex    = arg0->panel.otIndex.signedValue + 1;
-                valReq.field_8    = color;
-                valReq.glyphTable = 0;
-                valReq.centerMode = two;
-                valReq.field_E    = 3;
+                valReq.colorRgb   = color;
+                valReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+                valReq.alignment  = two;
+                valReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                 Text_DrawString(&valReq, Text_ItoaSigned(buf, *pItem));
             }
             y     += 0x18;
@@ -476,10 +476,10 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
         req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
         req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = color;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -763,10 +763,10 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             draw.count.req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
             draw.count.req.y          = obj->panel.contentOriginY.unsignedValue + (y - 3);
             draw.count.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-            draw.count.req.field_8    = color;
-            draw.count.req.glyphTable = 5;
-            draw.count.req.centerMode = 2;
-            draw.count.req.field_E    = 0;
+            draw.count.req.colorRgb   = color;
+            draw.count.req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+            draw.count.req.alignment  = TEXT_ALIGNMENT_RIGHT;
+            draw.count.req.drawMode   = TEXT_DRAW_QUEUED;
             Text_DrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
             Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
                                0x102010);
@@ -784,10 +784,10 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
                 draw.req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
                 draw.req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
                 draw.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-                draw.req.field_8    = color;
-                draw.req.glyphTable = 0;
-                draw.req.centerMode = 0;
-                draw.req.field_E    = 1;
+                draw.req.colorRgb   = color;
+                draw.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+                draw.req.alignment  = TEXT_ALIGNMENT_LEFT;
+                draw.req.drawMode   = TEXT_DRAW_OUTLINED;
                 Text_DrawString(&draw.req, Gp_GetItemText(item, 0, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
@@ -803,10 +803,10 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
         baseY               = obj->panel.contentOriginY.unsignedValue - 6;
         draw.req.y          = baseY + (u16)prompt->field_1A;
         draw.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        draw.req.field_8    = prompt->field_1C;
-        draw.req.glyphTable = 0;
-        draw.req.centerMode = 0;
-        draw.req.field_E    = 1;
+        draw.req.colorRgb   = prompt->field_1C;
+        draw.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        draw.req.alignment  = TEXT_ALIGNMENT_LEFT;
+        draw.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&draw.req, Gp_StrRemoveAmmo);
     }
 

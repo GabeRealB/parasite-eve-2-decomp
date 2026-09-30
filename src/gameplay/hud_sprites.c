@@ -42,20 +42,20 @@
         req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.field_8    = (color);                                               \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 0;                                                     \
-        req.field_E    = 1;                                                     \
+        req.colorRgb   = (color);                                               \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
+        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
         Text_DrawString(&req, (str));                                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
 #define DRAW_PROMPT_COUNT(req, line, count)                                     \
     {                                                                           \
-        req.field_8    = 0x606060;                                              \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 2;                                                     \
-        req.field_E    = 0;                                                     \
+        req.colorRgb   = 0x606060;                                              \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
+        req.drawMode   = TEXT_DRAW_QUEUED;                                      \
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
@@ -413,10 +413,10 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     req.x          = x + 4;
     req.y          = y + 8;
     req.otIndex    = -2;
-    req.field_8    = 0x606060;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = 0x606060;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrHP);
 
     if (max >= 0) {
@@ -432,10 +432,10 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             s.text.req.x          = tx;
             s.text.req.y          = ty;
             s.text.req.otIndex    = -2;
-            s.text.req.field_8    = 0x606060;
-            s.text.req.glyphTable = 0;
-            s.text.req.centerMode = 2;
-            s.text.req.field_E    = 3;
+            s.text.req.colorRgb   = 0x606060;
+            s.text.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            s.text.req.alignment  = TEXT_ALIGNMENT_RIGHT;
+            s.text.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             Text_DrawString(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
         } else {
             s32 tx = x + 0x33;
@@ -447,10 +447,10 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             s.text.req.x          = tx;
             s.text.req.y          = ty;
             s.text.req.otIndex    = -2;
-            s.text.req.field_8    = 0x606060;
-            s.text.req.glyphTable = 0;
-            s.text.req.centerMode = 2;
-            s.text.req.field_E    = 3;
+            s.text.req.colorRgb   = 0x606060;
+            s.text.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            s.text.req.alignment  = TEXT_ALIGNMENT_RIGHT;
+            s.text.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             Text_DrawString(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
             span = 0x2D;
         }
@@ -525,10 +525,10 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         s.bar.req.x          = x + 0x33;
         s.bar.req.y          = y + 0xA;
         s.bar.req.otIndex    = -2;
-        s.bar.req.field_8    = 0x37A78;
-        s.bar.req.glyphTable = 0;
-        s.bar.req.centerMode = 2;
-        s.bar.req.field_E    = 3;
+        s.bar.req.colorRgb   = 0x37A78;
+        s.bar.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        s.bar.req.alignment  = TEXT_ALIGNMENT_RIGHT;
+        s.bar.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
         Text_DrawString(&s.bar.req, D_800938AC);
         span = 0x2D;
     }

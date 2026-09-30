@@ -1851,10 +1851,10 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     req.x          = x + 2;
     req.y          = y + 5;
     req.otIndex    = otIdx;
-    req.field_8    = arg4;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = arg4;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, (u8*)arg3);
 
     p     = gGpuPrimCursor;
@@ -2422,20 +2422,20 @@ void Ui_DrawTitle(UiPanel* panel, char* arg1)
 
 static void Ui_DrawTextAtLayout(UiPanel* panel, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    TextDrawReq sp;
+    TextDrawReq request;
     s32         temp;
 
     if (panel->state == USER_INTERFACE_PANEL_OPEN) {
         panel->otIndex.unsignedValue -= 1;
-        sp.x                          = panel->contentOriginX.unsignedValue + arg1;
-        sp.y                          = panel->contentOriginY.unsignedValue + arg2;
+        request.x                     = panel->contentOriginX.unsignedValue + arg1;
+        request.y                     = panel->contentOriginY.unsignedValue + arg2;
         temp                          = panel->otIndex.signedValue;
-        sp.field_8                    = arg4;
-        sp.glyphTable                 = 0;
-        sp.centerMode                 = (s8)arg6;
-        sp.otIndex                    = temp + 1;
-        sp.field_E                    = (s8)arg5;
-        Text_DrawString(&sp, arg3);
+        request.colorRgb              = arg4;
+        request.glyphTable            = TEXT_GLYPH_TABLE_MEDIUM;
+        request.alignment             = (s8)arg6;
+        request.otIndex               = temp + 1;
+        request.drawMode              = (s8)arg5;
+        Text_DrawString(&request, arg3);
         panel->otIndex.unsignedValue += 1;
     }
 }

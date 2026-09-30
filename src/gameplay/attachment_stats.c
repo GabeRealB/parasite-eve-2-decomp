@@ -371,20 +371,20 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.field_8    = (color);                                               \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 0;                                                     \
-        req.field_E    = 1;                                                     \
+        req.colorRgb   = (color);                                               \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
+        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
         Text_DrawString(&req, (str));                                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
 #define DRAW_PROMPT_COUNT(req, line, count)                                     \
     {                                                                           \
-        req.field_8    = 0x606060;                                              \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 2;                                                     \
-        req.field_E    = 0;                                                     \
+        req.colorRgb   = 0x606060;                                              \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
+        req.drawMode   = TEXT_DRAW_QUEUED;                                      \
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
@@ -826,10 +826,10 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         s.obj.panel.contentOriginX.unsignedValue = arg1;
         s.obj.panel.contentOriginY.unsignedValue = arg2;
         s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        s.u.text.req.field_8                     = 0x606060;
-        s.u.text.req.glyphTable                  = 0;
-        s.u.text.req.centerMode                  = 0;
-        s.u.text.req.field_E                     = 1;
+        s.u.text.req.colorRgb                    = 0x606060;
+        s.u.text.req.glyphTable                  = TEXT_GLYPH_TABLE_MEDIUM;
+        s.u.text.req.alignment                   = TEXT_ALIGNMENT_LEFT;
+        s.u.text.req.drawMode                    = TEXT_DRAW_OUTLINED;
         Text_DrawString(&s.u.text.req, Gp_GetItemText(item, 0, 0));
 
         ret   = getAttachWheelLevel(Gp_StateC08.field_B);

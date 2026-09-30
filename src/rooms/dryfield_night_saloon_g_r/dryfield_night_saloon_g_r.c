@@ -2232,10 +2232,10 @@ void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
     menu.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
     menu.req.y          = (prompt->field_1A - 3) + obj->panel.contentOriginY.unsignedValue;
     menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    menu.req.field_8    = prompt->field_1C;
-    menu.req.glyphTable = 4;
-    menu.req.field_E    = 1;
-    menu.req.centerMode = 0;
+    menu.req.colorRgb   = prompt->field_1C;
+    menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+    menu.req.drawMode   = TEXT_DRAW_OUTLINED;
+    menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
     Text_DrawString(&menu.req, course->name);
 
     mode = prompt->field_C;

@@ -15,20 +15,20 @@
         req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.field_8    = (color);                                               \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 0;                                                     \
-        req.field_E    = 1;                                                     \
+        req.colorRgb   = (color);                                               \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
+        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
         Text_DrawString(&req, (str));                                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
 #define DRAW_PROMPT_COUNT(req, line, count)                                     \
     {                                                                           \
-        req.field_8    = 0x606060;                                              \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 2;                                                     \
-        req.field_E    = 0;                                                     \
+        req.colorRgb   = 0x606060;                                              \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
+        req.drawMode   = TEXT_DRAW_QUEUED;                                      \
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \

@@ -2621,10 +2621,10 @@ void Gp_TickPlayClock(Task* task)
         req.x          = -0x96;
         req.y          = 0x64;
         req.otIndex    = 4;
-        req.field_8    = 0x502008;
-        req.glyphTable = 2;
-        req.centerMode = 0;
-        req.field_E    = one;
+        req.colorRgb   = 0x502008;
+        req.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = one;
         Text_DrawString(&req, Text_ItoaUnsigned(buf, rec->field_0));
         Text_DrawString(&req, ":");
         Text_DrawString(&req, Text_ItoaPadded(buf, rec->field_4, 2));

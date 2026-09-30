@@ -232,10 +232,10 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = color;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Gp_StrPEnergy);
 
     if (arg0->field_C == 1) {
@@ -260,10 +260,10 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Gp_StrOption);
 
     status = arg1->panel.control.word;
@@ -300,10 +300,10 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Gp_StrExit);
 
     status = arg1->panel.control.word;
@@ -644,10 +644,10 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrUse);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -776,10 +776,10 @@ void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrUse);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -797,10 +797,10 @@ void Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrMove);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -821,10 +821,10 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrExchange);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -1717,10 +1717,10 @@ void Gp_DrawMapName(Task* arg0)
             req.x          = 0;
             req.y          = 0;
             req.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req.field_8    = 0;
-            req.glyphTable = 4;
-            req.centerMode = 2;
-            req.field_E    = 0;
+            req.colorRgb   = 0;
+            req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+            req.alignment  = TEXT_ALIGNMENT_RIGHT;
+            req.drawMode   = TEXT_DRAW_QUEUED;
             Text_MeasureAndCenter(&req, text);
             width = -req.x + 4;
             Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(1));
@@ -1729,10 +1729,10 @@ void Gp_DrawMapName(Task* arg0)
         req2.x          = obj->panel.contentLeft.unsignedValue + (obj->panel.contentOriginX.unsignedValue + 2);
         req2.y          = obj->panel.contentTop.unsignedValue + (obj->panel.contentOriginY.unsignedValue + 0xB);
         req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req2.field_8    = 0x806020;
-        req2.glyphTable = 4;
-        req2.centerMode = 0;
-        req2.field_E    = 1;
+        req2.colorRgb   = 0x806020;
+        req2.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+        req2.alignment  = TEXT_ALIGNMENT_LEFT;
+        req2.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req2, text);
     }
 }
@@ -1935,19 +1935,19 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
         req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
         req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
         req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.field_8    = arg0->field_1C;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = arg0->field_1C;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_StrStrengthen);
     } else {
         req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
         req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
         req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.field_8    = arg0->field_1C;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = arg0->field_1C;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_StrRevive);
     }
     if (arg0->field_C == 1) {
@@ -2324,10 +2324,10 @@ void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
         req.x          = arg0->panel.contentOriginX.unsignedValue + 0x34;
         req.y          = (s16)(arg0->panel.contentOriginY.unsignedValue - 6) + lineY;
         req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = color;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_StrCastCost);
         func_800D3660(arg0, arg1, 0, 0x34, y + 0x1A, 2);
     }
@@ -2423,19 +2423,19 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req.x          = obj->panel.contentOriginX.unsignedValue + x;
     req.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = 0x606060;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 1;
+    req.colorRgb   = 0x606060;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, D_8009720C);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue + x;
     req2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
     req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.field_8    = 0x606060;
-    req2.glyphTable = 5;
-    req2.centerMode = 2;
-    req2.field_E    = 1;
+    req2.colorRgb   = 0x606060;
+    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req2, Gp_StrCost);
 
     row  = ((id + 1) & 0x30) >> 4;
@@ -2454,19 +2454,19 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req3.x          = obj->panel.contentOriginX.unsignedValue + x;
     req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
     req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.field_8    = 0x606060;
-    req3.glyphTable = 5;
-    req3.centerMode = 2;
-    req3.field_E    = 1;
+    req3.colorRgb   = 0x606060;
+    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req3.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, Gp_StrBonus);
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + x;
     req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
     req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.field_8    = 0x606060;
-    req4.glyphTable = 5;
-    req4.centerMode = 2;
-    req4.field_E    = 1;
+    req4.colorRgb   = 0x606060;
+    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req4.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req4.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req4, D_80097220);
 
     bonusIdx = 1;
@@ -2612,10 +2612,10 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         loc.req.y          = textY + arg4;
         gGpuPrimCursor     = p + 1;
         loc.req.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-        loc.req.field_8    = color;
-        loc.req.glyphTable = 0;
-        loc.req.centerMode = 0;
-        loc.req.field_E    = 3;
+        loc.req.colorRgb   = color;
+        loc.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        loc.req.alignment  = TEXT_ALIGNMENT_LEFT;
+        loc.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
         Text_DrawString(&loc.req, Text_ItoaSigned(loc.buf, prev));
         if (prev < val) {
             s32 y;
@@ -2658,10 +2658,10 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         textY               = arg0->panel.contentOriginY.unsignedValue - 6;
         loc.req2.y          = textY + arg4;
         loc.req2.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-        loc.req2.field_8    = color;
-        loc.req2.glyphTable = 0;
-        loc.req2.centerMode = 0;
-        loc.req2.field_E    = 3;
+        loc.req2.colorRgb   = color;
+        loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
+        loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
         Text_DrawString(&loc.req2, Text_ItoaSigned(loc.buf, val));
     } else {
         if (arg5 == 1) {
@@ -2669,20 +2669,20 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             textY2              = arg0->panel.contentOriginY.unsignedValue - 6;
             loc.req2.y          = textY2 + arg4;
             loc.req2.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-            loc.req2.field_8    = 0x606060;
-            loc.req2.glyphTable = 0;
-            loc.req2.centerMode = 0;
-            loc.req2.field_E    = 3;
+            loc.req2.colorRgb   = 0x606060;
+            loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
+            loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             text                = Text_ItoaSignedPlus(loc.buf, val);
         } else {
             loc.req2.x          = arg0->panel.contentOriginX.unsignedValue + x;
             textY2              = arg0->panel.contentOriginY.unsignedValue - 6;
             loc.req2.y          = textY2 + arg4;
             loc.req2.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-            loc.req2.field_8    = 0x606060;
-            loc.req2.glyphTable = 0;
-            loc.req2.centerMode = 0;
-            loc.req2.field_E    = 3;
+            loc.req2.colorRgb   = 0x606060;
+            loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
+            loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             text                = Text_ItoaSigned(loc.buf, val);
         }
         Text_DrawString(&loc.req2, text);
@@ -2729,10 +2729,10 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req.x          = arg0->panel.contentOriginX.unsignedValue + x;
     req.y          = arg0->panel.contentOriginY.unsignedValue + line + 0x1C;
     req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req.field_8    = color;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, text);
 
     if (CdCmd_IsIdle() & 0xFFFF) {
@@ -2749,20 +2749,20 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req2.y          = arg0->panel.contentOriginY.unsignedValue + temp + 0x24;
     y               = temp + 0x36;
     req2.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req2.field_8    = color2;
-    req2.glyphTable = 0;
-    req2.centerMode = 0;
-    req2.field_E    = 1;
+    req2.colorRgb   = color2;
+    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req2.alignment  = TEXT_ALIGNMENT_LEFT;
+    req2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req2, text);
     func_800D3660(arg0, arg1, arg2, x, y, 2);
 
     req3.x          = arg0->panel.contentOriginX.unsignedValue + 1 + x;
     req3.y          = arg0->panel.contentOriginY.unsignedValue + temp + 0x46;
     req3.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req3.field_8    = color2;
-    req3.glyphTable = 0;
-    req3.centerMode = 0;
-    req3.field_E    = 1;
+    req3.colorRgb   = color2;
+    req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req3.alignment  = TEXT_ALIGNMENT_LEFT;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, Gp_StrAtpLoss);
     y = temp + 0x58;
     func_800D3660(arg0, arg1, arg2, x, y, 3);
@@ -3160,10 +3160,10 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Gp_StrUse2);
 
     status = arg1->panel.control.word;
@@ -3192,10 +3192,10 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Gp_StrKeyItem2);
 
     status = arg1->panel.control.word;
@@ -3243,10 +3243,10 @@ void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrCancel2);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -3265,10 +3265,10 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 0;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Gp_StrMap);
 
     status = arg1->panel.control.word;
@@ -3295,10 +3295,10 @@ void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrDiscard2);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -3436,10 +3436,10 @@ void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = one;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = one;
     Text_DrawString(&req, text);
     confirm = arg0->field_C;
     if (confirm == one) {
@@ -3458,10 +3458,10 @@ void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrItem2);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {

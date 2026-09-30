@@ -155,21 +155,21 @@ static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4
             req.x          = obj->panel.contentOriginX.unsignedValue + x;
             req.y          = (obj->panel.contentOriginY.unsignedValue + y) - 3;
             temp           = obj->panel.otIndex.signedValue;
-            req.field_8    = arg4;
+            req.colorRgb   = arg4;
             req.otIndex    = temp + 1;
-            req.glyphTable = 4;
-            req.centerMode = arg6;
-            req.field_E    = arg5;
+            req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+            req.alignment  = arg6;
+            req.drawMode   = arg5;
             Text_DrawString(&req, text);
         }
     } else {
         req2.x          = x;
         req2.y          = y;
         req2.otIndex    = 4;
-        req2.field_8    = arg4;
-        req2.glyphTable = 4;
-        req2.centerMode = arg6;
-        req2.field_E    = arg5;
+        req2.colorRgb   = arg4;
+        req2.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+        req2.alignment  = arg6;
+        req2.drawMode   = arg5;
         Text_DrawString(&req2, text);
     }
 }
@@ -197,57 +197,57 @@ s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4,
 
 s32 Text_MeasureWidth(u8* arg0)
 {
-    TextDrawReq sp10;
+    TextDrawReq request;
 
-    sp10.glyphTable = 4;
-    sp10.x          = 0;
-    sp10.y          = 0;
-    sp10.otIndex    = 0;
-    sp10.field_8    = 0;
-    sp10.centerMode = 2;
-    sp10.field_E    = 0;
-    Text_MeasureAndCenter(&sp10, arg0);
-    return -sp10.x;
+    request.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+    request.x          = 0;
+    request.y          = 0;
+    request.otIndex    = 0;
+    request.colorRgb   = 0;
+    request.alignment  = TEXT_ALIGNMENT_RIGHT;
+    request.drawMode   = TEXT_DRAW_QUEUED;
+    Text_MeasureAndCenter(&request, arg0);
+    return -request.x;
 }
 
 s32 Text_MeasureMultiLine(u8* arg0)
 {
     u8           sp10[0x40];
-    TextDrawReq  sp50;
+    TextDrawReq  request;
     s32          maxWidth;
     s32          height;
-    TextDrawReq* p;
+    TextDrawReq* requestPtr;
     u8*          buf;
     u8*          cur;
     s32          ret;
     s32          tmp;
     s8           c;
 
-    maxWidth = 0;
-    height   = maxWidth;
-    p        = &sp50;
-    cur      = arg0;
-    buf      = sp10;
+    maxWidth   = 0;
+    height     = maxWidth;
+    requestPtr = &request;
+    cur        = arg0;
+    buf        = sp10;
 
     do {
         ret = Text_ParseLine(&cur, sp10);
 
-        c             = 4;
-        sp50.x        = 0;
-        sp50.y        = 0;
-        sp50.otIndex  = 0;
-        sp50.field_8  = 0;
-        tmp           = c;
-        p->glyphTable = tmp;
-        c             = 2;
-        p->centerMode = c;
-        sp50.field_E  = 0;
-        Text_MeasureAndCenter(p, buf);
+        c                      = TEXT_GLYPH_TABLE_LARGE;
+        request.x              = 0;
+        request.y              = 0;
+        request.otIndex        = 0;
+        request.colorRgb       = 0;
+        tmp                    = c;
+        requestPtr->glyphTable = tmp;
+        c                      = TEXT_ALIGNMENT_RIGHT;
+        requestPtr->alignment  = c;
+        request.drawMode       = TEXT_DRAW_QUEUED;
+        Text_MeasureAndCenter(requestPtr, buf);
 
-        if (maxWidth < -sp50.x) {
+        if (maxWidth < -request.x) {
             do {
             } while (0);
-            maxWidth = -sp50.x;
+            maxWidth = -request.x;
         }
         height += 0xF;
         cur     = buf;
@@ -258,8 +258,8 @@ s32 Text_MeasureMultiLine(u8* arg0)
 
 s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    TextDrawReq sp10;
-    TextDrawReq sp20;
+    TextDrawReq panelRequest;
+    TextDrawReq absoluteRequest;
     s32         temp;
 
     if (object != NULL) {
@@ -267,26 +267,26 @@ s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s3
             return 0;
         }
     } else {
-        sp20.x          = arg1;
-        sp20.y          = arg2;
-        sp20.otIndex    = 4;
-        sp20.field_8    = arg4;
-        sp20.glyphTable = 4;
-        sp20.centerMode = arg6;
-        sp20.field_E    = arg5;
-        Text_DrawString(&sp20, arg3);
+        absoluteRequest.x          = arg1;
+        absoluteRequest.y          = arg2;
+        absoluteRequest.otIndex    = 4;
+        absoluteRequest.colorRgb   = arg4;
+        absoluteRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+        absoluteRequest.alignment  = arg6;
+        absoluteRequest.drawMode   = arg5;
+        Text_DrawString(&absoluteRequest, arg3);
         return arg1;
     }
-    sp10.x          = object->panel.contentOriginX.unsignedValue + arg1;
-    sp10.y          = (object->panel.contentOriginY.unsignedValue + arg2) - 3;
-    temp            = object->panel.otIndex.signedValue;
-    sp10.field_8    = arg4;
-    sp10.glyphTable = 4;
-    sp10.centerMode = arg6;
-    sp10.field_E    = arg5;
-    sp10.otIndex    = temp + 1;
-    Text_DrawString(&sp10, arg3);
-    return sp10.x - object->panel.contentOriginX.signedValue;
+    panelRequest.x          = object->panel.contentOriginX.unsignedValue + arg1;
+    panelRequest.y          = (object->panel.contentOriginY.unsignedValue + arg2) - 3;
+    temp                    = object->panel.otIndex.signedValue;
+    panelRequest.colorRgb   = arg4;
+    panelRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+    panelRequest.alignment  = arg6;
+    panelRequest.drawMode   = arg5;
+    panelRequest.otIndex    = temp + 1;
+    Text_DrawString(&panelRequest, arg3);
+    return panelRequest.x - object->panel.contentOriginX.signedValue;
 }
 
 static void Text_DrawPromptCompat(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)

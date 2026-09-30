@@ -515,10 +515,10 @@ void func_800D6334(Task* task)
             name.x          = panel->panel.contentOriginX.unsignedValue + x;
             name.y          = panel->panel.contentOriginY.unsignedValue + 10 + y;
             name.otIndex    = panel->panel.otIndex.signedValue + 1;
-            name.field_8    = 0x606060;
-            name.glyphTable = 0;
-            name.centerMode = 0;
-            name.field_E    = 1;
+            name.colorRgb   = 0x606060;
+            name.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            name.alignment  = TEXT_ALIGNMENT_LEFT;
+            name.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&name, (u8*)Gp_GetItemText(item, 0, 0));
             Gp_DrawStackLeft(panel, x - 15, y + 16, selected, 0x606060, 0);
         } else {
@@ -562,10 +562,10 @@ void func_800D6334(Task* task)
     label.x          = panel->panel.contentOriginX.unsignedValue + labelX;
     label.y          = panel->panel.contentOriginY.unsignedValue + labelY + 24;
     label.otIndex    = panel->panel.otIndex.signedValue + 1;
-    label.field_8    = 0x606060;
-    label.glyphTable = 5;
-    label.centerMode = 0;
-    label.field_E    = 1;
+    label.colorRgb   = 0x606060;
+    label.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    label.alignment  = TEXT_ALIGNMENT_LEFT;
+    label.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&label, (u8*)D_80097448);
     if (panel->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {

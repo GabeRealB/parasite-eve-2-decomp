@@ -507,10 +507,10 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req.y          = obj->panel.contentOriginY.unsignedValue - 4;
     req.y         += yOff;
     ot             = obj->panel.otIndex.signedValue;
-    req.field_8    = color;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
     Text_DrawString(&req, D_replay_bonus_80115784);
 
@@ -518,10 +518,10 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req2.y          = obj->panel.contentOriginY.unsignedValue - 4;
     req2.y         += yOff;
     ot2             = obj->panel.otIndex.signedValue;
-    req2.field_8    = color;
-    req2.glyphTable = 5;
-    req2.centerMode = 2;
-    req2.field_E    = 1;
+    req2.colorRgb   = color;
+    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req2.drawMode   = TEXT_DRAW_OUTLINED;
     req2.otIndex    = ot2 + 1;
     Text_DrawString(&req2, D_replay_bonus_80115790);
 
@@ -533,10 +533,10 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.y          = obj->panel.contentOriginY.unsignedValue - 6;
     req3.y         += yOff;
     ot3             = obj->panel.otIndex.signedValue;
-    req3.field_8    = color;
-    req3.glyphTable = 5;
-    req3.centerMode = 2;
-    req3.field_E    = 1;
+    req3.colorRgb   = color;
+    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req3.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     req3.otIndex    = ot3 + 1;
     Text_DrawString(&req3, D_replay_bonus_8011579C);
 
@@ -586,10 +586,10 @@ void func_replay_bonus_801166AC(Task* arg0)
     req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req.y          = obj->panel.contentOriginY.unsignedValue - 8;
     ot             = obj->panel.otIndex.signedValue;
-    req.field_8    = color;
-    req.glyphTable = 5;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
     Text_DrawString(&req, D_replay_bonus_801157C4);
     value = cfg->exp;
@@ -601,10 +601,10 @@ void func_replay_bonus_801166AC(Task* arg0)
     req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req2.y          = obj->panel.contentOriginY.unsignedValue + 0xB;
     ot2             = obj->panel.otIndex.signedValue;
-    req2.field_8    = color;
-    req2.glyphTable = 5;
-    req2.centerMode = 0;
-    req2.field_E    = 1;
+    req2.colorRgb   = color;
+    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req2.alignment  = TEXT_ALIGNMENT_LEFT;
+    req2.drawMode   = TEXT_DRAW_OUTLINED;
     req2.otIndex    = ot2 + 1;
     Text_DrawString(&req2, D_replay_bonus_801157C8);
     value = D_replay_bonus_80119274.field_4;
@@ -789,10 +789,10 @@ void func_replay_bonus_80116D68(Task* arg0)
     req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req.y          = obj->panel.contentOriginY.unsignedValue;
     ot             = obj->panel.otIndex.signedValue;
-    req.glyphTable = 5;
-    req.field_8    = color;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.colorRgb   = color;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
     Text_DrawString(&req, D_replay_bonus_801157C8);
     Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, 2);

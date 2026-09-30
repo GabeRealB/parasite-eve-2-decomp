@@ -831,10 +831,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
         sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        sp20.u.req.field_8    = color;
-        sp20.u.req.glyphTable = 0;
-        sp20.u.req.centerMode = 0;
-        sp20.u.req.field_E    = 1;
+        sp20.u.req.colorRgb   = color;
+        sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
+        sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -850,10 +850,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
         sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        sp20.u.req.field_8    = color;
-        sp20.u.req.glyphTable = 0;
-        sp20.u.req.centerMode = 0;
-        sp20.u.req.field_E    = 1;
+        sp20.u.req.colorRgb   = color;
+        sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
+        sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -871,10 +871,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
         sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        sp20.u.req.field_8    = color;
-        sp20.u.req.glyphTable = 0;
-        sp20.u.req.centerMode = 0;
-        sp20.u.req.field_E    = 1;
+        sp20.u.req.colorRgb   = color;
+        sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
+        sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -890,10 +890,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
             sp20.u.req.y          = textY + y;
             sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-            sp20.u.req.field_8    = color;
-            sp20.u.req.glyphTable = 0;
-            sp20.u.req.centerMode = 0;
-            sp20.u.req.field_E    = 1;
+            sp20.u.req.colorRgb   = color;
+            sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
+            sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
             temp = item - 0xF;
             if ((u32)temp < 0x24U) {
@@ -909,10 +909,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
                 sp20.u.req.y          = textY + y;
                 sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-                sp20.u.req.field_8    = color;
-                sp20.u.req.glyphTable = 0;
-                sp20.u.req.centerMode = 0;
-                sp20.u.req.field_E    = 1;
+                sp20.u.req.colorRgb   = color;
+                sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+                sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
+                sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
                 Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
@@ -1121,51 +1121,51 @@ void Gp_PeListPanelTask(Task* arg0)
     req.x          = obj->panel.contentOriginX.unsignedValue + x;
     req.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = color;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 1;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, (u8*)Gp_StrExp);
     req2.x          = obj->panel.contentOriginX.unsignedValue + 0xA + x;
     req2.y          = obj->panel.contentOriginY.unsignedValue + y;
     req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.field_8    = color;
-    req2.glyphTable = 0;
-    req2.centerMode = 0;
-    req2.field_E    = 3;
+    req2.colorRgb   = color;
+    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req2.alignment  = TEXT_ALIGNMENT_LEFT;
+    req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req2, Text_ItoaUnsigned(buf, cfg->exp));
     x               = xOff + 0x7A;
     req3.x          = obj->panel.contentOriginX.unsignedValue + x;
     req3.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
     req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.field_8    = color;
-    req3.glyphTable = 5;
-    req3.centerMode = 2;
-    req3.field_E    = 1;
+    req3.colorRgb   = color;
+    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req3.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, (u8*)Gp_StrMp);
     req4.x          = obj->panel.contentOriginX.unsignedValue + 0xA + x;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
     req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.field_8    = color;
-    req4.glyphTable = 0;
-    req4.centerMode = 0;
-    req4.field_E    = 3;
+    req4.colorRgb   = color;
+    req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req4.alignment  = TEXT_ALIGNMENT_LEFT;
+    req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req4, Text_ItoaSigned(buf, cfg->mp));
     req5.x          = obj->panel.contentOriginX.unsignedValue + 0x25 + x;
     req5.y          = obj->panel.contentOriginY.unsignedValue + y;
     req5.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req5.field_8    = color;
-    req5.glyphTable = 0;
-    req5.centerMode = 1;
-    req5.field_E    = 3;
+    req5.colorRgb   = color;
+    req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req5.alignment  = TEXT_ALIGNMENT_CENTER;
+    req5.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req5, (u8*)Gp_StrSlash);
     req6.x          = obj->panel.contentOriginX.unsignedValue + 0x2A + x;
     req6.y          = obj->panel.contentOriginY.unsignedValue + y;
     req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req6.field_8    = color;
-    req6.glyphTable = 0;
-    req6.centerMode = 0;
-    req6.field_E    = 3;
+    req6.colorRgb   = color;
+    req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req6.alignment  = TEXT_ALIGNMENT_LEFT;
+    req6.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req6, Text_ItoaSigned(buf, cfg->mpMax));
     head = arg0->firstChild;
     if (head != NULL) {
@@ -1226,19 +1226,19 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     y              = obj->panel.contentOriginY.unsignedValue - 3;
     req.y          = y + yOff;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = color;
-    req.glyphTable = 0;
-    req.centerMode = 2;
-    req.field_E    = 3;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req, buf);
     req2.x          = obj->panel.contentLeft.unsignedValue + (obj->panel.contentOriginX.unsignedValue + 2);
     y2              = obj->panel.contentOriginY.unsignedValue - 6;
     req2.y          = y2 + yOff;
     req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.field_8    = color;
-    req2.glyphTable = 5;
-    req2.centerMode = 0;
-    req2.field_E    = 1;
+    req2.colorRgb   = color;
+    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req2.alignment  = TEXT_ALIGNMENT_LEFT;
+    req2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req2, (u8*)Gp_StrTotal2);
 }
 
@@ -1354,10 +1354,10 @@ static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 
     y              = arg0->panel.contentOriginY.unsignedValue - 3;
     req.y          = y + arg2;
     req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req.field_8    = arg4;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 0;
+    req.colorRgb   = arg4;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_QUEUED;
     Text_DrawString(&req, Text_ItoaSigned(buf, arg3));
     Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
@@ -1398,10 +1398,10 @@ void Gp_PickupTitleTask(Task* arg0)
         textY          = obj->panel.contentOriginY.unsignedValue - 6;
         req.y          = textY + y;
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = color;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -1622,10 +1622,10 @@ void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s3
         y              = arg0->panel.contentOriginY.unsignedValue - 6;
         req.y          = y + arg2;
         req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.field_8    = arg4;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = arg4;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(arg3, 0, 0));
         if (arg5 != 0) {
             func_800C22D8(arg0, arg1, arg2, arg3, arg5);
@@ -1653,10 +1653,10 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
         y              = arg0->panel.contentOriginY.unsignedValue - 6;
         req.y          = y + arg2;
         req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.field_8    = arg4;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = arg4;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(arg3, 0, 0));
         if (arg5 != 0) {
             func_800C22D8(arg0, arg1, arg2, arg3, arg5);
@@ -1689,10 +1689,10 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
             y              = arg0->panel.contentOriginY.unsignedValue - 3;
             req.y          = y + arg2;
             req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-            req.field_8    = arg4;
-            req.glyphTable = 5;
-            req.centerMode = 2;
-            req.field_E    = 0;
+            req.colorRgb   = arg4;
+            req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+            req.alignment  = TEXT_ALIGNMENT_RIGHT;
+            req.drawMode   = TEXT_DRAW_QUEUED;
             Text_DrawString(&req, Text_ItoaSigned(buf, count));
             Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
         }

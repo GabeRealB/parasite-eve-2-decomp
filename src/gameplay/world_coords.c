@@ -1096,10 +1096,10 @@ static void Gp_DebugPanTask(Task* arg0)
             req.x          = projection->screen.vx;
             req.y          = projection->screen.vy;
             req.otIndex    = 4;
-            req.field_8    = 0x37A78;
-            req.glyphTable = 0;
-            req.centerMode = 1;
-            req.field_E    = 0;
+            req.colorRgb   = 0x37A78;
+            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req.alignment  = TEXT_ALIGNMENT_CENTER;
+            req.drawMode   = TEXT_DRAW_QUEUED;
             Text_DrawString(&req, (u8*)D_8009745C);
         }
         SCRATCH_POP(WorldCoordProjectionScratch);

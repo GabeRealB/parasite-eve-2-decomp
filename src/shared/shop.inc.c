@@ -295,10 +295,10 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         y              = obj->panel.contentOriginY.unsignedValue - 4;
         req.y          = prompt->field_1A + y;
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.field_8    = prompt->field_1C;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = prompt->field_1C;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Shop_Data_80181A0C);
         if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
@@ -587,10 +587,10 @@ static void Shop_ItemListTask(Task* task)
     y              = obj->panel.contentOriginY.unsignedValue + 2;
     req.y          = obj->panel.contentTop.unsignedValue + y;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = 0x606060;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 1;
+    req.colorRgb   = 0x606060;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_8017D6D8);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -768,10 +768,10 @@ static void Shop_BalanceTask(Task* task)
     req0.x          = obj->panel.contentOriginX.unsignedValue + x;
     req0.y          = obj->panel.contentOriginY.unsignedValue + y + 9;
     req0.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req0.field_8    = 0x606060;
-    req0.glyphTable = 5;
-    req0.centerMode = 0;
-    req0.field_E    = 1;
+    req0.colorRgb   = 0x606060;
+    req0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req0.alignment  = TEXT_ALIGNMENT_LEFT;
+    req0.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req0, Shop_Data_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
@@ -781,10 +781,10 @@ static void Shop_BalanceTask(Task* task)
     req1.x          = obj->panel.contentOriginX.unsignedValue + x;
     req1.y          = obj->panel.contentOriginY.unsignedValue + (y2 - 6);
     req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.field_8    = 0x606060;
-    req1.glyphTable = 5;
-    req1.centerMode = 0;
-    req1.field_E    = 1;
+    req1.colorRgb   = 0x606060;
+    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req1.alignment  = TEXT_ALIGNMENT_LEFT;
+    req1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req1, (char*)Shop_Data_8017D6E4);
 
     p        = total;
@@ -820,10 +820,10 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
     req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
     req.y          = obj->panel.contentOriginY.unsignedValue + (u16)prompt->field_1A;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = prompt->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = prompt->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_801819F0);
 
     mode = prompt->field_C;
@@ -1036,10 +1036,10 @@ static void Shop_PreviewTask(Task* task)
         ry             = obj->panel.contentOriginY.unsignedValue - 6;
         req.y          = ry + y;
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.glyphTable = 5;
-        req.field_8    = 0x606060;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        req.colorRgb   = 0x606060;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Shop_Data_80181AC4);
         count = 0;
         count = Shop_AddItemCount(item, count);
@@ -1126,10 +1126,10 @@ static void Shop_QuantityTask(Task* task)
     y              = top + 0x1A;
     req.y          = obj->panel.contentOriginY.unsignedValue + y;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = 0x606060;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 1;
+    req.colorRgb   = 0x606060;
+    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_8017D6D8);
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
@@ -1168,10 +1168,10 @@ static void Shop_MessageRow(UiList* prompt, UiObject* obj)
     req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
     req.y          = obj->panel.contentOriginY.unsignedValue + (u16)prompt->field_1A;
     req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.field_8    = prompt->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = prompt->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_80181A04);
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {

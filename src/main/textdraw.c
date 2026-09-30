@@ -41,6 +41,13 @@ enum {
     FONT_KERNING_CLASS_NEGATIVE = 0xFF,
 };
 
+/// Page-local texture V offsets, encoded modulo 256 in the request's signed byte.
+enum {
+    TEXT_GLYPH_V_BIAS_MEDIUM = 0x26,
+    TEXT_GLYPH_V_BIAS_SMALL  = 0,
+    TEXT_GLYPH_V_BIAS_LARGE  = 0x80,
+};
+
 /// Texture bounds and pen metrics for one encoded UI-font character.
 ///
 /// Tables are indexed by the character byte minus ' ': `Font_Glyphs0` and
@@ -212,7 +219,7 @@ void taskNoopCallback(Task* unusedTask)
 #define TEXT_APPLY_KERNING(x, prev, glyph, req)                  \
     do {                                                         \
         if ((u8)((prev) + (glyph)->leftKerningClass + 1) >= 3) { \
-            if ((req)->glyphTable == 5) {                        \
+            if ((req)->glyphTable == TEXT_GLYPH_TABLE_SMALL) {   \
                 (x) -= 1;                                        \
             } else {                                             \
                 (x) -= 2;                                        \
@@ -400,53 +407,53 @@ void Text_DrawString(TextDrawReq* request, u8* text)
 
     ptr                       = text;
     previousRightKerningClass = FONT_KERNING_CLASS_NEUTRAL;
-    color                     = request->field_8;
+    color                     = request->colorRgb;
     request->vBias            = 0;
     switch (request->glyphTable) {
-        case 0:
+        case TEXT_GLYPH_TABLE_MEDIUM:
             table          = Font_Glyphs0;
-            request->vBias = 0x26;
+            request->vBias = TEXT_GLYPH_V_BIAS_MEDIUM;
             break;
-        case 5:
+        case TEXT_GLYPH_TABLE_SMALL:
             table          = Font_Glyphs2;
-            request->vBias = 0;
+            request->vBias = TEXT_GLYPH_V_BIAS_SMALL;
             break;
         default:
             table          = Font_Glyphs1;
-            request->vBias = 0x80;
+            request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
             break;
     }
-    switch (request->centerMode) {
-        case 1:
+    switch (request->alignment) {
+        case TEXT_ALIGNMENT_CENTER:
             width       = Text_MeasureGlyphWidth(request, text, table);
             request->x -= width >> 1;
             break;
-        case 2:
+        case TEXT_ALIGNMENT_RIGHT:
             width       = Text_MeasureGlyphWidth(request, text, table);
             request->x -= width;
             break;
     }
-    switch (request->field_E) {
-        case 1:
+    switch (request->drawMode) {
+        case TEXT_DRAW_OUTLINED:
             draw = Text_DrawGlyphDualSprt;
             break;
-        case 2:
+        case TEXT_DRAW_OUTLINED_SINGLE_ENTRY:
             draw = Text_DrawGlyphDualSprtTpage;
             break;
-        case 3:
+        case TEXT_DRAW_TRANSLUCENT_OUTLINED:
             draw = Text_DrawGlyphDualSprtA;
             break;
-        case 4:
+        case TEXT_DRAW_OUTLINE_ONLY:
             draw = Text_DrawGlyphOt;
             break;
-        case 16:
+        case TEXT_DRAW_IMMEDIATE:
             dr = &D_80071728;
             setlen(dr, 1);
             dr->code[0] = 0xE100023F;
             DrawPrim(dr);
             draw = Text_DrawGlyphImmediate;
             break;
-        case 0:
+        case TEXT_DRAW_QUEUED:
         default:
             draw = Text_DrawGlyphQueued;
             break;
@@ -499,17 +506,17 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                             case 'S':
                             case 's':
                                 table          = Font_Glyphs2;
-                                request->vBias = 0;
+                                request->vBias = TEXT_GLYPH_V_BIAS_SMALL;
                                 break;
                             case 'M':
                             case 'm':
                                 table          = Font_Glyphs0;
-                                request->vBias = 0x26;
+                                request->vBias = TEXT_GLYPH_V_BIAS_MEDIUM;
                                 break;
                             case 'L':
                             case 'l':
                                 table          = Font_Glyphs1;
-                                request->vBias = 0x80;
+                                request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
                                 break;
                         }
                         ptr++;
@@ -519,12 +526,12 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                         ptr++;
                         switch (*ptr) {
                             case '0':
-                                request->field_E = 3;
-                                draw             = Text_DrawGlyphDualSprtA;
+                                request->drawMode = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+                                draw              = Text_DrawGlyphDualSprtA;
                                 break;
                             case '1':
-                                request->field_E = 1;
-                                draw             = Text_DrawGlyphDualSprt;
+                                request->drawMode = TEXT_DRAW_OUTLINED;
+                                draw              = Text_DrawGlyphDualSprt;
                                 break;
                         }
                         ptr++;
@@ -574,7 +581,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
         glyph = &table[idx];
         temp  = previousRightKerningClass + glyph->leftKerningClass + 1;
         if ((u8)temp >= 3) {
-            if (request->glyphTable == 5) {
+            if (request->glyphTable == TEXT_GLYPH_TABLE_SMALL) {
                 request->x -= 1;
             } else {
                 request->x -= 2;
@@ -586,15 +593,15 @@ void Text_DrawString(TextDrawReq* request, u8* text)
         request->x += glyph->widthMinusOne + glyph->advanceExtraX + glyph->xOffset;
         request->y += glyph->advanceY;
     }
-    if (request->field_E == 1 || request->field_E == 3) {
+    if (request->drawMode == TEXT_DRAW_OUTLINED || request->drawMode == TEXT_DRAW_TRANSLUCENT_OUTLINED) {
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         dr->code[0]    = 0xE100025F;
         setlen(dr, 1);
         addPrim(gGpuCurrentOt + request->otIndex + 1, dr);
     }
-    if (request->field_E != 16) {
-        if (request->field_E == 4) {
+    if (request->drawMode != TEXT_DRAW_IMMEDIATE) {
+        if (request->drawMode == TEXT_DRAW_OUTLINE_ONLY) {
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             dr->code[0]    = 0xE100025F;
@@ -766,10 +773,10 @@ void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
     s32               width;
 
     switch (request->glyphTable) {
-        case 0:
+        case TEXT_GLYPH_TABLE_MEDIUM:
             table = Font_Glyphs0;
             break;
-        case 5:
+        case TEXT_GLYPH_TABLE_SMALL:
             table = Font_Glyphs2;
             break;
         default:
@@ -777,12 +784,12 @@ void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
             break;
     }
 
-    switch (request->centerMode) {
-        case 1:
+    switch (request->alignment) {
+        case TEXT_ALIGNMENT_CENTER:
             width       = Text_MeasureGlyphWidth(request, arg1, table);
             request->x -= width >> 1;
             break;
-        case 2:
+        case TEXT_ALIGNMENT_RIGHT:
             width       = Text_MeasureGlyphWidth(request, arg1, table);
             request->x -= width;
             break;

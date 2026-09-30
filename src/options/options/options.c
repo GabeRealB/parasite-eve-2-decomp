@@ -536,7 +536,7 @@ static void func_options_801D4D0C(Task* task)
     s32         color;
     s32         color2;
     s32         two;
-    s32         center;
+    s32         textAlignment;
     s32         walkMode;
     s32         barY;
     u8*         str;
@@ -594,50 +594,50 @@ static void func_options_801D4D0C(Task* task)
     req0.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0xF;
     req0.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req0.field_8    = color;
-    req0.glyphTable = 0;
-    req0.centerMode = 0;
-    req0.field_E    = one2;
+    req0.colorRgb   = color;
+    req0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req0.alignment  = TEXT_ALIGNMENT_LEFT;
+    req0.drawMode   = one2;
     Text_DrawString(&req0, D_options_801D5BD4);
 
     req1.x          = obj->panel.contentOriginX.unsignedValue + x;
     req1.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0xF;
     req1.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req1.field_8    = color;
-    req1.glyphTable = 0;
-    req1.centerMode = 0;
-    req1.field_E    = one2;
+    req1.colorRgb   = color;
+    req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req1.alignment  = TEXT_ALIGNMENT_LEFT;
+    req1.drawMode   = one2;
     Text_DrawString(&req1, D_options_801D5BD4);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue + x;
     req2.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0xF;
     req2.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req2.field_8    = color;
-    req2.glyphTable = 0;
-    req2.centerMode = 0;
-    req2.field_E    = one2;
+    req2.colorRgb   = color;
+    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req2.alignment  = TEXT_ALIGNMENT_LEFT;
+    req2.drawMode   = one2;
     Text_DrawString(&req2, D_options_801D5BD0);
 
     req3.x          = obj->panel.contentOriginX.unsignedValue + x;
     req3.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0xF;
     req3.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req3.field_8    = color;
-    req3.glyphTable = 0;
-    req3.centerMode = 0;
-    req3.field_E    = one2;
+    req3.colorRgb   = color;
+    req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req3.alignment  = TEXT_ALIGNMENT_LEFT;
+    req3.drawMode   = one2;
     Text_DrawString(&req3, D_options_801D5BDC);
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + x;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0x1E;
     req4.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req4.field_8    = color;
-    req4.glyphTable = 0;
-    req4.centerMode = 0;
-    req4.field_E    = one2;
+    req4.colorRgb   = color;
+    req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req4.alignment  = TEXT_ALIGNMENT_LEFT;
+    req4.drawMode   = one2;
     Text_DrawString(&req4, D_options_801D5BE4);
 
     req5.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -645,10 +645,10 @@ static void func_options_801D4D0C(Task* task)
     x               = base + 0x6A;
     y               = yHdr;
     req5.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req5.field_8    = color;
-    req5.glyphTable = 0;
-    req5.centerMode = 0;
-    req5.field_E    = one2;
+    req5.colorRgb   = color;
+    req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req5.alignment  = TEXT_ALIGNMENT_LEFT;
+    req5.drawMode   = one2;
     Text_DrawString(&req5, D_options_801D5BF0);
 
     /* Middle column: run / walk assignments. */
@@ -658,19 +658,19 @@ static void func_options_801D4D0C(Task* task)
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
         req6.otIndex    = obj->panel.otIndex.signedValue + one2;
-        req6.field_8    = color;
-        req6.glyphTable = 0;
-        req6.centerMode = 0;
-        req6.field_E    = one2;
+        req6.colorRgb   = color;
+        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req6.alignment  = TEXT_ALIGNMENT_LEFT;
+        req6.drawMode   = one2;
         Text_DrawString(&req6, D_options_801D5BFC);
     } else {
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
         req6.otIndex    = obj->panel.otIndex.signedValue + one2;
-        req6.field_8    = color;
-        req6.glyphTable = 0;
-        req6.centerMode = 0;
-        req6.field_E    = one2;
+        req6.colorRgb   = color;
+        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req6.alignment  = TEXT_ALIGNMENT_LEFT;
+        req6.drawMode   = one2;
         Text_DrawString(&req6, runWalk);
     }
 
@@ -679,19 +679,19 @@ static void func_options_801D4D0C(Task* task)
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
         req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.field_8    = 0x606060;
-        req6.glyphTable = 0;
-        req6.centerMode = 0;
-        req6.field_E    = 1;
+        req6.colorRgb   = 0x606060;
+        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req6.alignment  = TEXT_ALIGNMENT_LEFT;
+        req6.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req6, runWalk);
     } else {
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
         req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.field_8    = 0x606060;
-        req6.glyphTable = 0;
-        req6.centerMode = 0;
-        req6.field_E    = 1;
+        req6.colorRgb   = 0x606060;
+        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req6.alignment  = TEXT_ALIGNMENT_LEFT;
+        req6.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req6, D_options_801D5BFC);
     }
 
@@ -701,10 +701,10 @@ static void func_options_801D4D0C(Task* task)
     req6.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0xF;
     req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req6.field_8    = color2;
-    req6.glyphTable = 0;
-    req6.centerMode = 1;
-    req6.field_E    = 1;
+    req6.colorRgb   = color2;
+    req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req6.alignment  = TEXT_ALIGNMENT_CENTER;
+    req6.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req6, D_options_801D5C08);
 
     two = 2;
@@ -712,20 +712,20 @@ static void func_options_801D4D0C(Task* task)
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
         req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.field_8    = color2;
-        req6.glyphTable = 0;
-        req6.centerMode = 0;
-        req6.field_E    = 1;
+        req6.colorRgb   = color2;
+        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req6.alignment  = TEXT_ALIGNMENT_LEFT;
+        req6.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req6, D_options_801D5BFC);
 
         y              += 0xF;
         req7.x          = obj->panel.contentOriginX.unsignedValue + x;
         req7.y          = obj->panel.contentOriginY.unsignedValue + y;
         req7.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req7.field_8    = color2;
-        req7.glyphTable = 0;
-        req7.centerMode = 0;
-        req7.field_E    = 1;
+        req7.colorRgb   = color2;
+        req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req7.alignment  = TEXT_ALIGNMENT_LEFT;
+        req7.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req7, D_options_801D5BFC);
     }
 
@@ -734,8 +734,8 @@ static void func_options_801D4D0C(Task* task)
     x    = obj->panel.contentRight.signedValue - 4;
     one3 = 1;
     Text_DrawPrompt(obj, x, y, D_options_801D5C5C, color2, one3, two);
-    y     += 0xB;
-    center = 2;
+    y            += 0xB;
+    textAlignment = TEXT_ALIGNMENT_RIGHT;
     if (type == 0) {
         str = D_options_801D5C1C;
     } else if (type == one3) {
@@ -747,10 +747,10 @@ static void func_options_801D4D0C(Task* task)
     req8.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0xF;
     req8.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req8.field_8    = 0x606060;
-    req8.glyphTable = 0;
-    req8.centerMode = center;
-    req8.field_E    = 1;
+    req8.colorRgb   = 0x606060;
+    req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req8.alignment  = textAlignment;
+    req8.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req8, str);
 
     if (type == 0) {
@@ -764,29 +764,29 @@ static void func_options_801D4D0C(Task* task)
     req9.y          = obj->panel.contentOriginY.unsignedValue + y;
     y              += 0x1E;
     req9.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req9.field_8    = 0x606060;
-    req9.glyphTable = 0;
-    req9.centerMode = center;
-    req9.field_E    = 1;
+    req9.colorRgb   = 0x606060;
+    req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req9.alignment  = textAlignment;
+    req9.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req9, str);
 
     if (type == 2) {
         req10.x          = obj->panel.contentOriginX.unsignedValue + x;
         req10.y          = obj->panel.contentOriginY.unsignedValue + y;
         req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req10.field_8    = 0x606060;
-        req10.glyphTable = 0;
-        req10.centerMode = center;
-        req10.field_E    = 1;
+        req10.colorRgb   = 0x606060;
+        req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req10.alignment  = textAlignment;
+        req10.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req10, D_options_801D5C40);
     } else {
         req10.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
         req10.y          = obj->panel.contentOriginY.unsignedValue + y;
         req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req10.field_8    = 0x606060;
-        req10.glyphTable = 0;
-        req10.centerMode = 1;
-        req10.field_E    = 1;
+        req10.colorRgb   = 0x606060;
+        req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req10.alignment  = TEXT_ALIGNMENT_CENTER;
+        req10.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req10, D_options_801D5C2C);
     }
 
@@ -802,29 +802,29 @@ static void func_options_801D4D0C(Task* task)
     req10.y          = obj->panel.contentOriginY.unsignedValue + y;
     y               += 0xF;
     req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req10.field_8    = 0x606060;
-    req10.glyphTable = 0;
-    req10.centerMode = center;
-    req10.field_E    = 1;
+    req10.colorRgb   = 0x606060;
+    req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req10.alignment  = textAlignment;
+    req10.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req10, str);
 
     if (type != 2) {
         last.req.x          = obj->panel.contentOriginX.unsignedValue + x;
         last.req.y          = obj->panel.contentOriginY.unsignedValue + y;
         last.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        last.req.field_8    = 0x606060;
-        last.req.glyphTable = 0;
-        last.req.centerMode = center;
-        last.req.field_E    = 1;
+        last.req.colorRgb   = 0x606060;
+        last.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        last.req.alignment  = textAlignment;
+        last.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&last.req, D_options_801D5C40);
     } else {
         last.req.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
         last.req.y          = obj->panel.contentOriginY.unsignedValue + y;
         last.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        last.req.field_8    = 0x606060;
-        last.req.glyphTable = 0;
-        last.req.centerMode = 1;
-        last.req.field_E    = 1;
+        last.req.colorRgb   = 0x606060;
+        last.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        last.req.alignment  = TEXT_ALIGNMENT_CENTER;
+        last.req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&last.req, D_options_801D5C2C);
     }
 

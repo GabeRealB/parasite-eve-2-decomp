@@ -27,20 +27,20 @@
         req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.field_8    = (color);                                               \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 0;                                                     \
-        req.field_E    = 1;                                                     \
+        req.colorRgb   = (color);                                               \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
+        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
         Text_DrawString(&req, (str));                                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
 #define DRAW_PROMPT_COUNT(req, line, count)                                     \
     {                                                                           \
-        req.field_8    = 0x606060;                                              \
-        req.glyphTable = 5;                                                     \
-        req.centerMode = 2;                                                     \
-        req.field_E    = 0;                                                     \
+        req.colorRgb   = 0x606060;                                              \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
+        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
+        req.drawMode   = TEXT_DRAW_QUEUED;                                      \
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
@@ -403,10 +403,10 @@ static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val)
     req.x          = x;
     req.y          = y;
     req.otIndex    = -2;
-    req.field_8    = color;
-    req.glyphTable = 0;
-    req.centerMode = 2;
-    req.field_E    = 3;
+    req.colorRgb   = color;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_RIGHT;
+    req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req, Text_ItoaUnsigned(buf, val));
 }
 
@@ -419,19 +419,19 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     hpReq.x          = obj->panel.contentOriginX.unsignedValue + 4 + x;
     hpReq.y          = obj->panel.contentOriginY.unsignedValue + 8 + y;
     hpReq.otIndex    = obj->panel.otIndex.signedValue + 1;
-    hpReq.field_8    = color;
-    hpReq.glyphTable = 5;
-    hpReq.centerMode = 0;
-    hpReq.field_E    = 1;
+    hpReq.colorRgb   = color;
+    hpReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    hpReq.alignment  = TEXT_ALIGNMENT_LEFT;
+    hpReq.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&hpReq, Gp_StrHP);
 
     mpReq.x          = obj->panel.contentOriginX.unsignedValue + 0x2E + x;
     mpReq.y          = obj->panel.contentOriginY.unsignedValue + 8 + y;
     mpReq.otIndex    = obj->panel.otIndex.signedValue + 1;
-    mpReq.field_8    = color;
-    mpReq.glyphTable = 5;
-    mpReq.centerMode = 0;
-    mpReq.field_E    = 1;
+    mpReq.colorRgb   = color;
+    mpReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    mpReq.alignment  = TEXT_ALIGNMENT_LEFT;
+    mpReq.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&mpReq, Gp_StrMP);
 }
 

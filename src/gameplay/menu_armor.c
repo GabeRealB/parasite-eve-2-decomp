@@ -134,10 +134,10 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
         req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
         req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = color;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
@@ -212,10 +212,10 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
                 req.y          = obj->panel.contentOriginY.unsignedValue + (y - 3);
                 req.otIndex    = obj->panel.otIndex.signedValue + 1;
-                req.field_8    = color;
-                req.glyphTable = 5;
-                req.centerMode = 2;
-                req.field_E    = 0;
+                req.colorRgb   = color;
+                req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+                req.alignment  = TEXT_ALIGNMENT_RIGHT;
+                req.drawMode   = TEXT_DRAW_QUEUED;
                 Text_DrawString(&req, Text_ItoaSigned(buf, qty));
                 Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
@@ -273,10 +273,10 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             off            = obj->panel.contentOriginY.unsignedValue - 6;
             req.y          = prompt->field_1A + off;
             req.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req.field_8    = prompt->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
+            req.colorRgb   = prompt->field_1C;
+            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            req.alignment  = TEXT_ALIGNMENT_LEFT;
+            req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Gp_StrRemoveArmor);
         }
         if (prompt->field_C == 1) {

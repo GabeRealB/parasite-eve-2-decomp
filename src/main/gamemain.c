@@ -322,10 +322,10 @@ static void GameMain_ShowLoading(s32 arg0)
 
             req.x          = 0;
             req.otIndex    = 4;
-            req.field_8    = 0x37A78;
-            req.glyphTable = 4;
-            req.centerMode = 1;
-            req.field_E    = 0x10;
+            req.colorRgb   = 0x37A78;
+            req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+            req.alignment  = TEXT_ALIGNMENT_CENTER;
+            req.drawMode   = TEXT_DRAW_IMMEDIATE;
             req.y          = 6 - gDisplayState.vramYOffset;
             Text_DrawString(&req, GameMain_PauseText);
 

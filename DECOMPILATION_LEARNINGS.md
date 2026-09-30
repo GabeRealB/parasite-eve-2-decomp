@@ -6826,7 +6826,7 @@ req.y = y + arg2;
 ```
 
 Assign `color = 0x606060` in the same branch so `lui a2, 0x60` fills the
-`beqz equipped` delay slot. Inlining `req.field_8 = 0x606060` puts the
+`beqz equipped` delay slot. Inlining `req.colorRgb = 0x606060` puts the
 constant in `$a1` and delays `la a1, Gp_StrE`. `func_800C22D8` is the
 example.
 
@@ -15002,13 +15002,13 @@ at the store site reloads late (`lh` just before use) and scrambles schedule.
 Hoist the signed load into a temporary at the early point:
 
 ```c
-sp.field_2 = ...;
+sp.y = ...;
 temp = (s16)arg0->field_14; /* early lh into a live temp */
-sp.field_8 = arg4;
+sp.colorRgb = arg4;
 /* ... more stores ... */
-sp.field_4 = temp + 1;      /* addiu + sw near the call */
-sp.field_E = (s8)arg5;
-func(&sp, arg3);            /* field_E often lands in the jal delay slot */
+sp.otIndex = temp + 1;      /* addiu + sw near the call */
+sp.drawMode = (s8)arg5;
+func(&sp, arg3);            /* drawMode often lands in the jal delay slot */
 ```
 
 Pair with `u16` fields that the target loads via `lhu` for unsigned arithmetic
@@ -18691,16 +18691,16 @@ TextDrawReq sp50[2];
 register TextDrawReq* p asm("s0");
 
 p = sp50;
-/* relative path: absolute addressing via sp50[0].field_…, field_C via p */
-sp50[0].field_0 = …;
-p->field_C = 4;
+/* relative path: absolute addressing via sp50[0].field_…, glyphTable via p */
+sp50[0].x = …;
+p->glyphTable = 4;
 func_8002E53C(p, buf);
 
-/* absolute path: most fields via sp50[1], field_4/field_C via p[1] */
-sp50[1].field_0 = x;
-p[1].field_4 = four;   /* sw four, 0x14(s0) */
-sp50[1].field_8 = arg4;
-p[1].field_C = four;   /* sb four, 0x1c(s0) */
+/* absolute path: most fields via sp50[1], otIndex/glyphTable via p[1] */
+sp50[1].x = x;
+p[1].otIndex = four;   /* sw four, 0x14(s0) */
+sp50[1].colorRgb = arg4;
+p[1].glyphTable = four;   /* sb four, 0x1c(s0) */
 func_8002E53C(&sp50[1], buf);
 ```
 
@@ -18714,7 +18714,7 @@ Also for multi-line loops over text (`Text_ParseLine` + `func_8002E53C`):
   (`arg4`) stays on the stack and is reloaded with `lw t0, 0xB0(sp)` each
   use. Early-copy `arg5`/`arg6` into locals (one of them naturally lands in
   `$fp`/`$s8`) *before* pinning `four = 4` into `$s6` for the dual-width
-  `field_4`/`field_C` stores.
+  `otIndex`/`glyphTable` stores.
 - Pass the stack array name (`sp10`) to the first call so the `jal` delay
   slot rematerializes `addiu a1, sp, 0x10` instead of `move a1, s4`; keep
   `buf` in `$s4` for later calls that need `move a1, s4`.
@@ -29680,7 +29680,7 @@ reg, later `$s0`/`$s1`/`$s2` all shifted). Dest pin alone stuck at
 
 When the target tests a flag first, then fills the same `TextDrawReq`
 in **both** arms (x/y, `lh` drawOrder, string `lui`/`addiu` in `$a1`,
-`addiu a0, sp, req`) and only then joins for `otIndex + 1` / `field_8`
+`addiu a0, sp, req`) and only then joins for `otIndex + 1` / `colorRgb`
 / the three `sb`s / one `jal func_8002E53C`, a shared-setup form
 (`text = cond ? A : B;` then one fill + one call) CSEs the x/y stores
 and emits a single fill after the string select (~75%).
@@ -29692,19 +29692,19 @@ if (flags & 3) {
     req.x = ...;
     req.y = ...;
     req.otIndex = (s16)obj->drawOrder + 1;
-    req.field_8 = prompt->field_1C;
+    req.colorRgb = prompt->field_1C;
     req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E = 1;
+    req.alignment = 0;
+    req.drawMode = 1;
     func_8002E53C(&req, Gp_StrStrengthen);
 } else {
     req.x = ...;
     req.y = ...;
     req.otIndex = (s16)obj->drawOrder + 1;
-    req.field_8 = prompt->field_1C;
+    req.colorRgb = prompt->field_1C;
     req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E = 1;
+    req.alignment = 0;
+    req.drawMode = 1;
     func_8002E53C(&req, Gp_StrRevive);
 }
 ```
@@ -32408,7 +32408,7 @@ Reusing one `y` both before the call (`y = baseY; p->y0 = y + arg2 - 7`) and
 after (`y = baseY - 3; req.y = y + arg2`) makes `y` live across the jal and
 steals `$s1` from `value`. Then `arg1`/`arg2` flip to `$s3`/`$s1`.
 
-Using `arg4` directly for `*(u32*)&p->r0` and `req.field_8` assigns
+Using `arg4` directly for `*(u32*)&p->r0` and `req.colorRgb` assigns
 `$s2 = arg2`, `$s3 = arg4`. Copy the stack color into a named local *after*
 the early `y = baseY` load (and before `arg2` is consumed) so `color` takes
 `$s2` and `arg2` stays in `$s3`:
@@ -32424,7 +32424,7 @@ p->y0 = y + arg2 - 7;
 /* … call … */
 textY          = arg0->baseY - 3;
 req.y          = textY + arg2;
-req.field_8    = color;
+req.colorRgb    = color;
 ```
 
 The early `y` load also frees `$v1` after `gGpuPrimCursor = p + 1`, which is
@@ -33731,16 +33731,16 @@ addiu  v0, v0, 1
 sw     v0, 0x4C(sp)      # req.otIndex via $sp
 li     v0, 5
 sb     v0, 0x2C(a0)      # req.glyphTable via buf
-sw     v1, 0x28(a0)      # req.field_8
-sb     v0, 0x2D(a0)      # req.centerMode
+sw     v1, 0x28(a0)      # req.colorRgb
+sb     v0, 0x2D(a0)      # req.alignment
 jal    Text_ItoaSigned
- sb    zero, 0x56(sp)    # req.field_E via $sp
+ sb    zero, 0x56(sp)    # req.drawMode via $sp
 ```
 
 Separate `u8 buf[0x20]; TextDrawReq req2;` emits every later field as
 `0x5x(sp)`. Put them in one struct, pin the struct pointer to `$a0`,
-and mix named vs pointer stores: `draw.req.otIndex` / `draw.req.field_E`
-stay `$sp`-relative, `d->req.glyphTable` / `field_8` / `centerMode` use
+and mix named vs pointer stores: `draw.req.otIndex` / `draw.req.drawMode`
+stay `$sp`-relative, `d->req.glyphTable` / `colorRgb` / `alignment` use
 `$a0+0x28/0x2C/0x2D`.
 
 Keep the item id live (`asm volatile("" :: "r"(item))`) so a later
@@ -36817,7 +36817,7 @@ numeric displacement. `Gp_LoadWaitAreaCd` is the worked example.
 The former `USE_REG3(color, x14, ot)` held the coordinate and ordering-index
 computations ahead of the color store. Plain C matches when `ot = -0xA` is
 initialized before the slot loop and the request fields are assigned in this
-order: `x`, `y`, `otIndex`, `field_8`, `glyphTable`, `centerMode`, `field_E`.
+order: `x`, `y`, `otIndex`, `colorRgb`, `glyphTable`, `alignment`, `drawMode`.
 Assign the color literal directly at its store. Moving the coordinate/index
 stores earlier while leaving a separate color definition ahead of them made
 that constant's lifetime long enough for `.loop` to hoist it and cause a spill.
@@ -36848,13 +36848,13 @@ register u8* str asm("a1");
 register s32 by asm("v1");
 
 asm("lui %0, %%hi(D_str)" : "=r"(str));
-/* field_8 / glyphTable / baseX / field_E */
+/* colorRgb / glyphTable / baseX / drawMode */
 by = obj.baseY;
 asm("addiu %0, %0, %%lo(D_str)" : "+r"(str) : "r"(by));
-req.centerMode = 0;
+req.alignment = 0;
 ```
 
-Identical `centerMode = 0` stores in both arms sink to the join (`sb` after
+Identical `alignment = 0` stores in both arms sink to the join (`sb` after
 the else `addiu x, 6`). A memory clobber after the store keeps it in-arm so
 the `if` path can `j` with `addiu x, 4` in the delay.
 
@@ -39977,7 +39977,7 @@ The target reads the second table column as
 
 ```
 sll   v0, v0, 0x4
-addu  v0, v0, s2          # s2 == 2, the centerMode constant
+addu  v0, v0, s2          # s2 == 2, the alignment constant
 lui   t0, %hi(Gp_IdParamHi)
 addiu t0, t0, %lo(Gp_IdParamHi)
 addu  v0, v0, t0
@@ -40041,12 +40041,12 @@ pins the address to that block for the same reason fresh conditional locals are
 not hoisted. Note the asymmetry: `Mc_SaveData`, read from both arms, *is* still
 hoisted — so convert only the globals the target keeps inside.
 
-## `TextDrawReq` field order is `x, y, otIndex, field_8, glyphTable, centerMode, field_E`
+## `TextDrawReq` field order is `x, y, otIndex, colorRgb, glyphTable, alignment, drawMode`
 
 The four request blocks in `Gp_PeUpgradePanelTask` were the last mismatch at 96%: the
-`sw field_8` / `sb glyphTable/centerMode/field_E` group scheduled three slots
+`sw colorRgb` / `sb glyphTable/alignment/drawMode` group scheduled three slots
 too early and `li s0, 1` floated to the top of the block. Moving `otIndex`
-ahead of `field_8` in the source — the order the already-matched
+ahead of `colorRgb` in the source — the order the already-matched
 `Gp_DrawCastCostLines` / `Gp_DrawKeyItemCmd` in the same TU use — fixed all four blocks at
 once and took the function to 100%. When several sibling `TextDrawReq` blocks
 all miss by the same shuffle, copy the field order from a matched neighbour
@@ -49871,28 +49871,28 @@ such loads was written between the same two statements.
 `func_mist_shooting_gallery_8017F128` fills eight `TextDrawReq` blocks. The
 target reads `lh 0x14(s0)` (the `otIndex` source) and `lb 0xf(s4)` before the
 `sw 0xc0` / `sb 0xc4` / `sb 0xc5` / `sb 0xc6` run, so both statements precede
-the `field_8` assignment:
+the `colorRgb` assignment:
 
 ```c
 /* 82.9% - loads land after the four stores */
-label0.field_8    = 0x606060;
+label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
-label0.centerMode = 0;
-label0.field_E    = 1;
+label0.alignment = 0;
+label0.drawMode    = 1;
 rating            = &missionLevels.entries[Mc_SaveData.gameMode];
 label0.otIndex    = (s16)obj->drawOrder + 1;
 
 /* 100% - struct declaration order, with the pointer read in between */
 label0.otIndex    = (s16)obj->drawOrder + 1;
 rating            = &missionLevels.entries[Mc_SaveData.gameMode];
-label0.field_8    = 0x606060;
+label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
-label0.centerMode = 0;
-label0.field_E    = 1;
+label0.alignment = 0;
+label0.drawMode    = 1;
 ```
 
 The store of `otIndex` itself still sinks to the jal's delay slot, which is why
-the write order in the object dump (`x`, `y`, `field_8`, …, `otIndex`) hides
+the write order in the object dump (`x`, `y`, `colorRgb`, …, `otIndex`) hides
 the real statement order; only the loads show it. Reordering statements while
 they stay on the same side of the loads changes nothing — three permutations of
 the block above all scored exactly 82.944%. Assigning the fields in **struct
@@ -51178,8 +51178,8 @@ range to push it into a higher `$s` register": shorten by declaring late,
 lengthen by using late.
 
 Corollary for `TextDrawReq`-style blocks: fill the fields in the order the
-already-matched siblings use (`x`, `y`, `otIndex`, `field_8`, `glyphTable`,
-`centerMode`, `field_E`). Hoisting `field_8` above `otIndex` scores higher on
+already-matched siblings use (`x`, `y`, `otIndex`, `colorRgb`, `glyphTable`,
+`alignment`, `drawMode`). Hoisting `colorRgb` above `otIndex` scores higher on
 its own (97.2% vs 95.0%) but does so by dragging the `sw` of the colour into
 the load-delay slot; with the live ranges fixed the sibling order is the one
 that reaches 100%.

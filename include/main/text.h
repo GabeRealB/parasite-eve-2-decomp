@@ -5,19 +5,49 @@
 
 #include "main/ui_types.h"
 
-/// Text-measure / draw-request block passed to Text_MeasureAndCenter / Text_DrawString.
-/// glyphTable: 0 → Font_Glyphs0, 5 → Font_Glyphs2, else Font_Glyphs1.
-/// Text_DrawString writes vBias (0x26 / 0 / 0x80) from that selector; SPRT v is
-/// glyph.v + vBias. Ui_DrawTextUnderline uses glyphTable 5.
-typedef struct _TextDrawReq {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 y;
-    /* 0x04 */ s32 otIndex;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s8  glyphTable;
-    /* 0x0D */ s8  centerMode;
-    /* 0x0E */ s8  field_E;
-    /* 0x0F */ s8  vBias;
+/// Glyph-table selectors; every selector except medium and small uses large metrics.
+enum {
+    TEXT_GLYPH_TABLE_MEDIUM          = 0,
+    TEXT_GLYPH_TABLE_LARGE_ALTERNATE = 2,
+    TEXT_GLYPH_TABLE_LARGE           = 4,
+    TEXT_GLYPH_TABLE_SMALL           = 5,
+};
+
+/// Placement of the measured line relative to its initial X coordinate.
+enum {
+    TEXT_ALIGNMENT_LEFT   = 0,
+    TEXT_ALIGNMENT_CENTER = 1,
+    TEXT_ALIGNMENT_RIGHT  = 2,
+};
+
+/// Glyph drawing paths selected by `TextDrawReq::drawMode`.
+enum {
+    TEXT_DRAW_QUEUED                = 0,  // Opaque fill in the selected OT entry.
+    TEXT_DRAW_OUTLINED              = 1,  // Opaque fill, outline in the next OT entry.
+    TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2,  // Fill and outline with separate texture-page packets in one OT entry.
+    TEXT_DRAW_TRANSLUCENT_OUTLINED  = 3,  // Translucent fill, alternate outline palette in the next OT entry.
+    TEXT_DRAW_OUTLINE_ONLY          = 4,  // Unmodulated outline; ignores colorRgb.
+    TEXT_DRAW_IMMEDIATE             = 16, // Opaque fill submitted immediately; ignores otIndex.
+};
+
+/// Mutable placement and style for one encoded UI-text line.
+///
+/// `Text_MeasureAndCenter` adjusts X for alignment; `Text_DrawString` also
+/// advances the X/Y pen and lets inline commands change drawMode and vBias.
+/// Reinitialize placement before drawing an independent line. Drawing initializes
+/// vBias, so callers need not set it. The request is borrowed only during a call.
+/// Medium/large tables cover character bytes 0x20..0xFF; small covers 0x20..0x7A.
+/// OT indices count entries relative to `gGpuCurrentOt`, including its reserved
+/// negative entries; outlined modes 1 and 3 require the following entry as well.
+typedef struct {
+    s16 x;          // Pen X in draw-environment pixels; initially the alignment anchor.
+    s16 y;          // Pen baseline Y in draw-environment pixels.
+    s32 otIndex;    // Signed OT entry index; unused by immediate drawing.
+    u32 colorRgb;   // Initial modulation RGB in bits 0..23 (R low byte); command byte ignored.
+    s8  glyphTable; // Initial metrics (0 medium, 5 small, otherwise large; callers also use 2 and 4).
+    s8  alignment;  // Horizontal placement (0 left, 1 center, 2 right; other values leave X unchanged).
+    s8  drawMode;   // Path (0 queued, 1 outlined, 2 outlined single entry, 3 translucent outlined, 4 outline only, 16 immediate).
+    s8  vBias;      // Texture V offset in texels, added modulo 256 (38 medium, 0 small, -128 large).
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 

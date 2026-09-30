@@ -423,10 +423,10 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
         baseY          = arg1->panel.contentOriginY.unsignedValue - 6;
         req.y          = baseY + y;
         req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
+        req.colorRgb   = color;
+        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        req.alignment  = TEXT_ALIGNMENT_LEFT;
+        req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(arg1, x, y, item, one);
         temp = item - 0xF;
@@ -739,10 +739,10 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrLoad);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -779,10 +779,10 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
     req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.field_8    = arg0->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
+    req.colorRgb   = arg0->field_1C;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    req.alignment  = TEXT_ALIGNMENT_LEFT;
+    req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrExchange);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
