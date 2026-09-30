@@ -73,6 +73,8 @@
 #include "rooms/shelter_b4_reservoir.h"
 
 #include "rooms/shelter_b4_upper_sewer.h"
+#include "../../shared/limb_shadows.h"
+#include "../../shared/coord_math.h"
 
 typedef struct {
     TaskFunc funcs[15];
@@ -139,7 +141,7 @@ STATIC_ASSERT_SIZEOF(Actor100400NearestScratch, 0x1C);
 typedef union Actor100400Mat {
     MATRIX     mat;
     GpMtxWords ident;
-    /// The same storage reused as the view-space position `Actor00400_Fn0A08C`
+    /// The same storage reused as the view-space position `coordLocalToWorld`
     /// fills in, once the rotation it held has been handed to the coordinate.
     SVECTOR vec;
 } Actor100400Mat;
@@ -316,7 +318,6 @@ static void Actor00400_Fn0A760(Task* arg0);
 static void Actor00400_Fn0A7F0(Task* arg0);
 static void Actor00400_Fn0A82C(Task* arg0);
 static void Actor00400_Fn0A034(Task* arg0);
-static s32  Actor00400_Fn0A08C(GfxCoord* coord, SVECTOR* pos);
 static void Actor00400_Fn0A510(Task* arg0);
 static void Actor00400_Fn0A57C(Task* arg0);
 static void Actor00400_Fn0762C(Task* arg0, s16 arg1, s16 arg2);
@@ -1172,7 +1173,6 @@ static void                 Actor00400_Fn001AC(GfxCoord* coord, u16 phase, u16 k
 static void                 Actor00400_Fn00A14(Task* arg0);
 static void                 Actor00400_Fn00B48(Task* arg0);
 static void                 Actor00400_Fn00C84(Task* arg0);
-static void                 Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 static void                 Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2);
 static void                 Actor00400_Fn01454(Task* arg0);
 static void                 Actor00400_Fn016A4(Task* arg0, s32 arg1);
@@ -1535,107 +1535,26 @@ static void Actor00400_Fn00C84(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Draws one textured, semi-transparent quad for the segment between model
-/// parts `firstJoint` and `secondJoint`, laid flat at the view-space height
-/// `height`. The quad is `width` wide on each side of the segment and
-/// stretches half the segment's length past each end; it is tinted grey by
-/// `shade` and skipped when the projection clips it. Equal parts draw nothing.
-static void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
-{
-    ActorBeamScratch* s;
-    s16               angle;
-    GfxCoord*         secondCoord;
-    GfxCoord*         firstCoord;
-    s32               offset0;
-    s32               offset1;
-    s32               offset2;
-    s32               offset3;
-    s32               halfX;
-    s32               halfZ;
-    GfxCoord*         coords;
-    GfxCoord*         view;
-    POLY_FT4*         poly;
-
-    coords      = actor->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
-    if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->first.vy   = height;
-        s->second.vy  = height;
-        s->first.vx   = s->firstMatrix.t[0];
-        s->first.vz   = s->firstMatrix.t[2];
-        s->second.vx  = s->secondMatrix.t[0];
-        s->second.vz  = s->secondMatrix.t[2];
-        angle         = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
-        halfX         = (s->first.vx - s->second.vx) / 2;
-        halfZ         = (s->first.vz - s->second.vz) / 2;
-        offset0       = rcos(angle) * width;
-        s->corner0.vy = height;
-        s->corner0.vx = halfX + (s->first.vx - (offset0 >> 0xC));
-        s->corner0.vz = halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1       = rcos(angle) * width;
-        s->corner1.vy = height;
-        s->corner1.vx = halfX + (s->first.vx + (offset1 >> 0xC));
-        s->corner1.vz = halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2       = rcos(angle) * width;
-        s->corner2.vy = height;
-        s->corner2.vx = (s->second.vx - (offset2 >> 0xC)) - halfX;
-        s->corner2.vz = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        offset3       = rcos(angle) * width;
-        s->corner3.vy = height;
-        s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
-        s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        /* `gGfxViewCoord`, reached back from its `workm`: the address is built
-           from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
-        view               = &gGfxViewCoord;
-        view->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(view);
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
-                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
-        if (s->flags >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code            = 0x2E;
-            PRIM_XY_WORD(poly, 0) = s->screen0;
-            PRIM_XY_WORD(poly, 1) = s->screen1;
-            PRIM_XY_WORD(poly, 2) = s->screen2;
-            PRIM_XY_WORD(poly, 3) = s->screen3;
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            poly->tpage = 0x48;
-            poly->clut  = 0x4283;
-            setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
-    }
-}
+#include "../../shared/limb_shadows_segment.inc.c"
 
 static void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
 {
     s32 temp_s2;
 
     temp_s2 = arg2 & 0xFF;
-    Actor00400_Fn00E3C(arg0, 1, 2, 0x258, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 2, 3, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 3, 4, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 4, 5, 0x1F4, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 1, 6, 0x320, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 6, 7, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 7, 8, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 1, 0xC, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 0xC, 0xD, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 0xD, 0xE, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 1, 9, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 9, 0xA, 0x12C, arg1, temp_s2);
-    Actor00400_Fn00E3C(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 1, 2, 0x258, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 2, 3, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 3, 4, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 4, 5, 0x1F4, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 1, 6, 0x320, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 6, 7, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 7, 8, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 1, 0xC, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 0xC, 0xD, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 0xD, 0xE, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 1, 9, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 9, 0xA, 0x12C, arg1, temp_s2);
+    limbShadowDrawSegment(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
 }
 
 /* Tracks the nearer of the two party members and stores the result in the
@@ -1673,7 +1592,7 @@ static void Actor00400_Fn01454(Task* arg0)
         view.vx = 0;
         view.vy = 0;
         view.vz = 0;
-        Actor00400_Fn0A08C(joint, &view);
+        coordLocalToWorld(joint, &view);
         delta0.vx = c0->coord.t[0] - view.vx;
         delta0.vy = c0->coord.t[1] - view.vy;
         delta0.vz = c0->coord.t[2] - view.vz;
@@ -3598,7 +3517,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 m.vec.vx = 0;
                 m.vec.vy = 0;
                 m.vec.vz = 0;
-                Actor00400_Fn0A08C(coordN, &m.vec);
+                coordLocalToWorld(coordN, &m.vec);
                 if (w4->field_64E + 0x190 < m.vec.vy) {
                     obj2->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 } else {
@@ -4091,14 +4010,14 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
             tip.vx  = 0;
             tip.vy  = 0;
             tip.vz  = height;
-            Actor00400_Fn0A08C(span, &base);
-            Actor00400_Fn0A08C(span, &tip);
+            coordLocalToWorld(span, &base);
+            coordLocalToWorld(span, &tip);
             task->work = marker;
             dst        = task->extra.tmd->coords;
             pos.vx     = 0;
             pos.vy     = 0;
             pos.vz     = 0;
-            Actor00400_Fn0A08C(origin, &pos);
+            coordLocalToWorld(origin, &pos);
             dst->coord.t[0]  = pos.vx;
             dst->coord.t[1]  = pos.vy;
             dst->coord.t[2]  = pos.vz;
@@ -6101,44 +6020,7 @@ static void Actor00400_Fn0A034(Task* arg0)
     }
 }
 
-/// Carries `pos` from `coord`'s space along the `parent` links, applying each
-/// coordinate's matrix in turn, until the walk reaches the view coordinate
-/// `gGfxViewCoord`; the result is written back to `pos` and 1 returned. A
-/// chain that ends before reaching the view returns 0 and leaves `pos` as it
-/// was.
-static s32 Actor00400_Fn0A08C(GfxCoord* coord, SVECTOR* pos)
-{
-    SVECTOR   local;
-    VECTOR    result;
-    s32       flag;
-    GfxCoord* current;
-
-    current  = coord;
-    local.vx = pos->vx;
-    local.vy = pos->vy;
-    local.vz = pos->vz;
-    while (1) {
-        if (current->parent == NULL) {
-            return 0;
-        }
-        if (current == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            return 1;
-        }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
-        gte_ldv0(&local);
-        gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        current  = current->parent;
-    }
-}
+#include "../../shared/coord_math_local_to_world.inc.c"
 
 /// First kill-path state, entered the frame the marker task is spawned:
 /// `Actor00400_Fn02D48` walks it afterwards and `Actor00400_Fn0A28C` retires it.

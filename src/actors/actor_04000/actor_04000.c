@@ -48,6 +48,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/coord_math.h"
+#include "../../shared/actor_messages.h"
 
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
@@ -183,7 +185,6 @@ void             Actor04000_Fn0703C(Task*);
 
 s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*);
 s32 Actor04000_Fn06590(Task*, s32, s32);
-s32 Actor04000_Fn06634(Task*, s32, ActorTransform* placement);
 s32 Actor04000_Fn06704(Task*, s32, void*);
 s32 Actor04000_Fn06728(Task*, s32, AnimationPlayRequest*, s32);
 
@@ -1110,7 +1111,7 @@ Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6] = {
     { 2005, { .call3 = Actor04000_Fn06590 } },
     { 2003, { .call1 = Actor04000_Fn06728 } },
     { 2011, { .call0 = Actor04000_Fn0093C } },
-    { 2004, { .call2 = Actor04000_Fn06634 } },
+    { 2004, { .call2 = actorMsgPlace } },
     { 2014, { .call4 = Actor04000_Fn06704 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1174,7 +1175,6 @@ static void            Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1);
-static void            Actor04000_Fn06760(GfxCoord* coord, s16 scale);
 
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
@@ -3157,21 +3157,7 @@ s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Handler for message 0x7D4: places the actor's model from `placement`. The
-/// three longs become the coordinate's translation, then the X, Y and Z angles
-/// are applied in that order and the coordinate is marked dirty. Always
-/// answers 1.
-s32 Actor04000_Fn06634(Task* task, s32 arg1, ActorTransform* placement)
-{
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 1;
-}
+#include "../../shared/actor_messages_place.inc.c"
 
 /// Message handler for 0x7DE: advances the work block's state from 0xB to 0xD
 /// and leaves any other state alone.
@@ -3201,43 +3187,7 @@ s32 Actor04000_Fn06728(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3
     return 1;
 }
 
-/// Rebuilds `coord`'s rotation as a pure yaw - the angle its Z row already
-/// faces in the XZ plane - scaled uniformly by `scale`, working in a block
-/// borrowed from the scratchpad, and marks the coordinate dirty.
-static void Actor04000_Fn06760(GfxCoord* coord, s16 scale)
-{
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-}
+#include "../../shared/coord_math_yaw_scale.inc.c"
 
 static void Actor04000_Fn06878(GpEnemy* arg0, Task* arg1)
 {

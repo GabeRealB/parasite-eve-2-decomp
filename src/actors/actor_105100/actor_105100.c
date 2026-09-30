@@ -55,6 +55,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b6_training_room.h"
+#include "../../shared/fireball.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -201,7 +202,6 @@ typedef struct Actor105100Gate {
 } Actor105100Gate;
 STATIC_ASSERT_SIZEOF(Actor105100Gate, 0x5AC);
 
-static void func_actor_105100_80132414(GfxCoord* arg0, s32 arg1);
 static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1);
 static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1);
 static void func_actor_105100_80132C2C(Task* arg0);
@@ -836,208 +836,11 @@ extern TaskDesc D_actor_105100_80141464[];
 /// (one).
 extern u16 D_actor_105100_801413C8[16];
 
-static void        func_actor_105100_80131EBC(GfxCoord* coord, s16 size);
 static inline void _actor105100AnimUpdate(Task* task);
-static void        func_actor_105100_80135CEC(GfxCoord* arg0, s32 arg1);
 
-/// Projects `coord` onto two `POLY_FT4` billboards, lights `Gp_RoomCoords[2]`
-/// as a point light at that position, and traces the ground for the ground-quad
-/// helper when `Gp_State1C->groundTraceEnabled` is set.
-static void func_actor_105100_80131EBC(GfxCoord* coord, s16 size)
-{
-    GfxCoord       ground;
-    POLY_FT4*      prim;
-    s16            intensity;
-    s16            outerLeft;
-    s16            outerRight;
-    s16            outerTop;
-    s16            outerBottom;
-    s16            left;
-    s16            right;
-    s16            top;
-    s16            bottom;
-    s32            outerSize;
-    u32            random;
-    GpCoord64*     slot;
-    GpPointLight*  light;
-    GpRingScratch* sc;
+#include "../../shared/fireball_glow.inc.c"
 
-    slot                                          = &Gp_RoomCoords[2];
-    slot->framesLeft                              = 2;
-    light                                         = &slot->light;
-    light->inner                                  = 0x300;
-    light->outer                                  = 0x3000;
-    random                                        = (Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState                                   = random;
-    intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.color.r                           = intensity;
-    light->head.color.g                           = intensity >> 1;
-    light->head.color.b                           = intensity >> 2;
-    light->head.transform.lighting.local.t[0]     = (s32)coord->coord.t[0];
-    light->head.transform.lighting.local.t[1]     = (s32)coord->coord.t[1];
-    light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
-    slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
-    sc->vec.vx = coord->workm.t[0];
-    sc->vec.vy = coord->workm.t[1];
-    sc->vec.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
-    gte_rtps();
-    gte_stsxy(&sc->sx);
-    gte_stflg(&sc->flag);
-    if (sc->flag >= 0) {
-        gte_stszotz(&sc->otz);
-        prim           = gGpuPrimCursor;
-        sc->otz        = (s32)(sc->otz + 1);
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2EU;
-        prim->tpage = 0x29;
-        if (gDisplayState.animFrame & 1) {
-            prim->r0   = 0xA0;
-            prim->g0   = 0x80;
-            prim->b0   = 0x60;
-            prim->clut = 0x428B;
-            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-        } else {
-            prim->clut = 0x428C;
-            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code = (u8)(prim->code | 1);
-        }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
-        addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2F;
-        prim->tpage = 0x29;
-        prim->clut =
-            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
-                  0x4300);
-        setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
-        prim->x2    = outerLeft;
-        prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
-        prim->x3    = outerRight;
-        prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
-        prim->y1    = outerTop;
-        prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
-        prim->y3    = outerBottom;
-        prim->y2    = outerBottom;
-        addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-        if (Gp_State1C->groundTraceEnabled != 0) {
-            if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_actor_105100_80132414(&ground, (s32)(s16)(outerSize * 2));
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
-
-/// Draws a flat textured quad on the ground under the actor: the corners of
-/// the unit quad `D_80111E38`, scaled by `arg1` and turned into view
-/// orientation, are placed around `arg0`'s world translation and projected.
-/// When all four project, a semi-transparent `POLY_FT4` is queued one step
-/// behind their depth, its texture alternating between two frames with the
-/// display's animation frame.
-static void func_actor_105100_80132414(GfxCoord* arg0, s32 arg1)
-{
-    OverlayGroundScratch* sc;
-    POLY_FT4*             prim;
-    s32                   i;
-    s32                   otz;
-    s32                   flag;
-    s32                   u;
-
-    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        sc->vec[i].vx = D_80111E38[i].x * arg1;
-        sc->vec[i].vy = 0;
-        sc->vec[i].vz = D_80111E38[i].y * arg1;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&sc->vec[i]);
-        gte_rtv0();
-        gte_stsv(&sc->vec[i]);
-        sc->vec[i].vx += arg0->workm.t[0];
-        sc->vec[i].vy += arg0->workm.t[1];
-        sc->vec[i].vz += arg0->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec[0]);
-    gte_rtps();
-    gte_stsxy(&sc->sxy0);
-    gte_stflg(&flag);
-    if (flag >= 0) {
-        gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-        gte_rtpt();
-        gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-        gte_stflg(&flag);
-        if (flag >= 0) {
-            gte_stszotz(&otz);
-            otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-
-            prim->r0    = 0x30;
-            prim->g0    = 0x20;
-            prim->b0    = 0x20;
-            prim->tpage = 0x28;
-            prim->clut  = 0x428C;
-            setSemiTrans(prim, 1);
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-            prim->v0 = 0x38;
-            prim->u0 = u;
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-            prim->v1 = 0x38;
-            prim->u1 = u;
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-            prim->v2 = 0x57;
-            prim->u2 = u;
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-            prim->v3 = 0x57;
-            prim->u3 = u;
-            prim->x0 = sc->sxy0.vx;
-            prim->y0 = sc->sxy0.vy;
-            prim->x1 = sc->sxy1.vx;
-            prim->y1 = sc->sxy1.vy;
-            prim->x2 = sc->sxy2.vx;
-            prim->y2 = sc->sxy2.vy;
-            prim->x3 = sc->sxy3.vx;
-            prim->y3 = sc->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
-}
+#include "../../shared/fireball_ground_glow.inc.c"
 
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the
@@ -2228,7 +2031,7 @@ static void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
     parentWork = (arg1->parent)->work;
     state      = Gp_StateF0.field_4;
     if (state == 1) {
-        func_actor_105100_80131EBC(coord, work->field_7E);
+        fireballDrawGlow(coord, work->field_7E);
         return;
     }
     if (state < 2) {
@@ -2337,7 +2140,7 @@ body:
         update:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            func_actor_105100_80131EBC(coord, work->field_7E);
+            fireballDrawGlow(coord, work->field_7E);
             break;
         case 3:
             n = 4;
@@ -2359,7 +2162,7 @@ body:
             coord->coord.t[2]  += (coord->coord.m[2][2] * (s16)work->field_7C) >> 12;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            func_actor_105100_80131EBC(coord, work->field_7E);
+            fireballDrawGlow(coord, work->field_7E);
             if (work->rec20.key.value != 0 || (s16)work->field_78 >= 0x1A) {
                 work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 Gp_ClearRec18Occupied(&work->rec20);
@@ -2694,28 +2497,7 @@ done:
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Unless the player is in an event, draws from the gameplay LCG and on one
-/// frame in four spawns effect `D_80115728` on `arg0`, offset in a random
-/// horizontal direction; `arg1` is or-ed into the spawn flags.
-static void func_actor_105100_80135CEC(GfxCoord* arg0, s32 arg1)
-{
-    SVECTOR sp10;
-    SVECTOR sp18;
-    s32     ang;
-
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            ang         = ((u32)Gp_LcgState >> 16) & 0xF80;
-            memset(&sp18, 0, sizeof(sp18));
-            sp18.vx = (u32)(rcos(ang) * 5) >> 5;
-            sp18.vz = (u32)(rsin(ang) * 5) >> 5;
-            sp10    = sp18;
-            Gp_SpawnEff(D_80115728, arg0, arg1 | 0x20100200, &sp10);
-        }
-    }
-}
+#include "../../shared/fireball_ember.inc.c"
 
 void func_actor_105100_80135DF8(Task* arg0)
 {

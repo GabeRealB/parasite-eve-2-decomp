@@ -38,6 +38,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "../../shared/coord_math.h"
+#include "../../shared/actor_messages.h"
 
 /// The actor's per-instance work block, allocated by the spawn state and
 /// reached through `Task::work`. Only the fields the actor's code touches are
@@ -160,7 +162,6 @@ void             func_actor_223600_8014CF6C(Task*);
 
 s32 func_actor_223600_8014CC04(Task*, s32, s32);
 s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*);
-s32 func_actor_223600_8014CD54(Task*, s32, ActorTransform* placement);
 
 #include "../../shared/actor_contacts.h"
 
@@ -835,7 +836,7 @@ u8 D_actor_223600_80150A28[256] = {
 Actor223600MessageEntry D_actor_223600_80150B28[4] = {
     { 2005, { .call2 = func_actor_223600_8014CC04 } },
     { 2011, { .call0 = func_actor_223600_8014CCD4 } },
-    { 2004, { .call1 = func_actor_223600_8014CD54 } },
+    { 2004, { .call1 = actorMsgPlace } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -860,7 +861,6 @@ static void            func_actor_223600_8014B540(GpEnemy* enemy, Task* task);
 static void            func_actor_223600_8014B840(GpEnemy* enemy, Task* task);
 static void            func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task);
 static void            func_actor_223600_8014CA00(GpEnemy* enemy, Task* task);
-static void            func_actor_223600_8014CE24(GfxCoord* coord, s16 scale);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1569,60 +1569,9 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
     return 0;
 }
 
-/// Message handler (id 0x7D4 in `D_actor_223600_80150B28`). Places the model's
-/// coordinate from `placement`: the three longs become the translation, the
-/// X, Y and Z angles are applied in that order with `Gfx_RotMatrixX` / `Y` /
-/// `Z`, and the coordinate is marked dirty. Always returns 1.
-s32 func_actor_223600_8014CD54(Task* task, s32 arg1, ActorTransform* placement)
-{
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 1;
-}
+#include "../../shared/actor_messages_place.inc.c"
 
-/// Rebuilds `coord`'s rotation as a pure yaw -- its current heading, taken
-/// with `ratan2` of `-m[2][0], m[2][2]` -- uniformly scaled by `scale`, working
-/// in a 0x34-byte block borrowed from the scratchpad. Marks the coordinate
-/// dirty.
-static void func_actor_223600_8014CE24(GfxCoord* coord, s16 scale)
-{
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-}
+#include "../../shared/coord_math_yaw_scale.inc.c"
 
 /// Idle state of this enemy (entry 0 of `D_actor_223600_80149E4C`). On the
 /// frame the state is entered (`field_4` set) it marks the enemy not lockable

@@ -49,6 +49,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/player_detection.h"
+#include "../../shared/actor_messages.h"
 
 /// Animation-state view shared by actor_401000 and actor_401800. Each actor
 /// owns a larger work block; these are the fields their animation driver uses.
@@ -101,7 +103,7 @@ typedef struct Actor401800Work {
     /// frame; the same slot `Actor104000Work.field_6` counts in.
     /* 0x006 */ s16 field_6;
     /// Stride counter the walking body bumps once a frame alongside `field_6`
-    /// and clears whenever `func_actor_401800_80133918` reports the actor is on
+    /// and clears whenever `detectSightBlocked` reports the actor is on
     /// target; the walking body picks `field_0 = 0x1B` once it reaches 0x5B.
     /// Same slot `Actor01900Work.field_8` counts in.
     /* 0x008 */ s16  field_8;
@@ -110,7 +112,7 @@ typedef struct Actor401800Work {
     /* 0x00C */ Actor401800Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
     /// Heading of the root coordinate, `ratan2` of its Z axis, stored by the
-    /// placement handler `func_actor_401800_8013DE3C` after it rotates the
+    /// placement handler `actorMsgPlaceRecordYaw` after it rotates the
     /// model into place.
     /* 0x016 */ s16  field_16;
     /* 0x018 */ byte pad_18[0x42];
@@ -191,7 +193,7 @@ typedef struct Actor401800Work {
     /// `Actor401300Work.field_C96` / `Actor01900Work.field_C22` keep.
     /* 0xBFA */ s16 field_BFA;
     /// Step the aim-and-rescale body walks the actor along its own local Z
-    /// axis while `func_actor_401800_80133558` says the path is clear, and
+    /// axis while `detectPlayerOutOfReach` says the path is clear, and
     /// reloads `field_0 = 9` once it has counted down to zero. Same slot
     /// `Actor401300Work.field_C98` keeps.
     /* 0xBFC */ s16 field_BFC;
@@ -367,8 +369,6 @@ extern TmdSource D_actor_401800_80144F24;
 #include "../../shared/actor_contacts.h"
 
 static s32  func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s16 count);
-static s32  func_actor_401800_80133558(GfxCoord* coord, s16 arg1, s16 arg2);
-static s32  func_actor_401800_80133918(Task* arg0);
 static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2);
 s32         func_actor_401800_8013DCBC(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 static void func_actor_401800_80133EB8(Task* arg0);
@@ -408,9 +408,7 @@ extern AnimationSet D_actor_401800_8015256C;
 
 extern TmdSource D_actor_401800_80143918;
 s32              func_actor_401800_8013DCBC(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_401800_8013DD2C(Task*, s32, s32);
 s32              func_actor_401800_8013DDEC(Task*);
-s32              func_actor_401800_8013DE3C(Task*, s32, ActorTransform* placement);
 s32              func_actor_401800_8013DF3C(Task*);
 s32              func_actor_401800_8013DF80(Task*, s32, u16*);
 void             func_actor_401800_8013DCB4(void);
@@ -1345,9 +1343,9 @@ SVECTOR D_actor_401800_80155A20[12] = {
 Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 2015, { .call5 = func_actor_401800_8013DCB4 } },
     { 2003, { .call1 = func_actor_401800_8013DCBC } },
-    { 2005, { .call3 = func_actor_401800_8013DD2C } },
+    { 2005, { .call3 = actorMsgSetVisibility } },
     { 2006, { .call0 = func_actor_401800_8013DDEC } },
-    { 2004, { .call2 = func_actor_401800_8013DE3C } },
+    { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = func_actor_401800_8013DF3C } },
     { 2011, { .call4 = func_actor_401800_8013DF80 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1404,64 +1402,7 @@ static void            func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts.inc.c"
 
-/// Returns nonzero while the actor at `coord` should keep closing on the
-/// slot-3 player. With `arg2 >= 0` that is when the player is more than 0x400
-/// off the actor's facing; with `arg2 < 0`, when the player is within 0x400
-/// of it. Otherwise the point `arg2` units along the facing is taken and the
-/// result is whether it is still at least `arg1 + 0x96` from the player.
-static s32 func_actor_401800_80133558(GfxCoord* coord, s16 arg1, s16 arg2)
-{
-    SVECTOR  v;
-    SVECTOR  d;
-    VECTOR   e;
-    Task*    player;
-    s16      angle;
-    SVECTOR* pv;
-    s32      x;
-
-    player = gameGetPtrSlot(3);
-    d.vx   = (u16)player->extra.tmd->coords->coord.t[0] - (u16)coord->coord.t[0];
-    d.vy   = (u16)player->extra.tmd->coords->coord.t[1] - (u16)coord->coord.t[1];
-    d.vz   = (u16)player->extra.tmd->coords->coord.t[2] - (u16)coord->coord.t[2];
-    angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
-    x = angle << 16;
-    if (arg2 >= 0) {
-        if (abs(x >> 16) > 0x400) {
-            return 1;
-        }
-    } else {
-        if (abs(x >> 16) < 0x400) {
-            return 1;
-        }
-    }
-    Gfx_MatrixCol2(&coord->coord, &v);
-    pv = &v;
-    VectorNormalSS(pv, pv);
-    gte_lddp(arg2);
-    gte_ldsv(pv);
-    gte_gpf12();
-    gte_stsv(pv);
-    v.vx += (u16)coord->coord.t[0];
-    v.vy += (u16)coord->coord.t[1];
-    v.vz += (u16)coord->coord.t[2];
-    e.vx  = player->extra.tmd->coords->coord.t[0] - v.vx;
-    e.vy  = player->extra.tmd->coords->coord.t[1] - v.vy;
-    e.vz  = player->extra.tmd->coords->coord.t[2] - v.vz;
-    return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= arg1 + 0x96;
-}
+#include "../../shared/player_detection_reach.inc.c"
 
 /// Per-frame blended animation tick: for pose slots 1..10 it sets both
 /// contexts' slot rates (the blend context's from `field_8AA`, the pose
@@ -1494,52 +1435,7 @@ static void func_actor_401800_801337EC(Task* arg0)
     }
 }
 
-/// Line-of-sight test between the slot-3 player and this actor: both root
-/// positions, raised by 1000, are rotated into world space and handed to
-/// `func_800E0308`, whose result is returned.
-static s32 func_actor_401800_80133918(Task* arg0)
-{
-    Task*              player;
-    u8*                head;
-    ActorSightScratch* s;
-    SVECTOR*           local;
-    SVECTOR*           v;
-    SVECTOR*           out;
-
-    player                   = gameGetPtrSlot(3);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    local                    = (SVECTOR*)(head - 0xC);
-    s                        = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx              = player->extra.tmd->coords->coord.t[0];
-    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
-    s->local.vz              = player->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    v = local;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(&s->out);
-    s->out.vx += gGfxViewCoord.workm.t[0];
-    s->out.vy += gGfxViewCoord.workm.t[1];
-    s->out.vz += gGfxViewCoord.workm.t[2];
-
-    s->local.vx = arg0->extra.tmd->coords->coord.t[0];
-    s->local.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
-    s->local.vz = arg0->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(out);
-    s->from.vx += gGfxViewCoord.workm.t[0];
-    s->from.vy += gGfxViewCoord.workm.t[1];
-    s->from.vz += gGfxViewCoord.workm.t[2];
-    s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-    return s->hit;
-}
+#include "../../shared/player_detection_sight.inc.c"
 
 /// Animation-event dispatcher: picks the `0x400A00xx` event the state in
 /// `field_89E` and the animation index in `field_5A & 0x3FF` queue, one event
@@ -2719,14 +2615,14 @@ static void func_actor_401800_80136560(Task* arg0)
     if (abs(s->yaw - s->playerYaw) < 0x44) {
         if (((s16)work->field_C0C + work->field_C1E / 2) < work->field_6) {
             if (abs(s->turn) < 0x80) {
-                if (Actor401800_ChaseOutOfRange(&s->delta, 0x708) && func_actor_401800_80133918(arg0) != 1) {
+                if (Actor401800_ChaseOutOfRange(&s->delta, 0x708) && detectSightBlocked(arg0) != 1) {
                     work->field_0 = 0xA;
                 }
             }
         }
     }
     if (s->turn < 0x200) {
-        if (!Actor401800_ChaseOutOfRange(&s->delta, 0x44C) && func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+        if (!Actor401800_ChaseOutOfRange(&s->delta, 0x44C) && detectSightBlocked(arg0) != 1 && work->field_8C2 == 0) {
             work->field_0 = 0xB;
         }
     }
@@ -2743,10 +2639,10 @@ static void func_actor_401800_80136560(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 3) {
         if (work->field_89A == 0) {
-            if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x42) / 18) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x42) / 18) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x42) / 18);
             }
-        } else if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, (((work->field_8A4 + 2) * 0x42) / 18) >> 2) != 0) {
+        } else if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->field_8A4 + 2) * 0x42) / 18) >> 2) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (((work->field_8A4 + 2) * 0x42) / 18) >> 2);
         }
     } else if (work->field_68 & 1) {
@@ -2766,7 +2662,7 @@ static void func_actor_401800_80136560(Task* arg0)
 /// `field_8` has run 7 frames, clamps the turn toward the player into
 /// `s->angle`, rebuilds the root coordinate at scale 0x1194 and steps the actor
 /// by `field_BFC` (the step countdown, halved while `field_89A` is set, forced
-/// to 2 while `field_8` is live) while `func_actor_401800_80133558` reports the
+/// to 2 while `field_8` is live) while `detectPlayerOutOfReach` reports the
 /// path clear. `field_BFE` then walks 8 -> -1 -> 0 against `field_8A2`, and at
 /// 0 the fifth `field_6` frame picks `field_0` from the yaw offset to the
 /// player. Same step ramp as `Actor01900_Fn04D14`, with the aim and the step
@@ -2858,7 +2754,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
     if (work->field_8 != 0) {
         work->field_BFC = 2;
     }
-    if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, work->field_BFC) != 0) {
+    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_BFC) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_BFC);
     }
     D_actor_401800_80155AC0 += work->field_BFC;
@@ -2881,7 +2777,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
             if (yaw < 0) {
                 yaw = -yaw;
             }
-            if (yaw >= 0x401 && func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+            if (yaw >= 0x401 && detectSightBlocked(arg0) != 1 && work->field_8C2 == 0) {
                 work->field_0 = 0xB;
             } else {
                 work->field_0 = 0x1A;
@@ -2903,7 +2799,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
 /// the player. Otherwise it picks `field_0` from the `field_C1C` contact range
 /// and the `field_8C2` countdown, steers `field_BF8` 0x89 a frame toward
 /// `field_BFA`, rebuilds the root coordinate at scale 0x1194 and steps the
-/// actor 0x28 / 0x14 along its local Z while `func_actor_401800_80133558`
+/// actor 0x28 / 0x14 along its local Z while `detectPlayerOutOfReach`
 /// reports the path clear. Same body as `func_actor_401300_801376E4` /
 /// `Actor01900_Fn0551C`, with the step helper's clear-path test added.
 static void func_actor_401800_80137714(Task* arg0)
@@ -2951,7 +2847,7 @@ static void func_actor_401800_80137714(Task* arg0)
     if (work->field_BF8 == work->field_BFA) {
         if (work->field_C1C < 2 || Actor401800_OutOfRange(&s->delta, 0x384)) {
             work->field_0 = 8;
-        } else if (func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+        } else if (detectSightBlocked(arg0) != 1 && work->field_8C2 == 0) {
             work->field_0 = 0xB;
         } else {
             work->field_0 = 8;
@@ -2973,11 +2869,11 @@ static void func_actor_401800_80137714(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89A == 0) {
-        if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
             actorStepForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
-        if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
             actorStepForward(arg0->extra.tmd->coords, 0x14);
         }
     }
@@ -3373,10 +3269,10 @@ static void func_actor_401800_80138F5C(Task* arg0)
 /// with clip 3 to the `gameGetPtrSlot(3)` task and seeds the walk step
 /// `field_C04` to -0x78; otherwise, while the `field_5A` clip is one of
 /// `0x10..0x16`, it advances the actor along its own local Z by `field_C04`
-/// once `func_actor_401800_80133558` says the path is still clear and halves
+/// once `detectPlayerOutOfReach` says the path is still clear and halves
 /// that step each time the `field_A28` contact fires. Both paths then tick the
 /// animation, and — on work bit 0 — pick `field_0` from the enemy's state byte
-/// (`6`, or `0xA` when the enemy is not the one `func_actor_401800_80133918`
+/// (`6`, or `0xA` when the enemy is not the one `detectSightBlocked`
 /// reports) and release the `0x3F1` message once.
 static void func_actor_401800_80139118(Task* arg0)
 {
@@ -3407,7 +3303,7 @@ static void func_actor_401800_80139118(Task* arg0)
         work->field_C20 = 0;
     }
     if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7) {
-        if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, work->field_C04) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C04);
         }
         if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) == 1) {
@@ -3419,7 +3315,7 @@ static void func_actor_401800_80139118(Task* arg0)
     if (work->field_68 & 1) {
         kind = enemy->node.state.parts.targeted;
         if (kind == 1) {
-            if (func_actor_401800_80133918(arg0) == kind) {
+            if (detectSightBlocked(arg0) == kind) {
                 work->field_0 = 6;
             } else {
                 work->field_0 = 0xA;
@@ -3438,7 +3334,7 @@ static void func_actor_401800_80139118(Task* arg0)
 /// animation slots as `func_actor_401800_8013971C` but leaves `field_89E = 0xA`
 /// (with `field_898 = 1` and `field_89A` cleared), then, while that slot is
 /// still `0xA`, advances the actor along its own local Z by a fixed `-0x57`
-/// once `func_actor_401800_80133558` says the path is clear. The `0xA` branch
+/// once `detectPlayerOutOfReach` says the path is clear. The `0xA` branch
 /// then flips the slots to `0xB`/2 and ticks the animation a second time before
 /// the two contact records are rebuilt, after which work bit 0 picks `field_0`
 /// from the enemy's HP sign and its `field_4C` bit 1.
@@ -3466,7 +3362,7 @@ static void func_actor_401800_8013945C(Task* arg0)
         }
         work->field_8C8.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if ((work->field_89E == 0xA) && ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
+    if ((work->field_89E == 0xA) && ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
         actorStepForward(arg0->extra.tmd->coords, -0x57);
     }
     func_actor_401800_80133EB8(arg0);
@@ -3816,7 +3712,7 @@ static void func_actor_401800_8013A034(Task* arg0)
 /// 0x18 per step and swapping waypoints once the waypoint is inside 0xA0 or
 /// `field_6` has run 0x15 frames. The turn is folded into the root coordinate,
 /// which is rebuilt at scale 0x1194, and the actor steps 7 units along its own
-/// local Z while `func_actor_401800_80133558` reports the path clear. The
+/// local Z while `detectPlayerOutOfReach` reports the path clear. The
 /// `field_A28` / `field_8E8` contact records then decide whether `field_6`
 /// counts up or `func_actor_401800_8013629C` re-seeds them. In the tail the
 /// `Player_Status` offset arms state 6 within `field_C0E`, or within 0xFA0 when
@@ -3882,7 +3778,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
     s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    if (work->field_89A == 0 && (s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, 7) != 0) {
+    if (work->field_89A == 0 && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 7) != 0) {
         actorStepForward(arg0->extra.tmd->coords, 7);
     }
     if ((arg0->spawnArg1.value >> 16) != 0x10) {
@@ -3902,7 +3798,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (func_actor_401800_80133918(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
         if (!Actor401800_OutOfRange(&s->delta, work->field_C0E)) {
             work->field_0 = 6;
@@ -3922,7 +3818,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
 
 /// Aim the actor at the player, fold the clamped turn into the root
 /// coordinate's Y rotation, then step it along its own local Z while
-/// `func_actor_401800_80133558` says the path is clear — reloading
+/// `detectPlayerOutOfReach` says the path is clear — reloading
 /// `field_0 = 9` once the `field_BFC` step countdown runs out. Same body as
 /// `func_actor_401300_8013A208`, with the aim and step helpers inlined.
 static void func_actor_401800_8013AB64(Task* arg0)
@@ -3965,7 +3861,7 @@ static void func_actor_401800_8013AB64(Task* arg0)
     if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) != 1) {
         func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
     }
-    if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, work->field_BFC) != 0) {
+    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_BFC) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_BFC);
     }
     if (work->field_BFC > 0) {
@@ -3986,7 +3882,7 @@ static void func_actor_401800_8013AB64(Task* arg0)
 /// yaw at scale 0x1194, clamping the turn it adds to +-0x80 and halving it
 /// when it is not below -0x80. Once the aim state reaches 0x11 it counts
 /// frames in `field_6`, steps the actor along its own local Z while
-/// `func_actor_401800_80133558` says the path is clear, re-seeds the
+/// `detectPlayerOutOfReach` says the path is clear, re-seeds the
 /// `field_A28` contact record and past 0x13 frames turns the actor away from
 /// the side the player is on by +-0x4B0. On the live flag it resets the model
 /// buffers and arms the state 2 the aim test promotes to 0x11 within 0x80.
@@ -4042,7 +3938,7 @@ static void func_actor_401800_8013AF1C(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 0x11) {
         work->field_6++;
-        if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, -0x10) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x10) != 0) {
             actorStepForward(arg0->extra.tmd->coords, -0x10);
         }
         if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) != 1) {
@@ -4154,7 +4050,7 @@ static void func_actor_401800_8013B784(Task* arg0)
     } else {
         work->field_8AE = aim->turn;
     }
-    if (work->field_8AE == aim->turn && func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+    if (work->field_8AE == aim->turn && detectSightBlocked(arg0) != 1 && work->field_8C2 == 0) {
         work->field_0 = 0xB;
     }
     coord     = arg0->extra.tmd->coords;
@@ -4228,7 +4124,7 @@ static void func_actor_401800_8013BB10(Task* arg0)
 /// pitches its 0x8C8 node to the 0x12C walk animation, sets the 0xA08 flags bit
 /// 0x4000, plays the 0x60030 burst and arms the 2/0x1A state pair; the step
 /// counter then steps the actor along its facing while
-/// `func_actor_401800_80133558` reports the path clear, re-seeds the
+/// `detectPlayerOutOfReach` reports the path clear, re-seeds the
 /// `field_A28` contact and fires the 0xA0005 effects at 3, 5 and 6. The 0x1A
 /// state runs its light/state table and folds the countdown into the root
 /// coordinate's Y scale; the nine body coordinates from +2 to +10 are then
@@ -4268,7 +4164,7 @@ static void func_actor_401800_8013BF48(Task* arg0)
                 work->field_8A2 = 0x10;
                 work->field_89A = 0;
             }
-            if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, 7) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 7) != 0) {
                 actorStepForward(arg0->extra.tmd->coords, 7);
             }
             ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC);
@@ -4335,7 +4231,7 @@ static void func_actor_401800_8013BF48(Task* arg0)
 /// step counters; otherwise it counts both step slots, re-seeds the `field_A28`
 /// / `field_8E8` contacts, folds the turn into the root coordinate's Y rotation
 /// at scale 0x1194 and steps the actor 0x15 / 5 along its own local Z while
-/// `func_actor_401800_80133558` says the path is clear. On the `func_actor_
+/// `detectPlayerOutOfReach` says the path is clear. On the `func_actor_
 /// 401800_80133918` hit it clears the stride, picks a side from the LCG and
 /// flips it every 0xF1 frames instead. Same body as `Actor01900_Fn042BC`.
 static void func_actor_401800_8013CD98(Task* arg0)
@@ -4384,7 +4280,7 @@ static void func_actor_401800_8013CD98(Task* arg0)
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
     s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw = actorNormalizeYaw(s->yaw);
-    if (func_actor_401800_80133918(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         work->field_6   = 0;
         coord           = arg0->extra.tmd->coords;
         s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) -
@@ -4436,10 +4332,10 @@ static void func_actor_401800_8013CD98(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 2) {
         if (work->field_89A == 0) {
-            if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, 0x15) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x15) != 0) {
                 actorStepForward(arg0->extra.tmd->coords, 0x15);
             }
-        } else if ((s16)func_actor_401800_80133558(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
+        } else if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
             actorStepForward(arg0->extra.tmd->coords, 5);
         }
     } else if (work->field_68 & 1) {
@@ -4651,40 +4547,7 @@ s32 func_actor_401800_8013DCBC(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Applies one of four model settings chosen by `arg2`: 0 sets the model's
-/// flags to 0x80 and reallocates its buffers, 1 clears the flags and
-/// reallocates them, 2 and 3 set bit 2 (3 clearing the rest first). Case 1
-/// moves the actor to state 0x18, the others to state 0. Always returns 0.
-s32 func_actor_401800_8013DD2C(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject*       obj;
-    Actor401800Work* work;
-
-    obj  = task->extra.tmd;
-    work = (Actor401800Work*)task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_visibility.inc.c"
 
 /// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
 /// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
@@ -4704,32 +4567,7 @@ s32 func_actor_401800_8013DDEC(Task* task)
     return 1;
 }
 
-/// Places the model from `placement`: copies the translation into the root
-/// coordinate, applies the X, Y and Z rotations in that order (re-fetching the
-/// coordinate for every field), then stores the resulting heading - `ratan2`
-/// of the rotation matrix's Z axis - in the work block's `field_16`. Always
-/// returns 1.
-s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    s32              mx;
-    s32              mz;
-    Actor401800Work* work;
-
-    work                                = (Actor401800Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = task->extra.tmd->coords;
-    mx                                    = coord->coord.m[2][0];
-    mz                                    = coord->coord.m[2][2];
-    work->field_16                        = ratan2(-mx, mz);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw.inc.c"
 
 /// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
 /// gone. Any other state is left alone.

@@ -62,6 +62,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_motel_balcony.h"
+#include "../../shared/coord_math.h"
 
 extern GpImgRec D_actor_403100_801555EC[2];
 
@@ -70,7 +71,6 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
 static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 static void func_actor_403100_8013D06C(void);
-static s32  func_actor_403100_8013D460(GfxCoord* coord, SVECTOR* pos);
 
 typedef struct Actor403100QuadEntry {
     /* 0x00 */ u16 tpage;
@@ -3572,9 +3572,9 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             random                            = (Gp_LcgState * 5) + 0x71357911;
             Gp_LcgState                       = random;
             D_actor_403100_80155814[i].frame  = (s16)((random >> 0x10) & 0xF);
-            func_actor_403100_8013D460(joint, arg1);
+            coordLocalToWorld(joint, arg1);
             identity = &matrix;
-            func_actor_403100_8013D460(joint, &end);
+            coordLocalToWorld(joint, &end);
             D_actor_403100_80155814[i].delta.vx             = (s16)(end.vx - arg1->vx);
             D_actor_403100_80155814[i].delta.vy             = (s16)(end.vy - arg1->vy);
             D_actor_403100_80155814[i].delta.vz             = (s16)(end.vz - arg1->vz);
@@ -3697,7 +3697,7 @@ static void func_actor_403100_80132528(Task* arg0)
     pos.vx = -0x290;
     pos.vy = 0x1E8;
     pos.vz = 0x220;
-    func_actor_403100_8013D460(joint, &pos);
+    coordLocalToWorld(joint, &pos);
     func_actor_403100_8013D2F4(joint, &matrix);
     Gp_MtxToEuler(&matrix, &rotation);
     player->field_50 = rotation.vx;
@@ -3923,7 +3923,7 @@ static void func_actor_403100_801331D4(Task* arg0)
         dz                                 = (u16)playerCoord->coord.t[2] - (u16)coords->coord.t[2];
         pos.vz                             = dz;
         D_actor_403100_80155808->field_62E = SquareRoot0((dx * dx) + (dz * dz));
-        func_actor_403100_8013D460(joint, &pos);
+        coordLocalToWorld(joint, &pos);
         dx2                                = (u16)playerCoord->coord.t[0] - (u16)pos.vx;
         pos.vx                             = dx2;
         pos.vy                             = (u16)playerCoord->coord.t[1] - pos.vy;
@@ -4384,12 +4384,12 @@ static void func_actor_403100_801342B4(Task* arg0)
     pos1.vy = offset1.vy = 0x148;
     i                    = 3;
     pos1.vz = offset1.vz = 0x2C0;
-    func_actor_403100_8013D460(coord1, &pos1);
+    coordLocalToWorld(coord1, &pos1);
     coord2  = &coords[7];
     pos2.vx = offset2.vx = 0;
     pos2.vy = offset2.vy = 0;
     pos2.vz = offset2.vz = 0;
-    func_actor_403100_8013D460(coord2, &pos2);
+    coordLocalToWorld(coord2, &pos2);
     for (; i < 9; i++) {
         if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
@@ -8073,43 +8073,7 @@ static s32 func_actor_403100_8013D2F4(GfxCoord* coord, MATRIX* matrix)
         current = current->parent;
     }
 }
-/// Carries `pos`, a point local to `coord`, up the `parent` chain by applying
-/// each level's matrix. If the chain reaches the view coordinate the
-/// transformed point is written back to `pos` and 1 is returned; if it ends
-/// first, `pos` is left untouched and 0 is returned.
-static s32 func_actor_403100_8013D460(GfxCoord* coord, SVECTOR* pos)
-{
-    SVECTOR   local;
-    VECTOR    result;
-    s32       flag;
-    GfxCoord* current;
-
-    current  = coord;
-    local.vx = pos->vx;
-    local.vy = pos->vy;
-    local.vz = pos->vz;
-    while (1) {
-        if (current->parent == NULL) {
-            return 0;
-        }
-        if (current == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            return 1;
-        }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
-        gte_ldv0(&local);
-        gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        current  = current->parent;
-    }
-}
+#include "../../shared/coord_math_local_to_world.inc.c"
 
 void func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2)
 {

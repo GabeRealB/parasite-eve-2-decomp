@@ -52,6 +52,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "../../shared/player_detection.h"
 
 static void Actor05700_Fn00D08(Task* arg0);
 static void Actor05700_Fn02554(Task* arg0);
@@ -78,8 +79,6 @@ extern DamageAttack Actor05700_D170F4[5];
 /// picked by the id's 0x8000 bit.
 extern s16 Actor05700_D17118[];
 extern s16 Actor05700_D17174[];
-
-static s32 Actor05700_Fn04BB4(SVECTOR* arg0, SVECTOR* arg1);
 
 extern AnimationSet Actor05700_D0BAAC;
 extern AnimationSet Actor05700_D0C414;
@@ -1623,7 +1622,7 @@ static void Actor05700_Fn000B0(Task* arg0)
         scratch->target.vx = self->workm.t[0];
         scratch->target.vy = self->workm.t[1];
         scratch->target.vz = self->workm.t[2];
-        if (Actor05700_Fn04BB4(&scratch->effOfs, &scratch->target) == 0) {
+        if (detectSegmentHitsWall(&scratch->effOfs, &scratch->target) == 0) {
             work->field_6B2 = 1;
         }
     }
@@ -3543,35 +3542,7 @@ void Actor05700_Fn04714(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Tests the segment from `arg0` to `arg1` against the collision faces on the
-/// `D_80115550` list: the segment's direction is normalised in a 0x10-byte
-/// block carved off the scratch stack, and every face with bit 0x40 of
-/// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
-/// the last test's result otherwise.
-static s32 Actor05700_Fn04BB4(SVECTOR* arg0, SVECTOR* arg1)
-{
-    VECTOR*  vec;
-    GpObj3A* node;
-    s32      ret;
-
-    ret     = 0;
-    node    = D_80115550;
-    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    vec->vx = arg1->vx - arg0->vx;
-    vec->vy = arg1->vy - arg0->vy;
-    vec->vz = arg1->vz - arg0->vz;
-    VectorNormal(vec, vec);
-    for (; node != NULL; node = node->next) {
-        if (node->field_3A & 0x40) {
-            ret = func_800DFCCC(node, arg0, arg1, vec);
-            if (ret == 1) {
-                break;
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
-    return ret;
-}
+#include "../../shared/player_detection_segment.inc.c"
 
 /// Per-frame tick, the same body as `Actor02000_Fn03268` of `actor_102000`.
 /// State 0 counts `field_6AE` up to 0x5B frames and then hands over to state

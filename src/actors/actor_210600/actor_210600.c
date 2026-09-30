@@ -37,6 +37,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "../../shared/coord_math.h"
+#include "../../shared/actor_messages.h"
 
 /// Dual-width view of the animation rate in the work block. The message
 /// handler `func_actor_210600_8014B770` arms it as one halfword, while the
@@ -129,7 +131,6 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 extern TmdSource D_actor_210600_801594D8;
 s32              func_actor_210600_8014B5F4(Task*, s32, s32);
-s32              func_actor_210600_8014B6A0(Task*, s32, ActorTransform* placement);
 s32              func_actor_210600_8014B770(Task*, s32, ActorCommand* msg);
 void             func_actor_210600_8014BA3C(Task*);
 
@@ -264,7 +265,7 @@ u8 D_actor_210600_8015A4B4[24] = {
 
 Actor210600MessageEntry D_actor_210600_8015A4CC[4] = {
     { 2005, { .call2 = func_actor_210600_8014B5F4 } },
-    { 2004, { .call1 = func_actor_210600_8014B6A0 } },
+    { 2004, { .call1 = actorMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_210600_8014B770 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -391,7 +392,6 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 static void            func_actor_210600_8014B2C0(Task* task);
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale);
 static void            func_actor_210600_8014B434(GpEnemy* enemy, Task* task);
-static void            func_actor_210600_8014B7B0(GfxCoord* coord, s16 scale);
 static void            func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
@@ -449,7 +449,7 @@ static void func_actor_210600_8014B2C0(Task* task)
 /// Rebuilds the model's root part rotation around the yaw it already faces and
 /// rescales it uniformly through a 0x34-byte block borrowed from
 /// the scratch stack, which is handed back once the rotation has been copied
-/// onto the coordinate. The same code as `func_actor_210600_8014B7B0`,
+/// onto the coordinate. The same code as `coordSetYawScale`,
 /// expanded in place where the update body calls it.
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 {
@@ -551,22 +551,7 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message 0x7D4 handler, listed in `D_actor_210600_8015A4CC`: places the
-/// model root at `placement`. The three longs become the coordinate's
-/// translation, the X, Y and Z angles are then applied in that order through
-/// `Gfx_RotMatrixX` / `Y` / `Z`, and the coordinate is marked dirty. `msgId`
-/// is unused; the handler always reports the message handled.
-s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, ActorTransform* placement)
-{
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 1;
-}
+#include "../../shared/actor_messages_place.inc.c"
 
 /// Message 0x7DB handler, listed in `D_actor_210600_8015A4CC`. When the payload
 /// comes from sender 0x401 with selector 1, it requests clip 1 through the
@@ -590,45 +575,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg)
     return 1;
 }
 
-/// Rebuilds `coord`'s rotation as a pure Y rotation by the yaw it currently
-/// faces (`ratan2` of `-m[2][0], m[2][2]`), uniformly scaled by `scale`,
-/// through a 0x34-byte block borrowed from the scratch stack and handed back
-/// once the matrix is copied. Marks the coordinate dirty. Nothing in the
-/// overlay calls it: the update body carries the same code inline.
-static void func_actor_210600_8014B7B0(GfxCoord* coord, s16 scale)
-{
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-}
+#include "../../shared/coord_math_yaw_scale.inc.c"
 
 /// Spawn state of the actor: allocates its `Actor210600Work`, destroying the
 /// enemy if that fails, and points the task's `TmdObject` at the block's

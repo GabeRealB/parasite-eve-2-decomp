@@ -63,6 +63,7 @@
 
 #include "rooms/neo_ark_submarine_gallery.h"
 #include "../../shared/screen_wave.h"
+#include "../../shared/coord_math.h"
 
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
@@ -639,7 +640,6 @@ static void func_actor_206100_8014EFC8(Task* task);
 /// Transforms `pos` from `coord`'s space up the parent chain into the view
 /// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
 /// `gGfxViewCoord`, or 0 with `pos` untouched if the chain ends first.
-static s32 func_actor_206100_8014F030(GfxCoord* coord, SVECTOR* pos);
 
 /// Last of the actor's five top-level states (`D_actor_206100_80149E5C`):
 /// hands the task's `GpEnemy`, parked in `Task::spawnArg2`, back to
@@ -2349,15 +2349,15 @@ static void func_actor_206100_8014C458(Task* task)
                         scratch.gte.m.alt.vx = 0;
                         scratch.gte.m.alt.vy = 0;
                         mtx->gte.m.alt.vz    = 0x5A;
-                        func_actor_206100_8014F030(root, &scratch.gte.vec);
-                        func_actor_206100_8014F030(root, &scratch.gte.m.alt);
+                        coordLocalToWorld(root, &scratch.gte.vec);
+                        coordLocalToWorld(root, &scratch.gte.m.alt);
                         spawn->work        = beam;
                         child              = spawn->extra.tmd->coords;
                         launch             = &scratch.gte.out;
                         scratch.gte.out.vx = 0;
                         scratch.gte.out.vy = 0;
                         launch->vz         = 0x15E;
-                        func_actor_206100_8014F030(root, launch);
+                        coordLocalToWorld(root, launch);
                         child->coord.t[0] = scratch.gte.out.vx;
                         child->coord.t[1] = scratch.gte.out.vy;
                         child->coord.t[2] = scratch.gte.out.vz;
@@ -3766,39 +3766,7 @@ static void func_actor_206100_8014EFC8(Task* task)
     }
 }
 
-static s32 func_actor_206100_8014F030(GfxCoord* coord, SVECTOR* pos)
-{
-    SVECTOR   local;
-    VECTOR    result;
-    s32       flag;
-    GfxCoord* current;
-
-    current  = coord;
-    local.vx = pos->vx;
-    local.vy = pos->vy;
-    local.vz = pos->vz;
-    while (1) {
-        if (current->parent == NULL) {
-            return 0;
-        }
-        if (current == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            return 1;
-        }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
-        gte_ldv0(&local);
-        gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        current  = current->parent;
-    }
-}
+#include "../../shared/coord_math_local_to_world.inc.c"
 
 /// The beam child's callback: runs its current state handler out of
 /// `D_actor_206100_80149E24`, copying the table onto the stack first.

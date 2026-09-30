@@ -60,6 +60,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/fireball.h"
+#include "../../shared/player_detection.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -186,7 +188,6 @@ extern s16 Actor00300_D15FF8[];
 static void Actor00300_Fn048D4(GpEnemy* arg0, Task* arg1);
 static void Actor00300_Fn04958(GpEnemy* arg0, Task* arg1);
 
-static void Actor00300_Fn005D0(GfxCoord* arg0, s32 arg1);
 static void Actor00300_Fn00970(GpEnemy* enemy, Task* task);
 static void Actor00300_Fn04528(Task* arg0);
 static void Actor00300_Fn00E54(Task* arg0);
@@ -204,7 +205,6 @@ static void Actor00300_Fn03A1C(Task* arg0);
 static void Actor00300_Fn03B70(GpEnemy* arg0, Task* arg1);
 static void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1);
 static void Actor00300_Fn04A2C(Task* arg0);
-static s32  Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1);
 static void Actor00300_Fn04C20(Task* arg0);
 static void Actor00300_Fn04D28(Task* arg0);
 static void Actor00300_Fn04E30(Task* arg0);
@@ -1247,212 +1247,16 @@ extern TmdSource Actor00300_D0C2C4;
 
 extern void* D_80067704[1];
 
-static void            Actor00300_Fn00078(GfxCoord* coord, s16 size);
 static inline s16      _actor00300TiltMagnitude(s8 value);
 static void            Actor00300_Fn03618(Task* arg0);
 static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1);
 static void            Actor00300_Fn03F40(GpEnemy* arg0, Task* arg1);
 static void            Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1);
 static void            Actor00300_Fn04370(GpEnemy* arg0, Task* arg1);
-static void            Actor00300_Fn04664(GfxCoord* arg0, s32 arg1);
 
-/// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
-/// intensity, projects `coord` and draws two `POLY_FT4` glow billboards around
-/// it, the outer one half again as large as `size`; when
-/// `Gp_State1C->groundTraceEnabled` is set, traces the ground below and draws the
-/// ground quad there at twice the outer size.
-static void Actor00300_Fn00078(GfxCoord* coord, s16 size)
-{
-    GfxCoord       ground;
-    POLY_FT4*      prim;
-    s16            intensity;
-    s16            outerLeft;
-    s16            outerRight;
-    s16            outerTop;
-    s16            outerBottom;
-    s16            left;
-    s16            right;
-    s16            top;
-    s16            bottom;
-    s32            outerSize;
-    u32            random;
-    GpCoord64*     slot;
-    GpPointLight*  light;
-    GpRingScratch* sc;
+#include "../../shared/fireball_glow.inc.c"
 
-    slot                                          = &Gp_RoomCoords[2];
-    slot->framesLeft                              = 2;
-    light                                         = &slot->light;
-    light->inner                                  = 0x300;
-    light->outer                                  = 0x3000;
-    random                                        = (Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState                                   = random;
-    intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.color.r                           = intensity;
-    light->head.color.g                           = intensity >> 1;
-    light->head.color.b                           = intensity >> 2;
-    light->head.transform.lighting.local.t[0]     = (s32)coord->coord.t[0];
-    light->head.transform.lighting.local.t[1]     = (s32)coord->coord.t[1];
-    light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
-    slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
-    sc->vec.vx = coord->workm.t[0];
-    sc->vec.vy = coord->workm.t[1];
-    sc->vec.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
-    gte_rtps();
-    gte_stsxy(&sc->sx);
-    gte_stflg(&sc->flag);
-    if (sc->flag >= 0) {
-        gte_stszotz(&sc->otz);
-        prim           = gGpuPrimCursor;
-        sc->otz        = (s32)(sc->otz + 1);
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2EU;
-        prim->tpage = 0x29;
-        if (gDisplayState.animFrame & 1) {
-            prim->r0   = 0xA0;
-            prim->g0   = 0x80;
-            prim->b0   = 0x60;
-            prim->clut = 0x428B;
-            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-        } else {
-            prim->clut = 0x428C;
-            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code = (u8)(prim->code | 1);
-        }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
-        addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2F;
-        prim->tpage = 0x29;
-        prim->clut =
-            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
-                  0x4300);
-        setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
-        prim->x2    = outerLeft;
-        prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
-        prim->x3    = outerRight;
-        prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
-        prim->y1    = outerTop;
-        prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
-        prim->y3    = outerBottom;
-        prim->y2    = outerBottom;
-        addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-        if (Gp_State1C->groundTraceEnabled != 0) {
-            if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-                Actor00300_Fn005D0(&ground, (s32)(s16)(outerSize * 2));
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
-
-/// Draws a semi-transparent ground quad under `arg0`: the four corners of
-/// `D_80111E38` scaled by `arg1` and rotated into view space, offset by the
-/// coordinate's world position, with the texture alternating each frame.
-static void Actor00300_Fn005D0(GfxCoord* arg0, s32 arg1)
-{
-    OverlayGroundScratch* sc;
-    POLY_FT4*             prim;
-    s32                   i;
-    s32                   otz;
-    s32                   flag;
-    s32                   u;
-
-    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        sc->vec[i].vx = D_80111E38[i].x * arg1;
-        sc->vec[i].vy = 0;
-        sc->vec[i].vz = D_80111E38[i].y * arg1;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&sc->vec[i]);
-        gte_rtv0();
-        gte_stsv(&sc->vec[i]);
-        sc->vec[i].vx += arg0->workm.t[0];
-        sc->vec[i].vy += arg0->workm.t[1];
-        sc->vec[i].vz += arg0->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec[0]);
-    gte_rtps();
-    gte_stsxy(&sc->sxy0);
-    gte_stflg(&flag);
-    if (flag >= 0) {
-        gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-        gte_rtpt();
-        gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-        gte_stflg(&flag);
-        if (flag >= 0) {
-            gte_stszotz(&otz);
-            otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-
-            prim->r0    = 0x30;
-            prim->g0    = 0x20;
-            prim->b0    = 0x20;
-            prim->tpage = 0x28;
-            prim->clut  = 0x428C;
-            setSemiTrans(prim, 1);
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-            prim->v0 = 0x38;
-            prim->u0 = u;
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-            prim->v1 = 0x38;
-            prim->u1 = u;
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-            prim->v2 = 0x57;
-            prim->u2 = u;
-            u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-            prim->v3 = 0x57;
-            prim->u3 = u;
-            prim->x0 = sc->sxy0.vx;
-            prim->y0 = sc->sxy0.vy;
-            prim->x1 = sc->sxy1.vx;
-            prim->y1 = sc->sxy1.vy;
-            prim->x2 = sc->sxy2.vx;
-            prim->y2 = sc->sxy2.vy;
-            prim->x3 = sc->sxy3.vx;
-            prim->y3 = sc->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
-}
+#include "../../shared/fireball_ground_glow.inc.c"
 
 static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
 {
@@ -1611,23 +1415,23 @@ static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
 }
 
 /// Copies the world positions of two coordinates into the scratch block and
-/// runs `Actor00300_Fn04B14` on the segment between them. When it reports no
+/// runs `detectSegmentHitsWall` on the segment between them. When it reports no
 /// hit, `field_6A0` is rearmed to 0x1C2 and `field_6A2` raised; otherwise
 /// `field_6A0` is cleared.
-#define _ACTOR00300_TEST_SIGHT_LINE(work, scratch, start, end)           \
-    do {                                                                 \
-        (scratch)->from.vx = (start)->workm.t[0];                        \
-        (scratch)->from.vy = (start)->workm.t[1];                        \
-        (scratch)->from.vz = (start)->workm.t[2];                        \
-        (scratch)->to.vx   = (end)->workm.t[0];                          \
-        (scratch)->to.vy   = (end)->workm.t[1];                          \
-        (scratch)->to.vz   = (end)->workm.t[2];                          \
-        if (Actor00300_Fn04B14(&(scratch)->from, &(scratch)->to) != 0) { \
-            (work)->field_6A0 = 0;                                       \
-        } else {                                                         \
-            (work)->field_6A0 = 0x1C2;                                   \
-            (work)->field_6A2 = 1;                                       \
-        }                                                                \
+#define _ACTOR00300_TEST_SIGHT_LINE(work, scratch, start, end)              \
+    do {                                                                    \
+        (scratch)->from.vx = (start)->workm.t[0];                           \
+        (scratch)->from.vy = (start)->workm.t[1];                           \
+        (scratch)->from.vz = (start)->workm.t[2];                           \
+        (scratch)->to.vx   = (end)->workm.t[0];                             \
+        (scratch)->to.vy   = (end)->workm.t[1];                             \
+        (scratch)->to.vz   = (end)->workm.t[2];                             \
+        if (detectSegmentHitsWall(&(scratch)->from, &(scratch)->to) != 0) { \
+            (work)->field_6A0 = 0;                                          \
+        } else {                                                            \
+            (work)->field_6A0 = 0x1C2;                                      \
+            (work)->field_6A2 = 1;                                          \
+        }                                                                   \
     } while (0)
 
 /// Maps a random byte's low seven bits to a tilt magnitude of 0x40..0xBF.
@@ -3227,7 +3031,7 @@ static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
     expired = 0;
     switch (Gp_StateF0.field_4) {
         case 1:
-            Actor00300_Fn00078(coord, 0x200);
+            fireballDrawGlow(coord, 0x200);
             return;
         case 0:
         default:
@@ -3235,8 +3039,8 @@ static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
             coord->coord.t[0]  += (coord->coord.m[0][2] * 0x19) >> 8;
             coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
             Gp_UpdateCoord(coord);
-            Actor00300_Fn00078(coord, 0x200);
-            id = work->rec70.key.value;
+            fireballDrawGlow(coord, 0x200);
+            id = work->field_70.key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                              [gGameSession->location.loc.area - 1][func_800E1B24(id)]
                                                  ->field_1 == 0) {
@@ -3303,28 +3107,7 @@ static void Actor00300_Fn04528(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Unless an event is running, draws from the gameplay LCG and on one call in
-/// four spawns effect `D_80115728` on `arg0` with a random horizontal vector;
-/// `arg1` is or-ed into the spawn flags.
-static void Actor00300_Fn04664(GfxCoord* arg0, s32 arg1)
-{
-    SVECTOR sp10;
-    SVECTOR sp18;
-    s32     ang;
-
-    if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            ang         = ((u32)Gp_LcgState >> 16) & 0xF80;
-            memset(&sp18, 0, sizeof(sp18));
-            sp18.vx = (u32)(rcos(ang) * 5) >> 5;
-            sp18.vz = (u32)(rsin(ang) * 5) >> 5;
-            sp10    = sp18;
-            Gp_SpawnEff(D_80115728, arg0, arg1 | 0x20100200, &sp10);
-        }
-    }
-}
+#include "../../shared/fireball_ember.inc.c"
 
 void Actor00300_Fn04770(Task* arg0)
 {
@@ -3443,33 +3226,7 @@ static void Actor00300_Fn04A2C(Task* arg0)
     }
 }
 
-/// Tests the segment from `arg0` to `arg1` against every collision node in
-/// `D_80115550` flagged 0x40, stopping at the first node that reports a hit
-/// (1); returns the last node's result, 0 when none was tested.
-static s32 Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1)
-{
-    VECTOR*  vec;
-    GpObj3A* node;
-    s32      ret;
-
-    ret     = 0;
-    node    = D_80115550;
-    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    vec->vx = arg1->vx - arg0->vx;
-    vec->vy = arg1->vy - arg0->vy;
-    vec->vz = arg1->vz - arg0->vz;
-    VectorNormal(vec, vec);
-    for (; node != NULL; node = node->next) {
-        if (node->field_3A & 0x40) {
-            ret = func_800DFCCC(node, arg0, arg1, vec);
-            if (ret == 1) {
-                break;
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
-    return ret;
-}
+#include "../../shared/player_detection_segment.inc.c"
 
 /// State handlers of the task `Actor00300_Fn05138` dispatches, indexed by
 /// `Task::state`: a setup that attaches the coordinate to the parent's and

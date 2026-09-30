@@ -51,6 +51,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "../../shared/player_detection.h"
 
 /// Placement descriptor for this actor.
 extern DamageAttack Actor05600_D161BC[5];
@@ -90,7 +91,6 @@ extern TaskFunc Actor05600_D16540[];
 static void Actor05600_Fn00CFC(Task* arg0);
 static void Actor05600_Fn02548(Task* arg0);
 static void Actor05600_Fn02950(Task* arg0, SVECTOR* arg1, SVECTOR* arg2);
-static s32  Actor05600_Fn045E4(SVECTOR* arg0, SVECTOR* arg1);
 static void Actor05600_Fn04ACC(GpEnemy* arg0, Task* task);
 static void Actor05600_Fn04B10(GpEnemy* enemy, Task* task);
 static void Actor05600_Fn04C08(GpEnemy* arg0, Task* arg1);
@@ -1526,7 +1526,7 @@ static void Actor05600_Fn000A4(Task* arg0)
         scratch->target.vx = self->workm.t[0];
         scratch->target.vy = self->workm.t[1];
         scratch->target.vz = self->workm.t[2];
-        if (Actor05600_Fn045E4(&scratch->effOfs, &scratch->target) == 0) {
+        if (detectSegmentHitsWall(&scratch->effOfs, &scratch->target) == 0) {
             work->field_6B2 = 1;
         }
     }
@@ -3308,35 +3308,7 @@ void Actor05600_Fn041E4(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Tests the segment from `arg0` to `arg1` against the collision faces on the
-/// `D_80115550` list: the segment's direction is normalised in a 0x10-byte
-/// block carved off the scratch stack, and every face with bit 0x40 of
-/// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
-/// the last test's result otherwise.
-static s32 Actor05600_Fn045E4(SVECTOR* arg0, SVECTOR* arg1)
-{
-    VECTOR*  vec;
-    GpObj3A* node;
-    s32      ret;
-
-    ret     = 0;
-    node    = D_80115550;
-    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    vec->vx = arg1->vx - arg0->vx;
-    vec->vy = arg1->vy - arg0->vy;
-    vec->vz = arg1->vz - arg0->vz;
-    VectorNormal(vec, vec);
-    for (; node != NULL; node = node->next) {
-        if (node->field_3A & 0x40) {
-            ret = func_800DFCCC(node, arg0, arg1, vec);
-            if (ret == 1) {
-                break;
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
-    return ret;
-}
+#include "../../shared/player_detection_segment.inc.c"
 
 /// Entry 0 of `Actor05600_D16540`: state 0 counts `field_6AE` up to 0x5B
 /// frames, running the proximity check meanwhile, then switches to animation

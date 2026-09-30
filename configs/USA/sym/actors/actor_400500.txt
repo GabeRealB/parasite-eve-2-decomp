@@ -221,3 +221,4 @@ D_actor_400500_80153B04 = 0x80153B04; // size:0x130 defined:True
 D_actor_400500_80153C34 = 0x80153C34; // size:0x28 defined:True
 D_actor_400500_80153C5C = 0x80153C5C; // size:0x28 defined:True
 frameCaptureQueue = 0x80134D6C; // type:func
+coordLocalToWorld = 0x8013B920; // type:func

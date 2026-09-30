@@ -48,6 +48,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_messages.h"
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -253,9 +254,7 @@ STATIC_ASSERT_SIZEOF(Actor356100MessageEntry, 8);
 
 extern TmdSource D_actor_356100_8016FC74;
 s32              func_actor_356100_80169E5C(void);
-s32              func_actor_356100_80169E64(Task*, s32, s32);
 s32              func_actor_356100_80169F24(Task*);
-s32              func_actor_356100_80169F74(Task*, s32, ActorTransform* placement);
 s32              func_actor_356100_8016A074(Task*);
 s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*);
 void             func_actor_356100_8016A910(Task*);
@@ -679,9 +678,9 @@ AnimationPlayRequest D_actor_356100_80173244 = { { .sets = D_actor_356100_801732
 
 Actor356100MessageEntry D_actor_356100_80173258[7] = {
     { 2003, { .call0 = func_actor_356100_80169E5C } },
-    { 2005, { .call4 = func_actor_356100_80169E64 } },
+    { 2005, { .call4 = actorMsgSetVisibility } },
     { 2006, { .call1 = func_actor_356100_80169F24 } },
-    { 2004, { .call3 = func_actor_356100_80169F74 } },
+    { 2004, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call1 = func_actor_356100_8016A074 } },
     { 2011, { .call2 = func_actor_356100_8016A0B8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -3070,40 +3069,7 @@ s32 func_actor_356100_80169E5C(void)
     return 0;
 }
 
-/// Applies a model-visibility request to the actor: 0 hides the model and
-/// rebuilds its buffers, 1 shows it and rebuilds them with the state set to
-/// 0x18, 2 sets model flag 4 on top of the current flags, and 3 clears every
-/// other flag before setting 4. All but 1 reset the state to 0.
-s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject*       obj;
-    Actor356100Work* work;
-
-    obj  = task->extra.tmd;
-    work = (Actor356100Work*)task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_visibility.inc.c"
 
 /// Whether the actor should keep acting: 1 while its enemy still has HP;
 /// once it is down, 0 when active drawing is excluded or the model has
@@ -3124,30 +3090,7 @@ s32 func_actor_356100_80169F24(Task* task)
     return 1;
 }
 
-/// Places the model's root coordinate from `placement` (translation, then the
-/// X, Y and Z rotations in turn) and stores the resulting heading, `ratan2`
-/// of the rotation's Z axis, in the work block's `yaw`.
-s32 func_actor_356100_80169F74(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    s32              mx;
-    s32              mz;
-    Actor356100Work* work;
-
-    work                                = (Actor356100Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = task->extra.tmd->coords;
-    mx                                    = coord->coord.m[2][0];
-    mz                                    = coord->coord.m[2][2];
-    work->yaw                             = ratan2(-mx, mz);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw.inc.c"
 
 /// Moves the actor out of state 0xD: to 0xE while the player has HP left,
 /// to 0x16 once it has run out.

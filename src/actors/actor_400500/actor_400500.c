@@ -61,6 +61,7 @@
 
 #include "overlay.h"
 #include "../../shared/frame_capture.h"
+#include "../../shared/coord_math.h"
 
 /// State handlers copied onto the stack by func_actor_400500_80135770.
 typedef struct Actor400500TaskFuncTable13 {
@@ -303,7 +304,6 @@ static void func_actor_400500_8013B228(Task* arg0);
 static void func_actor_400500_8013B374(Task* arg0);
 static void func_actor_400500_8013B4A4(Task* arg0);
 static void func_actor_400500_8013B5E0(Task* arg0);
-static s32  func_actor_400500_8013B920(GfxCoord* coord, SVECTOR* pos);
 static void func_actor_400500_8013BA24(Task* arg0);
 static void func_actor_400500_8013BAA4(Task* arg0);
 static void func_actor_400500_8013BB18(Task* arg0);
@@ -2744,7 +2744,7 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         pos.vx = 0x160;
         pos.vy = 0x148;
         pos.vz = 0x2C0;
-        func_actor_400500_8013B920(joint, &pos);
+        coordLocalToWorld(joint, &pos);
         if ((arg1 << 0x10) == 0) {
             player->coord.t[0] = pos.vx;
             player->coord.t[2] = pos.vz;
@@ -6244,43 +6244,7 @@ static s32 func_actor_400500_8013B720(GfxCoord* arg0, MATRIX* arg1)
     return 1;
 }
 
-/// Carries `pos`, a point local to `coord`, up the `parent` chain by applying
-/// each level's matrix. If the chain reaches the view coordinate the
-/// transformed point is written back to `pos` and 1 is returned; if it ends
-/// first, `pos` is left untouched and 0 is returned.
-static s32 func_actor_400500_8013B920(GfxCoord* coord, SVECTOR* pos)
-{
-    SVECTOR   local;
-    VECTOR    result;
-    s32       flag;
-    GfxCoord* current;
-
-    current  = coord;
-    local.vx = pos->vx;
-    local.vy = pos->vy;
-    local.vz = pos->vz;
-    while (1) {
-        if (current->parent == NULL) {
-            return 0;
-        }
-        if (current == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            return 1;
-        }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
-        gte_ldv0(&local);
-        gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        current  = current->parent;
-    }
-}
+#include "../../shared/coord_math_local_to_world.inc.c"
 
 static void func_actor_400500_8013BA24(Task* arg0)
 {

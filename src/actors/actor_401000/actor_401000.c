@@ -48,6 +48,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/player_detection.h"
+#include "../../shared/actor_messages.h"
 
 /// An XZ pair: `field_C[0]` is the actor's spawn square and `field_C[1]` one
 /// step along its facing, both rebuilt by `func_actor_401000_80133274`. Same
@@ -108,7 +110,7 @@ typedef struct Actor401000Work {
     /// `func_actor_401000_80133274`'s normalised heading.
     /* 0x00C */ Actor401000Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
-    /// Heading `func_actor_401000_8013D814` takes from the root coordinate's
+    /// Heading `actorMsgPlaceRecordYaw` takes from the root coordinate's
     /// Z axis once a placement record has been applied to it.
     /* 0x016 */ s16                yaw;
     /* 0x018 */ byte               pad_18[0x42];
@@ -190,7 +192,7 @@ typedef struct Actor401000Work {
     /* 0xC00 */ s16 field_C00;
     /* 0xC02 */ s16 field_C02;
     /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
-    /// actor at the player: the `func_actor_401000_80132590` probe reads it
+    /// actor at the player: the `detectPlayerOutOfReach` probe reads it
     /// signed, the step helper and the countdown itself through a `(u16)`.
     /* 0xC04 */ s16 field_C04;
     /// Clip-phase latch `func_actor_401000_801365C8` runs the 8 / -1 / 0 march
@@ -212,7 +214,7 @@ typedef struct Actor401000Work {
     /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
     /// Set to -0x78 when the live-actor flag goes up, halved while the actor
     /// overlaps an obstacle record. The three reads widen it differently: the
-    /// `func_actor_401000_80132590` probe takes the signed value, while the
+    /// `detectPlayerOutOfReach` probe takes the signed value, while the
     /// step helper and the halving read it back through a `(u16)`.
     /* 0xC0C */ s16  field_C0C;
     /* 0xC0E */ byte pad_C0E[2];
@@ -1279,18 +1281,16 @@ SVECTOR D_actor_401000_80154F30[12] = {
 
 void func_actor_401000_8013D68C(void);
 s32  func_actor_401000_8013D694(Task*, s32, AnimationPlayRequest*);
-s32  func_actor_401000_8013D704(Task*, s32, s32);
 s32  func_actor_401000_8013D7C4(Task*);
-s32  func_actor_401000_8013D814(Task*, s32, ActorTransform* placement);
 s32  func_actor_401000_8013D914(Task*);
 s32  func_actor_401000_8013D958(Task*, s32, u16*);
 
 Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2015, { .call5 = func_actor_401000_8013D68C } },
     { 2003, { .call1 = func_actor_401000_8013D694 } },
-    { 2005, { .call3 = func_actor_401000_8013D704 } },
+    { 2005, { .call3 = actorMsgSetVisibility } },
     { 2006, { .call0 = func_actor_401000_8013D7C4 } },
-    { 2004, { .call2 = func_actor_401000_8013D814 } },
+    { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = func_actor_401000_8013D914 } },
     { 2011, { .call4 = func_actor_401000_8013D958 } },
     { 2147483647, { .call0 = NULL } },
@@ -1314,8 +1314,6 @@ GpDelayArg D_actor_401000_80155038;
 
 static void            func_actor_401000_801320E0(GfxCoord* coord, s16 yaw);
 static s32             func_actor_401000_801323EC(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
-static s32             func_actor_401000_80132590(GfxCoord* coord, s16 range, s16 step);
-static s32             func_actor_401000_80132824(Task* arg0);
 static void            func_actor_401000_80132A84(Task* arg0);
 static s32             func_actor_401000_80132BB0(Actor401000Work* work);
 static void            func_actor_401000_80132EF0(Task* arg0);
@@ -1422,111 +1420,9 @@ static s32 func_actor_401000_801323EC(GfxCoord* coord, WorldCollisionContact* re
     return s->moved;
 }
 
-/// Tests whether stepping `coord` forward by `step` keeps the player out of
-/// reach. The turn from the actor's facing to the player decides first: for a
-/// forward step the player must be within 0x400 of dead ahead, for a backward
-/// one outside it, or the answer is 1 at once. Otherwise the root is moved
-/// `step` along its facing and the result is whether the player's root is at
-/// least `range` + 0x96 away from that point.
-static s32 func_actor_401000_80132590(GfxCoord* coord, s16 range, s16 step)
-{
-    SVECTOR  v;
-    SVECTOR  d;
-    VECTOR   e;
-    Task*    player;
-    s16      angle;
-    SVECTOR* pv;
-    s32      x;
+#include "../../shared/player_detection_reach.inc.c"
 
-    player = gameGetPtrSlot(3);
-    d.vx   = (u16)player->extra.tmd->coords->coord.t[0] - (u16)coord->coord.t[0];
-    d.vy   = (u16)player->extra.tmd->coords->coord.t[1] - (u16)coord->coord.t[1];
-    d.vz   = (u16)player->extra.tmd->coords->coord.t[2] - (u16)coord->coord.t[2];
-    angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
-    x = angle << 16;
-    if (step >= 0) {
-        if (abs(x >> 16) > 0x400) {
-            return 1;
-        }
-    } else {
-        if (abs(x >> 16) < 0x400) {
-            return 1;
-        }
-    }
-    Gfx_MatrixCol2(&coord->coord, &v);
-    pv = &v;
-    VectorNormalSS(pv, pv);
-    gte_lddp(step);
-    gte_ldsv(pv);
-    gte_gpf12();
-    gte_stsv(pv);
-    v.vx += (u16)coord->coord.t[0];
-    v.vy += (u16)coord->coord.t[1];
-    v.vz += (u16)coord->coord.t[2];
-    e.vx  = player->extra.tmd->coords->coord.t[0] - v.vx;
-    e.vy  = player->extra.tmd->coords->coord.t[1] - v.vy;
-    e.vz  = player->extra.tmd->coords->coord.t[2] - v.vz;
-    return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= range + 0x96;
-}
-
-/// Rotates the player's and this actor's root positions, each raised by 1000,
-/// into world space and returns `func_800E0308` on the pair.
-static s32 func_actor_401000_80132824(Task* arg0)
-{
-    Task*              player;
-    u8*                head;
-    ActorSightScratch* s;
-    SVECTOR*           local;
-    SVECTOR*           v;
-    SVECTOR*           out;
-
-    player                   = gameGetPtrSlot(3);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    local                    = (SVECTOR*)(head - 0xC);
-    s                        = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx              = player->extra.tmd->coords->coord.t[0];
-    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
-    s->local.vz              = player->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    v = local;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(&s->out);
-    s->out.vx += gGfxViewCoord.workm.t[0];
-    s->out.vy += gGfxViewCoord.workm.t[1];
-    s->out.vz += gGfxViewCoord.workm.t[2];
-
-    s->local.vx = arg0->extra.tmd->coords->coord.t[0];
-    s->local.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
-    s->local.vz = arg0->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(out);
-    s->from.vx += gGfxViewCoord.workm.t[0];
-    s->from.vy += gGfxViewCoord.workm.t[1];
-    s->from.vz += gGfxViewCoord.workm.t[2];
-    s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-    return s->hit;
-}
+#include "../../shared/player_detection_sight.inc.c"
 
 /// Ticks the body slots while a blend clip is active: slots 1-10 take the body
 /// pose and the blend pose and write their mix, weighted by `field_8AC`, into
@@ -2846,13 +2742,13 @@ static void func_actor_401000_80135AA4(Task* arg0)
                 angle = -angle;
             }
             if (angle < 0x80) {
-                if (overlayOutOfRange(&chase->delta, 0x708) && func_actor_401000_80132824(arg0) != 1) {
+                if (overlayOutOfRange(&chase->delta, 0x708) && detectSightBlocked(arg0) != 1) {
                     work->field_0 = 0xA;
                 }
             }
         }
     }
-    if (func_actor_401000_80132824(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         work->field_6++;
         coord           = arg0->extra.tmd->coords;
         chase->turn     = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2889,11 +2785,11 @@ static void func_actor_401000_80135AA4(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 3) {
         if (work->field_89A == 0) {
-            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x78) / 0x12);
             }
         } else {
-            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12 >> 2) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12 >> 2) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x78) / 0x12 >> 2);
             }
         }
@@ -3016,7 +2912,7 @@ static void func_actor_401000_801365C8(Task* arg0)
     if (work->field_8 != 0) {
         work->field_C04 = 2;
     }
-    if ((func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, work->field_C04) << 0x10) != 0) {
+    if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) << 0x10) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->field_C04);
     }
     D_actor_401000_80155000 += (u16)work->field_C04;
@@ -3129,11 +3025,11 @@ static void func_actor_401000_80136E20(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89A == 0) {
-        if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
-        if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0x14);
         }
     }
@@ -3480,7 +3376,7 @@ static void func_actor_401000_801385B0(Task* arg0)
         work->field_C28 = 0;
     }
     if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
-        if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, work->field_C0C) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C0C) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->field_C0C);
         }
         if (func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1) {
@@ -3492,7 +3388,7 @@ static void func_actor_401000_801385B0(Task* arg0)
     if (work->flags_68.half & 1) {
         kind = enemy->node.state.parts.targeted;
         if (kind == 1) {
-            if (func_actor_401000_80132824(arg0) == kind) {
+            if (detectSightBlocked(arg0) == kind) {
                 work->field_0 = 6;
             } else {
                 work->field_0 = 0xA;
@@ -3540,7 +3436,7 @@ static void func_actor_401000_801388F4(Task* arg0)
     func_actor_401000_80132EF0(arg0);
     func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC);
-    if (work->field_89E == 0xA && (s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
+    if (work->field_89E == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
         actorMoveForward(arg0->extra.tmd->coords, -0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3797,7 +3693,7 @@ static void func_actor_401000_8013922C(Task* arg0)
 /// waypoint the offset is taken from and flips once the actor closes inside
 /// 0xA0 of it, or after 0x15 frames in `field_6`, and the wrapped yaw toward
 /// that waypoint is clamped to +-0x20, added back to the facing yaw and the
-/// root rotation rescaled by 0x1194. The `func_actor_401000_80132590` probe
+/// root rotation rescaled by 0x1194. The `detectPlayerOutOfReach` probe
 /// takes one 0xA step forward, the obstacle walk runs against `field_A30`
 /// (plus `field_8F0` through `func_actor_401000_80135704` when the spawn
 /// sub-type is 0x10), and each arm counts `field_6` up while the yaw stays
@@ -3857,7 +3753,7 @@ static void func_actor_401000_801394EC(Task* arg0)
         turn->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-        if (work->field_89A == 0 && (func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, 0xA) << 16) != 0) {
+        if (work->field_89A == 0 && (detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0xA) << 16) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0xA);
         }
         if ((arg0->spawnArg1.value >> 16) != 0x10) {
@@ -3877,7 +3773,7 @@ static void func_actor_401000_801394EC(Task* arg0)
             }
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (func_actor_401000_80132824(arg0) != 1) {
+        if (detectSightBlocked(arg0) != 1) {
             actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &turn->delta);
             if (!overlayOutOfRange(&turn->delta, work->field_C16)) {
                 work->field_0 = 6;
@@ -3903,7 +3799,7 @@ static void func_actor_401000_801394EC(Task* arg0)
 /// yaw back in before rebuilding the root coordinate. The obstacle walk
 /// `func_actor_401000_801323EC` runs against `field_A30` and hands
 /// `field_8F0` to `func_actor_401000_80135704` when it reports a hit, the
-/// `func_actor_401000_80132590` probe takes one forward step out of
+/// `detectPlayerOutOfReach` probe takes one forward step out of
 /// `field_C04`, and that same countdown then runs down by 0xA a frame. The
 /// tail drops the actor to state 9 on the `flags_68` bit or once the
 /// countdown is spent.
@@ -3946,7 +3842,7 @@ static void func_actor_401000_80139D10(Task* arg0)
     if (func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
         func_actor_401000_80135704(arg0, work->field_8F0, 0xC);
     }
-    if ((func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, work->field_C04) << 0x10) != 0) {
+    if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) << 0x10) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->field_C04);
     }
     if (work->field_C04 > 0) {
@@ -4016,7 +3912,7 @@ static void func_actor_401000_8013A0C8(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 0x11) {
         work->field_6++;
-        if ((func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, -0x10) << 16) != 0) {
+        if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x10) << 16) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, -0x10);
         }
         if (func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
@@ -4296,7 +4192,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
                 work->field_8A2 = 0x10;
                 work->field_89A = 0;
             }
-            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, 0xA) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0xA) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0xA);
             }
             func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC);
@@ -4361,7 +4257,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
 /// `Actor01900_Fn042BC`: on the live-actor flag it resets the effect node, forks
 /// the first clip and seeds the animation slots, then walks both obstacle tables
 /// and aims the actor at the player with `Gfx_RotMatrixY` / `actorRescaleYaw`.
-/// `field_6` and `field_8` then count up under the `func_actor_401000_80132824`
+/// `field_6` and `field_8` then count up under the `detectSightBlocked`
 /// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
 /// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
 /// 0x5B frames, while the settled arm draws a turn direction from `Gp_LcgState`
@@ -4421,7 +4317,7 @@ static void func_actor_401000_8013C46C(Task* arg0)
     coord           = arg0->extra.tmd->coords;
     s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->field_8AE = s->turn;
-    if (func_actor_401000_80132824(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         work->field_6   = 0;
         coord           = arg0->extra.tmd->coords;
         s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -4470,11 +4366,11 @@ static void func_actor_401000_8013C46C(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 2) {
         if (work->field_89A == 0) {
-            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, 0x16) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x16) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0x16);
             }
         } else {
-            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 5);
             }
         }
@@ -4782,40 +4678,7 @@ s32 func_actor_401000_8013D694(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Applies one of four model settings chosen by `arg2`: 0 sets the model's
-/// flags to 0x80 and reallocates its buffers, 1 clears the flags and
-/// reallocates them, 2 and 3 set bit 2 (3 clearing the rest first). Case 1
-/// moves the actor to state 0x18, the others to state 0. Always returns 0.
-s32 func_actor_401000_8013D704(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject*       obj;
-    Actor401000Work* work;
-
-    obj  = task->extra.tmd;
-    work = (Actor401000Work*)task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_visibility.inc.c"
 
 /// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
 /// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
@@ -4835,31 +4698,7 @@ s32 func_actor_401000_8013D7C4(Task* task)
     return 1;
 }
 
-/// Places the actor's model from `placement`: the translation goes into the
-/// root coordinate, then the X, Y and Z rotations are applied in that order.
-/// The heading of the rotated Z axis is stored as the work block's `yaw`.
-/// Returns 1.
-s32 func_actor_401000_8013D814(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    s32              mx;
-    s32              mz;
-    Actor401000Work* work;
-
-    work                                = (Actor401000Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = task->extra.tmd->coords;
-    mx                                    = coord->coord.m[2][0];
-    mz                                    = coord->coord.m[2][2];
-    work->yaw                             = ratan2(-mx, mz);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw.inc.c"
 
 /// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
 /// gone. Any other state is left alone.

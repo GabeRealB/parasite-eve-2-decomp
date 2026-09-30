@@ -187,3 +187,6 @@ D_actor_401300_801589F8 = 0x801589F8; // size:0x10 defined:True
 D_actor_401300_80158A08 = 0x80158A08; // size:0x10 defined:True
 D_actor_401300_80158A18 = 0x80158A18; // size:0xC defined:True
 D_actor_401300_80158A24 = 0x80158A24; // size:0x8 defined:True
+detectSightBlocked = 0x80132FF4; // type:func
+detectPlayerOutOfReach = 0x8013267C; // type:func
+actorMsgSetVisibility = 0x80141504; // type:func

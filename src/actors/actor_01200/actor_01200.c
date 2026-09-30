@@ -47,6 +47,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/coord_math.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block this overlay parks in `Task::work`. `field_0` is the
 /// substate the message handler below switches on; the three bytes at 0x194
@@ -143,7 +145,6 @@ void             Actor01200_Fn03FD4(Task*);
 
 s32 Actor01200_Fn03A00(Task*, s32, s32);
 s32 Actor01200_Fn03ABC(Task*, s32, ActorCommand* request);
-s32 Actor01200_Fn03B70(Task*, s32, ActorTransform* placement);
 
 DamageAttack Actor01200_D04030[1] = {
     { 24, 7 },
@@ -559,7 +560,7 @@ u8 Actor01200_D06FE4[116] = {
 Actor01200RecoveredMsgEntry Actor01200_D07058[4] = {
     { 2005, { .call2 = Actor01200_Fn03A00 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor01200_Fn03ABC } },
-    { 2004, { .call1 = Actor01200_Fn03B70 } },
+    { 2004, { .call1 = actorMsgPlace } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -584,7 +585,6 @@ static void            Actor01200_Fn02918(GpEnemy* arg0, Task* arg1);
 static void            Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1);
 static void            Actor01200_Fn03294(GpEnemy* arg0, Task* arg1);
 static void            Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn03C40(GfxCoord* coord, s16 scale);
 
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
@@ -1832,58 +1832,9 @@ s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, ActorCommand* request)
     return 0;
 }
 
-/// Places the task's model from `placement`: the three longs become the
-/// coordinate's translation, then the X, Y and Z angles are applied in that
-/// order and the coordinate is marked dirty. Always returns 1.
-s32 Actor01200_Fn03B70(Task* task, s32 arg1, ActorTransform* placement)
-{
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 1;
-}
+#include "../../shared/actor_messages_place.inc.c"
 
-/// Rebuilds `coord`'s rotation as its current yaw alone, uniformly scaled by
-/// `scale`, working in a block borrowed from the scratch stack, and marks the
-/// coordinate dirty.
-static void Actor01200_Fn03C40(GfxCoord* coord, s16 scale)
-{
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-}
+#include "../../shared/coord_math_yaw_scale.inc.c"
 
 /// State 0, the idle state: on entry (`field_4` set) it marks the enemy not lockable,
 /// hides the model, and turns off the collision bodies the other states

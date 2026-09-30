@@ -58,6 +58,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_messages.h"
 
 extern s8 D_actor_403200_8015F8E0[8];
 
@@ -376,7 +377,6 @@ void                func_actor_403200_80141868(Task*);
 s32  func_actor_403200_80138468(Task*, s32, s32);
 s32  func_actor_403200_80138748(Task*, s32, ActorCommand* msg);
 s32  func_actor_403200_80141974(Task*);
-s32  func_actor_403200_801419C4(Task*, s32, ActorTransform* placement);
 s32  func_actor_403200_80141A94(Task*, s32, s32);
 s32  func_actor_403200_80141B30(void);
 void func_actor_403200_80140E6C(Task*);
@@ -2808,7 +2808,7 @@ Actor403200MessageEntry D_actor_403200_8015F770[8] = {
     { 2015, { .call5 = func_actor_403200_8014196C } },
     { 2005, { .call4 = func_actor_403200_80138468 } },
     { 2006, { .call1 = func_actor_403200_80141974 } },
-    { 2004, { .call3 = func_actor_403200_801419C4 } },
+    { 2004, { .call3 = actorMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403200_80138748 } },
     { 5108, { .call4 = func_actor_403200_80141A94 } },
     { 2014, { .call0 = func_actor_403200_80141B30 } },
@@ -9941,20 +9941,7 @@ s32 func_actor_403200_80141974(Task* task)
     return 1;
 }
 
-/// Place the task's model from `placement`: the three longs become the root
-/// coordinate's translation, then the X, Y and Z rotations are applied in that
-/// order and the coordinate is marked dirty. Returns 1.
-s32 func_actor_403200_801419C4(Task* task, s32 arg1, ActorTransform* placement)
-{
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 1;
-}
+#include "../../shared/actor_messages_place.inc.c"
 
 /// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
 /// heal counter, files a negative "damage" with `func_800DA6E8` so the HUD

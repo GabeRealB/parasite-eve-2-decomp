@@ -9,8 +9,6 @@
 
 #include "actors/actor.h"
 
-#include "actors/actors_shared_80169f74.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -51,6 +49,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/player_detection.h"
+#include "../../shared/actor_messages.h"
 
 /// Private work block of the actor 01900 task, hanging off `Task::work`.
 ///
@@ -205,7 +205,6 @@ extern s16       Actor01900_D172FC;
 
 static void Actor01900_Fn02A50(Task* arg0);
 static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id);
-static s32  Actor01900_Fn016F0(Task* arg0);
 static void Actor01900_Fn01C94(Task* arg0);
 static void Actor01900_Fn0AB1C(Task* arg0);
 static void Actor01900_Fn0A6CC(Task* task);
@@ -225,7 +224,6 @@ extern TmdSource Actor01900_D102C8;
 s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*);
 s32              Actor01900_Fn0A38C(Task*, s32, s32);
 s32              Actor01900_Fn0A44C(Task*);
-s32              Actor01900_Fn0A49C(Task*, s32, ActorTransform* placement);
 s32              Actor01900_Fn0A59C(void);
 s32              Actor01900_Fn0A5A4(Task*, s32, u16*);
 void             Actor01900_Fn0A314(void);
@@ -711,7 +709,7 @@ Actor01900RecoveredMsgEntry Actor01900_D1728C[8] = {
     { 2003, { .call2 = Actor01900_Fn0A31C } },
     { 2005, { .call4 = Actor01900_Fn0A38C } },
     { 2006, { .call1 = Actor01900_Fn0A44C } },
-    { 2004, { .call3 = Actor01900_Fn0A49C } },
+    { 2004, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = Actor01900_Fn0A59C } },
     { 2011, { .call5 = Actor01900_Fn0A5A4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -928,51 +926,7 @@ static __inline__ void Actor01900_ResetYaw(GfxCoord* coord)
 
 #include "../../shared/actor_contacts.inc.c"
 
-/// Rotates the slot-3 player's and this actor's raised root positions into
-/// world space and returns `func_800E0308` on the pair.
-static s32 Actor01900_Fn016F0(Task* arg0)
-{
-    Task*              player;
-    u8*                head;
-    ActorSightScratch* s;
-    SVECTOR*           local;
-    SVECTOR*           v;
-    SVECTOR*           out;
-
-    player                   = gameGetPtrSlot(3);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    local                    = (SVECTOR*)(head - 0xC);
-    s                        = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx              = player->extra.tmd->coords->coord.t[0];
-    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
-    s->local.vz              = player->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    v = local;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(&s->out);
-    s->out.vx += gGfxViewCoord.workm.t[0];
-    s->out.vy += gGfxViewCoord.workm.t[1];
-    s->out.vz += gGfxViewCoord.workm.t[2];
-
-    s->local.vx = arg0->extra.tmd->coords->coord.t[0];
-    s->local.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
-    s->local.vz = arg0->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(out);
-    s->from.vx += gGfxViewCoord.workm.t[0];
-    s->from.vy += gGfxViewCoord.workm.t[1];
-    s->from.vz += gGfxViewCoord.workm.t[2];
-    s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-    return s->hit;
-}
+#include "../../shared/player_detection_sight.inc.c"
 
 /// Advances the actor's animation one tick. Joints 1-10 are sampled from both
 /// the main and the blend animation and passed to `Gp_AnimWritePoseCopy` with
@@ -2116,7 +2070,7 @@ static void Actor01900_Fn042BC(Task* arg0)
             work->field_0 = 0xA;
         }
     }
-    if (Actor01900_Fn016F0(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         work->field_6++;
         coord           = arg0->extra.tmd->coords;
         s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2801,7 +2755,7 @@ static void Actor01900_Fn06F40(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (Actor01900_Fn016F0(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
         if (!overlayOutOfRange(&s->delta, work->field_C32)) {
             if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
@@ -3548,27 +3502,7 @@ s32 Actor01900_Fn0A44C(Task* task)
     return 1;
 }
 
-s32 Actor01900_Fn0A49C(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*                 coord;
-    s32                       mx;
-    s32                       mz;
-    ActorsShared80169f74Work* work;
-
-    work                                = (ActorsShared80169f74Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = task->extra.tmd->coords;
-    mx                                    = coord->coord.m[2][0];
-    mz                                    = coord->coord.m[2][2];
-    work->yaw                             = ratan2(-mx, mz);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw.inc.c"
 
 s32 Actor01900_Fn0A59C(void)
 {

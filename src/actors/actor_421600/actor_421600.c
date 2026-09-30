@@ -56,6 +56,8 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_water_tower.h"
+#include "../../shared/limb_shadows.h"
+#include "../../shared/actor_messages.h"
 
 /// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
 /// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
@@ -498,7 +500,6 @@ extern AnimationSet D_actor_421600_8014D6E4;
 extern AnimationSet D_actor_421600_8014DA04;
 extern TmdSource    D_actor_421600_80143A54;
 s32                 func_actor_421600_80132A00(Task*, s32, ActorCommand* request);
-s32                 func_actor_421600_8013E42C(Task*, s32, s32);
 s32                 func_actor_421600_8013E4EC(Task*);
 s32                 func_actor_421600_8013E52C(Task*, s32, ActorTransform* placement);
 s32                 func_actor_421600_8013E62C(Task*, s32, AnimationPlayRequest*, s32);
@@ -2085,7 +2086,7 @@ Actor421600ContactStorage D_actor_421600_80151090 = { .data = { { NULL, &D_actor
 
 Actor421600MessageEntry D_actor_421600_80151118[8] = {
     { 2015, { .call5 = func_actor_421600_8013E424 } },
-    { 2005, { .call4 = func_actor_421600_8013E42C } },
+    { 2005, { .call4 = actorMsgSetVisibility } },
     { 2006, { .call0 = func_actor_421600_8013E4EC } },
     { 2004, { .call3 = func_actor_421600_8013E52C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
@@ -2156,7 +2157,6 @@ static __inline__ s32                       Actor421600_HasPlayerContact(WorldCo
 static void                                 func_actor_421600_80132004(GfxCoord* coord, s16 yaw);
 static s32                                  func_actor_421600_80132310(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static s32                                  func_actor_421600_8013285C(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
-static void                                 func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 static s32                                  func_actor_421600_80133334(GfxCoord* arg0);
 static void                                 func_actor_421600_80133444(GfxCoord* coord);
 static s32                                  func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
@@ -2535,87 +2535,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request)
     }
 }
 
-/// Draw a beam between model parts `firstJoint` and `secondJoint`: take both
-/// ends into view space at height `height`, widen them by `width` into a quad
-/// and emit it as a textured `POLY_FT4` shaded `shade`. Nothing is drawn when
-/// the two parts are the same.
-static void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
-{
-    ActorBeamScratch* s;
-    s16               angle;
-    GfxCoord*         secondCoord;
-    GfxCoord*         firstCoord;
-    s32               offset0;
-    s32               offset1;
-    s32               offset2;
-    s32               offset3;
-    s32               halfX;
-    s32               halfZ;
-    GfxCoord*         coords;
-    GfxCoord*         view;
-    POLY_FT4*         poly;
-
-    coords      = actor->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
-    if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->first.vy   = height;
-        s->second.vy  = height;
-        s->first.vx   = s->firstMatrix.t[0];
-        s->first.vz   = s->firstMatrix.t[2];
-        s->second.vx  = s->secondMatrix.t[0];
-        s->second.vz  = s->secondMatrix.t[2];
-        angle         = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
-        halfX         = (s->first.vx - s->second.vx) / 2;
-        halfZ         = (s->first.vz - s->second.vz) / 2;
-        offset0       = rcos(angle) * width;
-        s->corner0.vy = height;
-        s->corner0.vx = halfX + (s->first.vx - (offset0 >> 0xC));
-        s->corner0.vz = halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1       = rcos(angle) * width;
-        s->corner1.vy = height;
-        s->corner1.vx = halfX + (s->first.vx + (offset1 >> 0xC));
-        s->corner1.vz = halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2       = rcos(angle) * width;
-        s->corner2.vy = height;
-        s->corner2.vx = (s->second.vx - (offset2 >> 0xC)) - halfX;
-        s->corner2.vz = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        offset3       = rcos(angle) * width;
-        s->corner3.vy = height;
-        s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
-        s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        /* `gGfxViewCoord`, reached back from its `workm`: the address is built
-           from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
-        view               = &gGfxViewCoord;
-        view->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(view);
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
-                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
-        if (s->flags >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code            = 0x2E;
-            PRIM_XY_WORD(poly, 0) = s->screen0;
-            PRIM_XY_WORD(poly, 1) = s->screen1;
-            PRIM_XY_WORD(poly, 2) = s->screen2;
-            PRIM_XY_WORD(poly, 3) = s->screen3;
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            poly->tpage = 0x48;
-            poly->clut  = 0x4283;
-            setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
-    }
-}
+#include "../../shared/limb_shadows_segment.inc.c"
 
 /// Moves an interior coordinate to the nearest padded X or Z edge.
 /// Returns 1 when moved, or 0 when already outside the rectangle.
@@ -6944,9 +6864,9 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
         case 0:
             if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];
-                func_actor_421600_80132EC0(actor, 1, 3, 0x12C, (s32)height, 0xFF);
-                func_actor_421600_80132EC0(actor, 3, 4, 0xC8, (s32)height, 0xFF);
-                func_actor_421600_80132EC0(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
+                limbShadowDrawSegment(actor, 3, 4, 0xC8, (s32)height, 0xFF);
+                limbShadowDrawSegment(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
                 if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
                     actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
@@ -6957,9 +6877,9 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
         case 1:
             if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];
-                func_actor_421600_80132EC0(actor, 1, 3, 0x12C, (s32)height, 0xFF);
-                func_actor_421600_80132EC0(actor, 3, 4, 0xC8, (s32)height, 0xFF);
-                func_actor_421600_80132EC0(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
+                limbShadowDrawSegment(actor, 3, 4, 0xC8, (s32)height, 0xFF);
+                limbShadowDrawSegment(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
                 if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
                     actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
@@ -7208,40 +7128,7 @@ static const GpEnemyTaskFuncTable3 D_actor_421600_80131FB0 = {
     },
 };
 
-/// Handler for message 0x7D5: set the model's display mode. Modes 0 and 1
-/// reset the model flags (0 with 0x80 set) and reallocate its buffers; 2 and 3
-/// set flag 4, 3 clearing the others first. The work block's state is reset to
-/// 0, or to 0x18 for mode 1.
-s32 func_actor_421600_8013E42C(Task* task, s32 arg1, s32 mode)
-{
-    TmdObject*       obj;
-    Actor421600Work* work;
-
-    obj  = task->extra.tmd;
-    work = (Actor421600Work*)task->work;
-    switch (mode) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_visibility.inc.c"
 
 /// Handler for message 0x7D6: returns 1 while the enemy still has hit points
 /// or its model is shown (flag 0x80 clear), 0 once it is dead and hidden.

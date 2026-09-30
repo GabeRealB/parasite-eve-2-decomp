@@ -11,8 +11,6 @@
 
 #include "actors/actor.h"
 
-#include "actors/actors_shared_80169f74.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -60,6 +58,8 @@
 #include "overlay.h"
 
 #include "rooms/mine_mesa.h"
+#include "../../shared/player_detection.h"
+#include "../../shared/actor_messages.h"
 
 /// Sphere body and all five results supplied by its owner.
 typedef struct {
@@ -459,8 +459,6 @@ extern TmdSource Actor00100_D108C0;
 
 s32 Actor00100_Fn00E58(Task*, s32, ActorCommand* request);
 
-s32 Actor00100_Fn0B2B4(Task*, s32, ActorTransform* placement);
-
 void Actor00100_Fn0B134(void);
 
 void Actor00100_Fn0BD28(Task*);
@@ -508,7 +506,6 @@ static __inline__ void     Actor00100_SetHitState(Actor00100DamageWork* work);
 static void                Actor00100_Fn001FC(GfxCoord* coord, s16 yaw);
 static s32                 Actor00100_Fn00508(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static s32                 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
-static s32                 Actor00100_Fn00BF8(Task* arg0);
 static s32                 Actor00100_Fn01388(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static void                Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 static void                Actor00100_Fn01D74(Task* arg0);
@@ -1503,7 +1500,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { 2015, { .reset = Actor00100_Fn0B134 } },
     { 2005, { .value = Actor00100_Fn0B1A4 } },
     { 2006, { .task = Actor00100_Fn0B264 } },
-    { 2004, { .placement = Actor00100_Fn0B2B4 } },
+    { 2004, { .placement = actorMsgPlaceRecordYaw } },
     { 0x7FFFFFFF, { .command = NULL } },
 };
 
@@ -1699,51 +1696,7 @@ static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, 
     return s->moved;
 }
 
-/// Rotates the slot-3 player's and this actor's raised root positions into
-/// world space and returns `func_800E0308` on the pair.
-static s32 Actor00100_Fn00BF8(Task* arg0)
-{
-    Task*              player;
-    u8*                head;
-    ActorSightScratch* s;
-    SVECTOR*           local;
-    SVECTOR*           v;
-    SVECTOR*           out;
-
-    player                   = gameGetPtrSlot(3);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    local                    = (SVECTOR*)(head - 0xC);
-    s                        = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx              = player->extra.tmd->coords->coord.t[0];
-    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
-    s->local.vz              = player->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    v = local;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(&s->out);
-    s->out.vx += gGfxViewCoord.workm.t[0];
-    s->out.vy += gGfxViewCoord.workm.t[1];
-    s->out.vz += gGfxViewCoord.workm.t[2];
-
-    s->local.vx = arg0->extra.tmd->coords->coord.t[0];
-    s->local.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
-    s->local.vz = arg0->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(out);
-    s->from.vx += gGfxViewCoord.workm.t[0];
-    s->from.vy += gGfxViewCoord.workm.t[1];
-    s->from.vz += gGfxViewCoord.workm.t[2];
-    s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-    return s->hit;
-}
+#include "../../shared/player_detection_sight.inc.c"
 
 /// The four poses `Actor00100_Fn00E58` picks between for message 0x104.
 static const Actor00100PoseTable Actor00100_D00004 = { {
@@ -3343,7 +3296,7 @@ static void Actor00100_Fn04864(Task* arg0)
             work->field_6 = (u16)work->field_6 + 1;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (Actor00100_Fn00BF8(arg0) != 1) {
+    if (detectSightBlocked(arg0) != 1) {
         playerCoord       = arg0->extra.tmd->coords;
         scratch->delta.vx = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
         scratch->delta.vy = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
@@ -4494,7 +4447,7 @@ static void Actor00100_Fn0782C(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((Actor00100_Fn00BF8(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->extra.tmd->coords, scratch->target.vx = (s16)(Player_Status.coordMtx->t[0] - coord3->coord.t[0]), target2->vy = Player_Status.coordMtx->t[1] - coord3->coord.t[1], target2->vz = Player_Status.coordMtx->t[2] - coord3->coord.t[2], ((work->field_8 > work->field_C22) != 0))) {
+    if ((detectSightBlocked(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->extra.tmd->coords, scratch->target.vx = (s16)(Player_Status.coordMtx->t[0] - coord3->coord.t[0]), target2->vy = Player_Status.coordMtx->t[1] - coord3->coord.t[1], target2->vz = Player_Status.coordMtx->t[2] - coord3->coord.t[2], ((work->field_8 > work->field_C22) != 0))) {
         if (work->field_C26 <= 0) {
             if ((ctx->placeKey >> 0xC) == (gDisplayState.animFrame % 15)) {
                 if (Actor00100_OutsideRadius(&scratch->target, radius)) {
@@ -5596,27 +5549,7 @@ s32 Actor00100_Fn0B264(Task* task)
     return 1;
 }
 
-s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*                 coord;
-    s32                       mx;
-    s32                       mz;
-    ActorsShared80169f74Work* work;
-
-    work                                = (ActorsShared80169f74Work*)task->work;
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = task->extra.tmd->coords;
-    mx                                    = coord->coord.m[2][0];
-    mz                                    = coord->coord.m[2][2];
-    work->yaw                             = ratan2(-mx, mz);
-    return 1;
-}
+#include "../../shared/actor_messages_place_yaw.inc.c"
 
 static void Actor00100_Fn0B3B4(Task* task)
 {

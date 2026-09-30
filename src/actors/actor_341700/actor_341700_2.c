@@ -35,6 +35,8 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
+#include "../../shared/coord_math.h"
+#include "../../shared/actor_messages.h"
 
 /// The overlay's *other* work block, for the task `func_actor_341700_8016D130`
 /// starts: that function calls `memCalloc(0x80, 0)` and stores the result in
@@ -98,7 +100,6 @@ static void      func_actor_341700_8016D32C(Task*);
 
 s32 func_actor_341700_8016CE28(Task*, s32, s32);
 s32 func_actor_341700_8016CEB4(Task*, s32, ActorCommand* cmd);
-s32 func_actor_341700_8016CF48(Task*, s32, ActorTransform* placement);
 
 #include "../../shared/actor_contacts.h"
 
@@ -137,7 +138,7 @@ TmdSource D_actor_341700_80175F38 = {
 Actor3417002MessageEntry D_actor_341700_80175F5C[4] = {
     { 2005, { .call2 = func_actor_341700_8016CE28 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341700_8016CEB4 } },
-    { 2004, { .call1 = func_actor_341700_8016CF48 } },
+    { 2004, { .call1 = actorMsgPlace } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -806,7 +807,6 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1);
 static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1);
-static void func_actor_341700_8016D018(GfxCoord* coord, s16 scale);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1125,59 +1125,9 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd)
     return 1;
 }
 
-/// Seeds the task's `TmdObject` root coordinate from `placement`: the three
-/// longs become the translation, then pitch / yaw / roll are applied with
-/// `Gfx_RotMatrixX` / `Y` / `Z`, re-fetching the coordinate for every field,
-/// and the coordinate is marked dirty. Always returns 1.
-s32 func_actor_341700_8016CF48(Task* task, s32 arg1, ActorTransform* placement)
-{
-    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 1;
-}
+#include "../../shared/actor_messages_place.inc.c"
 
-/// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
-/// `-m[2][0], m[2][2]`), uniformly scaled by `scale`, through a 0x34-byte
-/// block borrowed from the scratchpad. Marks the coordinate dirty.
-static void func_actor_341700_8016D018(GfxCoord* coord, s16 scale)
-{
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-}
+#include "../../shared/coord_math_yaw_scale.inc.c"
 
 static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
 {

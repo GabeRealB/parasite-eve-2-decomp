@@ -51,6 +51,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/player_detection.h"
+#include "../../shared/actor_messages.h"
 
 /// XZ patrol point in `Actor401300Work::field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -63,7 +65,7 @@ typedef struct Actor401300Waypoint {
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x18
 /// (the heading `func_actor_401300_80141614` reads back from the root
-/// coordinate, one halfword later than `ActorsShared80169f74Work::yaw`), the
+/// coordinate, one halfword later than `ActorYawWork::yaw`), the
 /// three `WorldCollisionBody` collision bodies `func_actor_401300_80141758` hands back to
 /// `Gp_UnlinkObj`, the two child tasks it kills, and the halfword the
 /// teardown-ish `func_actor_401300_80141EF8` tests before it stamps the enemy's
@@ -332,7 +334,6 @@ extern AnimationSet D_actor_401300_80158024;
 extern TmdSource    D_actor_401300_80147290;
 s32                 func_actor_401300_80132554(Task*, s32, Actor401300Event*);
 s32                 func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*);
-s32                 func_actor_401300_80141504(Task*, s32, s32);
 s32                 func_actor_401300_801415C4(Task*);
 s32                 func_actor_401300_80141614(Task*, s32, ActorTransform* placement);
 s32                 func_actor_401300_80141714(Task*);
@@ -1237,7 +1238,7 @@ SVECTOR D_actor_401300_80158928[12] = {
 Actor401300MessageEntry D_actor_401300_80158988[8] = {
     { 2015, { .call5 = func_actor_401300_8014148C } },
     { 2003, { .call2 = func_actor_401300_80141494 } },
-    { 2005, { .call4 = func_actor_401300_80141504 } },
+    { 2005, { .call4 = actorMsgSetVisibility } },
     { 2006, { .call0 = func_actor_401300_801415C4 } },
     { 2004, { .call3 = func_actor_401300_80141614 } },
     { 2014, { .call0 = func_actor_401300_80141714 } },
@@ -1267,12 +1268,10 @@ SVECTOR D_actor_401300_80158A24 = { 0 };
 
 static void            func_actor_401300_801320A4(GfxCoord* coord, s16 yaw);
 static s32             func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
-static s32             func_actor_401300_8013267C(GfxCoord* coord, s16 arg1, s16 arg2);
 static s32             func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s16 count);
 static void            func_actor_401300_80132BE4(GameLocationKey* session, GfxCoord* coord);
 static __inline__ s32  Actor401300_HasHeightClamp(GameLocationKey* session);
 static s32             func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3);
-static s32             func_actor_401300_80132FF4(Task* arg0);
 static void            func_actor_401300_80133254(Task* arg0);
 static void            func_actor_401300_80133324(Task* arg0);
 static s32             func_actor_401300_8013346C(Actor401300Work* work);
@@ -1446,59 +1445,7 @@ s32 func_actor_401300_80132554(Task* arg0, s32 arg1, Actor401300Event* arg2)
     return 0;
 }
 
-static s32 func_actor_401300_8013267C(GfxCoord* coord, s16 arg1, s16 arg2)
-{
-    SVECTOR  v;
-    SVECTOR  d;
-    VECTOR   e;
-    Task*    player;
-    s16      angle;
-    SVECTOR* pv;
-    s32      x;
-
-    player = gameGetPtrSlot(3);
-    d.vx   = (u16)player->extra.tmd->coords->coord.t[0] - (u16)coord->coord.t[0];
-    d.vy   = (u16)player->extra.tmd->coords->coord.t[1] - (u16)coord->coord.t[1];
-    d.vz   = (u16)player->extra.tmd->coords->coord.t[2] - (u16)coord->coord.t[2];
-    angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
-    x = angle << 16;
-    if (arg2 >= 0) {
-        if (abs(x >> 16) > 0x400) {
-            return 1;
-        }
-    } else {
-        if (abs(x >> 16) < 0x400) {
-            return 1;
-        }
-    }
-    Gfx_MatrixCol2(&coord->coord, &v);
-    pv = &v;
-    VectorNormalSS(pv, pv);
-    gte_lddp(arg2);
-    gte_ldsv(pv);
-    gte_gpf12();
-    gte_stsv(pv);
-    v.vx += (u16)coord->coord.t[0];
-    v.vy += (u16)coord->coord.t[1];
-    v.vz += (u16)coord->coord.t[2];
-    e.vx  = player->extra.tmd->coords->coord.t[0] - v.vx;
-    e.vy  = player->extra.tmd->coords->coord.t[1] - v.vy;
-    e.vz  = player->extra.tmd->coords->coord.t[2] - v.vz;
-    return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= arg1 + 0x96;
-}
+#include "../../shared/player_detection_reach.inc.c"
 
 /// Pushes the root coordinate by a quarter of each kind 0x10000 / 0x30000 record's
 /// offset (skipping 0x3000D), walking `recs` until `count` or a zero `key`.
@@ -1661,51 +1608,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
     return s->moved;
 }
 
-/// Rotates the player's and this actor's root positions, each raised by 1000,
-/// into world space and returns `func_800E0308` on the pair.
-static s32 func_actor_401300_80132FF4(Task* arg0)
-{
-    Task*              player;
-    u8*                head;
-    ActorSightScratch* s;
-    SVECTOR*           local;
-    SVECTOR*           v;
-    SVECTOR*           out;
-
-    player                   = gameGetPtrSlot(3);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    local                    = (SVECTOR*)(head - 0xC);
-    s                        = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx              = player->extra.tmd->coords->coord.t[0];
-    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
-    s->local.vz              = player->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    v = local;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(&s->out);
-    s->out.vx += gGfxViewCoord.workm.t[0];
-    s->out.vy += gGfxViewCoord.workm.t[1];
-    s->out.vz += gGfxViewCoord.workm.t[2];
-
-    s->local.vx = arg0->extra.tmd->coords->coord.t[0];
-    s->local.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
-    s->local.vz = arg0->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtv0();
-    gte_stsv(out);
-    s->from.vx += gGfxViewCoord.workm.t[0];
-    s->from.vy += gGfxViewCoord.workm.t[1];
-    s->from.vz += gGfxViewCoord.workm.t[2];
-    s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-    return s->hit;
-}
+#include "../../shared/player_detection_sight.inc.c"
 
 static void func_actor_401300_80133254(Task* arg0)
 {
@@ -3054,7 +2957,7 @@ static void func_actor_401300_80136238(Task* arg0)
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_6C & 0x100) {
-        if (func_actor_401300_80132FF4(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
+        if (detectSightBlocked(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;
@@ -3149,7 +3052,7 @@ static void func_actor_401300_801365F8(Task* arg0)
     angle           = ratan2(head[-1].delta.vx, delta->vz);
     sc->angle       = actorNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
     work->field_8B2 = sc->angle;
-    if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, (work->field_8A8 + 2) * 30 * 1.5f / 18.0f)) {
+    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (work->field_8A8 + 2) * 30 * 1.5f / 18.0f)) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (work->field_8A8 + 2) * 30 * 1.5f / 18.0f);
     }
     if (sc->angle > 0x30) {
@@ -3328,7 +3231,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             }
             s->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
             Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
-            if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, (s16)((float)((work->field_8A8 + 2) * 30) * 1.5f / 18.0f)) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)((float)((work->field_8A8 + 2) * 30) * 1.5f / 18.0f)) != 0) {
                 Actor401300_MoveBy(arg0->extra.tmd->coords, (s16)((float)((work->field_8A8 + 2) * 30) * 1.5f / 18.0f));
             }
             actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
@@ -3416,11 +3319,11 @@ static void func_actor_401300_801376E4(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 0) {
-        if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0x28) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x28) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
-        if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0x14) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x14) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0x14);
         }
     }
@@ -3720,7 +3623,7 @@ static void func_actor_401300_80138CF8(Task* arg0)
         work->field_8BA        = 8;
         work->field_970.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if (work->field_8A2 == 0xA && (s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, -0x57) != 0) {
+    if (work->field_8A2 == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x57) != 0) {
         actorMoveForward(arg0->extra.tmd->coords, -0x57);
     }
     func_actor_401300_80133A3C(arg0);
@@ -4069,7 +3972,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     if (work->field_89E == 0) {
-        if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0xA);
         }
     }
@@ -4133,7 +4036,7 @@ static void func_actor_401300_8013A208(Task* arg0)
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57) == 0) {
         func_actor_401300_80132910(arg0, work->field_990, 0xC);
     }
-    if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, work->field_C98) != 0) {
+    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, work->field_C98) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C98);
     }
     if (work->field_C98 > 0) {
@@ -4200,7 +4103,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_8A2 == 0x11) {
         work->field_6++;
-        if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, -0x10) != 0) {
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x10) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, -0x10);
         }
         if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57) == 0) {
@@ -4448,7 +4351,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                 work->field_8A6 = 0x10;
                 work->field_89E = 0;
             }
-            if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0xA);
             }
             func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_AD0, 0xC);
@@ -4593,11 +4496,11 @@ static void func_actor_401300_8013CBAC(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_8A2 == 2) {
         if (work->field_89E == 0) {
-            if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0x16) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x16) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0x16);
             }
         } else {
-            if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 5) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 5) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 5);
             }
         }
@@ -4917,7 +4820,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             }
             aim->turn += Actor401300_Yaw(arg0->extra.tmd->coords);
             Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-            if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0x70);
             }
             Actor401300_ResetActorYaw(arg0);
@@ -4998,7 +4901,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->field_6      = 0;
                 }
             }
-            if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0xA8);
             }
             Actor401300_ResetActorYaw(arg0);
@@ -5008,11 +4911,11 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 func_actor_401300_80132910(arg0, work->field_990, 0xC);
             }
             if (work->field_6 < 8) {
-                if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, -0x79) != 0) {
+                if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x79) != 0) {
                     Actor401300_MoveForwardSave(save, arg0->extra.tmd->coords, -0x79);
                 }
             } else if ((u16)(work->field_6 - 8) < 6) {
-                if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, -0x19) != 0) {
+                if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x19) != 0) {
                     Actor401300_MoveForwardSave(save, arg0->extra.tmd->coords, -0x19);
                 }
             }
@@ -5224,7 +5127,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57) == 0) {
                 cur = work->field_6;
                 if (cur < 0x11 && work->field_D20 == 0) {
-                    if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, (s16)(0x54 - cur * 0x54 / 16)) != 0) {
+                    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)(0x54 - cur * 0x54 / 16)) != 0) {
                         Actor401300_MoveForwardNonzeroSave(save, arg0->extra.tmd->coords, 0x54 - work->field_6 * 0x54 / 16);
                     }
                 }
@@ -5380,7 +5283,7 @@ static void func_actor_401300_8013F628(Task* arg0)
                 work->field_89C = 2;
                 work->field_6   = 0;
             }
-            if (work->field_D20 == 0 && (s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0x78) != 0) {
+            if (work->field_D20 == 0 && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x78) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0x78);
             }
             Actor401300_ResetActorYaw(arg0);
@@ -5389,7 +5292,7 @@ static void func_actor_401300_8013F628(Task* arg0)
             work->field_970.radius = 0x280;
             cur                    = work->field_6;
             if (cur < 0x11 && work->field_D20 == 0) {
-                if ((s16)func_actor_401300_8013267C(arg0->extra.tmd->coords, 0x15E, 0x54 - cur * 0x54 / 16) != 0) {
+                if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x54 - cur * 0x54 / 16) != 0) {
                     actorMoveForwardNonzero(arg0->extra.tmd->coords, 0x54 - work->field_6 * 0x54 / 16);
                 }
             }
@@ -5922,40 +5825,7 @@ s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Applies one of four model settings chosen by `arg2`: 0 sets the model's
-/// flags to 0x80 and reallocates its buffers, 1 clears the flags and
-/// reallocates them, 2 and 3 set bit 2 (3 clearing the rest first). Case 1
-/// moves the actor to state 0x18, the others to state 0. Always returns 0.
-s32 func_actor_401300_80141504(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject*       obj;
-    Actor401300Work* work;
-
-    obj  = task->extra.tmd;
-    work = (Actor401300Work*)task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_visibility.inc.c"
 
 /// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
 /// if the model carries bit 0x80 or bit 2, and 1 otherwise.

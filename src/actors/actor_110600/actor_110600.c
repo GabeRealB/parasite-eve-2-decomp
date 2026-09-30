@@ -52,6 +52,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/coord_math.h"
+#include "../../shared/player_detection.h"
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// the scratch stack to lay one patrol node out: `m` receives a copy of the
@@ -1153,7 +1155,6 @@ static void            func_actor_110600_80133778(OverlayWalker* work, s16 scale
 static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
                                               OverlayWalkerTickScratch* block);
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
-static s32             func_actor_110600_801341A4(GfxCoord* coord, s16 range, s16 offset);
 static void            func_actor_110600_80134438(Task* arg0);
 static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
 static __inline__ void Actor110600_InitScale(OverlayWalker* walker);
@@ -1174,7 +1175,6 @@ static void            func_actor_110600_80137980(Task* arg0);
 static void            func_actor_110600_80137AF4(Task* arg0);
 static void            func_actor_110600_80137DB0(Task* arg0);
 static void            func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1);
-static void            func_actor_110600_80138568(GfxCoord* coord, s16 scale);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
@@ -1888,7 +1888,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 /// three longs become its translation, the Euler angles go through
 /// `Gfx_RotMatrixX` / `Y` / `Z`), then rebuilds and rescales that coordinate
 /// from the actor's own heading and caches the resulting yaw in the work
-/// block's `field_8`. The rescale `func_actor_110600_80138568` performs is
+/// block's `field_8`. The rescale `coordSetYawScale` performs is
 /// inlined behind the placement.
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
 {
@@ -1974,64 +1974,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2)
     return 0;
 }
 
-/// Tests the player (task slot 3) against `coord`: when the player's bearing
-/// relative to the facing of `coord` is outside +/-0x400 for a non-negative
-/// `offset`, or inside it for a negative one, returns 1 outright. Otherwise
-/// returns whether the player stands at least `range + 0x96` from the point
-/// `offset` units ahead of `coord` along its facing.
-static s32 func_actor_110600_801341A4(GfxCoord* coord, s16 range, s16 offset)
-{
-    SVECTOR  v;
-    SVECTOR  d;
-    VECTOR   e;
-    Task*    player;
-    s16      angle;
-    SVECTOR* pv;
-    s32      x;
-
-    player = gameGetPtrSlot(3);
-    d.vx   = (u16)player->extra.tmd->coords->coord.t[0] - (u16)coord->coord.t[0];
-    d.vy   = (u16)player->extra.tmd->coords->coord.t[1] - (u16)coord->coord.t[1];
-    d.vz   = (u16)player->extra.tmd->coords->coord.t[2] - (u16)coord->coord.t[2];
-    angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
-    x = angle << 16;
-    if (offset >= 0) {
-        if (abs(x >> 16) > 0x400) {
-            return 1;
-        }
-    } else {
-        if (abs(x >> 16) < 0x400) {
-            return 1;
-        }
-    }
-    Gfx_MatrixCol2(&coord->coord, &v);
-    pv = &v;
-    VectorNormalSS(pv, pv);
-    gte_lddp(offset);
-    gte_ldsv(pv);
-    gte_gpf12();
-    gte_stsv(pv);
-    v.vx += (u16)coord->coord.t[0];
-    v.vy += (u16)coord->coord.t[1];
-    v.vz += (u16)coord->coord.t[2];
-    e.vx  = player->extra.tmd->coords->coord.t[0] - v.vx;
-    e.vy  = player->extra.tmd->coords->coord.t[1] - v.vy;
-    e.vz  = player->extra.tmd->coords->coord.t[2] - v.vz;
-    return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= range + 0x96;
-}
+#include "../../shared/player_detection_reach.inc.c"
 
 /// Per-tick animation pass: for each clip id 1..0x12, the first ten (`i < 0xB`)
 /// seed their slot's `rate` from the two work bytes and tick the primary and
@@ -2707,11 +2650,11 @@ static void func_actor_110600_80135454(Task* arg0)
     }
     if (work->field_88E == 0) {
         work->walker.field_5E = (s16)work->field_8B6 * work->field_896 / 16;
-        if ((s16)func_actor_110600_801341A4(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.field_5E) == 0)
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.field_5E) == 0)
             work->walker.field_5E = 0;
     } else {
         work->walker.field_5E = (u16)(work->field_8B4 * work->field_896 / 1520) / 2;
-        if ((s16)func_actor_110600_801341A4(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.field_5E) == 0)
+        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.field_5E) == 0)
             work->walker.field_5E = 0;
     }
     coord    = arg0->extra.tmd->coords;
@@ -4195,44 +4138,7 @@ s32 func_actor_110600_80138538(Task* arg0)
     return 0;
 }
 
-/// Rebuilds `coord`'s rotation as a pure yaw (read back from its current
-/// matrix with `ratan2(-m[2][0], m[2][2])`) uniformly scaled by `scale`, using
-/// a 0x34-byte block taken from the scratchpad head, and marks the coordinate
-/// for refresh.
-static void func_actor_110600_80138568(GfxCoord* coord, s16 scale)
-{
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-}
+#include "../../shared/coord_math_yaw_scale.inc.c"
 
 static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz)
 {
