@@ -60,6 +60,7 @@
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/incinerator_boss.h"
 
 extern s8 D_actor_403200_8015F8E0[8];
 
@@ -131,7 +132,6 @@ typedef struct Actor403200DragScratch {
 STATIC_ASSERT_SIZEOF(Actor403200DragScratch, 0x54);
 
 /// Exit callback of the boss task, installed by its spawn state.
-static void func_actor_403200_80141018(Task* arg0);
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -143,21 +143,21 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// Non-zero while the overlay is shutting down: the spawn states tear their
 /// enemies down instead of standing them up, and the state-selecting tick
 /// holds `field_6` at zero and re-rolls its sub-state.
-extern s16 D_actor_403200_80141C50;
+extern s16 gIncinBossEnded;
 
 /// Set while the grab's animation is installed on the player; the player's
 /// side clears it on release.
-extern s32 D_actor_403200_80141C54;
+extern s32 gIncinBossGrabActive;
 
 /// Counter the launch state sets and the tick after it winds down; the escort
 /// pose driver floors it, drops the escort's body by a fifth of it and picks
 /// each phase's targets by its range.
-extern s16 D_actor_403200_80141C58;
+extern s16 gIncinBossLimbReach;
 
 /// Cleared by both halves of the launch state and exposed through the setter /
 /// getter pair `func_actor_403200_80141108` and `func_actor_403200_80141114`;
 /// the spinner enemies wait for it to be 1 and die once it is 0.
-extern s16 D_actor_403200_80141C5A;
+extern s16 gIncinBossSpinnersReleased;
 
 /// Script pairs spawned on the per-frame body's and the death sequence's cues,
 /// and on the frames the launch tick's phase selects.
@@ -177,7 +177,7 @@ extern EnemyParams D_actor_403200_80141C40;
 
 /// Per-animation reset argument, a `[?][0x2D]` table indexed by the id that
 /// was playing before the switch and the id being switched to.
-extern s8 D_actor_403200_8015DC98[][0x2D];
+extern s8 gIncinBossAnimTransitions[][0x2D];
 
 /// Animation-set tables: the host's two blocks, escort 0's two and escort 1's.
 extern AnimationSet* D_actor_403200_8015E484[];
@@ -191,23 +191,23 @@ extern AnimationSet* D_actor_403200_8015E6CC[];
 
 /// Drop-point group the falling enemies use this round, rerolled whenever a
 /// spawn arrives with `spawnArg1` 0.
-extern u8 D_actor_403200_8015E70C;
+extern u8 gIncinBossRainGroup;
 
 /// Animation-set table the grab states send the player as message 0x3FF;
 /// entry 2 is refreshed from the player's own weapon block.
-extern AnimationSet* D_actor_403200_8015E710[];
+extern AnimationSet* gIncinBossCaughtAnimSets[];
 
 /// Spawn table of the seven escorts, indexed 0..6.
 extern TaskDesc D_actor_403200_8015E72C[];
 
 /// Per-`spawnArg1` offset from the host model to the point the falling enemy
 /// is stood up at.
-extern SVECTOR D_actor_403200_8015E780[];
+extern SVECTOR gIncinBossRainLaunchOffsets[];
 /// The drop points: `vz` is added to the ring x coordinate and `vx` (less
 /// 0x189C) becomes the z coordinate.
-extern SVECTOR D_actor_403200_8015E7C0[];
-/// `[group][spawnArg1]` index into `D_actor_403200_8015E7C0`.
-extern u8 D_actor_403200_8015E840[][8];
+extern SVECTOR gIncinBossRainPoints[];
+/// `[group][spawnArg1]` index into `gIncinBossRainPoints`.
+extern u8 gIncinBossRainPointIndex[][8];
 
 /// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
 /// draw from.
@@ -245,7 +245,7 @@ extern ActorCommand D_actor_403200_8015F8F4;
 
 /// View-space point the launch tick clears and fills from the host's fourth
 /// model part on a state change; the spinner enemies home on it.
-extern SVECTOR D_actor_403200_8015F8F8;
+extern SVECTOR gIncinBossSpinnerTarget;
 
 /// Reply buffers the rise state and the stand-up tick pass with their message
 /// 0x3F8.
@@ -258,7 +258,7 @@ typedef struct {
 } Actor403200StorageF900;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF900, 32);
 
-extern Actor403200StorageF900 D_actor_403200_8015F900;
+extern Actor403200StorageF900 gIncinBossGrabQuery;
 
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
 /// built on: `F920` is the whole `GfxCoord` and `F924` its `coord` matrix,
@@ -404,13 +404,13 @@ EnemyParams D_actor_403200_80141C30 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 5
 
 EnemyParams D_actor_403200_80141C40 = { D_actor_403200_80141BE8, 200, 0, 0, 0, 10, 0, 0, 0 };
 
-s16 D_actor_403200_80141C50 = 0;
+s16 gIncinBossEnded = 0;
 
-s32 D_actor_403200_80141C54 = 0;
+s32 gIncinBossGrabActive = 0;
 
-s16 D_actor_403200_80141C58 = 0;
+s16 gIncinBossLimbReach = 0;
 
-s16 D_actor_403200_80141C5A = 0;
+s16 gIncinBossSpinnersReleased = 0;
 
 GpScriptCmd D_actor_403200_80141C5C[2] = {
     { 1, 257 },
@@ -2421,7 +2421,7 @@ AnimationSet D_actor_403200_8015DC70 = {
     { NULL, D_actor_403200_8015D48C, NULL, NULL, D_actor_403200_8015D540, NULL, NULL, NULL },
 };
 
-s8 D_actor_403200_8015DC98[45][45] = {
+s8 gIncinBossAnimTransitions[45][45] = {
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -2651,9 +2651,9 @@ Actor403200ViewFn D_actor_403200_8015E6E8[9] = {
     func_actor_403200_80134A14,
 };
 
-u8 D_actor_403200_8015E70C = 0;
+u8 gIncinBossRainGroup = 0;
 
-AnimationSet* D_actor_403200_8015E710[7] = {
+AnimationSet* gIncinBossCaughtAnimSets[7] = {
     NULL,
     &D_actor_403200_8015D464,
     NULL,
@@ -2673,7 +2673,7 @@ TaskDesc D_actor_403200_8015E72C[7] = {
     { TASK_BODY_TMD, 96, func_actor_403200_8014148C, { .model = &D_actor_403200_8014A858 } },
 };
 
-SVECTOR D_actor_403200_8015E780[8] = {
+SVECTOR gIncinBossRainLaunchOffsets[8] = {
     { -1000, 0, -1800, 0 },
     { 800, 0, -800, 0 },
     { -1300, 0, 200, 0 },
@@ -2684,7 +2684,7 @@ SVECTOR D_actor_403200_8015E780[8] = {
     { -1100, 0, 900, 0 },
 };
 
-SVECTOR D_actor_403200_8015E7C0[16] = {
+SVECTOR gIncinBossRainPoints[16] = {
     { -2000, 0, -1800, 0 },
     { -1200, 0, -1900, 0 },
     { -80, 0, -1880, 0 },
@@ -2703,7 +2703,7 @@ SVECTOR D_actor_403200_8015E7C0[16] = {
     { 0, 0, 0, 0 },
 };
 
-u8 D_actor_403200_8015E840[3][8] = {
+u8 gIncinBossRainPointIndex[3][8] = {
     { 7, 10, 8, 0, 4, 3, 12, 9 },
     { 2, 5, 12, 0, 6, 14, 13, 10 },
     { 14, 13, 9, 0, 12, 7, 10, 11 },
@@ -2861,9 +2861,9 @@ Task* D_actor_403200_8015F8F0 = NULL;
 
 ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
 
-SVECTOR D_actor_403200_8015F8F8 = { 0, 0, 0, 0 };
+SVECTOR gIncinBossSpinnerTarget = { 0, 0, 0, 0 };
 
-Actor403200StorageF900 D_actor_403200_8015F900 = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+Actor403200StorageF900 gIncinBossGrabQuery = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
@@ -2875,12 +2875,6 @@ GpDelayArg D_actor_403200_8015FA00;
 
 /// Integer part of the last step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
-
-static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task);
-
-static void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1);
-
-static void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1);
 
 extern Actor403200ViewFn D_actor_403200_8015E6E8[];
 
@@ -2911,35 +2905,8 @@ static void func_actor_403200_80141234(Task* arg0);
 static void func_actor_403200_8014123C(Task* arg0);
 
 static __inline__ void Actor403200_StepForward(GfxCoord* coord);
-static __inline__ void Actor403200_ScaleRotation(GfxCoord* coord, s16 xz, s32 y);
-static __inline__ void Actor403200_ShrinkRotation(GfxCoord* coord);
-static __inline__ void Actor403200_GapToCamera(GfxCoord* coord, SVECTOR* out);
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work);
-static void            func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 index);
-static void            func_actor_403200_801329CC(Task* task);
-static void            func_actor_403200_80133614(Task* task, s16 arg1);
-static void            func_actor_403200_801337A0(Task* task, s16 arg1);
-static void            func_actor_403200_80133920(Task* task);
-static void            func_actor_403200_801339FC(Task* arg0);
-static void            func_actor_403200_80133B80(Task* arg0);
-static void            func_actor_403200_80133DD8(Task* arg0);
-static void            func_actor_403200_80134044(GfxCoord* coord, s32 id);
 static void            func_actor_403200_80134D40(Task* arg0);
-static void            func_actor_403200_8013509C(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_801354A4(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80135854(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80135CB8(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80135F98(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_801364F4(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_8013669C(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80136ACC(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80136D94(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_8013709C(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80137600(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80137788(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_801379EC(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80137CCC(GpEnemy* enemy, Task* task);
-static void            func_actor_403200_80137EB4(GpEnemy* enemy, Task* task);
 static void            func_actor_403200_80138284(Task* arg0);
 static void            func_actor_403200_80138AFC(GpEnemy* enemy, Task* task);
 static void            func_actor_403200_80139A60(Task* arg0);
@@ -2997,80 +2964,7 @@ static __inline__ void Actor403200_StepForward(GfxCoord* coord)
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-/// Rebuild `coord`'s rotation around the yaw it already faces and rescale it:
-/// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
-/// the rotation from it and `ScaleMatrix` applies `xz` on both horizontal axes
-/// and `y` on the vertical one. The working matrix lives in a frame carved off
-/// the scratch stack, handed back once the rotation has been copied onto the
-/// coordinate; as an inline the scratch-head accesses stay absolute.
-static __inline__ void Actor403200_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
-{
-    ActorScaleRotScratch* sc;
-    s16                   ang;
-
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
-
-    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
-    sc->scale.vx = xz;
-    sc->scale.vy = y;
-    sc->scale.vz = xz;
-    ScaleMatrix(&sc->m, &sc->scale);
-
-    coord->coord.m[0][0] = sc->m.m[0][0];
-    coord->coord.m[0][1] = sc->m.m[0][1];
-    coord->coord.m[0][2] = sc->m.m[0][2];
-    coord->coord.m[1][0] = sc->m.m[1][0];
-    coord->coord.m[1][1] = sc->m.m[1][1];
-    coord->coord.m[1][2] = sc->m.m[1][2];
-    coord->coord.m[2][0] = sc->m.m[2][0];
-    coord->coord.m[2][1] = sc->m.m[2][1];
-    coord->coord.m[2][2] = sc->m.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
-}
-
-/// The same rebuild at a uniform half scale.
-static __inline__ void Actor403200_ShrinkRotation(GfxCoord* coord)
-{
-    ActorScaleRotScratch* sc;
-    s16                   ang;
-
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
-
-    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
-    sc->scale.vx = 0x800;
-    sc->scale.vy = 0x800;
-    sc->scale.vz = 0x800;
-    ScaleMatrix(&sc->m, &sc->scale);
-
-    coord->coord.m[0][0] = sc->m.m[0][0];
-    coord->coord.m[0][1] = sc->m.m[0][1];
-    coord->coord.m[0][2] = sc->m.m[0][2];
-    coord->coord.m[1][0] = sc->m.m[1][0];
-    coord->coord.m[1][1] = sc->m.m[1][1];
-    coord->coord.m[1][2] = sc->m.m[1][2];
-    coord->coord.m[2][0] = sc->m.m[2][0];
-    coord->coord.m[2][1] = sc->m.m[2][1];
-    coord->coord.m[2][2] = sc->m.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
-}
-
-/// Gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, into `out`.
-static __inline__ void Actor403200_GapToCamera(GfxCoord* coord, SVECTOR* out)
-{
-    out->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    out->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    out->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-}
+#include "../../shared/incinerator_boss_inlines.inc.c"
 
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work)
 {
@@ -3107,646 +3001,23 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-/// Rebuild quad `index` of the collision grid as a wall across the front of
-/// the task's model: the edge runs 0x1388 either way along the model's x axis,
-/// `scale` out along its z axis, with vertices 0 and 1 sitting `drop` below 2
-/// and 3. The quad's grid normal becomes the model's unit z axis, and the face
-/// record takes flag 3 in area 0x27 and 2 elsewhere.
-static void func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 index)
-{
-    SVECTOR     dir;
-    GpGridFace  face;
-    SVECTOR*    normal;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    SVECTOR*    d;
+#include "../../shared/incinerator_boss_wall.inc.c"
 
-    normal = &Gp_GridParams->field_4[index];
-    verts  = Gp_GridParams->field_8;
-    faces  = Gp_GridParams->field_C;
+#include "../../shared/incinerator_boss_pose_limb.inc.c"
 
-    face.verts[0]     = index * 4;
-    face.verts[1]     = index * 4 + 1;
-    face.verts[2]     = index * 4 + 2;
-    face.verts[3]     = index * 4 + 3;
-    face.normalIndex  = index;
-    face.surfaceClass = 3;
+#include "../../shared/incinerator_boss_turn_neck.inc.c"
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, normal);
-    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, &dir);
-    d = &dir;
-    VectorNormalSS(d, d);
-    VectorNormalSS(normal, normal);
-    gte_lddp(scale);
-    gte_ldsv(normal);
-    gte_gpf12();
-    gte_stsv(normal);
-    gte_lddp(0x1388);
-    gte_ldsv(d);
-    gte_gpf12();
-    gte_stsv(d);
+#include "../../shared/incinerator_boss_pitch_neck.inc.c"
 
-    verts[index * 4].vx = verts[index * 4 + 2].vx =
-        task->extra.tmd->coords->coord.t[0] + dir.vx + normal->vx;
-    verts[index * 4].vy = verts[index * 4 + 2].vy = dir.vy + normal->vy;
-    verts[index * 4].vz                           = verts[index * 4 + 2].vz =
-        task->extra.tmd->coords->coord.t[2] + dir.vz + normal->vz;
+#include "../../shared/incinerator_boss_seed_blend.inc.c"
 
-    verts[index * 4 + 1].vx = verts[index * 4 + 3].vx =
-        task->extra.tmd->coords->coord.t[0] - dir.vx + normal->vx;
-    verts[index * 4 + 1].vy = verts[index * 4 + 3].vy = -dir.vy + normal->vy;
-    verts[index * 4 + 1].vz                           = verts[index * 4 + 3].vz =
-        task->extra.tmd->coords->coord.t[2] - dir.vz + normal->vz;
+#include "../../shared/incinerator_boss_switch_anim.inc.c"
 
-    verts[index * 4].vy     -= drop;
-    verts[index * 4 + 1].vy -= drop;
+#include "../../shared/incinerator_boss_tick_blended.inc.c"
 
-    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, normal);
-    VectorNormalSS(normal, normal);
-    gte_lddp(0x1000);
-    gte_ldsv(normal);
-    gte_gpf12();
-    gte_stsv(normal);
+#include "../../shared/incinerator_boss_tick_anim.inc.c"
 
-    if (gGameSession->location.loc.area == 0x27) {
-        face.surfaceClass = 3;
-    } else {
-        face.surfaceClass = 2;
-    }
-
-    faces[index] = face;
-}
-
-/// Pose the fifth escort -- the seven-part model whose coordinate array hangs
-/// off `field_ECC[4]` -- for the phase `field_7A4` names. Every part is reset
-/// to the same spot (the whole body dropped by a fifth of the counter
-/// `D_actor_403200_80141C58`, floored at 0x1CC here), then the phase picks a
-/// target yaw per part in `field_784`, and each `field_794` walks toward its
-/// target by at most `field_7A6`, which is what drives the part rotations.
-/// Phase 2 targets the angles the parts are already at, so it holds the pose it
-/// was handed.
-static void func_actor_403200_801329CC(Task* task)
-{
-    Actor403200Work* work = (Actor403200Work*)task->work;
-    s16              i;
-
-    if (work->field_ECC[4]->task->extra.tmd->buffer == NULL) {
-        return;
-    }
-
-    if (D_actor_403200_80141C58 < 0x1CC) {
-        D_actor_403200_80141C58 = 0x1CC;
-    }
-
-    for (i = 0; i < 7; i++) {
-        work->field_ECC[4]->task->extra.tmd->coords[i].coord.t[0]     = work->field_ECC[4]->task->extra.tmd->coords[i].coord.t[1] =
-            work->field_ECC[4]->task->extra.tmd->coords[i].coord.t[2] = 0;
-        if ((u16)i >= 2) {
-            work->field_ECC[4]->task->extra.tmd->coords[i].coord.t[2] = (s16)(D_actor_403200_80141C58 / 5);
-        }
-        work->field_ECC[4]->task->extra.tmd->coords[i].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->field_ECC[4]->task->extra.tmd->coords[i]);
-    }
-
-    switch (work->field_7A4) {
-        case 4:
-            work->field_7A6    = 2;
-            work->field_784[1] = 0x180;
-            work->field_784[2] = 0x20;
-            work->field_784[3] = 0;
-            work->field_784[4] = 0;
-            work->field_784[5] = 0;
-            work->field_784[6] = 0;
-            break;
-
-        case 3:
-            work->field_7A6 = 8;
-            if (D_actor_403200_80141C58 < 0x400) {
-                work->field_784[1] = -0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = 0;
-                }
-            } else if (D_actor_403200_80141C58 < 0x604) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 6; i++) {
-                    work->field_784[i] = 0;
-                }
-                work->field_784[6] = -0x80;
-            } else if (D_actor_403200_80141C58 < 0x708) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 6; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 6; i < 7; i++) {
-                    work->field_784[i] = -0x60;
-                }
-            } else if (D_actor_403200_80141C58 < 0xC80) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 4; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 4; i < 5; i++) {
-                    work->field_784[i] = -0x40;
-                }
-                for (i = 5; i < 7; i++) {
-                    work->field_784[i] = 0x190;
-                }
-            } else if (D_actor_403200_80141C58 < 0x1900) {
-                work->field_784[1] = 0x40;
-                work->field_784[2] = 0;
-                for (i = 3; i < 4; i++) {
-                    work->field_784[i] = -0x60;
-                }
-                for (i = 4; i < 7; i++) {
-                    work->field_784[i] = 0x190;
-                }
-            } else {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = -0x40;
-                }
-            }
-            break;
-
-        case 2:
-            work->field_7A6    = 0x10;
-            work->field_784[1] = 0xC0;
-            work->field_784[2] = 0x60;
-            work->field_784[3] = 0x20;
-            work->field_784[4] = work->field_794[4];
-            work->field_784[5] = work->field_794[5];
-            work->field_784[6] = work->field_794[6];
-            break;
-
-        case 1:
-            work->field_7A6 = 0x59;
-            if (D_actor_403200_80141C58 < 0x400) {
-                work->field_784[1] = -0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = 0;
-                }
-            } else if (D_actor_403200_80141C58 < 0x604) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 6; i++) {
-                    work->field_784[i] = 0;
-                }
-                work->field_784[6] = 0x200;
-            } else if (D_actor_403200_80141C58 < 0x708) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 5; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 5; i < 7; i++) {
-                    work->field_784[i] = 0x200;
-                }
-            } else if (D_actor_403200_80141C58 < 0xC80) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 4; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 4; i < 7; i++) {
-                    work->field_784[i] = 0x200;
-                }
-            } else if (D_actor_403200_80141C58 < 0x1900) {
-                work->field_784[1] = 0x80;
-                work->field_784[2] = 0;
-                for (i = 3; i < 7; i++) {
-                    work->field_784[i] = 0x200;
-                }
-            } else {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = 0x200;
-                }
-            }
-            break;
-
-        case 0:
-            work->field_7A6 = 0x10;
-            if (D_actor_403200_80141C58 < 0x258) {
-                work->field_784[1] = -0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = 0;
-                }
-            } else if (D_actor_403200_80141C58 < 0x400) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = 0;
-                }
-            } else if (D_actor_403200_80141C58 < 0x604) {
-                work->field_784[1] = 0x100;
-                for (i = 2; i < 6; i++) {
-                    work->field_784[i] = 0;
-                }
-                work->field_784[6] = -0x200;
-            } else if (D_actor_403200_80141C58 < 0x708) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 5; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 5; i < 7; i++) {
-                    work->field_784[i] = -0x200;
-                }
-            } else if (D_actor_403200_80141C58 < 0xC80) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 4; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 4; i < 7; i++) {
-                    work->field_784[i] = -0x200;
-                }
-            } else if (D_actor_403200_80141C58 < 0x1900) {
-                work->field_784[1] = 0x80;
-                work->field_784[2] = 0;
-                for (i = 3; i < 7; i++) {
-                    work->field_784[i] = -0x200;
-                }
-            } else {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = -0x200;
-                }
-            }
-            break;
-
-        case 5:
-        default:
-            work->field_7A6 = 0x54;
-            if (D_actor_403200_80141C58 < 0x400) {
-                work->field_784[1] = -0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = 0;
-                }
-            } else if (D_actor_403200_80141C58 < 0x604) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 6; i++) {
-                    work->field_784[i] = 0;
-                }
-                work->field_784[6] = -0x200;
-            } else if (D_actor_403200_80141C58 < 0x708) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 5; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 5; i < 7; i++) {
-                    work->field_784[i] = -0x200;
-                }
-            } else if (D_actor_403200_80141C58 < 0xC80) {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 4; i++) {
-                    work->field_784[i] = 0;
-                }
-                for (i = 4; i < 7; i++) {
-                    work->field_784[i] = -0x200;
-                }
-            } else if (D_actor_403200_80141C58 < 0x1900) {
-                work->field_784[1] = 0x80;
-                work->field_784[2] = 0;
-                for (i = 3; i < 7; i++) {
-                    work->field_784[i] = -0x17C;
-                }
-            } else {
-                work->field_784[1] = 0x80;
-                for (i = 2; i < 7; i++) {
-                    work->field_784[i] = -0x17C;
-                }
-            }
-            break;
-    }
-
-    for (i = 1; i < 7; i++) {
-        if (abs(work->field_794[i] - work->field_784[i]) < work->field_7A6) {
-            work->field_794[i] = work->field_784[i];
-        } else if (work->field_794[i] < work->field_784[i]) {
-            work->field_794[i] = work->field_794[i] + work->field_7A6;
-        } else {
-            work->field_794[i] = work->field_794[i] - work->field_7A6;
-        }
-        Gfx_RotMatrixX(&work->field_ECC[4]->task->extra.tmd->coords[i].coord, work->field_794[i], 1);
-        work->field_ECC[4]->task->extra.tmd->coords[i].composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-}
-
-/// Walk the yaw `field_7C8` toward `arg1` (clamped to +/-0x200) by at most 0x71
-/// per call, turn model part 3 by it through `ActorContact_TurnJoint`, and
-/// refresh part 3, the root of the fifth escort's model and part 4.
-static void func_actor_403200_80133614(Task* task, s16 arg1)
-{
-    Actor403200Work* work = (Actor403200Work*)task->work;
-    s16              value;
-
-    value = arg1;
-    if (arg1 > 0x200) {
-        value = 0x200;
-    }
-    if (arg1 < -0x200) {
-        value = -0x200;
-    }
-
-    if (work->field_7C8 < value) {
-        if (value - work->field_7C8 >= 0x72) {
-            work->field_7C8 = work->field_7C8 + 0x71;
-        } else {
-            work->field_7C8 = value;
-        }
-    } else if (value < work->field_7C8) {
-        if (abs(work->field_7C8 - value) >= 0x72) {
-            work->field_7C8 = work->field_7C8 - 0x71;
-        } else {
-            work->field_7C8 = value;
-        }
-    }
-
-    task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[3]);
-    ActorContact_TurnJoint(&task->extra.tmd->coords[3], work->field_7C8);
-    task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[3]);
-    work->field_ECC[4]->task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->field_ECC[4]->task->extra.tmd->coords[0]);
-    task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[4]);
-}
-
-/// Walk the pitch `field_F00` toward `arg1` (clamped to 0..0x500) by at most
-/// 0x10 per call, then pitch model parts 3 and 4 about x: part 3 to half of
-/// it, part 4 against it, each net of the pitch its matrix already carries.
-static void func_actor_403200_801337A0(Task* task, s16 arg1)
-{
-    Actor403200Work* work = (Actor403200Work*)task->work;
-    s16              value;
-    s16              pitch4;
-    s16              pitch3;
-
-    value = arg1;
-    if (arg1 > 0x500) {
-        value = 0x500;
-    }
-    if (arg1 < 0) {
-        value = 0;
-    }
-
-    if (work->field_F00 < value) {
-        if (value - work->field_F00 >= 0x11) {
-            work->field_F00 = work->field_F00 + 0x10;
-        } else {
-            work->field_F00 = value;
-        }
-    } else if (value < work->field_F00) {
-        if (abs(work->field_F00 - value) >= 0x11) {
-            work->field_F00 = work->field_F00 - 0x10;
-        } else {
-            work->field_F00 = value;
-        }
-    }
-
-    pitch4 = -ratan2(task->extra.tmd->coords[4].coord.m[1][2],
-                     task->extra.tmd->coords[4].coord.m[2][2]);
-    pitch3 = -ratan2(task->extra.tmd->coords[3].coord.m[1][2],
-                     task->extra.tmd->coords[3].coord.m[2][2]);
-
-    Gfx_RotMatrixX(&task->extra.tmd->coords[3].coord, work->field_F00 / 2 - pitch3, 0);
-    task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gfx_RotMatrixX(&task->extra.tmd->coords[4].coord, -work->field_F00 - pitch4, 0);
-    task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-}
-
-/// Start a blend: `field_7BE` to 0x30 and `field_7C0` to 0x800. Slots 1 and up
-/// of the even member of each of the three animation pairs take that rate, and
-/// the same slots of the odd member are reset to animation `field_7BC`.
-static void func_actor_403200_80133920(Task* task)
-{
-    Actor403200Work* work;
-    s32              i;
-
-    work            = (Actor403200Work*)task->work;
-    work->field_7BE = 0x30;
-    work->field_7C0 = 0x800;
-    i               = 1;
-    do {
-        work->slots0[i].rate = work->field_7BE;
-        Gp_AnimResetSlot(&work->anim1, i, work->field_7BC);
-        i++;
-    } while (i < 8);
-    i = 1;
-    do {
-        work->slots2[i].rate = work->field_7BE;
-        Gp_AnimResetSlot(&work->anim3, i, work->field_7BC);
-        i++;
-    } while (i < 4);
-    i = 1;
-    do {
-        work->slots4[i].rate = work->field_7BE;
-        Gp_AnimResetSlot(&work->anim5, i, work->field_7BC);
-        i++;
-    } while (i < 4);
-}
-
-/// Reseed every slot of the three even animation members from `field_7B3` when
-/// the id it names differs from the latched `field_7B2`, then latch it. Each
-/// slot also has its `rate` seeded from `field_7B6`, and the reset argument
-/// comes from the `[field_7B2][field_7B3]` transition table.
-static void func_actor_403200_801339FC(Task* arg0)
-{
-    Actor403200Work* work = (Actor403200Work*)arg0->work;
-    s32              i;
-
-    if (work->field_7B2 != work->field_7B3) {
-        for (i = 1; i < 8; i++) {
-            work->slots0[i].rate = work->field_7B6;
-            func_800B4114(&work->anim0, i, work->field_7B3, 0,
-                          D_actor_403200_8015DC98[work->field_7B2][work->field_7B3]);
-        }
-        for (i = 0; i < 4; i++) {
-            work->slots2[i].rate = work->field_7B6;
-            func_800B4114(&work->anim2, i, work->field_7B3, 0,
-                          D_actor_403200_8015DC98[work->field_7B2][work->field_7B3]);
-        }
-        for (i = 0; i < 4; i++) {
-            work->slots4[i].rate = work->field_7B6;
-            func_800B4114(&work->anim4, i, work->field_7B3, 0,
-                          D_actor_403200_8015DC98[work->field_7B2][work->field_7B3]);
-        }
-        work->field_7B2 = work->field_7B3;
-    }
-}
-
-/// Advance the three animation pairs with the odd member of each blended in at
-/// weight `field_7C0`: every slot of the odd member ticks at `field_7BE`, every
-/// slot of the even one at `field_7B6` less 3, and the pose written to the even
-/// member is the mix of the two.
-static void func_actor_403200_80133B80(Task* arg0)
-{
-    GpAnimPose       pose0;
-    GpAnimPose       pose1;
-    Actor403200Work* work     = (Actor403200Work*)arg0->work;
-    s32              blend    = work->field_7C0;
-    s32              invBlend = 0x1000 - blend;
-    s16              i;
-
-    for (i = 1; i < 8; i++) {
-        if (i < 11) {
-            work->slots1[i].rate = work->field_7BE;
-            work->slots0[i].rate = work->field_7B6 - 3;
-            animationTickSlotPose(&work->anim0, i, &pose0, 0);
-            animationTickSlotPose(&work->anim1, i, &pose1, 0);
-            Gp_AnimWritePoseCopy(&work->anim0, i, &pose0, &pose1, blend, invBlend);
-        } else {
-            work->slots0[i].rate = work->field_7B6 - 3;
-            Gp_AnimTickIndex(&work->anim0, i);
-        }
-    }
-
-    for (i = 0; i < 4; i++) {
-        work->slots3[i].rate = work->field_7BE;
-        work->slots2[i].rate = work->field_7B6 - 3;
-        animationTickSlotPose(&work->anim2, i, &pose0, 0);
-        animationTickSlotPose(&work->anim3, i, &pose1, 0);
-        Gp_AnimWritePoseCopy(&work->anim2, i, &pose0, &pose1, blend, invBlend);
-    }
-
-    for (i = 0; i < 4; i++) {
-        work->slots5[i].rate = work->field_7BE;
-        work->slots4[i].rate = work->field_7B6 - 3;
-        animationTickSlotPose(&work->anim4, i, &pose0, 0);
-        animationTickSlotPose(&work->anim5, i, &pose1, 0);
-        Gp_AnimWritePoseCopy(&work->anim4, i, &pose0, &pose1, blend, invBlend);
-    }
-}
-
-/// Per-frame animation step. `field_7B0` 1 re-seeds the block through
-/// `func_actor_403200_801339FC`, 2 resets every slot of the three even members
-/// from `field_7B3` outright; either way the block is armed (`field_7B0` 3, the
-/// frame counter and the 0x20-byte scratch at `field_7D0` cleared). Then the
-/// slots are advanced: plainly while `field_7B1` is clear, otherwise through the
-/// blended path, which clears `field_7B1` again once the first pair's slot 1
-/// reports done. The three trailing flags run the head tracker, the yaw walk
-/// and the escort pose driver.
-static void func_actor_403200_80133DD8(Task* arg0)
-{
-    Actor403200Work* work = (Actor403200Work*)arg0->work;
-    Actor403200Work* w;
-    s32              i;
-
-    if (work->field_7B0 == 1) {
-        func_actor_403200_801339FC(arg0);
-        work->field_7B0 = 3;
-        work->field_7B4 = 0;
-        Mem_Set(work->field_7D0, 0, 0x20);
-    } else if (work->field_7B0 == 2) {
-        w = (Actor403200Work*)arg0->work;
-        for (i = 1; i < 8; i++) {
-            w->slots0[i].rate = w->field_7B6;
-            Gp_AnimResetSlot(&w->anim0, i, w->field_7B3);
-        }
-        for (i = 0; i < 4; i++) {
-            w->slots2[i].rate = w->field_7B6;
-            Gp_AnimResetSlot(&w->anim2, i, w->field_7B3);
-        }
-        for (i = 0; i < 4; i++) {
-            w->slots4[i].rate = w->field_7B6;
-            Gp_AnimResetSlot(&w->anim4, i, w->field_7B3);
-        }
-        w->field_7B2    = w->field_7B3;
-        work->field_7B0 = 3;
-        work->field_7B4 = 0;
-        Mem_Set(work->field_7D0, 0, 0x20);
-    }
-
-    if (work->field_7BA == 2) {
-        func_actor_403200_80133920(arg0);
-        work->field_7BA = 3;
-    }
-
-    work->field_7B4++;
-
-    if (work->field_7B1 == 0) {
-        w = (Actor403200Work*)arg0->work;
-        for (i = 1; i < 8; i++) {
-            w->slots0[i].rate = w->field_7B6;
-            Gp_AnimTickIndex(&w->anim0, i);
-        }
-        for (i = 0; i < 4; i++) {
-            w->slots2[i].rate = w->field_7B6;
-            Gp_AnimTickIndex(&w->anim2, i);
-        }
-        for (i = 0; i < 4; i++) {
-            w->slots4[i].rate = w->field_7B6;
-            Gp_AnimTickIndex(&w->anim4, i);
-        }
-    } else {
-        func_actor_403200_80133B80(arg0);
-        if (work->slots1[1].flags & ANIMATION_SLOT_REACHED_END) {
-            work->field_7B1 = 0;
-        }
-    }
-
-    if (work->field_EF4 != 0) {
-        func_actor_403200_801337A0(arg0, work->field_EFE);
-    }
-    if (work->field_EF6 != 0) {
-        func_actor_403200_80133614(arg0, work->field_7C4);
-    }
-    if (work->field_EF8 != 0) {
-        func_actor_403200_801329CC(arg0);
-    }
-}
-
-/// Spawn the hit effect for attack `id` on `coord`. The effect kind comes from
-/// the attack's param 1 and its rotation from param 0: kinds 2, 4, 6 and 7 use
-/// one fixed rotation, every other kind draws one of three off `Gp_LcgState`.
-/// The rotation and the effect argument live in a frame borrowed from the
-/// scratchpad stack for the duration of the call.
-static void func_actor_403200_80134044(GfxCoord* coord, s32 id)
-{
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
-    sc->eff.spawnArgLo        = 0x500;
-    sc->eff.coord             = coord;
-    sc->eff.spawnArgHi        = 3;
-
-    switch (Gp_GetIdParam0(id) & 0xFFFF) {
-        case 2:
-        case 4:
-        case 6:
-        case 7:
-            sc->rot.vx = 0;
-            sc->rot.vy = -0x190;
-            sc->rot.vz = 0x258;
-            func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
-            break;
-        case 0:
-        case 1:
-        case 3:
-        case 5:
-        case 8:
-        case 9:
-        default:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            switch ((u16)(((u32)Gp_LcgState >> 16) % 3U)) {
-                case 0:
-                    sc->rot.vy = 0;
-                    sc->rot.vx = 0;
-                    sc->rot.vz = 0x384;
-                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
-                    break;
-                case 1:
-                    sc->rot.vx = 0x258;
-                    sc->rot.vy = -0xC8;
-                    sc->rot.vz = 0x2BC;
-                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
-                    break;
-                case 2:
-                    sc->rot.vx = -0x12C;
-                    sc->rot.vy = -0x320;
-                    sc->rot.vz = 0x320;
-                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
-                    break;
-            }
-            break;
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200EffScratch));
-}
+#include "../../shared/incinerator_boss_hit_effect.inc.c"
 
 s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
 {
@@ -4161,8 +3432,8 @@ static const Actor403200ViewPoints D_actor_403200_80131E64 = {
 /// teardown.
 static const GpEnemyTaskFuncTable3 D_actor_403200_80131E84 = {
     {
-        func_actor_403200_801412D0,
-        func_actor_403200_8014139C,
+        incinBossPropSetup,
+        incinBossPropTick,
         Gp_DestroyEnemy,
     },
 };
@@ -4348,7 +3619,7 @@ static void func_actor_403200_80134D40(Task* arg0)
     }
 
     SCRATCH_PUSH_BYTES(0xC);
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
 
     frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x12 && work->field_7D8 != frame) {
@@ -4406,1158 +3677,87 @@ static void func_actor_403200_80134D40(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
-/// Spawn state of the enemy dispatched through `D_actor_403200_80131E90`:
-/// allocate the work block and stand the model up where the host's first
-/// escort's part 1 is, in view space.
-///
-/// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
-/// part 1 have to be resolved by hand: `actorAccumulateToView` walks
-/// the part's coordinate chain up to the view coordinate for the rotation and
-/// `actorLocalToView` carries its origin along the same chain for the
-/// translation. The model is then spun by 0x80 of the 0x1000-unit circle, its
-/// single display node is linked with a 0x394 extent, and that node is paired
-/// with the owning enemy so collisions against it reach this task.
-///
-/// Bails out -- destroying the enemy -- when the overlay is shutting down, the
-/// host actor has left the grab states, or the work block cannot be allocated.
-static void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work;
-    GpEnemy*             owner;
-    Actor403200Work*     host;
-    SVECTOR              pos;
-    SVECTOR              vec;
+#include "../../shared/incinerator_boss_throw_spawn.inc.c"
 
-    owner = task->parent->spawnArg2.pointer;
-    host  = (Actor403200Work*)owner->task->work;
-
-    if (D_actor_403200_80141C50 == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
-        host->field_0 == 0xC || host->field_0 == 0x12 ||
-        (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work,
-         work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    work->field_1AC                 = 0;
-    task->extra.tmd->coords->parent = &gGfxViewCoord;
-    task->extra.tmd->flags          = 0;
-
-    actorAccumulateToView(&host->field_ECC[0]->task->extra.tmd->coords[1],
-                          &task->extra.tmd->coords->coord);
-
-    vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&host->field_ECC[0]->task->extra.tmd->coords[1], &vec);
-
-    task->extra.tmd->coords->coord.t[0]   = vec.vx;
-    task->extra.tmd->coords->coord.t[1]   = vec.vy;
-    task->extra.tmd->coords->coord.t[2]   = vec.vz;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
-    Gp_UpdateCoord(task->extra.tmd->coords);
-
-    pos.vx = pos.vy = pos.vz = 0;
-    actorLinkWorkObj(task->extra.tmd->coords, &work->obj0, &work->rec0, &pos, 0x394, 3,
-                     1);
-
-    work->obj0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj0.key    = Gp_PackObjPair(owner, 2);
-    work->field_1A8   = 1;
-    task->state++;
-}
-
-/// Flight state of the enemy dispatched through `D_actor_403200_80131E90`:
-/// carry the model along its own forward axis until it lands. `field_1A8` (the
-/// dispatcher's state-changed flag) re-arms the step counter, the ground marker
-/// and the first display node on the frame the state starts.
-///
-/// While the game is running (`Gp_StateF0.field_4` clear) the model falls 0xA a step,
-/// column 2 of its coordinate is normalised into a scratchpad `SVECTOR` and
-/// scaled by 0x89/0x1000 through the GTE's GPF, and that is the per-step
-/// translation added to the coordinate; past step 0x29 the height is pinned to
-/// -0x3E8 instead. The marker grows 0x60 a step and is drawn under the work
-/// block's own coordinate, which is parented to `gGfxViewCoord` and tracks the
-/// model. After 0x35 steps the display node is handed back and the task steps
-/// on. Paused (`Gp_StateF0.field_4` set) only the coordinate is refreshed, and the
-/// marker is skipped while the host's `field_F08` step is 6.
-///
-/// Bails out -- unlinking the display node and stepping the task on -- when the
-/// overlay is shutting down or the host has moved to state 5, 0xC, 0x10 or
-/// 0x12.
-static void func_actor_403200_801354A4(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work;
-    Actor403200Work*     host;
-    GpEnemy*             owner;
-    u8*                  head;
-    SVECTOR*             dir;
-    /// Second live alias of `dir`: the GTE operand is kept in its own register
-    /// for the whole function, which is what gives this function its seventh
-    /// callee-saved slot.
-    SVECTOR* gteDir;
-
-    work  = (Actor403200GrabWork*)task->work;
-    owner = task->parent->spawnArg2.pointer;
-    host  = (Actor403200Work*)owner->task->work;
-
-    if (D_actor_403200_80141C50 == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
-        host->field_0 == 0xC || host->field_0 == 0x12) {
-        task->state++;
-        Gp_UnlinkObj(&work->obj0);
-        return;
-    }
-
-    head                          = SCRATCH_STACK_CURSOR(u8);
-    dir                           = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_STACK_CURSOR(SVECTOR) = dir;
-    gteDir                        = dir;
-
-    if (work->field_1A8 != 0) {
-        work->field_1AC      = 0;
-        work->field_1B0      = 0x400;
-        work->field_1A8      = 0;
-        work->rec0.key.value = 0;
-        work->obj0.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    }
-
-    if (Gp_StateF0.field_4 == 0) {
-        work->field_1AC++;
-        task->extra.tmd->coords->coord.t[1] += 0xA;
-
-        Gfx_MatrixCol2(&task->extra.tmd->coords->coord, dir);
-        VectorNormalSS(dir, dir);
-        gte_lddp(0x89);
-        gte_ldsv(gteDir);
-        gte_gpf12();
-        gte_stsv(gteDir);
-
-        task->extra.tmd->coords->coord.t[0] += dir->vx;
-        task->extra.tmd->coords->coord.t[1] += dir->vy;
-        if (work->field_1AC >= 0x29) {
-            task->extra.tmd->coords->coord.t[1] = -0x3E8;
-        }
-        task->extra.tmd->coords->coord.t[2]  += dir->vz;
-        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-        work->field_1B0 += 0x60;
-        Gp_ClearRec18Occupied(&work->rec0);
-
-        work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
-        work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-        work->coord.coord.t[1]   = 0;
-        work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-        work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->coord);
-
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
-                             gRoomEffectState->groundShadowShade);
-
-        if (work->field_1AC >= 0x35) {
-            Gp_UnlinkObj(&work->obj0);
-            task->state++;
-            work->field_1A8 = 1;
-        }
-    } else {
-        work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
-        work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-        work->coord.coord.t[1]   = 0;
-        work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-        work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->coord);
-
-        if (host->field_F08 != 6) {
-            Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
-                                 gRoomEffectState->groundShadowShade);
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
-}
+#include "../../shared/incinerator_boss_throw_fly.inc.c"
 
 /// State handlers of the enemy stood up on the host's first escort: spawn,
 /// flight, teardown.
 static const GpEnemyTaskFuncTable3 D_actor_403200_80131E90 = {
     {
-        func_actor_403200_8013509C,
-        func_actor_403200_801354A4,
+        incinBossThrowSpawn,
+        incinBossThrowFly,
         Gp_DestroyEnemy,
     },
 };
 
-/// Entry state of the enemy dispatched through `D_actor_403200_80131E9C`:
-/// allocate its work block and drop the model onto the floor of the view
-/// coordinate, under escort 1 of the host actor.
-///
-/// The model is reparented to `gGfxViewCoord`, its texture page cleared and its
-/// CLUT row set to 2, and -- once the stream buffers exist -- processed twice
-/// before the spawn cue is enqueued at the model's own pan and half its depth
-/// with the owner's id in its high half. The task's light and colour matrices
-/// are pointed into the work block, the translation is replaced by the world
-/// position of part 1 of escort 1's model, and `field_1AA` is a fifteenth of
-/// that height. `vel` is the horizontal gap to the player, which the later
-/// states spend a fifteenth at a time. The rotation is finally rebuilt at half
-/// scale around the yaw the model already faces.
-///
-/// Bails out -- destroying the enemy -- when the overlay is shutting down or
-/// the work block cannot be allocated.
-static void func_actor_403200_80135854(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work;
-    GpEnemy*             owner;
-    Actor403200Work*     host;
-    Task*                player;
-    SVECTOR              vec;
-    s32                  sfx;
-    s32                  pan;
+#include "../../shared/incinerator_boss_glob_spawn.inc.c"
 
-    owner  = task->parent->spawnArg2.pointer;
-    host   = (Actor403200Work*)owner->task->work;
-    player = gameGetPtrSlot(3);
+#include "../../shared/incinerator_boss_glob_fall.inc.c"
 
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
+#include "../../shared/incinerator_boss_glob_engulf.inc.c"
 
-    work       = memCalloc(sizeof(Actor403200GrabWork), false);
-    task->work = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    task->extra.tmd->coords->parent    = &gGfxViewCoord;
-    task->extra.tmd->flags             = 0;
-    task->extra.tmd->texturePageOffset = 0;
-    task->extra.tmd->clutRowOffset     = 2;
-
-    if (task->extra.tmd->buffer != NULL) {
-        tmdProcessStream(task->extra.tmd);
-        tmdProcessStream(task->extra.tmd);
-        sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020001C;
-        pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra.tmd->coords) / 2));
-    }
-
-    task->extra.tmd->lightMtx = &work->lightMtx;
-    task->extra.tmd->colorMtx = &work->colorMtx;
-
-    vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&host->field_ECC[1]->task->extra.tmd->coords[1], &vec);
-
-    task->extra.tmd->coords->coord.t[0]   = vec.vx;
-    task->extra.tmd->coords->coord.t[1]   = vec.vy;
-    task->extra.tmd->coords->coord.t[2]   = vec.vz;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    work->field_1AA = task->extra.tmd->coords->coord.t[1] / 15;
-    work->vel.vx =
-        player->extra.tmd->coords->coord.t[0] - task->extra.tmd->coords->coord.t[0];
-    work->vel.vy = 0;
-    work->vel.vz =
-        player->extra.tmd->coords->coord.t[2] - task->extra.tmd->coords->coord.t[2];
-    work->field_1AC = 0;
-    work->field_1B2 = 0;
-
-    Actor403200_ShrinkRotation(task->extra.tmd->coords);
-    task->state++;
-}
-
-/// Bounce state of the enemy dispatched through `D_actor_403200_80131E9C`:
-/// bounce the model on the floor until it settles. While the model is still below the floor plane (`coord.t[1] > 0`)
-/// it is snapped back to -0x32, the step counter is cleared, the impact cue is
-/// enqueued with the object's own pan and half its depth, and the task steps
-/// on. Otherwise the body keeps falling by `field_1AA`'s magnitude, drifts a
-/// fifteenth of `vel` in x and z, has its colour refreshed from the model's
-/// world position, damps the two shake terms and has its rotation rebuilt at
-/// half scale.
-static void func_actor_403200_80135CB8(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work = (Actor403200GrabWork*)task->work;
-    GfxCoord*            coord;
-    VECTOR               pos;
-    s32                  sfx;
-    s32                  pan;
-    s32                  drop;
-    s32                  bounce;
-
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    coord = task->extra.tmd->coords;
-    drop  = coord->coord.t[1];
-    if (drop > 0) {
-        coord->coord.t[1] = -0x32;
-        work->field_1AC   = 0;
-        sfx               = ((enemy->placeKey >> 0xC) << 8) | 0x4020000C;
-        pan               = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra.tmd->coords) / 2));
-        task->state++;
-        return;
-    }
-
-    bounce            = ABS(work->field_1AA);
-    coord->coord.t[1] = drop + bounce;
-
-    task->extra.tmd->coords->coord.t[0]  += work->vel.vx / 15;
-    task->extra.tmd->coords->coord.t[2]  += work->vel.vz / 15;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
-
-    work->colorMtx.t[1] >>= 1;
-    work->colorMtx.t[2] >>= 2;
-
-    Actor403200_ShrinkRotation(task->extra.tmd->coords);
-}
-
-/// Rise state of the enemy dispatched through `D_actor_403200_80131E9C`: for
-/// the first nine steps the model is stretched taller and thinner each step --
-/// horizontally `step * 400 + 0x800` and vertically `0x800 / step` -- around
-/// the yaw it already faces. On step 7 it is squashed to 0x17A0 wide at normal
-/// height, and if the player is within 1000 units horizontally, is not in mode
-/// 2, still has HP and answers the 0x3F8 query, the overlay's own animation-set
-/// table is sent as message 0x3FF and the take-over is latched in `field_1B2`.
-/// The task steps on once the count passes ten with no animation installed,
-/// once the latched animation has been released, or after 200 steps. Every
-/// step refreshes the model's colour from its world position and damps the two
-/// shake terms. Bails to `Gp_DestroyEnemy` when the overlay is shutting down,
-/// cancelling a still-installed animation on the way out.
-static void func_actor_403200_80135F98(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work;
-    Task*                player;
-    GameActor*           actor;
-    PlayerStatus*        cfg;
-    SVECTOR              gap;
-    VECTOR               pos;
-    s16                  step;
-    s16                  scale;
-    s32                  shrink;
-
-    work   = (Actor403200GrabWork*)task->work;
-    player = gameGetPtrSlot(3);
-    actor  = (GameActor*)player->work;
-    cfg    = &Player_Status;
-
-    if (D_actor_403200_80141C50 == 1) {
-        if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
-            work->field_1B2 = 0;
-        }
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    step = ++work->field_1AC;
-    if (step < 10) {
-        scale  = step * 0x190 + 0x800;
-        shrink = 0x800 / step;
-        Actor403200_ScaleRotation(task->extra.tmd->coords, scale, shrink);
-    }
-
-    if (work->field_1AC == 7) {
-        Actor403200_ScaleRotation(task->extra.tmd->coords, 0x17A0, 0x800);
-
-        gap.vx = task->extra.tmd->coords->coord.t[0] -
-                 player->extra.tmd->coords->coord.t[0];
-        gap.vy = 0;
-        gap.vz = task->extra.tmd->coords->coord.t[2] -
-                 player->extra.tmd->coords->coord.t[2];
-
-        if (actorOutOfReach(&gap) == 0 && actor->field_954 != 2 &&
-            cfg->hp > 0) {
-            D_actor_403200_8015F900.value.field_14 = 0x28;
-            if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_403200_8015F900.value, 0) == 0) {
-                D_actor_403200_80141C54 = 1;
-                work->anim.source.sets  = D_actor_403200_8015E710;
-                work->anim.animationId  = 1;
-                work->anim.blend        = ANIMATION_BLEND_RESET;
-                work->anim.blendFrames  = 3;
-                Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
-                work->field_1B2 = 1;
-            }
-        }
-    }
-
-    if (work->field_1AC >= 11 && work->field_1B2 == 0) {
-        task->state++;
-    } else if (work->field_1B2 == 1 && D_actor_403200_80141C54 == 0) {
-        task->state++;
-    } else if (work->field_1AC >= 0xC9) {
-        D_actor_403200_80141C54 = 0;
-        task->state++;
-    }
-
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
-
-    work->colorMtx.t[1] >>= 1;
-    work->colorMtx.t[2] >>= 2;
-}
-
-/// Hold state of the enemy dispatched through `D_actor_403200_80131E9C`: once
-/// `field_1A8` says the take-over is armed and `field_1B2` says the player
-/// animation is already installed, rebuild the overlay's own animation-set
-/// table from the player's current weapon block and (re)send it as message
-/// 0x3FF, flagging the model object busy. Then count the step, and after nine
-/// of them cancel the animation with message 0x3F1 and step the task on.
-/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down, cancelling a
-/// still-installed animation on the way out.
-static void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work;
-    Task*                player;
-    s32                  armed;
-
-    work   = (Actor403200GrabWork*)task->work;
-    player = gameGetPtrSlot(3);
-    if (D_actor_403200_80141C50 == 1) {
-        if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
-            work->field_1B2 = 0;
-        }
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    if (work->field_1A8 != 0) {
-        armed           = work->field_1B2;
-        work->field_1AC = 0;
-        if (armed != 1) {
-            task->state++;
-            return;
-        }
-        D_actor_403200_8015E710[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
-        work->anim.source.sets = D_actor_403200_8015E710;
-        work->anim.animationId = 2;
-        work->anim.blend       = armed;
-        work->anim.blendFrames = 9;
-        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
-        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-
-    if (work->field_1AC >= 9) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
-        work->field_1B2 = 0;
-        task->state++;
-    }
-    work->field_1AC++;
-}
+#include "../../shared/incinerator_boss_glob_hold.inc.c"
 
 /// State handlers of the grab enemy, by state: entry, bounce, rise, hold and
 /// teardown.
 static const GpEnemyTaskFuncTable5 D_actor_403200_80131E9C = {
     {
-        func_actor_403200_80135854,
-        func_actor_403200_80135CB8,
-        func_actor_403200_80135F98,
-        func_actor_403200_801364F4,
+        incinBossGlobSpawn,
+        incinBossGlobFall,
+        incinBossGlobEngulf,
+        incinBossGlobHold,
         Gp_DestroyEnemy,
     },
 };
 
-/// Spawn state of this enemy: allocate the work block, drop the model onto the
-/// floor of the view coordinate and hang the two display nodes off it.
-///
-/// The model is reparented to `gGfxViewCoord` and its translation replaced by
-/// the world position of part 3 of the owning enemy's model, so the body starts
-/// where that part is. `field_1AA` is a ninth of that height and `vel` the
-/// horizontal gap to the player, which the later states spend a fifteenth at a
-/// time. The landing cue is enqueued at the model's own pan and depth with the
-/// owner's id in its high half, the model is spun to a random yaw, and the two
-/// nodes are linked with their collision-record tables before the task's colour
-/// and light matrices are pointed into the work block.
-static void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work;
-    GpEnemy*             owner;
-    Task*                player;
-    SVECTOR              vec;
-    s32                  sfx;
-    s32                  pan;
+#include "../../shared/incinerator_boss_chunk_spawn.inc.c"
 
-    owner  = task->parent->spawnArg2.pointer;
-    player = gameGetPtrSlot(3);
+#include "../../shared/incinerator_boss_chunk_fall.inc.c"
 
-    if (D_actor_403200_80141C50 == 1 ||
-        (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work, work == NULL)) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    task->extra.tmd->coords->parent = &gGfxViewCoord;
-    task->extra.tmd->flags          = 0;
-
-    vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&owner->task->extra.tmd->coords[3], &vec);
-
-    task->extra.tmd->coords->coord.t[0]   = vec.vx;
-    task->extra.tmd->coords->coord.t[1]   = vec.vy;
-    task->extra.tmd->coords->coord.t[2]   = vec.vz;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    work->field_1AA = task->extra.tmd->coords->coord.t[1] / 9;
-    work->vel.vx =
-        player->extra.tmd->coords->coord.t[0] - task->extra.tmd->coords->coord.t[0];
-    work->vel.vy = 0;
-    work->vel.vz =
-        player->extra.tmd->coords->coord.t[2] - task->extra.tmd->coords->coord.t[2];
-    work->field_1AC = 0;
-    task->state++;
-
-    sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020000B;
-    pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
-
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
-
-    vec.vx = vec.vy = vec.vz = 0;
-
-    actorLinkWorkObj(task->extra.tmd->coords, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
-
-    work->obj1.coord            = task->extra.tmd->coords;
-    work->obj1.context.contacts = &work->rec1;
-    work->obj1.pos.vx           = 0;
-    work->obj1.pos.vy           = 0;
-    work->obj1.pos.vz           = 0;
-    work->obj1.key              = 0x3000A;
-    work->obj1.radius           = 0x100;
-    work->obj1.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj1);
-
-    work->obj0.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(work->obj1.context.contacts, 3, 0);
-    work->obj1.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    work->obj0.key    = Gp_PackObjPair(owner, 5);
-
-    task->extra.tmd->lightMtx = &work->lightMtx;
-    task->extra.tmd->colorMtx = &work->colorMtx;
-}
-
-/// Fall state of the enemy dispatched through `D_actor_403200_80131F04`, the
-/// one after its spawn: once the model's y has passed its apex
-/// (gone negative) both display nodes get their draw flags raised and the
-/// bounce height `field_1AA` is added back to y as a magnitude each step. When
-/// y reaches -0x31 or above it is clamped to -0x32, the step counter is reset,
-/// the landing sound is played at the model's own pan and depth, and the task
-/// steps on. Collision against `rec1` -- and, in room 0x0427 past x 0x4B65 --
-/// kills the horizontal velocity, whatever is left of it moves the model by a
-/// ninth per step, and the model's own `workm` translation is handed to
-/// `Gp_UpdateActorColor`.
-static void func_actor_403200_80136ACC(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work = (Actor403200GrabWork*)task->work;
-    VECTOR               pos;
-    s32                  pan;
-
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_UnlinkObj(&work->obj0);
-        Gp_UnlinkObj(&work->obj1);
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    if (work->field_1A8 != 0) {
-        Gp_SetLightMode(enemy, 0);
-        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-    }
-
-    if (task->extra.tmd->coords->coord.t[1] < 0) {
-        work->obj0.flags                    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj1.flags                    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        task->extra.tmd->coords->coord.t[1] += ABS(work->field_1AA);
-    }
-
-    if (task->extra.tmd->coords->coord.t[1] >= -0x31) {
-        task->extra.tmd->coords->coord.t[1] = -0x32;
-        work->field_1AC                     = 0;
-        pan                                 = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(0x4020000C, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
-        task->state++;
-    }
-
-    if (ActorContact_PushContact(task->extra.tmd->coords, &work->rec1, 3) != 0) {
-        work->vel.vz = 0;
-        work->vel.vx = 0;
-    }
-
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
-        task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
-        work->vel.vx = 0;
-    }
-
-    Gp_ClearRec18Occupied(&work->rec1);
-    Gp_ClearRec18Occupied(&work->rec0);
-
-    task->extra.tmd->coords->coord.t[0]  += work->vel.vx / 9;
-    task->extra.tmd->coords->coord.t[2]  += work->vel.vz / 9;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
-}
-
-/// Settling state of the same enemy, after the fall: the step counter drives the whole
-/// thing. When the dispatcher flags a state change the horizontal velocity is
-/// cut to a ninth, both light modes are reset and the two display nodes drop
-/// the draw flags the descent raised. Past x 0x4B65 in room 0x0427 the x
-/// velocity is killed outright; for the first eight steps what is left of it
-/// moves the model and is halved again each step. Steps 1, 2, 4, 8 and 20 puff
-/// a `0x600A5` effect out of the model's coordinate, and 4 and 8 also switch
-/// the light mode. After 0x51 steps both nodes are unlinked and the task steps
-/// on; until then the two collision-record tables are wiped each step. The
-/// model's own `workm` translation is handed to `Gp_UpdateActorColor`.
-static void func_actor_403200_80136D94(GpEnemy* enemy, Task* task)
-{
-    Actor403200GrabWork* work = (Actor403200GrabWork*)task->work;
-    VECTOR               pos;
-    s16                  step;
-
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_UnlinkObj(&work->obj0);
-        Gp_UnlinkObj(&work->obj1);
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    if (work->field_1A8 != 0) {
-        work->field_1AC = 0;
-        work->vel.vx   /= 9;
-        work->vel.vz   /= 9;
-        Gp_SetLightMode(enemy, 0);
-        Gp_SetLightMode(enemy, 1);
-        work->obj1.flags      &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->obj0.flags      &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
-        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-    }
-
-    work->field_1AC++;
-
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
-        task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
-        work->vel.vx = 0;
-    }
-
-    if (work->field_1AC < 8) {
-        task->extra.tmd->coords->coord.t[0]  += work->vel.vx;
-        task->extra.tmd->coords->coord.t[2]  += work->vel.vz;
-        work->vel.vx                        >>= 1;
-        work->vel.vz                        >>= 1;
-        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-
-    step = work->field_1AC - 1;
-    switch (step) {
-        case 3:
-        case 7:
-            Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 1, NULL);
-            Gp_SetLightMode(enemy, 2);
-            break;
-        case 0:
-        case 1:
-        case 19:
-            Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 1, NULL);
-            break;
-    }
-
-    if (work->field_1AC >= 0x51) {
-        Gp_UnlinkObj(&work->obj0);
-        Gp_UnlinkObj(&work->obj1);
-        task->state++;
-    }
-
-    if (work->field_1AC < 0x51) {
-        Gp_ClearRec18Occupied(&work->rec1);
-        Gp_ClearRec18Occupied(&work->rec0);
-    }
-
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
-}
+#include "../../shared/incinerator_boss_chunk_settle.inc.c"
 
 /// State handlers of the enemy dropped from the host's part 3: spawn, fall,
 /// settle, teardown.
 static const GpEnemyTaskFuncTable4 D_actor_403200_80131F04 = {
     {
-        func_actor_403200_8013669C,
-        func_actor_403200_80136ACC,
-        func_actor_403200_80136D94,
+        incinBossChunkSpawn,
+        incinBossChunkFall,
+        incinBossChunkSettle,
         Gp_DestroyEnemy,
     },
 };
 
-/// Spawn state of the enemy dispatched through `D_actor_403200_80131F14`:
-/// allocate its work block and pick the point it will be dropped on.
-///
-/// A spawn with `spawnArg1` 0 rerolls the drop-point group in
-/// `D_actor_403200_8015E70C`, mapping the two low bits of the LCG onto group
-/// 1, 1, 2 and 0. `work->target` is then the host model's position pushed out
-/// by 0x1B58, 0x2710 or 0x32C8 -- whichever ring the host is on, measured
-/// against the player -- plus the `[group][spawnArg1]` entry of
-/// `D_actor_403200_8015E7C0`, with a 0..0x7F jitter on z. `spawnArg1` 4 drops
-/// on the player instead. The model itself is stood up beside the host at the
-/// `D_actor_403200_8015E780` offset, its work coordinate is parented to
-/// `gGfxViewCoord` with an identity rotation and carries the single display
-/// node, and the spawn cue is enqueued at the model's own pan and depth with
-/// the owner's id in its high half. The trailing `Gp_SpawnEff` effect becomes
-/// this task's parent so it dies with it.
-///
-/// Bails out -- destroying the enemy -- when the overlay is shutting down or
-/// the work block cannot be allocated.
-static void func_actor_403200_8013709C(GpEnemy* enemy, Task* task)
-{
-    Actor403200DropWork* work;
-    GpEnemy*             owner;
-    Task*                parent;
-    Task*                player;
-    OverlayMat*          mtx;
-    SVECTOR              vec;
-    s32                  dist;
-    s32                  rnd;
-    s32                  snd;
-    s32                  pan;
+#include "../../shared/incinerator_boss_rain_spawn.inc.c"
 
-    player = gameGetPtrSlot(3);
-    owner  = task->parent->spawnArg2.pointer;
-    parent = task->parent;
+#include "../../shared/incinerator_boss_rain_rise.inc.c"
 
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    work       = memCalloc(sizeof(Actor403200DropWork), false);
-    task->work = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
+#include "../../shared/incinerator_boss_rain_fall.inc.c"
 
-    task->extra.tmd->coords->parent = &gGfxViewCoord;
-    work->field_1AA                 = 0;
-
-    Actor403200_GapToCamera(task->extra.tmd->coords, &vec);
-
-    if ((u16)task->spawnArg1.value == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        rnd         = ((u32)Gp_LcgState >> 16) & 3;
-        switch (rnd) {
-            case 0:
-            case 1:
-                D_actor_403200_8015E70C = 1;
-                break;
-            case 2:
-                D_actor_403200_8015E70C = rnd;
-                break;
-            case 3:
-                D_actor_403200_8015E70C = 0;
-                break;
-            default:
-                D_actor_403200_8015E70C = 0;
-                break;
-        }
-    }
-
-    Actor403200_GapToCamera(parent->extra.tmd->coords, &vec);
-    dist  = vec.vx * vec.vx;
-    dist += vec.vy * vec.vy;
-    dist += vec.vz * vec.vz;
-    dist  = SquareRoot0(dist);
-
-    if (dist < 0x1F40) {
-        work->target.vx = parent->extra.tmd->coords->coord.t[0] + 0x1B58;
-    } else if (dist < 0x2AF8) {
-        work->target.vx = parent->extra.tmd->coords->coord.t[0] + 0x2710;
-    } else {
-        work->target.vx = parent->extra.tmd->coords->coord.t[0] + 0x32C8;
-    }
-
-    work->target.vx +=
-        D_actor_403200_8015E7C0[D_actor_403200_8015E840[D_actor_403200_8015E70C]
-                                                       [(u16)task->spawnArg1.value]]
-            .vz;
-    work->target.vy = 0;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->target.vz = D_actor_403200_8015E7C0[D_actor_403200_8015E840[D_actor_403200_8015E70C]
-                                                                     [(u16)task->spawnArg1.value]]
-                          .vx -
-                      0x189C;
-    work->target.vz = (((u32)Gp_LcgState >> 16) & 0x7F) + work->target.vz;
-
-    if ((u16)task->spawnArg1.value == 4) {
-        work->target.vx = player->extra.tmd->coords->coord.t[0];
-        work->target.vy = 0;
-        work->target.vz = player->extra.tmd->coords->coord.t[2];
-    }
-
-    work->timer     = 0;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_1AE = ((u32)Gp_LcgState >> 16) & 8;
-
-    vec.vx = D_actor_403200_8015E780[(u16)task->spawnArg1.value].vx;
-    vec.vy = D_actor_403200_8015E780[(u16)task->spawnArg1.value].vy;
-    vec.vz = D_actor_403200_8015E780[(u16)task->spawnArg1.value].vz;
-
-    task->extra.tmd->coords->coord.t[0] = vec.vx + parent->extra.tmd->coords->coord.t[0];
-    task->extra.tmd->coords->coord.t[1] = vec.vy;
-    task->extra.tmd->coords->coord.t[2] = vec.vz + parent->extra.tmd->coords->coord.t[2];
-
-    work->obj.key = Gp_PackObjPair(owner, 1);
-
-    vec.vx = 0;
-    vec.vy = 0;
-    vec.vz = 0;
-
-    work->coord.parent = &gGfxViewCoord;
-    mtx                = (OverlayMat*)&work->coord.coord;
-    mtx->ident.m00_m01 = 0x1000;
-    mtx->ident.m02_m10 = 0;
-    mtx->ident.m11_m12 = 0x1000;
-    mtx->ident.m20_m21 = 0;
-    mtx->ident.m22     = 0x1000;
-    Gfx_RotMatrixY(&mtx->mat, 0, 1);
-
-    actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
-    work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-
-    snd = ((owner->placeKey >> 12) << 8) | 0x4020000B;
-    pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
-
-    work->eff = Gp_SpawnEff(0x6019B, task->extra.tmd->coords, 0, NULL);
-    if (work->eff != NULL) {
-        Task_Reparent(task, work->eff->task);
-    }
-    task->state++;
-}
-
-/// Ascent state that precedes the descent above: lift the model by 0x1F4 plus
-/// `field_1AE` a step until it passes -0x4E20, then clamp it there, snap its
-/// horizontal position back onto `work->target`, restart the step counter, pick
-/// a fresh 0..0x1F bias for the next leg, flag the list object and step the task
-/// on. Either way the work block's own coordinate is left tracking the model.
-/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
-static void func_actor_403200_80137600(GpEnemy* enemy, Task* task)
-{
-    Actor403200DropWork* work;
-    s32                  y;
-
-    work = (Actor403200DropWork*)task->work;
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_UnlinkObj(&work->obj);
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    y                                   = task->extra.tmd->coords->coord.t[1] - 0x1F4;
-    task->extra.tmd->coords->coord.t[1] = y - work->field_1AE;
-    if (task->extra.tmd->coords->coord.t[1] < -0x4E20) {
-        task->state++;
-        task->extra.tmd->coords->coord.t[0] = work->target.vx;
-        task->extra.tmd->coords->coord.t[2] = work->target.vz;
-        Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
-        task->extra.tmd->coords->coord.t[1] = -0x4E20;
-        work->timer                         = 0;
-        work->field_1AE                     = ((u32)Gp_LcgState >> 16) & 0x1F;
-        work->obj.flags                    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    }
-
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->coord.coord.t[0]                = task->extra.tmd->coords->coord.t[0];
-    work->coord.coord.t[1]                = task->extra.tmd->coords->coord.t[1];
-    work->coord.coord.t[2]                = task->extra.tmd->coords->coord.t[2];
-    work->coord.composeStamp              = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->coord);
-}
-
-/// Descent state of the enemy dispatched through `D_actor_403200_80131F14`:
-/// draw the growing shadow marker on the floor under the model, then after
-/// 0x14 steps start pulling the model down by `0x258 + field_1AE` a step. When
-/// it reaches floor level, zero the height, restart the step counter, tell the
-/// trailing `Gp_SpawnEff` effect to wind down, play the landing cue and step
-/// the task on. Either way the work block's own coordinate is left tracking
-/// the model. Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
-static void func_actor_403200_80137788(GpEnemy* enemy, Task* task)
-{
-    Actor403200DropWork* work;
-    Actor403200DropCoord coord;
-    MATRIX*              mtx;
-    GpEnemy*             owner;
-    s32                  snd;
-    s32                  pan;
-
-    work = (Actor403200DropWork*)task->work;
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_UnlinkObj(&work->obj);
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    work->timer++;
-    coord.c.parent         = &gGfxViewCoord;
-    mtx                    = &coord.c.coord;
-    coord.ident.m00_m01    = 0x1000;
-    coord.ident.m02_m10    = 0;
-    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
-    coord.ident.m20_m21    = 0;
-    mtx->m[2][2]           = 0x1000;
-    Gfx_RotMatrixY(mtx, 0, 1);
-
-    coord.c.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-    coord.c.coord.t[1]   = 0;
-    coord.c.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-    coord.c.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coord.c);
-
-    Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.c.workm), (s16)((s16)work->timer * 8 + 0x80),
-                         gRoomEffectState->groundShadowShade);
-
-    if ((s16)work->timer >= 0x14) {
-        task->extra.tmd->coords->coord.t[1] =
-            task->extra.tmd->coords->coord.t[1] + (work->field_1AE + 0x258);
-        if (task->extra.tmd->coords->coord.t[1] > 0) {
-            owner                               = task->parent->spawnArg2.pointer;
-            task->extra.tmd->coords->coord.t[1] = 0;
-            work->timer                         = 0;
-            if (work->eff != NULL) {
-                work->eff->task->spawnArg1.value = 2;
-            }
-            task->state++;
-            snd = ((owner->placeKey >> 12) << 8) | 0x4020000C;
-            pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
-        }
-    }
-
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_ClearRec18Occupied(&work->rec);
-    work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-    work->coord.coord.t[1]   = task->extra.tmd->coords->coord.t[1];
-    work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-    work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->coord);
-}
-
-/// Landing state of the dropped enemy, the one after its descent in
-/// `D_actor_403200_80131F14`: each step rebuild the model's rotation about y
-/// from its own yaw and flatten it through a 0x34-byte frame borrowed from the
-/// scratchpad -- scaled (`0x4000, 0x66, 0x4000`) for the first 0xA steps, then
-/// (`0x4C00, 0x199, 0x4C00`). The collision node's radius grows with the step
-/// counter over those first steps and is then held at 0x380. After 0xC steps
-/// the node is unlinked and the task steps on; either way the shadow
-/// coordinate keeps tracking the model.
-static void func_actor_403200_801379EC(GpEnemy* enemy, Task* task)
-{
-    Actor403200DropWork* work;
-
-    work = (Actor403200DropWork*)task->work;
-    work->timer++;
-    if ((s16)work->timer < 0xA) {
-        actorRescaleYawY(task->extra.tmd->coords, 0x4000, 0x66);
-        work->obj.radius = (s16)work->timer * 0x40 + 0x100;
-    } else {
-        actorRescaleYawY(task->extra.tmd->coords, 0x4C00, 0x199);
-        work->obj.radius = 0x380;
-    }
-
-    Gp_ClearRec18Occupied(&work->rec);
-    if ((s16)work->timer >= 0xC) {
-        Gp_UnlinkObj(&work->obj);
-        task->state++;
-    }
-
-    work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-    work->coord.coord.t[1]   = task->extra.tmd->coords->coord.t[1];
-    work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-    work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->coord);
-}
+#include "../../shared/incinerator_boss_rain_splat.inc.c"
 
 /// State handlers of the enemy that rises out of view and slams back down:
 /// spawn, rise, descent, landing, teardown.
 static const GpEnemyTaskFuncTable5 D_actor_403200_80131F14 = {
     {
-        func_actor_403200_8013709C,
-        func_actor_403200_80137600,
-        func_actor_403200_80137788,
-        func_actor_403200_801379EC,
+        incinBossRainSpawn,
+        incinBossRainRise,
+        incinBossRainFall,
+        incinBossRainSplat,
         Gp_DestroyEnemy,
     },
 };
 
-/// Spawn state of the spinner enemy dispatched through
-/// `D_actor_403200_80131F28`: allocate its `Actor403200SpinnerWork`, parent
-/// the model to the view coordinate, give it a random orientation off
-/// `Gp_LcgState` and a countdown picked by `spawnArg1`, point it at its own
-/// light and colour matrices and step the task on. Bails to `Gp_DestroyEnemy`
-/// when the overlay is shutting down or the allocation fails.
-static void func_actor_403200_80137CCC(GpEnemy* enemy, Task* task)
-{
-    Actor403200SpinnerWork* work;
+#include "../../shared/incinerator_boss_spinner_spawn.inc.c"
 
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    work       = memCalloc(0xA0, 0);
-    task->work = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    task->extra.tmd->coords->parent = &gGfxViewCoord;
-    task->extra.tmd->flags          = 0;
-
-    switch ((u16)task->spawnArg1.value) {
-        case 0:
-            work->spin = 0x14;
-            break;
-        case 1:
-            work->spin = 0x28;
-            break;
-        case 2:
-            work->spin = 0x50;
-            break;
-        default:
-            work->spin = 0x50;
-            break;
-    }
-
-    task->msgTable = NULL;
-    work->field_98 = 0;
-    work->field_96 = 0;
-
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
-
-    task->extra.tmd->lightMtx             = &work->lightMtx;
-    task->extra.tmd->colorMtx             = &work->colorMtx;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
-    func_800D7A9C(task->extra.tmd, (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
-    task->state++;
-}
-
-/// Per-tick state of the spinner enemy. While `spin` is counting down the model
-/// only yaws in place -- 0x40 on phase 1 and -0x3C on phase 3 of every four
-/// frames -- and nothing else happens. Once it reaches zero the enemy homes on
-/// `D_actor_403200_8015F8F8`: the offset from the model root to that point is
-/// squared against `field_98` in a `VECTOR3` borrowed off the scratch stack, and
-/// the task steps on when the enemy is inside that radius. `field_96` then ties
-/// the spin rate to the step count (`field_98 += field_96 / 8`), the offset is
-/// normalised and scaled by `field_98` through the GTE's `gpf` interpolator, and
-/// the result is added to the root translation before the three rotations are
-/// rebuilt from `field_98` and `field_96`. Bails to `Gp_DestroyEnemy` while the
-/// overlay is shutting down.
-static void func_actor_403200_80137EB4(GpEnemy* enemy, Task* task)
-{
-    Actor403200SpinnerWork* work;
-    SVECTOR                 step;
-    SVECTOR*                stepp;
-    VECTOR3*                sq;
-    u8*                     head;
-    s16                     angle;
-    s32                     spin;
-    s32                     phase;
-    s32                     inside;
-
-    work                                  = (Actor403200SpinnerWork*)task->work;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
-    func_800D7A9C(task->extra.tmd, (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
-
-    if (D_actor_403200_80141C50 == 1 || D_actor_403200_80141C5A == 0) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-
-    task->extra.tmd->flags = 0;
-
-    spin = work->spin;
-    if (spin != 0) {
-        spin--;
-        work->spin = spin;
-        phase      = work->spin;
-        if ((phase & 3) == 1) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
-        }
-        if ((work->spin & 3) == 3) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
-        }
-        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(task->extra.tmd->coords);
-        return;
-    }
-
-    stepp    = &step;
-    *stepp   = D_actor_403200_8015F8F8;
-    step.vx -= task->extra.tmd->coords->coord.t[0];
-    step.vy -= task->extra.tmd->coords->coord.t[1];
-    step.vz -= task->extra.tmd->coords->coord.t[2];
-
-    head = actorGetScratchHead();
-    sq   = (VECTOR3*)(head - sizeof(VECTOR3));
-    actorSetScratchHead(sq);
-    angle  = work->field_98;
-    sq->vx = step.vx;
-    sq->vy = stepp->vz;
-    sq->vz = angle;
-    sq->vx = sq->vx * sq->vx;
-    sq->vy = sq->vy * sq->vy;
-    sq->vz = sq->vz * sq->vz;
-    actorSetScratchHead(head);
-    inside = sq->vx + sq->vy >= sq->vz;
-    if (!inside) {
-        task->state++;
-    }
-
-    work->field_96++;
-    work->field_98 += work->field_96 / 8;
-    VectorNormalSS(stepp, stepp);
-
-    gte_lddp((u16)work->field_98);
-    gte_ldsv(stepp);
-    gte_gpf12();
-    gte_stsv(stepp);
-
-    task->extra.tmd->coords->coord.t[0]  += step.vx;
-    task->extra.tmd->coords->coord.t[1]  += step.vy;
-    task->extra.tmd->coords->coord.t[2]  += step.vz;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
-    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, work->field_98 * 2, 0);
-    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, work->field_96, 0);
-}
+#include "../../shared/incinerator_boss_spinner_chase.inc.c"
 
 /// State handlers of the spinner enemy: spawn, wait, home, teardown.
 static const GpEnemyTaskFuncTable4 D_actor_403200_80131F28 = {
     {
-        func_actor_403200_80137CCC,
-        func_actor_403200_80141800,
-        func_actor_403200_80137EB4,
+        incinBossSpinnerSpawn,
+        incinBossSpinnerWait,
+        incinBossSpinnerChase,
         Gp_DestroyEnemy,
     },
 };
@@ -5841,14 +4041,14 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
                 work->field_0   = 1;
 
             case 19:
-                work->field_0           = 0xC;
-                work->field_F06         = 4;
-                work->field_2           = -1;
-                work->field_7B3         = 0x12;
-                work->field_F14         = 0x258;
-                work->field_7B0         = 2;
-                work->field_F04         = 0;
-                D_actor_403200_80141C58 = 0x640;
+                work->field_0       = 0xC;
+                work->field_F06     = 4;
+                work->field_2       = -1;
+                work->field_7B3     = 0x12;
+                work->field_F14     = 0x258;
+                work->field_7B0     = 2;
+                work->field_F04     = 0;
+                gIncinBossLimbReach = 0x640;
                 break;
         }
     }
@@ -5863,9 +4063,9 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
                 work->field_7B3 = 0xA;
                 work->field_7B0 = 2;
                 work->field_7B6 = 0x7F;
-                func_actor_403200_80133DD8(task);
+                incinBossTickAnim(task);
                 while (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
-                    func_actor_403200_80133DD8(task);
+                    incinBossTickAnim(task);
                 }
                 work->field_7B6                       = 0x10;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
@@ -5911,7 +4111,7 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     }
 
     (Gp_IncStateF0Ref)(0);
-    task->exitCallback = func_actor_403200_80141018;
+    task->exitCallback = incinBossExit;
 
     enemy->field_4    = &task->extra.tmd->coords->coord;
     enemy->field_48   = 0;
@@ -6158,7 +4358,7 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    func_actor_403200_80133DD8(task);
+    incinBossTickAnim(task);
 
     D_actor_403200_8015F8F4.context.loc.stage = 0;
     D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
@@ -6255,7 +4455,7 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        func_actor_403200_80134044(work->hits[0].obj.coord, id);
+        incinBossHitEffect(work->hits[0].obj.coord, id);
         param           = Gp_GetIdParam2(sc->id);
         work->field_E90 = param;
         work->field_E8E = param;
@@ -6443,7 +4643,7 @@ found2:
     }
     coord = work->hits[2].obj.coord;
 hit:
-    func_actor_403200_80134044(coord, id);
+    incinBossHitEffect(coord, id);
     if (sc->id != 0) {
         param           = Gp_GetIdParam2(sc->id);
         work->field_E90 = param;
@@ -6623,7 +4823,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        func_actor_403200_80134044(work->hits[3].obj.coord, id);
+        incinBossHitEffect(work->hits[3].obj.coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -6648,7 +4848,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        func_actor_403200_80134044(work->hits[4].obj.coord, id);
+        incinBossHitEffect(work->hits[4].obj.coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -6675,7 +4875,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_403200_80134044(work->hits[5].obj.coord, id);
+    incinBossHitEffect(work->hits[5].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -6868,7 +5068,7 @@ found2:
     if (id != 0) {
         coord = work->hits[7].obj.coord;
     hit:
-        func_actor_403200_80134044(coord, id);
+        incinBossHitEffect(coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -6895,7 +5095,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_403200_80134044(work->hits[8].obj.coord, id);
+    incinBossHitEffect(work->hits[8].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -7131,7 +5331,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
             Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 7, arg0->spawnArg2.pointer)->workType = 0x900;
             break;
     }
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
         work->field_0 = 0xA;
     }
@@ -7241,22 +5441,22 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         work->field_EF6            = 1;
         work->field_F04            = 0;
         work->field_EFA            = 0;
-        D_actor_403200_8015F8F8.vz = 0;
-        D_actor_403200_8015F8F8.vy = 0;
-        D_actor_403200_8015F8F8.vx = 0;
-        actorLocalToView(&arg0->extra.tmd->coords[3], &D_actor_403200_8015F8F8);
+        gIncinBossSpinnerTarget.vz = 0;
+        gIncinBossSpinnerTarget.vy = 0;
+        gIncinBossSpinnerTarget.vx = 0;
+        actorLocalToView(&arg0->extra.tmd->coords[3], &gIncinBossSpinnerTarget);
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 2;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         {
-            s16 armed               = 1;
-            work->field_E96         = 0xC80;
-            D_actor_403200_80141C5A = armed;
+            s16 armed                  = 1;
+            work->field_E96            = 0xC80;
+            gIncinBossSpinnersReleased = armed;
         }
     }
 
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
 
     work->field_7C4 = actorPositionYaw(arg0, &sc->dir, &Player_Status);
 
@@ -7464,9 +5664,9 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-        D_actor_403200_80141C5A = 0;
-        work->field_7F2         = 0;
-        work->field_0           = 0xA;
+        gIncinBossSpinnersReleased = 0;
+        work->field_7F2            = 0;
+        work->field_0              = 0xA;
         for (sc->i = 0; sc->i < 2; sc->i++) {
             work->field_EE8[sc->i] = NULL;
         }
@@ -7538,7 +5738,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-        D_actor_403200_80141C5A = 0;
+        gIncinBossSpinnersReleased = 0;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
         work->field_7B3        = 0xF;
         work->field_7B0        = 2;
@@ -7593,9 +5793,9 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->field_E96         = 0x9C4;
-        D_actor_403200_80141C5A = 0;
-        Gp_StateC08.field_6    |= 1;
+        work->field_E96            = 0x9C4;
+        gIncinBossSpinnersReleased = 0;
+        Gp_StateC08.field_6       |= 1;
         Gp_PulseState1C();
         Gp_ClearNodeSlots(&enemy->node);
         Gp_ClearNodeSlots(&work->field_ECC[3]->node);
@@ -7605,7 +5805,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
     }
 
     SCRATCH_PUSH_BYTES(0x3C);
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && (work->field_7B3 == 0xF)) {
         work->field_7B0 = 2;
         work->field_7B3 = 0xE;
@@ -7690,7 +5890,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
 /// the one whose frame `field_7AC` is refreshed from -- the shared mask is what
 /// makes the pair one-shot. The switch on `field_6` arms the escort pose index
 /// `field_7A4` for seven states, 0x14 and 0xDC also seeding the shared countdown
-/// `D_actor_403200_80141C58` and re-arming `field_0`, and the 0x29..0x2E window
+/// `gIncinBossLimbReach` and re-arming `field_0`, and the 0x29..0x2E window
 /// raises that countdown by 0x258 while it is still under 0x1770.
 ///
 /// The tail runs the per-frame body, scans the tenth collision object's five
@@ -7823,8 +6023,8 @@ static void func_actor_403200_8013D028(Task* arg0)
 
     switch (work->field_6) {
         case 0x14:
-            D_actor_403200_80141C58 = 0x640;
-            work->field_7A4         = 0;
+            gIncinBossLimbReach = 0x640;
+            work->field_7A4     = 0;
             break;
         case 0x22:
             work->field_7A4 = 1;
@@ -7854,11 +6054,11 @@ static void func_actor_403200_8013D028(Task* arg0)
             break;
     }
 
-    if ((u32)((u16)work->field_6 - 0x29) < 6 && D_actor_403200_80141C58 < 0x1770) {
-        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 + 0x258;
+    if ((u32)((u16)work->field_6 - 0x29) < 6 && gIncinBossLimbReach < 0x1770) {
+        gIncinBossLimbReach = (u16)gIncinBossLimbReach + 0x258;
     }
 
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
 
     recs = work->recs2;
     for (k = 0; k < 5; k++) {
@@ -7896,10 +6096,10 @@ scanned:
     }
 
     if (work->field_6 >= 0x39) {
-        if (D_actor_403200_80141C58 >= 0xBB9) {
-            D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+        if (gIncinBossLimbReach >= 0xBB9) {
+            gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
         } else {
-            D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0x1E;
+            gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0x1E;
         }
     }
 
@@ -7958,7 +6158,7 @@ static void func_actor_403200_8013D78C(Task* arg0)
         arg0->extra.tmd->coords->coord.t[2] = -0x1770;
         work->field_E96                     = 0xFA0;
     }
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
         work->field_0 = 1;
     }
@@ -8056,7 +6256,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
             work->field_EF0   = spawned;
             break;
     }
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
         work->field_0 = 7;
     }
@@ -8196,7 +6396,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
         }
     }
 
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
 
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
         work->field_0 = 0xA;
@@ -8274,17 +6474,17 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         }
         if (work->field_7B3 == state && work->field_7B0 == 2) {
             work->field_7B6 = 0x60;
-            func_actor_403200_80133DD8(arg0);
+            incinBossTickAnim(arg0);
             while ((u32)(work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) < 0x34) {
-                func_actor_403200_80133DD8(arg0);
+                incinBossTickAnim(arg0);
             }
             work->field_7B6 = 0x10;
         }
     }
-    if (D_actor_403200_80141C58 >= 0x191) {
-        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+    if (gIncinBossLimbReach >= 0x191) {
+        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
     }
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -8298,7 +6498,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
 /// animation slot at 0x10, plays the type-7 death cue and leaves the yaw target
 /// at 0xFA0 and the escort pose cleared.
 ///
-/// The rest of the tick winds the shared `D_actor_403200_80141C58` counter down
+/// The rest of the tick winds the shared `gIncinBossLimbReach` counter down
 /// by 0xC8 once it has passed 0x1F4, runs the per-frame body, clears the host
 /// coordinate's rebuild flag, and on frame 0x1C of `slots0[2]` arms the screen
 /// shake at level 3 and spawns the `D_actor_403200_80141C5C` script pair. While
@@ -8341,7 +6541,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
         work->field_EF6 = 0;
         j               = 0;
         while (j < work->field_F14 / 4) {
-            func_actor_403200_80133DD8(arg0);
+            incinBossTickAnim(arg0);
             j++;
             if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
                 break;
@@ -8353,10 +6553,10 @@ static void func_actor_403200_8013E5A8(Task* arg0)
         work->field_7A4 = 0;
         work->field_E96 = 0xFA0;
     }
-    if (D_actor_403200_80141C58 >= 0x1F5) {
-        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+    if (gIncinBossLimbReach >= 0x1F5) {
+        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
     }
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     state                                 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (state == 0x1C && work->field_7D8 != state) {
@@ -8413,7 +6613,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
 /// change it re-arms the work block (`field_7A4` at 3, `field_E96` at 0xC80) and
 /// plays the two launch cues -- a type-6 with the object's pan and depth, then
 /// type-7s for ids 0x0D and 0x09 -- and otherwise runs the per-frame body,
-/// winding the shared `D_actor_403200_80141C58` counter down by 0xC8 once it has
+/// winding the shared `gIncinBossLimbReach` counter down by 0xC8 once it has
 /// passed 0x190 and clearing `field_F06` once `field_6` has passed 0x14.
 static void func_actor_403200_8013E9C0(Task* arg0)
 {
@@ -8448,10 +6648,10 @@ static void func_actor_403200_8013E9C0(Task* arg0)
         return;
     }
     SCRATCH_PUSH_BYTES(0xC);
-    func_actor_403200_80133DD8(arg0);
-    if (D_actor_403200_80141C58 >= 0x191) {
-        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
-        work->field_7A4         = 0;
+    incinBossTickAnim(arg0);
+    if (gIncinBossLimbReach >= 0x191) {
+        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+        work->field_7A4     = 0;
     }
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
         work->field_0 = 0xA;
@@ -8465,14 +6665,14 @@ static void func_actor_403200_8013E9C0(Task* arg0)
 /// State-selecting tick of the enemy's approach: on the tick the dispatcher has
 /// flagged a state change it re-arms the work block -- the two flags, the
 /// stagger countdown at 0x28, the yaw target at 0xE10 and the animation slot at
-/// 0x10 -- and winds the shared `D_actor_403200_80141C58` counter down by 0xC8
+/// 0x10 -- and winds the shared `gIncinBossLimbReach` counter down by 0xC8
 /// once it has passed 0x190.
 ///
 /// It then runs the per-frame body and aims the enemy at the camera: the
 /// camera's translation minus the part's own translation gives the pair
 /// `ratan2` turns into a yaw, taken relative to the part's facing the same way
 /// the group-0 hit handler does it, and the result is wrapped to +/-0x800 into
-/// `field_7C4`. `D_actor_403200_80141C50` holding `field_6` at zero makes the
+/// `field_7C4`. `gIncinBossEnded` holding `field_6` at zero makes the
 /// per-frame body's animation re-arm win the next tick.
 ///
 /// Once the `field_F10` stagger countdown has run out it walks the three
@@ -8514,12 +6714,12 @@ static void func_actor_403200_8013EB64(Task* arg0)
         work->field_EFA = 0;
         work->field_7B6 = 0x10;
     }
-    if (D_actor_403200_80141C58 >= 0x191) {
-        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
-        work->field_7A4         = 0;
+    if (gIncinBossLimbReach >= 0x191) {
+        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+        work->field_7A4     = 0;
     }
     sc = (Actor403200ApproachScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200ApproachScratch));
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
 
     coord    = arg0->extra.tmd->coords;
     view     = &sc->view;
@@ -8543,7 +6743,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
         }
     }
     work->field_7C4 = angle;
-    if (D_actor_403200_80141C50 == 1) {
+    if (gIncinBossEnded == 1) {
         work->field_6 = 0;
     }
     if (work->field_F10 <= work->field_6) {
@@ -8616,7 +6816,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200ApproachScratch));
 }
 
-/// Escort-spawn tick of the arena fight. While `D_actor_403200_80141C50` is 1
+/// Escort-spawn tick of the arena fight. While `gIncinBossEnded` is 1
 /// the whole body is skipped; otherwise it carves an
 /// `Actor403200SpawnScratch` off the scratch-pad stack.
 ///
@@ -8652,7 +6852,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
 
     work = (Actor403200Work*)arg0->work;
     host = arg0->spawnArg2.pointer;
-    if (D_actor_403200_80141C50 != 1) {
+    if (gIncinBossEnded != 1) {
         sc = (Actor403200SpawnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200SpawnScratch));
         if (work->field_4 != 0) {
             state           = work->field_7B3;
@@ -8697,10 +6897,10 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             SndEvt_EnqueueType7((((u16)host->placeKey >> 12) << 8) | 0x4020000D, 1);
             SndEvt_EnqueueType7((((u16)host->placeKey >> 12) << 8) | 0x40200009, 1);
         }
-        if (D_actor_403200_80141C58 >= 0x191) {
-            D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+        if (gIncinBossLimbReach >= 0x191) {
+            gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
         }
-        func_actor_403200_80133DD8(arg0);
+        incinBossTickAnim(arg0);
         if (work->field_7B3 == 0x13 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
             work->field_EFA = 1;
         } else {
@@ -8940,7 +7140,7 @@ static void func_actor_403200_8013F700(Task* arg0)
         }
     }
     work->field_7C4 = angle;
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END)) {
         work->field_7B3 = 0xE;
         work->field_7B0 = 1;
@@ -9067,7 +7267,7 @@ static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
     }
     Gp_UpdateActorColor(colorEnemy, &pos, 0, 0);
 
-    if (work->field_0 == 0xB && D_actor_403200_80141C58 >= 0x7D1) {
+    if (work->field_0 == 0xB && gIncinBossLimbReach >= 0x7D1) {
         work->field_ECC[4]->task->extra.tmd->otOffset = -8;
     } else {
         work->field_ECC[4]->task->extra.tmd->otOffset = 0;
@@ -9147,8 +7347,8 @@ after_mode:
     }
     if (arg0->hp <= 0) {
         if (Player_Status.hp <= 0) {
-            arg0->hp                = 1;
-            D_actor_403200_80141C50 = 0;
+            arg0->hp        = 1;
+            gIncinBossEnded = 0;
         }
     }
 
@@ -9163,17 +7363,17 @@ after_mode:
         if (work->field_F16 > 0) {
             arg0->hp = 1;
         }
-        if (arg0->hp <= 0 && D_actor_403200_80141C50 == 0) {
-            D_actor_403200_80141C50                   = 1;
+        if (arg0->hp <= 0 && gIncinBossEnded == 0) {
+            gIncinBossEnded                           = 1;
             D_actor_403200_8015F8F4.context.loc.stage = 0;
             D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
             D_actor_403200_8015F8F4.command           = 3;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-            D_actor_403200_80141C5A = 0;
+            gIncinBossSpinnersReleased = 0;
         }
     }
 
-    if (D_actor_403200_80141C50 == 1 && work->field_F16 <= 0 && work->field_EC8 == 0 &&
+    if (gIncinBossEnded == 1 && work->field_F16 <= 0 && work->field_EC8 == 0 &&
         work->field_F12 < 0x100) {
         work->field_F12 = (s16)((u16)work->field_F12 + 1);
     }
@@ -9343,8 +7543,8 @@ after_mode:
         }
     }
 
-    if (D_actor_403200_80141C50 == 1) {
-        if (work->field_EC8 == D_actor_403200_80141C50) {
+    if (gIncinBossEnded == 1) {
+        if (work->field_EC8 == gIncinBossEnded) {
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
             work->field_EC8 = 0;
         }
@@ -9515,35 +7715,7 @@ static void func_actor_403200_80140FD4(s32 arg0, s16 arg1)
     verts[arg1 * 4 + 7].vy = 800;
 }
 
-/// Exit callback of the boss task: when its work block exists, send each of the
-/// seven escorts to state 2, unlink every collision group but the third, and
-/// detach the enemy's contact records, then tear the enemy down.
-static void func_actor_403200_80141018(Task* arg0)
-{
-    Actor403200Work* work;
-    GpEnemy*         enemy;
-    s16              i;
-
-    work  = (Actor403200Work*)arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work != NULL) {
-        for (i = 0; i < 7; i++) {
-            if (work->field_ECC[i] != NULL) {
-                work->field_ECC[i]->task->state = 2;
-            }
-        }
-        Gp_UnlinkObj(&work->hits[0].obj);
-        Gp_UnlinkObj(&work->hits[1].obj);
-        Gp_UnlinkObj(&work->hits[3].obj);
-        Gp_UnlinkObj(&work->hits[4].obj);
-        Gp_UnlinkObj(&work->hits[5].obj);
-        Gp_UnlinkObj(&work->hits[6].obj);
-        Gp_UnlinkObj(&work->hits[7].obj);
-        Gp_UnlinkObj(&work->hits[8].obj);
-        enemy->recs = 0;
-    }
-    Gp_DestroyEnemy(enemy, arg0);
-}
+#include "../../shared/incinerator_boss_exit.inc.c"
 
 static void func_actor_403200_801410F0(s8 arg0)
 {
@@ -9552,12 +7724,12 @@ static void func_actor_403200_801410F0(s8 arg0)
 
 static void func_actor_403200_80141108(s16 arg0)
 {
-    D_actor_403200_80141C5A = arg0;
+    gIncinBossSpinnersReleased = arg0;
 }
 
 static s16 func_actor_403200_80141114(void)
 {
-    return D_actor_403200_80141C5A;
+    return gIncinBossSpinnersReleased;
 }
 
 s32 func_actor_403200_80141124(Task* arg0, s16 arg1)
@@ -9627,63 +7799,16 @@ static void func_actor_403200_8014123C(Task* arg0)
     if (work->field_4 != 0) {
         work->field_6 = 0;
     }
-    func_actor_403200_80133DD8(arg0);
+    incinBossTickAnim(arg0);
     if (work->field_6 == 8) {
         Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
         SndEvt_EnqueueType7(((enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
     }
 }
 
-/// Setup state of the handler table `D_actor_403200_80131E84`: look up the
-/// area placement the parent's spawn record names (its top nibble) under the
-/// current session location, give the model that placement's texture page and
-/// CLUT, run its stream twice when it has one, and step the task on.
-static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
-{
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    GpAreaVariant*   rec;
-    AreaPlacement*   entry;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+#include "../../shared/incinerator_boss_prop_setup.inc.c"
 
-    sessionKey = &gGameSession->location.loc;
-    raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;
-    model      = task->extra.tmd;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = sessionKey->view;
-    idx        = raw >> 12;
-    key.view   = areaByte0;
-    areaSyncLocationVariant(&key);
-    rec = Gp_GetNestedAreaRec(&key);
-    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
-       onto the table (`addu s0, s0, v0`). */
-    entry                    = gpAreaPlaceAt(rec->field_0, idx);
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
-    task->state++;
-}
-
-/// Per-frame state of the same table: refresh the model's root coordinate. The
-/// world position it then copies into a local is never used.
-static void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1)
-{
-    VECTOR sp10;
-
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
-    sp10.vx = arg1->extra.tmd->coords->workm.t[0];
-    sp10.vy = arg1->extra.tmd->coords->workm.t[1];
-    sp10.vz = arg1->extra.tmd->coords->workm.t[2];
-}
+#include "../../shared/incinerator_boss_prop_tick.inc.c"
 
 void func_actor_403200_80141430(Task* arg0)
 {
@@ -9809,23 +7934,7 @@ void func_actor_403200_80141778(Task* arg0)
     }
 }
 
-/// Waiting state of the spinner enemy (`D_actor_403200_80131F28`): hand the
-/// enemy back to `Gp_DestroyEnemy` once `D_actor_403200_80141C50` is set;
-/// otherwise keep the model's flag word cleared, so it is not drawn, and step
-/// the task on once `D_actor_403200_80141C5A` is 1.
-static void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1)
-{
-    if (D_actor_403200_80141C50 == 1) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-
-    if (D_actor_403200_80141C5A == 1) {
-        arg1->state++;
-    }
-
-    arg1->extra.tmd->flags = 0;
-}
+#include "../../shared/incinerator_boss_spinner_wait.inc.c"
 
 /// Dispatcher of the spinner enemy (`D_actor_403200_80131F28`): park the model
 /// object while the global game mode is 1 or 2, otherwise note in the work
@@ -9921,7 +8030,7 @@ s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2)
 
 s32 func_actor_403200_80141B30(void)
 {
-    D_actor_403200_80141C54 = 0;
+    gIncinBossGrabActive = 0;
     return 1;
 }
 
@@ -9949,6 +8058,6 @@ static void func_actor_403200_80141B40(Task* arg0)
         work->field_EF4 = 0;
         work->field_EF6 = 0;
     } else {
-        func_actor_403200_80133DD8(arg0);
+        incinBossTickAnim(arg0);
     }
 }
