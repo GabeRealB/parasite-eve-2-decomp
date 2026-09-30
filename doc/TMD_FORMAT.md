@@ -562,11 +562,13 @@ the page registers:
 
 ```c
 poly->tpage += ws->texturePageOffset; // from TmdObject.texturePageOffset
-poly->clut  += ws->encodedClutOffset; // from TmdObject.clutRowOffset << 6
+poly->clut  += ws->encodedClutOffset; // from TmdObject.clutRowOffset << TMD_ENCODED_CLUT_ROW_SHIFT
 ```
 
 So the stored `tpage`/`clut` are **relative** — the object's texture-page
-displacement is added when building the primitive buffer. An exporter has to apply the same bias to
+displacement is added when building the primitive buffer, and the CLUT
+displacement is the object's row count shifted by `TMD_ENCODED_CLUT_ROW_SHIFT`
+(the row field of a GPU CLUT word, 64 per row). An exporter has to apply the same bias to
 resolve a real page.
 
 `u0` and `u1` are written as full words, so each carries a `u`,`v` pair plus

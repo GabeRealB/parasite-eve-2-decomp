@@ -63,7 +63,12 @@ enum {
 /// Number of cached vertex depths in the draw pass's CPU-stack table.
 enum { TMD_DRAW_VERTEX_DEPTH_COUNT = 1024 };
 
-/// Bit position of the row coordinate in an encoded GPU CLUT word.
+/// Left shift from a signed CLUT row count to an encoded GPU CLUT-word displacement.
+///
+/// `getClut` stores the row at bit 6 and the column, in 16-pixel steps, in
+/// bits 0..5. Shifting a row count by 6 gives the amount added to a primitive's
+/// CLUT word, and that addend's column bits are clear. An s8 row count covers
+/// -8192..8128, which fits in the s16 displacement.
 enum { TMD_ENCODED_CLUT_ROW_SHIFT = 6 };
 
 static const TaskFuncTable3 Tmd_TaskStates;
@@ -378,6 +383,7 @@ void tmdProcessStream(TmdObject* obj)
     ws->verts             = obj->source->verts;
     ws->normals           = obj->source->normals;
     ws->texturePageOffset = obj->texturePageOffset;
+    // Place the signed row count at bit 6 of the encoded CLUT word.
     ws->encodedClutOffset = obj->clutRowOffset << TMD_ENCODED_CLUT_ROW_SHIFT;
     goto read_id;
 
