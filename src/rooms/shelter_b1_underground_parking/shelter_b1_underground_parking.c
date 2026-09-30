@@ -1957,7 +1957,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 rec.room     = 1;
                 rec.warp     = 1;
                 rec.sndEvent = 0x54140008;
-                rec.facing   = -1;
+                rec.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 Gp_MsgPlayerWeapon(0);
                 p             = &rec;
                 msg.areaId    = p->area;

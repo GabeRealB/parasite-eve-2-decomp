@@ -437,9 +437,9 @@ static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
 /// command 3, step 1 waits for the CAP system to go idle, step 2 arms the CAP
 /// countdown at 0xA and waits for the event key it answers with - 0xC kills the
 /// sequence and messages the player weapon - and step 3 falls through to the
-/// shared advance. Step 4 stages `gRoomDeparture` (the
-/// message halfword 0x800 and the code in the task's `spawnArg1`, run once more
-/// through the room's resolver, and no sound) and spawns the tunnel's outgoing
+/// shared advance. Step 4 stages `gRoomDeparture` (stage 4, area from the
+/// task's `spawnArg1`, room 1, warp 2, facing 0x800 and no sound), runs area,
+/// warp and room through the room's resolver, and spawns the tunnel's outgoing
 /// task, whose callback is `roomDepartureTask`.
 void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
 {

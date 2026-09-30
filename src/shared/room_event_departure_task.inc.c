@@ -1,12 +1,13 @@
 /* Part of the room events library; see room_events.h. */
 
-/// The room's departure task, run on the descriptor the message handler
-/// staged in `ROOM_DEPARTURE`. State 0 sends the descriptor's `facing` to the slot-3 game pointer as message 0x3EE, skipping
-/// to state 2 when it is -1; state 1 waits until that pointer answers 0x3F0
-/// with 0. States 2 and 3 play the sound event `sndEvent`, if any, and wait for
-/// its voice to go quiet. State 4 queues type-7 sound event 0x80000000, commits
-/// the save location in the descriptor's first four bytes (stage, area, warp,
-/// room), re-spawns the player task as type 0x11 and kills itself.
+/// The room's departure task, run on the descriptor the room staged in
+/// `ROOM_DEPARTURE`. State 0 sends the descriptor's `facing` to the slot-3
+/// game pointer as message 0x3EE, skipping to state 2 when it is
+/// `ROOM_DEPARTURE_SKIP_FACING`; state 1 waits until that pointer answers
+/// 0x3F0 with 0. States 2 and 3 play the sound event `sndEvent`, if any, and
+/// wait for its voice to go quiet. State 4 queues type-7 sound event
+/// 0x80000000, copies the descriptor's stage, area, warp and room into the
+/// save location, starts room-change task 0x11 and kills itself.
 void roomDepartureTask(Task* arg0)
 {
     ActorTransform msg;
@@ -16,7 +17,7 @@ void roomDepartureTask(Task* arg0)
     switch (arg0->state) {
         case 0:
             msg.rot.vy = ROOM_DEPARTURE.facing;
-            if (msg.rot.vy == -1) {
+            if (msg.rot.vy == ROOM_DEPARTURE_SKIP_FACING) {
                 arg0->state = 2;
                 break;
             }

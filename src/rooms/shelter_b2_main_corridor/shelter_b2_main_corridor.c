@@ -1702,7 +1702,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, DirectionAction
                 D_shelter_b2_main_corridor_80189684.room     = 1;
                 D_shelter_b2_main_corridor_80189684.warp     = 1;
                 D_shelter_b2_main_corridor_80189684.sndEvent = 0;
-                D_shelter_b2_main_corridor_80189684.facing   = -1;
+                D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, 6, 0);
             } else {
@@ -1730,7 +1730,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, DirectionAction
             D_shelter_b2_main_corridor_80189684.room     = 1;
             D_shelter_b2_main_corridor_80189684.warp     = 1;
             D_shelter_b2_main_corridor_80189684.sndEvent = 0;
-            D_shelter_b2_main_corridor_80189684.facing   = -1;
+            D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
         }

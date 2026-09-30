@@ -444,7 +444,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 rec.room     = 1;
                 rec.warp     = 2;
                 rec.sndEvent = 0x55010004;
-                rec.facing   = -1;
+                rec.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 Gp_MsgPlayerWeapon(0);
                 p             = &rec;
                 msg.areaId    = p->area;

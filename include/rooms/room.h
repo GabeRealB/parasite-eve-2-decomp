@@ -57,20 +57,27 @@ typedef struct RoomShopTier {
 } RoomShopTier;
 STATIC_ASSERT_SIZEOF(RoomShopTier, 0xC);
 
-/// Where a room sends the player when it moves them on, staged by the room
-/// before it spawns its departure task. The room first runs `area`, `warp`
-/// and `room` through its message handler, which may rewrite them. The task
-/// then turns the player to `facing`, plays `sndEvent` and waits for it, and
-/// finally commits the four location bytes as the save location and restarts
-/// the player task.
-typedef struct RoomDeparture {
-    u8   stage;
-    u8   area;
-    u8   warp;
-    u8   room;
-    s16  facing;   // Heading sent to the player as message 0x3EE; -1 sends nothing
-    byte pad_6[0x2];
-    s32  sndEvent; // Sound event played before leaving; 0 for none
+/// `facing` value that tells the departure task not to turn the player.
+#define ROOM_DEPARTURE_SKIP_FACING (-1)
+
+/// Destination a room stages before spawning its departure task.
+///
+/// The room writes `stage`, `area`, `warp` and `room`, then passes the last
+/// three through the stage's room-variant resolver. The resolver reads `area`
+/// and may replace `room`. The task turns the player to `facing` unless it is
+/// `ROOM_DEPARTURE_SKIP_FACING` and waits until that turn finishes, plays
+/// `sndEvent` unless it is 0 and waits for that voice, then copies the four
+/// destination fields into the save location and starts room-change task 0x11,
+/// which copies that save into the live session. The four fields are the save
+/// location's stage, area, warp and room; they are not a `GameLocationKey`.
+typedef struct {
+    u8   stage;      // Destination stage copied into the save location
+    u8   area;       // Destination area within that stage; the resolver keys off it
+    u8   warp;       // Arrival record in the destination area's warp table
+    u8   room;       // Room within the destination area; the resolver may replace it
+    s16  facing;     // Target yaw, 4096 units per turn, sent to the player as message 0x3EE; -1 sends nothing
+    byte pad_6[0x2]; // No recovered access; keeps `sndEvent` 4-byte aligned
+    s32  sndEvent;   // Type-6 sound event played before the room change; 0 skips it
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
 
