@@ -39,6 +39,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/blend_rig_creature.h"
 
 /// Psy-Q `RotMatrixY`.
 
@@ -55,13 +56,13 @@ STATIC_ASSERT_SIZEOF(Actor323400Storage1218, 16);
 
 static Actor323400Storage1218 ActorContact_ScratchPosition;
 
-/// Per-state animation table `func_actor_323400_80163B58` reads when it
+/// Per-state animation table `rigAnimTick` reads when it
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
-extern s8 D_actor_323400_80170894[];
+extern s8 gRigClipStartFrames[];
 
 /// Animation source `func_800B3F84` is handed for both of the work block's
 /// contexts.
-extern u8 D_actor_323400_80171080[];
+extern u8 gRigAnimSource[];
 
 /// Message table published as `Task::msgTable` by the spawn handler.
 // Message-table callbacks use the argument views required by this TU.
@@ -78,7 +79,7 @@ typedef struct {
 } Actor323400MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor323400MessageEntry, 8);
 
-extern Actor323400MessageEntry D_actor_323400_801711D4[7];
+extern Actor323400MessageEntry gRigMessages[7];
 
 /// Effect record the spawn handler fills: the model root's coordinate and
 /// the two spawn arguments 0x100 and 2.
@@ -91,15 +92,13 @@ typedef struct {
 } Actor323400Storage1228;
 STATIC_ASSERT_SIZEOF(Actor323400Storage1228, 96);
 
-extern Actor323400Storage1228 D_actor_323400_80171228;
+extern Actor323400Storage1228 gRigEffectRec;
 
 /// Enemy parameters the spawn handler stores in `GpEnemy::param`.
-extern EnemyParams D_actor_323400_80164D5C;
+extern EnemyParams gRigParams;
 
-static void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task);
 static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task);
 static void func_actor_323400_801644C4(GpEnemy* enemy, Task* task);
-static void func_actor_323400_80164A78(Task* task);
 static void func_actor_323400_80164B98(GpEnemy* arg0, Task* arg1);
 static void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task);
 static void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task);
@@ -117,13 +116,12 @@ static const GpEnemyTaskFuncTable4 D_actor_323400_80161E24 = {
 /// Task states `func_actor_323400_80164CEC` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `Gp_DestroyEnemy`.
 static const GpEnemyTaskFuncTable3 D_actor_323400_80161E34 = {
-    func_actor_323400_80163FC8,
+    rigSpawn,
     func_actor_323400_801644C4,
     Gp_DestroyEnemy,
 };
 
 extern TmdSource D_actor_323400_80169878;
-s32              func_actor_323400_80164764(Task*, s32, s32);
 s32              func_actor_323400_80164824(Task*);
 s32              func_actor_323400_80164974(Task*, s32, ActorCommand* msg, s32);
 s32              func_actor_323400_80164A50(Task*, s32, AnimationPlayRequest*, s32);
@@ -138,7 +136,7 @@ DamageAttack D_actor_323400_80164D48[5] = {
     { 0xFFFF, 0 },
 };
 
-EnemyParams D_actor_323400_80164D5C = { D_actor_323400_80164D48, 200, 75, 50, 4, 100, 10, 100, 0 };
+EnemyParams gRigParams = { D_actor_323400_80164D48, 200, 75, 50, 4, 100, 10, 100, 0 };
 
 s16 D_actor_323400_80164D6C[16] = {
     60,
@@ -631,7 +629,7 @@ AnimationSet D_actor_323400_8017086C = {
     { NULL, D_actor_323400_8016FE54, NULL, NULL, D_actor_323400_8016FF44, NULL, NULL, NULL },
 };
 
-s8 D_actor_323400_80170894[2028] = {
+s8 gRigClipStartFrames[2028] = {
     0,
     0,
     5,
@@ -2662,7 +2660,7 @@ s8 D_actor_323400_80170894[2028] = {
     0,
 };
 
-u8 D_actor_323400_80171080[340] = {
+u8 gRigAnimSource[340] = {
     172,
     157,
     22,
@@ -3005,9 +3003,9 @@ u8 D_actor_323400_80171080[340] = {
     0,
 };
 
-Actor323400MessageEntry D_actor_323400_801711D4[7] = {
+Actor323400MessageEntry gRigMessages[7] = {
     { 2015, { .call5 = func_actor_323400_8016475C } },
-    { 2005, { .call4 = func_actor_323400_80164764 } },
+    { 2005, { .call4 = rigSetVisibility } },
     { 2006, { .call0 = func_actor_323400_80164824 } },
     { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
@@ -3024,46 +3022,15 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &(ActorContact_ScratchPosition.value);
 }
 
-Actor323400Storage1228 D_actor_323400_80171228;
+Actor323400Storage1228 gRigEffectRec;
 
-static void func_actor_323400_8016331C(Task* task);
-static s32  func_actor_323400_80163448(Task* task, Actor323000Work* work);
-static void func_actor_323400_80163B58(Task* task);
 static void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2);
 
 #include "../../shared/actor_contacts.h"
 
 #include "../../shared/actor_contacts.inc.c"
 
-/// Tick of the animation slots while the blend context is live: slots 1..10
-/// sample both contexts and write their pose mixed by `field_83C` (the blend
-/// context gets the 0x1000 complement), each rate seeded from `field_832`
-/// (three below it) and `field_83A`; slots 11..17 only tick the main context.
-static void func_actor_323400_8016331C(Task* task)
-{
-    GpAnimPose        pose;
-    GpAnimPose        blendPose;
-    AnimationContext* anim;
-    s16               weight;
-    s16               i;
-    Actor323000Work*  work;
-
-    work   = (Actor323000Work*)task->work;
-    weight = work->field_83C;
-    anim   = &work->anim;
-    for (i = 1; i < 0x12; i++) {
-        if (i < 0xB) {
-            work->blendSlots[i].rate = work->field_83A;
-            work->slots[i].rate      = (work->field_832 - 3);
-            animationTickSlotPose(anim, i, &pose, 0);
-            animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
-            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
-        } else {
-            work->slots[i].rate = (work->field_832 - 3);
-            Gp_AnimTickIndex(&work->anim, i);
-        }
-    }
-}
+#include "../../shared/blend_rig_creature_blend_tick.inc.c"
 
 /// Per-frame effect dispatch keyed on `field_82E` and the record each animation
 /// slot has reached. A recognised record is handled once: `field_848` remembers,
@@ -3073,7 +3040,7 @@ static void func_actor_323400_8016331C(Task* task)
 /// when no case claimed a record.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
+s32 rigAnimCues(Task* task, Actor323000Work* work)
 {
     SVECTOR vec;
     s32     reset;
@@ -3329,254 +3296,9 @@ static s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
     return 0;
 }
 
-/// Per-frame animation tick. Seeds the slots when `field_828` asks for it
-/// (1 from the per-state table `D_actor_323400_80170894`, 2 by resetting to
-/// `field_82E`), seeds the blend context when `field_836` is 2, then ticks
-/// the slots - blended through `func_actor_323400_8016331C` while `field_82A`
-/// is set. It eases `field_844` toward `field_840` and spreads it over the
-/// body joints 2-4, eases `field_842` toward `field_83E` for joint 10, and
-/// plays the sound `func_actor_323400_80163448` returns, panned at the root.
-static void func_actor_323400_80163B58(Task* task)
-{
-    Actor323000Work* work;
-    Actor323000Work* seekWork;
-    Actor323000Work* resetWork;
-    Actor323000Work* secondaryWork;
-    Actor323000Work* tickWork;
-    Actor323000Work* turnWork;
-    u32              table;
-    s16              state;
-    s32              seekIndex;
-    s32              seekSlotIndex;
-    s32              animation;
-    s32              index;
-    s32              resetIndex;
-    s32              resetSlotIndex;
-    s32              secondaryIndex;
-    s32              secondarySlotIndex;
-    s32              tickIndex;
-    s32              tickSlotIndex;
-    s32              targetAngle;
-    s32              currentAngle;
-    s32              targetAngleBits;
-    s32              currentAngleBits;
-    s16              angle;
-    s32              clampedAngle;
-    s16              thirdAngle;
-    s32              targetTurn;
-    u16              originalTurn;
-    s32              signedTurn;
-    s16              currentTurn;
-    s32              updatedTurn;
-    u16              updatedTurnBits;
-    s32              delta;
-    s32              sound;
-    s32              pan;
+#include "../../shared/blend_rig_creature_anim_tick.inc.c"
 
-    work  = (Actor323000Work*)task->work;
-    state = work->field_828;
-    if (state == 1) {
-        if (work->field_82C != work->field_82E) {
-            seekWork  = work;
-            seekIndex = 1;
-            table     = (u32)D_actor_323400_80170894;
-            do {
-                seekSlotIndex               = seekIndex;
-                work->slots[seekIndex].rate = seekWork->field_832;
-                animation                   = seekWork->field_82E;
-                index                       = seekWork->field_82C * 0x2D;
-                func_800B4114(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
-                seekIndex += 1;
-            } while (seekIndex < 0x12);
-            seekWork->field_82C = seekWork->field_82E;
-        }
-        work->field_828 = 3;
-        work->field_830 = 0;
-        Mem_Set(work->field_848, 0U, 0x48U);
-    } else if (state == 2) {
-        resetWork  = work;
-        resetIndex = 1;
-        do {
-            resetSlotIndex               = resetIndex;
-            work->slots[resetIndex].rate = resetWork->field_832;
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
-            resetIndex += 1;
-        } while (resetIndex < 0x12);
-        resetWork->field_82C = resetWork->field_82E;
-        work->field_828      = 3;
-        work->field_830      = 0U;
-        Mem_Set(work->field_848, 0U, 0x48U);
-    }
-    if (work->field_836 == 2) {
-        secondaryWork            = (Actor323000Work*)task->work;
-        secondaryIndex           = 1;
-        secondaryWork->field_83A = 0x20;
-        secondaryWork->field_83C = 0x800;
-        do {
-            secondarySlotIndex                        = secondaryIndex;
-            secondaryWork->slots[secondaryIndex].rate = secondaryWork->field_83A;
-            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
-            secondaryIndex += 1;
-        } while (secondaryIndex < 0x12);
-        work->field_836 = 3;
-    }
-    work->field_830 = (u16)(work->field_830 + 1);
-    if (work->field_82A == 0) {
-        tickWork  = (Actor323000Work*)task->work;
-        tickIndex = 1;
-        do {
-            tickSlotIndex                   = tickIndex;
-            tickWork->slots[tickIndex].rate = tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
-            tickIndex += 1;
-        } while (tickIndex < 0x12);
-    } else {
-        func_actor_323400_8016331C(task);
-        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_END) {
-            work->field_82A = 0;
-        }
-    }
-    targetAngle      = work->field_840;
-    currentAngle     = work->field_844;
-    targetAngleBits  = (u16)work->field_840;
-    currentAngleBits = (u16)work->field_844;
-    if (currentAngle < targetAngle) {
-        if ((targetAngle - currentAngle) >= 0x72) {
-            work->field_844 = currentAngleBits + 0x71;
-        } else {
-            goto snap;
-        }
-    } else if ((currentAngle - targetAngle) >= 0x72) {
-        work->field_844 = currentAngleBits - 0x71;
-    } else {
-    snap:
-        work->field_844 = targetAngleBits;
-    }
-    angle        = work->field_844;
-    clampedAngle = (u16)work->field_844;
-    if (angle != 0) {
-        if (angle >= 0x501) {
-            clampedAngle = 0x500;
-        }
-        if (angle < -0x500) {
-            clampedAngle = -0x500;
-        }
-        thirdAngle = (s16)clampedAngle / 3;
-        ActorContact_TurnJoint(&task->extra.tmd->coords[2], thirdAngle);
-        task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        ActorContact_TurnJoint(&task->extra.tmd->coords[3], thirdAngle);
-        task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        ActorContact_TurnJoint(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
-        task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    turnWork     = (Actor323000Work*)task->work;
-    targetTurn   = (u16)turnWork->field_83E;
-    originalTurn = targetTurn;
-    if ((s16)targetTurn >= 0x201) {
-        targetTurn = 0x200;
-    }
-    if ((s16)originalTurn < -0x200) {
-        targetTurn = -0x200;
-    }
-    signedTurn  = (s16)targetTurn;
-    currentTurn = turnWork->field_842;
-    if (currentTurn < signedTurn) {
-        if ((signedTurn - currentTurn) >= 0xD) {
-            turnWork->field_842 = (s16)((u16)turnWork->field_842 + 0xC);
-        } else {
-            turnWork->field_842 = (s16)targetTurn;
-        }
-    }
-    updatedTurn     = turnWork->field_842;
-    updatedTurnBits = (u16)turnWork->field_842;
-    if ((s16)targetTurn < updatedTurn) {
-        delta = updatedTurn - (s16)targetTurn;
-        if (delta < 0) {
-            delta = -delta;
-        }
-        if (delta >= 0xD) {
-            turnWork->field_842 = (s16)(updatedTurnBits - 0xC);
-        } else {
-            turnWork->field_842 = (s16)targetTurn;
-        }
-    }
-    ActorContact_TurnJoint(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
-    task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
-    sound                                    = func_actor_323400_80163448(task, work);
-    if (sound != 0) {
-        pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)gpGetObjDepth(task->extra.tmd->coords));
-    }
-}
-
-/// Spawn state: allocates the work block (destroying the enemy if that
-/// fails), installs the exit callback, binds the model's light and colour
-/// matrices to the block, sets up the enemy record and links its node,
-/// initialises both animation contexts, seeds clip 1 and ticks once. It then
-/// publishes the message table, parents the root to the view, takes its world
-/// position as the actor colour, fills the effect record and advances the
-/// task to the per-frame driver.
-static void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
-{
-    SVECTOR          unused; // never referenced; only reserves the frame slot the ROM has
-    VECTOR           pos;
-    TmdObject*       obj;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    Actor323000Work* work;
-    Actor323000Work* work2;
-    Actor323000Work* mem;
-
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    mem        = (Actor323000Work*)memCalloc(0x934, 0);
-    work       = mem;
-    task->work = mem;
-    if (mem == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    task->exitCallback = func_actor_323400_80164A78;
-    work2              = (Actor323000Work*)task->work;
-    tmd                = task->extra.tmd;
-    tmd->lightMtx      = &work2->light;
-    tmd->colorMtx      = &work2->color;
-    enemy->field_4     = &task->extra.tmd->coords->coord;
-    enemy->field_48    = 0;
-    enemy->bodyPos.vx  = 0;
-    enemy->bodyPos.vy  = 0;
-    enemy->bodyPos.vz  = 0;
-    enemy->coord       = &task->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
-    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    enemy->param                  = &D_actor_323400_80164D5C;
-    enemy->reactionFlags          = 0;
-    enemy->hp                     = 0;
-    enemy->recs                   = 0;
-    func_800B3F84(&work->anim, D_actor_323400_80171080, obj, work->poses, work->slots);
-    func_800B3F84(&work->blendAnim, D_actor_323400_80171080, obj, work->blendPoses, work->blendSlots);
-    work->field_828 = 2;
-    work->field_82E = 1;
-    work->field_82A = 0;
-    work->field_844 = 0;
-    work->field_840 = 0;
-    work->field_834 = 0x10;
-    work->field_832 = 0x10;
-    func_actor_323400_80163B58(task);
-    task->msgTable      = D_actor_323400_801711D4;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    D_actor_323400_80171228.value.coord      = task->extra.tmd->coords;
-    D_actor_323400_80171228.value.spawnArgLo = 0x100;
-    D_actor_323400_80171228.value.spawnArgHi = 2;
-    work->field_0                            = 0;
-    task->state++;
-}
+#include "../../shared/blend_rig_creature_spawn.inc.c"
 
 /// State 2 of `D_actor_323400_80161E24`. On entry it flags the enemy's link
 /// node, shows the model (clears its flags) and rebuilds its buffers, resets
@@ -3607,7 +3329,7 @@ static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
         work->field_83E = 0;
         work->field_840 = 0;
         work->field_6   = 0;
-        func_actor_323400_80163B58(task);
+        rigAnimTick(task);
         return;
     }
     switch (++work->field_6) {
@@ -3665,7 +3387,7 @@ static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             break;
         }
     }
-    func_actor_323400_80163B58(task);
+    rigAnimTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -3750,41 +3472,7 @@ void func_actor_323400_8016475C(void)
 {
 }
 
-/// Handler for message 0x7D5: sets the model's display flags for the mode in
-/// `arg2` and picks the state that follows. 0 hides the model (flag 0x80
-/// alone), rebuilds the buffers and restarts state 0; 1 clears the flags,
-/// showing it, rebuilds and starts state 2; 2 raises flag 4 over the current
-/// flags and 3 replaces them with it, both restarting state 0.
-s32 func_actor_323400_80164764(Task* task, s32 arg1, s32 arg2)
-{
-    TmdObject*       obj;
-    Actor323000Work* work;
-
-    obj  = task->extra.tmd;
-    work = (Actor323000Work*)task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 2;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/blend_rig_creature_visibility.inc.c"
 
 /// Handler for message 0x7D6: returns 1 while the enemy still has hit points,
 /// and otherwise 1 only when the model has neither flag 0x80 nor flag 2 set.
@@ -3855,7 +3543,7 @@ s32 func_actor_323400_80164A50(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 
 /// `Task::exitCallback` the spawn handler installs: destroys the enemy the
 /// task carries.
-static void func_actor_323400_80164A78(Task* task)
+void rigExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
@@ -3943,9 +3631,9 @@ static void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
         work->field_828 = 2;
         work->field_83E = 0;
         work->field_840 = 0;
-        func_actor_323400_80163B58(task);
+        rigAnimTick(task);
     } else {
-        func_actor_323400_80163B58(task);
+        rigAnimTick(task);
     }
 }
 
@@ -3970,9 +3658,9 @@ static void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
         work->field_828 = 1;
         work->field_83E = 0;
         work->field_840 = 0;
-        func_actor_323400_80163B58(task);
+        rigAnimTick(task);
     } else {
-        func_actor_323400_80163B58(task);
+        rigAnimTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
