@@ -24,6 +24,7 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/footstep_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -43,7 +44,7 @@ extern Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4;
 /// The work block, published by the spawn routine and by the task handler
 /// `func_actor_260500_8014A460` on every frame, so the message handlers and
 /// the animation loops reach it without the task.
-extern Actor260500Work* D_actor_260500_80159E4C;
+extern Actor260500Work* gFootstepWalkWork;
 
 /// The actor's own task, published by the spawn routine: the play-animation
 /// handler runs the update on it and the visibility handler reaches its model.
@@ -86,7 +87,6 @@ extern u8                  D_actor_260500_80159DBC[];
 static void func_actor_260500_8014A110(Task* task);
 static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
 static void func_actor_260500_8014A540(Task* task);
-static void func_actor_260500_8014A568(void);
 static void func_actor_260500_8014A5B4(void);
 static void func_actor_260500_8014A644(void);
 static void func_actor_260500_8014A99C(Task* task);
@@ -1500,7 +1500,7 @@ u8 D_actor_260500_80159DBC[144] = {
     0,
 };
 
-Actor260500Work* D_actor_260500_80159E4C = NULL;
+Actor260500Work* gFootstepWalkWork = NULL;
 
 Task* D_actor_260500_80159E50;
 
@@ -1561,7 +1561,7 @@ static void func_actor_260500_80149EBC(void)
 }
 
 /// Spawn routine (state 0 of `func_actor_260500_8014A460`): allocates the work
-/// block and publishes it in `D_actor_260500_80159E4C` and the task's `work`
+/// block and publishes it in `gFootstepWalkWork` and the task's `work`
 /// slot, binds the model to the view and hands it the block's light and colour
 /// matrices, publishes the task in `D_actor_260500_80159E50`, relights the
 /// model from a point 0x320 above its translation and binds the animation
@@ -1574,36 +1574,36 @@ static void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
     TmdObject* obj;
     void*      work;
 
-    obj                     = task->extra.tmd;
-    coord                   = obj->coords;
-    work                    = memCalloc(sizeof(Actor260500Work), 0);
-    D_actor_260500_80159E4C = work;
-    task->work              = work;
+    obj               = task->extra.tmd;
+    coord             = obj->coords;
+    work              = memCalloc(sizeof(Actor260500Work), 0);
+    gFootstepWalkWork = work;
+    task->work        = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_260500_8014A540;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->lightMtx                    = &D_actor_260500_80159E4C->light;
-    obj->colorMtx                    = &D_actor_260500_80159E4C->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    D_actor_260500_80159E50          = task;
-    vec.vz                           = coord->workm.t[2];
+    task->exitCallback           = func_actor_260500_8014A540;
+    coord->parent                = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
+    obj->otOffset                = 1;
+    obj->lightMtx                = &gFootstepWalkWork->light;
+    obj->colorMtx                = &gFootstepWalkWork->color;
+    vec.vx                       = coord->workm.t[0];
+    vec.vy                       = coord->workm.t[1] - 0x320;
+    D_actor_260500_80159E50      = task;
+    vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_260500_80159E4C->rig.anim, D_actor_260500_80159DBC, obj,
-                  D_actor_260500_80159E4C->rig.poses, D_actor_260500_80159E4C->rig.slots);
-    D_actor_260500_80159E4C->st.animId  = 4;
-    D_actor_260500_80159E4C->st.state   = 2;
-    D_actor_260500_80159E4C->st.travel  = 0;
-    D_actor_260500_80159E4C->turnFrames = 0;
-    task->msgTable                      = D_actor_260500_80159D80;
+    func_800B3F84(&gFootstepWalkWork->rig.anim, D_actor_260500_80159DBC, obj,
+                  gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
+    gFootstepWalkWork->st.animId  = 4;
+    gFootstepWalkWork->st.state   = 2;
+    gFootstepWalkWork->st.travel  = 0;
+    gFootstepWalkWork->turnFrames = 0;
+    task->msgTable                = D_actor_260500_80159D80;
     func_actor_260500_8014A110(task);
     task->state++;
 }
@@ -1619,13 +1619,13 @@ static void func_actor_260500_8014A110(Task* task)
     GfxCoord*        coord = task->extra.tmd->coords;
     Actor260500Work* work  = (Actor260500Work*)task->work;
 
-    if (D_actor_260500_80159E4C->st.state == 1) {
+    if (gFootstepWalkWork->st.state == 1) {
         func_actor_260500_8014A644();
-        D_actor_260500_80159E4C->st.state = 3;
-    } else if (D_actor_260500_80159E4C->st.state == 2) {
+        gFootstepWalkWork->st.state = 3;
+    } else if (gFootstepWalkWork->st.state == 2) {
         func_actor_260500_8014A5B4();
-        D_actor_260500_80159E4C->st.state = 3;
-    } else if (D_actor_260500_80159E4C->st.state == 3) {
+        gFootstepWalkWork->st.state = 3;
+    } else if (gFootstepWalkWork->st.state == 3) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
             if (work->st.travel != 0) {
                 switch (D_actor_260500_80159E54) {
@@ -1652,12 +1652,12 @@ static void func_actor_260500_8014A110(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }
-        func_actor_260500_8014A568();
+        footstepWalkTickAnim();
     }
 }
 
 /// Two-state task handler: publishes the task's work block in
-/// `D_actor_260500_80159E4C` on the way through, then calls the spawn routine
+/// `gFootstepWalkWork` on the way through, then calls the spawn routine
 /// or the per-frame state, whichever `Task::state` selects from a table built
 /// on the stack.
 void func_actor_260500_8014A460(Task* task)
@@ -1667,7 +1667,7 @@ void func_actor_260500_8014A460(Task* task)
         func_actor_260500_8014A4BC,
     };
 
-    D_actor_260500_80159E4C = task->work;
+    gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1698,17 +1698,7 @@ static void func_actor_260500_8014A540(Task* task)
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Ticks animation slots 1..0x12 of the work block's animation context.
-static void func_actor_260500_8014A568(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        Gp_AnimTickIndex(&D_actor_260500_80159E4C->rig.anim, i);
-        i++;
-    } while (i < 0x13);
-}
+#include "../../shared/footstep_walk_tick_anim.inc.c"
 
 /// Plain reseed: marks animation slots 1..0x12 of the work block reset-pending
 /// and reseeds each of them from the current animation id, then records that id
@@ -1719,11 +1709,11 @@ static void func_actor_260500_8014A5B4(void)
 
     i = 1;
     do {
-        D_actor_260500_80159E4C->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_260500_80159E4C->rig.anim, i, D_actor_260500_80159E4C->st.animId);
+        gFootstepWalkWork->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);
         i++;
     } while (i < 0x13);
-    D_actor_260500_80159E4C->st.appliedAnimId = D_actor_260500_80159E4C->st.animId;
+    gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
 }
 
 /// Blended reseed: reseeds animation slots 1..0x12 of the work block from the
@@ -1735,11 +1725,11 @@ static void func_actor_260500_8014A644(void)
 
     i = 1;
     do {
-        func_800B4114(&D_actor_260500_80159E4C->rig.anim, i, D_actor_260500_80159E4C->st.animId, 0,
+        func_800B4114(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId, 0,
                       D_actor_260500_80159D7C);
         i++;
     } while (i < 0x13);
-    D_actor_260500_80159E4C->st.appliedAnimId = D_actor_260500_80159E4C->st.animId;
+    gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
 }
 
 /// Play-animation message handler: adopts the preset's animation id when it is
@@ -1750,14 +1740,14 @@ static void func_actor_260500_8014A644(void)
 s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* preset)
 {
     if (preset->animationId < 0x24) {
-        D_actor_260500_80159E4C->st.animId = preset->animationId;
+        gFootstepWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            D_actor_260500_80159E4C->st.state = 1;
-            D_actor_260500_80159D7C           = preset->blendFrames;
+            gFootstepWalkWork->st.state = 1;
+            D_actor_260500_80159D7C     = preset->blendFrames;
         } else {
-            D_actor_260500_80159E4C->st.state = 2;
+            gFootstepWalkWork->st.state = 2;
         }
-        D_actor_260500_80159E4C->st.field_6 = 0;
+        gFootstepWalkWork->st.field_6 = 0;
         func_actor_260500_8014A110(D_actor_260500_80159E50);
         return 0;
     }
@@ -1790,8 +1780,8 @@ s32 func_actor_260500_8014A79C(Task* task, s32 arg1, ActorTransform* placement)
     GfxCoord* coord;
     u16       yaw;
 
-    coord                           = task->extra.tmd->coords;
-    D_actor_260500_80159E4C->st.yaw = yaw = placement->rot.vy;
+    coord                     = task->extra.tmd->coords;
+    gFootstepWalkWork->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
@@ -1805,7 +1795,7 @@ s32 func_actor_260500_8014A79C(Task* task, s32 arg1, ActorTransform* placement)
 s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg)
 {
     if (msg->command == 0) {
-        D_actor_260500_80159E4C->turnFrames = 0x14;
+        gFootstepWalkWork->turnFrames = 0x14;
     }
     return 0;
 }

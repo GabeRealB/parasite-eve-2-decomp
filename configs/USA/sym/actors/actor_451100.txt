@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_451100.
-D_actor_451100_8014E744 = 0x8014E744; // size:0x4 defined:True
+gFootstepWalkWork = 0x8014E744; // size:0x4 defined:True
 D_actor_451100_8014E748 = 0x8014E748; // size:0x4 defined:True
 D_actor_451100_8014E6E4 = 0x8014E6E4; // size:0x18 defined:True
 D_actor_451100_8014E6FC = 0x8014E6FC; // size:0x48 defined:True
@@ -254,4 +254,6 @@ D_actor_451100_801350D0 = 0x801350D0; // size:0x14 defined:True
 D_actor_451100_801350E4 = 0x801350E4; // size:0x14 defined:True
 D_actor_451100_801350F8 = 0x801350F8; // size:0x14 defined:True
 D_actor_451100_8013510C = 0x8013510C; // size:0x10C defined:True
-D_actor_451100_8014E74C = 0x8014E74C; // size:0x2 defined:True
+gFootstepWalkMode = 0x8014E74C; // size:0x2 defined:True
+footstepWalkTickAnim = 0x801323DC; // type:func
+footstepWalkTo = 0x801326B0; // type:func

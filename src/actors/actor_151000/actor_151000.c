@@ -27,6 +27,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/footstep_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -44,9 +45,9 @@ extern Actor151000AnimStorage336C D_actor_151000_8013336C;
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 /// Reset argument the "start animation" opcode leaves behind:
-/// `func_actor_151000_801326AC` forwards it to every reseeded slot, and the
+/// `footstepWalkBlendAnim` forwards it to every reseeded slot, and the
 /// runner sets it to 10 when a walk ends.
-extern s16 D_actor_151000_8013D2AC;
+extern s16 gFootstepWalkBlendFrames;
 
 /// Fade countdown: `func_actor_151000_80131EE0` seeds it, and the fade task
 /// `func_actor_151000_80131E24` draws while it is non-zero.
@@ -54,16 +55,16 @@ extern s32 D_actor_151000_8013D378;
 
 /// The enemy's work block, published by its spawn handler and by its task
 /// body.
-extern Actor151000Work* D_actor_151000_8013D37C;
+extern Actor151000Work* gFootstepWalkWork;
 
 /// The enemy's task, published by its spawn handler so the visibility opcode
 /// can reach its model.
-extern Task* D_actor_151000_8013D380;
+extern Task* gFootstepWalkTask;
 
 /// Picks the distance the runner walks the model each frame: 0 steps 0x3C
 /// forward, 1 steps 0xF back, 2 steps 0x19 forward. Set by the "walk to"
 /// opcode.
-extern s16 D_actor_151000_8013D384;
+extern s16 gFootstepWalkMode;
 
 /// Descriptor of the fade task `func_actor_151000_80131E24`.
 extern TaskDesc D_actor_151000_80133360;
@@ -84,16 +85,10 @@ typedef struct {
 } Actor151000MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor151000MsgEntry, 8);
 
-extern Actor151000MsgEntry D_actor_151000_8013D2B0[];
-extern u8                  D_actor_151000_8013D2EC[];
+extern Actor151000MsgEntry gFootstepWalkMsgTable[];
+extern u8                  gFootstepWalkAnims[];
 
-static void func_actor_151000_80132084(Task* task);
 static void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
-static void func_actor_151000_801324D4(Task* task);
-static void func_actor_151000_801324FC(Task* task);
-static void func_actor_151000_801325C4(void);
-static void func_actor_151000_80132610(void);
-static void func_actor_151000_801326AC(void);
 static void func_actor_151000_80132A38(Task* task);
 
 extern TmdSource D_actor_151000_80139270;
@@ -103,7 +98,6 @@ s32 func_actor_151000_80132738(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_151000_801327C8(Task*, s32, s32);
 s32 func_actor_151000_80132810(Task*, s32, ActorTransform* placement);
 s32 func_actor_151000_8013288C(Task*, s32, ActorCommand* msg);
-s32 func_actor_151000_801328DC(Task*, s32, VECTOR*, s32);
 
 extern AnimationPlayRequest D_actor_151000_801333F0;
 extern AnimationPlayRequest D_actor_151000_80133404;
@@ -660,20 +654,20 @@ AnimationSet D_actor_151000_8013D284 = {
     { NULL, D_actor_151000_8013D060, NULL, NULL, D_actor_151000_8013D078, NULL, NULL, NULL },
 };
 
-s16 D_actor_151000_8013D2AC = 8;
+s16 gFootstepWalkBlendFrames = 8;
 
-Actor151000MsgEntry D_actor_151000_8013D2B0[6] = {
+Actor151000MsgEntry gFootstepWalkMsgTable[6] = {
     { 2003, { .call0 = func_actor_151000_80132738 } },
     { 2005, { .call4 = func_actor_151000_801327C8 } },
     { 2004, { .call2 = func_actor_151000_80132810 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_151000_8013288C } },
-    { 2013, { .call3 = func_actor_151000_801328DC } },
+    { 2013, { .call3 = footstepWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_151000_8013D2E0 = { TASK_BODY_TMD, 192, func_actor_151000_801323F4, { .model = &D_actor_151000_80139270 } };
 
-u8 D_actor_151000_8013D2EC[140] = {
+u8 gFootstepWalkAnims[140] = {
     0,
     0,
     0,
@@ -818,13 +812,11 @@ u8 D_actor_151000_8013D2EC[140] = {
 
 s32 D_actor_151000_8013D378;
 
-Actor151000Work* D_actor_151000_8013D37C;
+Actor151000Work* gFootstepWalkWork;
 
-Task* D_actor_151000_8013D380;
+Task* gFootstepWalkTask;
 
-s16 D_actor_151000_8013D384;
-
-static void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task);
+s16 gFootstepWalkMode;
 
 /// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
 /// draws a full-screen black `TILE` into ordering table slot 0xA; once it is
@@ -860,121 +852,22 @@ void func_actor_151000_80131EE0(s32 frames)
     }
 }
 
-/// State 0 of the enemy's task: allocates the work block, publishes it in
-/// `D_actor_151000_8013D37C` and on the task's work slot, points the model's
-/// light and colour matrices and its animation context at it, publishes the
-/// task in `D_actor_151000_8013D380`, then runs the runner once and advances
-/// the task to state 1.
-///
-/// Every access to the block after the null check goes through the global
-/// rather than the `memCalloc` result, which is why the pointer is reloaded at
-/// each use.
-static void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
-{
-    VECTOR           vec;
-    Actor151000Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+#include "../../shared/footstep_walk_spawn.inc.c"
 
-    obj                     = task->extra.tmd;
-    coord                   = obj->coords;
-    work                    = memCalloc(0x4C0, 0);
-    D_actor_151000_8013D37C = work;
-    task->work              = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_151000_801324D4;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->lightMtx                    = &D_actor_151000_8013D37C->light;
-    obj->colorMtx                    = &D_actor_151000_8013D37C->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    D_actor_151000_8013D380          = task;
-    vec.vz                           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_151000_8013D37C->rig.anim, D_actor_151000_8013D2EC, obj,
-                  &D_actor_151000_8013D37C->rig.poses, D_actor_151000_8013D37C->rig.slots);
-    D_actor_151000_8013D37C->st.animId  = 1;
-    D_actor_151000_8013D37C->st.state   = 2;
-    D_actor_151000_8013D37C->st.travel  = 0;
-    D_actor_151000_8013D37C->turnFrames = 0;
-    D_actor_151000_8013D37C->stepRec    = 0;
-    D_actor_151000_8013D37C->footsteps  = 0;
-    task->msgTable                      = D_actor_151000_8013D2B0;
-    func_actor_151000_80132084(task);
-    task->state += 1;
-}
-
-/// Per-frame update: states 1 and 2 run their one-shot animation restart and
-/// leave the work block in state 3; state 3 walks the model while `travel`
-/// counts down (distance picked by `D_actor_151000_8013D384`) and, when the
-/// walk ends, queues clip 0xD through state 1; it turns the model while
-/// `turnFrames` counts down in clip 3, then ticks the animation and, once
-/// `footsteps` is set, plays the footsteps.
-static void func_actor_151000_80132084(Task* task)
-{
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor151000Work* work  = (Actor151000Work*)task->work;
-
-    if (D_actor_151000_8013D37C->st.state == 1) {
-        func_actor_151000_801326AC();
-        D_actor_151000_8013D37C->st.state = 3;
-    } else if (D_actor_151000_8013D37C->st.state == 2) {
-        func_actor_151000_80132610();
-        D_actor_151000_8013D37C->st.state = 3;
-    } else if (D_actor_151000_8013D37C->st.state == 3) {
-        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
-            if (work->st.travel != 0) {
-                switch (D_actor_151000_8013D384) {
-                    case 0:
-                        actorMoveModelForward(task, 0x3C);
-                        break;
-                    case 1:
-                        actorMoveModelForward(task, -0xF);
-                        break;
-                    case 2:
-                        actorMoveModelForward(task, 0x19);
-                        break;
-                }
-                if (--work->st.travel == 0) {
-                    work->st.state          = 1;
-                    D_actor_151000_8013D2AC = 10;
-                    work->st.animId         = 0xD;
-                }
-            }
-        }
-        if (work->st.animId == 3 && work->turnFrames != 0) {
-            work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->turnFrames--;
-        }
-        func_actor_151000_801325C4();
-        if (work->footsteps != 0) {
-            func_actor_151000_801324FC(task);
-        }
-    }
-}
+#include "../../shared/footstep_walk_update.inc.c"
 
 /// The enemy's task body: publishes the task's work block in
-/// `D_actor_151000_8013D37C`, then runs the handler for the task's state from a
-/// table built on the stack - the spawn handler `func_actor_151000_80131F1C`,
+/// `gFootstepWalkWork`, then runs the handler for the task's state from a
+/// table built on the stack - the spawn handler `footstepWalkSpawn`,
 /// then the per-frame `func_actor_151000_80132450`.
 void func_actor_151000_801323F4(Task* task)
 {
     void (*fns[2])(GpEnemy*, Task*) = {
-        func_actor_151000_80131F1C,
+        footstepWalkSpawn,
         func_actor_151000_80132450,
     };
 
-    D_actor_151000_8013D37C = task->work;
+    gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -994,126 +887,55 @@ static void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_actor_151000_80132084(task);
+    footstepWalkUpdate(task);
     func_actor_151000_80132A38(task);
 }
 
 /// Exit callback the spawn handler installs on the enemy's task: tears down
 /// the enemy the task was spawned for.
-static void func_actor_151000_801324D4(Task* task)
+void footstepWalkExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
-/// Plays a step sound whenever animation slot 1 rolls onto a new record whose
-/// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
-/// the second coordinate of the task's model. The record is latched in
-/// `stepRec` so each one fires once.
-static void func_actor_151000_801324FC(Task* task)
-{
-    Actor151000Work*       work;
-    GfxCoord*              obj;
-    const AnimationRecord* rec;
-    s32                    cueBits;
-    s32                    id;
-    s32                    pan;
+#include "../../shared/footstep_walk_play_steps.inc.c"
 
-    work = (Actor151000Work*)task->work;
-    obj  = task->extra.tmd->coords + 1;
-    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
-    if (rec == NULL || rec == work->stepRec) {
-        return;
-    }
-    work->stepRec = rec;
-    cueBits       = rec->flags & ANIMATION_RECORD_CUE_MASK;
-    if (cueBits != ANIMATION_RECORD_CUE_1 && cueBits != ANIMATION_RECORD_CUE_2) {
-        return;
-    }
-    id = 0x1000000F;
-    if (cueBits == ANIMATION_RECORD_CUE_1) {
-        id = 0x10000010;
-    }
-    id += 0x64;
-    pan = (s8)Gp_GetObjPan(obj);
-    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
-}
+#include "../../shared/footstep_walk_tick_anim.inc.c"
 
-/// Ticks animation slots 1..0x12 of the enemy's animation context.
-static void func_actor_151000_801325C4(void)
-{
-    s32 i;
+#include "../../shared/footstep_walk_reset_anim.inc.c"
 
-    i = 1;
-    do {
-        Gp_AnimTickIndex(&D_actor_151000_8013D37C->rig.anim, i);
-        i++;
-    } while (i < 0x13);
-}
-
-/// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a
-/// reset argument, and latches the clip into `st.appliedAnimId`. Clears the footstep
-/// check's record first.
-static void func_actor_151000_80132610(void)
-{
-    s32 i;
-
-    D_actor_151000_8013D37C->stepRec = NULL;
-    i                                = 1;
-    do {
-        D_actor_151000_8013D37C->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_151000_8013D37C->rig.anim, i, D_actor_151000_8013D37C->st.animId);
-        i++;
-    } while (i < 0x13);
-    D_actor_151000_8013D37C->st.appliedAnimId = D_actor_151000_8013D37C->st.animId;
-}
-
-/// Starts animation slots 1..0x12 on clip `animId`, forwarding
-/// `D_actor_151000_8013D2AC` as the reset argument, and latches the clip into
-/// `st.appliedAnimId`. Clears the footstep check's record first.
-static void func_actor_151000_801326AC(void)
-{
-    s32 i;
-
-    D_actor_151000_8013D37C->stepRec = NULL;
-    i                                = 1;
-    do {
-        func_800B4114(&D_actor_151000_8013D37C->rig.anim, i, D_actor_151000_8013D37C->st.animId, 0,
-                      D_actor_151000_8013D2AC);
-        i++;
-    } while (i < 0x13);
-    D_actor_151000_8013D37C->st.appliedAnimId = D_actor_151000_8013D37C->st.animId;
-}
+#include "../../shared/footstep_walk_blend_anim.inc.c"
 
 /// "Start animation" opcode: `withArg` selects between the two start paths the
-/// runner `func_actor_151000_80132084` dispatches on, and only the first carries
-/// `animArg`, which it leaves in `D_actor_151000_8013D2AC`. The runner is then
-/// run once on the task published in `D_actor_151000_8013D380`. Returns -1,
+/// runner `footstepWalkUpdate` dispatches on, and only the first carries
+/// `animArg`, which it leaves in `gFootstepWalkBlendFrames`. The runner is then
+/// run once on the task published in `gFootstepWalkTask`. Returns -1,
 /// without touching the work block, when the clip id is 0x23 or more.
 s32 func_actor_151000_80132738(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
     if (args->animationId < 0x23) {
-        D_actor_151000_8013D37C->st.animId = args->animationId;
+        gFootstepWalkWork->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            D_actor_151000_8013D37C->st.state = 1;
-            D_actor_151000_8013D2AC           = args->blendFrames;
+            gFootstepWalkWork->st.state = 1;
+            gFootstepWalkBlendFrames    = args->blendFrames;
         } else {
-            D_actor_151000_8013D37C->st.state = 2;
+            gFootstepWalkWork->st.state = 2;
         }
-        D_actor_151000_8013D37C->st.field_6 = 0;
-        func_actor_151000_80132084(D_actor_151000_8013D380);
+        gFootstepWalkWork->st.field_6 = 0;
+        footstepWalkUpdate(gFootstepWalkTask);
         return 0;
     }
     return -1;
 }
 
 /// Visibility opcode: applies `arg2` to the model of the task published in
-/// `D_actor_151000_8013D380` - bit 0 shows it (flags 0) rather than hiding it
+/// `gFootstepWalkTask` - bit 0 shows it (flags 0) rather than hiding it
 /// (0x80), and bit 1 ORs in 0x4.
 s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
 
-    obj = D_actor_151000_8013D380->extra.tmd;
+    obj = gFootstepWalkTask->extra.tmd;
     if (arg2 & 1) {
         obj->flags = 0;
     } else {
@@ -1133,8 +955,8 @@ s32 func_actor_151000_80132810(Task* task, s32 arg1, ActorTransform* placement)
     GfxCoord* coord;
     u16       yaw;
 
-    coord                           = task->extra.tmd->coords;
-    D_actor_151000_8013D37C->st.yaw = yaw = placement->rot.vy;
+    coord                     = task->extra.tmd->coords;
+    gFootstepWalkWork->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
@@ -1152,55 +974,16 @@ s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg)
     kind = msg->command;
     switch (kind) {
         case 0:
-            D_actor_151000_8013D37C->turnFrames = 0x14;
+            gFootstepWalkWork->turnFrames = 0x14;
             break;
         case 1:
-            D_actor_151000_8013D37C->footsteps = kind;
+            gFootstepWalkWork->footsteps = kind;
             break;
     }
     return 0;
 }
 
-/// "Walk to" opcode: records `mode` in `D_actor_151000_8013D384`, turns the
-/// model to face `target` (away from it in mode 1) caching the yaw in the work
-/// block, and leaves in `travel` the planar distance divided by the walk's
-/// frame count: 0x3C in mode 0, 0xF in mode 1 and 0x19 in mode 2.
-s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
-{
-    GfxCoord*        coord;
-    Actor151000Work* work;
-    s32              dx;
-    s32              dz;
-    s32              steps;
-    s32              dist;
-    s32              angle;
-
-    coord                   = task->extra.tmd->coords;
-    work                    = (Actor151000Work*)task->work;
-    D_actor_151000_8013D384 = mode;
-    dx                      = target->vx - coord->coord.t[0];
-    dz                      = target->vz - coord->coord.t[2];
-    angle                   = ratan2(dx, dz);
-    work->st.yaw            = angle;
-    if (D_actor_151000_8013D384 == 1) {
-        work->st.yaw = angle + 0x800;
-    }
-    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
-    dist = SquareRoot0(dx * dx + dz * dz);
-    switch (D_actor_151000_8013D384) {
-        case 0:
-            steps = 0x3C;
-            break;
-        case 1:
-            steps = 0xF;
-            break;
-        case 2:
-            steps = 0x19;
-            break;
-    }
-    work->st.travel = dist / steps;
-    return 0;
-}
+#include "../../shared/footstep_walk_to.inc.c"
 
 /// Draws the enemy's ground shadow quad under the model root, unless the model
 /// is hidden (`flags & 0x80`) or has no buffer yet. The root part's `workm`
