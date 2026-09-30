@@ -45,6 +45,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/screen_wave.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -79,7 +80,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// `field_64` indexes `D_actor_160900_8013F1CC` and `field_66` counts frames
 /// against the step's `hold`.
 ///
-/// `wave` is the context of the screen-wave task `func_actor_160900_80131EB0`,
+/// `wave` is the context of the screen-wave task `screenWaveTask`,
 /// which the `field_4C == 4` request spawns with it as the argument after
 /// setting an eight-frame ramp; the `field_4C == 5` request ends the wave.
 /// The block is zeroed at allocation and this overlay never sets the tint.
@@ -146,19 +147,19 @@ extern GpEvsCmd D_actor_160900_8013FAA8[];
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running context, recomputed every frame.
-extern s32 D_actor_160900_8013F194;
+extern s32 gScreenWaveRamp;
 
 /// The context the running wave task was spawned with, parked at spawn so
 /// the tick reads the ramp through it.
-extern OverlayWaveCtx* D_actor_160900_8013FBB0;
+extern OverlayWaveCtx* gScreenWaveCtx;
 
 extern Task* D_actor_160900_8013FBB4;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern OverlayWaveRec6 D_actor_160900_8013FBB8[13];
+extern OverlayWaveRec6 gScreenWaveColumns[13];
 
-extern OverlayWaveRec6 D_actor_160900_8013FC08[30];
+extern OverlayWaveRec6 gScreenWaveRows[30];
 
 extern TmdSource D_actor_160900_801393B8;
 extern TmdSource D_actor_160900_801397FC;
@@ -184,7 +185,6 @@ void             func_actor_160900_80134830(void);
 void             func_actor_160900_80134850(void);
 void             func_actor_160900_80134870(void);
 
-void func_actor_160900_80131EB0(Task*);
 void func_actor_160900_801345D0(Task*, s32, s32);
 void func_actor_160900_80134624(Task*, s32, ActorTransform* placement);
 
@@ -603,11 +603,11 @@ AnimationSet D_actor_160900_8013F154 = {
 };
 
 TaskDesc D_actor_160900_8013F17C[2] = {
-    { 0, 192, func_actor_160900_80131EB0, { .model = NULL } },
+    { 0, 192, screenWaveTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-s32 D_actor_160900_8013F194 = 256;
+s32 gScreenWaveRamp = 256;
 
 /// Borrowed player clips for the overlay's scripted animation requests.
 static AnimationSet* _gActor160900PlayerAnimationSets[11] = {
@@ -946,13 +946,13 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { TASK_BODY_COORD, 192, func_actor_160900_80132E80, { .model = NULL } },
 };
 
-OverlayWaveCtx* D_actor_160900_8013FBB0;
+OverlayWaveCtx* gScreenWaveCtx;
 
 Task* D_actor_160900_8013FBB4;
 
-OverlayWaveRec6 D_actor_160900_8013FBB8[13];
+OverlayWaveRec6 gScreenWaveColumns[13];
 
-OverlayWaveRec6 D_actor_160900_8013FC08[30];
+OverlayWaveRec6 gScreenWaveRows[30];
 
 extern u8 D_actor_160900_8013F240[];
 
@@ -975,157 +975,7 @@ static void        func_actor_160900_80133238(Task* arg0);
 static void        func_actor_160900_8013358C(Task* arg0);
 static void        func_actor_160900_80133758(SVECTOR* pts);
 
-/// Screen-wave task spawned from `D_actor_160900_8013F17C` with the overlay's
-/// work block as its argument. State 0 seeds the column and row phases, parks
-/// the argument and clears its ramp; state 1 ramps the frame up to the span
-/// (ramp state 0) or back down to zero (ramp state 1, then 2, which kills the
-/// task and restores the display field), and redraws the frame buffer as a
-/// 10 by 30 mesh of textured quads displaced by sine waves of that amplitude,
-/// tinted when the block's tint flag is set.
-///
-/// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist above it.
-void func_actor_160900_80131EB0(Task* arg0)
-{
-    OverlayWaveCtx* ctx;
-    POLY_FT4*       p;
-    DR_STP*         stp;
-    s32             i, j, k;
-    s32             drawY;
-    s32             tpage0, tpage1;
-    s32             u0, u1, v0, v1;
-    s32             waveX0, waveY0, waveX1, waveY1;
-    s32             waveX2, waveY2, waveX3, waveY3;
-
-    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    /* `Task::state` read as a scalar through a cast: that keeps the load
-       behind the `gCdCmdQueue.imageMdecMode` store, which a member read lets GCC hoist
-       above it. */
-    switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
-        case 0:
-            for (i = 0; i < 11; i++) {
-                D_actor_160900_8013FBB8[i].phase  = 0;
-                D_actor_160900_8013FBB8[i].offset = (u32)rand() >> 3;
-                D_actor_160900_8013FBB8[i].speed  = (rand() * 100 + 20) >> 15;
-            }
-            for (i = 0; i < 30; i++) {
-                D_actor_160900_8013FC08[i].phase  = 0;
-                D_actor_160900_8013FC08[i].offset = (u32)rand() >> 3;
-                D_actor_160900_8013FC08[i].speed  = (rand() * 100 + 20) >> 15;
-            }
-            D_actor_160900_8013F194        = 0;
-            D_actor_160900_8013FBB0        = arg0->spawnArg2.pointer;
-            D_actor_160900_8013FBB0->frame = 0;
-            D_actor_160900_8013FBB0->state = 0;
-            displaySetShakeY(DISPLAY_SHAKE_MIN);
-            arg0->state++;
-            break;
-        case 1:
-            ctx = D_actor_160900_8013FBB0;
-            switch (ctx->state) {
-                case 0:
-                    if (ctx->frame < ctx->span) {
-                        ctx->frame++;
-                    }
-                    break;
-                case 1:
-                    if (ctx->frame > 0) {
-                        ctx->frame--;
-                    } else {
-                        ctx->state = 2;
-                    }
-                    break;
-                case 2:
-                    taskKill(arg0);
-                    displaySetShakeY(0);
-                    break;
-            }
-            D_actor_160900_8013F194 = D_actor_160900_8013FBB0->frame * D_actor_160900_8013FBB0->scale / D_actor_160900_8013FBB0->span;
-            for (i = 0; i < 11; i++) {
-                D_actor_160900_8013FBB8[i].phase += D_actor_160900_8013FBB8[i].speed;
-            }
-            for (i = 0; i < 30; i++) {
-                D_actor_160900_8013FC08[i].phase += D_actor_160900_8013FC08[i].speed;
-            }
-            tpage0 = getTPage(2, 0, 0, gDisplayState.drawBuffer << 8);
-            tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
-            for (j = -1; j < 29; j++) {
-                for (k = 0; k < 10; k++) {
-                    p              = gGpuPrimCursor;
-                    gGpuPrimCursor = p + 1;
-                    setPolyFT4(p);
-                    if (D_actor_160900_8013FBB0->blend == 0) {
-                        setShadeTex(p, 1);
-                    } else {
-                        setShadeTex(p, 0);
-                        p->r0 = D_actor_160900_8013FBB0->r;
-                        p->g0 = D_actor_160900_8013FBB0->g;
-                        p->b0 = D_actor_160900_8013FBB0->b;
-                    }
-                    u0 = k * 32;
-                    u1 = (k + 1) * 32;
-                    if (u1 == 320)
-                        u1 = 319;
-                    if (u0 < 128) {
-                        p->tpage = tpage0;
-                    } else {
-                        p->tpage = tpage1;
-                        u0      -= 128;
-                        u1      -= 128;
-                    }
-                    if (j != -1) {
-                        v1     = (j + 1) * 8 + gDisplayState.drawBuffer * 16;
-                        v0     = j * 8 + gDisplayState.drawBuffer * 16;
-                        waveX0 = D_actor_160900_8013F194 * (rsin((j << 9) + D_actor_160900_8013FBB8[k].phase + D_actor_160900_8013FBB8[k].offset) << 3);
-                        p->x0  = k * 32 + (s16)((waveX0 >> 20) - 160);
-                        waveY0 = D_actor_160900_8013F194 * (rsin((k << 10) + D_actor_160900_8013FC08[j].phase + D_actor_160900_8013FC08[j].offset) << 3);
-                        p->y0  = j * 8 + (s16)((ABS(waveY0) >> 20) - 104);
-                        waveX1 = D_actor_160900_8013F194 * (rsin((j << 9) + D_actor_160900_8013FBB8[k + 1].phase + D_actor_160900_8013FBB8[k + 1].offset) << 3);
-                        p->x1  = (k + 1) * 32 + (s16)((waveX1 >> 20) - 160);
-                        waveY1 = D_actor_160900_8013F194 * (rsin(((k + 1) << 10) + D_actor_160900_8013FC08[j].phase + D_actor_160900_8013FC08[j].offset) << 3);
-                        p->y1  = j * 8 + (s16)((ABS(waveY1) >> 20) - 104);
-                    } else {
-                        drawY = gDisplayState.drawBuffer * 16;
-                        p->x0 = k * 32 - 160;
-                        p->y0 = -112;
-                        p->x1 = (k + 1) * 32 - 160;
-                        p->y1 = -112;
-                        v0    = drawY + 8;
-                        v1    = drawY;
-                    }
-                    {
-
-                        waveX2 = D_actor_160900_8013F194 * (rsin(((j + 1) << 9) + D_actor_160900_8013FBB8[k].phase + D_actor_160900_8013FBB8[k].offset) << 3);
-                        p->x2  = k * 32 + (s16)((waveX2 >> 20) - 160);
-                        waveY2 = D_actor_160900_8013F194 * (rsin((k << 10) + D_actor_160900_8013FC08[j + 1].phase + D_actor_160900_8013FC08[j + 1].offset) << 3);
-                        p->y2  = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3 = D_actor_160900_8013F194 * (rsin(((j + 1) << 9) + D_actor_160900_8013FBB8[k + 1].phase + D_actor_160900_8013FBB8[k + 1].offset) << 3);
-                        p->x3  = (k + 1) * 32 + (s16)((waveX3 >> 20) - 160);
-                        waveY3 = D_actor_160900_8013F194 * (rsin(((k + 1) << 10) + D_actor_160900_8013FC08[j + 1].phase + D_actor_160900_8013FC08[j + 1].offset) << 3);
-                        p->y3  = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
-                    }
-                    p->u0 = u0;
-                    p->v0 = v0;
-                    p->u1 = u1;
-                    p->v1 = v0;
-                    p->u2 = u0;
-                    p->v2 = v1;
-                    p->u3 = u1;
-                    p->v3 = v1;
-                    addPrim(&gGpuCurrentOt[3], p);
-                }
-            }
-            break;
-    }
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[0], stp);
-}
+#include "../../shared/screen_wave.inc.c"
 
 static s32 func_actor_160900_801326EC(Task* arg0)
 {

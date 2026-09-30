@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_136300.
-D_actor_136300_80132ADC = 0x80132ADC; // size:0x4 defined:True
+gScreenWaveRamp = 0x80132ADC; // size:0x4 defined:True
 D_actor_136300_80132AC4 = 0x80132AC4; // size:0x18 defined:True
 D_actor_136300_80132AE0 = 0x80132AE0; // size:0x18 defined:True
 D_actor_136300_80132AF8 = 0x80132AF8; // size:0x80 defined:True
@@ -260,9 +260,10 @@ D_actor_136300_8013C5C8 = 0x8013C5C8; // size:0xF0 defined:True
 D_actor_136300_8013C6B8 = 0x8013C6B8; // size:0x6 defined:True
 D_actor_136300_8013C6C0 = 0x8013C6C0; // size:0xC0 defined:True
 D_actor_136300_8013C780 = 0x8013C780; // size:0x108 defined:True
-D_actor_136300_8013C888 = 0x8013C888; // size:0x4 defined:True
-D_actor_136300_8013C88C = 0x8013C88C; // size:0x4E defined:True
-D_actor_136300_8013C8DC = 0x8013C8DC; // size:0xC0 defined:True
+gScreenWaveCtx = 0x8013C888; // size:0x4 defined:True
+gScreenWaveColumns = 0x8013C88C; // size:0x4E defined:True
+gScreenWaveRows = 0x8013C8DC; // size:0xC0 defined:True
 D_actor_136300_8013C99C = 0x8013C99C; // size:0xC defined:True
 
 D_dryfield_night_garage_80183380 = 0x80183380; // absolute:True
+screenWaveTask = 0x80131E40; // type:func

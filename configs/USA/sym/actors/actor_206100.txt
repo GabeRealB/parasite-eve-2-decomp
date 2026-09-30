@@ -98,13 +98,13 @@ D_actor_206100_80158814 = 0x80158814; // size:0x294 defined:True
 D_actor_206100_80158AA8 = 0x80158AA8; // size:0x20 defined:True
 D_actor_206100_80158AC8 = 0x80158AC8; // size:0x28 defined:True
 D_actor_206100_80158AF0 = 0x80158AF0; // size:0x18 defined:True
-D_actor_206100_80158B08 = 0x80158B08; // size:0x4 defined:True
+gScreenWaveRamp = 0x80158B08; // size:0x4 defined:True
 D_actor_206100_80158B0C = 0x80158B0C; // size:0x18 defined:True
 D_actor_206100_80158B24 = 0x80158B24; // size:0x44 defined:True
 D_actor_206100_80158B68 = 0x80158B68; // size:0x40 defined:True
-D_actor_206100_80158BA8 = 0x80158BA8; // size:0x4 defined:True
-D_actor_206100_80158BAC = 0x80158BAC; // size:0x4E defined:True
-D_actor_206100_80158BFC = 0x80158BFC; // size:0xC0 defined:True
+gScreenWaveCtx = 0x80158BA8; // size:0x4 defined:True
+gScreenWaveColumns = 0x80158BAC; // size:0x4E defined:True
+gScreenWaveRows = 0x80158BFC; // size:0xC0 defined:True
 D_actor_206100_80158CBC = 0x80158CBC; // size:0x10 defined:True
 D_actor_206100_80158CCC = 0x80158CCC; // size:0xC defined:True
 
@@ -115,3 +115,4 @@ D_neo_ark_submarine_gallery_801818B8 = 0x801818B8; // absolute:True
 D_neo_ark_submarine_gallery_801818BC = 0x801818BC; // absolute:True
 
 D_neo_ark_submarine_gallery_8018590C = 0x8018590C; // absolute:True
+screenWaveTask = 0x80149ED0; // type:func

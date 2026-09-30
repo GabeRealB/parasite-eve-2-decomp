@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_submarine_tunnel.
-D_neo_ark_submarine_tunnel_80181A4C = 0x80181A4C; // size:0x4 defined:True
+gScreenWaveRamp = 0x80181A4C; // size:0x4 defined:True
 D_neo_ark_submarine_tunnel_80181A50 = 0x80181A50; // size:0x28 defined:True
 D_neo_ark_submarine_tunnel_80181A34 = 0x80181A34; // size:0x18 defined:True
 D_neo_ark_submarine_tunnel_80181A78 = 0x80181A78; // size:0x8 defined:True
@@ -72,8 +72,8 @@ D_neo_ark_submarine_tunnel_801878D0 = 0x801878D0; // size:0xC defined:True
 D_neo_ark_submarine_tunnel_801878DC = 0x801878DC; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_801878E4 = 0x801878E4; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_801878EC = 0x801878EC; // size:0x20 defined:True
-D_neo_ark_submarine_tunnel_8018790C = 0x8018790C; // size:0x4 defined:True
-D_neo_ark_submarine_tunnel_80187910 = 0x80187910; // size:0x4E defined:True
+gScreenWaveCtx = 0x8018790C; // size:0x4 defined:True
+gScreenWaveColumns = 0x80187910; // size:0x4E defined:True
 D_8013647C = 0x8013647C; // absolute:True
 D_8013F734 = 0x8013F734; // absolute:True
 D_80147E48 = 0x80147E48; // absolute:True
@@ -89,7 +89,7 @@ D_neo_ark_submarine_tunnel_80181ABC = 0x80181ABC; // size:0x14 defined:True
 D_neo_ark_submarine_tunnel_80181AD0 = 0x80181AD0; // size:0x18 defined:True
 D_neo_ark_submarine_tunnel_80181AE8 = 0x80181AE8; // size:0x6 defined:True
 D_neo_ark_submarine_tunnel_80181AF0 = 0x80181AF0; // size:0x300 defined:True
-D_neo_ark_submarine_tunnel_80187960 = 0x80187960; // size:0xC0 defined:True
+gScreenWaveRows = 0x80187960; // size:0xC0 defined:True
 D_neo_ark_submarine_tunnel_80187A20 = 0x80187A20; // size:0xC defined:True
 
 func_neo_ark_submarine_tunnel_8017F4DC = 0x8017F4DC; // type:func
@@ -104,3 +104,4 @@ RoomFx_DrawFlyingRing = 0x8017FEDC; // type:func
 RoomFx_DrawFlyingDisc = 0x80180300; // type:func
 RoomFx_DrawBurst2Glow = 0x80180840; // type:func
 RoomFx_DrawGround2Quad = 0x80180D6C; // type:func
+screenWaveTask = 0x8017E828; // type:func

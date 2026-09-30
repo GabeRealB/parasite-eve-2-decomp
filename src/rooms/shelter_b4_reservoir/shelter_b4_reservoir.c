@@ -66,6 +66,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/screen_wave.h"
 
 #define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
@@ -114,14 +115,14 @@ extern OverlayWaveCtx D_shelter_b4_reservoir_80187624;
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
-extern s32 D_shelter_b4_reservoir_8018473C;
+extern s32 gScreenWaveRamp;
 
 /// The ramp and tint the wave task was spawned with.
-extern OverlayWaveCtx* D_shelter_b4_reservoir_80187504;
+extern OverlayWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
-extern OverlayWaveRec6 D_shelter_b4_reservoir_80187514[13];
-extern OverlayWaveRec6 D_shelter_b4_reservoir_80187564[32];
+extern OverlayWaveRec6 gScreenWaveColumns[13];
+extern OverlayWaveRec6 gScreenWaveRows[32];
 
 extern GpMsgEntry D_shelter_b4_reservoir_801848BC[];
 extern TaskDesc   D_shelter_b4_reservoir_801848EC[];
@@ -201,7 +202,6 @@ s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*
 s32  func_shelter_b4_reservoir_8017E354(Task*, s32, s32, TaskMessageArg);
 s32  func_shelter_b4_reservoir_8017E3C4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_reservoir_8017E3CC(Task*, s32, s32, TaskMessageArg);
-void func_shelter_b4_reservoir_8017D650(Task*);
 void func_shelter_b4_reservoir_8017DE8C(Task*);
 void func_shelter_b4_reservoir_8017E0AC(Task*);
 void func_shelter_b4_reservoir_8017E400(Task*);
@@ -214,11 +214,11 @@ void func_shelter_b4_reservoir_8017E780(s32);
 void func_shelter_b4_reservoir_8017E7A8(void);
 
 TaskDesc D_shelter_b4_reservoir_80184724[2] = {
-    { 0, 192, func_shelter_b4_reservoir_8017D650, { .model = NULL } },
+    { 0, 192, screenWaveTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-s32 D_shelter_b4_reservoir_8018473C = 256;
+s32 gScreenWaveRamp = 256;
 
 TmdBone D_shelter_b4_reservoir_80184740[1] = {
 #include "assets/shelter_b4_reservoir_model_072D8_skeleton.inc"
@@ -971,15 +971,15 @@ GpAreaApplyRec D_shelter_b4_reservoir_801874A0[24] = {
 
 GpFadeWork D_shelter_b4_reservoir_80187500 = { 0 };
 
-OverlayWaveCtx* D_shelter_b4_reservoir_80187504 = NULL;
+OverlayWaveCtx* gScreenWaveCtx = NULL;
 
 RoomEventMsg D_shelter_b4_reservoir_80187508 = { 0 };
 
 s32 D_shelter_b4_reservoir_80187510 = 0;
 
-OverlayWaveRec6 D_shelter_b4_reservoir_80187514[13] = { 0 };
+OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
 
-OverlayWaveRec6 D_shelter_b4_reservoir_80187564[32] = { 0 };
+OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
 
 OverlayWaveCtx D_shelter_b4_reservoir_80187624 = { 0 };
 
@@ -992,160 +992,7 @@ _ShelterB4ReservoirBurst D_shelter_b4_reservoir_80187684 = { 0, 0, 0 };
 static void func_shelter_b4_reservoir_8017E068(void);
 static void func_shelter_b4_reservoir_8017E8EC(Task* task);
 
-/// Task that ripples the whole screen: it redraws the frame just rendered as a
-/// 10 by 30 grid of textured quads whose corners are pushed around by sine
-/// waves. The first frame gives every column and row edge a random phase
-/// offset and speed, takes its context from `spawnArg2` and passes -8 to
-/// `displaySetShakeY`. Afterwards the context's mode ramps the strength
-/// up to its limit (mode 0), back down to zero and on to mode 2 (mode 1), or
-/// ends the task and passes 0 back (mode 2); the displacement is the ramp's
-/// share of the context's peak. A non-zero tint flag shades the quads with the context's
-/// colour instead of drawing them unlit. The grid is bracketed by draw-mode
-/// packets that switch mask-bit setting on at the back of the order table and
-/// off again at the front.
-void func_shelter_b4_reservoir_8017D650(Task* arg0)
-{
-    OverlayWaveCtx* ctx;
-    POLY_FT4*       p;
-    DR_STP*         stp;
-    s32             i, j, k;
-    s32             drawY;
-    s32             tpage0, tpage1;
-    s32             u0, u1, v0, v1;
-    s32             waveX0, waveY0, waveX1, waveY1;
-    s32             waveX2, waveY2, waveX3, waveY3;
-    s32*            state;
-
-    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    /* Through a pointer rather than as `arg0->state`: a member load is struct
-       memory, which the scheduler lets rise above the store before it, and the
-       original keeps the two in source order. */
-    state = &arg0->state;
-    switch (*state) {
-        case 0:
-            for (i = 0; i < 11; i++) {
-                D_shelter_b4_reservoir_80187514[i].phase  = 0;
-                D_shelter_b4_reservoir_80187514[i].offset = (u32)rand() >> 3;
-                D_shelter_b4_reservoir_80187514[i].speed  = (rand() * 100 + 20) >> 15;
-            }
-            for (i = 0; i < 30; i++) {
-                D_shelter_b4_reservoir_80187564[i].phase  = 0;
-                D_shelter_b4_reservoir_80187564[i].offset = (u32)rand() >> 3;
-                D_shelter_b4_reservoir_80187564[i].speed  = (rand() * 100 + 20) >> 15;
-            }
-            D_shelter_b4_reservoir_8018473C        = 0;
-            D_shelter_b4_reservoir_80187504        = arg0->spawnArg2.pointer;
-            D_shelter_b4_reservoir_80187504->frame = 0;
-            D_shelter_b4_reservoir_80187504->state = 0;
-            displaySetShakeY(DISPLAY_SHAKE_MIN);
-            arg0->state++;
-            break;
-        case 1:
-            ctx = D_shelter_b4_reservoir_80187504;
-            switch (ctx->state) {
-                case 0:
-                    if (ctx->frame < ctx->span) {
-                        ctx->frame++;
-                    }
-                    break;
-                case 1:
-                    if (ctx->frame > 0) {
-                        ctx->frame--;
-                    } else {
-                        ctx->state = 2;
-                    }
-                    break;
-                case 2:
-                    taskKill(arg0);
-                    displaySetShakeY(0);
-                    break;
-            }
-            D_shelter_b4_reservoir_8018473C = D_shelter_b4_reservoir_80187504->frame * D_shelter_b4_reservoir_80187504->scale / D_shelter_b4_reservoir_80187504->span;
-            for (i = 0; i < 11; i++) {
-                D_shelter_b4_reservoir_80187514[i].phase += D_shelter_b4_reservoir_80187514[i].speed;
-            }
-            for (i = 0; i < 30; i++) {
-                D_shelter_b4_reservoir_80187564[i].phase += D_shelter_b4_reservoir_80187564[i].speed;
-            }
-            tpage0 = getTPage(2, 0, 0, gDisplayState.drawBuffer << 8);
-            tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
-            for (j = -1; j < 29; j++) {
-                for (k = 0; k < 10; k++) {
-                    p              = gGpuPrimCursor;
-                    gGpuPrimCursor = p + 1;
-                    setPolyFT4(p);
-                    if (D_shelter_b4_reservoir_80187504->blend == 0) {
-                        setShadeTex(p, 1);
-                    } else {
-                        setShadeTex(p, 0);
-                        p->r0 = D_shelter_b4_reservoir_80187504->r;
-                        p->g0 = D_shelter_b4_reservoir_80187504->g;
-                        p->b0 = D_shelter_b4_reservoir_80187504->b;
-                    }
-                    u0 = k * 32;
-                    u1 = (k + 1) * 32;
-                    if (u1 == 320)
-                        u1 = 319;
-                    if (u0 < 128) {
-                        p->tpage = tpage0;
-                    } else {
-                        p->tpage = tpage1;
-                        u0      -= 128;
-                        u1      -= 128;
-                    }
-                    if (j != -1) {
-                        v1     = (j + 1) * 8 + gDisplayState.drawBuffer * 16;
-                        v0     = j * 8 + gDisplayState.drawBuffer * 16;
-                        waveX0 = D_shelter_b4_reservoir_8018473C * (rsin((j << 9) + D_shelter_b4_reservoir_80187514[k].phase + D_shelter_b4_reservoir_80187514[k].offset) << 3);
-                        p->x0  = k * 32 + (s16)((waveX0 >> 20) - 160);
-                        waveY0 = D_shelter_b4_reservoir_8018473C * (rsin((k << 10) + D_shelter_b4_reservoir_80187564[j].phase + D_shelter_b4_reservoir_80187564[j].offset) << 3);
-                        p->y0  = j * 8 + (s16)((ABS(waveY0) >> 20) - 104);
-                        waveX1 = D_shelter_b4_reservoir_8018473C * (rsin((j << 9) + D_shelter_b4_reservoir_80187514[k + 1].phase + D_shelter_b4_reservoir_80187514[k + 1].offset) << 3);
-                        p->x1  = (k + 1) * 32 + (s16)((waveX1 >> 20) - 160);
-                        waveY1 = D_shelter_b4_reservoir_8018473C * (rsin(((k + 1) << 10) + D_shelter_b4_reservoir_80187564[j].phase + D_shelter_b4_reservoir_80187564[j].offset) << 3);
-                        p->y1  = j * 8 + (s16)((ABS(waveY1) >> 20) - 104);
-                    } else {
-                        drawY = gDisplayState.drawBuffer * 16;
-                        p->x0 = k * 32 - 160;
-                        p->y0 = -112;
-                        p->x1 = (k + 1) * 32 - 160;
-                        p->y1 = -112;
-                        v0    = drawY + 8;
-                        v1    = drawY;
-                    }
-                    {
-
-                        waveX2 = D_shelter_b4_reservoir_8018473C * (rsin(((j + 1) << 9) + D_shelter_b4_reservoir_80187514[k].phase + D_shelter_b4_reservoir_80187514[k].offset) << 3);
-                        p->x2  = k * 32 + (s16)((waveX2 >> 20) - 160);
-                        waveY2 = D_shelter_b4_reservoir_8018473C * (rsin((k << 10) + D_shelter_b4_reservoir_80187564[j + 1].phase + D_shelter_b4_reservoir_80187564[j + 1].offset) << 3);
-                        p->y2  = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3 = D_shelter_b4_reservoir_8018473C * (rsin(((j + 1) << 9) + D_shelter_b4_reservoir_80187514[k + 1].phase + D_shelter_b4_reservoir_80187514[k + 1].offset) << 3);
-                        p->x3  = (k + 1) * 32 + (s16)((waveX3 >> 20) - 160);
-                        waveY3 = D_shelter_b4_reservoir_8018473C * (rsin(((k + 1) << 10) + D_shelter_b4_reservoir_80187564[j + 1].phase + D_shelter_b4_reservoir_80187564[j + 1].offset) << 3);
-                        p->y3  = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
-                    }
-                    p->u0 = u0;
-                    p->v0 = v0;
-                    p->u1 = u1;
-                    p->v1 = v0;
-                    p->u2 = u0;
-                    p->v2 = v1;
-                    p->u3 = u1;
-                    p->v3 = v1;
-                    addPrim(&gGpuCurrentOt[3], p);
-                }
-            }
-            break;
-    }
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[0], stp);
-}
+#include "../../shared/screen_wave.inc.c"
 
 void func_shelter_b4_reservoir_8017DE8C(Task* task)
 {
