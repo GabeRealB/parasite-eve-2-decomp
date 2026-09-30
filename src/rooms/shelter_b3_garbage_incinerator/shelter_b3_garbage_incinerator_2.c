@@ -61,6 +61,7 @@
 #include "overlay.h"
 #include "../../shared/screen_wave.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/incinerator_blaze.h"
 
 extern TaskDesc D_80164FF8;
 
@@ -116,7 +117,7 @@ typedef struct {
 } ShelterB3GarbageIncinerator2MessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2MessageEntry, 8);
 
-extern ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F70[1];
+extern ShelterB3GarbageIncinerator2MessageEntry gBlazeFadeMessages[1];
 extern TaskDesc                                 D_shelter_b3_garbage_incinerator_80185BAC[];
 
 static s16 CapCaption_Data_801544EC;
@@ -125,7 +126,6 @@ static s16 CapCaption_Data_801544EE;
 static s32 CapCaption_Data_801545E4;
 static s32 CapCaption_Data_801545E8;
 
-void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
 void func_shelter_b3_garbage_incinerator_8017F968(void);
 #include "../../shared/cap_captions.h"
@@ -163,11 +163,11 @@ extern GpEvsCmd D_shelter_b3_garbage_incinerator_80186FB8[];
 
 /// Effect record handed to `func_800FDB18`: `coord` is the chosen part of the
 /// model and `spawnArgLo` the scale that goes with it.
-extern EffectSpawnArg D_shelter_b3_garbage_incinerator_80186F90;
+extern EffectSpawnArg gBlazeFireSpawn;
 
 /// Model parts the effect record is aimed at, as indices into the
 /// display object's coordinate array.
-extern u16 D_shelter_b3_garbage_incinerator_80186F98[];
+extern u16 gBlazePlayerParts[];
 
 static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 
@@ -184,8 +184,6 @@ static TaskDesc CapCaption_Data_80154508;
 void func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
 void func_shelter_b3_garbage_incinerator_8017E158(Task*);
 void func_shelter_b3_garbage_incinerator_8017E7A4(Task*);
-void func_shelter_b3_garbage_incinerator_8017F0A8(Task*);
-void func_shelter_b3_garbage_incinerator_8017F410(Task*);
 void func_shelter_b3_garbage_incinerator_8017F6D8(Task*);
 void func_shelter_b3_garbage_incinerator_8017F8A4(Task*, s32, s32);
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32);
@@ -316,7 +314,7 @@ AnimationSet D_shelter_b3_garbage_incinerator_80186F48 = {
     { NULL, D_shelter_b3_garbage_incinerator_80186908, NULL, NULL, D_shelter_b3_garbage_incinerator_801869B0, NULL, NULL, NULL },
 };
 
-ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F70[1] = {
+ShelterB3GarbageIncinerator2MessageEntry gBlazeFadeMessages[1] = {
     { 2011, { .call0 = func_shelter_b3_garbage_incinerator_8017F8A4 } },
 };
 
@@ -334,9 +332,9 @@ s16 D_shelter_b3_garbage_incinerator_80186F88[4] = {
     0,
 };
 
-EffectSpawnArg D_shelter_b3_garbage_incinerator_80186F90 = { NULL, 0, 1 };
+EffectSpawnArg gBlazeFireSpawn = { NULL, 0, 1 };
 
-u16 D_shelter_b3_garbage_incinerator_80186F98[16] = {
+u16 gBlazePlayerParts[16] = {
     2,
     4,
     6,
@@ -378,8 +376,8 @@ GpEvsCmd D_shelter_b3_garbage_incinerator_80186FB8[17] = {
 TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
     { 0, 192, func_shelter_b3_garbage_incinerator_8017F6D8, { .model = NULL } },
     { 0, 192, taskKill, { .model = NULL } },
-    { 0, 192, func_shelter_b3_garbage_incinerator_8017F0A8, { .model = NULL } },
-    { 0, 192, func_shelter_b3_garbage_incinerator_8017F410, { .model = NULL } },
+    { 0, 192, blazeFadeTask, { .model = NULL } },
+    { 0, 192, blazeBodyFireTask, { .model = NULL } },
 };
 
 #include "../../shared/cap_captions_settings.inc.c"
@@ -966,94 +964,7 @@ void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)
 
 #include "../../shared/screen_wave_grid.inc.c"
 
-/// Fade-to-white driver of the encounter, six states over the eight-byte
-/// channel block it allocates into its own `Task::work` and hands the parent
-/// work block through `Task::spawnArg2`.
-///
-/// State 0 allocates the ramp, zeroes the three channels and parks the
-/// message record `D_shelter_b3_garbage_incinerator_80186F70` in `Task::msgTable`. States 2 and
-/// 3 step `r` -- the first by 0xA up to 0x50, the second by 1 up to
-/// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
-/// two ramps run back to back. State 4 steps `g` / `b` by 8; once
-/// `g` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
-/// filled white, the parent work block's wave ramp is ended, and state 5
-/// draws the full-screen white `TILE` + `DR_TPAGE` packed into
-/// `gGpuPrimCursor` before returning without the fade call. Every other state
-/// -- 1, 6 and up -- only draws the fade.
-void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
-{
-    OverlayFadeWork*        work;
-    OverlayFadeWork*        alloc;
-    GarbageIncineratorWork* parent;
-    TILE*                   tile;
-    DR_TPAGE*               dr;
-
-    work = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work           = alloc;
-            work->b        = 0;
-            work->g        = 0;
-            work->r        = 0;
-            arg0->msgTable = D_shelter_b3_garbage_incinerator_80186F70;
-            arg0->state   += 1;
-            break;
-        case 2:
-            work->r += 0xA;
-            if ((s16)work->r >= 0x51) {
-                work->r     = 0x50;
-                arg0->state = 1;
-            }
-            break;
-        case 3:
-            work->r += 1;
-            if ((s16)work->r >= 0x100) {
-                work->r     = 0xFF;
-                arg0->state = 1;
-            }
-            break;
-        case 4:
-            work->g += 8;
-            work->b += 8;
-            if ((s16)work->g >= 0x100) {
-                parent             = (GarbageIncineratorWork*)((Task*)arg0->spawnArg2.pointer)->work;
-                parent->wave.state = 2;
-                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-                Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
-                work->b     = 0xFF;
-                work->g     = 0xFF;
-                arg0->state = 5;
-            }
-            break;
-        case 5:
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setlen(tile, 3);
-            setcode(tile, 0x60);
-            tile->r0 = 0xFF;
-            tile->g0 = 0xFF;
-            tile->b0 = 0xFF;
-            tile->x0 = -0xA0;
-            tile->y0 = -0x78;
-            tile->w  = 0x140;
-            tile->h  = 0xF0;
-            addPrim(gGpuCurrentOt - 16, tile);
-
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000200;
-            addPrim(gGpuCurrentOt - 16, dr);
-            return;
-    }
-    Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->b, 1);
-}
+#include "../../shared/incinerator_blaze_fade.inc.c"
 
 /// Step `field_2C` to the next animation set in the table. Returns 0 when
 /// message 0x3ED to it returns nonzero, and 1 otherwise: with no `field_2C`,
@@ -1097,50 +1008,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     goto ret1;
 }
 
-/// Each tick rolls the LCG and aims the effect record at one part of the
-/// model owned by `gameGetPtrSlot(3)`. State 0 fires with one of the first
-/// four parts at scale 0x100 and steps to state 1. State 1 fires only on some
-/// frames: with `spawnArg1` zero, one of the first four parts at scale 0x10
-/// every sixteenth frame; otherwise one of the first sixteen at scale 0x100
-/// every eighth frame.
-void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
-{
-    Task* slot;
-    s32   idx;
-
-    slot        = gameGetPtrSlot(3);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    idx         = Gp_LcgState >> 16;
-
-    switch (arg0->state) {
-        case 0:
-            idx                                                 &= 3;
-            D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x100;
-            D_shelter_b3_garbage_incinerator_80186F90.coord      = &slot->extra.tmd->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
-            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
-            arg0->state++;
-            return;
-        case 1:
-            if (arg0->spawnArg1.value == 0) {
-                if (gDisplayState.animFrame & 0xF) {
-                    return;
-                }
-                idx                                                 &= 3;
-                D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x10;
-                D_shelter_b3_garbage_incinerator_80186F90.coord      = &slot->extra.tmd->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
-                func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
-                return;
-            }
-            if (gDisplayState.animFrame & 7) {
-                return;
-            }
-            idx                                                 &= 0xF;
-            D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x100;
-            D_shelter_b3_garbage_incinerator_80186F90.coord      = &slot->extra.tmd->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
-            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
-            return;
-    }
-}
+#include "../../shared/incinerator_blaze_body_fire.inc.c"
 
 /// Arms the encounter on state 0: sends `field_2C` message 0x3F7 with the
 /// table and its live-entry count, raises `Gp_StateC08.field_6` bit 0,

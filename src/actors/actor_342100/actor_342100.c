@@ -49,6 +49,7 @@
 
 #include "rooms/shelter_b3_dumping_hole.h"
 #include "../../shared/screen_wave.h"
+#include "../../shared/incinerator_blaze.h"
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_342100_80164BB8` points at.
@@ -69,7 +70,7 @@
 ///
 /// `wave` is the ramp of the screen-wave task `screenWaveGridTask`:
 /// `func_actor_342100_80163408` seeds its span and scale and spawns the task
-/// on it, and the fade task `func_actor_342100_80162748`, which reaches this
+/// on it, and the fade task `blazeFadeTask`, which reaches this
 /// block through `Task::spawnArg2`, ends the wave by setting its ramp state to
 /// 2 once the screen has been blanked white.
 ///
@@ -118,7 +119,7 @@ typedef struct {
 } Actor342100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor342100MessageEntry, 8);
 
-extern Actor342100MessageEntry D_actor_342100_801648F8[1];
+extern Actor342100MessageEntry gBlazeFadeMessages[1];
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
@@ -161,21 +162,21 @@ extern SVECTOR D_actor_342100_80164980[];
 /// `func_800E8614` on the same arm; a byte address is all the installer sees.
 extern GpEvsCmd D_actor_342100_801649C8[];
 
-/// Effect record `func_actor_342100_80162DDC` hands `func_800FDB18` together
+/// Effect record `blazeBodyFireTask` hands `func_800FDB18` together
 /// with one part of the player's model: `field_0` is that part's coordinate
 /// and `field_4` the scale that goes with it (0x100 for the wide pick, 0x10
 /// for the narrow one). Ships as `{ NULL, 0, 1 }` in the data blob, directly
 /// before the part table below.
-extern EffectSpawnArg D_actor_342100_801649A0;
+extern EffectSpawnArg gBlazeFireSpawn;
 
 /// The player-model parts the effect record above is aimed at, as indices into
 /// the player's coordinate array (`TmdObject::coords`): sixteen `u16`s
-/// running 1..0x12, of which `func_actor_342100_80162DDC` takes the first four
+/// running 1..0x12, of which `blazeBodyFireTask` takes the first four
 /// (2, 4, 6, 0xA) when it masks the LCG draw with 3 and all sixteen when it
 /// masks with 0xF.
-extern u16 D_actor_342100_801649A8[];
+extern u16 gBlazePlayerParts[];
 
-/// Frame counter the narrow arm of `func_actor_342100_80162DDC`'s state 1 is
+/// Frame counter the narrow arm of `blazeBodyFireTask`'s state 1 is
 /// gated on: it aims the effect only on the frames where the low nibble (or,
 /// for the other arm, the low three bits) of this global is clear.
 
@@ -197,10 +198,8 @@ extern OverlayWaveRec gScreenWaveRows[30];
 /// buffer. `screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
-void func_actor_342100_80162748(Task*);
 void func_actor_342100_80162AB0(Task*);
 void func_actor_342100_80162C88(void);
-void func_actor_342100_80162DDC(Task*);
 void func_actor_342100_801630A4(Task*);
 
 AnimationPackedPose D_actor_342100_80163534[6] = {
@@ -276,7 +275,7 @@ TaskDesc D_actor_342100_801648DC[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-Actor342100MessageEntry D_actor_342100_801648F8[1] = {
+Actor342100MessageEntry gBlazeFadeMessages[1] = {
     { 2011, { .call0 = func_actor_342100_80163344 } },
 };
 
@@ -326,9 +325,9 @@ SVECTOR D_actor_342100_80164980[4] = {
     { 0, 0, 0, 0 },
 };
 
-EffectSpawnArg D_actor_342100_801649A0 = { NULL, 0, 1 };
+EffectSpawnArg gBlazeFireSpawn = { NULL, 0, 1 };
 
-u16 D_actor_342100_801649A8[16] = {
+u16 gBlazePlayerParts[16] = {
     2,
     4,
     6,
@@ -371,8 +370,8 @@ GpEvsCmd D_actor_342100_801649C8[18] = {
 TaskDesc D_actor_342100_80164B78[5] = {
     { 0, 192, func_actor_342100_801630A4, { .model = NULL } },
     { 0, 192, taskKill, { .model = NULL } },
-    { 0, 192, func_actor_342100_80162748, { .model = NULL } },
-    { 0, 192, func_actor_342100_80162DDC, { .model = NULL } },
+    { 0, 192, blazeFadeTask, { .model = NULL } },
+    { 0, 192, blazeBodyFireTask, { .model = NULL } },
     { TASK_BODY_COORD, 192, func_actor_342100_80162AB0, { .model = NULL } },
 };
 
@@ -392,94 +391,7 @@ static s32 func_actor_342100_80162F54(Task* arg0);
 
 #include "../../shared/screen_wave_grid.inc.c"
 
-/// Fade-to-white driver of the encounter, six states over the eight-byte
-/// channel block it allocates into its own `Task::work` and hands the parent
-/// work block through `Task::spawnArg2`.
-///
-/// State 0 allocates the ramp, zeroes the three channels and parks the
-/// message record `D_actor_342100_801648F8` in `Task::msgTable`. States 2 and
-/// 3 step `r` -- the first by 0xA up to 0x50, the second by 1 up to
-/// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
-/// two ramps run back to back. State 4 steps `g` / `b` by 8; once
-/// `g` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
-/// filled white, the parent work block's wave ramp is sent to state 2, and state 5
-/// draws the full-screen white `TILE` + `DR_TPAGE` packed into
-/// `gGpuPrimCursor` before returning without the fade call. Every other state
-/// -- 1, 6 and up -- only draws the fade.
-void func_actor_342100_80162748(Task* arg0)
-{
-    OverlayFadeWork* work;
-    OverlayFadeWork* alloc;
-    Actor342100Work* parent;
-    TILE*            tile;
-    DR_TPAGE*        dr;
-
-    work = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work           = alloc;
-            work->b        = 0;
-            work->g        = 0;
-            work->r        = 0;
-            arg0->msgTable = D_actor_342100_801648F8;
-            arg0->state   += 1;
-            break;
-        case 2:
-            work->r += 0xA;
-            if ((s16)work->r >= 0x51) {
-                work->r     = 0x50;
-                arg0->state = 1;
-            }
-            break;
-        case 3:
-            work->r += 1;
-            if ((s16)work->r >= 0x100) {
-                work->r     = 0xFF;
-                arg0->state = 1;
-            }
-            break;
-        case 4:
-            work->g += 8;
-            work->b += 8;
-            if ((s16)work->g >= 0x100) {
-                parent             = (Actor342100Work*)((Task*)arg0->spawnArg2.pointer)->work;
-                parent->wave.state = 2;
-                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-                Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
-                work->b     = 0xFF;
-                work->g     = 0xFF;
-                arg0->state = 5;
-            }
-            break;
-        case 5:
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setlen(tile, 3);
-            setcode(tile, 0x60);
-            tile->r0 = 0xFF;
-            tile->g0 = 0xFF;
-            tile->b0 = 0xFF;
-            tile->x0 = -0xA0;
-            tile->y0 = -0x78;
-            tile->w  = 0x140;
-            tile->h  = 0xF0;
-            addPrim(gGpuCurrentOt - 16, tile);
-
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000200;
-            addPrim(gGpuCurrentOt - 16, dr);
-            return;
-    }
-    Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->b, 1);
-}
+#include "../../shared/incinerator_blaze_fade.inc.c"
 
 /// Advance the encounter's animation one step: the work block's `field_2C` is
 /// queried with 0x3ED and a non-zero answer stops the chain with 0; `field_3C`
@@ -663,63 +575,7 @@ void func_actor_342100_80162C88(void)
     }
 }
 
-/// Spawn task of the overlay's spawn table (`func_actor_342100_80162748`'s
-/// neighbour entry, started with the encounter): each tick rolls the LCG and
-/// aims the overlay's effect record at one part of the player's model, taken
-/// from the coordinate array `gameGetPtrSlot(3)`'s display object owns.
-///
-/// State 0 fires unconditionally -- the wide pick, scale 0x100 -- and steps to
-/// state 1. State 1 fires only on a frame the `gDisplayState.animFrame` gate lets through,
-/// and which pick that is depends on the task's `spawnArg1`: the zero arm
-/// takes the same four parts as state 0 at scale 0x10, the non-zero arm the
-/// whole table at scale 0x100.
-///
-/// The three arms each spell the aim-and-fire sequence out. That is what the
-/// target's shape is: the two state-1 arms are byte-for-byte equal from the
-/// table-base `lui` on, so `jump.c`'s cross-jumping (the `jump_optimize` that
-/// runs after reload) merges that suffix into one block and leaves each arm
-/// its own copy of the address and scale in front of the jump -- the address
-/// and scale cannot merge because the scale differs. Folding the arms into one
-/// `goto`-shared block instead compiles them into a single copy with a live
-/// scale value, which is a different object (95.02%).
-void func_actor_342100_80162DDC(Task* arg0)
-{
-    Task* slot;
-    s32   idx;
-
-    slot        = gameGetPtrSlot(3);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    idx         = Gp_LcgState >> 16;
-
-    switch (arg0->state) {
-        case 0:
-            idx                               &= 3;
-            D_actor_342100_801649A0.spawnArgLo = 0x100;
-            D_actor_342100_801649A0.coord      = &slot->extra.tmd->coords[D_actor_342100_801649A8[idx]];
-            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
-            arg0->state++;
-            return;
-        case 1:
-            if (arg0->spawnArg1.value == 0) {
-                if (gDisplayState.animFrame & 0xF) {
-                    return;
-                }
-                idx                               &= 3;
-                D_actor_342100_801649A0.spawnArgLo = 0x10;
-                D_actor_342100_801649A0.coord      = &slot->extra.tmd->coords[D_actor_342100_801649A8[idx]];
-                func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
-                return;
-            }
-            if (gDisplayState.animFrame & 7) {
-                return;
-            }
-            idx                               &= 0xF;
-            D_actor_342100_801649A0.spawnArgLo = 0x100;
-            D_actor_342100_801649A0.coord      = &slot->extra.tmd->coords[D_actor_342100_801649A8[idx]];
-            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
-            return;
-    }
-}
+#include "../../shared/incinerator_blaze_body_fire.inc.c"
 
 /// First tick of the overlay's event/controller task, the one that arms the
 /// encounter as state 0 and then waits for the player's arrival as state 1.
