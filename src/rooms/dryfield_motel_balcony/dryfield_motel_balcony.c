@@ -60,7 +60,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 

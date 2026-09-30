@@ -146192,8 +146192,8 @@ word-aligns every array (see the entry on the 2-byte gap above) and the image
 grows by 4. Three `u8` scalars defined after the flag reproduce the bytes.
 
 The struct form does not always hoist. The day `dryfield_main_street` keeps
-its room-event flag as a `RoomEventActiveBytes` (`raised` plus three bytes)
-and matches through `.raised`, in a function that also reads the flag after a
+its room-event flag as a `RoomEventActiveBytes` (`eventStarted` plus three bytes)
+and matches through `.eventStarted`, in a function that also reads the flag after a
 loop. Test each case; the driveway needs the scalar. Shared code that reads
 the flag goes through `ROOM_EVENT_ACTIVE`: naming `gRoomEventActive` directly
 in a fragment tests the object's address where the room's symbol is the wider

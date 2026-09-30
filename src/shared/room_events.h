@@ -30,8 +30,9 @@
  * is the bare record, defines the binding before including this header.
  *
  *   ROOM_EVENT_ACTIVE   lvalue `u8`. Default `gRoomEventActive`, the byte
- *                       itself. `RoomEventActiveBytes` and
- *                       `RoomEventActiveStorage` rooms bind `.raised`.
+ *                       itself. `RoomEventActiveBytes` rooms bind
+ *                       `.eventStarted`; `RoomEventActiveStorage` rooms
+ *                       bind `.raised`.
  *   ROOM_EVENT_REQ      lvalue `RoomEventReq`. Default `gRoomEventReq`.
  *                       `RoomEventReqStorage` rooms bind `.request`.
  *   ROOM_EVENT_LATCHED  lvalue `RoomLatchedEvent`. Default `gRoomEventLatched`.

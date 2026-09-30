@@ -28,7 +28,7 @@
 
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
@@ -111,7 +111,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive.raised != 0) {
+        if (gRoomEventActive.eventStarted != 0) {
             Gp_ApplyAreaRecs(D_dryfield_night_parking_lot_8018155C);
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
@@ -124,7 +124,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         req.flagId        = 0x35;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive.raised != 0) {
+        if (gRoomEventActive.eventStarted != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
     } else {

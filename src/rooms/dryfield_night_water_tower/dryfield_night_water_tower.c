@@ -23,7 +23,7 @@
 
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
@@ -75,7 +75,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive.raised != 0) {
+        if (gRoomEventActive.eventStarted != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
         return ret;

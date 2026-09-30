@@ -43,7 +43,7 @@
 
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`

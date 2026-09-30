@@ -65,7 +65,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 #include "../../shared/shelter_elevator.h"
 
@@ -526,7 +526,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.flagId        = 0xA9;
         req.collectedBit  = 0x21;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive.raised != 0) {
+        if (gRoomEventActive.eventStarted != 0) {
             Gp_SetItemSeenBit(0x121, 1);
         }
         return ret;

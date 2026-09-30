@@ -64,7 +64,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
