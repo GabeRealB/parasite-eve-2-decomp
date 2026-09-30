@@ -89,17 +89,17 @@ STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
 /// name are the same shape, so `field_28`/`field_34`/`field_38` are the three
 /// the 0x7DB handler below arms.
 typedef struct Actor303600RigWork {
-    /* 0x00 */ Task*     children[5];
-    /* 0x14 */ s32       field_14;
-    /* 0x18 */ GpFixed16 field_18;
-    /* 0x1C */ s32       field_1C;
-    /* 0x20 */ s32       field_20;
-    /* 0x24 */ s32       field_24;
-    /* 0x28 */ s32       field_28;
-    /* 0x2C */ s32       field_2C;
-    /* 0x30 */ s32       field_30;
-    /* 0x34 */ s32       field_34;
-    /* 0x38 */ s32       field_38;
+    /* 0x00 */ Task*   children[5];
+    /* 0x14 */ s32     field_14;
+    /* 0x18 */ Fixed16 field_18;
+    /* 0x1C */ s32     field_1C;
+    /* 0x20 */ s32     field_20;
+    /* 0x24 */ s32     field_24;
+    /* 0x28 */ s32     field_28;
+    /* 0x2C */ s32     field_2C;
+    /* 0x30 */ s32     field_30;
+    /* 0x34 */ s32     field_34;
+    /* 0x38 */ s32     field_38;
 } Actor303600RigWork;
 STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
 
@@ -17256,14 +17256,14 @@ static void func_actor_303600_801627B8(Task* task)
     if (var != 0) {
         work->field_34 = 0;
     }
-    angle            = work->field_18.w + work->field_28;
-    work->field_18.w = angle;
+    angle               = work->field_18.word + work->field_28;
+    work->field_18.word = angle;
     if (angle > 0x0FA00000) {
-        work->field_18.w = angle - 0x1F400000;
+        work->field_18.word = angle - 0x1F400000;
     } else if (angle < -0x0FA00000) {
-        work->field_18.w = angle + 0x1F400000;
+        work->field_18.word = angle + 0x1F400000;
     }
-    coord->coord.t[1]   = work->field_18.h.hi;
+    coord->coord.t[1]   = work->field_18.halves.integer;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

@@ -51,10 +51,10 @@ typedef struct Actor503500Step {
 /// A 16.16 world position: `func_actor_503500_80144520` reads each
 /// component's high half (`lh` at +2) back into `GfxCoord.coord.t[]`.
 typedef struct Actor503500FixVec {
-    /* 0x0 */ GpFixed16 vx;
-    /* 0x4 */ GpFixed16 vy;
-    /* 0x8 */ GpFixed16 vz;
-    /* 0xC */ s32       pad;
+    /* 0x0 */ Fixed16 vx;
+    /* 0x4 */ Fixed16 vy;
+    /* 0x8 */ Fixed16 vz;
+    /* 0xC */ s32     pad;
 } Actor503500FixVec;
 STATIC_ASSERT_SIZEOF(Actor503500FixVec, 0x10);
 

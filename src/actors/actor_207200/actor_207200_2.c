@@ -1037,9 +1037,9 @@ static void func_actor_207200_8014BEF4(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->d.delta.vx.h.hi;
-            coord->coord.t[1] += sc->d.delta.vy.h.hi;
-            coord->coord.t[2] += sc->d.delta.vz.h.hi;
+            coord->coord.t[0] += sc->d.delta.vx.halves.integer;
+            coord->coord.t[1] += sc->d.delta.vy.halves.integer;
+            coord->coord.t[2] += sc->d.delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_454;
@@ -1054,9 +1054,9 @@ static void func_actor_207200_8014BEF4(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->d.delta.vx.h.hi;
-            coord->coord.t[1] += sc->d.delta.vy.h.hi;
-            coord->coord.t[2] += sc->d.delta.vz.h.hi;
+            coord->coord.t[0] += sc->d.delta.vx.halves.integer;
+            coord->coord.t[1] += sc->d.delta.vy.halves.integer;
+            coord->coord.t[2] += sc->d.delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_454;
@@ -1087,12 +1087,12 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 if (work->field_49E != 0) {
                     break;
                 }
-                sc->d.delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->d.delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                sc->d.delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w +
-                                               sc->d.delta.vy.w * sc->d.delta.vy.w +
-                                               sc->d.delta.vz.w * sc->d.delta.vz.w);
+                sc->d.delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                sc->d.delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                sc->d.delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                damage              = SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word +
+                                                  sc->d.delta.vy.word * sc->d.delta.vy.word +
+                                                  sc->d.delta.vz.word * sc->d.delta.vz.word);
                 Gp_GetIdParam0(work->rec2[i].key.value);
                 damage = Gp_ComputeDamage(work->rec2[i].key.value, damage, 0, 0);
                 func_800FDB18((u16)Gp_GetIdParam1(work->rec2[i].key.value),
@@ -1123,21 +1123,21 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 }
                 break;
             case 3:
-                sc->d.delta.vx.w = coord->workm.t[0] - work->rec2[i].point.vx;
-                sc->d.delta.vy.w = 0;
-                sc->d.delta.vz.w = coord->workm.t[2] - work->rec2[i].point.vz;
-                damage           = work->rec2[i].distance -
-                         SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w + sc->d.delta.vz.w * sc->d.delta.vz.w);
+                sc->d.delta.vx.word = coord->workm.t[0] - work->rec2[i].point.vx;
+                sc->d.delta.vy.word = 0;
+                sc->d.delta.vz.word = coord->workm.t[2] - work->rec2[i].point.vz;
+                damage              = work->rec2[i].distance -
+                         SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word + sc->d.delta.vz.word * sc->d.delta.vz.word);
                 // Clamped through a second variable: clamping `damage` in
                 // place drops the copy the original makes.
                 push = damage;
                 if (damage <= 0) {
                     push = 0;
                 }
-                damage           = push;
-                sc->d.delta.vx.w = coord->workm.t[0] - work->rec2[i].point.vx;
-                sc->d.delta.vy.w = coord->workm.t[1] - work->rec2[i].point.vy;
-                sc->d.delta.vz.w = coord->workm.t[2] - work->rec2[i].point.vz;
+                damage              = push;
+                sc->d.delta.vx.word = coord->workm.t[0] - work->rec2[i].point.vx;
+                sc->d.delta.vy.word = coord->workm.t[1] - work->rec2[i].point.vy;
+                sc->d.delta.vz.word = coord->workm.t[2] - work->rec2[i].point.vz;
                 VectorNormal(&sc->d.vec, &sc->norm);
                 ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &sc->norm, &sc->d.vec);
                 if (work->field_48C == 2) {
@@ -1160,13 +1160,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             if (work->field_49E != 0) {
                 break;
             }
-            sc->d.delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->d.delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            sc->d.delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w + sc->d.delta.vy.w * sc->d.delta.vy.w +
-                                           sc->d.delta.vz.w * sc->d.delta.vz.w);
-            param            = Gp_GetIdParam0(work->rec3[i].key.value);
-            damage           = Gp_ComputeDamage(work->rec3[i].key.value, damage, 0, 0);
+            sc->d.delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->d.delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+            sc->d.delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            damage              = SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word + sc->d.delta.vy.word * sc->d.delta.vy.word +
+                                              sc->d.delta.vz.word * sc->d.delta.vz.word);
+            param               = Gp_GetIdParam0(work->rec3[i].key.value);
+            damage              = Gp_ComputeDamage(work->rec3[i].key.value, damage, 0, 0);
             switch ((u16)param) {
                 case 1:
                 case 4:

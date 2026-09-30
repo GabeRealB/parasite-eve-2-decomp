@@ -28,8 +28,8 @@ s32 factoryLiftTurnOut(Task* task)
             if (work->field_8 > 0x40000) {
                 work->field_8 = 0x40000;
             }
-            work->field_10.value += work->field_8;
-            if (work->field_10.value > 0x4000000) {
+            work->field_10.word += work->field_8;
+            if (work->field_10.word > 0x4000000) {
                 work->field_16++;
             }
             break;
@@ -38,8 +38,8 @@ s32 factoryLiftTurnOut(Task* task)
             if (work->field_8 < -0x20000) {
                 work->field_8 = -0x20000;
             }
-            work->field_10.value += work->field_8;
-            if (work->field_10.value <= 0x4000000) {
+            work->field_10.word += work->field_8;
+            if (work->field_10.word <= 0x4000000) {
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
@@ -48,7 +48,7 @@ s32 factoryLiftTurnOut(Task* task)
                     Gp_EnqueueStageSnd7(0x5317000F, 1);
                     Gp_EnqueueStageSnd6(0x53170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
-                work->field_10.value = 0x4000000;
+                work->field_10.word = 0x4000000;
                 work->field_16++;
             }
             break;
@@ -67,7 +67,7 @@ s32 factoryLiftTurnOut(Task* task)
             Gp_EnqueueStageSnd6(0x53170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         }
         done                 = 1;
-        work->field_10.value = 0x4000000;
+        work->field_10.word = 0x4000000;
         work->field_16       = 4;
     }
     mat                = (OverlayMat*)&coord->coord;
@@ -76,7 +76,7 @@ s32 factoryLiftTurnOut(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    RotMatrixY(work->field_10.part.whole, &mat->mat);
+    RotMatrixY(work->field_10.halves.integer, &mat->mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }

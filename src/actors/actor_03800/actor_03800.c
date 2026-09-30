@@ -1046,9 +1046,9 @@ static void Actor03800_Fn00A98(Task* arg0)
             case 0:
                 break;
             case 1:
-                coord->coord.t[0] += frame->delta.vx.h.hi;
-                coord->coord.t[1] += frame->delta.vy.h.hi;
-                coord->coord.t[2] += frame->delta.vz.h.hi;
+                coord->coord.t[0] += frame->delta.vx.halves.integer;
+                coord->coord.t[1] += frame->delta.vy.halves.integer;
+                coord->coord.t[2] += frame->delta.vz.halves.integer;
                 break;
             case 2:
                 coord->coord.t[0] = work->field_2EC;
@@ -1070,11 +1070,11 @@ static void Actor03800_Fn00A98(Task* arg0)
                 break;
             case 2:
                 if (work->field_34E == 0) {
-                    sourceCoord       = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-                    frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage            = Gp_ComputeDamage(work->field_1C4[i].key.value, SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) + (frame->delta.vz.w * frame->delta.vz.w)), 0, 0);
+                    sourceCoord          = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
+                    frame->delta.vx.word = sourceCoord->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vy.word = sourceCoord->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vz.word = sourceCoord->coord.t[2] - coord->coord.t[2];
+                    damage               = Gp_ComputeDamage(work->field_1C4[i].key.value, SquareRoot0((frame->delta.vx.word * frame->delta.vx.word) + (frame->delta.vy.word * frame->delta.vy.word) + (frame->delta.vz.word * frame->delta.vz.word)), 0, 0);
                     if (work->field_36E == 0) {
                         if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key.value, 0) != 0) {
                             damage *= 4;
@@ -1155,14 +1155,14 @@ static void Actor03800_Fn00A98(Task* arg0)
                 }
                 break;
             case 1:
-                dx                = coord->workm.t[0] - work->field_1C4[i].point.vx;
-                frame->delta.vx.w = dx;
-                dy                = coord->workm.t[1] - work->field_1C4[i].point.vy;
-                frame->delta.vy.w = dy;
-                dz                = coord->workm.t[2] - work->field_1C4[i].point.vz;
-                frame->delta.vz.w = dz;
-                depth             = work->field_1C4[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
-                boundedDepth      = depth;
+                dx                   = coord->workm.t[0] - work->field_1C4[i].point.vx;
+                frame->delta.vx.word = dx;
+                dy                   = coord->workm.t[1] - work->field_1C4[i].point.vy;
+                frame->delta.vy.word = dy;
+                dz                   = coord->workm.t[2] - work->field_1C4[i].point.vz;
+                frame->delta.vz.word = dz;
+                depth                = work->field_1C4[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                boundedDepth         = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }
@@ -1170,14 +1170,14 @@ static void Actor03800_Fn00A98(Task* arg0)
                 _ACTOR03800_KEEP_DEEPEST(push, depth, frame);
                 break;
             case 3:
-                dx                = coord->workm.t[0] - work->field_1C4[i].point.vx;
-                frame->delta.vx.w = dx;
-                dy                = coord->workm.t[1] - work->field_1C4[i].point.vy;
-                frame->delta.vy.w = dy;
-                dz                = coord->workm.t[2] - work->field_1C4[i].point.vz;
-                frame->delta.vz.w = dz;
-                depth             = work->field_1C4[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
-                boundedDepth      = depth;
+                dx                   = coord->workm.t[0] - work->field_1C4[i].point.vx;
+                frame->delta.vx.word = dx;
+                dy                   = coord->workm.t[1] - work->field_1C4[i].point.vy;
+                frame->delta.vy.word = dy;
+                dz                   = coord->workm.t[2] - work->field_1C4[i].point.vz;
+                frame->delta.vz.word = dz;
+                depth                = work->field_1C4[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                boundedDepth         = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }

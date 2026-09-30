@@ -1331,18 +1331,18 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
     blk        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
     blk->moved = 0;
     if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
-        coord->coord.t[0] += head[-1].delta.vx.h.hi;
-        coord->coord.t[1] += blk->delta.vy.h.hi;
-        coord->coord.t[2] += blk->delta.vz.h.hi;
-        if (head[-1].delta.vx.w & 0xFFFF) {
-            if (head[-1].delta.vx.w > 0) {
+        coord->coord.t[0] += head[-1].delta.vx.halves.integer;
+        coord->coord.t[1] += blk->delta.vy.halves.integer;
+        coord->coord.t[2] += blk->delta.vz.halves.integer;
+        if (head[-1].delta.vx.word & 0xFFFF) {
+            if (head[-1].delta.vx.word > 0) {
                 coord->coord.t[0] += 1;
             } else {
                 coord->coord.t[0] -= 1;
             }
         }
-        if (blk->delta.vz.w & 0xFFFF) {
-            if (blk->delta.vz.w > 0) {
+        if (blk->delta.vz.word & 0xFFFF) {
+            if (blk->delta.vz.word > 0) {
                 coord->coord.t[2] += 1;
             } else {
                 coord->coord.t[2] -= 1;
@@ -1350,7 +1350,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
         }
     }
     coord->coord.t[1] += 0x80;
-    if ((blk->delta.vx.w != 0) || (blk->delta.vz.w != 0)) {
+    if ((blk->delta.vx.word != 0) || (blk->delta.vz.word != 0)) {
         blk->moved = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);

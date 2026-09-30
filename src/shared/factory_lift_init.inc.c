@@ -28,16 +28,16 @@ void factoryLiftInit(Task* task)
     work->field_17 = -1;
     obj->flags    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     if (work->field_0 & 1) {
-        work->field_10.value = 0x4000000;
+        work->field_10.word = 0x4000000;
         RotMatrixY(0x4000000, &coord->coord);
     }
     if (work->field_0 & 2) {
-        work->field_C.value = 0xFDC60000;
+        work->field_C.word = 0xFDC60000;
     } else {
-        work->field_C.value = 0;
+        work->field_C.word = 0;
     }
     coord->coord.t[0] = 0xE4C;
-    coord->coord.t[1] = work->field_C.part.whole;
+    coord->coord.t[1] = work->field_C.halves.integer;
     coord->coord.t[2] = 0x1AAE;
     factoryLiftBindLighting(task);
     factoryLiftSyncCollision(task, 1, 0);

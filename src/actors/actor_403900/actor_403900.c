@@ -1270,9 +1270,9 @@ void stalkerTakeHits(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-1].delta.vx.h.hi;
-            coord->coord.t[1] += sc->delta.vy.h.hi;
-            coord->coord.t[2] += sc->delta.vz.h.hi;
+            coord->coord.t[0] += head[-1].delta.vx.halves.integer;
+            coord->coord.t[1] += sc->delta.vy.halves.integer;
+            coord->coord.t[2] += sc->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_664;
@@ -1287,8 +1287,8 @@ void stalkerTakeHits(Task* arg0)
             case 0:
                 break;
             case 1:
-                coord->coord.t[0] += sc->delta.vx.h.hi;
-                coord->coord.t[2] += sc->delta.vz.h.hi;
+                coord->coord.t[0] += sc->delta.vx.halves.integer;
+                coord->coord.t[2] += sc->delta.vz.halves.integer;
                 break;
             case 2:
                 coord->coord.t[0] = work->field_664;
@@ -1324,17 +1324,17 @@ void stalkerTakeHits(Task* arg0)
                     work->field_6E8 = 1;
                     break;
                 }
-                sc->delta.vx.w  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy.w  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                sc->delta.vz.w  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                work->field_6D2 = (u32) ~(sc->delta.vx.w * coord->coord.m[0][2] +
-                                          sc->delta.vy.w * coord->coord.m[1][2] +
-                                          sc->delta.vz.w * coord->coord.m[2][2]) >>
+                sc->delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                work->field_6D2   = (u32) ~(sc->delta.vx.word * coord->coord.m[0][2] +
+                                          sc->delta.vy.word * coord->coord.m[1][2] +
+                                          sc->delta.vz.word * coord->coord.m[2][2]) >>
                                   31;
                 damage = Gp_ComputeDamage(work->field_49C[i].key.value,
-                                          SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
-                                                      sc->delta.vy.w * sc->delta.vy.w +
-                                                      sc->delta.vz.w * sc->delta.vz.w),
+                                          SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
+                                                      sc->delta.vy.word * sc->delta.vy.word +
+                                                      sc->delta.vz.word * sc->delta.vz.word),
                                           0, 0);
                 kind   = Gp_GetIdParam0(work->field_49C[i].key.value);
                 if ((u16)kind == 5) {

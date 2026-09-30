@@ -462,9 +462,9 @@ static void func_actor_300700_801637E4(Task* actor)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-3].vx.h.hi;
-            coord->coord.t[1] += scratch->vy.h.hi;
-            coord->coord.t[2] += scratch->vz.h.hi;
+            coord->coord.t[0] += head[-3].vx.halves.integer;
+            coord->coord.t[1] += scratch->vy.halves.integer;
+            coord->coord.t[2] += scratch->vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_360;
@@ -485,11 +485,11 @@ static void func_actor_300700_801637E4(Task* actor)
                 break;
             /* Kinds 1 and 3 push the model back out of the obstacle the same way. */
             case 1:
-                scratch->vx.w = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
-                scratch->vy.w = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
-                scratch->vz.w = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                push          = work->field_22C.contacts.recs[i].distance -
-                       SquareRoot0(scratch->vx.w * scratch->vx.w + scratch->vy.w * scratch->vy.w + scratch->vz.w * scratch->vz.w);
+                scratch->vx.word = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                scratch->vy.word = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                scratch->vz.word = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                push             = work->field_22C.contacts.recs[i].distance -
+                       SquareRoot0(scratch->vx.word * scratch->vx.word + scratch->vy.word * scratch->vy.word + scratch->vz.word * scratch->vz.word);
                 push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
                     bestPush = push;
@@ -499,14 +499,14 @@ static void func_actor_300700_801637E4(Task* actor)
                 break;
             case 2:
                 if (work->field_378 == 0) {
-                    target        = gPlayerActorTasks[((u32)work->field_22C.contacts.recs[i].key.value >> 7) & 1]->extra.tmd->coords;
-                    scratch->vx.w = target->coord.t[0] - coord->coord.t[0];
-                    scratch->vy.w = target->coord.t[1] - coord->coord.t[1];
-                    scratch->vz.w = target->coord.t[2] - coord->coord.t[2];
-                    damage        = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value,
-                                                     SquareRoot0(scratch->vx.w * scratch->vx.w + scratch->vy.w * scratch->vy.w +
-                                                                 scratch->vz.w * scratch->vz.w),
-                                                     0, 0);
+                    target           = gPlayerActorTasks[((u32)work->field_22C.contacts.recs[i].key.value >> 7) & 1]->extra.tmd->coords;
+                    scratch->vx.word = target->coord.t[0] - coord->coord.t[0];
+                    scratch->vy.word = target->coord.t[1] - coord->coord.t[1];
+                    scratch->vz.word = target->coord.t[2] - coord->coord.t[2];
+                    damage           = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value,
+                                                        SquareRoot0(scratch->vx.word * scratch->vx.word + scratch->vy.word * scratch->vy.word +
+                                                                    scratch->vz.word * scratch->vz.word),
+                                                        0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
@@ -554,11 +554,11 @@ static void func_actor_300700_801637E4(Task* actor)
                 }
                 break;
             case 3:
-                scratch->vx.w = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
-                scratch->vy.w = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
-                scratch->vz.w = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                push          = work->field_22C.contacts.recs[i].distance -
-                       SquareRoot0(scratch->vx.w * scratch->vx.w + scratch->vy.w * scratch->vy.w + scratch->vz.w * scratch->vz.w);
+                scratch->vx.word = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                scratch->vy.word = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                scratch->vz.word = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                push             = work->field_22C.contacts.recs[i].distance -
+                       SquareRoot0(scratch->vx.word * scratch->vx.word + scratch->vy.word * scratch->vy.word + scratch->vz.word * scratch->vz.word);
                 push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
                     bestPush = push;
@@ -569,8 +569,8 @@ static void func_actor_300700_801637E4(Task* actor)
         }
     }
     if (bestPush > 0) {
-        coord->coord.t[0] += (bestPush * scratch[2].vx.w) >> 0xC;
-        coord->coord.t[2] += (bestPush * scratch[2].vz.w) >> 0xC;
+        coord->coord.t[0] += (bestPush * scratch[2].vx.word) >> 0xC;
+        coord->coord.t[2] += (bestPush * scratch[2].vz.word) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->field_22C.contacts.recs);
     if (Gp_FindRec18(work->attackContacts, 0) != 0) {

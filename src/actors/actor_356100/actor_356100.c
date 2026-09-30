@@ -1419,10 +1419,10 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
         s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
         s->moved = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-            coord->coord.t[1] += s->delta.vy.h.hi;
-            coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
+            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.halves.integer;
+            coord->coord.t[1] += s->delta.vy.halves.integer;
+            coord->coord.t[2] += s->delta.vz.halves.integer;
+            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.word;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;
@@ -1430,7 +1430,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
                     coord->coord.t[0]--;
                 }
             }
-            val = s->delta.vz.w;
+            val = s->delta.vz.word;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[2]++;
@@ -1440,7 +1440,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
             }
         }
         coord->coord.t[1] += height;
-        if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        if (s->delta.vx.word != 0 || s->delta.vz.word != 0) {
             s->moved = 1;
         }
         SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
@@ -1463,10 +1463,10 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
     s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-        coord->coord.t[1] += s->delta.vy.h.hi;
-        coord->coord.t[2] += s->delta.vz.h.hi;
-        val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
+        coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.halves.integer;
+        coord->coord.t[1] += s->delta.vy.halves.integer;
+        coord->coord.t[2] += s->delta.vz.halves.integer;
+        val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.word;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1474,7 +1474,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
                 coord->coord.t[0]--;
             }
         }
-        val = s->delta.vz.w;
+        val = s->delta.vz.word;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[2]++;
@@ -1484,7 +1484,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
         }
     }
     coord->coord.t[1] += height;
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+    if (s->delta.vx.word != 0 || s->delta.vz.word != 0) {
         s->moved = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
@@ -2123,10 +2123,10 @@ static void func_actor_356100_801668FC(Task* actor)
             resolvedStep            = collisionScratch;
             collisionScratch->moved = 0;
             if (func_800E0C10(&work->field_A58, &collisionScratch->delta, 3, NULL) != 0) {
-                root->coord.t[0] += ((OverlayDeltaFlag*)savedCollisionHead)[-1].delta.vx.h.hi;
-                root->coord.t[1] += collisionScratch->delta.vy.h.hi;
-                root->coord.t[2] += collisionScratch->delta.vz.h.hi;
-                deltaWord         = collisionScratch->delta.vx.w;
+                root->coord.t[0] += ((OverlayDeltaFlag*)savedCollisionHead)[-1].delta.vx.halves.integer;
+                root->coord.t[1] += collisionScratch->delta.vy.halves.integer;
+                root->coord.t[2] += collisionScratch->delta.vz.halves.integer;
+                deltaWord         = collisionScratch->delta.vx.word;
                 if ((deltaWord & FIXED_16_FRACTION_MASK) != 0) {
                     if (deltaWord > 0) {
                         root->coord.t[0]++;
@@ -2134,7 +2134,7 @@ static void func_actor_356100_801668FC(Task* actor)
                         root->coord.t[0]--;
                     }
                 }
-                deltaWord = resolvedStep->delta.vz.w;
+                deltaWord = resolvedStep->delta.vz.word;
                 if ((deltaWord & FIXED_16_FRACTION_MASK) != 0) {
                     if (deltaWord > 0) {
                         root->coord.t[2]++;
@@ -2144,7 +2144,7 @@ static void func_actor_356100_801668FC(Task* actor)
                 }
             }
             root->coord.t[1] += 0x10;
-            if (resolvedStep->delta.vx.w != 0 || resolvedStep->delta.vz.w != 0) {
+            if (resolvedStep->delta.vx.word != 0 || resolvedStep->delta.vz.word != 0) {
                 resolvedStep->moved = 1;
             }
             collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
@@ -2587,10 +2587,10 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* c
         s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
         s->moved = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-            coord->coord.t[1] += s->delta.vy.h.hi;
-            coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
+            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.halves.integer;
+            coord->coord.t[1] += s->delta.vy.halves.integer;
+            coord->coord.t[2] += s->delta.vz.halves.integer;
+            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.word;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;
@@ -2598,7 +2598,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* c
                     coord->coord.t[0]--;
                 }
             }
-            val = s->delta.vz.w;
+            val = s->delta.vz.word;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[2]++;
@@ -2608,7 +2608,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* c
             }
         }
         coord->coord.t[1] += height;
-        if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        if (s->delta.vx.word != 0 || s->delta.vz.word != 0) {
             s->moved = 1;
         }
         SCRATCH_STACK_RELEASE_BYTES(0x14);

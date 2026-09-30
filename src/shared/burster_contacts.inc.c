@@ -39,9 +39,9 @@ void bursterContacts(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += scratch->delta.vx.h.hi;
-            coord->coord.t[1] += scratch->delta.vy.h.hi;
-            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            coord->coord.t[0] += scratch->delta.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.vy.halves.integer;
+            coord->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_274.vx;
@@ -56,10 +56,10 @@ void bursterContacts(Task* arg0)
         }
     }
     dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    scratch->delta.vx.w = dx;
-    scratch->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    scratch->delta.vx.word = dx;
+    scratch->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
     dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    scratch->delta.vz.w = dz;
+    scratch->delta.vz.word = dz;
     distance            = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x320 && work->field_2C8 == 1) {
         work->field_2D2 = 1;
@@ -111,25 +111,25 @@ void bursterContacts(Task* arg0)
                 break;
             case 0x30000:
                 wallDx              = coord->workm.t[0] - work->rec154[i].point.vx;
-                scratch->delta.vy.w = 0;
-                scratch->delta.vx.w = wallDx;
+                scratch->delta.vy.word = 0;
+                scratch->delta.vx.word = wallDx;
                 wallDz              = coord->workm.t[2] - work->rec154[i].point.vz;
-                scratch->delta.vz.w = wallDz;
+                scratch->delta.vz.word = wallDz;
                 distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
                 distance            = work->rec154[i].distance - distance;
                 distance            = (distance <= 0) ? 0 : distance;
-                scratch->delta.vx.w = coord->workm.t[0] - work->rec154[i].point.vx;
-                scratch->delta.vy.w = coord->workm.t[1] - work->rec154[i].point.vy;
-                scratch->delta.vz.w = coord->workm.t[2] - work->rec154[i].point.vz;
+                scratch->delta.vx.word = coord->workm.t[0] - work->rec154[i].point.vx;
+                scratch->delta.vy.word = coord->workm.t[1] - work->rec154[i].point.vy;
+                scratch->delta.vz.word = coord->workm.t[2] - work->rec154[i].point.vz;
                 VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
                 ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, (VECTOR*)&scratch->delta);
                 if (work->field_2B8 == 1 || work->field_2B8 == 2) {
-                    coord->coord.t[0] += (distance * scratch->delta.vx.w) >> 12;
-                    pushY              = distance * scratch->delta.vy.w;
+                    coord->coord.t[0] += (distance * scratch->delta.vx.word) >> 12;
+                    pushY              = distance * scratch->delta.vy.word;
                     if (pushY < 0) {
                         coord->coord.t[1] += pushY >> 12;
                     }
-                    coord->coord.t[2] += (distance * scratch->delta.vz.w) >> 12;
+                    coord->coord.t[2] += (distance * scratch->delta.vz.word) >> 12;
                 }
                 break;
         }

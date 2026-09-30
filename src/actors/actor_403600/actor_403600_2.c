@@ -2739,16 +2739,16 @@ static void func_actor_403600_8013D15C(Task* arg0)
             break;
         case 1:
             if ((arg0 == D_actor_403600_801606A8) && (work->field_774 == 0)) {
-                work->field_4B8.coord.t[0] += scratch->delta.vx.h.hi;
-                work->field_4B8.coord.t[1] += scratch->delta.vy.h.hi;
-                work->field_4B8.coord.t[2] += scratch->delta.vz.h.hi;
+                work->field_4B8.coord.t[0] += scratch->delta.vx.halves.integer;
+                work->field_4B8.coord.t[1] += scratch->delta.vy.halves.integer;
+                work->field_4B8.coord.t[2] += scratch->delta.vz.halves.integer;
             }
             break;
         case 2:
             if ((arg0 == D_actor_403600_801606A8) && (work->field_774 == 0)) {
-                work->field_4B8.coord.t[0] += scratch->delta.vx.h.hi;
-                work->field_4B8.coord.t[1] += scratch->delta.vy.h.hi;
-                work->field_4B8.coord.t[2] += scratch->delta.vz.h.hi;
+                work->field_4B8.coord.t[0] += scratch->delta.vx.halves.integer;
+                work->field_4B8.coord.t[1] += scratch->delta.vy.halves.integer;
+                work->field_4B8.coord.t[2] += scratch->delta.vz.halves.integer;
             }
             break;
     }
@@ -2768,17 +2768,17 @@ static void func_actor_403600_8013D15C(Task* arg0)
         if ((s16)work->field_744 != 0) {
             continue;
         }
-        dx                  = Player_Status.coordMtx->t[0] - work->field_4B8.coord.t[0];
-        scratch->delta.vx.w = dx;
-        dy                  = Player_Status.coordMtx->t[1] - 2000;
-        dy                 -= work->field_4B8.coord.t[1];
-        scratch->delta.vy.w = dy;
-        dz                  = Player_Status.coordMtx->t[2] - work->field_4B8.coord.t[2];
-        hitKind             = 0;
-        scratch->delta.vz.w = dz;
-        damage              = Gp_ComputeDamage(work->field_528[i].key.value,
-                                               SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w),
-                                               0, 0);
+        dx                     = Player_Status.coordMtx->t[0] - work->field_4B8.coord.t[0];
+        scratch->delta.vx.word = dx;
+        dy                     = Player_Status.coordMtx->t[1] - 2000;
+        dy                    -= work->field_4B8.coord.t[1];
+        scratch->delta.vy.word = dy;
+        dz                     = Player_Status.coordMtx->t[2] - work->field_4B8.coord.t[2];
+        hitKind                = 0;
+        scratch->delta.vz.word = dz;
+        damage                 = Gp_ComputeDamage(work->field_528[i].key.value,
+                                                  SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word),
+                                                  0, 0);
         if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_528[i].key.value, 0) != 0) {
             hitKind = 1;
             damage *= 4;

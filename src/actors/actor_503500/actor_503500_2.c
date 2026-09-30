@@ -47,15 +47,9 @@
 /// spawns. Flag nibble 0x12A states 2..4 decay the first two and stretch the
 /// period until it passes 0x10 and the task dies.
 typedef struct Actor503500EffWork {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    union {
-        /* 0x8 */ s32 w;
-        struct {
-            /* 0x8 */ s16 lo;
-            /* 0xA */ s16 hi;
-        } h;
-    } field_8;
+    /* 0x0 */ s32     field_0;
+    /* 0x4 */ s32     field_4;
+    /* 0x8 */ Fixed16 field_8;
 } Actor503500EffWork;
 STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
 
@@ -1697,15 +1691,15 @@ void func_actor_503500_80132778(Task* task)
             taskKill(task);
             return;
         }
-        task->work      = work;
-        work->field_0   = 0xC00;
-        work->field_4   = 0x4000;
-        work->field_8.w = 0x60000;
+        task->work         = work;
+        work->field_0      = 0xC00;
+        work->field_4      = 0x4000;
+        work->field_8.word = 0x60000;
         task->state++;
     }
     work = (Actor503500EffWork*)task->work;
     if (Gp_StateF0.field_4 == 0) {
-        if (work->field_8.h.hi < ++task->killCountdown) {
+        if (work->field_8.halves.integer < ++task->killCountdown) {
             task->killCountdown = 0;
             Gp_SpawnEff(0x6018C, coord,
                         (work->field_4 & 0xF000) | 0x03800000 | (work->field_0 & 0xFFF), NULL);
@@ -1734,8 +1728,8 @@ void func_actor_503500_80132778(Task* task)
                 work->field_0 = 0x100;
             }
         case 4:
-            work->field_8.w += 0x1000;
-            done             = work->field_8.w > 0x100000;
+            work->field_8.word += 0x1000;
+            done                = work->field_8.word > 0x100000;
             break;
         default:
             taskKill(task);

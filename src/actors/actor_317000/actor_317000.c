@@ -362,20 +362,20 @@ static void func_actor_317000_80161E68(Task* task)
 
     states[(s16)work->walk.motion](task);
 
-    coord                = task->extra.tmd->coords;
-    work->walk.acc[0].w += work->walk.step.vx;
-    work->walk.acc[1].w += work->walk.step.vy;
-    work->walk.acc[2].w += work->walk.step.vz;
+    coord                   = task->extra.tmd->coords;
+    work->walk.acc[0].word += work->walk.step.vx;
+    work->walk.acc[1].word += work->walk.step.vy;
+    work->walk.acc[2].word += work->walk.step.vz;
     if (work->field_4C4 != 0) {
         work->walk.step.vy += 0x120000;
     }
-    coord->coord.t[0]  += work->walk.acc[0].h.hi;
-    coord->coord.t[1]  += work->walk.acc[1].h.hi;
-    coord->coord.t[2]  += work->walk.acc[2].h.hi;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].w = work->walk.acc[0].h.lo;
-    work->walk.acc[1].w = work->walk.acc[1].h.lo;
-    work->walk.acc[2].w = work->walk.acc[2].h.lo;
+    coord->coord.t[0]     += work->walk.acc[0].halves.integer;
+    coord->coord.t[1]     += work->walk.acc[1].halves.integer;
+    coord->coord.t[2]     += work->walk.acc[2].halves.integer;
+    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
+    work->walk.acc[0].word = work->walk.acc[0].halves.fraction;
+    work->walk.acc[1].word = work->walk.acc[1].halves.fraction;
+    work->walk.acc[2].word = work->walk.acc[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
@@ -641,13 +641,13 @@ static void func_actor_317000_8016267C(Task* arg0)
         return;
     }
 
-    arg0->work          = work;
-    work->model.animId  = -1;
-    work->model.bank    = -1;
-    work->field_4C8     = -1;
-    work->walk.acc[0].w = 0;
-    work->walk.acc[1].w = 0;
-    work->walk.acc[2].w = 0;
+    arg0->work             = work;
+    work->model.animId     = -1;
+    work->model.bank       = -1;
+    work->field_4C8        = -1;
+    work->walk.acc[0].word = 0;
+    work->walk.acc[1].word = 0;
+    work->walk.acc[2].word = 0;
 
     func_actor_317000_80162744(arg0);
     func_actor_317000_80162BC4(arg0, 0x7D5, 0, 0);

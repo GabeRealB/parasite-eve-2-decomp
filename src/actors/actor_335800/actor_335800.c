@@ -1229,14 +1229,14 @@ static void func_actor_335800_80162640(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work          = work;
-    work->model.animId  = -1;
-    work->model.bank    = -1;
-    work->freeCountdown = -1;
-    work->walk.acc[0].w = 0;
-    work->walk.acc[1].w = 0;
-    work->walk.acc[2].w = 0;
-    spawned             = Task_SpawnFromTable(D_actor_335800_8016EADC, 1, 4, arg0);
+    arg0->work             = work;
+    work->model.animId     = -1;
+    work->model.bank       = -1;
+    work->freeCountdown    = -1;
+    work->walk.acc[0].word = 0;
+    work->walk.acc[1].word = 0;
+    work->walk.acc[2].word = 0;
+    spawned                = Task_SpawnFromTable(D_actor_335800_8016EADC, 1, 4, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -1304,17 +1304,17 @@ static void func_actor_335800_80162844(Task* task)
     s32                    j;
 
     funcs[work->walk.motion](task);
-    coord                = task->extra.tmd->coords;
-    work->walk.acc[0].w += work->walk.step.vx;
-    work->walk.acc[1].w += work->walk.step.vy;
-    work->walk.acc[2].w += work->walk.step.vz;
-    coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
-    coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
-    coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
-    work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
-    work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
+    coord                   = task->extra.tmd->coords;
+    work->walk.acc[0].word += work->walk.step.vx;
+    work->walk.acc[1].word += work->walk.step.vy;
+    work->walk.acc[2].word += work->walk.step.vz;
+    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
+    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
+    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
+    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
+    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
+    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
+    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
@@ -1520,17 +1520,17 @@ static void func_actor_335800_80163568(Task* task)
     s32              i;
 
     funcs[work->walk.motion](task);
-    coord                = task->extra.tmd->coords;
-    work->walk.acc[0].w += work->walk.step.vx;
-    work->walk.acc[1].w += work->walk.step.vy;
-    work->walk.acc[2].w += work->walk.step.vz;
-    coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
-    coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
-    coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
-    work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
-    work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
+    coord                   = task->extra.tmd->coords;
+    work->walk.acc[0].word += work->walk.step.vx;
+    work->walk.acc[1].word += work->walk.step.vy;
+    work->walk.acc[2].word += work->walk.step.vz;
+    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
+    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
+    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
+    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
+    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
+    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
+    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
@@ -1641,13 +1641,13 @@ static void func_actor_335800_80163AA0(Task* arg0)
         return;
     }
 
-    arg0->work          = work;
-    work->model.animId  = -1;
-    work->model.bank    = -1;
-    work->freeCountdown = -1;
-    work->walk.acc[0].w = 0;
-    work->walk.acc[1].w = 0;
-    work->walk.acc[2].w = 0;
+    arg0->work             = work;
+    work->model.animId     = -1;
+    work->model.bank       = -1;
+    work->freeCountdown    = -1;
+    work->walk.acc[0].word = 0;
+    work->walk.acc[1].word = 0;
+    work->walk.acc[2].word = 0;
 
     func_actor_335800_80163B54(arg0);
 

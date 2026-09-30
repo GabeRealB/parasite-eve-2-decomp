@@ -28,6 +28,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/collision.h"
+#include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 
@@ -47,22 +48,14 @@
 /// `field_0` is the angular velocity the two movement handlers accelerate
 /// towards their own limit and `field_4` is the 16.16 angle it drives: each
 /// handler adds the first to the second, clamps it at its limit, and rotates
-/// the model by the integer part. Both views of `field_4` live in one union,
-/// the way `FactoryLiftWork::field_C` does -- the whole 32 bits go in and the
-/// high half alone comes back out.
+/// the model by the integer half.
 typedef struct FactoryHatchWork {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ union {
-        /* 0x4 */ s32 value;
-        struct {
-            /* 0x4 */ s16 frac;
-            /* 0x6 */ s16 whole;
-        } part;
-    } field_4;
-    /* 0x8 */ u8   state;
-    /* 0x9 */ u8   step;
-    /* 0xA */ u8   prevFlag;
-    /* 0xB */ byte pad_B[0x1];
+    /* 0x0 */ s32     field_0;
+    /* 0x4 */ Fixed16 field_4;
+    /* 0x8 */ u8      state;
+    /* 0x9 */ u8      step;
+    /* 0xA */ u8      prevFlag;
+    /* 0xB */ byte    pad_B[0x1];
 } FactoryHatchWork;
 STATIC_ASSERT_SIZEOF(FactoryHatchWork, 0xC);
 
@@ -88,40 +81,26 @@ STATIC_ASSERT_SIZEOF(FactoryHatchStates, 0xC);
 /// it allocates the block.
 ///
 /// `field_C` is a 16.16 accumulator: the lift handlers add `field_4` to it and
-/// clamp the result, and the model's Y translation is read straight out of its
-/// integer part. Both views live in one union -- the target stores the whole 32
-/// bits and loads the high half.
+/// clamp the result, and the model's Y translation is the integer half.
 ///
-/// `field_10` is the model's 16.16 yaw, laid out the same way: the turn
-/// handlers accelerate `field_8` towards a limit, add it to `field_10`, and
-/// rebuild the model's rotation from the integer part alone.
+/// `field_10` is the model's 16.16 yaw: the turn handlers accelerate `field_8`
+/// towards a limit, add it to `field_10`, and rebuild the model's rotation
+/// from the integer half alone.
 ///
 /// `light` and `color` are the model's own light and colour matrices, which the
 /// lighting helper publishes onto the model's `TmdObject::lightMtx` /
 /// `colorMtx`.
 typedef struct FactoryLiftWork {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ union {
-        /* 0x0C */ s32 value;
-        struct {
-            /* 0x0C */ s16 frac;
-            /* 0x0E */ s16 whole;
-        } part;
-    } field_C;
-    /* 0x10 */ union {
-        /* 0x10 */ s32 value;
-        struct {
-            /* 0x10 */ s16 frac;
-            /* 0x12 */ s16 whole;
-        } part;
-    } field_10;
-    /* 0x14 */ u16    field_14;
-    /* 0x16 */ s8     field_16;
-    /* 0x17 */ s8     field_17;
-    /* 0x18 */ MATRIX light;
-    /* 0x38 */ MATRIX color;
+    /* 0x00 */ s32     field_0;
+    /* 0x04 */ s32     field_4;
+    /* 0x08 */ s32     field_8;
+    /* 0x0C */ Fixed16 field_C;
+    /* 0x10 */ Fixed16 field_10;
+    /* 0x14 */ u16     field_14;
+    /* 0x16 */ s8      field_16;
+    /* 0x17 */ s8      field_17;
+    /* 0x18 */ MATRIX  light;
+    /* 0x38 */ MATRIX  color;
 } FactoryLiftWork;
 STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 

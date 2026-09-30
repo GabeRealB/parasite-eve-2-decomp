@@ -63,7 +63,7 @@ void grenadeShellSpawn(Task* arg0)
     work->obj.pos.vx           = 0;
     work->obj.pos.vy           = 0;
     work->obj.pos.vz           = 0;
-    work->field_88.w           = speed << 16;
+    work->field_88.word        = speed << 16;
     flags                      = (u16)arg0->spawnArg1.value | 0x20000;
     work->obj.key              = flags;
     if (arg0->spawnArg1.value & 0x100000) {
@@ -90,7 +90,7 @@ void grenadeShellSpawn(Task* arg0)
     work->d4rec.end0Radius     = 1;
     work->d4rec.end1Radius     = 1;
     work->obj.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->d4rec.ends[1].vz     = -(work->field_88.w >> 10);
+    work->d4rec.ends[1].vz     = -(work->field_88.word >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.contacts, 1, 0);
     work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);

@@ -245,7 +245,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
-    work->field_88.w           = 0xA0000;
+    work->field_88.word        = 0xA0000;
     work->field_8C             = 1;
     work->field_90             = 0;
     work->obj.coord            = coord;
@@ -275,7 +275,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     work->d4rec.end0Radius     = 1;
     work->d4rec.end1Radius     = 1;
     work->obj.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->d4rec.ends[1].vy     = -(work->field_88.w >> 10);
+    work->d4rec.ends[1].vy     = -(work->field_88.word >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.contacts, 1, 0);
     work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -323,8 +323,8 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         if (blk->sfx == 0xB) {
             clip = 1;
         }
-        work->field_88.w = clip;
-        work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->field_88.word = clip;
+        work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1GrenadeScratch));
         work->obj.radius = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
         return;
@@ -355,15 +355,15 @@ try_rec0:
         goto check;
     }
 move:
-    blk->delta.vx.w        = work->dir.vx / work->field_88.h.hi;
-    blk->delta.vy.w        = work->dir.vy / work->field_88.h.hi;
-    blk->delta.vz.w        = work->dir.vz / work->field_88.h.hi;
-    coord->coord.t[0]     += blk->delta.vx.w;
-    coord->coord.t[1]     += blk->delta.vy.w;
-    coord->coord.t[2]     += blk->delta.vz.w;
-    work->d4rec.ends[1].vy = -(work->field_88.w >> 10);
-    work->field_88.w      += 0x1800;
-    if (work->field_88.w > 0xFFFFF) {
+    blk->delta.vx.word     = work->dir.vx / work->field_88.halves.integer;
+    blk->delta.vy.word     = work->dir.vy / work->field_88.halves.integer;
+    blk->delta.vz.word     = work->dir.vz / work->field_88.halves.integer;
+    coord->coord.t[0]     += blk->delta.vx.word;
+    coord->coord.t[1]     += blk->delta.vy.word;
+    coord->coord.t[2]     += blk->delta.vz.word;
+    work->d4rec.ends[1].vy = -(work->field_88.word >> 10);
+    work->field_88.word   += 0x1800;
+    if (work->field_88.word > 0xFFFFF) {
         goto explode;
     }
     work->dir.vy   = work->dir.vy + 0x10;

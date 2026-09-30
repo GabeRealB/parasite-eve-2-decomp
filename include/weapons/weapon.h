@@ -29,7 +29,7 @@ typedef struct WeaponGrenadeWork {
     WorldCollisionContact rec0[1];
     WorldCollisionContact rec1[1];
     WorldCollisionCapsule d4rec;
-    GpFixed16             field_88;
+    Fixed16               field_88;
     s32                   field_8C;
     s32                   field_90;
     SVECTOR               dir;

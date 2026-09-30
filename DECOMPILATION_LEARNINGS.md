@@ -3941,7 +3941,7 @@ if ((Gp_CapBusy() != 0) || (st->field_8 != 0)) {   /* lhu $v0, 0x8($s2) again */
 
 The second `lhu` is a load feeding a signed compare on its own, so a `s16`
 header would have folded it to `lh` — `func_dryfield_night_factory_80180A4C`
-(a `rooms` overlay) pins `NightFactoryScriptWork::field_8` to `u16` this way, and
+(a `rooms` overlay) pins `FactoryPanelWork::field_8` to `u16` this way, and
 the same header's store-only users (0 and 0xA) had never asked the question.
 Note also that the second load survives: the store may alias, so CSE keeps both
 reads, and a source that reuses a local for the post-decrement value instead
@@ -45294,10 +45294,10 @@ register the target wants: in `Actor00400_Fn01B90` the `$v1` scratch holds the
 index copy, while a second scratch in `$a1` holds only the sign-extended tick
 count — using the wrong one of the two moved four `lh` loads to `$a1`.
 
-The same trick fixes `lhu` where the target has `lh`: `w->field += d.vx.h.hi;`
+The same trick fixes `lhu` where the target has `lh`: `w->field += d.vx.halves.integer;`
 loads both halves unsigned, because the sum is stored back as a halfword and the
 sign extension is dead. Assigning through an `s32` scratch first —
-`t = d.vx.h.hi; w->field += t;` — forces `lh` and puts the stack load ahead of
+`t = d.vx.halves.integer; w->field += t;` — forces `lh` and puts the stack load ahead of
 the field load, matching the target.
 
 ## `case 0: break;` is visible in the decision tree
@@ -48673,14 +48673,14 @@ Check `.lreg` for the two `used N times across M insns` lines and compute the
 ratio before reaching for a pin -- the fix is usually to remove a local, not to
 add one.
 
-## A `GpFixed16` high half: `.h.hi` gives `lhu`, `.w >> 16` gives `lh`
+## A `Fixed16` high half: `.halves.integer` gives `lhu`, `.word >> 16` gives `lh`
 
 `func_acropolis_cafeteria_80181ED4` copies the three 16.16 deltas
 `func_800E0C10` leaves in the scratch block into an `SVECTOR`. Writing the
 obvious union field
 
 ```c
-D_8018D6AC.vx = s->delta.vx.h.hi;
+D_8018D6AC.vx = s->delta.vx.halves.integer;
 ```
 
 is a plain HImode memory-to-memory move, and GCC 2.8.1 loads it with `lhu`.
@@ -48689,21 +48689,21 @@ the high half arithmetically, so the load carries a `sign_extend` that combine
 folds back into a `lh` of the `+2` half:
 
 ```c
-D_8018D6AC.vx = s->delta.vx.w >> 16;   /* lh -0x12(head) */
+D_8018D6AC.vx = s->delta.vx.word >> 16;   /* lh -0x12(head) */
 ```
 
-The same expression *added into* an `s32` (`coord->coord.t[0] += ...h.hi`)
+The same expression *added into* an `s32` (`coord->coord.t[0] += ...halves.integer`)
 already emits `lh`, because the add needs the sign extension; only the
 halfword-to-halfword store shows the difference. Symptom: an otherwise perfect
 function with three `lhu`/`lh` mismatches in a row.
 
 The two spellings also differ in the *base register* after a
-`SCRATCH_STACK_RESERVE_BLOCK`. `.w >> 16` is an SImode load of `(mem (reg s))`, and CSE
+`SCRATCH_STACK_RESERVE_BLOCK`. `.word >> 16` is an SImode load of `(mem (reg s))`, and CSE
 replaces the bare `s` with its equivalent `head - K`, so combine emits
-`lh -K+2(head)`; `.h.hi` is `(mem (plus s 2))`, which CSE leaves alone, giving
+`lh -K+2(head)`; `.halves.integer` is `(mem (plus s 2))`, which CSE leaves alone, giving
 `lh 2(s)`. Only offset 0 is reached through `head` this way. When the target
 reads `-0x12(head)` in the add too (`Actor00100_Fn00A54`), write
-`coord->coord.t[0] += s->delta.vx.w >> 16`. The extra reference to `head` also
+`coord->coord.t[0] += s->delta.vx.word >> 16`. The extra reference to `head` also
 changes its ref count, which is enough to swap its `$sN` home with a neighbour
 such as `coord`. That is what the old `register ... asm("v1")` pin plus
 `(head - 0x14)` casts were imitating.
@@ -58479,7 +58479,7 @@ Assigning one `s16` field straight to another stays in `HImode`, and GCC 2.8.1's
 `movhi` loads the source with `lhu`:
 
 ```c
-s->move.vx = s->delta.vx.h.hi;   /* lhu $v0, 2($s0) ; sh $v0, 0x10($s0) */
+s->move.vx = s->delta.vx.halves.integer;   /* lhu $v0, 2($s0) ; sh $v0, 0x10($s0) */
 ```
 
 The target's `lh` for the same store is not a signedness quirk of the source
@@ -58487,11 +58487,11 @@ field — both fields are already `s16`. It means the value passed through an
 `int`-typed local, so the load became `extendhisi2` and the store a truncation:
 
 ```c
-dx         = s->delta.vx.h.hi;   /* s32 dx: lh $v0, 2($s0) */
+dx         = s->delta.vx.halves.integer;   /* s32 dx: lh $v0, 2($s0) */
 s->move.vx = dx;                 /*         sh $v0, 0x10($s0) */
 ```
 
-A cast alone (`(s32)s->delta.vx.h.hi`) does not do it — the C front end converts
+A cast alone (`(s32)s->delta.vx.halves.integer`) does not do it — the C front end converts
 the RHS back to the LHS type and folds the pair away. The temp has to be a real
 local. This is also what fixes a mixed pair such as the target's `lh $v1, 6($s0)`
 next to `lhu $v0, 0x12($s0)` in one `addu`: the operand that came from an `s32`
@@ -69685,7 +69685,7 @@ Read the `.loop` dump header (`N real insns`) and each movable's line before
 restructuring the loop: adding or removing a few loop-time insns is often all a
 `%hi` hoist mismatch needs.
 
-### A `.w >> 16` compare shares its word load with a later `lim = .w`: use `.h.hi`
+### A `.word >> 16` compare shares its word load with a later `lim = .word`: use `.halves.integer`
 
 `func_actor_503500_80141248` tests a Manhattan distance against the integer
 half of a 16.16 limit, then reloads the whole limit in the fall-through block:
@@ -69702,7 +69702,7 @@ word sits in the same extended basic block. Adding `lim = work->field_39C;`
 before the next store makes cse reuse the first load for both, and the compare
 becomes `lw` + `sra 16` with shifted registers (95.7% to 92.6%). Either keep the
 reload behind an intervening store (`work->field_3D4 = 0;` first), or declare
-the field `GpFixed16` and compare `.h.hi` / load `.w`: the HImode and SImode
+the field `Fixed16` and compare `.halves.integer` / load `.word`: the HImode and SImode
 MEMs are distinct cse entries, so statement order stops mattering. Both match;
 the union is what the 0x2EC-block sibling `func_actor_503500_80139EFC` uses.
 
@@ -71668,7 +71668,7 @@ copy to the long-lived block pseudo (base_2 UIDs 21/25/27). Distance 497 -> 195,
 with only register penalties remaining. This is an observed context-specific
 copy-retention effect, not a universal rule for chained assignments.
 
-Changing the later x store from `head[-1].vx.w` to `block->vx.w` then yielded
+Changing the later x store from `head[-1].vx.word` to `block->vx.word` then yielded
 100%. The block global pseudo r93 rose from 7 refs/66 insns to 8/66, overtaking
 work r81 (13/112). Old head r92 shrank from 4/59 to 3/13 and crossed one call
 instead of two, overtaking actor r80. `.greg` confirms block/work/head/actor
@@ -93936,7 +93936,7 @@ a member access, once into the pointer variable that survives the frame.
 
 ```c
 coord = ((TmdObject*)task->extra)->coords;   /* the load lands here */
-work  = (NightFactoryWork*)task->work;
+work  = (FactoryLiftWork*)task->work;
 obj   = (TmdObject*)task->extra;              /* cse -> move s4, v0 */
 ```
 
@@ -114923,8 +114923,8 @@ has, with each arm's own value in `$v0`:
 
 ```c
 case 1:
-    coord->coord.t[0] += scratch->delta.vx.h.hi;
-    coord->coord.t[2] += scratch->delta.vz.h.hi;   /* store, not z = ... */
+    coord->coord.t[0] += scratch->delta.vx.halves.integer;
+    coord->coord.t[2] += scratch->delta.vz.halves.integer;   /* store, not z = ... */
     break;
 case 2:
     coord->coord.t[0] = work->field_33C.vx;
@@ -117714,7 +117714,7 @@ word goes in C").
 
 A collision loop stores three differences into a scratch stack block and
 passes their squared length to `SquareRoot0`. Written with locals
-(`dx = ...; scratch->delta.vx.w = dx; ... SquareRoot0(dx * dx + ...)`), every
+(`dx = ...; scratch->delta.vx.word = dx; ... SquareRoot0(dx * dx + ...)`), every
 instruction matched except that the scratch pointer and `coord` had swapped
 callee-saved registers (99.39%). In `.lreg` the scratch pseudo had 23 weighted
 refs over 203 insns and `coord` 27 over 207, so global alloc ranked `coord`
@@ -117727,9 +117727,9 @@ emits. Store the differences straight into the struct and read them back
 through it:
 
 ```c
-scratch->delta.vx.w = coord->workm.t[0] - rec->field_8;
+scratch->delta.vx.word = coord->workm.t[0] - rec->field_8;
 ...
-reach = rec->field_2 - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + ...);
+reach = rec->field_2 - SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + ...);
 ```
 
 The emitted instructions are the same (`subu`, `mult v0,v0`, `sw` into the
@@ -122502,7 +122502,7 @@ negative literal does not look like the field's unsigned fold, the field is sign
 
 ## A 32-bit store plus a load of its high half is one union member, not a plain field (func_dryfield_night_factory_8017D6F8, 2026-09-17)
 
-`NightFactoryWork` at 0xC holds a 16.16 accumulator: the model's state 0 writes
+`FactoryLiftWork` at 0xC holds a 16.16 accumulator: the model's state 0 writes
 the whole word (`sw $v0,0xC($s0)`, 0xFDC60000 = -570.0) and the two handlers read
 its integer part as a signed halfword (`lh $v1,0xE($s0)`, then -570 reaches the
 model's Y translation). No single plain field declaration produces both - a `s32`
@@ -122510,13 +122510,10 @@ gives a `lw` where the target has `lh`, and two `s16`s give two `sh`s where the
 target has one `sw`:
 
 ```c
-    /* 0x0C */ union {
-                   s32 value;
-                   struct { s16 frac; s16 whole; } part;
-               } field_C;
+    /* 0x0C */ Fixed16 field_C;
 ```
 
-`work->field_C.value = 0xFDC60000;` is the `sw`; `work->field_C.part.whole` is
+`work->field_C.word = 0xFDC60000;` is the `sw`; `work->field_C.halves.integer` is
 the `lh`. The wide/narrow pair is the tell - one `sw` and one `lh` at `+2` of the
 same offset is a union, where the existing "Two views of one union field are two
 loads" case is both reads narrow. A 16.16 accumulator read through its integer
@@ -142238,10 +142235,10 @@ read through `oldHead[-3]`, and ten `USE_REG`s on the frame pointer. Written
 as a plain `for` loop over `recs[i]` with a `switch`, the frame lost the
 callee-saved register it has in the ROM (`s2`) to `work`.
 
-- The first delta read at `-0x2E(oldHead)` is `frame->delta.vx.w >> 16`, a
+- The first delta read at `-0x2E(oldHead)` is `frame->delta.vx.word >> 16`, a
   16.16 integer part. The word load's address is the bare frame register,
   `find_best_addr` prefers the dearer `(plus old -48)` on the tie, and combine
-  narrows word-plus-shift to `lh +2`. `.vx.h.hi` addresses offset 2 and never
+  narrows word-plus-shift to `lh +2`. `.vx.halves.integer` addresses offset 2 and never
   folds, which is why the tree needed the explicit old-head read.
 - The pumps imitated references that global-alloc counts and later passes
   delete. Reading the offsets back from the frame in the `SquareRoot0`

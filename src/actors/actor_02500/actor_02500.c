@@ -748,10 +748,10 @@ static void Actor02500_Fn00494(Task* actor)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-1].delta.vx.h.hi;
-            coord->coord.t[1] += frame->delta.vy.h.hi;
-            coord->coord.t[2] += frame->delta.vz.h.hi;
-            if (head[-1].delta.vx.w != 0 || frame->delta.vz.w != 0) {
+            coord->coord.t[0] += head[-1].delta.vx.halves.integer;
+            coord->coord.t[1] += frame->delta.vy.halves.integer;
+            coord->coord.t[2] += frame->delta.vz.halves.integer;
+            if (head[-1].delta.vx.word != 0 || frame->delta.vz.word != 0) {
                 work->field_340 = 1;
             }
             break;
@@ -759,7 +759,7 @@ static void Actor02500_Fn00494(Task* actor)
             coord->coord.t[0] = work->field_304;
             coord->coord.t[1] = work->field_308;
             coord->coord.t[2] = work->field_30C;
-            if (head[-1].delta.vx.w != 0 || frame->delta.vz.w != 0) {
+            if (head[-1].delta.vx.word != 0 || frame->delta.vz.word != 0) {
                 work->field_340 = 1;
             }
             break;
@@ -776,15 +776,15 @@ static void Actor02500_Fn00494(Task* actor)
         switch ((u32)work->field_1C4[i].key.value >> 16) {
             case 2:
                 if (work->field_334 == 0) {
-                    target            = gPlayerActorTasks[((u32)work->field_1C4[i].key.value >> 7) & 1]->extra.tmd->coords;
-                    frame->delta.vx.w = target->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vy.w = target->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vz.w = target->coord.t[2] - coord->coord.t[2];
-                    damage            = Gp_ComputeDamage(work->field_1C4[i].key.value,
-                                                         SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
-                                                                     frame->delta.vz.w * frame->delta.vz.w),
-                                                         0, 0);
-                    param0            = Gp_GetIdParam0(work->field_1C4[i].key.value);
+                    target               = gPlayerActorTasks[((u32)work->field_1C4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                    frame->delta.vx.word = target->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vy.word = target->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vz.word = target->coord.t[2] - coord->coord.t[2];
+                    damage               = Gp_ComputeDamage(work->field_1C4[i].key.value,
+                                                            SquareRoot0(frame->delta.vx.word * frame->delta.vx.word + frame->delta.vy.word * frame->delta.vy.word +
+                                                                        frame->delta.vz.word * frame->delta.vz.word),
+                                                            0, 0);
+                    param0               = Gp_GetIdParam0(work->field_1C4[i].key.value);
                     if ((param0 & 0xFFFF) == 5) {
                         damage *= 2;
                         Gp_SpawnEff(0x6009C, coord, 2, NULL);
@@ -852,12 +852,12 @@ static void Actor02500_Fn00494(Task* actor)
                 break;
             /* Kinds 1 and 3 push the enemy back out of the obstacle the same way. */
             case 1:
-                frame->delta.vx.w = coord->workm.t[0] - work->field_1C4[i].point.vx;
-                frame->delta.vy.w = coord->workm.t[1] - work->field_1C4[i].point.vy;
-                frame->delta.vz.w = coord->workm.t[2] - work->field_1C4[i].point.vz;
-                push              = work->field_1C4[i].distance -
-                       SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
-                                   frame->delta.vz.w * frame->delta.vz.w);
+                frame->delta.vx.word = coord->workm.t[0] - work->field_1C4[i].point.vx;
+                frame->delta.vy.word = coord->workm.t[1] - work->field_1C4[i].point.vy;
+                frame->delta.vz.word = coord->workm.t[2] - work->field_1C4[i].point.vz;
+                push                 = work->field_1C4[i].distance -
+                       SquareRoot0(frame->delta.vx.word * frame->delta.vx.word + frame->delta.vy.word * frame->delta.vy.word +
+                                   frame->delta.vz.word * frame->delta.vz.word);
                 push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
                     bestPush = push;
@@ -866,12 +866,12 @@ static void Actor02500_Fn00494(Task* actor)
                 }
                 break;
             case 3:
-                frame->delta.vx.w = coord->workm.t[0] - work->field_1C4[i].point.vx;
-                frame->delta.vy.w = coord->workm.t[1] - work->field_1C4[i].point.vy;
-                frame->delta.vz.w = coord->workm.t[2] - work->field_1C4[i].point.vz;
-                push              = work->field_1C4[i].distance -
-                       SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
-                                   frame->delta.vz.w * frame->delta.vz.w);
+                frame->delta.vx.word = coord->workm.t[0] - work->field_1C4[i].point.vx;
+                frame->delta.vy.word = coord->workm.t[1] - work->field_1C4[i].point.vy;
+                frame->delta.vz.word = coord->workm.t[2] - work->field_1C4[i].point.vz;
+                push                 = work->field_1C4[i].distance -
+                       SquareRoot0(frame->delta.vx.word * frame->delta.vx.word + frame->delta.vy.word * frame->delta.vy.word +
+                                   frame->delta.vz.word * frame->delta.vz.word);
                 push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
                     bestPush = push;

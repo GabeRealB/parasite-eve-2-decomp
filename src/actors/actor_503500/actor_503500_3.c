@@ -101,31 +101,31 @@ typedef struct Actor503500Work2EC {
     /// Bezier-sampled chain polyline, root first, that
     /// `func_actor_503500_8013A0D0` re-aims the model's links along.
     /* 0x24C */ SVECTOR pts[9];
-    /* 0x294 */ SVECTOR field_294;   // both seeded from D_actor_503500_8016F0A8
+    /* 0x294 */ SVECTOR field_294; // both seeded from D_actor_503500_8016F0A8
     /* 0x29C */ SVECTOR field_29C;
-    /* 0x2A4 */ SVECTOR field_2A4;   // rotation, spun by func_actor_503500_80138A30
-                                     /// Part 0's `coord` matrix, saved by `func_actor_503500_80139014` once
-                                     /// the body has risen and restored every frame before scaling.
+    /* 0x2A4 */ SVECTOR field_2A4; // rotation, spun by func_actor_503500_80138A30
+                                   /// Part 0's `coord` matrix, saved by `func_actor_503500_80139014` once
+                                   /// the body has risen and restored every frame before scaling.
     /* 0x2AC */ MATRIX field_2AC;
-    /* 0x2CC */ s32    field_2CC;    // approach speed, see func_actor_503500_80139EFC
-                                     /// Top approach speed, seeded to 0x800000; its integer half doubles as
-                                     /// the arrival distance `func_actor_503500_80139EFC` tests against.
-    /* 0x2D0 */ GpFixed16 field_2D0;
-    /* 0x2D4 */ s16       field_2D4; // sub-state index
-    /* 0x2D6 */ s16       field_2D6;
-    /* 0x2D8 */ s16       field_2D8; // per-frame countdown
-    /* 0x2DA */ s16       field_2DA;
-    /* 0x2DC */ s16       field_2DC; // vertical scale, 0x1000 down to 0x200
-    /* 0x2DE */ s16       field_2DE; // sub-state frame counter
-    /* 0x2E0 */ s16       phase;     // chain pulse phase, stepped by 0x80
-    /* 0x2E2 */ s16       field_2E2;
-    /* 0x2E4 */ s8        field_2E4; // sub-state phase, cleared with field_2D4
-    /* 0x2E5 */ s8        field_2E5;
-    /* 0x2E6 */ byte      pad_2E6[0x2];
-    /* 0x2E8 */ s8        field_2E8; // cleared, then awaited, by func_actor_503500_80138C08
-    /* 0x2E9 */ s8        field_2E9;
-    /* 0x2EA */ s8        field_2EA;
-    /* 0x2EB */ s8        field_2EB; // TMD buffer countdown
+    /* 0x2CC */ s32    field_2CC;  // approach speed, see func_actor_503500_80139EFC
+                                   /// Top approach speed, seeded to 0x800000; its integer half doubles as
+                                   /// the arrival distance `func_actor_503500_80139EFC` tests against.
+    /* 0x2D0 */ Fixed16 field_2D0;
+    /* 0x2D4 */ s16     field_2D4; // sub-state index
+    /* 0x2D6 */ s16     field_2D6;
+    /* 0x2D8 */ s16     field_2D8; // per-frame countdown
+    /* 0x2DA */ s16     field_2DA;
+    /* 0x2DC */ s16     field_2DC; // vertical scale, 0x1000 down to 0x200
+    /* 0x2DE */ s16     field_2DE; // sub-state frame counter
+    /* 0x2E0 */ s16     phase;     // chain pulse phase, stepped by 0x80
+    /* 0x2E2 */ s16     field_2E2;
+    /* 0x2E4 */ s8      field_2E4; // sub-state phase, cleared with field_2D4
+    /* 0x2E5 */ s8      field_2E5;
+    /* 0x2E6 */ byte    pad_2E6[0x2];
+    /* 0x2E8 */ s8      field_2E8; // cleared, then awaited, by func_actor_503500_80138C08
+    /* 0x2E9 */ s8      field_2E9;
+    /* 0x2EA */ s8      field_2EA;
+    /* 0x2EB */ s8      field_2EB; // TMD buffer countdown
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
@@ -2739,22 +2739,22 @@ static void func_actor_503500_80137678(Task* arg0)
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            work->rot.vx.w        = 0;
-            work->rot.vy.w        = 0;
-            work->rot.vz.w        = 0;
-            work->vel.vx.w        = 0;
-            work->vel.vy.w        = 0;
-            work->vel.vz.w        = 0;
-            work->pos.vx.w        = 0;
-            work->pos.vy.w        = 0;
-            work->pos.vz.w        = 0;
+            work->rot.vx.word     = 0;
+            work->rot.vy.word     = 0;
+            work->rot.vz.word     = 0;
+            work->vel.vx.word     = 0;
+            work->vel.vy.word     = 0;
+            work->vel.vz.word     = 0;
+            work->pos.vx.word     = 0;
+            work->pos.vy.word     = 0;
+            work->pos.vz.word     = 0;
             work->field_15D++;
             break;
         case 1:
             work->field_15D++;
             break;
         case 2:
-            work->rot.vx.w -= 0x4000;
+            work->rot.vx.word -= 0x4000;
             if ((s16)++work->field_15A >= 0x1F) {
                 src   = (s32*)&m;
                 coord = arg0->extra.tmd->coords;
@@ -2768,9 +2768,9 @@ static void func_actor_503500_80137678(Task* arg0)
                 coord->coord.t[1]    = rot.vy;
                 coord->coord.t[2]    = rot.vz;
                 coord->parent        = &gGfxViewCoord;
-                work->vel.vx.w       = 0;
-                work->vel.vy.w       = 0;
-                work->vel.vz.w       = 0x100000;
+                work->vel.vx.word    = 0;
+                work->vel.vy.word    = 0;
+                work->vel.vz.word    = 0x100000;
                 ApplyMatrixLV(&m.mat, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
                 func_actor_503500_80135D00(arg0->parent, 0xC);
                 Gp_UpdateCoord(coord);
@@ -2781,14 +2781,14 @@ static void func_actor_503500_80137678(Task* arg0)
             }
             break;
         case 3:
-            work->vel.vy.w += 0x8000;
+            work->vel.vy.word += 0x8000;
             if ((s16)++work->field_15A >= 0x1F) {
                 work->field_15A = 0;
                 work->field_15D++;
             }
             break;
         case 4:
-            work->vel.vy.w += 0x8000;
+            work->vel.vy.word += 0x8000;
             switch ((s16)work->field_15A) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
@@ -2810,9 +2810,9 @@ static void func_actor_503500_80137678(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx          = work->rot.vx.w >> 16;
-    rot.vy          = work->rot.vy.w >> 16;
-    rot.vz          = work->rot.vz.w >> 16;
+    rot.vx          = work->rot.vx.word >> 16;
+    rot.vy          = work->rot.vy.word >> 16;
+    rot.vz          = work->rot.vz.word >> 16;
     m.ident.m00_m01 = 0x1000;
     m.ident.m02_m10 = 0;
     ident           = &m.ident;
@@ -2830,15 +2830,15 @@ static void func_actor_503500_80137678(Task* arg0)
     gte_ldclmv((char*)&m.mat + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
-    work->pos.vx.w     += work->vel.vx.w;
-    work->pos.vy.w     += work->vel.vy.w;
-    work->pos.vz.w     += work->vel.vz.w;
-    coord->coord.t[0]  += work->pos.vx.h.hi;
-    coord->coord.t[1]  += work->pos.vy.h.hi;
-    coord->coord.t[2]  += work->pos.vz.h.hi;
-    work->pos.vx.w      = (u16)work->pos.vx.w;
-    work->pos.vy.w      = (u16)work->pos.vy.w;
-    work->pos.vz.w      = (u16)work->pos.vz.w;
+    work->pos.vx.word  += work->vel.vx.word;
+    work->pos.vy.word  += work->vel.vy.word;
+    work->pos.vz.word  += work->vel.vz.word;
+    coord->coord.t[0]  += work->pos.vx.halves.integer;
+    coord->coord.t[1]  += work->pos.vy.halves.integer;
+    coord->coord.t[2]  += work->pos.vz.halves.integer;
+    work->pos.vx.word   = (u16)work->pos.vx.word;
+    work->pos.vy.word   = (u16)work->pos.vy.word;
+    work->pos.vz.word   = (u16)work->pos.vz.word;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
         switch (gDisplayState.animFrame % 6) {
@@ -3207,7 +3207,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     work->field_294.vx         = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vx;
     work->field_294.vy         = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vy;
     work->field_294.vz         = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vz;
-    work->field_2D0.w          = 0x800000;
+    work->field_2D0.word       = 0x800000;
     work->field_2E9            = 1;
     arg0->exitCallback         = func_actor_503500_8013A900;
     arg0->state               += 1;
@@ -3455,7 +3455,7 @@ static void func_actor_503500_80139014(Task* arg0)
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             work->field_29C.vy    = 0x1388;
-            work->field_2D0.w     = 0x300000;
+            work->field_2D0.word  = 0x300000;
             work->field_2E8       = 0;
             work->field_2E4++;
             break;
@@ -3807,11 +3807,11 @@ static void func_actor_503500_80139EFC(Task* arg0)
     d.vy = ty;
     tz   = work->field_29C.vz - work->field_294.vz;
     d.vz = tz;
-    if (ABS(tx) + ABS(ty) + ABS(tz) < work->field_2D0.h.hi) {
+    if (ABS(tx) + ABS(ty) + ABS(tz) < work->field_2D0.halves.integer) {
         work->field_2E8 = 1;
         return;
     }
-    lim             = work->field_2D0.w;
+    lim             = work->field_2D0.word;
     work->field_2E8 = 0;
     if (work->field_2E9 != 0) {
         speed = work->field_2CC + lim / 32;

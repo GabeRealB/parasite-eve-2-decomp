@@ -3,7 +3,7 @@
 /// Flight state of the projectile. Detonates when the shot
 /// has touched world geometry (`rec0` with 0x30000), when a wall record it hit
 /// is solid, or when the flight timer runs past 0xDFFFF; otherwise it steps
-/// the projectile by `dir / field_88.h.hi`, lets gravity pull `dir.vy` down,
+/// the projectile by `dir / field_88.halves.integer`, lets gravity pull `dir.vy` down,
 /// and trails smoke every `field_8C` frames — a divisor that grows by one
 /// every seven frames up to four, so the trail thins as the grenade slows.
 ///
@@ -55,8 +55,8 @@ void grenadeShellFly(Task* arg0)
         if (blk->sfx == 0xB) {
             clip = 1;
         }
-        work->field_88.w = clip;
-        work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->field_88.word = clip;
+        work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
         work->obj.radius = gGrenadeShellBlastRadii[blk->sfx - 0xA];
         return;
@@ -98,15 +98,15 @@ try_rec0:
         goto check;
     }
 move:
-    blk->delta.vx.w        = work->dir.vx / work->field_88.h.hi;
-    blk->delta.vy.w        = work->dir.vy / work->field_88.h.hi;
-    blk->delta.vz.w        = work->dir.vz / work->field_88.h.hi;
-    coord->coord.t[0]     += blk->delta.vx.w;
-    coord->coord.t[1]     += blk->delta.vy.w;
-    coord->coord.t[2]     += blk->delta.vz.w;
-    work->d4rec.ends[1].vz = -(work->field_88.w >> 9);
-    work->field_88.w      += 0x1800;
-    if (work->field_88.w > 0xDFFFF) {
+    blk->delta.vx.word     = work->dir.vx / work->field_88.halves.integer;
+    blk->delta.vy.word     = work->dir.vy / work->field_88.halves.integer;
+    blk->delta.vz.word     = work->dir.vz / work->field_88.halves.integer;
+    coord->coord.t[0]     += blk->delta.vx.word;
+    coord->coord.t[1]     += blk->delta.vy.word;
+    coord->coord.t[2]     += blk->delta.vz.word;
+    work->d4rec.ends[1].vz = -(work->field_88.word >> 9);
+    work->field_88.word   += 0x1800;
+    if (work->field_88.word > 0xDFFFF) {
         goto explode;
     }
     work->dir.vy   = work->dir.vy + 0x10;

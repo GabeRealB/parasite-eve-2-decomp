@@ -26,8 +26,8 @@ s32 factoryLiftLower(Task* task)
             if (work->field_4 > 0x30000) {
                 work->field_4 = 0x30000;
             }
-            work->field_C.value += work->field_4;
-            if (work->field_C.value > 0) {
+            work->field_C.word += work->field_4;
+            if (work->field_C.word > 0) {
                 work->field_17++;
             }
             break;
@@ -36,8 +36,8 @@ s32 factoryLiftLower(Task* task)
             if (work->field_4 < -0xC000) {
                 work->field_4 = -0xC000;
             }
-            work->field_C.value += work->field_4;
-            if (work->field_C.value <= 0) {
+            work->field_C.word += work->field_4;
+            if (work->field_C.word <= 0) {
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
@@ -64,10 +64,10 @@ s32 factoryLiftLower(Task* task)
             Gp_EnqueueStageSnd6(0x53170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         }
         done                = 1;
-        work->field_C.value = 0;
+        work->field_C.word = 0;
         work->field_17      = 4;
     }
-    coord->coord.t[1]   = work->field_C.part.whole;
+    coord->coord.t[1]   = work->field_C.halves.integer;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }

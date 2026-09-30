@@ -86,7 +86,7 @@ typedef struct Actor503500WorkD0 {
     /* 0x00 */ Actor503500WorkRec4 head;
     /* 0x98 */ Task*               field_98;
     /* 0x9C */ MATRIX              field_9C;
-    /* 0xBC */ GpFixed16           field_BC; // angle; the high half turns field_9C
+    /* 0xBC */ Fixed16             field_BC; // angle; the high half turns field_9C
     /* 0xC0 */ s32                 field_C0; // per-frame angle step
     /* 0xC4 */ s16                 field_C4;
     /* 0xC6 */ s16                 field_C6; // sub-state frame counter
@@ -1246,17 +1246,17 @@ static void func_actor_503500_801450A0(Task* arg0)
             {
                 GpMtxWords* m;
 
-                m                 = (GpMtxWords*)&work->field_9C;
-                m->m00_m01        = 0x1000;
-                work->field_C0   += step;
-                work->field_BC.w += work->field_C0;
-                m->m02_m10        = 0;
-                m->m11_m12        = 0x1000;
-                m->m20_m21        = 0;
-                m->m22            = 0x1000;
+                m                    = (GpMtxWords*)&work->field_9C;
+                m->m00_m01           = 0x1000;
+                work->field_C0      += step;
+                work->field_BC.word += work->field_C0;
+                m->m02_m10           = 0;
+                m->m11_m12           = 0x1000;
+                m->m20_m21           = 0;
+                m->m22               = 0x1000;
             }
-            RotMatrixY(work->field_BC.h.hi, &work->field_9C);
-            ang = work->field_BC.h.hi;
+            RotMatrixY(work->field_BC.halves.integer, &work->field_9C);
+            ang = work->field_BC.halves.integer;
             if (ang < 0) {
                 ang = -ang;
             }
@@ -1281,15 +1281,15 @@ static void func_actor_503500_801450A0(Task* arg0)
             {
                 GpMtxWords* m;
 
-                m                 = (GpMtxWords*)&work->field_9C;
-                m->m00_m01        = 0x1000;
-                work->field_BC.w += work->field_C0;
-                m->m02_m10        = 0;
-                m->m11_m12        = 0x1000;
-                m->m20_m21        = 0;
-                m->m22            = 0x1000;
+                m                    = (GpMtxWords*)&work->field_9C;
+                m->m00_m01           = 0x1000;
+                work->field_BC.word += work->field_C0;
+                m->m02_m10           = 0;
+                m->m11_m12           = 0x1000;
+                m->m20_m21           = 0;
+                m->m22               = 0x1000;
             }
-            RotMatrixY(work->field_BC.h.hi, &work->field_9C);
+            RotMatrixY(work->field_BC.halves.integer, &work->field_9C);
             break;
         case 4:
             if (work->field_C4 <= 0x400) {

@@ -32,9 +32,9 @@ void glowPodHits(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->delta.vx.h.hi;
-            coord->coord.t[1] += sc->delta.vy.h.hi;
-            coord->coord.t[2] += sc->delta.vz.h.hi;
+            coord->coord.t[0] += sc->delta.vx.halves.integer;
+            coord->coord.t[1] += sc->delta.vy.halves.integer;
+            coord->coord.t[2] += sc->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_254;
@@ -68,13 +68,13 @@ void glowPodHits(Task* arg0)
                 arg0->state         = 2;
                 break;
             case 0x20000:
-                sc->delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                sc->delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                sc->delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
                 damage         = Gp_ComputeDamage(work->field_1A4[i].key.value,
-                                                  SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
-                                                              sc->delta.vy.w * sc->delta.vy.w +
-                                                              sc->delta.vz.w * sc->delta.vz.w),
+                                                  SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
+                                                              sc->delta.vy.word * sc->delta.vy.word +
+                                                              sc->delta.vz.word * sc->delta.vz.word),
                                                   0, 0);
                 if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key.value, 0) != 0) {
                     damage *= 4;

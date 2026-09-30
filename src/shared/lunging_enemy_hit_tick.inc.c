@@ -47,9 +47,9 @@ void lungerHitTick(Task* arg0)
         case 0:
             break;
         case 1:
-            self->coord.t[0] += head[-4].vx.h.hi;
-            self->coord.t[1] += scratch->delta.vy.h.hi;
-            self->coord.t[2] += scratch->delta.vz.h.hi;
+            self->coord.t[0] += head[-4].vx.halves.integer;
+            self->coord.t[1] += scratch->delta.vy.halves.integer;
+            self->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             self->coord.t[0] = work->field_678;
@@ -64,8 +64,8 @@ void lungerHitTick(Task* arg0)
             case 0:
                 break;
             case 1:
-                self->coord.t[0] += scratch->delta.vx.h.hi;
-                self->coord.t[2] += scratch->delta.vz.h.hi;
+                self->coord.t[0] += scratch->delta.vx.halves.integer;
+                self->coord.t[2] += scratch->delta.vz.halves.integer;
                 break;
             case 2:
                 self->coord.t[0] = work->field_678;
@@ -90,14 +90,14 @@ void lungerHitTick(Task* arg0)
                     break;
                 }
                 other               = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
-                scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
-                scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
+                scratch->delta.vx.word = other->coord.t[0] - self->coord.t[0];
+                scratch->delta.vy.word = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
-                scratch->delta.vz.w = dz;
-                val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
+                scratch->delta.vz.word = dz;
+                val                 = (scratch->delta.vx.word * self->coord.m[0][2]) + (scratch->delta.vy.word * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->field_6AA     = val >= 0;
                 damage              = Gp_ComputeDamage(work->field_4EC[i].key.value,
-                                                       SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
+                                                       SquareRoot0((scratch->delta.vx.word * scratch->delta.vx.word) + (scratch->delta.vy.word * scratch->delta.vy.word) + (scratch->delta.vz.word * scratch->delta.vz.word)),
                                                        0, 0);
                 kind                = Gp_GetIdParam0(work->field_4EC[i].key.value);
                 if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
@@ -264,11 +264,11 @@ void lungerHitTick(Task* arg0)
             case 3:
                 part                = &arg0->extra.tmd->coords[3];
                 x                   = part->workm.t[0] - work->field_4EC[i].point.vx;
-                scratch->delta.vx.w = x;
+                scratch->delta.vx.word = x;
                 y                   = part->workm.t[1] - work->field_4EC[i].point.vy;
-                scratch->delta.vy.w = y;
+                scratch->delta.vy.word = y;
                 z                   = part->workm.t[2] - work->field_4EC[i].point.vz;
-                scratch->delta.vz.w = z;
+                scratch->delta.vz.word = z;
                 push                = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
                 clamped             = push;
                 if (push <= 0) {

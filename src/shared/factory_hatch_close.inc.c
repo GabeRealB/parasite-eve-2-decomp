@@ -19,8 +19,8 @@ s32 factoryHatchClose(Task* task)
             if (work->field_0 > 0x700000) {
                 work->field_0 = 0x700000;
             }
-            work->field_4.value += work->field_0;
-            if (work->field_4.value > 0) {
+            work->field_4.word += work->field_0;
+            if (work->field_4.word > 0) {
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x5217000E, (s8)Gp_GetObjPan(coord),
                                         (s8)gpGetObjDepth(coord));
@@ -42,7 +42,7 @@ s32 factoryHatchClose(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    RotMatrixX(work->field_4.part.whole, &mat->mat);
+    RotMatrixX(work->field_4.halves.integer, &mat->mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return ret;
 }

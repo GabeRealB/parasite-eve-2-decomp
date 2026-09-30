@@ -1695,37 +1695,37 @@ static void Actor00400_Fn01B90(Task* arg0)
         case 0:
             break;
         case 1:
-            tmp              = delta.vx.h.hi;
+            tmp              = delta.vx.halves.integer;
             work->field_564 += tmp;
-            tmp              = delta.vz.h.hi;
+            tmp              = delta.vz.halves.integer;
             work->field_568 += tmp;
-            if ((delta.vx.w & 0xFFFF) != 0) {
-                if (delta.vx.w > 0) {
+            if ((delta.vx.word & 0xFFFF) != 0) {
+                if (delta.vx.word > 0) {
                     work->field_564++;
                 } else {
                     work->field_564--;
                 }
             }
-            if ((delta.vz.w & 0xFFFF) != 0) {
-                if (delta.vz.w > 0) {
+            if ((delta.vz.word & 0xFFFF) != 0) {
+                if (delta.vz.word > 0) {
                     work->field_568++;
                 } else {
                     work->field_568--;
                 }
             }
-            tmp                = delta.vx.h.hi;
+            tmp                = delta.vx.halves.integer;
             coord->coord.t[0] += tmp;
-            tmp                = delta.vz.h.hi;
+            tmp                = delta.vz.halves.integer;
             coord->coord.t[2] += tmp;
-            if ((delta.vx.w & 0xFFFF) != 0) {
-                if (delta.vx.w > 0) {
+            if ((delta.vx.word & 0xFFFF) != 0) {
+                if (delta.vx.word > 0) {
                     coord->coord.t[0]++;
                 } else {
                     coord->coord.t[0]--;
                 }
             }
-            if ((delta.vz.w & 0xFFFF) != 0) {
-                if (delta.vz.w > 0) {
+            if ((delta.vz.word & 0xFFFF) != 0) {
+                if (delta.vz.word > 0) {
                     coord->coord.t[2]++;
                 } else {
                     coord->coord.t[2]--;

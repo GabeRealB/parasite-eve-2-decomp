@@ -22,13 +22,13 @@ void bursterDropCollide(Task* arg0)
             break;
         case 1:
             if (work->field_2E0 == 0) {
-                coord->coord.t[1] += scratch->delta.vy.h.hi;
+                coord->coord.t[1] += scratch->delta.vy.halves.integer;
                 work->field_2DE    = -0x64;
                 work->field_2BE    = (u16)work->field_2BE - work->field_2BE / 4;
                 work->field_2E0    = movement;
             }
-            coord->coord.t[0] += scratch->delta.vx.h.hi;
-            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            coord->coord.t[0] += scratch->delta.vx.halves.integer;
+            coord->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_274.vx;

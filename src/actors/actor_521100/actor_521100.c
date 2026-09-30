@@ -1831,9 +1831,9 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += scratch->delta.vx.h.hi;
-            coord->coord.t[1] += scratch->delta.vy.h.hi;
-            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            coord->coord.t[0] += scratch->delta.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.vy.halves.integer;
+            coord->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_64C;
@@ -1863,19 +1863,19 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         if (work->field_684 != 0) {
             continue;
         }
-        coordX              = coord->coord.t[0];
-        dx                  = Player_Status.coordMtx->t[0] - coordX;
-        scratch->delta.vx.w = dx;
-        scratch->delta.vy.w = 0;
-        dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-        scratch->delta.vz.w = dz;
-        damage              = Gp_ComputeDamage(work->rec534[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
-        hitType             = Actor521100_GetHitType(work->rec534[i].key.value);
+        coordX                 = coord->coord.t[0];
+        dx                     = Player_Status.coordMtx->t[0] - coordX;
+        scratch->delta.vx.word = dx;
+        scratch->delta.vy.word = 0;
+        dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        scratch->delta.vz.word = dz;
+        damage                 = Gp_ComputeDamage(work->rec534[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
+        hitType                = Actor521100_GetHitType(work->rec534[i].key.value);
         if (hitType == 1) {
             if (work->field_69E == 2) {
                 hitType = 0;
             } else {
-                diff    = work->field_696 - (ratan2((s16)scratch->delta.vx.w, (s16)scratch->delta.vz.w) & 0xFFF);
+                diff    = work->field_696 - (ratan2((s16)scratch->delta.vx.word, (s16)scratch->delta.vz.word) & 0xFFF);
                 absDiff = abs(diff);
                 if (absDiff < 0x800) {
                     wrap = absDiff;

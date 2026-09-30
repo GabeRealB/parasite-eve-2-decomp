@@ -152,7 +152,7 @@ Generalised: **the cast belongs at the point of load, not on the struct field.**
 Changing the field's declared type will match locally and break every other
 reader of that struct — a scratch env that invents `unsigned char field_4`
 passes its own build and fails the real one. The same holds for `lhu` vs `lh`
-via `(u16)`, and for `.h.hi` vs `.w >> 16` on packed fixed-point types.
+via `(u16)`, and for `.halves.integer` vs `.word >> 16` on packed fixed-point types.
 
 A signed halfword that is both compared as SI and stored into a `u16` field
 is two loads (`lh` + `lhu`) unless the value is first widened to `s32`. The

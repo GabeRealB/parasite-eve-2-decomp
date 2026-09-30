@@ -878,9 +878,9 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
         goto move_absolute;
     goto move_done;
 move_delta:
-    coord->coord.t[0] += scratch->delta.vx.h.hi;
-    coord->coord.t[1] += scratch->delta.vy.h.hi;
-    z                  = coord->coord.t[2] + scratch->delta.vz.h.hi;
+    coord->coord.t[0] += scratch->delta.vx.halves.integer;
+    coord->coord.t[1] += scratch->delta.vy.halves.integer;
+    z                  = coord->coord.t[2] + scratch->delta.vz.halves.integer;
     goto move_z;
 move_absolute:
     coord->coord.t[0] = work->field_22C.vx;
@@ -897,12 +897,12 @@ move_done:
             case 0:
                 break;
             case 1:
-                work->field_264     = id >> 16;
-                scratch->delta.vx.w = coord->workm.t[0] - work->records[i].point.vx;
-                scratch->delta.vy.w = coord->workm.t[1] - work->records[i].point.vy;
-                scratch->delta.vz.w = coord->workm.t[2] - work->records[i].point.vz;
-                reach               = work->records[i].distance - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
-                val                 = reach;
+                work->field_264        = id >> 16;
+                scratch->delta.vx.word = coord->workm.t[0] - work->records[i].point.vx;
+                scratch->delta.vy.word = coord->workm.t[1] - work->records[i].point.vy;
+                scratch->delta.vz.word = coord->workm.t[2] - work->records[i].point.vz;
+                reach                  = work->records[i].distance - SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word);
+                val                    = reach;
                 if (reach <= 0) {
                     val = 0;
                 }
@@ -914,15 +914,15 @@ move_done:
                 }
                 break;
             case 2:
-                src                 = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-                ex                  = src->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vx.w = ex;
-                ey                  = src->coord.t[1] - coord->coord.t[1];
-                scratch->delta.vy.w = ey;
-                ez                  = src->coord.t[2] - coord->coord.t[2];
-                scratch->delta.vz.w = ez;
-                damage              = Gp_ComputeDamage(work->records[i].key.value, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
-                id                  = work->records[i].key.value;
+                src                    = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
+                ex                     = src->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vx.word = ex;
+                ey                     = src->coord.t[1] - coord->coord.t[1];
+                scratch->delta.vy.word = ey;
+                ez                     = src->coord.t[2] - coord->coord.t[2];
+                scratch->delta.vz.word = ez;
+                damage                 = Gp_ComputeDamage(work->records[i].key.value, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
+                id                     = work->records[i].key.value;
                 if (id & 0x8000) {
                     if (Actor03700_D08074[id & 0x7F] == 3) {
                         broke  = 1;

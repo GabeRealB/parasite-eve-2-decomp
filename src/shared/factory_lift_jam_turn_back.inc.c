@@ -27,8 +27,8 @@ s32 factoryLiftJamTurnBack(Task* task)
             if (work->field_8 < -0x40000) {
                 work->field_8 = -0x40000;
             }
-            work->field_10.value += work->field_8;
-            if (work->field_10.value < 0x3800000) {
+            work->field_10.word += work->field_8;
+            if (work->field_10.word < 0x3800000) {
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
@@ -44,11 +44,11 @@ s32 factoryLiftJamTurnBack(Task* task)
             if (work->field_8 > 0x20000) {
                 work->field_8 = 0x20000;
             }
-            work->field_10.value += work->field_8;
-            if (work->field_10.value >= 0x4000000) {
+            work->field_10.word += work->field_8;
+            if (work->field_10.word >= 0x4000000) {
                 work->field_0 = GameFlag_GetNibble(0x49) | 1;
                 GameFlag_SetNibble(0x49, work->field_0);
-                work->field_10.value = 0x4000000;
+                work->field_10.word = 0x4000000;
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
@@ -68,7 +68,7 @@ s32 factoryLiftJamTurnBack(Task* task)
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
         work->field_0 = GameFlag_GetNibble(0x49) | 1;
         GameFlag_SetNibble(0x49, work->field_0);
-        work->field_10.value = 0x4000000;
+        work->field_10.word = 0x4000000;
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
@@ -86,7 +86,7 @@ s32 factoryLiftJamTurnBack(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    RotMatrixY(work->field_10.part.whole, &mat->mat);
+    RotMatrixY(work->field_10.halves.integer, &mat->mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }

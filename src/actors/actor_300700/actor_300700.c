@@ -416,9 +416,9 @@ static void func_actor_300700_801622B4(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-1].vx.h.hi;
-            coord->coord.t[1] += delta->vy.h.hi;
-            z                  = coord->coord.t[2] + delta->vz.h.hi;
+            coord->coord.t[0] += head[-1].vx.halves.integer;
+            coord->coord.t[1] += delta->vy.halves.integer;
+            z                  = coord->coord.t[2] + delta->vz.halves.integer;
             coord->coord.t[2]  = z;
             break;
         case 2:
@@ -438,17 +438,17 @@ static void func_actor_300700_801622B4(Task* arg0)
             Gp_ArmStateF0(1);
             break;
         case 2:
-            arg0->state = (s32)state;
-            target      = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
-            dx          = target->coord.t[0] - coord->coord.t[0];
-            delta->vx.w = dx;
-            dy          = target->coord.t[1] - coord->coord.t[1];
-            delta->vy.w = dy;
-            dz          = target->coord.t[2] - coord->coord.t[2];
-            delta->vz.w = dz;
-            damage      = Gp_ComputeDamage((s32)work->field_154.key.value,
-                                           SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-            amount      = damage;
+            arg0->state    = (s32)state;
+            target         = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
+            dx             = target->coord.t[0] - coord->coord.t[0];
+            delta->vx.word = dx;
+            dy             = target->coord.t[1] - coord->coord.t[1];
+            delta->vy.word = dy;
+            dz             = target->coord.t[2] - coord->coord.t[2];
+            delta->vz.word = dz;
+            damage         = Gp_ComputeDamage((s32)work->field_154.key.value,
+                                              SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+            amount         = damage;
             if (damage == 0) {
                 damage = 1;
                 amount = 1;

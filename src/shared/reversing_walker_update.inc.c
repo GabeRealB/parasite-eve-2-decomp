@@ -19,16 +19,16 @@ void reverseWalkUpdate(Task* arg0)
 
     funcs[(s16)work->walk.motion](arg0);
     coord                = arg0->extra.tmd->coords;
-    work->walk.acc[0].w += work->walk.step.vx;
-    work->walk.acc[1].w += work->walk.step.vy;
-    work->walk.acc[2].w += work->walk.step.vz;
-    coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
-    coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
-    coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
+    work->walk.acc[0].word += work->walk.step.vx;
+    work->walk.acc[1].word += work->walk.step.vy;
+    work->walk.acc[2].word += work->walk.step.vz;
+    coord->coord.t[0]   += (s16)(work->walk.acc[0].word >> 16);
+    coord->coord.t[1]   += (s16)(work->walk.acc[1].word >> 16);
+    coord->coord.t[2]   += (s16)(work->walk.acc[2].word >> 16);
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
-    work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
-    work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
+    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
+    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
+    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);

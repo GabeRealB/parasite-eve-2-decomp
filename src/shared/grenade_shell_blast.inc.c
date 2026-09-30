@@ -6,9 +6,9 @@
 void grenadeShellBlast(Task* task)
 {
     WeaponGrenadeWork* work  = task->work;
-    s32                timer = work->field_88.w - 1;
+    s32                timer = work->field_88.word - 1;
 
-    work->field_88.w = timer;
+    work->field_88.word = timer;
     if (timer <= 0) {
         task->state = 3;
     }

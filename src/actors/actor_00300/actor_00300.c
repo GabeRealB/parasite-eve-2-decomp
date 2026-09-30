@@ -1480,9 +1480,9 @@ static void Actor00300_Fn00E54(Task* arg0)
         case 0:
             break;
         case 1:
-            self->coord.t[0] += head[-4].vx.h.hi;
-            self->coord.t[1] += scratch->delta.vy.h.hi;
-            self->coord.t[2] += scratch->delta.vz.h.hi;
+            self->coord.t[0] += head[-4].vx.halves.integer;
+            self->coord.t[1] += scratch->delta.vy.halves.integer;
+            self->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             self->coord.t[0] = work->field_5F8;
@@ -1497,8 +1497,8 @@ static void Actor00300_Fn00E54(Task* arg0)
             case 0:
                 break;
             case 1:
-                self->coord.t[0] += scratch->delta.vx.h.hi;
-                self->coord.t[2] += scratch->delta.vz.h.hi;
+                self->coord.t[0] += scratch->delta.vx.halves.integer;
+                self->coord.t[2] += scratch->delta.vz.halves.integer;
                 break;
             case 2:
                 self->coord.t[0] = work->field_5F8;
@@ -1549,16 +1549,16 @@ static void Actor00300_Fn00E54(Task* arg0)
                     case 9:
                         break;
                 }
-                other               = gPlayerActorTasks[(u8)work->rec4F0[i].key.value >> 7]->extra.tmd->coords;
-                scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
-                scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
-                dz                  = other->coord.t[2] - self->coord.t[2];
-                scratch->delta.vz.w = dz;
-                val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
-                work->field_692     = val >= 0;
-                work->field_690     = Gp_ComputeDamage(work->rec4F0[i].key.value,
-                                                       SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
-                                                       0, 0);
+                other                  = gPlayerActorTasks[(u8)work->rec4F0[i].key.value >> 7]->extra.tmd->coords;
+                scratch->delta.vx.word = other->coord.t[0] - self->coord.t[0];
+                scratch->delta.vy.word = other->coord.t[1] - self->coord.t[1];
+                dz                     = other->coord.t[2] - self->coord.t[2];
+                scratch->delta.vz.word = dz;
+                val                    = (scratch->delta.vx.word * self->coord.m[0][2]) + (scratch->delta.vy.word * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
+                work->field_692        = val >= 0;
+                work->field_690        = Gp_ComputeDamage(work->rec4F0[i].key.value,
+                                                          SquareRoot0((scratch->delta.vx.word * scratch->delta.vx.word) + (scratch->delta.vy.word * scratch->delta.vy.word) + (scratch->delta.vz.word * scratch->delta.vz.word)),
+                                                          0, 0);
                 if (critical != 0) {
                     work->field_690 >>= 1;
                 } else if (Gp_RollEnemyChance(enemy, work->rec4F0[i].key.value, 0) != 0) {
@@ -1615,15 +1615,15 @@ static void Actor00300_Fn00E54(Task* arg0)
                 }
                 break;
             case 3:
-                other               = &arg0->extra.tmd->coords[3];
-                x                   = other->workm.t[0] - work->rec4F0[i].point.vx;
-                scratch->delta.vx.w = x;
-                y                   = other->workm.t[1] - work->rec4F0[i].point.vy;
-                scratch->delta.vy.w = y;
-                z                   = other->workm.t[2] - work->rec4F0[i].point.vz;
-                scratch->delta.vz.w = z;
-                push                = work->rec4F0[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                clamped             = push;
+                other                  = &arg0->extra.tmd->coords[3];
+                x                      = other->workm.t[0] - work->rec4F0[i].point.vx;
+                scratch->delta.vx.word = x;
+                y                      = other->workm.t[1] - work->rec4F0[i].point.vy;
+                scratch->delta.vy.word = y;
+                z                      = other->workm.t[2] - work->rec4F0[i].point.vz;
+                scratch->delta.vz.word = z;
+                push                   = work->rec4F0[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                clamped                = push;
                 if (push <= 0) {
                     clamped = 0;
                 }

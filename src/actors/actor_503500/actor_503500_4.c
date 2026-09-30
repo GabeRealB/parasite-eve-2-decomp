@@ -154,7 +154,7 @@ typedef struct Actor503500Work3D8 {
     /* 0x368 */ SVECTOR               field_368;
     /* 0x370 */ byte                  pad_370[0x28];
     /* 0x398 */ s32                   field_398; // step speed toward field_368
-    /* 0x39C */ GpFixed16             field_39C; // speed limit; integer half is the arrival radius
+    /* 0x39C */ Fixed16               field_39C; // speed limit; integer half is the arrival radius
     /* 0x3A0 */ byte                  pad_3A0[0x4];
     /* 0x3A4 */ s16                   field_3A4; // sub-state, see func_actor_503500_80142310
     /* 0x3A6 */ byte                  pad_3A6[0x2];
@@ -2753,10 +2753,10 @@ static void func_actor_503500_8013FA74(Task* arg0)
 
     copyVector(&work->field_368, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
     copyVector(&work->field_358, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
-    work->field_39C.w = 0x600000;
-    work->field_3B4   = 0x40;
-    work->field_3B6   = 0x1000;
-    work->field_3D5   = 1;
+    work->field_39C.word = 0x600000;
+    work->field_3B4      = 0x40;
+    work->field_3B6      = 0x1000;
+    work->field_3D5      = 1;
     for (i = 1; i < 9; i++) {
         work->phase[i] = (i << 9) & 0xFFF;
         work->mats[i]  = coord[i].coord;
@@ -3300,14 +3300,14 @@ static void func_actor_503500_80141248(Task* arg0)
     d.vx               = work->field_368.vx - work->field_358.vx;
     d.vy               = work->field_368.vy - work->field_358.vy;
     d.vz               = work->field_368.vz - work->field_358.vz;
-    if (ABS(d.vx) + ABS(d.vy) + ABS(d.vz) < work->field_39C.h.hi) {
+    if (ABS(d.vx) + ABS(d.vy) + ABS(d.vz) < work->field_39C.halves.integer) {
         work->field_3D4    = 1;
         work->field_358.vx = work->field_368.vx;
         work->field_358.vy = work->field_368.vy;
         work->field_358.vz = work->field_368.vz;
         return;
     }
-    lim             = work->field_39C.w;
+    lim             = work->field_39C.word;
     work->field_3D4 = 0;
     if (work->field_3D5 != 0) {
         speed = work->field_398 + lim / 32;
@@ -3976,15 +3976,15 @@ static void func_actor_503500_80142980(Task* arg0)
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            work->rot.vx.w        = 0;
-            work->rot.vy.w        = 0;
-            work->rot.vz.w        = 0;
-            work->vel.vx.w        = 0;
-            work->vel.vy.w        = 0;
-            work->vel.vz.w        = 0;
-            work->pos.vx.w        = 0;
-            work->pos.vy.w        = 0;
-            work->pos.vz.w        = 0;
+            work->rot.vx.word     = 0;
+            work->rot.vy.word     = 0;
+            work->rot.vz.word     = 0;
+            work->vel.vx.word     = 0;
+            work->vel.vy.word     = 0;
+            work->vel.vz.word     = 0;
+            work->pos.vx.word     = 0;
+            work->pos.vy.word     = 0;
+            work->pos.vz.word     = 0;
             work->obj1.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->obj2.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_222++;
@@ -4045,14 +4045,14 @@ static void func_actor_503500_80142980(Task* arg0)
                 rot.vz = 0;
                 if (side != 0) {
                     func_actor_503500_80135E20(arg0->parent, 5, &rot);
-                    work->vel.vx.w = -0x100000;
-                    work->vel.vy.w = 0;
-                    work->vel.vz.w = 0;
+                    work->vel.vx.word = -0x100000;
+                    work->vel.vy.word = 0;
+                    work->vel.vz.word = 0;
                 } else {
                     func_actor_503500_80135E20(arg0->parent, 0xB, &rot);
-                    work->vel.vx.w = 0x100000;
-                    work->vel.vy.w = 0;
-                    work->vel.vz.w = 0;
+                    work->vel.vx.word = 0x100000;
+                    work->vel.vy.word = 0;
+                    work->vel.vz.word = 0;
                 }
                 ApplyMatrixLV(&coord->coord, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
                 coord->parent = &gGfxViewCoord;
@@ -4071,20 +4071,20 @@ static void func_actor_503500_80142980(Task* arg0)
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 2) != 0) {
                 if (work->field_220 != 0) {
                     Gp_SpawnEff(0x60055, coord, 0x01101C00, &D_actor_503500_80171594);
-                    work->rot.vz.w -= 0x2000;
+                    work->rot.vz.word -= 0x2000;
                 } else {
                     Gp_SpawnEff(0x60055, coord, 0x01101C00, &D_actor_503500_8017158C);
-                    work->rot.vz.w += 0x2000;
+                    work->rot.vz.word += 0x2000;
                 }
             }
-            work->vel.vy.w += 0x8000;
+            work->vel.vy.word += 0x8000;
             if ((s16)++work->field_21A >= 0x1F) {
                 work->field_21A = 0;
                 work->field_222++;
             }
             break;
         case 4:
-            work->vel.vy.w += 0x8000;
+            work->vel.vy.word += 0x8000;
             switch ((s16)work->field_21A) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
@@ -4106,9 +4106,9 @@ static void func_actor_503500_80142980(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx          = work->rot.vx.w >> 16;
-    rot.vy          = work->rot.vy.w >> 16;
-    rot.vz          = work->rot.vz.w >> 16;
+    rot.vx          = work->rot.vx.word >> 16;
+    rot.vy          = work->rot.vy.word >> 16;
+    rot.vz          = work->rot.vz.word >> 16;
     m.ident.m00_m01 = 0x1000;
     m.ident.m02_m10 = 0;
     ident           = &m.ident;
@@ -4126,15 +4126,15 @@ static void func_actor_503500_80142980(Task* arg0)
     gte_ldclmv((char*)&m.mat + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
-    work->pos.vx.w     += work->vel.vx.w;
-    work->pos.vy.w     += work->vel.vy.w;
-    work->pos.vz.w     += work->vel.vz.w;
-    coord->coord.t[0]  += work->pos.vx.h.hi;
-    coord->coord.t[1]  += work->pos.vy.h.hi;
-    coord->coord.t[2]  += work->pos.vz.h.hi;
-    work->pos.vx.w      = (u16)work->pos.vx.w;
-    work->pos.vy.w      = (u16)work->pos.vy.w;
-    work->pos.vz.w      = (u16)work->pos.vz.w;
+    work->pos.vx.word  += work->vel.vx.word;
+    work->pos.vy.word  += work->vel.vy.word;
+    work->pos.vz.word  += work->vel.vz.word;
+    coord->coord.t[0]  += work->pos.vx.halves.integer;
+    coord->coord.t[1]  += work->pos.vy.halves.integer;
+    coord->coord.t[2]  += work->pos.vz.halves.integer;
+    work->pos.vx.word   = (u16)work->pos.vx.word;
+    work->pos.vy.word   = (u16)work->pos.vy.word;
+    work->pos.vz.word   = (u16)work->pos.vz.word;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
         if (!(gDisplayState.animFrame & 3)) {
@@ -4381,12 +4381,12 @@ void func_actor_503500_80143AC0(Task* arg0)
                 return;
             }
             Mem_Set(work, 0, sizeof(Actor503500Work38));
-            work->speed    = 0x1000000;
-            work->pos.vx.w = 0;
-            work->pos.vy.w = 0;
-            work->pos.vz.w = 0;
-            src            = (s32*)arg0->spawnArg2.pointer;
-            dst            = (s32*)&work->rot;
+            work->speed       = 0x1000000;
+            work->pos.vx.word = 0;
+            work->pos.vy.word = 0;
+            work->pos.vz.word = 0;
+            src               = (s32*)arg0->spawnArg2.pointer;
+            dst               = (s32*)&work->rot;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
@@ -4403,21 +4403,21 @@ void func_actor_503500_80143AC0(Task* arg0)
             vec.vy = 0;
             vec.vz = work->speed;
             ApplyMatrixLV(&work->rot, &vec, &vec);
-            work->pos.vx.w += vec.vx;
-            work->pos.vy.w += vec.vy;
-            work->pos.vz.w += vec.vz;
-            msg.field_10    = 1;
-            msg.field_12    = 1;
-            msg.x           = work->pos.vx.h.hi;
-            msg.y           = work->pos.vy.h.hi;
-            msg.z           = work->pos.vz.h.hi;
+            work->pos.vx.word += vec.vx;
+            work->pos.vy.word += vec.vy;
+            work->pos.vz.word += vec.vz;
+            msg.field_10       = 1;
+            msg.field_12       = 1;
+            msg.x              = work->pos.vx.halves.integer;
+            msg.y              = work->pos.vy.halves.integer;
+            msg.z              = work->pos.vz.halves.integer;
             if (Gp_DispatchMsgPtr(player, 0x3FE, &msg, 0) != 0) {
                 work->speed = 0;
             }
-            work->pos.vx.w = (u16)work->pos.vx.w;
-            work->pos.vy.w = (u16)work->pos.vy.w;
-            work->pos.vz.w = (u16)work->pos.vz.w;
-            work->speed   -= 0x30000;
+            work->pos.vx.word = (u16)work->pos.vx.word;
+            work->pos.vy.word = (u16)work->pos.vy.word;
+            work->pos.vz.word = (u16)work->pos.vz.word;
+            work->speed      -= 0x30000;
             if (work->speed < 0) {
                 work->speed = 0;
                 if (++work->field_34 > 20) {
@@ -4648,13 +4648,13 @@ static void func_actor_503500_80144300(Task* arg0)
     }
     arg0->work = work;
 
-    work->field_84.vx.w = coord->coord.t[0] << 16;
-    work->field_84.vy.w = coord->coord.t[1] << 16;
-    work->field_84.vz.w = coord->coord.t[2] << 16;
-    work->field_94.vx   = work->field_84.vx.w;
-    work->field_B8      = 0x1000;
-    work->field_94.vy   = work->field_84.vy.w;
-    work->field_94.vz   = work->field_84.vz.w;
+    work->field_84.vx.word = coord->coord.t[0] << 16;
+    work->field_84.vy.word = coord->coord.t[1] << 16;
+    work->field_84.vz.word = coord->coord.t[2] << 16;
+    work->field_94.vx      = work->field_84.vx.word;
+    work->field_B8         = 0x1000;
+    work->field_94.vy      = work->field_84.vy.word;
+    work->field_94.vz      = work->field_84.vz.word;
 
     if (arg0->spawnArg2.pointer != NULL) {
         v.vx = 0;
@@ -4741,12 +4741,12 @@ static void func_actor_503500_80144520(Task* arg0)
             arg0->state++;
             break;
     }
-    work->field_84.vx.w += work->field_A4.vx;
-    work->field_84.vy.w += work->field_A4.vy;
-    work->field_84.vz.w += work->field_A4.vz;
-    coord->coord.t[0]    = work->field_84.vx.h.hi;
-    coord->coord.t[1]    = work->field_84.vy.h.hi;
-    coord->coord.t[2]    = work->field_84.vz.h.hi;
+    work->field_84.vx.word += work->field_A4.vx;
+    work->field_84.vy.word += work->field_A4.vy;
+    work->field_84.vz.word += work->field_A4.vz;
+    coord->coord.t[0]       = work->field_84.vx.halves.integer;
+    coord->coord.t[1]       = work->field_84.vy.halves.integer;
+    coord->coord.t[2]       = work->field_84.vz.halves.integer;
 }
 
 static void func_actor_503500_801446E4(Task* arg0)
@@ -4790,14 +4790,14 @@ static void func_actor_503500_80144778(Task* arg0)
             case 0:
                 break;
             case 1:
-                work->field_84.vx.w += delta.vx.w;
-                work->field_84.vy.w += delta.vy.w;
-                work->field_84.vz.w += delta.vz.w;
+                work->field_84.vx.word += delta.vx.word;
+                work->field_84.vy.word += delta.vy.word;
+                work->field_84.vz.word += delta.vz.word;
                 break;
             case 2:
-                work->field_84.vx.w = work->field_94.vx;
-                work->field_84.vy.w = work->field_94.vy;
-                work->field_84.vz.w = work->field_94.vz;
+                work->field_84.vx.word = work->field_94.vx;
+                work->field_84.vy.word = work->field_94.vy;
+                work->field_84.vz.word = work->field_94.vz;
                 break;
         }
     }

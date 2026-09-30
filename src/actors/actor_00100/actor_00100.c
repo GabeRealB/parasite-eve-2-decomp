@@ -1663,12 +1663,12 @@ static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, 
     s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]   += s->delta.vx.w >> 16;
-        coord->coord.t[2]   += s->delta.vz.w >> 16;
-        Actor00100_D1BA90.vx = s->delta.vx.w >> 16;
-        Actor00100_D1BA90.vy = s->delta.vy.w >> 16;
-        Actor00100_D1BA90.vz = s->delta.vz.w >> 16;
-        val                  = s->delta.vx.w;
+        coord->coord.t[0]   += s->delta.vx.word >> 16;
+        coord->coord.t[2]   += s->delta.vz.word >> 16;
+        Actor00100_D1BA90.vx = s->delta.vx.word >> 16;
+        Actor00100_D1BA90.vy = s->delta.vy.word >> 16;
+        Actor00100_D1BA90.vz = s->delta.vz.word >> 16;
+        val                  = s->delta.vx.word;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1678,7 +1678,7 @@ static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, 
                 Actor00100_D1BA90.vx--;
             }
         }
-        val = s->delta.vz.w;
+        val = s->delta.vz.word;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[2]++;
@@ -1689,7 +1689,7 @@ static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, 
             }
         }
     }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+    if (s->delta.vx.word != 0 || s->delta.vz.word != 0) {
         s->moved = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);

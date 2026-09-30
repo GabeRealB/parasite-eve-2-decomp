@@ -1584,9 +1584,9 @@ static void Actor07000_Fn00A1C(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] = (s32)(coord->coord.t[0] + scratch->delta.vx.h.hi);
-            coord->coord.t[1] = (s32)(coord->coord.t[1] + scratch->delta.vy.h.hi);
-            z                 = coord->coord.t[2] + scratch->delta.vz.h.hi;
+            coord->coord.t[0] = (s32)(coord->coord.t[0] + scratch->delta.vx.halves.integer);
+            coord->coord.t[1] = (s32)(coord->coord.t[1] + scratch->delta.vy.halves.integer);
+            z                 = coord->coord.t[2] + scratch->delta.vz.halves.integer;
             coord->coord.t[2] = z;
             break;
         case 2:
@@ -1603,12 +1603,12 @@ static void Actor07000_Fn00A1C(Task* arg0)
             work->field_2CE = 0;
         }
     }
-    dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    scratch->delta.vx.w = dx;
-    scratch->delta.vy.w = (s32)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
-    dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    scratch->delta.vz.w = dz;
-    distance            = SquareRoot0((dx * dx) + (dz * dz));
+    dx                     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    scratch->delta.vx.word = dx;
+    scratch->delta.vy.word = (s32)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
+    dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    scratch->delta.vz.word = dz;
+    distance               = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x320) {
         stage = work->field_2C8;
         if (stage == 1) {
@@ -1680,26 +1680,26 @@ contact_loop:
                 }
                 break;
             case 0x30000:
-                wallDx              = coord->workm.t[0] - contact->field_154[0].point.vx;
-                scratch->delta.vy.w = 0;
-                scratch->delta.vx.w = wallDx;
-                wallDz              = coord->workm.t[2] - contact->field_154[0].point.vz;
-                scratch->delta.vz.w = wallDz;
-                distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance            = contact->field_154[0].distance - distance;
-                distance            = _actor07000ClampToZero(distance);
-                scratch->delta.vx.w = (s32)(coord->workm.t[0] - contact->field_154[0].point.vx);
-                scratch->delta.vy.w = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
-                scratch->delta.vz.w = (s32)(coord->workm.t[2] - contact->field_154[0].point.vz);
+                wallDx                 = coord->workm.t[0] - contact->field_154[0].point.vx;
+                scratch->delta.vy.word = 0;
+                scratch->delta.vx.word = wallDx;
+                wallDz                 = coord->workm.t[2] - contact->field_154[0].point.vz;
+                scratch->delta.vz.word = wallDz;
+                distance               = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
+                distance               = contact->field_154[0].distance - distance;
+                distance               = _actor07000ClampToZero(distance);
+                scratch->delta.vx.word = (s32)(coord->workm.t[0] - contact->field_154[0].point.vx);
+                scratch->delta.vy.word = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
+                scratch->delta.vz.word = (s32)(coord->workm.t[2] - contact->field_154[0].point.vz);
                 VectorNormal(delta, &scratch->normal);
                 ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, delta);
                 if ((u32)((u16)work->field_2B8 - 1) < 2U) {
-                    coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.w) >> 0xC));
-                    pushY             = distance * scratch->delta.vy.w;
+                    coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.word) >> 0xC));
+                    pushY             = distance * scratch->delta.vy.word;
                     if (pushY < 0) {
                         coord->coord.t[1] = (s32)(coord->coord.t[1] + (pushY >> 0xC));
                     }
-                    coord->coord.t[2] = (s32)(coord->coord.t[2] + ((s32)(distance * scratch->delta.vz.w) >> 0xC));
+                    coord->coord.t[2] = (s32)(coord->coord.t[2] + ((s32)(distance * scratch->delta.vz.word) >> 0xC));
                 }
                 break;
         }
@@ -2183,13 +2183,13 @@ static void Actor07000_Fn01EB0(Task* arg0)
             break;
         case 1:
             if (work->field_2E0 == 0) {
-                coord->coord.t[1] += scratch->delta.vy.h.hi;
+                coord->coord.t[1] += scratch->delta.vy.halves.integer;
                 work->field_2DE    = -0x64;
                 work->field_2BE    = (u16)work->field_2BE - work->field_2BE / 4;
                 work->field_2E0    = movement;
             }
-            coord->coord.t[0] += scratch->delta.vx.h.hi;
-            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            coord->coord.t[0] += scratch->delta.vx.halves.integer;
+            coord->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_274.vx;
@@ -3107,9 +3107,9 @@ static void Actor07000_Fn03E08(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0]  = (s32)(coord->coord.t[0] + scratch->delta.vx.h.hi);
-            coord->coord.t[1]  = (s32)(coord->coord.t[1] + scratch->delta.vy.h.hi);
-            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            coord->coord.t[0]  = (s32)(coord->coord.t[0] + scratch->delta.vx.halves.integer);
+            coord->coord.t[1]  = (s32)(coord->coord.t[1] + scratch->delta.vy.halves.integer);
+            coord->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = (s32)work->field_33C.vx;
@@ -3127,13 +3127,13 @@ static void Actor07000_Fn03E08(Task* arg0)
         switch (kind) {
             case 0x20000:
                 if (work->field_38A == 0) {
-                    dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                    scratch->delta.vx.w = dx;
-                    dy                  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                    scratch->delta.vy.w = dy;
-                    dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                    scratch->delta.vz.w = dz;
-                    damage              = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    dx                     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                    scratch->delta.vx.word = dx;
+                    dy                     = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                    scratch->delta.vy.word = dy;
+                    dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                    scratch->delta.vz.word = dz;
+                    damage                 = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_24C[i].key.value, 0) != 0) {
                         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;
@@ -3911,13 +3911,13 @@ static void Actor07000_Fn0595C(Task* arg0)
             if (work->field_39A == 0) {
                 work->field_38C    = movement;
                 work->field_2E4    = 0x400;
-                coord->coord.t[1] += scratch->delta.vy.h.hi;
+                coord->coord.t[1] += scratch->delta.vy.halves.integer;
                 work->field_398    = -0x50;
                 work->field_378    = work->field_378 - (s16)work->field_378 / 4;
                 work->field_39A    = movement;
             }
-            coord->coord.t[0] += scratch->delta.vx.h.hi;
-            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            coord->coord.t[0] += scratch->delta.vx.halves.integer;
+            coord->coord.t[2] += scratch->delta.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->field_33C.vx;

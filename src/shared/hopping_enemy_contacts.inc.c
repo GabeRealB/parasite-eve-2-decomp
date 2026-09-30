@@ -141,17 +141,17 @@ void hopperApplyContacts(Task* arg0, s16 arg1)
         case 0:
             break;
         case 1:
-            stepZ = delta.vz.h.hi;
-            stepX = delta.vx.w >> 16;
-            if (delta.vx.w & 0xFFFF) {
-                if (delta.vx.w > 0) {
+            stepZ = delta.vz.halves.integer;
+            stepX = delta.vx.word >> 16;
+            if (delta.vx.word & 0xFFFF) {
+                if (delta.vx.word > 0) {
                     stepX++;
                 } else {
                     stepX--;
                 }
             }
-            if (delta.vz.w & 0xFFFF) {
-                if (delta.vz.w > 0) {
+            if (delta.vz.word & 0xFFFF) {
+                if (delta.vz.word > 0) {
                     stepZ++;
                 } else {
                     stepZ--;

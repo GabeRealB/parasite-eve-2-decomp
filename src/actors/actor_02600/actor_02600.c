@@ -108,24 +108,24 @@ static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor);
 /// How far the origin of `coord`'s frame lies inside contact `rec`, clamped at
 /// zero, into `out`. `delta` receives the offset from the contact point to
 /// the origin.
-#define ACTOR02600_CONTACT_OVERLAP(out, coord, rec, delta)                                    \
-    do {                                                                                      \
-        s32 offX;                                                                             \
-        s32 offY;                                                                             \
-        s32 offZ;                                                                             \
-        s32 clamped;                                                                          \
-        offX         = (coord)->workm.t[0] - (rec).point.vx;                                  \
-        (delta).vx.w = offX;                                                                  \
-        offY         = (coord)->workm.t[1] - (rec).point.vy;                                  \
-        (delta).vy.w = offY;                                                                  \
-        offZ         = (coord)->workm.t[2] - (rec).point.vz;                                  \
-        (delta).vz.w = offZ;                                                                  \
-        (out)        = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
-        clamped      = (out);                                                                 \
-        if ((out) <= 0) {                                                                     \
-            clamped = 0;                                                                      \
-        }                                                                                     \
-        (out) = clamped;                                                                      \
+#define ACTOR02600_CONTACT_OVERLAP(out, coord, rec, delta)                                       \
+    do {                                                                                         \
+        s32 offX;                                                                                \
+        s32 offY;                                                                                \
+        s32 offZ;                                                                                \
+        s32 clamped;                                                                             \
+        offX            = (coord)->workm.t[0] - (rec).point.vx;                                  \
+        (delta).vx.word = offX;                                                                  \
+        offY            = (coord)->workm.t[1] - (rec).point.vy;                                  \
+        (delta).vy.word = offY;                                                                  \
+        offZ            = (coord)->workm.t[2] - (rec).point.vz;                                  \
+        (delta).vz.word = offZ;                                                                  \
+        (out)           = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
+        clamped         = (out);                                                                 \
+        if ((out) <= 0) {                                                                        \
+            clamped = 0;                                                                         \
+        }                                                                                        \
+        (out) = clamped;                                                                         \
     } while (0)
 
 /// Normalises `delta` into `unit` and expresses the direction in the frame of
@@ -743,9 +743,9 @@ void spiderResolveContacts(Task* arg0)
             case 0:
                 break;
             case 1:
-                coord->coord.t[0] += head[-1].delta.vx.h.hi;
-                coord->coord.t[1] += scratch->delta.vy.h.hi;
-                coord->coord.t[2] += scratch->delta.vz.h.hi;
+                coord->coord.t[0] += head[-1].delta.vx.halves.integer;
+                coord->coord.t[1] += scratch->delta.vy.halves.integer;
+                coord->coord.t[2] += scratch->delta.vz.halves.integer;
                 break;
             case 2:
                 coord->coord.t[0] = work->field_35C.vx;
@@ -787,15 +787,15 @@ void spiderResolveContacts(Task* arg0)
                 }
             }
             if ((result != one) || (work->field_3B2 == 0)) {
-                src                 = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
-                dx                  = src->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vx.w = dx;
-                dy                  = src->coord.t[1] - coord->coord.t[1];
-                scratch->delta.vy.w = dy;
-                dz                  = src->coord.t[2] - coord->coord.t[2];
-                scratch->delta.vz.w = dz;
-                damage              = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
-                amount              = damage;
+                src                    = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                dx                     = src->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vx.word = dx;
+                dy                     = src->coord.t[1] - coord->coord.t[1];
+                scratch->delta.vy.word = dy;
+                dz                     = src->coord.t[2] - coord->coord.t[2];
+                scratch->delta.vz.word = dz;
+                damage                 = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
+                amount                 = damage;
                 if (result == 0) {
                     if (work->field_3CA != 0) {
                         amount = (damage << 16) >> 15;

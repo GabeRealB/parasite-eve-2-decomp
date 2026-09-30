@@ -4658,16 +4658,16 @@ s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* ar
     s   = SCRATCH_STACK_RESERVE_BLOCK(GpDeltaScratch);
     ret = func_800E0FEC(arg1, s, arg2, arg3);
     if (ret != 0) {
-        GP_ROUND_FIXED_AWAY(s->vx.w);
-        GP_ROUND_FIXED_AWAY(s->vy.w);
-        GP_ROUND_FIXED_AWAY(s->vz.w);
-        arg0->coord.t[0] += s->vx.h.hi;
-        arg0->coord.t[1] += s->vy.h.hi;
-        arg0->coord.t[2] += s->vz.h.hi;
+        GP_ROUND_FIXED_AWAY(s->vx.word);
+        GP_ROUND_FIXED_AWAY(s->vy.word);
+        GP_ROUND_FIXED_AWAY(s->vz.word);
+        arg0->coord.t[0] += s->vx.halves.integer;
+        arg0->coord.t[1] += s->vy.halves.integer;
+        arg0->coord.t[2] += s->vz.halves.integer;
         if (arg3 != NULL) {
             *arg3 = func_800E1ACC((u8*)arg3);
         }
-        if ((s->vx.w | s->vz.w) == 0) {
+        if ((s->vx.word | s->vz.word) == 0) {
             ret = 0;
         }
     }

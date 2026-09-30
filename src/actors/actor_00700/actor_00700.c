@@ -846,9 +846,9 @@ static void Actor00700_Fn00334(Task* actor)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += frame->delta.vx.w >> 16;
-            coord->coord.t[1] += frame->delta.vy.w >> 16;
-            coord->coord.t[2] += frame->delta.vz.w >> 16;
+            coord->coord.t[0] += frame->delta.vx.word >> 16;
+            coord->coord.t[1] += frame->delta.vy.word >> 16;
+            coord->coord.t[2] += frame->delta.vz.word >> 16;
             break;
         case 2:
             coord->coord.t[0] = work->field_360;
@@ -869,12 +869,12 @@ static void Actor00700_Fn00334(Task* actor)
                 break;
             case 2:
                 if (work->field_378 == 0) {
-                    slot              = id >> 7;
-                    sourceCoord       = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
-                    frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage            = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value, SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) + (frame->delta.vz.w * frame->delta.vz.w)), 0, 0);
+                    slot                 = id >> 7;
+                    sourceCoord          = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
+                    frame->delta.vx.word = sourceCoord->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vy.word = sourceCoord->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vz.word = sourceCoord->coord.t[2] - coord->coord.t[2];
+                    damage               = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value, SquareRoot0((frame->delta.vx.word * frame->delta.vx.word) + (frame->delta.vy.word * frame->delta.vy.word) + (frame->delta.vz.word * frame->delta.vz.word)), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
@@ -922,14 +922,14 @@ static void Actor00700_Fn00334(Task* actor)
                 }
                 break;
             case 1:
-                x                 = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
-                frame->delta.vx.w = x;
-                y                 = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
-                frame->delta.vy.w = y;
-                z                 = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                frame->delta.vz.w = z;
-                depth             = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                boundedDepth      = depth;
+                x                    = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                frame->delta.vx.word = x;
+                y                    = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                frame->delta.vy.word = y;
+                z                    = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                frame->delta.vz.word = z;
+                depth                = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                boundedDepth         = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }
@@ -941,14 +941,14 @@ static void Actor00700_Fn00334(Task* actor)
                 }
                 break;
             case 3:
-                x                 = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
-                frame->delta.vx.w = x;
-                y                 = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
-                frame->delta.vy.w = y;
-                z                 = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                frame->delta.vz.w = z;
-                depth             = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                boundedDepth      = depth;
+                x                    = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                frame->delta.vx.word = x;
+                y                    = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                frame->delta.vy.word = y;
+                z                    = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                frame->delta.vz.word = z;
+                depth                = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                boundedDepth         = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
                 }
@@ -2032,9 +2032,9 @@ static void Actor00700_Fn02414(Task* arg0)
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += head[-1].vx.h.hi;
-            coord->coord.t[1] += delta->vy.h.hi;
-            z                  = coord->coord.t[2] + delta->vz.h.hi;
+            coord->coord.t[0] += head[-1].vx.halves.integer;
+            coord->coord.t[1] += delta->vy.halves.integer;
+            z                  = coord->coord.t[2] + delta->vz.halves.integer;
             coord->coord.t[2]  = z;
             break;
         case 2:
@@ -2054,16 +2054,16 @@ static void Actor00700_Fn02414(Task* arg0)
             Gp_ArmStateF0(1);
             break;
         case 2:
-            arg0->state = (s32)state;
-            target      = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
-            dx          = target->coord.t[0] - coord->coord.t[0];
-            delta->vx.w = dx;
-            dy          = target->coord.t[1] - coord->coord.t[1];
-            delta->vy.w = dy;
-            dz          = target->coord.t[2] - coord->coord.t[2];
-            delta->vz.w = dz;
-            damage      = Gp_ComputeDamage((s32)work->field_154.key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-            amount      = damage;
+            arg0->state    = (s32)state;
+            target         = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
+            dx             = target->coord.t[0] - coord->coord.t[0];
+            delta->vx.word = dx;
+            dy             = target->coord.t[1] - coord->coord.t[1];
+            delta->vy.word = dy;
+            dz             = target->coord.t[2] - coord->coord.t[2];
+            delta->vz.word = dz;
+            damage         = Gp_ComputeDamage((s32)work->field_154.key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+            amount         = damage;
             if (damage == 0) {
                 damage = 1;
                 amount = 1;

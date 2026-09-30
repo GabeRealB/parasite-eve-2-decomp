@@ -801,19 +801,19 @@ STATIC_ASSERT_SIZEOF(ActorModelState, 0x44);
 /// yaw the final turn steers toward. `motion` selects the handler the tick
 /// runs, and `motionStep` the step of the walk sequence that handler is on.
 typedef struct ActorWalkState {
-    VECTOR3   target;
-    byte      pad_C[0x4];
-    VECTOR3   step;
-    byte      pad_1C[0x4];
-    GpFixed16 acc[3];
-    byte      pad_2C[0x4];
-    SVECTOR   limit;
-    u16       rotX;
-    u16       rotY;
-    u16       rotZ;
-    byte      pad_3E[0x2];
-    s16       motion;
-    s16       motionStep;
+    VECTOR3 target;
+    byte    pad_C[0x4];
+    VECTOR3 step;
+    byte    pad_1C[0x4];
+    Fixed16 acc[3];
+    byte    pad_2C[0x4];
+    SVECTOR limit;
+    u16     rotX;
+    u16     rotY;
+    u16     rotZ;
+    byte    pad_3E[0x2];
+    s16     motion;
+    s16     motionStep;
 } ActorWalkState;
 STATIC_ASSERT_SIZEOF(ActorWalkState, 0x44);
 

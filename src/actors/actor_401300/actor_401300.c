@@ -1497,9 +1497,9 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
     s                                    = blk;
     s->moved                             = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        s->step.vx = head[-1].delta.vx.w >> 16;
-        s->step.vy = s->delta.vy.w >> 16;
-        s->step.vz = s->delta.vz.w >> 16;
+        s->step.vx = head[-1].delta.vx.word >> 16;
+        s->step.vy = s->delta.vy.word >> 16;
+        s->step.vz = s->delta.vz.word >> 16;
         if (Actor401300_HasHeightClamp(&gGameSession->location.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x15E) {
@@ -1523,15 +1523,15 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
             coord->coord.t[0] += s->step.vx;
             coord->coord.t[2] += s->step.vz;
         }
-        if (s->delta.vx.w & 0xFFFF) {
-            if (s->delta.vx.w > 0) {
+        if (s->delta.vx.word & 0xFFFF) {
+            if (s->delta.vx.word > 0) {
                 coord->coord.t[0]++;
             } else {
                 coord->coord.t[0]--;
             }
         }
-        if (s->delta.vz.w & 0xFFFF) {
-            if (s->delta.vz.w > 0) {
+        if (s->delta.vz.word & 0xFFFF) {
+            if (s->delta.vz.word > 0) {
                 coord->coord.t[2]++;
             } else {
                 coord->coord.t[2]--;
@@ -1542,7 +1542,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
         func_actor_401300_80132BE4(&gGameSession->location.loc, coord);
         coord->coord.t[1] += arg3;
     }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+    if (s->delta.vx.word != 0 || s->delta.vz.word != 0) {
         s->moved = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorStepDelta);

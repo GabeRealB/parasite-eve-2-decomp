@@ -1207,13 +1207,13 @@ static void func_actor_113100_80131E58(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->work          = work;
-    work->model.animId  = -1;
-    work->model.bank    = -1;
-    work->field_53D     = -1;
-    work->walk.acc[0].w = 0;
-    work->walk.acc[1].w = 0;
-    work->walk.acc[2].w = 0;
+    task->work             = work;
+    work->model.animId     = -1;
+    work->model.bank       = -1;
+    work->field_53D        = -1;
+    work->walk.acc[0].word = 0;
+    work->walk.acc[1].word = 0;
+    work->walk.acc[2].word = 0;
     if (gGameSession->location.loc.variant == 2) {
         work->field_534 = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
     }
@@ -1287,8 +1287,8 @@ static void func_actor_113100_80131E58(Task* task)
 /// draws the ground shadow under that part. `Gp_StateF0.field_4` gates the rest: a
 /// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
 /// or `func_actor_113100_80132FB4` from a two-entry stack table indexed by
-/// `walk.motion`, integrates the 16.16 step at `walk.step` into `walk.acc[0].w` /
-/// `walk.acc[1].w` / `walk.acc[2].w` and the root translation, ticks slots 1..0x13
+/// `walk.motion`, integrates the 16.16 step at `walk.step` into `walk.acc[0].word` /
+/// `walk.acc[1].word` / `walk.acc[2].word` and the root translation, ticks slots 1..0x13
 /// once `model.ticking` has latched, and plays ids 0x5113000F / 0x51130013 /
 /// 0x51130010 from the slot-1 cue flags. While the model is visible it clears
 /// the occupancy table, ramps `field_538` toward 0 or 0x1000 according to
@@ -1316,17 +1316,17 @@ static void func_actor_113100_80132104(Task* task)
     }
     if (Gp_StateF0.field_4 == 0) {
         funcs[work->walk.motion](task);
-        coord                = task->extra.tmd->coords;
-        work->walk.acc[0].w += work->walk.step.vx;
-        work->walk.acc[1].w += work->walk.step.vy;
-        work->walk.acc[2].w += work->walk.step.vz;
-        coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
-        coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
-        coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-        work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
-        work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
-        work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
+        coord                   = task->extra.tmd->coords;
+        work->walk.acc[0].word += work->walk.step.vx;
+        work->walk.acc[1].word += work->walk.step.vy;
+        work->walk.acc[2].word += work->walk.step.vz;
+        coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
+        coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
+        coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
+        coord->composeStamp     = GRAPHICS_COORD_DIRTY;
+        work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
+        work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
+        work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
                 Gp_AnimTickIndex(&work->rig.anim, i);

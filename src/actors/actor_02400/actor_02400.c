@@ -440,9 +440,9 @@ static void Actor02400_Fn00C08(Task* task)
         goto move_absolute;
     goto move_done;
 move_delta:
-    coord->coord.t[0] += scratch->delta.vx.h.hi;
-    coord->coord.t[1] += scratch->delta.vy.h.hi;
-    z                  = coord->coord.t[2] + scratch->delta.vz.h.hi;
+    coord->coord.t[0] += scratch->delta.vx.halves.integer;
+    coord->coord.t[1] += scratch->delta.vy.halves.integer;
+    z                  = coord->coord.t[2] + scratch->delta.vz.halves.integer;
     goto move_z;
 move_absolute:
     coord->coord.t[0] = work->field_120;
@@ -488,11 +488,11 @@ move_done:
                 }
                 switch (kind) {
                     case 0:
-                        src                 = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
-                        scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
-                        scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
-                        scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        work->field_150    += Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
+                        src                    = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
+                        scratch->delta.vx.word = src->coord.t[0] - coord->coord.t[0];
+                        scratch->delta.vy.word = src->coord.t[1] - coord->coord.t[1];
+                        scratch->delta.vz.word = src->coord.t[2] - coord->coord.t[2];
+                        work->field_150       += Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word), 0, 0);
                         if ((s16)work->field_150 >= 20 || work->field_13C == 5) {
                             work->field_13C = 5;
                             work->field_13E = 0;
@@ -509,35 +509,35 @@ move_done:
                         work->field_134 = 0;
                         break;
                     case 1:
-                        src                 = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
-                        scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
-                        scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
-                        scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        damage              = Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
-                        work->field_13C     = 4;
-                        work->field_13E     = 0;
-                        work->field_140     = 0;
-                        work->field_138     = 0;
-                        work->field_13A     = 0;
-                        work->field_134     = 0;
-                        param               = Gp_GetIdParam1(work->rec60[i].key.value) & 0xFFFF;
+                        src                    = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
+                        scratch->delta.vx.word = src->coord.t[0] - coord->coord.t[0];
+                        scratch->delta.vy.word = src->coord.t[1] - coord->coord.t[1];
+                        scratch->delta.vz.word = src->coord.t[2] - coord->coord.t[2];
+                        damage                 = Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word), 0, 0);
+                        work->field_13C        = 4;
+                        work->field_13E        = 0;
+                        work->field_140        = 0;
+                        work->field_138        = 0;
+                        work->field_13A        = 0;
+                        work->field_134        = 0;
+                        param                  = Gp_GetIdParam1(work->rec60[i].key.value) & 0xFFFF;
                         if (Actor02400_D0463C[param] == 0 && lastId != work->rec60[i].key.value) {
                             lastId = work->rec60[i].key.value;
                             func_800FDB18(param, coord, NULL, &work->effArg);
                         }
                         break;
                     case 2:
-                        src                 = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
-                        scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
-                        scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
-                        scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        damage              = (s16)Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0) * 5;
-                        work->field_13C     = 4;
-                        work->field_13E     = 0;
-                        work->field_140     = 0;
-                        work->field_138     = 0;
-                        work->field_13A     = 0;
-                        work->field_134     = 0;
+                        src                    = gPlayerActorTasks[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
+                        scratch->delta.vx.word = src->coord.t[0] - coord->coord.t[0];
+                        scratch->delta.vy.word = src->coord.t[1] - coord->coord.t[1];
+                        scratch->delta.vz.word = src->coord.t[2] - coord->coord.t[2];
+                        damage                 = (s16)Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word), 0, 0) * 5;
+                        work->field_13C        = 4;
+                        work->field_13E        = 0;
+                        work->field_140        = 0;
+                        work->field_138        = 0;
+                        work->field_13A        = 0;
+                        work->field_134        = 0;
                         Gp_SpawnEff(0x6009C, coord, 2, NULL);
                         break;
                     case 3:
@@ -572,11 +572,11 @@ move_done:
             case 1:
                 break;
             case 3:
-                scratch->delta.vx.w = coord->workm.t[0] - work->rec60[i].point.vx;
-                scratch->delta.vy.w = coord->workm.t[1] - work->rec60[i].point.vy;
-                scratch->delta.vz.w = coord->workm.t[2] - work->rec60[i].point.vz;
-                reach               = work->rec60[i].distance - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
-                val                 = reach;
+                scratch->delta.vx.word = coord->workm.t[0] - work->rec60[i].point.vx;
+                scratch->delta.vy.word = coord->workm.t[1] - work->rec60[i].point.vy;
+                scratch->delta.vz.word = coord->workm.t[2] - work->rec60[i].point.vz;
+                reach                  = work->rec60[i].distance - SquareRoot0(scratch->delta.vx.word * scratch->delta.vx.word + scratch->delta.vy.word * scratch->delta.vy.word + scratch->delta.vz.word * scratch->delta.vz.word);
+                val                    = reach;
                 if (reach <= 0) {
                     val = 0;
                 }

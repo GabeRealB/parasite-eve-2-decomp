@@ -20,11 +20,11 @@ void patrolApplyGroundStep(OverlayWalker* work)
     SCRATCH_STACK_CURSOR(u8) = head - 0x18;
     s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
     if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
-        dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.h.hi;
-        dz         = s->delta.vz.h.hi;
+        dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.halves.integer;
+        dz         = s->delta.vz.halves.integer;
         s->move.vx = dx;
         s->move.vz = dz;
-        valx       = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.w;
+        valx       = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.word;
         if ((valx & 0xFFFF) != 0) {
             if (valx > 0) {
                 s->move.vx++;
@@ -32,7 +32,7 @@ void patrolApplyGroundStep(OverlayWalker* work)
                 s->move.vx--;
             }
         }
-        valz = s->delta.vz.w;
+        valz = s->delta.vz.word;
         if ((valz & 0xFFFF) != 0) {
             if (valz > 0) {
                 s->move.vz++;
@@ -41,8 +41,8 @@ void patrolApplyGroundStep(OverlayWalker* work)
             }
         }
         if (work->field_6B == 0) {
-            dy         = s->delta.vy.h.hi;
-            valy       = s->delta.vy.w;
+            dy         = s->delta.vy.halves.integer;
+            valy       = s->delta.vy.word;
             s->move.vy = s->move.vy + dy;
             if ((valy & 0xFFFF) != 0) {
                 if (valy > 0) {

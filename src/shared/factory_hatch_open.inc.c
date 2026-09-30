@@ -27,8 +27,8 @@ s32 factoryHatchOpen(Task* task)
             if (work->field_0 < -0x300000) {
                 work->field_0 = -0x300000;
             }
-            work->field_4.value += work->field_0;
-            if (work->field_4.value < -0x3000000) {
+            work->field_4.word += work->field_0;
+            if (work->field_4.word < -0x3000000) {
                 work->step++;
             }
             break;
@@ -37,9 +37,9 @@ s32 factoryHatchOpen(Task* task)
             if (work->field_0 > 0x100000) {
                 work->field_0 = 0x100000;
             }
-            work->field_4.value += work->field_0;
-            if (work->field_4.value >= -0x3000000) {
-                work->field_4.value = -0x3000000;
+            work->field_4.word += work->field_0;
+            if (work->field_4.word >= -0x3000000) {
+                work->field_4.word = -0x3000000;
                 work->step++;
             }
             break;
@@ -54,7 +54,7 @@ s32 factoryHatchOpen(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    RotMatrixX(work->field_4.part.whole, &mat->mat);
+    RotMatrixX(work->field_4.halves.integer, &mat->mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return ret;
 }
