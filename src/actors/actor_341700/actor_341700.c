@@ -57,6 +57,7 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
+#include "../../shared/hopping_enemy.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
@@ -92,7 +93,6 @@ static void func_actor_341700_80163E58(Task* arg0);
 static void func_actor_341700_80163FBC(Task* arg0);
 static void func_actor_341700_801640F8(Task* arg0, s16 arg1);
 static void func_actor_341700_801649DC(Task* arg0);
-static void func_actor_341700_80164B68(Task* task);
 static void func_actor_341700_80164CDC(Task* arg0);
 static void func_actor_341700_80164E9C(Task* arg0);
 static void func_actor_341700_80165008(Task* arg0);
@@ -105,7 +105,6 @@ static void func_actor_341700_80165DDC(Task* arg0);
 static void func_actor_341700_80166114(Task* arg0);
 static void func_actor_341700_801663F0(Task* arg0);
 static void func_actor_341700_80166568(Task* arg0);
-static void func_actor_341700_801666F0(Task* arg0);
 static void func_actor_341700_8016688C(Task* arg0);
 static void func_actor_341700_801669F8(Task* arg0);
 static void func_actor_341700_80166B94(Task* arg0);
@@ -122,7 +121,6 @@ static void func_actor_341700_80168124(Task* arg0);
 static s16  func_actor_341700_80168178(Task* arg0);
 static void func_actor_341700_801681C4(Task* arg0, s32 arg1);
 static s32  func_actor_341700_80168234(Task* arg0);
-static void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2);
 static s32  func_actor_341700_80168444(Task* arg0, s16 arg1);
 static s16  func_actor_341700_80168468(Task* arg0);
 void        func_actor_341700_801684A8(Task* arg0);
@@ -159,7 +157,6 @@ static void func_actor_341700_80169254(Task* arg0);
 static void func_actor_341700_80169380(Task* arg0);
 static void func_actor_341700_80169440(Task* arg0);
 static void func_actor_341700_80169520(Task* arg0);
-static void func_actor_341700_801695A0(Task* task);
 static void func_actor_341700_8016966C(Task* arg0);
 static void func_actor_341700_801696C8(Task* arg0);
 static void func_actor_341700_801696E0(Task* arg0);
@@ -957,7 +954,6 @@ extern TmdSource D_actor_341700_8016EA84;
 
 static void            func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
 static void            func_actor_341700_801624F8(Task* arg0);
-static void            func_actor_341700_801626C4(Task* arg0);
 static __inline__ void enter_state(Task* arg0, s32 state);
 static __inline__ void update_color(void* enemy, GfxCoord* coord);
 static __inline__ s16  take_hit(Task* arg0);
@@ -1099,88 +1095,7 @@ static void func_actor_341700_801624F8(Task* arg0)
     Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[4], 0x200, NULL);
 }
 
-/// Turns model parts 5, 4 and 3 about Y by a third of `field_424` each: reads
-/// each part's rotation back as Euler angles, adds to the yaw, rebuilds the
-/// 3x3 and marks the coordinate dirty.
-///
-/// Each block keeps its own part pointer, and the identity goes through a
-/// mix of the stack matrix and `ident` (words 2 and 4 through the pointer):
-/// one shared part pointer comes out a saved register short.
-static void func_actor_341700_801626C4(Task* arg0)
-{
-    SVECTOR          rot;
-    OverlayMat       mtx;
-    GpMtxWords*      ident;
-    Actor341700Work* work;
-    GfxCoord*        coords;
-    MATRIX*          m5;
-    MATRIX*          m4;
-    MATRIX*          m3;
-
-    work   = (Actor341700Work*)arg0->work;
-    ident  = &mtx.ident;
-    coords = arg0->extra.tmd->coords;
-
-    mtx.ident.m00_m01 = 0x1000;
-    mtx.ident.m02_m10 = 0;
-    ident->m11_m12    = 0x1000;
-    mtx.ident.m20_m21 = 0;
-    ident->m22        = 0x1000;
-    m5                = &coords[5].coord;
-    Gp_MtxToEuler(m5, &rot);
-    rot.vy = (u16)rot.vy + work->field_424 / 3;
-    RotMatrix(&rot, &mtx.mat);
-    m5->m[0][0]            = (u16)mtx.mat.m[0][0];
-    m5->m[0][1]            = (u16)mtx.mat.m[0][1];
-    m5->m[0][2]            = (u16)mtx.mat.m[0][2];
-    m5->m[1][0]            = (u16)mtx.mat.m[1][0];
-    m5->m[1][1]            = (u16)mtx.mat.m[1][1];
-    m5->m[1][2]            = (u16)mtx.mat.m[1][2];
-    m5->m[2][0]            = (u16)mtx.mat.m[2][0];
-    m5->m[2][1]            = (u16)mtx.mat.m[2][1];
-    m5->m[2][2]            = (u16)mtx.mat.m[2][2];
-    coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-
-    mtx.ident.m00_m01 = 0x1000;
-    mtx.ident.m02_m10 = 0;
-    ident->m11_m12    = 0x1000;
-    mtx.ident.m20_m21 = 0;
-    ident->m22        = 0x1000;
-    m4                = &coords[4].coord;
-    Gp_MtxToEuler(m4, &rot);
-    rot.vy = (u16)rot.vy + work->field_424 / 3;
-    RotMatrix(&rot, &mtx.mat);
-    m4->m[0][0]            = (u16)mtx.mat.m[0][0];
-    m4->m[0][1]            = (u16)mtx.mat.m[0][1];
-    m4->m[0][2]            = (u16)mtx.mat.m[0][2];
-    m4->m[1][0]            = (u16)mtx.mat.m[1][0];
-    m4->m[1][1]            = (u16)mtx.mat.m[1][1];
-    m4->m[1][2]            = (u16)mtx.mat.m[1][2];
-    m4->m[2][0]            = (u16)mtx.mat.m[2][0];
-    m4->m[2][1]            = (u16)mtx.mat.m[2][1];
-    m4->m[2][2]            = (u16)mtx.mat.m[2][2];
-    coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-
-    mtx.ident.m00_m01 = 0x1000;
-    mtx.ident.m02_m10 = 0;
-    ident->m11_m12    = 0x1000;
-    mtx.ident.m20_m21 = 0;
-    ident->m22        = 0x1000;
-    m3                = &coords[3].coord;
-    Gp_MtxToEuler(m3, &rot);
-    rot.vy = (u16)rot.vy + work->field_424 / 3;
-    RotMatrix(&rot, &mtx.mat);
-    m3->m[0][0]            = (u16)mtx.mat.m[0][0];
-    m3->m[0][1]            = (u16)mtx.mat.m[0][1];
-    m3->m[0][2]            = (u16)mtx.mat.m[0][2];
-    m3->m[1][0]            = (u16)mtx.mat.m[1][0];
-    m3->m[1][1]            = (u16)mtx.mat.m[1][1];
-    m3->m[1][2]            = (u16)mtx.mat.m[1][2];
-    m3->m[2][0]            = (u16)mtx.mat.m[2][0];
-    m3->m[2][1]            = (u16)mtx.mat.m[2][1];
-    m3->m[2][2]            = (u16)mtx.mat.m[2][2];
-    coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/hopping_enemy_twist.inc.c"
 
 /// Main enemy init. Allocates the 0x454-byte `Actor341700Work`, points the
 /// model at the light / color matrices inside it, runs the animation context,
@@ -1234,7 +1149,7 @@ static void func_actor_341700_80162974(Task* task)
     w2->field_414 = 2;
     func_actor_341700_801649DC(task);
     coord->parent = &gGfxViewCoord;
-    func_actor_341700_80164B68(task);
+    hopperLinkBodies(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = task->spawnArg2.pointer;
     Gp_LinkNode(&enemy->node);
@@ -1330,7 +1245,7 @@ static void func_actor_341700_80162B8C(Task* task)
     w2->field_414 = two;
     func_actor_341700_801649DC(task);
     coord->parent = &gGfxViewCoord;
-    func_actor_341700_80164B68(task);
+    hopperLinkBodies(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     (Gp_IncStateF0Ref)(0);
     e2 = task->spawnArg2.pointer;
@@ -1475,9 +1390,9 @@ static void func_actor_341700_80162DCC(Task* arg0)
             func_actor_341700_801649DC(arg0);
             cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-            func_actor_341700_801626C4(arg0);
+            hopperTwistSpine(arg0);
             if (work->field_432 == 1) {
-                func_actor_341700_80168370(arg0, 6, (SVECTOR3*)&work->field_98);
+                hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             update_rotation(arg0);
             func_actor_341700_801640F8(arg0, 0);
@@ -1804,7 +1719,7 @@ static void func_actor_341700_80163C58(Task* arg0)
             }
             func_actor_341700_801649DC(arg0);
             if (work->field_432 == 1) {
-                func_actor_341700_80168370(arg0, 6, (SVECTOR3*)&work->field_80);
+                hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_80);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
@@ -2177,50 +2092,7 @@ static void func_actor_341700_801649DC(Task* arg0)
     }
 }
 
-/// Links the enemy's three hit bodies on model part 1: `obj_2AC` (radius
-/// 0x170, over the eight records at `rec_2EC`, bit 0x8000 set),
-/// `obj_3AC` (radius 0x170, keyed to the enemy, over the two records at
-/// `rec_3CC`, bit 0x8000 clear) and `obj_2CC` (radius 0x224, sharing
-/// `rec_2EC`, bit 0x4000 set).
-static void func_actor_341700_80164B68(Task* task)
-{
-    Actor341700Work* work = (Actor341700Work*)task->work;
-
-    work->obj_2AC.coord            = &task->extra.tmd->coords[1];
-    work->obj_2AC.context.contacts = work->rec_2EC;
-    work->obj_2AC.pos.vx           = 0;
-    work->obj_2AC.pos.vy           = 0;
-    work->obj_2AC.pos.vz           = 0;
-    work->obj_2AC.key              = 0x3002C;
-    work->obj_2AC.radius           = 0x170;
-    work->obj_2AC.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj_2AC);
-    Gp_InitRec18Table(work->rec_2EC, 8, 0);
-    work->obj_2AC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-
-    work->obj_3AC.coord            = &task->extra.tmd->coords[1];
-    work->obj_3AC.context.contacts = work->rec_3CC;
-    work->obj_3AC.pos.vx           = 0;
-    work->obj_3AC.pos.vy           = 0;
-    work->obj_3AC.pos.vz           = 0;
-    work->obj_3AC.key              = Gp_PackObjPair(task->spawnArg2.pointer, 0);
-    work->obj_3AC.radius           = 0x170;
-    work->obj_3AC.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj_3AC);
-    Gp_InitRec18Table(work->rec_3CC, 2, 0);
-    work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-
-    work->obj_2CC.coord            = &task->extra.tmd->coords[1];
-    work->obj_2CC.context.contacts = work->rec_2EC;
-    work->obj_2CC.pos.vx           = 0;
-    work->obj_2CC.pos.vy           = 0;
-    work->obj_2CC.pos.vz           = 0;
-    work->obj_2CC.key              = 0x3002C;
-    work->obj_2CC.radius           = 0x224;
-    work->obj_2CC.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj_2CC);
-    work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-}
+#include "../../shared/hopping_enemy_bodies.inc.c"
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
@@ -2228,7 +2100,7 @@ static const TaskFuncTable9 D_actor_341700_80161F0C = { {
     func_actor_341700_80169380,
     func_actor_341700_80169440,
     func_actor_341700_80169520,
-    func_actor_341700_801695A0,
+    hopperBeginDeath,
     func_actor_341700_8016966C,
     func_actor_341700_80164E9C,
     func_actor_341700_801696C8,
@@ -2477,7 +2349,7 @@ static void func_actor_341700_80165388(Task* arg0)
                 sp.funcs[(s16)work->field_420](arg0);
             }
             func_actor_341700_801649DC(arg0);
-            func_actor_341700_801626C4(arg0);
+            hopperTwistSpine(arg0);
             update_rotation(arg0);
             func_actor_341700_801640F8(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
@@ -2536,7 +2408,7 @@ static const TaskFuncTable10 D_actor_341700_80161FA4 = { {
     func_actor_341700_80166114,
     func_actor_341700_801663F0,
     func_actor_341700_80166568,
-    func_actor_341700_801666F0,
+    hopperCreepUntilHit,
     func_actor_341700_8016688C,
     func_actor_341700_801669F8,
     func_actor_341700_80166B94,
@@ -2945,46 +2817,7 @@ static void func_actor_341700_80166568(Task* arg0)
     }
 }
 
-static void func_actor_341700_801666F0(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* next;
-    Actor341700Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = 0x14;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor341700Work*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (Actor341700Work*)arg0->work;
-        next2->field_420     = 5;
-        next2->field_422     = 0;
-    }
-}
+#include "../../shared/hopping_enemy_creep.inc.c"
 
 /// Flies backwards off the heading, pitching toward 0x200, under the
 /// accelerating drop; on landing levels out, requests animation 0xC,
@@ -3193,46 +3026,10 @@ static void func_actor_341700_80166E90(Task* arg0)
     }
 }
 
-static void func_actor_341700_801670B0(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* next;
-    Actor341700Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-
-    work = (Actor341700Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = 0x14;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor341700Work*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (Actor341700Work*)arg0->work;
-        next2->field_420     = 5;
-        next2->field_422     = 0;
-    }
-}
+/// The same creep as a second entry of the state table.
+#define hopperCreepUntilHit func_actor_341700_801670B0
+#include "../../shared/hopping_enemy_creep.inc.c"
+#undef hopperCreepUntilHit
 
 /// Sub-state handler, the steering counterpart of `func_actor_341700_80167890`:
 /// while the enemy lives it turns `field_7A` toward `field_70` and pushes the
@@ -3755,26 +3552,7 @@ void func_actor_341700_8016833C(Task* task, s16 part, VECTOR3* pos)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Moves the model so that part `arg1` lands on `arg2`: shifts the root
-/// translation by the part's offset from the root in view space and marks
-/// the part's coordinate dirty.
-static void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
-{
-    MATRIX    local;
-    MATRIX    world;
-    GfxCoord* coord;
-    GfxCoord* coords;
-
-    coords = arg0->extra.tmd->coords;
-    coord  = &coords[arg1];
-    Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
-    coords->coord.t[0]  = arg2->vx - (world.t[0] - local.t[0]);
-    coords->coord.t[1]  = arg2->vy - (world.t[1] - local.t[1]);
-    coords->coord.t[2]  = arg2->vz - (world.t[2] - local.t[2]);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/hopping_enemy_pin_part.inc.c"
 
 /// Scales `arg1` by the animation speed `field_41C`, in 1/16 units.
 static s32 func_actor_341700_80168444(Task* arg0, s16 arg1)
@@ -4398,32 +4176,7 @@ static void func_actor_341700_80169520(Task* arg0)
     }
 }
 
-/// Starts the death shrink: detaches the enemy's records and unlinks its
-/// three hit bodies, sets the Y scale `field_430` to 1.0, saves the root
-/// matrix in `savedRootMtx`, sets the enemy's light mode 1, clears the frame
-/// counter and advances the state.
-static void func_actor_341700_801695A0(Task* task)
-{
-    GfxCoord*        coord = task->extra.tmd->coords;
-    GpEnemy*         enemy = (GpEnemy*)task->spawnArg2.pointer;
-    Actor341700Work* work  = (Actor341700Work*)task->work;
-    Actor341700Work* objWork;
-
-    enemy->recs = 0;
-
-    objWork = (Actor341700Work*)task->work;
-    Gp_UnlinkObj(&objWork->obj_2AC);
-    Gp_UnlinkObj(&objWork->obj_2CC);
-    Gp_UnlinkObj(&objWork->obj_3AC);
-
-    work->field_430    = 0x1000;
-    work->savedRootMtx = coord->coord;
-
-    Gp_SetLightMode(task->spawnArg2.pointer, 1);
-
-    work->field_412 = 0;
-    work->field_420++;
-}
+#include "../../shared/hopping_enemy_begin_death.inc.c"
 
 /// After 0x18 frames sets model flag 2, clears the frame counter, sets
 /// `field_451` and advances the state.
@@ -5139,7 +4892,7 @@ static void func_actor_341700_8016A8F4(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-/// Starts the death shrink, the same body as `func_actor_341700_801695A0`:
+/// Starts the death shrink, the same body as `hopperBeginDeath`:
 /// detaches the records, unlinks the three hit bodies, sets the Y scale to
 /// 1.0, saves the root matrix, sets light mode 1 and advances the state.
 static void func_actor_341700_8016A98C(Task* task)
