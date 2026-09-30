@@ -45,6 +45,17 @@ typedef struct RoomCutsceneRec {
 } RoomCutsceneRec;
 STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
 
+/// A room's `gRoomCutsceneSoundTask` when that symbol is eight bytes.
+///
+/// `task` is the sound task the cutscene runner starts beside the scene,
+/// polls and kills on a skip. The four bytes after it are zero in both rooms
+/// with this extent. Their role is unproven.
+typedef struct {
+    Task* task;       // Sound task started beside the scene; NULL while none runs
+    u8    unknown[4]; // Role unproven; zero, with no recovered access
+} RoomCutsceneSoundTaskStorage;
+STATIC_ASSERT_SIZEOF(RoomCutsceneSoundTaskStorage, 8);
+
 /// One row of a shop's price ladder, a table of thirteen in the room's data.
 /// The row's three items join the shop's stock once the row's bit is set in
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers`. The rooms read only `items`; the leading word grows

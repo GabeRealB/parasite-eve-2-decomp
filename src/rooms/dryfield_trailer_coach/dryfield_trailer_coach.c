@@ -68,7 +68,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.value
+// Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
+#define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 #include "../../shared/glow_draw.h"
 
@@ -1377,16 +1378,7 @@ static s32 Shop_Data_80187628 = 0;
 
 static GpItemMap* Shop_Data_8018762C = NULL;
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    Task* value;
-    u8    retained[4];
-} DryfieldTrailerCoachStorage9C94;
-STATIC_ASSERT_SIZEOF(DryfieldTrailerCoachStorage9C94, 8);
-
-DryfieldTrailerCoachStorage9C94 gRoomCutsceneSoundTask = { 0 };
+RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask = { 0 };
 
 RoomCutsceneRec D_dryfield_trailer_coach_80189C9C = { 0 };
 
@@ -1520,8 +1512,8 @@ static UiObjectDesc Telephone_Data_80181CAC;
 
 static UiObjectDesc Telephone_Data_80181CC8;
 
-/// The scene sub-task while it runs, NULL otherwise.
-extern DryfieldTrailerCoachStorage9C94 gRoomCutsceneSoundTask;
+/// This room's cutscene sound-task slot. The runner uses `task`.
+extern RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask;
 
 extern GpEvsCmd D_dryfield_trailer_coach_80185AFC[];
 

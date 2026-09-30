@@ -66,7 +66,8 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-#define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.value
+// Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
+#define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
@@ -160,17 +161,8 @@ extern s8 D_shelter_b2_laboratory_80182A90[];
 /// `glowDrawPulsingDisc` a single point.
 extern SVECTOR D_shelter_b2_laboratory_80182AA0[45];
 
-/// The cutscene's sound task, killed when the scene is skipped.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    Task* value;
-    u8    retained[4];
-} ShelterB2LaboratoryStorage64A4;
-STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64A4, 8);
-
-extern ShelterB2LaboratoryStorage64A4 gRoomCutsceneSoundTask;
+/// This room's cutscene sound-task slot. The runner uses `task`.
+extern RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask;
 
 /// Copies of the message and request that started the pending exit
 /// transition, read back by `roomEventTask`.
@@ -1045,7 +1037,7 @@ GpAreaApplyRec D_shelter_b2_laboratory_8018649C[2] = {
     { 255, 0, 0, 0 },
 };
 
-ShelterB2LaboratoryStorage64A4 gRoomCutsceneSoundTask = { NULL, { 0 } };
+RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask = { NULL, { 0 } };
 
 RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
