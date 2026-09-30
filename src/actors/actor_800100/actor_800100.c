@@ -53,6 +53,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "../../shared/pyke_flame.h"
 
 /// Ground position and collision offset borrowed from the scratch stack by
 /// func_actor_800100_801635F4.
@@ -203,12 +204,10 @@ extern s16                     D_actor_800100_80167218[];
 extern s16                     D_actor_800100_80167224[];
 extern u8                      D_actor_800100_80167230[];
 
-static void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
 /// Draws one frame of the launched projectile's spinning sprite at `pos`:
 /// `frame` walks the twelve windows of `D_80111E48`, `width` is the flare's
 /// half-width (divided down by the projected depth) and `ang` its spin, so the
 /// quad is a square rotated by `ang` rather than an axis-aligned sprite.
-static void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang);
 static void func_actor_800100_80162E90(VECTOR3* arg0, s32 arg1);
 static void func_actor_800100_801631C8(Task* arg0);
 static void func_actor_800100_80163214(Task* arg0);
@@ -1121,11 +1120,11 @@ void func_actor_800100_80161F20(Task* task)
                 case 1:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
-                        func_actor_800100_80162264(
+                        pykeFlameDrawNozzle(
                             MATRIX_TRANS(&coord->workm), work->age, 0x80);
                         break;
                     }
-                    func_actor_800100_80162264(
+                    pykeFlameDrawNozzle(
                         MATRIX_TRANS(&coord->workm), work->age, 0x80);
                     base->framesLeft   = 4;
                     slot->inner        = 0x80;
@@ -1176,81 +1175,7 @@ void func_actor_800100_80161F20(Task* task)
     }
 }
 
-/// Links one frame of the flare's animated sprite at the world point `pos`.
-/// The point is projected through `GsWSMATRIX` by a single `RTPS` and the quad
-/// is dropped when that sets a negative `gte_stflg`. `frame % 6` picks one of
-/// the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x430D) and
-/// `brightness` sizes it: the corners sit `brightness * 31 / otz` from the
-/// projected centre, so the sprite shrinks with distance. Same 0x18-byte
-/// `GpRingScratch` block and axis-aligned quad as the gameplay sprite
-/// drawers.
-static void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
-{
-    void**         scratch;
-    u8*            head;
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    SVECTOR*       vec;
-    s16            x;
-    s16            y;
-    u16            uv;
-    s32            u0;
-    s32            u1;
-    u16            vz;
-
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    head                                    = SCRATCH_HEAD_AT(scratch, void);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)pos->vx;
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)pos->vy;
-    vz                                      = (u16)pos->vz;
-    SCRATCH_HEAD_AT(scratch, void)          = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        prim->clut  = 0x430D;
-        prim->v0    = 0x98;
-        prim->v1    = 0x98;
-        prim->v2    = 0xB7;
-        prim->v3    = 0xB7;
-        uv          = frame % 6;
-        u0          = uv << 5;
-        u1          = u0 + 0x1F;
-        prim->u0    = u0;
-        prim->u1    = u1;
-        prim->u2    = u0;
-        prim->u3    = u1;
-        block->step = ((u16)brightness * 31) / block->otz;
-        x           = (u16)block->sx - (u16)block->step;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = (u16)block->sx + (u16)block->step;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = (u16)block->sy - (u16)block->step;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = (u16)block->sy + (u16)block->step;
-        prim->y3    = y;
-        prim->y2    = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
-}
+#include "../../shared/pyke_flame_nozzle.inc.c"
 
 /// Projectile task of the actor: with effect control running it advances
 /// `work->age` (the animation frame, halved for the draw). With nonzero
@@ -1295,9 +1220,9 @@ void func_actor_800100_801624F0(Task* task)
     }
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         Gp_UpdateCoord(coord);
-        func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
-                                   (work->age >> 1) + 1, work->scale,
-                                   work->angle);
+        pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+                          (work->age >> 1) + 1, work->scale,
+                          work->angle);
         return;
     }
     work->age = work->age + 1;
@@ -1347,9 +1272,9 @@ void func_actor_800100_801624F0(Task* task)
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
-            func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
-                                       (work->age >> 1) + 1, work->scale,
-                                       work->angle);
+            pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+                              (work->age >> 1) + 1, work->scale,
+                              work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
@@ -1386,9 +1311,9 @@ void func_actor_800100_801624F0(Task* task)
             coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
-                                       (work->age >> 1) + 1, work->scale,
-                                       work->angle);
+            pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+                              (work->age >> 1) + 1, work->scale,
+                              work->angle);
             if (work->age >= 0x15) {
                 Gp_ReleaseState1CMem(work, task);
             }
@@ -1396,78 +1321,7 @@ void func_actor_800100_801624F0(Task* task)
     }
 }
 
-/// Draws one frame of the launched projectile's spinning sprite: a single
-/// semi-transparent, textured `POLY_FT4` billboarded on the world point `pos`.
-/// `frame` walks the twelve sprite windows of `D_80111E48`, `width` is the
-/// flare's half-width (divided down by the projected depth) and `ang` its spin,
-/// so the quad is a square rotated by `ang` rather than an axis-aligned sprite.
-/// `otz` is biased by one before it is used as the divisor so a point on the
-/// near plane cannot divide by zero.
-static void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    GpEffUv8*        rec;
-    u16              idx;
-    s32              a;
-    u16              vz;
-
-    scratch                                   = SCRATCH_HEAD_ADDR;
-    head                                      = SCRATCH_HEAD_AT(scratch, void);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)pos->vx;
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)pos->vy;
-    vz                                        = (u16)pos->vz;
-    SCRATCH_HEAD_AT(scratch, void)            = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    idx = frame % 12;
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz     = block->otz + 1;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        rec         = &D_80111E48[idx];
-        prim->clut  = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
-        prim->u0    = rec->u;
-        prim->v0    = rec->v;
-        prim->u1    = rec->u + 0x27;
-        prim->v1    = rec->v;
-        prim->u2    = rec->u;
-        prim->v2    = rec->v + 0x27;
-        prim->u3    = rec->u + 0x27;
-        prim->v3    = rec->v + 0x27;
-        a           = ang;
-        block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
-        block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        a           = a + 0x400;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
-        block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
-}
+#include "../../shared/pyke_flame_blob.inc.c"
 
 /// Draws the projectile's ground splash at the traced ground point `pos`: the
 /// unit quad `D_80111E38` scaled to `width` half-size, laid flat by
