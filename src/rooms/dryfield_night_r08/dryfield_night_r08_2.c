@@ -41,24 +41,17 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_visual_effects.h"
 
 #define D_dryfield_night_r08_801805BC (D_dryfield_night_r08_801805AC + 2)
 #define D_dryfield_night_r08_801805CC (D_dryfield_night_r08_801805AC + 4)
 #define D_dryfield_night_r08_801805DC (D_dryfield_night_r08_801805AC + 6)
 #define D_dryfield_night_r08_80180664 (D_dryfield_night_r08_801805AC + 23)
-#define D_dryfield_night_r08_8018066C (D_dryfield_night_r08_801805AC + 24)
 
 extern SVECTOR D_dryfield_night_r08_8018056C[];
-/// The two offsets from the parent object the beam trail task starts from:
-/// `[0]` places the object and `[1]`, also reached under its own name
-/// `D_dryfield_night_r08_80180674`, seeds the second ring.
 
 static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_r08_8017E854(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_dryfield_night_r08_8017EC80(GfxCoord* arg0, s16 arg1, u8* rgb);
-static void func_dryfield_night_r08_8017F504(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
-static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_dryfield_night_r08_80181474[1];
 extern GpRoomCoordSet D_dryfield_night_r08_8018189C[1];
@@ -75,7 +68,7 @@ SVECTOR D_dryfield_night_r08_8018056C[8] = {
 };
 
 // Indexed views below share one contiguous table.
-SVECTOR D_dryfield_night_r08_801805AC[25] = {
+SVECTOR D_dryfield_night_r08_801805AC[24] = {
     { -3246, -2265, -10632, 0 },
     { -3246, -2265, -9370, 0 },
     { -3246, -2265, -2620, 0 },
@@ -100,10 +93,9 @@ SVECTOR D_dryfield_night_r08_801805AC[25] = {
     { 1293, -4768, -5483, 0 },
     { 1293, -4768, -3483, 0 },
     { 1293, -4768, -1483, 0 },
-    { 0, 190, -15, 0 },
 };
 
-SVECTOR D_dryfield_night_r08_80180674 = { 0, 1085, 180, 0 };
+#include "../../shared/room_visual_effects_trail_data.inc.c"
 
 GpRoomCoordRec D_dryfield_night_r08_8018067C[1] = {
     { D_dryfield_night_r08_8018189C, NULL },
@@ -567,579 +559,27 @@ static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
-/// Flash effect task on the object's coordinate. While `effectControl` is non-zero
-/// it draws nothing, releasing its work block once that reaches 4. Otherwise,
-/// over `spawnArg1` frames it brightens a pink tint (full red, half blue,
-/// quarter green) while growing two fanned glows and a ring; at the peak it
-/// draws a fade quad in that tint, then dims a star glow by 0x10 a frame until
-/// it has faded and releases itself.
-void func_dryfield_night_r08_8017E5B0(Task* task)
-{
-    GpEffWork* work;
-    GfxCoord*  coord;
-    u8         rgb[3];
+#include "../../shared/room_visual_effects.inc.c"
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    } else {
-        Gp_UpdateCoord(coord);
-        work->age++;
-        switch (task->state) {
-            case 0:
-                work->scale = 0;
-                work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1.value;
-                task->state = 1;
-                break;
-            case 1:
-                work->scale += work->step;
-                work->angle += work->step;
-                task->spawnArg1.value--;
-                rgb[0] = work->scale;
-                rgb[1] = work->scale >> 2;
-                rgb[2] = work->scale >> 1;
-                func_dryfield_night_r08_8017EC80(coord, work->angle, rgb);
-                rgb[0] >>= 1;
-                rgb[1] >>= 1;
-                rgb[2] >>= 1;
-                func_dryfield_night_r08_8017EC80(coord, (s16)((u16)work->angle * 2), rgb);
-                func_dryfield_night_r08_8017E854(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1.value == 0) {
-                    work->scale = 0xFF;
-                    task->state = 2;
-                    rgb[0]      = work->scale;
-                    rgb[1]      = work->scale >> 2;
-                    rgb[2]      = work->scale >> 1;
-                    Gp_DrawFadeQuad(rgb, 1);
-                }
-                break;
-            case 2:
-                if (work->scale >= 0x11) {
-                    rgb[0] = work->scale;
-                    rgb[1] = work->scale >> 2;
-                    rgb[2] = work->scale >> 1;
-                    func_dryfield_night_r08_8017FB84(coord, (s16)(work->angle * 3), rgb);
-                    work->scale -= 0x10;
-                    work->angle -= 8;
-                    break;
-                }
-                /* fallthrough */
-            case 3:
-                Gp_ReleaseState1CMem(work, task);
-                break;
-        }
-    }
+#include "../../shared/room_visual_effects_flash_task.inc.c"
+
+void func_dryfield_night_r08_8017E5B0(Task* arg0)
+{
+    RoomFx_FlashTask(arg0);
 }
 
-/// Draws a ring of sixteen gouraud quads around the coordinate's projected
-/// position, when it projects. The ring runs from radius
-/// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-static void func_dryfield_night_r08_8017E854(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
-{
-    RoomDraw02Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s16                blackRadius = arg1;
-    s16                tintRadius  = arg1 + arg2;
+#include "../../shared/room_visual_effects_trails.inc.c"
 
-    block         = SCRATCH_PUSH(RoomDraw02Scratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->rOuter = (blackRadius * 64) / block->otz;
-        block->rInner = (tintRadius * 64) / block->otz;
-
-        ang = 0;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
-            ang      = t;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
-}
-
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when the
-/// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
-/// projected centre with radius `(s16)arg1 * 64 / (otz + 1)`. Only the centre
-/// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-static void func_dryfield_night_r08_8017EC80(GfxCoord* arg0, s16 arg1, u8* rgb)
-{
-    RoomFanScratch* block;
-    POLY_G4*        prim;
-    s32             ang;
-    s32             otz;
-
-    block         = SCRATCH_PUSH(RoomFanScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        otz           = block->otz + 1;
-        block->otz    = otz;
-        block->radius = (arg1 * 64) / otz;
-
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_POP_BYTES(0x18);
-}
-
-/// Beam trail task. On its first frame it allocates two eight-slot coordinate
-/// rings, places the object at the first of the two offsets
-/// `D_dryfield_night_r08_8018066C` gives from the parent and fills the
-/// rings with that point and the second offset. Each later frame it writes the
-/// current pair into the next slot and draws the trail between the rings,
-/// releasing itself once its age reaches `spawnArg1`. Nothing runs while
-/// `effectControl` is 2 or more.
 void func_dryfield_night_r08_8017F014(Task* task)
 {
-    GfxCoord   coord;
-    GfxCoord*  coords;
-    GfxCoord*  objCoord;
-    GfxCoord*  dst;
-    GpEffWork* work;
-    SVECTOR*   vec;
-    s32        i;
-
-    coords   = task->work;
-    work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.coordBody->coord;
-
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        work->age++;
-        switch (task->state) {
-            case 0:
-                coords = memCalloc(sizeof(GfxCoord[16]), 0);
-                if (coords == NULL) {
-                    work->age = 0;
-                    return;
-                }
-                task->work             = coords;
-                objCoord->parent       = work->parent;
-                objCoord->coord.t[0]   = D_dryfield_night_r08_8018066C[0].vx;
-                objCoord->coord.t[1]   = D_dryfield_night_r08_8018066C[0].vy;
-                objCoord->coord.t[2]   = D_dryfield_night_r08_8018066C[0].vz;
-                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(objCoord);
-                task->state        = 1;
-                coord.parent       = work->parent;
-                vec                = &D_dryfield_night_r08_8018066C[1];
-                coord.coord.t[0]   = vec->vx;
-                coord.coord.t[1]   = vec->vy;
-                coord.coord.t[2]   = vec->vz;
-                coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&coord);
-                for (i = 0; i < 8; i++) {
-                    dst         = &coords[i];
-                    dst->parent = &gGfxViewCoord;
-                    dst->workm  = objCoord->workm;
-                    gte_SetRotMatrix(&objCoord->workm);
-                    gte_SetTransMatrix(&objCoord->workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst         = &coords[i + 8];
-                    dst->parent = &gGfxViewCoord;
-                    dst->workm  = coord.workm;
-                    gte_SetRotMatrix(&coord.workm);
-                    gte_SetTransMatrix(&coord.workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                }
-                break;
-
-            case 1:
-                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(objCoord);
-                coord.parent       = work->parent;
-                coord.coord.t[0]   = D_dryfield_night_r08_80180674.vx;
-                coord.coord.t[1]   = D_dryfield_night_r08_80180674.vy;
-                coord.coord.t[2]   = D_dryfield_night_r08_80180674.vz;
-                coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&coord);
-                dst         = &coords[work->age & 7];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = objCoord->workm;
-                gte_SetRotMatrix(&objCoord->workm);
-                gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst         = &coords[(work->age & 7) + 8];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = coord.workm;
-                gte_SetRotMatrix(&coord.workm);
-                gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                for (i = 0; i < 8; i++) {
-                    dst               = &coords[i];
-                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
-                    dst               = &coords[i + 8];
-                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
-                }
-                func_dryfield_night_r08_8017F504(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1.value && work->age != 0) {
-                    Gp_ReleaseState1CMem(work, task);
-                }
-                break;
-        }
-    }
+#include "../../shared/room_visual_effects_trail_task.inc.c"
 }
 
-/// Draws the trail between two eight-slot coordinate rings as seven `POLY_G4`
-/// quads, walking back from slot `arg2`. Each quad joins two adjacent slots of
-/// `arg0` and `arg1`, with brightness falling from `0x40 - 9 * i` at its
-/// leading edge by nine more at its trailing one. `arg3` is the colour, three
-/// 2-bit channel weights at bits 8, 4 and 0. A quad the GTE flags is dropped.
-static void func_dryfield_night_r08_8017F504(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
-{
-    RoomDraw03Scratch* blk;
-    GfxCoord*          a;
-    GfxCoord*          b;
-    POLY_G4*           prim;
-    s32                i;
-    s32                j;
-    s32                i0;
-    s32                i1;
-    s32                hi;
-    s32                lo;
-    s32                fade;
-    s32                r;
-    s32                g;
-    s32                bl;
-    s32                r2;
-    s32                g2;
-    s32                b2;
+#include "../../shared/room_visual_effects_sparks.inc.c"
 
-    blk = SCRATCH_PUSH(RoomDraw03Scratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    i = 0;
-    do {
-        j            = arg2 - i;
-        i0           = j & 7;
-        a            = &arg0[i0];
-        blk->v[0].vx = a->workm.t[0];
-        j            = j - 1;
-        blk->v[0].vy = a->workm.t[1];
-        i1           = j & 7;
-        blk->v[0].vz = a->workm.t[2];
-        b            = &arg1[i0];
-        blk->v[1].vx = b->workm.t[0];
-        blk->v[1].vy = b->workm.t[1];
-        blk->v[1].vz = b->workm.t[2];
-        a            = &arg0[i1];
-        blk->v[2].vx = a->workm.t[0];
-        blk->v[2].vy = a->workm.t[1];
-        blk->v[2].vz = a->workm.t[2];
-        b            = &arg1[i1];
-        blk->v[3].vx = b->workm.t[0];
-        blk->v[3].vy = b->workm.t[1];
-        blk->v[3].vz = b->workm.t[2];
-        gte_ldv0(&blk->v[0]);
-        gte_rtps();
-        gte_stsxy(&blk->sx0);
-        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt();
-        gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
-        gte_stflg(&blk->flag);
-        if (blk->flag >= 0) {
-            gte_stszotz(&blk->otz);
-            fade           = 0x40 - i * 9;
-            hi             = fade & 0xFF;
-            r              = hi * (arg3 >> 8);
-            g              = hi * ((arg3 >> 4) & 3);
-            bl             = hi * (arg3 & 3);
-            lo             = (fade - 9) & 0xFF;
-            r2             = lo * (arg3 >> 8);
-            g2             = lo * ((arg3 >> 4) & 3);
-            prim           = gGpuPrimCursor;
-            blk->otz       = blk->otz + 1;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 8);
-            b2 = lo * (arg3 & 3);
-            setcode(prim, 0x38);
-            prim->r0 = r;
-            prim->r1 = r;
-            prim->g0 = g;
-            prim->g1 = g;
-            prim->b0 = bl;
-            prim->b1 = bl;
-            prim->r2 = r2;
-            prim->r3 = r2;
-            prim->g2 = g2;
-            prim->g3 = g2;
-            prim->b2 = b2;
-            prim->b3 = b2;
-            prim->x0 = blk->sx0;
-            prim->y0 = blk->sy0;
-            prim->x1 = blk->sx1;
-            prim->y1 = blk->sy1;
-            prim->x2 = blk->sx2;
-            prim->y2 = blk->sy2;
-            prim->x3 = blk->sx3;
-            prim->y3 = blk->sy3;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-        }
-        i += 1;
-    } while (i < 7);
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
-}
-
-/// Burst effect task on the object's coordinate. While `effectControl` is non-zero
-/// it draws nothing, releasing its work block once that reaches 4. Its first
-/// frame spawns effect 0x60076 and then either a spark (0x60070), if
-/// `spawnArg1` is set, or two 0x6007C effects. The spark branch then emits one
-/// randomly-directed spark a frame; the other draws a fixed ring and an
-/// expanding one in a fading orange tint. Either ends once its age reaches 7.
 void func_dryfield_night_r08_8017F8FC(Task* task)
 {
-    GfxCoord*  objCoord;
-    GpEffWork* work;
-    u8         rgb[4];
-
-    objCoord = task->extra.coordBody->coord;
-    work     = (GpEffWork*)task->spawnArg2.pointer;
-
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-        return;
-    }
-
-    Gp_UpdateCoord(objCoord);
-    work->age++;
-
-    switch (task->state) {
-        case 0:
-            Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1.value != 0) {
-                Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
-                task->state = 1;
-            } else {
-                Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
-                Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
-                work->scale = 0x100;
-                work->angle = 0xC0;
-                task->state = 2;
-            }
-            break;
-
-        case 1:
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x60070, objCoord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x82003400,
-                        &work->move);
-            if (work->age >= 7) {
-                task->state = 3;
-            }
-            break;
-
-        case 2:
-            work->angle -= 0x20;
-            work->scale += 0x30;
-            rgb[0]       = work->angle;
-            rgb[1]       = work->angle >> 1;
-            rgb[2]       = work->angle >> 2;
-            func_dryfield_night_r08_8017E854(objCoord, 0x100, 0x100, rgb);
-            func_dryfield_night_r08_8017E854(objCoord, work->scale, work->scale, rgb);
-            if (work->age >= 7) {
-                task->state = 3;
-            }
-            break;
-
-        case 3:
-            Gp_ReleaseState1CMem(work, task);
-            break;
-    }
+    RoomFx_SparkBurstTask(task);
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when the
-/// GTE flag is non-negative, queues a star-shaped glow of `POLY_G4` wedges
-/// around the projected centre. With `r = arg1 * 64 / (otz + 1)`, a disc of
-/// radius `r` at half the `rgb` tint and one of radius `r / 2` at full tint are
-/// followed by four spikes, two reaching `r` and two `2 * r`, whose bases sit on
-/// the radius `arg1 * 8 / (otz + 1)`. Only the centre vertex is tinted, so
-/// every wedge fades to black.
-static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2)
-{
-    RoomBillboardScratch* block;
-    POLY_G4*              prim;
-    s32                   ang;
-    s32                   t;
-    s32                   t2;
-    s32                   u;
-
-    block         = SCRATCH_PUSH(RoomBillboardScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->rOuter = (arg1 * 64) / block->otz;
-        block->rInner = (arg1 * 8) / block->otz;
-
-        ang = 0;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0], arg2[1], arg2[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-
-        ang = 0x200;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
-}
+#include "../../shared/room_visual_effects_glow.inc.c"

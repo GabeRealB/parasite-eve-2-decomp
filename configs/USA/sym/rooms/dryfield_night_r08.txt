@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_r08.
 D_dryfield_night_r08_8018056C = 0x8018056C; // size:0x40 defined:True
-D_dryfield_night_r08_801805AC = 0x801805AC; // size:0xC8 defined:True
-D_dryfield_night_r08_80180674 = 0x80180674; // size:0x8 defined:True
+D_dryfield_night_r08_801805AC = 0x801805AC; // size:0xC0 defined:True
+RoomFx_TrailOffsets = 0x8018066C; // size:0x10 defined:True
 D_dryfield_night_r08_80180544 = 0x80180544; // size:0x28 defined:True
 D_dryfield_night_r08_8018067C = 0x8018067C; // size:0x8 defined:True
 D_dryfield_night_r08_80180684 = 0x80180684; // size:0x10 defined:True
@@ -47,3 +47,7 @@ func_dryfield_night_r08_8017E5B0 = 0x8017E5B0; // type:func
 func_dryfield_night_r08_8017F014 = 0x8017F014; // type:func
 
 func_dryfield_night_r08_8017F8FC = 0x8017F8FC; // type:func
+RoomFx_DrawFlashRing = 0x8017E854; // type:func
+RoomFx_DrawFlashDisc = 0x8017EC80; // type:func
+RoomFx_DrawTwinTrail = 0x8017F504; // type:func
+RoomFx_DrawBurstStar = 0x8017FB84; // type:func
