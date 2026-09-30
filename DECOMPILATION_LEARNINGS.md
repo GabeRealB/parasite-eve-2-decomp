@@ -8527,10 +8527,10 @@ with a local:
 ```c
 /* Matches: li a1,1 then lui/addiu of _gSndEvtPool */
 i = 0;
-flag = 1;
-for (ptr = _gSndEvtPool; i < 0x40; i++, ptr++) {
-    if (ptr->allocated == 0) {
-        ptr->allocated = flag;
+flag = SOUND_EVENT_SLOT_ALLOCATED;
+for (event = _gSndEvtPool; i < ARRAY_SIZE(_gSndEvtPool); i++, event++) {
+    if (event->allocated == SOUND_EVENT_SLOT_FREE) {
+        event->allocated = flag;
         ...
     }
 }
@@ -12053,7 +12053,7 @@ fall-through — even when you wrote `if (x == NULL)`. Prefer `break` out of a
 ```c
 do {
     /* ... */
-    next = cur->field_18;
+    next = cur->next;
     free_node(cur);
     if (next == NULL) {
         tail = NULL;

@@ -58,7 +58,7 @@ static LifeDrainScale D_lifedrain_80130AB4[] = {
     { 0x0010, 0x00E0, 0x0300, 0x0600, 0x0050 },
 };
 
-/// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.index`
+/// Sound-script id of the drain's opening cue, indexed by `GpEffWork.index`
 /// when the cast has drained nothing yet and by `field_20 + 3` once there is
 /// health banked in `Gp_StateF0.field_14`.
 static s32 D_lifedrain_80130AD4[] = {

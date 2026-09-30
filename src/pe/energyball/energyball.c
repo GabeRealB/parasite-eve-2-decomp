@@ -63,7 +63,7 @@ static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
 static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1);
 static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
-/// The energy ball's `SndEvt` ids. Only the first three are read, indexed by
+/// The energy ball's sound-script ids. Only the first three are read, indexed by
 /// the cast's level: the cast starts its entry with `SndEvt_EnqueueType6` and
 /// later passes the same id to `SndEvt_EnqueueType7`.
 static s32 D_energyball_8013117C[] = {

@@ -714,7 +714,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     SndScriptEntryControls* entry;
     u16                     offset;
     u32                     index;
-    SndEvt*                 temp;
+    SndEvt*                 event;
     SndEvtScriptArgs*       args;
 
     orig = arg0;
@@ -752,102 +752,102 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
             return -4;
         }
     }
-    temp = sndEvtAlloc();
-    if (temp == NULL) {
+    event = sndEvtAlloc();
+    if (event == NULL) {
         return -1;
     }
-    temp->handlerIdx        = 6;
-    args                    = &temp->args.script;
+    event->command          = SOUND_EVENT_SCRIPT_START;
+    args                    = &event->args.script;
     args->soundId           = arg0;
     args->panOffset         = arg1;
     args->level.attenuation = arg2;
     args->bankSlot          = bankSlot;
     args->entryControls     = entry;
-    sndEvtEnqueue(temp);
+    sndEvtEnqueue(event);
     return orig;
 }
 
 void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
 {
-    SndEvt*           temp;
+    SndEvt*           event;
     SndEvtScriptArgs* args;
 
-    temp = sndEvtAlloc();
-    if (temp != NULL) {
-        temp->handlerIdx  = 7;
-        args              = &temp->args.script;
+    event = sndEvtAlloc();
+    if (event != NULL) {
+        event->command    = SOUND_EVENT_SCRIPT_STOP;
+        args              = &event->args.script;
         args->soundId     = SndBank_RemapId(arg0);
         args->stopControl = arg1;
-        sndEvtEnqueue(temp);
+        sndEvtEnqueue(event);
     }
 }
 
 void SndEvt_EnqueueType8(s32 arg0)
 {
-    SndEvt*           temp;
+    SndEvt*           event;
     SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = sndEvtAlloc();
-        if (temp != NULL) {
-            temp->handlerIdx = 8;
-            args             = &temp->args.script;
-            args->soundId    = SndBank_RemapId(arg0);
-            sndEvtEnqueue(temp);
+        event = sndEvtAlloc();
+        if (event != NULL) {
+            event->command = SOUND_EVENT_SCRIPT_MUTE;
+            args           = &event->args.script;
+            args->soundId  = SndBank_RemapId(arg0);
+            sndEvtEnqueue(event);
         }
     }
 }
 
 void SndEvt_EnqueueType9(s32 arg0)
 {
-    SndEvt*           temp;
+    SndEvt*           event;
     SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = sndEvtAlloc();
-        if (temp != NULL) {
-            temp->handlerIdx = 9;
-            args             = &temp->args.script;
-            args->soundId    = SndBank_RemapId(arg0);
-            sndEvtEnqueue(temp);
+        event = sndEvtAlloc();
+        if (event != NULL) {
+            event->command = SOUND_EVENT_SCRIPT_UNMUTE;
+            args           = &event->args.script;
+            args->soundId  = SndBank_RemapId(arg0);
+            sndEvtEnqueue(event);
         }
     }
 }
 
 void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 {
-    SndEvt*           temp;
+    SndEvt*           event;
     SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = sndEvtAlloc();
-        if (temp != NULL) {
-            temp->handlerIdx        = 0xA;
-            args                    = &temp->args.script;
+        event = sndEvtAlloc();
+        if (event != NULL) {
+            event->command          = SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION;
+            args                    = &event->args.script;
             args->soundId           = SndBank_RemapId(arg0);
             args->panOffset         = arg1;
             args->level.attenuation = arg2;
-            sndEvtEnqueue(temp);
+            sndEvtEnqueue(event);
         }
     }
 }
 
 void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 {
-    SndEvt*           temp;
+    SndEvt*           event;
     SndEvtScriptArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = sndEvtAlloc();
-        if (temp != NULL) {
-            temp->handlerIdx        = 0xB;
-            args                    = &temp->args.script;
+        event = sndEvtAlloc();
+        if (event != NULL) {
+            event->command          = SOUND_EVENT_SCRIPT_SET_VOLUME;
+            args                    = &event->args.script;
             args->soundId           = SndBank_RemapId(arg0);
             args->level.volumeScale = arg1;
             if ((s8)arg1 < 0) {
                 args->level.volumeScale = SOUND_SCRIPT_VOLUME_UNITY;
             }
-            sndEvtEnqueue(temp);
+            sndEvtEnqueue(event);
         }
     }
 }
@@ -855,7 +855,7 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
 {
     enum { SOUND_EVENT_STOP_KEEP_RELEASE = 1 };
-    SndEvt*           temp;
+    SndEvt*           event;
     SndEvtScriptArgs* args;
 
     if (arg1 == 0x80000000) {
@@ -865,13 +865,13 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
     } else {
         D_80082138[(u32)(arg1 & 0xF0000000) >> 28] = arg0 & 1;
         if (arg0 == 0 && (arg1 & 0xF0000000) == 0x40000000) {
-            temp = sndEvtAlloc();
-            if (temp != NULL) {
-                temp->handlerIdx  = 7;
-                args              = &temp->args.script;
+            event = sndEvtAlloc();
+            if (event != NULL) {
+                event->command    = SOUND_EVENT_SCRIPT_STOP;
+                args              = &event->args.script;
                 args->soundId     = SndBank_RemapId(0x40000000);
                 args->stopControl = SOUND_EVENT_STOP_KEEP_RELEASE;
-                sndEvtEnqueue(temp);
+                sndEvtEnqueue(event);
             }
         }
     }
@@ -889,34 +889,34 @@ s32 SndVoice_HasActiveId(s32 arg0)
 
 void SndEvt_EnqueueTypeD(void)
 {
-    SndEvt* temp;
+    SndEvt* event;
 
-    temp = sndEvtAlloc();
-    if (temp != NULL) {
-        temp->handlerIdx = 0xD;
-        sndEvtEnqueue(temp);
+    event = sndEvtAlloc();
+    if (event != NULL) {
+        event->command = SOUND_EVENT_SCRIPT_DUCK_ACQUIRE;
+        sndEvtEnqueue(event);
     }
 }
 
 void SndEvt_EnqueueTypeE(void)
 {
-    SndEvt* temp;
+    SndEvt* event;
 
-    temp = sndEvtAlloc();
-    if (temp != NULL) {
-        temp->handlerIdx = 0xE;
-        sndEvtEnqueue(temp);
+    event = sndEvtAlloc();
+    if (event != NULL) {
+        event->command = SOUND_EVENT_SCRIPT_DUCK_RELEASE;
+        sndEvtEnqueue(event);
     }
 }
 
 static void SndEvt_EnqueueTypeF(void)
 {
-    SndEvt* temp;
+    SndEvt* event;
 
-    temp = sndEvtAlloc();
-    if (temp != NULL) {
-        temp->handlerIdx = 0xF;
-        sndEvtEnqueue(temp);
+    event = sndEvtAlloc();
+    if (event != NULL) {
+        event->command = SOUND_EVENT_SCRIPT_KEY_OFF;
+        sndEvtEnqueue(event);
     }
 }
 

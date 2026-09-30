@@ -26,6 +26,12 @@ enum {
     SOUND_EVENT_MIDI_VOLUME_FULL      = 127
 };
 
+// Reservation states stored in each deferred command slot.
+enum {
+    SOUND_EVENT_SLOT_FREE      = 0,
+    SOUND_EVENT_SLOT_ALLOCATED = 1
+};
+
 /// Per-channel controls, indexed by the low nibble of the MIDI status byte.
 typedef struct {
     u8  noteEventsDisabled; // Nonzero suppresses note-on and note-off events
@@ -318,22 +324,22 @@ static void SndLoad_Init(s32 arg0, void* arg1);
 static s32 SndBank_FreeById(u16 arg0, s32 arg1);
 
 void (*SndEvt_Handlers[])(SndEvt*) = {
-    SndEvt_HandleNoOp,
-    SndEvt_HandleInitSequence,
-    SndEvt_HandleStartFadeOut,
-    SndEvt_HandleFadeOn,
-    SndEvt_HandleFadeOff,
-    SndEvt_HandleSetVolume,
-    SndEvt_HandleAllocVoice,
-    SndEvt_HandleType7,
-    SndEvt_HandleFadeMatchingOn,
-    SndEvt_HandleFadeMatchingOff,
-    SndEvt_HandlePanRamp,
-    SndEvt_HandleVolumeRamp,
-    SndEvt_HandleNoOp,
-    SndEvt_HandleRefCountInc,
-    SndEvt_HandleRefCountDec,
-    SndEvt_HandleKeyOffMatching,
+    SndEvt_HandleNoOp,            // SOUND_EVENT_NO_OP
+    SndEvt_HandleInitSequence,    // SOUND_EVENT_MIDI_START
+    SndEvt_HandleStartFadeOut,    // SOUND_EVENT_MIDI_STOP
+    SndEvt_HandleFadeOn,          // SOUND_EVENT_MIDI_MUTE
+    SndEvt_HandleFadeOff,         // SOUND_EVENT_MIDI_UNMUTE
+    SndEvt_HandleSetVolume,       // SOUND_EVENT_MIDI_SET_VOLUME
+    SndEvt_HandleAllocVoice,      // SOUND_EVENT_SCRIPT_START
+    SndEvt_HandleType7,           // SOUND_EVENT_SCRIPT_STOP
+    SndEvt_HandleFadeMatchingOn,  // SOUND_EVENT_SCRIPT_MUTE
+    SndEvt_HandleFadeMatchingOff, // SOUND_EVENT_SCRIPT_UNMUTE
+    SndEvt_HandlePanRamp,         // SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION
+    SndEvt_HandleVolumeRamp,      // SOUND_EVENT_SCRIPT_SET_VOLUME
+    SndEvt_HandleNoOp,            // SOUND_EVENT_RESERVED_NO_OP
+    SndEvt_HandleRefCountInc,     // SOUND_EVENT_SCRIPT_DUCK_ACQUIRE
+    SndEvt_HandleRefCountDec,     // SOUND_EVENT_SCRIPT_DUCK_RELEASE
+    SndEvt_HandleKeyOffMatching,  // SOUND_EVENT_SCRIPT_KEY_OFF
 };
 
 static MidiHandler Midi_EventFns[] = {
@@ -454,8 +460,8 @@ static u8           D_800689F0[] = {
 
 void SndEvt_Process(void)
 {
-    SndEvt* next;
-    SndEvt* cur;
+    SndEvt* nextEvent;
+    SndEvt* event;
     u32     i;
     s32*    ptr;
 
@@ -467,31 +473,33 @@ void SndEvt_Process(void)
     }
 
     do {
-        cur = _gSndEvtHead;
-        if ((u16)cur->handlerIdx >= 0x10U) {
+        event = _gSndEvtHead;
+        // Unsigned narrowing rejects negative stored commands as well as high ones.
+        if ((u16)event->command >= (u32)ARRAY_SIZE(SndEvt_Handlers)) {
+            // Invalid dispatch discards every slot, including unqueued reservations.
             ptr = (s32*)_gSndEvtPool;
             i   = 0;
             do {
                 *ptr = 0;
                 i++;
                 ptr++;
-            } while (i < 0x1C0U);
+            } while (i < sizeof(_gSndEvtPool) / sizeof(*ptr));
             _gSndEvtHead           = NULL;
             _gSndEvtTail           = NULL;
             _gSndEvtProcessEnabled = true;
             return;
         }
-        SndEvt_Handlers[cur->handlerIdx](cur);
-        cur  = _gSndEvtHead;
-        next = cur->next;
-        SndEvt_Free(cur);
-        if (next == NULL) {
+        SndEvt_Handlers[event->command](event);
+        event     = _gSndEvtHead;
+        nextEvent = event->next;
+        SndEvt_Free(event);
+        if (nextEvent == NULL) {
             _gSndEvtTail = NULL;
             _gSndEvtHead = NULL;
             break;
         }
-        _gSndEvtHead = next;
-    } while (next != NULL);
+        _gSndEvtHead = nextEvent;
+    } while (nextEvent != NULL);
 }
 
 void SndEvt_Reset(void)
@@ -505,7 +513,7 @@ void SndEvt_Reset(void)
         *ptr = 0;
         i++;
         ptr++;
-    } while (i < 0x1C0U);
+    } while (i < sizeof(_gSndEvtPool) / sizeof(*ptr));
     _gSndEvtHead           = NULL;
     _gSndEvtTail           = NULL;
     _gSndEvtProcessEnabled = true;
@@ -515,15 +523,15 @@ SndEvt* sndEvtAlloc(void)
 {
     s32     i;
     s32     flag;
-    SndEvt* ptr;
+    SndEvt* event;
 
     i    = 0;
-    flag = 1;
-    for (ptr = _gSndEvtPool; i < 0x40; i++, ptr++) {
-        if (ptr->allocated == 0) {
-            ptr->allocated  = flag;
-            ptr->handlerIdx = 0;
-            return ptr;
+    flag = SOUND_EVENT_SLOT_ALLOCATED;
+    for (event = _gSndEvtPool; i < ARRAY_SIZE(_gSndEvtPool); i++, event++) {
+        if (event->allocated == SOUND_EVENT_SLOT_FREE) {
+            event->allocated = flag;
+            event->command   = SOUND_EVENT_NO_OP;
+            return event;
         }
     }
     return NULL;
@@ -531,7 +539,7 @@ SndEvt* sndEvtAlloc(void)
 
 void sndEvtEnqueue(SndEvt* event)
 {
-    SndEvt* temp;
+    SndEvt* previousTail;
 
     if (event != NULL) {
         // Defer interrupt processing until the new tail is fully linked.
@@ -541,10 +549,10 @@ void sndEvtEnqueue(SndEvt* event)
             _gSndEvtHead = event;
             event->prev  = NULL;
         } else {
-            temp         = _gSndEvtTail;
-            _gSndEvtTail = event;
-            event->prev  = temp;
-            temp->next   = event;
+            previousTail       = _gSndEvtTail;
+            _gSndEvtTail       = event;
+            event->prev        = previousTail;
+            previousTail->next = event;
         }
         event->next            = NULL;
         _gSndEvtProcessEnabled = true;
@@ -554,7 +562,7 @@ void sndEvtEnqueue(SndEvt* event)
 static void SndEvt_Free(SndEvt* event)
 {
     if (event != NULL) {
-        event->allocated = 0;
+        event->allocated = SOUND_EVENT_SLOT_FREE;
         event->prev      = NULL;
         event->next      = NULL;
     }
@@ -834,19 +842,19 @@ s32 Midi_Tick(s32* unused)
 
 s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
 {
-    SndEvt* temp;
+    SndEvt* event;
 
     if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
-    temp = sndEvtAlloc();
-    if (temp == NULL) {
+    event = sndEvtAlloc();
+    if (event == NULL) {
         return -2;
     }
-    temp->handlerIdx           = 1;
-    temp->args.midi.sequenceId = arg0;
-    temp->args.midi.fadeTicks  = arg1;
-    sndEvtEnqueue(temp);
+    event->command              = SOUND_EVENT_MIDI_START;
+    event->args.midi.sequenceId = arg0;
+    event->args.midi.fadeTicks  = arg1;
+    sndEvtEnqueue(event);
     return 0;
 }
 
@@ -854,77 +862,77 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
 {
     // Stop fades truncate to 16 bits and round down to a multiple of four ticks.
     enum { SOUND_EVENT_MIDI_STOP_FADE_TICK_MASK = 0xFFFC };
-    SndEvt* temp;
+    SndEvt* event;
 
     if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
-    temp = sndEvtAlloc();
-    if (temp == NULL) {
+    event = sndEvtAlloc();
+    if (event == NULL) {
         return -2;
     }
-    temp->handlerIdx           = 2;
-    temp->args.midi.sequenceId = arg0;
-    temp->args.midi.fadeTicks  = arg1 & SOUND_EVENT_MIDI_STOP_FADE_TICK_MASK;
-    sndEvtEnqueue(temp);
+    event->command              = SOUND_EVENT_MIDI_STOP;
+    event->args.midi.sequenceId = arg0;
+    event->args.midi.fadeTicks  = arg1 & SOUND_EVENT_MIDI_STOP_FADE_TICK_MASK;
+    sndEvtEnqueue(event);
     return 0;
 }
 
 static s32 SndEvt_EnqueueType3(s32 arg0)
 {
-    SndEvt* temp;
+    SndEvt* event;
 
     if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
-    temp = sndEvtAlloc();
-    if (temp == NULL) {
+    event = sndEvtAlloc();
+    if (event == NULL) {
         return -2;
     }
-    temp->handlerIdx           = 3;
-    temp->args.midi.sequenceId = arg0;
-    sndEvtEnqueue(temp);
+    event->command              = SOUND_EVENT_MIDI_MUTE;
+    event->args.midi.sequenceId = arg0;
+    sndEvtEnqueue(event);
     return 0;
 }
 
 static s32 SndEvt_EnqueueType4(s32 arg0)
 {
-    SndEvt* temp;
+    SndEvt* event;
 
     if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
-    temp = sndEvtAlloc();
-    if (temp == NULL) {
+    event = sndEvtAlloc();
+    if (event == NULL) {
         return -2;
     }
-    temp->handlerIdx           = 4;
-    temp->args.midi.sequenceId = arg0;
-    sndEvtEnqueue(temp);
+    event->command              = SOUND_EVENT_MIDI_UNMUTE;
+    event->args.midi.sequenceId = arg0;
+    sndEvtEnqueue(event);
     return 0;
 }
 
 s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
 {
-    SndEvt*         temp;
+    SndEvt*         event;
     SndEvtMidiArgs* args;
 
     if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
-    temp = sndEvtAlloc();
-    if (temp == NULL) {
+    event = sndEvtAlloc();
+    if (event == NULL) {
         return -2;
     }
-    temp->handlerIdx = 5;
-    args             = &temp->args.midi;
+    event->command   = SOUND_EVENT_MIDI_SET_VOLUME;
+    args             = &event->args.midi;
     args->sequenceId = arg0;
     if ((s8)arg1 >= 0) {
         args->volumeScale = arg1;
     } else {
         args->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
     }
-    sndEvtEnqueue(temp);
+    sndEvtEnqueue(event);
     D_800820E8 = args->volumeScale;
     return 0;
 }
@@ -1083,41 +1091,41 @@ static void Midi_ClearVoiceEntry(void* context)
 
 void SndEvt_EnqueueType5Pending(void)
 {
-    SndEvt*         temp;
+    SndEvt*         event;
     SndEvtMidiArgs* args;
 
     D_800820E9 = 1;
-    temp       = sndEvtAlloc();
-    if (temp != NULL) {
-        args              = &temp->args.midi;
-        temp->handlerIdx  = 5;
+    event      = sndEvtAlloc();
+    if (event != NULL) {
+        args              = &event->args.midi;
+        event->command    = SOUND_EVENT_MIDI_SET_VOLUME;
         args->sequenceId  = SOUND_EVENT_MIDI_ALL_SEQUENCES;
         args->volumeScale = SOUND_EVENT_MIDI_VOLUME_SILENT;
-        sndEvtEnqueue(temp);
+        sndEvtEnqueue(event);
         D_800820E8 = args->volumeScale;
     }
 }
 
 void SndEvt_FlushType5Pending(void)
 {
-    SndEvt*         temp;
+    SndEvt*         event;
     SndEvtMidiArgs* args;
     u8              saved;
 
     if (D_800820E9 != 0) {
         saved      = D_800820E8;
         D_800820E9 = 0;
-        temp       = sndEvtAlloc();
-        if (temp != NULL) {
-            args             = &temp->args.midi;
-            temp->handlerIdx = 5;
+        event      = sndEvtAlloc();
+        if (event != NULL) {
+            args             = &event->args.midi;
+            event->command   = SOUND_EVENT_MIDI_SET_VOLUME;
             args->sequenceId = SOUND_EVENT_MIDI_ALL_SEQUENCES;
             if ((s8)saved >= 0) {
                 args->volumeScale = saved;
             } else {
                 args->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
             }
-            sndEvtEnqueue(temp);
+            sndEvtEnqueue(event);
             D_800820E8 = args->volumeScale;
         }
     }

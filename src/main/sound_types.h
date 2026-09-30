@@ -250,7 +250,7 @@ typedef struct {
 } SndEvtScriptArgs;
 STATIC_ASSERT_SIZEOF(SndEvtScriptArgs, 0x10);
 
-/// Deferred MIDI-sequence or sound-script arguments selected by `SndEvt::handlerIdx`.
+/// Deferred MIDI-sequence or sound-script arguments selected by `SndEvt::command`.
 ///
 /// Commands 1..5 read `midi`: start, stop, mute, unmute and volume.
 /// Commands 6..11 read `script`: start, stop, mute, unmute, pan/attenuation
@@ -267,19 +267,50 @@ typedef union {
 } SndEvtArgs;
 STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 
-/// Deferred sound event: one queued audio command, in a slot of `_gSndEvtPool`.
+/// Command codes carried by `SndEvt::command`, in audio dispatch order.
 ///
-/// An event is filled in and then passed to `sndEvtEnqueue`, which appends it to
-/// the pending queue; `SndEvt_Process` passes the oldest event to the handler
-/// `handlerIdx` selects and returns the slot to the pool. A freed slot is only
-/// marked, never cleared, so filling one in writes every argument its handler
-/// reads.
+/// MIDI commands read `args.midi`; script commands 6..11 read `args.script`.
+/// The no-ops and commands 13..15 take no arguments. Duck acquire/release count
+/// requests to lower the script master level toward 48 and restore its saved
+/// level when the last request ends; scripts may opt out of that attenuation.
+/// Key off releases script voices in bank types 1 and 5 during stage changes.
+enum {
+    SOUND_EVENT_NO_OP                      = 0,
+    SOUND_EVENT_MIDI_START                 = 1,
+    SOUND_EVENT_MIDI_STOP                  = 2,
+    SOUND_EVENT_MIDI_MUTE                  = 3,
+    SOUND_EVENT_MIDI_UNMUTE                = 4,
+    SOUND_EVENT_MIDI_SET_VOLUME            = 5,
+    SOUND_EVENT_SCRIPT_START               = 6,
+    SOUND_EVENT_SCRIPT_STOP                = 7,
+    SOUND_EVENT_SCRIPT_MUTE                = 8,
+    SOUND_EVENT_SCRIPT_UNMUTE              = 9,
+    SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION = 10,
+    SOUND_EVENT_SCRIPT_SET_VOLUME          = 11,
+    SOUND_EVENT_RESERVED_NO_OP             = 12,
+    SOUND_EVENT_SCRIPT_DUCK_ACQUIRE        = 13,
+    SOUND_EVENT_SCRIPT_DUCK_RELEASE        = 14,
+    SOUND_EVENT_SCRIPT_KEY_OFF             = 15
+};
+
+/// Pool slot for one deferred audio command and its FIFO queue links.
+///
+/// Resident sound producers reserve a slot with `sndEvtAlloc`, set `command`
+/// and every argument that command reads, then pass it once to `sndEvtEnqueue`.
+/// The audio update processes queued slots in order and releases each afterward.
+/// Allocation starts with `SOUND_EVENT_NO_OP`; allocation and release leave the
+/// argument storage intact. Borrowed script-start data must remain loaded through
+/// processing and script playback. Reset or an invalid command discards the
+/// whole pool, including reserved slots that have not been queued yet.
+///
+/// `prev` records the predecessor when appended; draining does not repair the
+/// new head's backward link. Released slots have both links cleared.
 typedef struct SndEvt {
-    s16            allocated;  // 0 free, 1 in use
-    s16            handlerIdx; // Which command the event carries; indexes SndEvt_Handlers
-    SndEvtArgs     args;       // Arguments, read according to the command
-    struct SndEvt* prev;       // Previous event in the pending queue
-    struct SndEvt* next;       // Next event in the pending queue
+    s16            allocated; // Slot reservation (0 free, 1 reserved or queued)
+    s16            command;   // SOUND_EVENT_ command (0..15); selects the argument interpretation
+    SndEvtArgs     args;      // Command payload; only the selected command's inputs are initialized
+    struct SndEvt* prev;      // Predecessor saved at enqueue; may already be released while draining
+    struct SndEvt* next;      // Next queued slot, or NULL at the tail
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
