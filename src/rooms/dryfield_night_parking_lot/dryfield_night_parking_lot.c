@@ -76,7 +76,7 @@ static void func_dryfield_night_parking_lot_8017DC28(Task* task);
 ///
 /// Messages 0x11 and 0x12 are the events: each builds a request for the
 /// room's event gate `roomEventGate` - message 0x11
-/// on nibble 0x40 with item 0x12, message 0x12 on nibble 0x35 with item 0x10.
+/// on nibble 0x40 with collected bit 0x12, message 0x12 on nibble 0x35 with collected bit 0x10.
 /// When the gate reports the event fired, 0x11 applies the area records
 /// `D_dryfield_night_parking_lot_8018155C` and sets nibbles 0x46 and 0x97,
 /// while 0x12 sets item-seen bit 0x110. Any other message returns 1.
@@ -107,13 +107,13 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         out->room = n;
     }
     if (msg->areaId == 0x11) {
-        req.field_0 = 6;
-        req.field_4 = 1;
-        req.field_8 = Gp_PackStageSndId(0x520F000B);
-        req.field_C = Gp_PackStageSndId(0x520F0007);
-        req.flagId  = 0x40;
-        req.itemId  = 0x12;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 6;
+        req.missingCapCmd = 1;
+        req.firstSnd      = Gp_PackStageSndId(0x520F000B);
+        req.secondSnd     = Gp_PackStageSndId(0x520F0007);
+        req.flagId        = 0x40;
+        req.collectedBit  = 0x12;
+        ret               = roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
@@ -123,13 +123,13 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
             GameFlag_SetNibble(0x97, 1);
         }
     } else if (msg->areaId == 0x12) {
-        req.field_0 = 3;
-        req.field_4 = 2;
-        req.field_8 = Gp_PackStageSndId(0x520F000B);
-        req.field_C = Gp_PackStageSndId(0x520F0007);
-        req.flagId  = 0x35;
-        req.itemId  = 0x10;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 3;
+        req.missingCapCmd = 2;
+        req.firstSnd      = Gp_PackStageSndId(0x520F000B);
+        req.secondSnd     = Gp_PackStageSndId(0x520F0007);
+        req.flagId        = 0x35;
+        req.collectedBit  = 0x10;
+        ret               = roomEventGate(&req, out);
         if (gRoomEventActive[0] != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }

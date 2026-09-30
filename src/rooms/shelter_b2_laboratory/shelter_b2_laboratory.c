@@ -1397,12 +1397,12 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     if (in->areaId != 0x21) {
         return 1;
     }
-    req.field_0 = 1;
-    req.field_4 = 1;
-    req.field_8 = 0x541F0014;
-    req.field_C = 0x541F0003;
-    req.flagId  = 0xB1;
-    req.itemId  = 0;
+    req.capCmd        = 1;
+    req.missingCapCmd = 1;
+    req.firstSnd      = 0x541F0014;
+    req.secondSnd     = 0x541F0003;
+    req.flagId        = 0xB1;
+    req.collectedBit  = 0;
     return roomEventGate(&req, out);
 }
 

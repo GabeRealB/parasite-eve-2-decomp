@@ -196,12 +196,12 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
 
     *out = *in;
     if (in->areaId == 5) {
-        req.field_0 = 0xC;
-        req.field_4 = 0xC;
-        req.field_8 = 0x53090005;
-        req.field_C = 0x53090001;
-        req.flagId  = 0x3F;
-        req.itemId  = 0;
+        req.capCmd        = 0xC;
+        req.missingCapCmd = 0xC;
+        req.firstSnd      = 0x53090005;
+        req.secondSnd     = 0x53090001;
+        req.flagId        = 0x3F;
+        req.collectedBit  = 0;
         return roomEventGate(&req, in);
     }
     return 1;

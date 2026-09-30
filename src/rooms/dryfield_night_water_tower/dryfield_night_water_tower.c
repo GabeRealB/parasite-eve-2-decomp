@@ -57,7 +57,7 @@ static void func_dryfield_night_water_tower_8017DB20(Task* task);
 /// The room's handler for message 0x13EE, the first entry of its message table.
 /// It copies the incoming record to `out` and answers by the record's first
 /// halfword. For 0x13 it builds the room's event request -- flag nibble 0x34,
-/// prerequisite item 0x10, CAP commands 0xA and 6 and two stage sounds -- and
+/// collected bit 0x10, CAP commands 0xA and 6 and two stage sounds -- and
 /// hands it to the event gate with the incoming record; the gate's 0 (the
 /// prerequisite missing) is answered as 2, and once the gate has latched the
 /// event item 0x110 is marked seen. Any other record first drops nibble 0x55
@@ -71,13 +71,13 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
 
     *out = *msg;
     if (msg->areaId == 0x13) {
-        req.field_0 = 0xA;
-        req.field_4 = 6;
-        req.field_8 = Gp_PackStageSndId(0x5214000E);
-        req.field_C = Gp_PackStageSndId(0x52140003);
-        req.flagId  = 0x34;
-        req.itemId  = 0x10;
-        ret         = roomEventGate(&req, msg);
+        req.capCmd        = 0xA;
+        req.missingCapCmd = 6;
+        req.firstSnd      = Gp_PackStageSndId(0x5214000E);
+        req.secondSnd     = Gp_PackStageSndId(0x52140003);
+        req.flagId        = 0x34;
+        req.collectedBit  = 0x10;
+        ret               = roomEventGate(&req, msg);
         if (ret == 0) {
             ret = 2;
         }

@@ -947,12 +947,12 @@ s32 func_dryfield_night_factory_80180574(Task* arg0, s32 arg1, RoomEventMsg* in,
         }
     }
     if (in->areaId == 0x19) {
-        req.field_0 = 0xE;
-        req.field_4 = 0xE;
-        req.field_8 = 0x52170013;
-        req.field_C = 0x52170003;
-        req.flagId  = -0x30;
-        req.itemId  = 0;
+        req.capCmd        = 0xE;
+        req.missingCapCmd = 0xE;
+        req.firstSnd      = 0x52170013;
+        req.secondSnd     = 0x52170003;
+        req.flagId        = -0x30;
+        req.collectedBit  = 0;
         return roomEventGate(&req, in);
     }
     return 1;

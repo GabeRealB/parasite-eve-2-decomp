@@ -112,18 +112,21 @@ typedef struct RoomMirrorWork {
 } RoomMirrorWork;
 STATIC_ASSERT_SIZEOF(RoomMirrorWork, 0xAC);
 
-/// 0x14-byte request record the room's event scripts build on the stack and
-/// hand to the gate at `RoomsShared8017d638`. `flagId` is a
-/// game-flag nibble index - negative means "fire when the nibble is *clear*" -
-/// and `itemId` is an optional collected-bit prerequisite (0 = none).
-/// `field_4` is the CAP command run when the prerequisite is missing.
-typedef struct _RoomEventReq {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s16 flagId;
-    /* 0x12 */ s16 itemId;
+/// Request a room hands its event gate. The gate starts the event when the
+/// game-flag nibble allows it and any required collectible is held; the event
+/// then runs the capture and the two sound events before changing room.
+///
+/// A positive `flagId` allows the event while that nibble is 0 and is stored
+/// as 1 when the event starts. A negative `flagId` allows it while the nibble
+/// is nonzero and is stored as 0 when the event starts. `collectedBit` 0
+/// requires nothing. Either sound is skipped when its id is 0.
+typedef struct {
+    s32 capCmd;        // CAP command run when the event starts
+    s32 missingCapCmd; // CAP command run when a required collected bit is missing
+    s32 firstSnd;      // Sound event played first after the event starts; 0 skips it
+    s32 secondSnd;     // Sound event played after `firstSnd` finishes; 0 skips it
+    s16 flagId;        // Signed game-flag nibble index (magnitude 0..503); the sign selects the polarity above
+    s16 collectedBit;  // Collected-item bit required first (item id & 0x7F); 0 for none
 } RoomEventReq;
 STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
 

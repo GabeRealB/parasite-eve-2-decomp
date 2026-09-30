@@ -120,12 +120,12 @@ s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMs
         }
     }
     if (in->areaId == 1) {
-        req.field_0 = 0xD;
-        req.field_4 = 0xD;
-        req.field_8 = Gp_PackStageSndId(0x5203000C);
-        req.field_C = Gp_PackStageSndId(0x52030003);
-        req.flagId  = 0x3B;
-        req.itemId  = 0;
+        req.capCmd        = 0xD;
+        req.missingCapCmd = 0xD;
+        req.firstSnd      = Gp_PackStageSndId(0x5203000C);
+        req.secondSnd     = Gp_PackStageSndId(0x52030003);
+        req.flagId        = 0x3B;
+        req.collectedBit  = 0;
         return roomEventGate(&req, in);
     }
     if (in->areaId != 0x26) {

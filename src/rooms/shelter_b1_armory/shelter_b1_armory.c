@@ -337,12 +337,12 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == 0xB) {
-        req.field_0 = 4;
-        req.field_4 = 1;
-        req.field_8 = 0x540D0005;
-        req.field_C = 0x540D0001;
-        req.flagId  = 0xA6;
-        req.itemId  = 0;
+        req.capCmd        = 4;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0x540D0005;
+        req.secondSnd     = 0x540D0001;
+        req.flagId        = 0xA6;
+        req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId != 0xD) {

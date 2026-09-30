@@ -1779,13 +1779,13 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         }
         return 1;
     } else if (msg->areaId == 0xD) {
-        req.field_0 = 0xA;
-        req.field_4 = 5;
-        req.field_8 = Gp_PackStageSndId(0x5202000A);
-        req.field_C = Gp_PackStageSndId(0x52020005);
-        req.flagId  = 0x41;
-        req.itemId  = 0x13;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 0xA;
+        req.missingCapCmd = 5;
+        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
+        req.secondSnd     = Gp_PackStageSndId(0x52020005);
+        req.flagId        = 0x41;
+        req.collectedBit  = 0x13;
+        ret               = roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
@@ -1799,13 +1799,13 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         }
         return ret;
     } else if (msg->areaId == 0xE) {
-        req.field_0 = 0xB;
-        req.field_4 = 6;
-        req.field_8 = Gp_PackStageSndId(0x5202000A);
-        req.field_C = Gp_PackStageSndId(0x52020005);
-        req.flagId  = 0x42;
-        req.itemId  = 0x13;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 0xB;
+        req.missingCapCmd = 6;
+        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
+        req.secondSnd     = Gp_PackStageSndId(0x52020005);
+        req.flagId        = 0x42;
+        req.collectedBit  = 0x13;
+        ret               = roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }

@@ -3,8 +3,8 @@
 /// The room's event gate, called by the room's message handler with the
 /// request it builds on the stack. A set flag nibble (or a clear one, for a
 /// negative `flagId`) means the event has already happened and the answer is
-/// 1; a missing collected-bit prerequisite runs the request's `field_4` CAP
-/// command and answers 0; otherwise the request and message are latched into
+/// 1; a missing collected-bit prerequisite runs the request's `missingCapCmd`
+/// and answers 0; otherwise the request and message are latched into
 /// `gRoomEventReq` / `gRoomEventMsg`, the flag
 /// nibble is written, the event task is spawned and
 /// `gRoomEventActive` is raised, for 2. A non-zero `queryOnly` on
@@ -30,7 +30,7 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
     }
     ret = 1;
     if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
+        if (Gp_HasCollectedBit(req->collectedBit) != 0 || req->collectedBit == 0) {
             ret = 2;
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventMsg  = *msg;
@@ -50,7 +50,7 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
         }
         ret = 0;
         if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
+            Gp_RunCapCmd1(req->missingCapCmd);
             Gp_SetNibbleIf(msg->flagId, 2);
             ret = 0;
         }

@@ -963,12 +963,12 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == 0x1E) {
-        req.field_0 = 2;
-        req.field_4 = 1;
-        req.field_8 = 0x541D0007;
-        req.field_C = 0x541D0003;
-        req.flagId  = 0xA8;
-        req.itemId  = 0;
+        req.capCmd        = 2;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0x541D0007;
+        req.secondSnd     = 0x541D0003;
+        req.flagId        = 0xA8;
+        req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId == 0x1C && GameFlag_GetNibble(0xAA) == 0) {

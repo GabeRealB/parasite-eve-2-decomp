@@ -798,7 +798,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Message 0x1D goes through the room's event gate on flag
-/// 0xA8 with item 0x22 as prerequisite, answering 2 where the gate answers 0
+/// 0xA8 with collected bit 0x22 as prerequisite, answering 2 where the gate answers 0
 /// and marking item 0x122 seen when the gate started the event. Message 0x20
 /// starts the room's own event on flag 0x137; any other message answers 1.
 s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -810,13 +810,13 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == 0x1D) {
-        req.field_0 = 3;
-        req.field_4 = 1;
-        req.field_8 = 0x541E0003;
-        req.field_C = 0x541E0001;
-        req.flagId  = 0xA8;
-        req.itemId  = 0x22;
-        result      = roomEventGate(&req, out);
+        req.capCmd        = 3;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0x541E0003;
+        req.secondSnd     = 0x541E0001;
+        req.flagId        = 0xA8;
+        req.collectedBit  = 0x22;
+        result            = roomEventGate(&req, out);
         if (result == 0) {
             result = 2;
         }

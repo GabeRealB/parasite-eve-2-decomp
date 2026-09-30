@@ -2,7 +2,7 @@
 
 /// The event task `gRoomEventTaskDesc` describes, spawned by the gate
 /// above once it has latched a request: it runs the request's CAP command,
-/// plays and waits out its two sounds (`field_8`, then `field_C`, either
+/// plays and waits out its two sounds (`firstSnd`, then `secondSnd`, either
 /// skipped when zero), then writes the latched message's destination into the
 /// save's location and spawns the room-change task, killing itself.
 void roomEventTask(Task* task)
@@ -11,16 +11,16 @@ void roomEventTask(Task* task)
         case 0:
             Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(ROOM_EVENT_REQ.field_0);
-            if (ROOM_EVENT_REQ.field_8 != 0) {
-                SndEvt_EnqueueType6(ROOM_EVENT_REQ.field_8, 0, 0);
+            Gp_RunCapCmd1(ROOM_EVENT_REQ.capCmd);
+            if (ROOM_EVENT_REQ.firstSnd != 0) {
+                SndEvt_EnqueueType6(ROOM_EVENT_REQ.firstSnd, 0, 0);
                 task->state++;
             } else {
                 task->state = 2;
             }
             break;
         case 1:
-            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.field_8) == 0) {
+            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.firstSnd) == 0) {
                 task->state++;
             }
             break;
@@ -28,15 +28,15 @@ void roomEventTask(Task* task)
             task->state++;
             break;
         case 3:
-            if (ROOM_EVENT_REQ.field_C != 0) {
-                SndEvt_EnqueueType6(ROOM_EVENT_REQ.field_C, 0, 0);
+            if (ROOM_EVENT_REQ.secondSnd != 0) {
+                SndEvt_EnqueueType6(ROOM_EVENT_REQ.secondSnd, 0, 0);
                 task->state++;
             } else {
                 task->state = 5;
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.field_C) == 0) {
+            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.secondSnd) == 0) {
                 task->state++;
             }
             break;

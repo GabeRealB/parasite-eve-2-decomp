@@ -782,12 +782,12 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
             }
             return 0;
         }
-        req.field_0 = 2;
-        req.field_4 = 1;
-        req.field_8 = 0;
-        req.field_C = 0x540F0001;
-        req.flagId  = 0xA5;
-        req.itemId  = 0;
+        req.capCmd        = 2;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0;
+        req.secondSnd     = 0x540F0001;
+        req.flagId        = 0xA5;
+        req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId == 0x18) {

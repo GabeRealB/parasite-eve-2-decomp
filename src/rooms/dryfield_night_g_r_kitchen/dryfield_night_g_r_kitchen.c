@@ -301,7 +301,7 @@ s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageA
 /// The room's handler for message 0x13EE, the first entry of its message
 /// table. It copies the incoming record to `out`; for a record whose first
 /// halfword is 0x14 it builds the room's event request -- flag nibble 0x34, no
-/// prerequisite item, CAP commands 3 and 3 and two sounds -- and answers what
+/// collected bit, CAP commands 3 and 3 and two sounds -- and answers what
 /// the event gate answers. Everything else answers 1.
 s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -309,12 +309,12 @@ s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg*
 
     *out = *in;
     if (in->areaId == 0x14) {
-        req.field_0 = 3;
-        req.field_4 = 3;
-        req.field_8 = 0x53130001;
-        req.field_C = 0x53130004;
-        req.flagId  = 0x34;
-        req.itemId  = 0;
+        req.capCmd        = 3;
+        req.missingCapCmd = 3;
+        req.firstSnd      = 0x53130001;
+        req.secondSnd     = 0x53130004;
+        req.flagId        = 0x34;
+        req.collectedBit  = 0;
         return roomEventGate(&req, in);
     }
     return 1;

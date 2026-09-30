@@ -598,12 +598,12 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         return 0;
     }
     if (in->areaId == 0x12) {
-        req.field_0 = 3;
-        req.field_4 = 1;
-        req.field_8 = 0x54130009;
-        req.field_C = 0x54130001;
-        req.flagId  = 0xAD;
-        req.itemId  = 0;
+        req.capCmd        = 3;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0x54130009;
+        req.secondSnd     = 0x54130001;
+        req.flagId        = 0xAD;
+        req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId == 0x14) {

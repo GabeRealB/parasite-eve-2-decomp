@@ -1168,39 +1168,39 @@ s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* ms
         out->room = flagClear ? 1 : 2;
     }
     if (msg->areaId == 0x1C) {
-        req.field_0 = 7;
-        req.field_4 = 4;
-        req.field_8 = Gp_PackStageSndId(0x521D000A);
-        req.field_C = Gp_PackStageSndId(0x521D0001);
-        req.flagId  = 0x43;
-        req.itemId  = 0x13;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 7;
+        req.missingCapCmd = 4;
+        req.firstSnd      = Gp_PackStageSndId(0x521D000A);
+        req.secondSnd     = Gp_PackStageSndId(0x521D0001);
+        req.flagId        = 0x43;
+        req.collectedBit  = 0x13;
+        ret               = roomEventGate(&req, out);
         if (gRoomEventActive[0] != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
     } else if (msg->areaId == 0x1F) {
-        req.field_0 = 5;
-        req.field_4 = 2;
-        req.field_8 = Gp_PackStageSndId(0x521D000A);
-        req.field_C = Gp_PackStageSndId(0x521D0001);
-        req.flagId  = 0x44;
-        req.itemId  = 0x13;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 5;
+        req.missingCapCmd = 2;
+        req.firstSnd      = Gp_PackStageSndId(0x521D000A);
+        req.secondSnd     = Gp_PackStageSndId(0x521D0001);
+        req.flagId        = 0x44;
+        req.collectedBit  = 0x13;
+        ret               = roomEventGate(&req, out);
         if (gRoomEventActive[0] != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
     } else if (msg->areaId == 0x1E) {
-        req.field_0 = 6;
-        req.field_4 = 3;
-        req.field_8 = Gp_PackStageSndId(0x521D000A);
-        req.field_C = Gp_PackStageSndId(0x521D0001);
-        req.flagId  = 0x2E;
-        req.itemId  = 0xF;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 6;
+        req.missingCapCmd = 3;
+        req.firstSnd      = Gp_PackStageSndId(0x521D000A);
+        req.secondSnd     = Gp_PackStageSndId(0x521D0001);
+        req.flagId        = 0x2E;
+        req.collectedBit  = 0xF;
+        ret               = roomEventGate(&req, out);
         if (gRoomEventActive[0] != 0) {
             GameFlag_SetNibble(0x30, 1);
             Mc_SaveData[0].state.sceneEvent = 3;

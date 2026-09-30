@@ -532,7 +532,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// answers message 0x17 by writing 1 or 2 into the outgoing record's `room`
 /// from the room's progress nibble 0x47, and - when the message id still reads
 /// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
-/// item 0x15) to the room's event gate `roomEventGate`,
+/// collected bit 0x15) to the room's event gate `roomEventGate`,
 /// returning its answer.
 /// A gate that latched the request is followed by the room's own follow-up:
 /// progress nibble 0x56 set to 4 and effect 0xA2. Everything else answers 1.
@@ -551,13 +551,13 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             }
         }
         if (in->areaId == 0x17) {
-            req.field_0 = 4;
-            req.field_4 = 2;
-            req.field_8 = 0x52160006;
-            req.field_C = 0x52160003;
-            req.flagId  = 0x37;
-            req.itemId  = 0x15;
-            ret         = roomEventGate(&req, out);
+            req.capCmd        = 4;
+            req.missingCapCmd = 2;
+            req.firstSnd      = 0x52160006;
+            req.secondSnd     = 0x52160003;
+            req.flagId        = 0x37;
+            req.collectedBit  = 0x15;
+            ret               = roomEventGate(&req, out);
             if (gRoomEventActive != 0) {
                 GameFlag_SetNibble(0x56, 4);
                 func_800E3FAC(0xA2, 0x38);

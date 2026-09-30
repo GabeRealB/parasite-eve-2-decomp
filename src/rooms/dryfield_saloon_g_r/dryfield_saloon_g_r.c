@@ -751,7 +751,7 @@ static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
 /// warp request: copies `in` to `out`, and for area 0xF picks the destination
 /// room from game-flag nibble 0x61 (unless `in->queryOnly` asks for a dry run),
 /// then passes the warp through the event gate with the room's own request -
-/// nibble 0x35, no item, cap command 2 and two stage sound ids. Any other area
+/// nibble 0x35, no collected bit, cap command 2 and two stage sound ids. Any other area
 /// answers 1.
 s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -765,12 +765,12 @@ s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
             out->room = GameFlag_GetNibble(0x61) + 1;
         }
         if (in->areaId == msgId) {
-            req.field_0 = 2;
-            req.field_4 = 2;
-            req.field_8 = Gp_PackStageSndId(0x52120005);
-            req.field_C = Gp_PackStageSndId(0x52120003);
-            req.flagId  = 0x35;
-            req.itemId  = 0;
+            req.capCmd        = 2;
+            req.missingCapCmd = 2;
+            req.firstSnd      = Gp_PackStageSndId(0x52120005);
+            req.secondSnd     = Gp_PackStageSndId(0x52120003);
+            req.flagId        = 0x35;
+            req.collectedBit  = 0;
             return roomEventGate(&req, in);
         }
     }

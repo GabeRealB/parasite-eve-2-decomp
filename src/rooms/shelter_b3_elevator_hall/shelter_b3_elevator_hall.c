@@ -293,12 +293,12 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == 0x29) {
-        req.field_0 = 1;
-        req.field_4 = 1;
-        req.field_8 = 0x542A0005;
-        req.field_C = 0x542A0003;
-        req.flagId  = 0xA7;
-        req.itemId  = 0;
+        req.capCmd        = 1;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0x542A0005;
+        req.secondSnd     = 0x542A0003;
+        req.flagId        = 0xA7;
+        req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId != 0x1A) {

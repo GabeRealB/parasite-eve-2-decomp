@@ -567,8 +567,8 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Messages 0x21 and 0x1C build a request for the gate
-/// `roomEventGate` (nibble 0xAB with no item, and
-/// nibble 0xA9 with item 0x21, which also sets item-seen bit 0x121 when the
+/// `roomEventGate` (nibble 0xAB with no collected bit, and
+/// nibble 0xA9 with collected bit 0x21, which also sets item-seen bit 0x121 when the
 /// gate reports the event fired). Message 0x1A
 /// answers 0 and, unless `in->queryOnly` asks for a dry run, either sets the
 /// message's nibble and runs CAP command 4 while nibble 0xBA is clear, or runs
@@ -582,22 +582,22 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
     *out = *in;
     func_map_shelter_80179A04(in, out);
     if (in->areaId == 0x21) {
-        req.field_0 = 1;
-        req.field_4 = 1;
-        req.field_8 = 0x541B0007;
-        req.field_C = 0x541B0005;
-        req.flagId  = 0xAB;
-        req.itemId  = 0;
+        req.capCmd        = 1;
+        req.missingCapCmd = 1;
+        req.firstSnd      = 0x541B0007;
+        req.secondSnd     = 0x541B0005;
+        req.flagId        = 0xAB;
+        req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
     if (in->areaId == 0x1C) {
-        req.field_0 = 3;
-        req.field_4 = 2;
-        req.field_8 = 0x541B0009;
-        req.field_C = 0x541B0003;
-        req.flagId  = 0xA9;
-        req.itemId  = 0x21;
-        ret         = roomEventGate(&req, out);
+        req.capCmd        = 3;
+        req.missingCapCmd = 2;
+        req.firstSnd      = 0x541B0009;
+        req.secondSnd     = 0x541B0003;
+        req.flagId        = 0xA9;
+        req.collectedBit  = 0x21;
+        ret               = roomEventGate(&req, out);
         if (gRoomEventActive[0] != 0) {
             Gp_SetItemSeenBit(0x121, 1);
         }
