@@ -168,7 +168,7 @@ func_acropolis_bridge_80180FF0 = 0x80180FF0; // type:func
 
 func_acropolis_bridge_80182694 = 0x80182694; // type:func
 
-func_acropolis_bridge_80182AF8 = 0x80182AF8; // type:func
+effectSpriteDebrisTask = 0x80182AF8; // type:func
 
 func_acropolis_bridge_80182394 = 0x80182394; // type:func
 
@@ -179,3 +179,5 @@ actionPromptDrawCursor = 0x8017F198; // type:func
 actionPromptHitTest = 0x8017F6D4; // type:func
 actionPromptReset = 0x8017F808; // type:func
 glowDrawTintedDiscNoBias = 0x80183654; // type:func
+effectSpriteDrawChip = 0x80182F8C; // type:func
+effectSpriteDrawBillboard = 0x801833A0; // type:func

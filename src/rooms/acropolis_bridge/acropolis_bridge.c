@@ -83,6 +83,12 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
+#define EFFECT_SPRITE_OWN_DRAWERS
+#include "../../shared/effect_sprite.h"
+
+/* The debris task draws with this room's own builds. */
+void effectSpriteDrawChip(GfxCoord* coord, u16 frame, s16 size, s16 angle);
+void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size);
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
@@ -126,7 +132,7 @@ typedef struct AcropolisBridgeQuadScratch {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
 /// 0x1C-byte scratch block the bridge's debris billboard
-/// (`func_acropolis_bridge_80182F8C`) takes from the scratch stack. `vec` is the
+/// (`effectSpriteDrawChip`) takes from the scratch stack. `vec` is the
 /// piece's world position copied out of its `GfxCoord` (`workm.t`) and
 /// projected with a single `RTPS` through `GsWSMATRIX`: `sx` / `sy` are the
 /// projected centre, `flag` the `gte_stflg` result the draw is gated on and
@@ -145,7 +151,7 @@ typedef struct AcropolisBridgeSpriteScratch {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeSpriteScratch, 0x1C);
 
 /// 0x18-byte scratch block the bridge's axis-aligned debris billboard
-/// (`func_acropolis_bridge_801833A0`) takes from the scratch stack. Same
+/// (`effectSpriteDrawBillboard`) takes from the scratch stack. Same
 /// projection as `AcropolisBridgeSpriteScratch` - `vec` is the piece's world
 /// position out of `workm.t`, `sx` / `sy` the projected centre, `flag` the
 /// `gte_stflg` gate and `otz` the `gte_stszotz` depth biased by 1 - but the
@@ -256,8 +262,6 @@ static void func_acropolis_bridge_8017F4CC(Task* task);
 static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
 static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2);
-static void func_acropolis_bridge_80182F8C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_acropolis_bridge_801833A0(GfxCoord* arg0, u16 arg1, s16 arg2);
 static void func_acropolis_bridge_8018581C(Task* task);
 static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task);
 static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task);
@@ -4462,142 +4466,7 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
-/// Controller for one piece of the bridge's blown debris: it drifts the task's
-/// coordinate frame by a velocity it rolls once, and hands the frame to
-/// `func_acropolis_bridge_80182F8C` (state 1) or `func_acropolis_bridge_801833A0`
-/// (state 2) to be drawn. Everything the piece needs is packed into
-/// `Task::spawnArg1`: bits 0-11 become `scale`, bits 12-15 the number of
-/// ticks each animation step lasts (`period`, 1 if zero), bits 16-23 the
-/// speed the velocity is scaled to (`step`, 0x40 if zero), bits 24-27 the
-/// launch pattern and bits 28-31 pick which of the two draw helpers runs. The
-/// first tick also rolls the 12-bit `angle` out of `Gp_LcgState`; both it
-/// and `scale` are passed to the draw helper every tick.
-///
-/// The launch pattern rolls `move` when the caller left it zero: 1 spreads
-/// X and Z evenly over +/-0x80 and biases Y to -0x40..-0xBF, 2 spreads all
-/// three evenly over +/-0x80, 3 keeps X and Z inside +/-0x10 and drives Y to
-/// 0..-0xFF, 5 copies the velocity the caller staged at `pos`, and 0 stops
-/// the piece from drifting at all by zeroing `step`. The rolled direction
-/// is then normalized and scaled back up to `step` with one GTE `GPF`, so
-/// the pattern only picks a direction and the packed speed sets the length.
-///
-/// Once running, a piece with a non-zero `step` adds its velocity onto the
-/// coordinate's translation each tick and bends Y by 6 as it goes, and every
-/// `period` ticks steps `index`; the eighth step releases the work block.
-/// While `gRoomEffectState->effectControl` is nonzero the piece only keeps drawing;
-/// cancellation (values at least 4) releases it.
-void func_acropolis_bridge_80182AF8(Task* task)
-{
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_acropolis_bridge_80182F8C(coord, work->index, work->scale, work->angle);
-        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-        return;
-    }
-    work->age++;
-    switch (task->state) {
-        case 0:
-            work->scale = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 0xF;
-            } else {
-                step = 1;
-            }
-            work->period = step;
-            work->age    = 0;
-            state        = 1;
-            if (task->spawnArg1.value & 0xF0000000) {
-                state = 2;
-            }
-            task->state = state;
-            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
-                } else {
-                    level = 0x40;
-                }
-                work->step = level;
-                kind       = task->spawnArg1.signedBytes[3];
-                switch (kind & 0xF) {
-                    case 0:
-                        work->step = 0;
-                        break;
-                    case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        break;
-                    case 5:
-                        work->move.vx = work->pos.vx;
-                        work->move.vy = work->pos.vy;
-                        work->move.vz = work->pos.vz;
-                        break;
-                }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
-            } else {
-                work->step = 0x40;
-            }
-            return;
-        case 1:
-            func_acropolis_bridge_80182F8C(coord, work->index, work->scale, work->angle);
-            break;
-        case 2:
-            func_acropolis_bridge_801833A0(coord, work->index, work->scale);
-            break;
-        default:
-            return;
-    }
-    if (work->step != 0) {
-        coord->coord.t[0]  += work->move.vx;
-        coord->coord.t[1]  += work->move.vy;
-        coord->coord.t[2]  += work->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->move.vy      += 6;
-    }
-    if ((work->age % work->period) == 0) {
-        work->index++;
-        if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
-}
+#include "../../shared/effect_sprite_debris.inc.c"
 
 /// Draws one piece of the bridge's blown debris as a screen-facing quad. The
 /// piece's world position is copied out of `coord->workm.t` and projected
@@ -4609,7 +4478,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
 /// 0x1F-wide column starting at `frame * 0x20` on rows 0xE0..0xFF of tpage
 /// 0x2B. The primitive is semi-transparent with texture blending off
 /// (`code |= 3`) and links into the OT at the projected depth.
-static void func_acropolis_bridge_80182F8C(GfxCoord* coord, u16 frame, s16 size, s16 angle)
+void effectSpriteDrawChip(GfxCoord* coord, u16 frame, s16 size, s16 angle)
 {
     void**                        scratch;
     u8*                           head;
@@ -4675,7 +4544,7 @@ static void func_acropolis_bridge_80182F8C(GfxCoord* coord, u16 frame, s16 size,
 }
 
 /// Draws one piece of the bridge's blown debris as an upright screen-facing
-/// quad - the unrotated counterpart of `func_acropolis_bridge_80182F8C`. The
+/// quad - the unrotated counterpart of `effectSpriteDrawChip`. The
 /// piece's world position is copied out of `coord->workm.t` and projected
 /// through `GsWSMATRIX` with a single `RTPS`; a GTE error (`gte_stflg` sign
 /// bit) drops the piece rather than drawing it. The `POLY_FT4` is centred on
@@ -4685,7 +4554,7 @@ static void func_acropolis_bridge_80182F8C(GfxCoord* coord, u16 frame, s16 size,
 /// tpage 0x2B: bits 0-1 pick the column and bit 2 the row. The primitive is
 /// semi-transparent with texture blending off (`code |= 3`) and links into the
 /// OT at the projected depth.
-static void func_acropolis_bridge_801833A0(GfxCoord* coord, u16 frame, s16 size)
+void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size)
 {
     void**                        scratch;
     u8*                           head;

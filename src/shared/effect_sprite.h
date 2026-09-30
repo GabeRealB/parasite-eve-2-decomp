@@ -16,18 +16,14 @@
 void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-
-void effectSpriteDriftTaskAimed(Task* task);
+/* A room whose debris draws with its own chip and billboard builds defines
+   EFFECT_SPRITE_OWN_DRAWERS and declares its own. */
+#ifndef EFFECT_SPRITE_OWN_DRAWERS
 void effectSpriteDrawChip(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 void effectSpriteDrawBillboard(GfxCoord* arg0, s32 arg1, s32 arg2);
-
-/* Defined by each package. */
-void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-
+#endif
 void effectSpriteDriftTask(Task* task);
-
-/* Defined by each package. */
-void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void effectSpriteDriftTaskAimed(Task* task);
+void effectSpriteDebrisTask(Task* task);
 
 #endif /* SRC_SHARED_EFFECT_SPRITE_H */

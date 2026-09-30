@@ -209,7 +209,7 @@ func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func
 
 effectSpriteDriftTaskAimed = 0x80182368; // type:func
 
-func_shelter_b3_garbage_incinerator_80183364 = 0x80183364; // type:func
+effectSpriteDebrisTask = 0x80183364; // type:func
 CapCaption_RunSchedule = 0x8017FA58; // type:func
 CapCaption_DrawCurrent = 0x8017FB80; // type:func
 CapCaption_Relocate = 0x8017FC5C; // type:func
