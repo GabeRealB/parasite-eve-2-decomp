@@ -63,6 +63,7 @@ Task* D_dryfield_gas_station_80184BD4;
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/screen_fade.h"
 
 #define D_dryfield_gas_station_80182E5C (D_dryfield_gas_station_80182E44[1])
 #define D_dryfield_gas_station_80182E74 (D_dryfield_gas_station_80182E44[2])
@@ -111,7 +112,7 @@ void                  func_dryfield_gas_station_80180A60(void);
 TaskDesc D_dryfield_gas_station_80181E7C[3] = {
     { 0, 192, func_dryfield_gas_station_801802C0, { .model = NULL } },
     { 0, 192, func_dryfield_gas_station_8017FFE4, { .model = NULL } },
-    { 0, 192, func_dryfield_gas_station_801801E4, { .model = NULL } },
+    { 0, 192, screenFadeInTask, { .model = NULL } },
 };
 
 AnimationPackedPose D_dryfield_gas_station_80181EA0[2] = {
@@ -771,42 +772,10 @@ void func_dryfield_gas_station_80180944(void)
     }
 }
 
-/// Fade task: on its first tick it allocates the 8-byte fade block and seeds
-/// its three channels to 0xFF, then every frame it draws the fade overlay (the
-/// red channel standing in for blue) and steps each channel down by
-/// `Task::spawnArg1`, killing itself once red has gone negative.
-void func_dryfield_gas_station_80180984(Task* arg0)
-{
-    OverlayFadeWork* fade;
-    OverlayFadeWork* alloc;
-
-    fade = (OverlayFadeWork*)arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
-            /* fallthrough */
-        case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
-            if (fade->r >= 0) {
-                return;
-            }
-            taskKill(arg0);
-            break;
-    }
-}
+/// A second copy of the fade-in task, which this file's own task table names.
+#define screenFadeInTask func_dryfield_gas_station_80180984
+#include "../../shared/screen_fade_in.inc.c"
+#undef screenFadeInTask
 
 /// Tells slot 3 that the cutscene is opening: it ends the weapon effect the
 /// player may still be carrying (flag at `DgsWork::playerEffActive`), echoes the
