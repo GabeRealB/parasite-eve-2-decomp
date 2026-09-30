@@ -14,10 +14,10 @@ enum { ANIMATION_RATE_ONE = 0x10 };
 /// Selects the slot's writable context-buffer pose instead of a bank keyframe.
 enum { ANIMATION_SET_BUFFERED_POSE = 0x7FFF };
 
-/// Results of the latest slot tick or track walk; initialization clears them.
+/// Results of the latest slot tick or track walk. Initialization and each tick clear them first.
 enum {
     ANIMATION_SLOT_REACHED_END   = 1,    // End control, jump to the selected keyframe, or reverse track boundary
-    ANIMATION_SLOT_FOLLOWED_JUMP = 2,    // A nonterminal control record was followed
+    ANIMATION_SLOT_FOLLOWED_JUMP = 2,    // Control jump taken this walk (stop clear; index becomes wordOffset), including a jump that also sets ANIMATION_SLOT_REACHED_END
     ANIMATION_SLOT_BOUNDARY_MASK = ANIMATION_SLOT_REACHED_END | ANIMATION_SLOT_FOLLOWED_JUMP,
     ANIMATION_SLOT_SETTLED       = 0x100 // The boundary pose is held
 };

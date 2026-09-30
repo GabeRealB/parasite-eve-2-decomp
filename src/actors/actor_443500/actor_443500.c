@@ -2554,9 +2554,10 @@ static void func_actor_443500_80132078(Task* task)
 /// Ticks animation slots 1..0x13 once `model.ticking` is latched, restarting 0x7D3
 /// when slot 1 reports the clip ended. The `model.animId == 0x1C` path is the
 /// default clip's sound: `field_4BA` counts to 0xF for a Type6 (views 4/5) or
-/// Type7 (view 3) cue, TypeA otherwise while the view is ready, and resets on
-/// slot 1's control-entry bit. A visible model gets a ground shadow and a
-/// rebuilt child-part matrix; `field_4BC` then counts down to free the buffers.
+/// Type7 (view 3) cue, TypeA otherwise while the view is ready, and resets when
+/// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`. A visible model gets a ground
+/// shadow and a rebuilt child-part matrix; `field_4BC` then counts down to free
+/// the buffers.
 static void func_actor_443500_801321F0(Task* task)
 {
     Actor443500Work* work;

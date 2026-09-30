@@ -106,8 +106,9 @@ typedef struct ActorsShared8013898cVec {
 typedef struct ActorsShared80138efcWork {
     /// Root coordinate the model's second part is parented to.
     /* 0x000 */ GfxCoord coord;
-    /// Body animation. Slot 1's `flags` report the clip's end and its control
-    /// entries to the state handlers, and its `currentPose.indices.setIndex` is the motion playing.
+    /// Body animation. Slot 1's `flags` report a clip end and a control jump
+    /// (`ANIMATION_SLOT_FOLLOWED_JUMP`) to the state handlers, and its
+    /// `currentPose.indices.setIndex` is the motion playing.
     /* 0x050 */ AnimationContext anim;
     /* 0x064 */ AnimationSlot    slots[21];
     /* 0x3AC */ byte             poses[0x150];
@@ -4221,11 +4222,11 @@ static void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
 }
 
-/// Arms the 0x15 / 0x16 motion pair on the first frame of the sub-state, then
-/// runs the sub-state proper: while bit 1 of the motion flags at 0x9C is set,
-/// either keeps the state on the 0x17 motion once `field_B92` has run out and
-/// the enemy is not carrying flag 0x2 in `field_4C`, or hands the frame to
-/// `Actor01100_Fn05678` on the 0x18 motion.
+/// Arms the 0x15 / 0x16 motion pair on the first frame of the sub-state.
+/// Once slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`, it clears `field_B9C`.
+/// While `field_B92` is still positive and `reactionFlags` value 2 is clear, it
+/// moves to motion 0x17; once that count has run out it hands the frame to
+/// `Actor01100_Fn05678` on motion 0x18.
 static void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     AnimationSlot* motion = &work->slots[1];

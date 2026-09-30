@@ -482,8 +482,9 @@ static void func_actor_323300_80161E78(Task* arg0)
 
 /// Per-frame runner for the `Actor323300Work` block: dispatches on
 /// `walk.motion` through the two-entry handler table it builds on the stack,
-/// walks the 18 animation slots and, while `field_500` is set, posts one of the
-/// two sound cues -- the pan/depth pair the session's `location.loc.view` picks between
+/// walks the 18 animation slots and, while `field_500` is set, posts a sound
+/// cue. Slot 1's `ANIMATION_SLOT_FOLLOWED_JUMP` retriggers Type6; otherwise a
+/// ready view gets TypeA. The pan/depth pair `location.loc.view` picks between
 /// is built twice so the two calls cross-jump into a shared `jal`. Then, unless
 /// `TmdObject::flags` says the model is hidden, draws the ground shadow under
 /// coordinate 1, refreshes that coordinate's matrix and colour, and ticks the
