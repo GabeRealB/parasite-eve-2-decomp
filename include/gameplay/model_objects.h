@@ -116,7 +116,7 @@ void Gp_DrawDisp2dOt(struct Task* unused);
 /// — its packet slot is stepped over either way, which is what keeps the packets
 /// in step with the elements that named them.
 ///
-/// The record's other half is the build pass's command (`gpStreamPrimF4PreXform`),
+/// The record's other half is the build pass's command (`modelLightingStreamPrimF4PreXform`),
 /// which laid the packet out and gave it its length, its primitive code and the
 /// element's colour; this command writes none of the three.
 u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);

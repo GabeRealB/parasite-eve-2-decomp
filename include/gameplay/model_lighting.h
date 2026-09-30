@@ -239,15 +239,24 @@ u32* gpStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed flat-quad records (`0x45`): each
-/// element contributes one untextured quad to the buffer half's first region,
-/// with the element's colour word written into it.
+/// element contributes one untextured, unlit quad to the buffer half's first
+/// region, with the element's colour word written into it.
 ///
-/// Only the packet's fixed fields are written here — its length, its primitive
-/// code and the element's colour. A pre-transformed quad's vertices come from the
-/// stream's vertex commands, and the draw pass culls the quad and links it into
-/// the order table (`gpDrawStreamPrimF4PreXform`), so neither is this command's
-/// work.
-u32* gpStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The opcode's `0x01` bit marks the corners as already in screen space. This
+/// command writes the packet's fixed fields: its length (5 words after the
+/// tag), the element's colour and the opaque flat-quad code (`0x28`). The
+/// colour is the element's third word and includes the command byte, so the
+/// code is stored after it. The record's draw handler
+/// (`gpDrawStreamPrimF4PreXform`) reads four depth-cache offsets from the
+/// element's leading halfwords, culls from the screen coordinates already
+/// stored in the packet, and links a quad the cull accepts. That handler
+/// leaves this length, code and colour unchanged.
+///
+/// `preXformWrite` advances by one quad per element. The record has no
+/// variant for `flags` to select, and packet construction passes zero, so
+/// `flags` goes unread. The returned cursor is the stream advanced by one
+/// element stride per element.
+u32* modelLightingStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed flat-triangle records (`0x5`): each
 /// element contributes one untextured, unlit triangle to the buffer half's

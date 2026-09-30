@@ -1882,7 +1882,7 @@ u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* modelLightingStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F4* poly;
     s32      color;
@@ -1893,6 +1893,7 @@ u32* gpStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
             color = stream[2];
             setlen(poly, 5);
             GPU_PRIMITIVE_COLOR_WORD(poly, 0) = color;
+            // The colour word includes the command byte, so the flat code follows it.
             setcode(poly, 0x28);
             poly++;
             stream += ws->elemStride;
