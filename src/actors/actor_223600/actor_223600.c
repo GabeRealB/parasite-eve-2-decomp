@@ -999,13 +999,11 @@ static void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     enemy->hpMax                  = hp;
     enemy->hp                     = hp;
 
-    work->field_170 = 2;
     work->field_174 = 1;
+    work->field_170 = 2;
     work->field_176 = 0x10;
     work->field_178 = 0;
-    /* The original call passes a stray second argument, which only an
-       unprototyped declaration lets through. */
-    ((void (*)())animDriverTick)(task, hp);
+    animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
     obj->lightMtx       = &work->field_1A8;

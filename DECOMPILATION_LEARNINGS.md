@@ -146171,8 +146171,10 @@ the fragments `static` and declare them `static` in the header instead. A map
 overlay whose copy other rooms call under a public name uses the same define
 to give the fragment that name.
 
-A call through an old-style declaration can pass an argument the prototype
-would reject (`actor_223600` calls its motion driver with a stray second
-argument). Keep it by casting at that one call site,
-`((void (*)())animDriverTick)(task, hp);` - it still compiles to a direct
-`jal` and matches.
+A value sitting in `$a1` at a call is not proof of a second argument. In
+`func_actor_223600_8014B540` the target loads the enemy's hit points into `$a1`
+just before `jal animDriverTick`, and an old-style call passing it matched - but
+no other call of the driver in four packages sets `$a1`. The permuter found the
+real source: store `field_174 = 1` before `field_170 = 2`. The constant 1 is
+then allocated first and takes `$v1`, leaving `$a1` to the hit points; the
+one-argument call matches.
