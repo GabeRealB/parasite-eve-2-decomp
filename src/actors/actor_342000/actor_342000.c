@@ -79,7 +79,7 @@
 /// `field_29C` / `field_2A0` are the actor's two child tasks; the per-frame tail
 /// of `func_actor_342000_801628C8` ticks them with `func_actor_342000_80161EA4`.
 ///
-/// `field_2AA` latches the `GpCmdArg::command` the id 0x7DB handler was
+/// `field_2AA` latches the `ActorCommand::command` the id 0x7DB handler was
 /// last called with; command 0xA additionally refills `field_264` from the
 /// handler's second payload.
 ///
@@ -169,7 +169,7 @@ extern GpXformArg D_actor_342000_80164948;
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpCmdArg*, GpXformArg*);
+        void (*call0)(Task*, s32, ActorCommand* request, GpXformArg*);
         void (*call1)(Task*, s32, GpXformArg*);
         void (*call2)(Task*, s32, s32);
     } handler;
@@ -193,7 +193,7 @@ void func_actor_342000_80163EAC(Task*);
 void func_actor_342000_80163FB8(Task*, s32, s32);
 void func_actor_342000_80164034(Task*, s32, GpXformArg*);
 void func_actor_342000_801640C0(Task*, s32, GpXformArg*);
-void func_actor_342000_80164110(Task*, s32, GpCmdArg*, GpXformArg*);
+void func_actor_342000_80164110(Task*, s32, ActorCommand* request, GpXformArg*);
 void func_actor_342000_80164154(void);
 void func_actor_342000_801641B4(void);
 void func_actor_342000_801641FC(void);
@@ -285,7 +285,7 @@ GpXformArg D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 2048, 
 Actor342000MessageEntry D_actor_342000_801648E8[3] = {
     { 2005, { .call2 = func_actor_342000_80163FB8 } },
     { 2004, { .call1 = func_actor_342000_801640C0 } },
-    { 2011, { .call0 = func_actor_342000_80164110 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342000_80164110 } },
 };
 
 SVECTOR D_actor_342000_80164900[6] = {
@@ -1117,7 +1117,7 @@ static inline void Actor342000_EnterArea(void)
 /// state 7's `Mc_SaveData[0].state.at4.loc.view` store ahead of the state load, as in retail.
 void func_actor_342000_8016382C(Task* arg0)
 {
-    GpCmdArg              msg;
+    ActorCommand          msg;
     Actor342000EventWork* work;
     Actor342000EventWork* ev;
     Actor342000EventWork* alloc;
@@ -1153,10 +1153,10 @@ void func_actor_342000_8016382C(Task* arg0)
             }
             work = (Actor342000EventWork*)arg0->work;
             if ((u8)gGameSession->skipEventIntro == 0) {
-                msg.from.loc.stage = gGameSession->at4.loc.stage;
-                msg.from.loc.area  = gGameSession->at4.loc.area;
-                msg.command        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+                msg.context.loc.stage = gGameSession->at4.loc.stage;
+                msg.context.loc.area  = gGameSession->at4.loc.area;
+                msg.command           = 0;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->field_5C = Task_SpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
                 work->field_60 = Task_SpawnFromTable(D_actor_342000_80164FF8, 9, 0, arg0);
                 goto next;
@@ -1232,10 +1232,10 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_KillFx();
                 Actor342000_SetMode(7);
                 Actor342000_EnterArea();
-                msg.from.loc.stage = gGameSession->at4.loc.stage;
-                msg.from.loc.area  = gGameSession->at4.loc.area;
-                msg.command        = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+                msg.context.loc.stage = gGameSession->at4.loc.stage;
+                msg.context.loc.area  = gGameSession->at4.loc.area;
+                msg.command           = 0;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 arg0->killCountdown = 0;
                 arg0->state++;
                 break;
@@ -1371,17 +1371,17 @@ void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpXformArg* arg2)
     work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_actor_342000_80164110(Task* arg0, s32 arg1, GpCmdArg* arg2, GpXformArg* arg3)
+void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, GpXformArg* arg3)
 {
     Actor342000Work* work;
 
     work = (Actor342000Work*)arg0->work;
-    if (arg2->command == 0xA) {
+    if (request->command == 0xA) {
         work->field_264.vx = arg3->pos.vx;
         work->field_264.vy = arg3->pos.vy;
         work->field_264.vz = arg3->pos.vz;
     }
-    work->field_2AA = arg2->command;
+    work->field_2AA = request->command;
 }
 
 void func_actor_342000_80164154(void)

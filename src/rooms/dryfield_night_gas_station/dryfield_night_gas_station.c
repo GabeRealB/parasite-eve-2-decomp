@@ -907,21 +907,21 @@ GpXformArg D_dryfield_night_gas_station_80188B0C = { { 0x35CA, 0, -298, 0 }, { 0
 
 GpXformArg D_dryfield_night_gas_station_80188B24 = { { 7335, 0, -3520, 0 }, { 0, 1024, 0, 0 } };
 
-GpCmdArg D_dryfield_night_gas_station_80188B3C = { { .loc = { 3, 1 } }, 1 };
+ActorCommand D_dryfield_night_gas_station_80188B3C = { { .loc = { 3, 1 } }, 1 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B40 = { { .loc = { 3, 1 } }, 2 };
+ActorCommand D_dryfield_night_gas_station_80188B40 = { { .loc = { 3, 1 } }, 2 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B44 = { { .loc = { 3, 1 } }, 3 };
+ActorCommand D_dryfield_night_gas_station_80188B44 = { { .loc = { 3, 1 } }, 3 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B48 = { { .loc = { 3, 1 } }, 4 };
+ActorCommand D_dryfield_night_gas_station_80188B48 = { { .loc = { 3, 1 } }, 4 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B4C = { { .loc = { 3, 1 } }, 5 };
+ActorCommand D_dryfield_night_gas_station_80188B4C = { { .loc = { 3, 1 } }, 5 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B50 = { { .loc = { 3, 1 } }, 6 };
+ActorCommand D_dryfield_night_gas_station_80188B50 = { { .loc = { 3, 1 } }, 6 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B54 = { { .loc = { 3, 1 } }, 7 };
+ActorCommand D_dryfield_night_gas_station_80188B54 = { { .loc = { 3, 1 } }, 7 };
 
-GpCmdArg D_dryfield_night_gas_station_80188B58 = { { .loc = { 3, 1 } }, 8 };
+ActorCommand D_dryfield_night_gas_station_80188B58 = { { .loc = { 3, 1 } }, 8 };
 
 GpOverlayIds D_dryfield_night_gas_station_80188B5C = { 3, 51, 11 };
 
@@ -974,7 +974,7 @@ GpEvsCmd D_dryfield_night_gas_station_80188BF4[44] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_gas_station_80188904 }, { .value = 0 } },
     { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_gas_station_80188A2C }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B58 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B58 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_night_gas_station_8017FBD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -998,7 +998,7 @@ GpEvsCmd D_dryfield_night_gas_station_80189014[21] = {
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180BEC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 48, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B58 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B58 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1035,7 +1035,7 @@ GpEvsCmd D_dryfield_night_gas_station_801892E4[81] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 22 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B3C }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B3C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180740 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1044,7 +1044,7 @@ GpEvsCmd D_dryfield_night_gas_station_801892E4[81] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180A34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B40 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B40 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1069,7 +1069,7 @@ GpEvsCmd D_dryfield_night_gas_station_801892E4[81] = {
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_night_gas_station_80188B24 }, { .value = 0 } },
     { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_gas_station_80188AE0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B54 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B54 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180B04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1078,13 +1078,13 @@ GpEvsCmd D_dryfield_night_gas_station_801892E4[81] = {
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180B38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B44 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B44 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180940 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B48 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B48 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180974 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B4C }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B4C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_night_gas_station_80180760 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1095,7 +1095,7 @@ GpEvsCmd D_dryfield_night_gas_station_801892E4[81] = {
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B50 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B50 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1109,7 +1109,7 @@ GpEvsCmd D_dryfield_night_gas_station_80189A7C[22] = {
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_night_gas_station_801889C4 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_night_gas_station_80188B24 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_gas_station_80188B50 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B50 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 48, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_night_gas_station_801807D4 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

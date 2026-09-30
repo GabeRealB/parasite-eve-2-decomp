@@ -47,7 +47,7 @@ STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -72,12 +72,12 @@ extern u32     D_actor_503500_80147640[459];
 
 s32 func_actor_503500_80132508(Task*, s32, GpXformArg*);
 s32 func_actor_503500_80132584(Task*, s32, s32);
-s32 func_actor_503500_80132664(Task*, s32, GpCmdArg*);
+s32 func_actor_503500_80132664(Task*, s32, ActorCommand* msg);
 
 Actor503500MsgEntry D_actor_503500_80146888[4] = {
     { 2004, { .call1 = func_actor_503500_80132508 } },
     { 2005, { .call2 = func_actor_503500_80132584 } },
-    { 2011, { .call0 = func_actor_503500_80132664 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_503500_80132664 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1031,7 +1031,7 @@ s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_503500_80132664(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_503500_80132664(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor503500ColorMtx* work;
 

@@ -149,10 +149,10 @@ extern GpMsgEntry D_dryfield_breezeway_80182DCC[];
 /// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
 /// slot-3 weapon record msg 0x3E8 takes (the `AnimationPlayRequest` `Gp_MsgPlayerWeapon`
 /// also sends, with `field_4` set to this room's 9 and `field_C`/`field_10`
-/// zeroed), and `msg` the `GpCmdArg` the 0x7DA prompt takes right after it.
+/// zeroed), and `msg` the `ActorCommand` the 0x7DA prompt takes right after it.
 typedef union DbwMsgBuf {
     /* 0x0 */ AnimationPlayRequest rec;
-    /* 0x0 */ GpCmdArg             msg;
+    /* 0x0 */ ActorCommand         msg;
 } DbwMsgBuf;
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
@@ -488,7 +488,7 @@ static void func_dryfield_breezeway_8017F538(Task* task);
 /// allocation the original compiler reached.
 static void func_dryfield_breezeway_8017DEC0(Task* arg0)
 {
-    GpCmdArg              msg;
+    ActorCommand          msg;
     DbwMsgBuf             buf;
     AnimationPlayRequest* rec;
     DbwWork*              work;
@@ -505,10 +505,10 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case 0:
             break;
         case 1:
-            msg.from.loc.stage = gGameSession->at4.loc.stage;
-            msg.from.loc.area  = gGameSession->at4.loc.area;
-            msg.command        = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+            msg.context.loc.stage = gGameSession->at4.loc.stage;
+            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.command           = 1;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
             Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_breezeway_80181E40[0], 0);
             Gp_DispatchMsgPtr(work->field_0, 0x3EE, &D_dryfield_breezeway_80181E40[1], 0);
@@ -621,14 +621,14 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
 
 void func_dryfield_breezeway_8017E2D4(void)
 {
-    DbwWork* work;
-    GpCmdArg msg;
+    DbwWork*     work;
+    ActorCommand msg;
 
-    work               = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    msg.from.loc.stage = gGameSession->at4.loc.stage;
-    msg.from.loc.area  = gGameSession->at4.loc.area;
-    msg.command        = 2;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+    work                  = (DbwWork*)D_dryfield_breezeway_801843C0->work;
+    msg.context.loc.stage = gGameSession->at4.loc.stage;
+    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.command           = 2;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
@@ -661,10 +661,10 @@ void func_dryfield_breezeway_8017E390(void)
     /* The message ABI carries this object address in one 32-bit word. */
     Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)&buf, 0);
 
-    work                   = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
-    buf.msg.from.loc.area  = gGameSession->at4.loc.area;
-    buf.msg.command        = 2;
+    work                      = (DbwWork*)D_dryfield_breezeway_801843C0->work;
+    buf.msg.context.loc.stage = gGameSession->at4.loc.stage;
+    buf.msg.context.loc.area  = gGameSession->at4.loc.area;
+    buf.msg.command           = 2;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf, 0x7DB);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }

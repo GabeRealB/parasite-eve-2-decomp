@@ -274,11 +274,11 @@ GpXformArg D_dryfield_main_street_801815E8 = { { -2237, 0, -2100, 0 }, { 0, 0, 0
 // Retained parameter record; layout follows the adjacent script arguments.
 GpXformArg D_dryfield_main_street_80181600 = { { -3000, 0, 6000, 0 }, { 0, 0, 0, 0 } };
 
-GpCmdArg D_dryfield_main_street_80181618 = { { .loc = { 2, 2 } }, 1 };
+ActorCommand D_dryfield_main_street_80181618 = { { .loc = { 2, 2 } }, 1 };
 
-GpCmdArg D_dryfield_main_street_8018161C = { { .loc = { 2, 2 } }, 2 };
+ActorCommand D_dryfield_main_street_8018161C = { { .loc = { 2, 2 } }, 2 };
 
-GpCmdArg D_dryfield_main_street_80181620 = { { .loc = { 2, 2 } }, 3 };
+ActorCommand D_dryfield_main_street_80181620 = { { .loc = { 2, 2 } }, 3 };
 
 GpEvsCmd D_dryfield_main_street_80181624[42] = {
     { 3, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -291,14 +291,14 @@ GpEvsCmd D_dryfield_main_street_80181624[42] = {
     { 4, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_main_street_801815E8 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_main_street_80181618 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_80181618 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callbackNoArg = func_dryfield_main_street_8017E320 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_main_street_8017E354 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
     { 19, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_main_street_80181620 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_80181620 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -317,7 +317,7 @@ GpEvsCmd D_dryfield_main_street_80181624[42] = {
     { 13, { .callback = func_dryfield_main_street_8017E2F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_main_street_8017E354 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_main_street_8018161C }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_8018161C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -332,7 +332,7 @@ GpEvsCmd D_dryfield_main_street_80181A14[16] = {
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_main_street_801815E8 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_main_street_8018161C }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_8018161C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callback = func_dryfield_main_street_8017E354 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 48, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

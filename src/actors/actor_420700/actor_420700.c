@@ -69,7 +69,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, s32);
     } handler;
 } Actor420700MessageEntry;
@@ -90,7 +90,7 @@ void             func_actor_420700_801327EC(Task*);
 
 s32 func_actor_420700_80132644(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_420700_801326F4(Task*, s32, s32);
-s32 func_actor_420700_80132784(Task*, s32, GpCmdArg*);
+s32 func_actor_420700_80132784(Task*, s32, ActorCommand* args);
 
 AnimationPackedPose D_actor_420700_80132894[7] = {
 #include "assets/actor_420700_animation_00DE0_bank1.inc"
@@ -895,7 +895,7 @@ AnimationSet D_actor_420700_8013EF20 = {
 Actor420700MessageEntry D_actor_420700_8013EF48[4] = {
     { 2003, { .call0 = func_actor_420700_80132644 } },
     { 2005, { .call2 = func_actor_420700_801326F4 } },
-    { 2011, { .call1 = func_actor_420700_80132784 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_420700_80132784 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1335,9 +1335,9 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
 /// test short, and adding the fourth node is what makes it split at the first
 /// case instead. See DECOMPILATION_LEARNINGS.md, "An empty case node changes
 /// the switch decision tree".
-s32 func_actor_420700_80132784(Task* task, s32 arg1, GpCmdArg* args)
+s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args)
 {
-    if (args->from.key != 0x1B02) {
+    if (args->context.key != 0x1B02) {
         return -1;
     }
     D_actor_420700_8013EFE0->st.field_6 = args->command;

@@ -112,7 +112,7 @@ extern u8 D_actor_210600_8015A4B4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -130,7 +130,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 extern TmdSource D_actor_210600_801594D8;
 s32              func_actor_210600_8014B5F4(Task*, s32, s32);
 s32              func_actor_210600_8014B6A0(Task*, s32, GpXformArg*);
-s32              func_actor_210600_8014B770(Task*, s32, GpCmdArg*);
+s32              func_actor_210600_8014B770(Task*, s32, ActorCommand* msg);
 void             func_actor_210600_8014BA3C(Task*);
 
 #include "../../shared/actor_contacts.h"
@@ -265,7 +265,7 @@ u8 D_actor_210600_8015A4B4[24] = {
 Actor210600MessageEntry D_actor_210600_8015A4CC[4] = {
     { 2005, { .call2 = func_actor_210600_8014B5F4 } },
     { 2004, { .call1 = func_actor_210600_8014B6A0 } },
-    { 2011, { .call0 = func_actor_210600_8014B770 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_210600_8014B770 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -572,13 +572,13 @@ s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, GpXformArg* placement)
 /// comes from sender 0x401 with selector 1, it requests clip 1 through the
 /// reset step at rate 0x10 and clears `Actor210600Work::field_890` so the
 /// update state runs. Always reports the message handled.
-s32 func_actor_210600_8014B770(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor210600Work* work;
     u16              selector;
 
     work = (Actor210600Work*)task->work;
-    if (msg->from.key == 0x401) {
+    if (msg->context.key == 0x401) {
         selector = msg->command;
         if (selector == 1) {
             work->field_886.half = 0x10;

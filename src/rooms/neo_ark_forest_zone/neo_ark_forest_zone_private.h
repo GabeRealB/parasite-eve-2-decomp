@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpCmdArg D_neo_ark_forest_zone_80182E44;
+extern ActorCommand D_neo_ark_forest_zone_80182E44;
 
 extern u16 D_neo_ark_forest_zone_80182E54[5];
 

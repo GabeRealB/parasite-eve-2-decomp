@@ -789,15 +789,15 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
 
 static void func_dryfield_breezeway_8017DDB0(Task* task)
 {
-    GpCmdArg msg;
+    ActorCommand msg;
 
     task->msgTable = D_dryfield_breezeway_80181DE0;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0x5D) == 0) {
-        msg.from.loc.stage = gGameSession->at4.loc.stage;
-        msg.from.loc.area  = gGameSession->at4.loc.area;
-        msg.command        = 0;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+        msg.context.loc.stage = gGameSession->at4.loc.stage;
+        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.command           = 0;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
     }
     task->state++;

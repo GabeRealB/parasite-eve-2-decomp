@@ -62,7 +62,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call2)(Task*, s32, GpCmdArg*, s32);
+        s32  (*call2)(Task*, s32, ActorCommand* request, s32);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -124,7 +124,7 @@ extern TmdSource D_actor_323000_80169870;
 s32              func_actor_323000_80164844(Task*, s32, s32);
 s32              func_actor_323000_80164904(Task*);
 s32              func_actor_323000_80164954(Task*, s32, GpXformArg*);
-s32              func_actor_323000_80164A54(Task*, s32, GpCmdArg*, s32);
+s32              func_actor_323000_80164A54(Task*, s32, ActorCommand* msg, s32);
 s32              func_actor_323000_80164AF0(Task*, s32, AnimationPlayRequest*, s32);
 void             func_actor_323000_8016483C(void);
 void             func_actor_323000_80164CE4(Task*);
@@ -3031,7 +3031,7 @@ Actor323000MessageEntry D_actor_323000_801739D0[7] = {
     { 2005, { .call4 = func_actor_323000_80164844 } },
     { 2006, { .call0 = func_actor_323000_80164904 } },
     { 2004, { .call3 = func_actor_323000_80164954 } },
-    { 2011, { .call2 = func_actor_323000_80164A54 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323000_80164A54 } },
     { 2003, { .call1 = func_actor_323000_80164AF0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -3874,17 +3874,17 @@ s32 func_actor_323000_80164954(Task* task, s32 arg1, GpXformArg* placement)
 /// the work block and, when `code` is 0x202, selects the state from `mode`:
 /// 1 starts state 2, 0 and 2 state 0, and 3 state 3. Other codes only store
 /// the bytes.
-s32 func_actor_323000_80164A54(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
+s32 func_actor_323000_80164A54(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor323000Work* work;
 
     work = (Actor323000Work*)task->work;
 
-    work->field_91C = msg->from.loc.stage;
-    work->field_91D = msg->from.loc.area;
+    work->field_91C = msg->context.loc.stage;
+    work->field_91D = msg->context.loc.area;
     work->field_91E = (u8)msg->command;
 
-    if (msg->from.key == 0x202) {
+    if (msg->context.key == 0x202) {
         switch (msg->command) {
             case 1:
                 work->field_0 = 2;

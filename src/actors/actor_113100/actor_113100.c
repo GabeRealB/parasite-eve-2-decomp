@@ -87,7 +87,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, GpXformArg*, Actor113100SpawnAnim*);
         s32 (*call4)(Task*, s32, s32, s32);
@@ -173,7 +173,7 @@ s32 func_actor_113100_80132790(Task*, s32, s32, s32);
 s32 func_actor_113100_801328EC(Task*, s32, GpXformArg*, Actor113100SpawnAnim*);
 s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_113100_8013333C(Task*, s32, GpXformArg*);
-s32 func_actor_113100_801333B8(Task*, s32, GpCmdArg*);
+s32 func_actor_113100_801333B8(Task*, s32, ActorCommand* msg);
 
 TmdBone D_actor_113100_8013346C[20] = {
 #include "assets/actor_113100_model_07844_skeleton.inc"
@@ -1170,7 +1170,7 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
     { 2004, { .call2 = func_actor_113100_8013333C } },
     { 2005, { .call4 = func_actor_113100_80132790 } },
     { 2013, { .call3 = func_actor_113100_801328EC } },
-    { 2011, { .call1 = func_actor_113100_801333B8 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_113100_801333B8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1991,7 +1991,7 @@ s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpXformArg* args)
 /// deferred-kill flag that decides whether the model is drawn; 2 and 3 set the
 /// work block's `field_53C` mode byte to 1 and 0. Nothing reads the opcode
 /// itself, hence `msgId`.
-s32 func_actor_113100_801333B8(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor113100Work* work;
     TmdObject*       model;

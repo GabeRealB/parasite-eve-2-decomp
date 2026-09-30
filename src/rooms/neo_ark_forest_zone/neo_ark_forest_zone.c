@@ -84,7 +84,7 @@ s8 D_neo_ark_forest_zone_80182E40[4] = {
     20,
 };
 
-GpCmdArg D_neo_ark_forest_zone_80182E44 = { 0 };
+ActorCommand D_neo_ark_forest_zone_80182E44 = { 0 };
 
 RoomLatchedEvent D_neo_ark_forest_zone_80182E48 = { 0 };
 

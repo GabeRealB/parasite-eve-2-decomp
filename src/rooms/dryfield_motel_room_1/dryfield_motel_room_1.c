@@ -75,15 +75,15 @@ s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* in, 
 /// advance state.
 static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 {
-    GpCmdArg msg;
+    ActorCommand msg;
 
     arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.variant == 3 && GameFlag_GetNibble(0x5C) == 0) {
-        msg.from.loc.stage = gGameSession->at4.loc.stage;
-        msg.from.loc.area  = gGameSession->at4.loc.area;
-        msg.command        = 0;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+        msg.context.loc.stage = gGameSession->at4.loc.stage;
+        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.command           = 0;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     arg0->state = arg0->state + 1;
 }

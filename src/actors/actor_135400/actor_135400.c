@@ -101,7 +101,7 @@ typedef struct {
         s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*placement)(Task*, s32, GpXformArg*, s32);
         s32 (*mode)(Task*, s32, s32, s32);
-        s32 (*command)(Task*, s32, GpCmdArg*, s32);
+        s32 (*command)(Task*, s32, ActorCommand* request, s32);
     } handler; // Callback with the argument views required by that message
 } _Actor135400MessageEntry;
 STATIC_ASSERT_SIZEOF(_Actor135400MessageEntry, 8);
@@ -200,7 +200,7 @@ void             func_actor_135400_80132AF4(Task*);
 s32  func_actor_135400_80132650(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_135400_8013276C(Task*, s32, GpXformArg*, s32);
 s32  func_actor_135400_801327E8(Task*, s32, s32, s32);
-s32  func_actor_135400_801328DC(Task*, s32, GpCmdArg*, s32);
+s32  func_actor_135400_801328DC(Task*, s32, ActorCommand* msg, s32);
 void func_actor_135400_801323F8(Task*);
 void func_actor_135400_801324D4(Task*);
 void func_actor_135400_801325A8(Task*);
@@ -407,7 +407,7 @@ _Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
     { 2003, { .animation = func_actor_135400_80132650 } },
     { 2004, { .placement = func_actor_135400_8013276C } },
     { 2005, { .mode = func_actor_135400_801327E8 } },
-    { 2011, { .command = func_actor_135400_801328DC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_135400_801328DC } },
     { 0x7FFFFFFF, { .animation = NULL } },
 };
 
@@ -953,7 +953,7 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// 0 and 1 show and hide that task's model (flag 0x80), 2 and 3 set
 /// and clear `headAim`, 4 hands the part task a `spawnArg1` of 1, and 5 sets
 /// that to 3 and then shows the model. Nothing reads the message id.
-s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
+s32 func_actor_135400_801328DC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     Actor135400MainWork* work;
     TmdObject*           model;

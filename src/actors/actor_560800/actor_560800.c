@@ -336,7 +336,7 @@ extern GpXformArg    D_actor_560800_8016F154;
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call0)(Task*, s32, ActorCommand* request);
         void (*call1)(Task*, s32, GpXformArg*);
         void (*call2)(Task*, s32, VECTOR*);
         void (*call3)(Task*, s32, s32);
@@ -364,9 +364,9 @@ extern TmdSource D_actor_560800_80173D48;
 void             func_actor_560800_80137820(Task*);
 void             func_actor_560800_80137BEC(Task*);
 void             func_actor_560800_80137F58(Task*, s32, VECTOR*);
-void             func_actor_560800_801384EC(Task*, s32, GpCmdArg*);
+void             func_actor_560800_801384EC(Task*, s32, ActorCommand* msg);
 void             func_actor_560800_801386D4(Task*);
-void             func_actor_560800_80138A4C(Task*, s32, GpCmdArg*);
+void             func_actor_560800_80138A4C(Task*, s32, ActorCommand* msg);
 void             func_actor_560800_80138FC8(Task*);
 void             func_actor_560800_80139360(Task*, s32, s32);
 void             func_actor_560800_801393EC(Task*, s32, s32);
@@ -4064,7 +4064,7 @@ Actor560800PartPose D_actor_560800_80175614[8] = {
 Actor560800MessageEntry D_actor_560800_801756D4[3] = {
     { 2005, { .call3 = func_actor_560800_80139360 } },
     { 2004, { .call2 = func_actor_560800_80137F58 } },
-    { 2011, { .call0 = func_actor_560800_801384EC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_560800_801384EC } },
 };
 
 u16 D_actor_560800_801756EC[8] = {
@@ -4108,7 +4108,7 @@ s32 D_actor_560800_8017572C[6] = {
 Actor560800MessageEntry D_actor_560800_80175744[3] = {
     { 2005, { .call3 = func_actor_560800_801393EC } },
     { 2004, { .call1 = func_actor_560800_80139440 } },
-    { 2011, { .call0 = func_actor_560800_80138A4C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_560800_80138A4C } },
 };
 
 TaskDesc D_actor_560800_8017575C[4] = {
@@ -5918,19 +5918,19 @@ void func_actor_560800_801362B0(s32 arg0)
 void func_actor_560800_801362E0(s16 arg0)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-    GpCmdArg         msg;
+    ActorCommand     msg;
 
     msg.command = arg0;
-    Gp_DispatchMsgPtr(work->field_20, 0x7DB, &msg, 0);
+    Gp_DispatchMsgPtr(work->field_20, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
 }
 
 void func_actor_560800_8013631C(s16 arg0)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-    GpCmdArg         msg;
+    ActorCommand     msg;
 
     msg.command = arg0;
-    Gp_DispatchMsgPtr(work->field_24, 0x7DB, &msg, 0);
+    Gp_DispatchMsgPtr(work->field_24, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
 }
 
 void func_actor_560800_80136358(s16 arg0)
@@ -6799,7 +6799,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
 /// rebuilds each part's colour matrix from its world translation, 5 and 6 put
 /// all eight parts into state 2 / 1, and the rest set this task's state and the
 /// `Actor560800PartsWork` halfwords at 0x44-0x4A.
-void func_actor_560800_801384EC(Task* task, s32 msgId, GpCmdArg* msg)
+void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor560800PartsWork* work;
     Task*                 part;
@@ -6971,7 +6971,7 @@ void func_actor_560800_801386D4(Task* task)
     w->world.t[2] = pos.vz;
 }
 
-void func_actor_560800_80138A4C(Task* task, s32 msgId, GpCmdArg* msg)
+void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor560800ModelWork* work;
     TmdObject*            extra;

@@ -59,7 +59,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -86,7 +86,7 @@ void             func_actor_160600_801321B4(Task*);
 s32 func_actor_160600_8013252C(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_160600_80132598(Task*, s32, s32);
 s32 func_actor_160600_80132614(Task*, s32, GpXformArg*);
-s32 func_actor_160600_8013268C(Task*, s32, GpCmdArg*);
+s32 func_actor_160600_8013268C(Task*, s32, ActorCommand* args);
 s32 func_actor_160600_801326AC(Task*, s32, GpXformArg*);
 
 extern AnimationPlayRequest D_actor_160600_80134E8C;
@@ -1109,7 +1109,7 @@ Actor160600MessageEntry D_actor_160600_8013DF70[6] = {
     { 2003, { .call0 = func_actor_160600_8013252C } },
     { 2005, { .call3 = func_actor_160600_80132598 } },
     { 2004, { .call2 = func_actor_160600_80132614 } },
-    { 2011, { .call1 = func_actor_160600_8013268C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_160600_8013268C } },
     { 2013, { .call2 = func_actor_160600_801326AC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1490,7 +1490,7 @@ s32 func_actor_160600_80132614(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: sets the work block's `effects`, which enables the
 /// per-frame effect spawns, when the payload is exactly 1; any other payload
 /// is ignored.
-s32 func_actor_160600_8013268C(Task* task, s32 arg1, GpCmdArg* args)
+s32 func_actor_160600_8013268C(Task* task, s32 arg1, ActorCommand* args)
 {
     Actor160600Work* work;
     u16              value;

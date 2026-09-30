@@ -226,7 +226,7 @@ TaskDesc D_acropolis_roof_garden_80183C10[4] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpCmdArg D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
+ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
 
 AnimationPlayRequest D_acropolis_roof_garden_80183C44 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

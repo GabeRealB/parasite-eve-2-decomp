@@ -228,7 +228,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -274,7 +274,7 @@ extern TmdSource    Actor00300_D0A120;
 s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*);
 s32                 Actor00300_Fn05388(Task*, s32, GpXformArg*);
 s32                 Actor00300_Fn053EC(Task*, s32, s32);
-s32                 Actor00300_Fn05434(Task*, s32, GpCmdArg*);
+s32                 Actor00300_Fn05434(Task*, s32, ActorCommand* args);
 void                Actor00300_Fn04770(Task*);
 void                Actor00300_Fn05138(Task*);
 void                Actor00300_Fn0521C(Task*);
@@ -1178,7 +1178,7 @@ Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {
     { 2003, { .call0 = Actor00300_Fn05304 } },
     { 2004, { .call2 = Actor00300_Fn05388 } },
     { 2005, { .call3 = Actor00300_Fn053EC } },
-    { 2011, { .call1 = Actor00300_Fn05434 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor00300_Fn05434 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -3791,7 +3791,7 @@ s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor00300_Fn05434(Task* arg0, s32 arg1, GpCmdArg* args)
+s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args)
 {
     Actor100300Work* work;
     GpEnemy*         enemy;

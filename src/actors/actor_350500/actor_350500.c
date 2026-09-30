@@ -42,7 +42,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, GpXformArg*, Actor350500SpawnAnim*);
         s32 (*call4)(Task*, s32, s32);
@@ -90,7 +90,7 @@ s32              func_actor_350500_8016217C(Task*, s32, GpXformArg*, Actor350500
 s32              func_actor_350500_80162828(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_350500_80162960(Task*, s32, GpXformArg*);
 s32              func_actor_350500_801629DC(Task*, s32, s32);
-s32              func_actor_350500_80162ABC(Task*, s32, GpCmdArg*);
+s32              func_actor_350500_80162ABC(Task*, s32, ActorCommand* msg);
 void             func_actor_350500_80162360(Task*);
 
 TmdBone D_actor_350500_80162AF8[19] = {
@@ -232,7 +232,7 @@ Actor350500MsgEntry D_actor_350500_80168EB0[6] = {
     { 2004, { .call2 = func_actor_350500_80162960 } },
     { 2005, { .call4 = func_actor_350500_801629DC } },
     { 2013, { .call3 = func_actor_350500_8016217C } },
-    { 2011, { .call1 = func_actor_350500_80162ABC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_350500_80162ABC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 }; /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
 /// then integrates the world-space `step` into the 16.16 accumulators at
@@ -690,7 +690,7 @@ s32 func_actor_350500_801629DC(Task* task, s32 arg1, s32 mode)
 /// `Gp_DispatchMsg` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
 /// leaves it. Always returns 0.
-s32 func_actor_350500_80162ABC(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_350500_80162ABC(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor350500Work* work;
 

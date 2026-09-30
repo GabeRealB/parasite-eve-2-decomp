@@ -160,11 +160,11 @@ GpMsgEntry D_neo_ark_power_plant_2_801801F8[5] = {
 
 AnimationPlayRequest D_neo_ark_power_plant_2_80180220 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpCmdArg D_neo_ark_power_plant_2_80180234 = { { .loc = { 5, 16 } }, 1 };
+ActorCommand D_neo_ark_power_plant_2_80180234 = { { .loc = { 5, 16 } }, 1 };
 
-GpCmdArg D_neo_ark_power_plant_2_80180238 = { { .loc = { 5, 16 } }, 2 };
+ActorCommand D_neo_ark_power_plant_2_80180238 = { { .loc = { 5, 16 } }, 2 };
 
-GpCmdArg D_neo_ark_power_plant_2_8018023C = { { .loc = { 5, 16 } }, 3 };
+ActorCommand D_neo_ark_power_plant_2_8018023C = { { .loc = { 5, 16 } }, 3 };
 
 AnimationSet* D_neo_ark_power_plant_2_80180240[3] = {
     NULL,
@@ -204,7 +204,7 @@ GpEvsCmd D_neo_ark_power_plant_2_801802A8[29] = {
     { 15, { .value = 0x55100007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 14, { .padCommands = D_neo_ark_power_plant_2_8018028C }, { .padRecords = D_neo_ark_power_plant_2_801802A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_neo_ark_power_plant_2_80180234 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_80180234 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_neo_ark_power_plant_2_80180274 }, { .value = 0 } },
@@ -216,7 +216,7 @@ GpEvsCmd D_neo_ark_power_plant_2_801802A8[29] = {
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_neo_ark_power_plant_2_80180238 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_80180238 } }, { .value = 0 } },
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -230,7 +230,7 @@ GpEvsCmd D_neo_ark_power_plant_2_80180560[11] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_neo_ark_power_plant_2_80180274 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_neo_ark_power_plant_2_8017D6D4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_neo_ark_power_plant_2_8018023C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_8018023C } }, { .value = 0 } },
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },

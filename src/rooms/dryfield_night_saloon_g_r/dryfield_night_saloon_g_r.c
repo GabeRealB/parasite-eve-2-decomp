@@ -2135,8 +2135,8 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
 s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
-    GpCmdArg msg;
-    u8       temp_s0;
+    ActorCommand msg;
+    u8           temp_s0;
 
     if (arg2->field_2 == 7 && GameFlag_GetNibble(0x59) == 0) {
         func_800E8634(D_dryfield_night_saloon_g_r_80183C94, 0, D_dryfield_night_saloon_g_r_801847A4);
@@ -2148,10 +2148,10 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
             SndEvt_EnqueueType6(0x5312000C, 0, 0);
         } else if (arg2->field_2 == temp_s0) {
-            msg.from.loc.stage = gGameSession->at4.loc.stage;
-            msg.from.loc.area  = gGameSession->at4.loc.area;
-            msg.command        = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+            msg.context.loc.stage = gGameSession->at4.loc.stage;
+            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.command           = 1;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             GameFlag_SetNibble(0xB0, 1);
         }
     }
@@ -2165,15 +2165,15 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
 /// carrying the session's two id bytes and a zero halfword. Then advance state.
 static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 {
-    GpCmdArg msg;
+    ActorCommand msg;
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.variant == 2 && GameFlag_GetNibble(0xB0) == 0) {
-        msg.from.loc.stage = gGameSession->at4.loc.stage;
-        msg.from.loc.area  = gGameSession->at4.loc.area;
-        msg.command        = 0;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+        msg.context.loc.stage = gGameSession->at4.loc.stage;
+        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.command           = 0;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state = task->state + 1;
 }

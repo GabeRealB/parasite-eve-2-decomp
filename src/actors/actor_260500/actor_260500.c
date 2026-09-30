@@ -72,7 +72,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
@@ -97,7 +97,7 @@ void             func_actor_260500_8014A460(Task*);
 s32 func_actor_260500_8014A6C4(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_260500_8014A754(Task*, s32, s32);
 s32 func_actor_260500_8014A79C(Task*, s32, GpXformArg*);
-s32 func_actor_260500_8014A818(Task*, s32, GpCmdArg*);
+s32 func_actor_260500_8014A818(Task*, s32, ActorCommand* msg);
 s32 func_actor_260500_8014A83C(Task*, s32, VECTOR*, s32);
 
 extern AnimationPlayRequest D_actor_260500_8014C874;
@@ -1346,7 +1346,7 @@ Actor260500MsgEntry D_actor_260500_80159D80[6] = {
     { 2003, { .call0 = func_actor_260500_8014A6C4 } },
     { 2005, { .call4 = func_actor_260500_8014A754 } },
     { 2004, { .call2 = func_actor_260500_8014A79C } },
-    { 2011, { .call1 = func_actor_260500_8014A818 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260500_8014A818 } },
     { 2013, { .call3 = func_actor_260500_8014A83C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1802,7 +1802,7 @@ s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
 
 /// Message 0x7DB: a zero payload halfword at 0x2 arms the work block's
 /// `turnFrames` at 0x14.
-s32 func_actor_260500_8014A818(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg)
 {
     if (msg->command == 0) {
         D_actor_260500_80159E4C->turnFrames = 0x14;

@@ -305,13 +305,13 @@ GpSpawnAnimArg D_mist_parking_8018DE04 = { 2, 26 };
 
 GpSpawnAnimArg D_mist_parking_8018DE0C = { 2, 33 };
 
-GpCmdArg D_mist_parking_8018DE14 = { { .loc = { 0, 0 } }, 0 };
+ActorCommand D_mist_parking_8018DE14 = { { .loc = { 0, 0 } }, 0 };
 
-GpCmdArg D_mist_parking_8018DE18 = { { .loc = { 0, 0 } }, 1 };
+ActorCommand D_mist_parking_8018DE18 = { { .loc = { 0, 0 } }, 1 };
 
-GpCmdArg D_mist_parking_8018DE1C = { { .loc = { 0, 0 } }, 2 };
+ActorCommand D_mist_parking_8018DE1C = { { .loc = { 0, 0 } }, 2 };
 
-GpCmdArg D_mist_parking_8018DE20 = { { .loc = { 0, 0 } }, 3 };
+ActorCommand D_mist_parking_8018DE20 = { { .loc = { 0, 0 } }, 3 };
 
 AnimationPlayRequest D_mist_parking_8018DE24 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -396,7 +396,7 @@ GpEvsCmd D_mist_parking_8018DF34[155] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DD8C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DEEC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE14 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE14 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DE88 }, { .value = 0 } },
     { 3, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
@@ -447,13 +447,13 @@ GpEvsCmd D_mist_parking_8018DF34[155] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DC24 }, { .value = 0 } },
     { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D8FC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE1C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE1C } }, { .value = 0 } },
     { 4, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x5113000E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE18 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE18 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -533,7 +533,7 @@ GpEvsCmd D_mist_parking_8018DF34[155] = {
     { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mist_parking_80183BAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDBC }, { .storage = &D_mist_parking_8018DE04 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE20 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -557,10 +557,10 @@ GpEvsCmd D_mist_parking_8018EDBC[23] = {
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDA4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE18 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE18 } }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDBC }, { .storage = &D_mist_parking_8018DE04 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE20 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -573,7 +573,7 @@ GpEvsCmd D_mist_parking_8018EDBC[23] = {
 GpEvsCmd D_mist_parking_8018EFE4[8] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDA4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE18 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE18 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDBC }, { .storage = &D_mist_parking_8018DE04 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DEEC }, { .value = 0 } },
@@ -623,7 +623,7 @@ GpEvsCmd D_mist_parking_8018F284[10] = {
 GpEvsCmd D_mist_parking_8018F374[13] = {
     { 13, { .callbackNoArg = func_mist_parking_80183600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE1C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE1C } }, { .value = 0 } },
     { 13, { .callback = func_mist_parking_80183708 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
@@ -645,7 +645,7 @@ GpEvsCmd D_mist_parking_8018F4AC[13] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9D8 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE20 } }, { .value = 0 } },
     { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mist_parking_80183708 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -662,7 +662,7 @@ GpEvsCmd D_mist_parking_8018F5E4[24] = {
     { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1010 }, { .storage = &D_mist_parking_8018DA44 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDD4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE20 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

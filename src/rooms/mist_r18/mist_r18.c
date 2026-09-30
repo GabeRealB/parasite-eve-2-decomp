@@ -647,13 +647,13 @@ AnimationPlayRequest D_mist_r18_801851F0 = { { .sets = NULL }, 8, ANIMATION_BLEN
 
 GpXformArg D_mist_r18_80185204 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 
-GpCmdArg D_mist_r18_8018521C = { 0 };
+ActorCommand D_mist_r18_8018521C = { 0 };
 
-GpCmdArg D_mist_r18_80185220 = { { .loc = { 0, 0 } }, 1 };
+ActorCommand D_mist_r18_80185220 = { { .loc = { 0, 0 } }, 1 };
 
-GpCmdArg D_mist_r18_80185224 = { { .loc = { 0, 0 } }, 2 };
+ActorCommand D_mist_r18_80185224 = { { .loc = { 0, 0 } }, 2 };
 
-GpCmdArg D_mist_r18_80185228 = { { .loc = { 0, 0 } }, 3 };
+ActorCommand D_mist_r18_80185228 = { { .loc = { 0, 0 } }, 3 };
 
 GpEvsCmd D_mist_r18_8018522C[56] = {
     { 13, { .callbackNoArg = func_mist_r18_8017EBB8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -702,12 +702,12 @@ GpEvsCmd D_mist_r18_8018522C[56] = {
     { 15, { .value = 0x51120003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x51120004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_8018521C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_8018521C } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185220 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185220 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -741,14 +741,14 @@ GpEvsCmd D_mist_r18_8018576C[37] = {
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_801850EC }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_8018518C }, { .value = 0 } },
     { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185224 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185224 } }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mist_r18_8017E784 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185228 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185228 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -863,7 +863,7 @@ GpEvsCmd D_mist_r18_8018639C[8] = {
     { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mist_r18_8017EC78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185220 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185220 } }, { .value = 0 } },
     { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -875,7 +875,7 @@ GpEvsCmd D_mist_r18_8018645C[8] = {
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mist_r18_8017E784 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185228 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185228 } }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

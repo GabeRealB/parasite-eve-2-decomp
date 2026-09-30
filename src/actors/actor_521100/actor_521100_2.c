@@ -89,7 +89,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -124,7 +124,7 @@ static void func_actor_521100_801368B0(Task* task);
 s32  func_actor_521100_801369B8(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_521100_80136A1C(Task*, s32, s32);
 s32  func_actor_521100_80136A64(Task*, s32, GpXformArg*);
-s32  func_actor_521100_80136AE0(Task*, s32, GpCmdArg*);
+s32  func_actor_521100_80136AE0(Task*, s32, ActorCommand* msg);
 s32  func_actor_521100_80136BE8(Task*, s32, GpXformArg*);
 void func_actor_521100_80136404(Task*);
 void func_actor_521100_80136604(Task*);
@@ -379,7 +379,7 @@ Actor5211002MessageEntry D_actor_521100_8016A358[6] = {
     { 2003, { .call0 = func_actor_521100_801369B8 } },
     { 2005, { .call3 = func_actor_521100_80136A1C } },
     { 2004, { .call2 = func_actor_521100_80136A64 } },
-    { 2011, { .call1 = func_actor_521100_80136AE0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_521100_80136AE0 } },
     { 2013, { .call2 = func_actor_521100_80136BE8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -436,19 +436,19 @@ s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor521100Work* work;
 
     work = arg0->work;
-    switch (arg2->command) {
+    switch (request->command) {
         case 0:
             work->field_68C = 1;
             work->field_68E = 0;
             work->field_690 = 0;
             break;
         case 1:
-            work->field_694 = arg2->command;
+            work->field_694 = request->command;
             break;
     }
     return 0;
@@ -880,7 +880,7 @@ s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpXformArg* placement)
 /// step (`Actor521100Work4B4::field_484`) and sends the task to state 2, the
 /// teardown entry `func_actor_521100_801360C4`; 3 kills both companions and
 /// then falls into 0, sharing its state store.
-s32 func_actor_521100_80136AE0(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg)
 {
     switch (msg->command) {
         case 1:

@@ -99,7 +99,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -114,7 +114,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -161,18 +161,18 @@ extern TmdSource    D_actor_361100_8016B2B8;
 s32                 func_actor_361100_80162E20(Task*, s32, AnimationPlayRequest*);
 s32                 func_actor_361100_80162F58(Task*, s32, GpXformArg*);
 s32                 func_actor_361100_80162FF4(Task*, s32, s32);
-s32                 func_actor_361100_801630D4(Task*, s32, GpCmdArg*);
+s32                 func_actor_361100_801630D4(Task*, s32, ActorCommand* msg);
 s32                 func_actor_361100_801634D0(Task*, s32, AnimationPlayRequest*);
 s32                 func_actor_361100_801635F4(Task*, s32, GpXformArg*);
 s32                 func_actor_361100_80163670(Task*, s32, s32);
-s32                 func_actor_361100_80163750(Task*, s32, GpCmdArg*);
+s32                 func_actor_361100_80163750(Task*, s32, ActorCommand* msg);
 void                func_actor_361100_80162CBC(Task*);
 void                func_actor_361100_801633A4(Task*);
 
 extern AnimationPlayRequest D_actor_361100_80165CA0;
-extern GpCmdArg             D_actor_361100_80165DD4;
-extern GpCmdArg             D_actor_361100_80165E84;
-extern GpCmdArg             D_actor_361100_80165F3C;
+extern ActorCommand         D_actor_361100_80165DD4;
+extern ActorCommand         D_actor_361100_80165E84;
+extern ActorCommand         D_actor_361100_80165F3C;
 extern GpXformArg           D_actor_361100_80165D98;
 void                        func_actor_361100_8016297C(void);
 void                        func_actor_361100_801629D0(s32);
@@ -193,11 +193,11 @@ extern AnimationPlayRequest D_actor_361100_80165E9C;
 extern AnimationPlayRequest D_actor_361100_80165EB0;
 extern AnimationPlayRequest D_actor_361100_80165EC4;
 extern AnimationPlayRequest D_actor_361100_80165ED8;
-extern GpCmdArg             D_actor_361100_80165DD0;
-extern GpCmdArg             D_actor_361100_80165DD8;
-extern GpCmdArg             D_actor_361100_80165E78;
-extern GpCmdArg             D_actor_361100_80165E7C;
-extern GpCmdArg             D_actor_361100_80165E80;
+extern ActorCommand         D_actor_361100_80165DD0;
+extern ActorCommand         D_actor_361100_80165DD8;
+extern ActorCommand         D_actor_361100_80165E78;
+extern ActorCommand         D_actor_361100_80165E7C;
+extern ActorCommand         D_actor_361100_80165E80;
 extern GpCopyArg            D_actor_361100_80165C98;
 extern GpOverrideArg        D_actor_361100_80165DC8;
 extern GpScriptCmd          D_actor_361100_80166AB8[3];
@@ -473,11 +473,11 @@ GpXformArg D_actor_361100_80165DB0 = { { 3836, -8010, 0x2A13, 0 }, { 0, 0, 0, 0 
 
 GpOverrideArg D_actor_361100_80165DC8 = { 54, 48 };
 
-GpCmdArg D_actor_361100_80165DD0 = { { .loc = { 4, 22 } }, 6 };
+ActorCommand D_actor_361100_80165DD0 = { { .loc = { 4, 22 } }, 6 };
 
-GpCmdArg D_actor_361100_80165DD4 = { { .loc = { 4, 22 } }, 7 };
+ActorCommand D_actor_361100_80165DD4 = { { .loc = { 4, 22 } }, 7 };
 
-GpCmdArg D_actor_361100_80165DD8 = { { .loc = { 4, 22 } }, 8 };
+ActorCommand D_actor_361100_80165DD8 = { { .loc = { 4, 22 } }, 8 };
 
 AnimationPlayRequest D_actor_361100_80165DDC = { 0 };
 
@@ -493,15 +493,15 @@ GpXformArg D_actor_361100_80165E44 = { { 7970, 1300, 4350, 0 }, { 0, 1536, 0, 0 
 
 GpXformArg D_actor_361100_80165E5C = { { 4460, 470, 8650, 0 }, { 1024, -341, 0, 0 } };
 
-GpCmdArg D_actor_361100_80165E74 = { { .loc = { 4, 22 } }, 0 };
+ActorCommand D_actor_361100_80165E74 = { { .loc = { 4, 22 } }, 0 };
 
-GpCmdArg D_actor_361100_80165E78 = { { .loc = { 4, 22 } }, 1 };
+ActorCommand D_actor_361100_80165E78 = { { .loc = { 4, 22 } }, 1 };
 
-GpCmdArg D_actor_361100_80165E7C = { { .loc = { 4, 22 } }, 2 };
+ActorCommand D_actor_361100_80165E7C = { { .loc = { 4, 22 } }, 2 };
 
-GpCmdArg D_actor_361100_80165E80 = { { .loc = { 4, 22 } }, 3 };
+ActorCommand D_actor_361100_80165E80 = { { .loc = { 4, 22 } }, 3 };
 
-GpCmdArg D_actor_361100_80165E84 = { { .loc = { 4, 22 } }, 0xFFFF };
+ActorCommand D_actor_361100_80165E84 = { { .loc = { 4, 22 } }, 0xFFFF };
 
 AnimationPlayRequest D_actor_361100_80165E88 = { 0 };
 
@@ -519,11 +519,11 @@ GpXformArg D_actor_361100_80165F04 = { { 6870, 1830, 5310, 0 }, { 0, 0, 0, 0 } }
 
 GpXformArg D_actor_361100_80165F1C = { { 7370, 2550, 6228, 0 }, { 371, 885, -450, 0 } };
 
-GpCmdArg D_actor_361100_80165F34 = { { .loc = { 4, 22 } }, 0 };
+ActorCommand D_actor_361100_80165F34 = { { .loc = { 4, 22 } }, 0 };
 
-GpCmdArg D_actor_361100_80165F38 = { { .loc = { 4, 22 } }, 1 };
+ActorCommand D_actor_361100_80165F38 = { { .loc = { 4, 22 } }, 1 };
 
-GpCmdArg D_actor_361100_80165F3C = { { .loc = { 4, 22 } }, 0xFFFF };
+ActorCommand D_actor_361100_80165F3C = { { .loc = { 4, 22 } }, 0xFFFF };
 
 GpOverlayIds D_actor_361100_80165F40 = { 6, 11, 21 };
 
@@ -534,7 +534,7 @@ GpEvsCmd D_actor_361100_80165F48[96] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_361100_80165C98 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CB4 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_361100_80165D68 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_361100_80165DD8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD8 } }, { .value = 0 } },
     { 3, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_actor_361100_8016293C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -561,17 +561,17 @@ GpEvsCmd D_actor_361100_80165F48[96] = {
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_actor_361100_80165E2C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_361100_80165DF0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_361100_80165E78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E78 } }, { .value = 0 } },
     { 14, { .padCommands = D_actor_361100_80166AB8 }, { .padRecords = D_actor_361100_80166AC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CDC }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_actor_361100_80165E5C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_361100_80165E04 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_361100_80165E7C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E7C } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_361100_80165E18 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_361100_80165E80 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E80 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -589,7 +589,7 @@ GpEvsCmd D_actor_361100_80165F48[96] = {
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2004 }, { .storage = &D_actor_361100_80165F1C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2003 }, { .storage = &D_actor_361100_80165E9C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_361100_80165F38 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F38 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -604,7 +604,7 @@ GpEvsCmd D_actor_361100_80165F48[96] = {
     { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165D40 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_361100_80165DD0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD0 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 17, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -619,9 +619,9 @@ GpEvsCmd D_actor_361100_80165F48[96] = {
     { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_361100_80165DD4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_361100_80165F3C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_361100_80165E84 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD4 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F3C } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E84 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
@@ -631,7 +631,7 @@ GpEvsCmd D_actor_361100_80166848[26] = {
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_361100_80165DD4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD4 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_361100_80165D98 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CA0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -649,8 +649,8 @@ GpEvsCmd D_actor_361100_80166848[26] = {
     { 13, { .callback = func_actor_361100_80162AEC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_361100_80165F3C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_361100_80165E84 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F3C } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E84 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
@@ -789,7 +789,7 @@ Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
     { 2003, { .call0 = func_actor_361100_80162E20 } },
     { 2004, { .call2 = func_actor_361100_80162F58 } },
     { 2005, { .call3 = func_actor_361100_80162FF4 } },
-    { 2011, { .call1 = func_actor_361100_801630D4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_801630D4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -931,7 +931,7 @@ Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
     { 2003, { .call0 = func_actor_361100_801634D0 } },
     { 2004, { .call2 = func_actor_361100_801635F4 } },
     { 2005, { .call3 = func_actor_361100_80163670 } },
-    { 2011, { .call1 = func_actor_361100_80163750 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_80163750 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1720,7 +1720,7 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
 /// 1, 2 and 3 arm it with one of three preset vectors and the halfword at
 /// `field_4A0`; every other sub-command exits the task through its own
 /// `Task::exitCallback`.
-s32 func_actor_361100_801630D4(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor361100Work* work;
 
@@ -1957,7 +1957,7 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
 /// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
 /// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
 /// exits the task through its own `Task::exitCallback`.
-s32 func_actor_361100_80163750(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor361100Work* work;
 

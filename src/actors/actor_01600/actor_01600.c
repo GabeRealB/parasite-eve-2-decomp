@@ -330,7 +330,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor01600RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor01600RecoveredMsgEntry, 8);
@@ -407,7 +407,7 @@ extern AnimationSet Actor01600_D10B6C;
 extern AnimationSet Actor01600_D11820;
 extern AnimationSet Actor01600_D12074;
 extern AnimationSet Actor01600_D1277C;
-s32                 Actor01600_Fn05B08(Task*, s32, GpCmdArg*);
+s32                 Actor01600_Fn05B08(Task*, s32, ActorCommand* request);
 s32                 Actor01600_Fn07100(Task*);
 void                Actor01600_Fn066E8(Task*);
 
@@ -1290,7 +1290,7 @@ AnimationSet Actor01600_D1277C = {
 };
 
 Actor01600RecoveredMsgEntry Actor01600_D127A4[3] = {
-    { 2011, { .call1 = Actor01600_Fn05B08 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor01600_Fn05B08 } },
     { 2014, { .call0 = Actor01600_Fn07100 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -4226,7 +4226,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
     }
 }
 
-s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
 {
     SVECTOR         rot;
     GpEnemy*        ctx;
@@ -4240,7 +4240,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
     work    = arg0->work;
     variant = ctx->place->variant;
 
-    switch (arg2->command) {
+    switch (request->command) {
         case 1:
             work->field_54A = 1;
             if (variant == 2) {

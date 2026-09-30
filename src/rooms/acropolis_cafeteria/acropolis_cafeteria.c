@@ -200,23 +200,23 @@ GpXformArg D_acropolis_cafeteria_80182D70 = { { -3026, -300, -4126, 0 }, { 0, -2
 
 GpXformArg D_acropolis_cafeteria_80182D88 = { { -470, -1400, 701, 0 }, { 0, -800, 0, 0 } };
 
-GpCmdArg D_acropolis_cafeteria_80182DA0 = { { .loc = { 1, 4 } }, 0 };
+ActorCommand D_acropolis_cafeteria_80182DA0 = { { .loc = { 1, 4 } }, 0 };
 
-GpCmdArg D_acropolis_cafeteria_80182DA4 = { { .loc = { 1, 4 } }, 1 };
+ActorCommand D_acropolis_cafeteria_80182DA4 = { { .loc = { 1, 4 } }, 1 };
 
-GpCmdArg D_acropolis_cafeteria_80182DA8 = { { .loc = { 1, 4 } }, 2 };
+ActorCommand D_acropolis_cafeteria_80182DA8 = { { .loc = { 1, 4 } }, 2 };
 
-GpCmdArg D_acropolis_cafeteria_80182DAC = { { .loc = { 1, 4 } }, 3 };
+ActorCommand D_acropolis_cafeteria_80182DAC = { { .loc = { 1, 4 } }, 3 };
 
-GpCmdArg D_acropolis_cafeteria_80182DB0 = { { .loc = { 1, 4 } }, 4 };
+ActorCommand D_acropolis_cafeteria_80182DB0 = { { .loc = { 1, 4 } }, 4 };
 
-GpCmdArg D_acropolis_cafeteria_80182DB4 = { { .loc = { 1, 4 } }, 5 };
+ActorCommand D_acropolis_cafeteria_80182DB4 = { { .loc = { 1, 4 } }, 5 };
 
 s32 D_acropolis_cafeteria_80182DB8 = 0x70401;
 
-GpCmdArg D_acropolis_cafeteria_80182DBC = { { .loc = { 1, 4 } }, 8 };
+ActorCommand D_acropolis_cafeteria_80182DBC = { { .loc = { 1, 4 } }, 8 };
 
-GpCmdArg D_acropolis_cafeteria_80182DC0 = { { .loc = { 1, 4 } }, 9 };
+ActorCommand D_acropolis_cafeteria_80182DC0 = { { .loc = { 1, 4 } }, 9 };
 
 GpXformArg D_acropolis_cafeteria_80182DC4 = { { -3403, -250, 800, 0 }, { 0, 2048, 0, 0 } };
 
@@ -302,7 +302,7 @@ GpEvsCmd D_acropolis_cafeteria_8018330C[19] = {
     { 13, { .callbackNoArg = func_acropolis_cafeteria_8017E2D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182CE0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DA8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA8 } }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x5104000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -320,7 +320,7 @@ GpEvsCmd D_acropolis_cafeteria_801834D4[15] = {
     { 16, { .value = 0x5104000C }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DB0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB0 } }, { .value = 0 } },
     { 13, { .callbackNoArg = func_acropolis_cafeteria_8017E2D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182CE0 }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -346,16 +346,16 @@ GpEvsCmd D_acropolis_cafeteria_8018363C[80] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_cafeteria_80182B9C }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182C78 }, { .value = 0 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DC0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DC0 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DB0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB0 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_cafeteria_80182BB4 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182D40 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DB4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB4 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -366,13 +366,13 @@ GpEvsCmd D_acropolis_cafeteria_8018363C[80] = {
     { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182D10 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DAC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DAC } }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182C8C }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 17, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182D28 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182DDC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DC0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DC0 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2003 }, { .storage = &D_acropolis_cafeteria_80182E0C }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_cafeteria_80182BE4 }, { .value = 0 } },
     { 4, { .value = 76 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -387,7 +387,7 @@ GpEvsCmd D_acropolis_cafeteria_8018363C[80] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182D58 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DBC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DBC } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182DDC }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2003 }, { .storage = &D_acropolis_cafeteria_80182E34 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_cafeteria_80182DDC }, { .value = 0 } },
@@ -397,7 +397,7 @@ GpEvsCmd D_acropolis_cafeteria_8018363C[80] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182D88 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA4 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 2 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182DF4 }, { .value = 0 } },
@@ -444,7 +444,7 @@ GpEvsCmd D_acropolis_cafeteria_80183F3C[19] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182CC8 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA4 } }, { .value = 0 } },
     { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -463,7 +463,7 @@ GpEvsCmd D_acropolis_cafeteria_80183F3C[19] = {
 GpEvsCmd D_acropolis_cafeteria_80184104[4] = {
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_cafeteria_80182D88 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_cafeteria_80182DA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA4 } }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 

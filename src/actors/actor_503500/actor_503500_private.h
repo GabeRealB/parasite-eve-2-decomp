@@ -335,7 +335,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -649,7 +649,7 @@ void func_actor_503500_80143AC0(Task*);
 // Callbacks referenced by the overlay's shared data tables.
 s32 func_actor_503500_80135950(Task*, s32, AnimationPlayRequest*, s32);
 
-s32 func_actor_503500_80135B74(Task*, s32, GpCmdArg*);
+s32 func_actor_503500_80135B74(Task*, s32, ActorCommand* msg);
 
 s32 func_actor_503500_80137088(Task*, s32, GpXformArg*);
 

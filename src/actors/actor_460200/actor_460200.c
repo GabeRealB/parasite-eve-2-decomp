@@ -69,7 +69,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, ActorCommand* request);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
@@ -134,7 +134,7 @@ void             func_actor_460200_8013364C(Task*);
 s32 func_actor_460200_80133408(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_460200_80133474(Task*, s32, s32);
 s32 func_actor_460200_801334F0(Task*, s32, GpXformArg*);
-s32 func_actor_460200_80133568(Task*, s32, GpCmdArg*);
+s32 func_actor_460200_80133568(Task*, s32, ActorCommand* args);
 s32 func_actor_460200_80133580(Task*, s32, GpXformArg*);
 
 extern TmdSource D_actor_460200_8014DB94;
@@ -156,7 +156,7 @@ extern AnimationPlayRequest D_actor_460200_801360CC;
 s32                         func_actor_460200_80132B2C(Task*, s32, AnimationPlayRequest*);
 s32                         func_actor_460200_80132B98(Task*, s32, s32);
 s32                         func_actor_460200_80132C14(Task*, s32, GpXformArg*);
-s32                         func_actor_460200_80132C8C(Task*, s32, GpCmdArg*);
+s32                         func_actor_460200_80132C8C(Task*, s32, ActorCommand* args);
 s32                         func_actor_460200_80132CAC(Task*, s32, GpXformArg*);
 void                        func_actor_460200_801327B4(Task*);
 
@@ -1315,7 +1315,7 @@ Actor460200MessageEntry D_actor_460200_8013FC50[6] = {
     { 2003, { .call1 = func_actor_460200_80132B2C } },
     { 2005, { .call4 = func_actor_460200_80132B98 } },
     { 2004, { .call3 = func_actor_460200_80132C14 } },
-    { 2011, { .call2 = func_actor_460200_80132C8C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80132C8C } },
     { 2013, { .call3 = func_actor_460200_80132CAC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1666,7 +1666,7 @@ Actor460200MessageEntry D_actor_460200_801480E8[6] = {
     { 2003, { .call1 = func_actor_460200_80133408 } },
     { 2005, { .call4 = func_actor_460200_80133474 } },
     { 2004, { .call3 = func_actor_460200_801334F0 } },
-    { 2011, { .call2 = func_actor_460200_80133568 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80133568 } },
     { 2013, { .call3 = func_actor_460200_80133580 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2706,7 +2706,7 @@ s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: raise the work block's `effects`, which lets the per-frame
 /// state spawn its effect, when the payload is exactly 1. Any other payload is
 /// ignored and leaves the flag as it was.
-s32 func_actor_460200_80132C8C(Task* task, s32 arg1, GpCmdArg* args)
+s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args)
 {
     Actor160600Work* work;
     u16              value;
@@ -3025,7 +3025,7 @@ s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: set the work block's `turnUp`, which selects whether the
 /// per-frame state blends the model toward the `gameGetPtrSlot(3)` task or away
 /// from it, to the payload.
-s32 func_actor_460200_80133568(Task* task, s32 arg1, GpCmdArg* args)
+s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args)
 {
     ((Actor161500Work*)task->work)->turnUp = args->command;
     return 0;

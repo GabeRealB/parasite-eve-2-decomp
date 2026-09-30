@@ -51,7 +51,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, ActorCommand* request);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
         s32 (*call5)(Task*, s32, s32);
@@ -161,7 +161,7 @@ s32  func_actor_350700_801621B4(Task*, s32, GpXformArg*, Actor350700SpawnAnim*);
 s32  func_actor_350700_80162860(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_350700_80162998(Task*, s32, GpXformArg*);
 s32  func_actor_350700_80162A14(Task*, s32, s32);
-s32  func_actor_350700_80162AF4(Task*, s32, GpCmdArg*);
+s32  func_actor_350700_80162AF4(Task*, s32, ActorCommand* msg);
 void func_actor_350700_80162398(Task*);
 
 TmdBone D_actor_350700_80163964[19] = {
@@ -303,7 +303,7 @@ Actor350700MsgEntry D_actor_350700_80169D1C[6] = {
     { 2004, { .call3 = func_actor_350700_80162998 } },
     { 2005, { .call5 = func_actor_350700_80162A14 } },
     { 2013, { .call4 = func_actor_350700_801621B4 } },
-    { 2011, { .call2 = func_actor_350700_80162AF4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_350700_80162AF4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1034,7 +1034,7 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
 /// `Gp_DispatchMsg` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
 /// leaves it. Always returns 0.
-s32 func_actor_350700_80162AF4(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor350500Work* work;
 

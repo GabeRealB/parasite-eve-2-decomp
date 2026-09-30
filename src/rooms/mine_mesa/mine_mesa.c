@@ -220,8 +220,8 @@ extern AnimationPlayRequest D_mine_mesa_80184504;
 extern AnimationPlayRequest D_mine_mesa_8018452C;
 extern AnimationPlayRequest D_mine_mesa_80184540;
 extern AnimationPlayRequest D_mine_mesa_80184554;
-extern GpCmdArg             D_mine_mesa_80184650;
-extern GpCmdArg             D_mine_mesa_80184654;
+extern ActorCommand         D_mine_mesa_80184650;
+extern ActorCommand         D_mine_mesa_80184654;
 extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
 extern GpScriptCmd          D_mine_mesa_80189A80[4];
@@ -257,7 +257,7 @@ extern AnimationPlayRequest D_mine_mesa_8018452C;
 extern AnimationPlayRequest D_mine_mesa_80184540;
 extern AnimationPlayRequest D_mine_mesa_80184568;
 extern AnimationPlayRequest D_mine_mesa_8018457C;
-extern GpCmdArg             D_mine_mesa_80184650;
+extern ActorCommand         D_mine_mesa_80184650;
 extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
 extern GpEvsCmd             D_mine_mesa_8018515C[17];
@@ -713,11 +713,11 @@ GpXformArg D_mine_mesa_80184620 = { { 6172, 0, 2800, 0 }, { 0, 1024, 0, 0 } };
 
 GpXformArg D_mine_mesa_80184638 = { { 6172, 0, 2800, 0 }, { 0, 2048, 0, 0 } };
 
-GpCmdArg D_mine_mesa_80184650 = { { .loc = { 4, 1 } }, 0 };
+ActorCommand D_mine_mesa_80184650 = { { .loc = { 4, 1 } }, 0 };
 
-GpCmdArg D_mine_mesa_80184654 = { { .loc = { 4, 1 } }, 1 };
+ActorCommand D_mine_mesa_80184654 = { { .loc = { 4, 1 } }, 1 };
 
-GpCmdArg D_mine_mesa_80184658 = { { .loc = { 4, 1 } }, 2 };
+ActorCommand D_mine_mesa_80184658 = { { .loc = { 4, 1 } }, 2 };
 
 GpOverlayIds D_mine_mesa_8018465C = { 4, 1, 11 };
 
@@ -846,7 +846,7 @@ GpEvsCmd D_mine_mesa_80184FF4[10] = {
 };
 
 GpEvsCmd D_mine_mesa_801850E4[5] = {
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_mine_mesa_80184654 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_mine_mesa_80184654 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callback = Gp_IncStateF0Ref }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -860,7 +860,7 @@ GpEvsCmd D_mine_mesa_8018515C[17] = {
     { 13, { .callbackNoArg = func_mine_mesa_8017E91C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_mine_mesa_80184650 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_mine_mesa_80184650 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 13, { .callbackNoArg = func_mine_mesa_8017EAAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mine_mesa_8017E5C0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -951,7 +951,7 @@ GpEvsCmd D_mine_mesa_8018578C[110] = {
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801843B0 }, { .value = 0 } },
     { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184518 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_mine_mesa_80184650 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_mine_mesa_80184650 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 3, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

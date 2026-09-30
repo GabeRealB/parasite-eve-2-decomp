@@ -131,17 +131,17 @@ AnimationPlayRequest D_dryfield_night_garage_80182DAC = { { .index = 0 }, 4, ANI
 
 GpXformArg D_dryfield_night_garage_80182DC0 = { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } };
 
-GpCmdArg D_dryfield_night_garage_80182DD8 = { { .loc = { 3, 24 } }, 0 };
+ActorCommand D_dryfield_night_garage_80182DD8 = { { .loc = { 3, 24 } }, 0 };
 
-GpCmdArg D_dryfield_night_garage_80182DDC = { { .loc = { 3, 24 } }, 1 };
+ActorCommand D_dryfield_night_garage_80182DDC = { { .loc = { 3, 24 } }, 1 };
 
 s32 D_dryfield_night_garage_80182DE0 = 0x21803;
 
 s32 D_dryfield_night_garage_80182DE4 = 0x31803;
 
-GpCmdArg D_dryfield_night_garage_80182DE8 = { { .loc = { 3, 24 } }, 4 };
+ActorCommand D_dryfield_night_garage_80182DE8 = { { .loc = { 3, 24 } }, 4 };
 
-GpCmdArg D_dryfield_night_garage_80182DEC = { { .loc = { 3, 24 } }, 5 };
+ActorCommand D_dryfield_night_garage_80182DEC = { { .loc = { 3, 24 } }, 5 };
 
 GpOverlayIds D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
 
@@ -162,7 +162,7 @@ GpEvsCmd D_dryfield_night_garage_80182DF8[40] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_dryfield_night_garage_80182DC0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_garage_80182D70 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_night_garage_80182DD8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_garage_80182DD8 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_night_garage_80180944 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -170,7 +170,7 @@ GpEvsCmd D_dryfield_night_garage_80182DF8[40] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_garage_80182D84 }, { .value = 0 } },
     { 4, { .value = 78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_night_garage_80182DE8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_garage_80182DE8 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -194,7 +194,7 @@ GpEvsCmd D_dryfield_night_garage_801831B8[19] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_night_garage_80182D30 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_dryfield_night_garage_80182DC0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_garage_80182DAC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_night_garage_80182DEC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_garage_80182DEC } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -68,8 +68,8 @@ extern AnimationPlayRequest D_shelter_r36_8017DD6C;
 extern AnimationPlayRequest D_shelter_r36_8017DD80;
 extern AnimationPlayRequest D_shelter_r36_8017DD94;
 extern AnimationPlayRequest D_shelter_r36_8017DDD0;
-extern GpCmdArg             D_shelter_r36_8017DC24;
-extern GpCmdArg             D_shelter_r36_8017DC28;
+extern ActorCommand         D_shelter_r36_8017DC24;
+extern ActorCommand         D_shelter_r36_8017DC28;
 void                        func_shelter_r36_8017D5E8(Task*);
 void                        func_shelter_r36_8017D738(void);
 void                        func_shelter_r36_8017D7B4(Task*);
@@ -77,9 +77,9 @@ void                        func_shelter_r36_8017D870(s32);
 
 AnimationPlayRequest D_shelter_r36_8017DC10 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_shelter_r36_8017DC24 = { { .loc = { 4, 36 } }, 0 };
+ActorCommand D_shelter_r36_8017DC24 = { { .loc = { 4, 36 } }, 0 };
 
-GpCmdArg D_shelter_r36_8017DC28 = { { .loc = { 4, 36 } }, 1 };
+ActorCommand D_shelter_r36_8017DC28 = { { .loc = { 4, 36 } }, 1 };
 
 AnimationPlayRequest D_shelter_r36_8017DC2C[2] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -165,7 +165,7 @@ GpEvsCmd D_shelter_r36_8017DF2C[69] = {
     { 36, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_shelter_r36_8017DCF4 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_r36_8017DC7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_shelter_r36_8017DC24 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_r36_8017DC24 } }, { .value = 0 } },
     { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_r36_8017DC90 }, { .value = 0 } },
@@ -188,7 +188,7 @@ GpEvsCmd D_shelter_r36_8017DF2C[69] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_shelter_r36_8017DC28 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_r36_8017DC28 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -116,7 +116,7 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     taskKill,
 } };
 
-s32  func_neo_ark_forest_zone_80180A60(Task*, s32, GpCmdArg*, GpMessageArg);
+s32  func_neo_ark_forest_zone_80180A60(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_forest_zone_801813BC(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_forest_zone_801813C4(Task*, s32, u8*, GpMessageArg);
 s32  func_neo_ark_forest_zone_80181494(Task*, s32, GpMessageArg, GpMessageArg);
@@ -199,7 +199,7 @@ AnimationPlayRequest D_neo_ark_forest_zone_80181E1C = { { .index = 1 }, 48, ANIM
 
 s32 D_neo_ark_forest_zone_80181E30 = 2821;
 
-GpCmdArg D_neo_ark_forest_zone_80181E34 = { { .loc = { 5, 11 } }, 1 };
+ActorCommand D_neo_ark_forest_zone_80181E34 = { { .loc = { 5, 11 } }, 1 };
 
 s32 D_neo_ark_forest_zone_80181E38 = 0x20B05;
 
@@ -218,7 +218,7 @@ GpEvsCmd D_neo_ark_forest_zone_80181E6C[23] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x550B000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_neo_ark_forest_zone_80181E34 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_neo_ark_forest_zone_80181E34 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_forest_zone_80181E08 }, { .value = 0 } },
@@ -575,7 +575,7 @@ s16 D_neo_ark_forest_zone_80182DC4 = 0;
 GpMsgEntry D_neo_ark_forest_zone_80182DC8[4] = {
     { 5103, func_neo_ark_forest_zone_801814B0 },
     { 5108, func_neo_ark_forest_zone_80181494 },
-    { 2011, func_neo_ark_forest_zone_80180A60 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_forest_zone_80180A60 },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -730,9 +730,9 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
         gGameSession->field_126         = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_forest_zone_80182D66 != 0) {
-        D_neo_ark_forest_zone_80182E44.from.loc.stage = 5;
-        D_neo_ark_forest_zone_80182E44.from.loc.area  = 0x1D;
-        D_neo_ark_forest_zone_80182E44.command        = 0xB;
+        D_neo_ark_forest_zone_80182E44.context.loc.stage = 5;
+        D_neo_ark_forest_zone_80182E44.context.loc.area  = 0x1D;
+        D_neo_ark_forest_zone_80182E44.command           = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -753,7 +753,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_forest_zone_80182D62 += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_forest_zone_80182E44, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80182E44, 0);
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].x;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].z;
@@ -773,27 +773,27 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
 /// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
-s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpCmdArg* msg, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpMessageArg msg, GpMessageArg arg3)
 {
     s32      result;
     u16      cmd;
     GpEnemy* obj;
 
     result = 0;
-    if (msg->from.key == 0xB05) {
-        cmd = msg->command;
+    if (msg.command->context.key == 0xB05) {
+        cmd = msg.command->command;
         switch (cmd) {
             case 0:
                 D_neo_ark_forest_zone_80182D62 = -1;
                 result                         = 0;
                 return result;
             case 2:
-                D_neo_ark_forest_zone_80182E44.from.loc.stage = 5;
-                D_neo_ark_forest_zone_80182E44.from.loc.area  = 0xB;
-                D_neo_ark_forest_zone_80182E44.command        = 0xC;
-                result                                        = 1;
+                D_neo_ark_forest_zone_80182E44.context.loc.stage = 5;
+                D_neo_ark_forest_zone_80182E44.context.loc.area  = 0xB;
+                D_neo_ark_forest_zone_80182E44.command           = 0xC;
+                result                                           = 1;
                 if (Gp_LookupSlot4(0) != 0) {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB,
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY,
                                       &D_neo_ark_forest_zone_80182E44, 0);
                     obj                                              = Gp_LookupSlot4(0)->spawnArg2.pointer;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
@@ -907,9 +907,9 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
         gGameSession->field_126         = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_forest_zone_80182D66 != 0) {
-        D_neo_ark_forest_zone_80182E44.from.loc.stage = 5;
-        D_neo_ark_forest_zone_80182E44.from.loc.area  = 0xB;
-        D_neo_ark_forest_zone_80182E44.command        = 0xB;
+        D_neo_ark_forest_zone_80182E44.context.loc.stage = 5;
+        D_neo_ark_forest_zone_80182E44.context.loc.area  = 0xB;
+        D_neo_ark_forest_zone_80182E44.command           = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -930,7 +930,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_forest_zone_80182D62 += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_forest_zone_80182E44, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80182E44, 0);
                     switch ((s16)(D_neo_ark_forest_zone_80182D66 - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[0].x;

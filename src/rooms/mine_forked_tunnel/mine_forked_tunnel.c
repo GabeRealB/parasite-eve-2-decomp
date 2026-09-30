@@ -98,7 +98,7 @@ extern TaskDesc D_mine_forked_tunnel_80181B74[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, s32, s32);
     } handler;
 } MineForkedTunnelMessageEntry;
@@ -807,12 +807,12 @@ TaskDesc D_mine_forked_tunnel_80181B74[2] = {
     { 1, 192, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
 };
 
-s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, GpCmdArg*);
+s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);
 s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 
 MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
     { 2005, { .call1 = func_mine_forked_tunnel_8017DD08 } },
-    { 2011, { .call0 = func_mine_forked_tunnel_8017D8EC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_mine_forked_tunnel_8017D8EC } },
     { 2147483647, { .call0 = NULL } },
 };
 
@@ -942,13 +942,13 @@ AnimationPlayRequest D_mine_forked_tunnel_80183170 = { { .index = 1 }, 50, ANIMA
 
 GpXformArg D_mine_forked_tunnel_80183184 = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
 
-GpCmdArg D_mine_forked_tunnel_8018319C = { { .loc = { 4, 7 } }, 0 };
+ActorCommand D_mine_forked_tunnel_8018319C = { { .loc = { 4, 7 } }, 0 };
 
-GpCmdArg D_mine_forked_tunnel_801831A0 = { { .loc = { 4, 7 } }, 1 };
+ActorCommand D_mine_forked_tunnel_801831A0 = { { .loc = { 4, 7 } }, 1 };
 
-GpCmdArg D_mine_forked_tunnel_801831A4 = { { .loc = { 4, 7 } }, 2 };
+ActorCommand D_mine_forked_tunnel_801831A4 = { { .loc = { 4, 7 } }, 2 };
 
-GpCmdArg D_mine_forked_tunnel_801831A8 = { { .loc = { 4, 7 } }, 3 };
+ActorCommand D_mine_forked_tunnel_801831A8 = { { .loc = { 4, 7 } }, 3 };
 
 GpEvsCmd D_mine_forked_tunnel_801831AC[35] = {
     { 19, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -957,9 +957,9 @@ GpEvsCmd D_mine_forked_tunnel_801831AC[35] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_8018315C }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_forked_tunnel_80183184 }, { .value = 0 } },
-    { 1, { .value = -1 }, { .value = 55 }, { .value = 2011 }, { .storage = &D_mine_forked_tunnel_8018319C }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_8018319C } }, { .value = 0 } },
     { 3, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = -1 }, { .value = 55 }, { .value = 2011 }, { .storage = &D_mine_forked_tunnel_801831A0 }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A0 } }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x54070003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -968,7 +968,7 @@ GpEvsCmd D_mine_forked_tunnel_801831AC[35] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x54070005 }, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = -1 }, { .value = 55 }, { .value = 2011 }, { .storage = &D_mine_forked_tunnel_801831A4 }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A4 } }, { .value = 0 } },
     { 4, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_80183148 }, { .value = 0 } },
@@ -981,7 +981,7 @@ GpEvsCmd D_mine_forked_tunnel_801831AC[35] = {
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = -1 }, { .value = 55 }, { .value = 2011 }, { .storage = &D_mine_forked_tunnel_801831A8 }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A8 } }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x54070006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -994,7 +994,7 @@ GpEvsCmd D_mine_forked_tunnel_801834F4[12] = {
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = -1 }, { .value = 55 }, { .value = 2011 }, { .storage = &D_mine_forked_tunnel_801831A8 }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A8 } }, { .value = 0 } },
     { 48, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x54070006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1556,7 +1556,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// local-alloc's quantity rank is built from those counts, so the wrapper -
 /// and only the wrapper - lifts the six placement reads above the placement
 /// pointer and gives `$v0` to the values instead of the address.
-s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
 {
     GpXformArg            placement;
     GpXformArg*           place;

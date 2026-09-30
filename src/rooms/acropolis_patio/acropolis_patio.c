@@ -391,13 +391,13 @@ GpXformArg D_acropolis_patio_80180428 = { { -7720, 0, 290, 0 }, { 0, 2048, 0, 0 
 
 s32 D_acropolis_patio_80180440 = 769;
 
-GpCmdArg D_acropolis_patio_80180444 = { { .loc = { 1, 3 } }, 1 };
+ActorCommand D_acropolis_patio_80180444 = { { .loc = { 1, 3 } }, 1 };
 
-GpCmdArg D_acropolis_patio_80180448 = { { .loc = { 1, 3 } }, 2 };
+ActorCommand D_acropolis_patio_80180448 = { { .loc = { 1, 3 } }, 2 };
 
 s32 D_acropolis_patio_8018044C = 0x30301;
 
-GpCmdArg D_acropolis_patio_80180450 = { { .loc = { 1, 3 } }, 4 };
+ActorCommand D_acropolis_patio_80180450 = { { .loc = { 1, 3 } }, 4 };
 
 GpXformArg D_acropolis_patio_80180454 = { { -7960, 0, 320, 0 }, { 0, 0, 0, 0 } };
 
@@ -410,10 +410,10 @@ GpEvsCmd D_acropolis_patio_80180484[23] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 32, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180444 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180444 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180454 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180410 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180444 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180444 } }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -421,7 +421,7 @@ GpEvsCmd D_acropolis_patio_80180484[23] = {
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 34, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180428 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180450 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180450 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_8018034C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_8018046C }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -434,7 +434,7 @@ GpEvsCmd D_acropolis_patio_801806AC[16] = {
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180428 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180450 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180450 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_8018034C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_8018046C }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -458,14 +458,14 @@ GpEvsCmd D_acropolis_patio_8018082C[45] = {
     { 13, { .callback = func_acropolis_patio_8017DF38 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180410 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180450 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180450 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_801802EC }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1010 }, { .storage = &D_acropolis_patio_80180304 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x5103000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180448 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180448 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_8018031C }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803CC }, { .value = 0 } },
     { 4, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -691,11 +691,11 @@ GpXformArg D_acropolis_patio_801827D4 = { { -3743, 210, -543, 0 }, { 0, 512, 0, 
 
 GpSpawnAnimArg D_acropolis_patio_801827EC = { 7, 8 };
 
-GpCmdArg D_acropolis_patio_801827F4 = { { .loc = { 1, 3 } }, 0 };
+ActorCommand D_acropolis_patio_801827F4 = { { .loc = { 1, 3 } }, 0 };
 
-GpCmdArg D_acropolis_patio_801827F8 = { { .loc = { 0, 0 } }, 1 };
+ActorCommand D_acropolis_patio_801827F8 = { { .loc = { 0, 0 } }, 1 };
 
-GpCmdArg D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
+ActorCommand D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
 
 TaskDesc D_acropolis_patio_80182800 = { 0, 192, func_acropolis_patio_8017E054, { .model = NULL } };
 
@@ -714,14 +714,14 @@ GpEvsCmd D_acropolis_patio_8018280C[41] = {
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_patio_80182720 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1019 }, { .storage = &D_acropolis_patio_80182678 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F8 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F8 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F8 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_acropolis_patio_80182774 }, { .storage = &D_acropolis_patio_801827EC } },
     { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2013 }, { .storage = &D_acropolis_patio_801827A4 }, { .storage = &D_acropolis_patio_801827EC } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F4 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F4 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_8018261C }, { .value = 0 } },
     { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -738,8 +738,8 @@ GpEvsCmd D_acropolis_patio_8018280C[41] = {
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2004 }, { .storage = &D_acropolis_patio_801827D4 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827FC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827FC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827FC } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827FC } }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
@@ -1584,8 +1584,8 @@ u8 D_acropolis_patio_80187065;
 /// `gGameSession::at4.loc.variant`.
 static void func_acropolis_patio_8017D5EC(Task* arg0)
 {
-    GpCmdArg msg;
-    Task*    temp;
+    ActorCommand msg;
+    Task*        temp;
 
     arg0->msgTable = D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
@@ -1608,12 +1608,12 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
         }
     }
     if ((gGameSession->at4.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
-        msg.from.loc.stage = 1;
-        msg.from.loc.area  = 3;
-        msg.command        = 0;
-        /* The message ABI carries this object address in one 32-bit word. */
-        Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(3), 0x7DB, &msg, 0);
+        msg.context.loc.stage = 1;
+        msg.context.loc.area  = 3;
+        msg.command           = 0;
+        // The message ABI carries the borrowed record's address in one word.
+        Gp_DispatchMsg(Gp_LookupSlot4(2), ACTOR_COMMAND_MESSAGE_APPLY, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     arg0->state = arg0->state + 1;
 }

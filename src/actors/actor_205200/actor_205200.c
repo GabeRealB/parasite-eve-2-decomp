@@ -101,7 +101,7 @@ extern TaskDesc D_actor_205200_8014CA60[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor205200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor205200MessageEntry, 8);
@@ -126,7 +126,7 @@ void func_actor_205200_80149E54(Task*);
 void func_actor_205200_8014B8C0(Task*);
 void func_actor_205200_8014B978(Task*);
 
-s32 func_actor_205200_8014B94C(Task*, s32, GpCmdArg*);
+s32 func_actor_205200_8014B94C(Task*, s32, ActorCommand* request);
 
 GpPairSrcE D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0, 0 };
 
@@ -204,7 +204,7 @@ TaskDesc D_actor_205200_8014CA60[2] = {
 };
 
 Actor205200MessageEntry D_actor_205200_8014CA78[2] = {
-    { 2011, { .call0 = func_actor_205200_8014B94C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_205200_8014B94C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -893,12 +893,12 @@ static s32 func_actor_205200_8014B914(s32 arg0)
 /// Message 0x7DB handler of the controller, listed in
 /// `D_actor_205200_8014CA78`. A non-zero payload halfword raises
 /// `Actor205200CtrlWork.field_2E` unless it is already set.
-s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor205200CtrlWork* work;
 
     work = arg0->work;
-    if (arg2->command != 0 && work->field_2E == 0) {
+    if (request->command != 0 && work->field_2E == 0) {
         work->field_2E = 1;
     }
     return 0;

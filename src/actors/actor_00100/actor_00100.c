@@ -157,7 +157,7 @@ typedef struct Actor00100Work {
     /* 0xC04 */ s32                    field_C04;
     /* 0xC08 */ s32                    field_C08;
     /// Last message opcode/operands, kept for the debug display: the three
-    /// bytes of `GpCmdArg` are latched here verbatim.
+    /// bytes of `ActorCommand` are latched here verbatim.
     /* 0xC0C */ u8   field_C0C;
     /* 0xC0D */ u8   field_C0D;
     /* 0xC0E */ u8   field_C0E;
@@ -319,7 +319,7 @@ s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
 typedef struct {
     s32 id;
     union {
-        s32  (*command)(Task*, s32, GpCmdArg*);
+        s32  (*command)(Task*, s32, ActorCommand* request);
         void (*reset)(void);
         s32  (*value)(Task*, s32, s32);
         s32  (*task)(Task*);
@@ -457,7 +457,7 @@ extern AnimationSet Actor00100_D1B6A8;
 
 extern TmdSource Actor00100_D108C0;
 
-s32 Actor00100_Fn00E58(Task*, s32, GpCmdArg*);
+s32 Actor00100_Fn00E58(Task*, s32, ActorCommand* request);
 
 s32 Actor00100_Fn0B2B4(Task*, s32, GpXformArg*);
 
@@ -1499,7 +1499,7 @@ SVECTOR Actor00100_D1B9F4[12] = {
 };
 
 Actor00100MessageEntry Actor00100_D1BA54[6] = {
-    { 2011, { .command = Actor00100_Fn00E58 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .command = Actor00100_Fn00E58 } },
     { 2015, { .reset = Actor00100_Fn0B134 } },
     { 2005, { .value = Actor00100_Fn0B1A4 } },
     { 2006, { .task = Actor00100_Fn0B264 } },
@@ -1762,7 +1762,7 @@ static const Actor00100PoseTable Actor00100_D00004 = { {
 /// Each LCG arm keeps its own `value` local: they are separate variables
 /// because the arms are separate blocks and one local shared between them
 /// changes which register the allocator picks in every arm.
-s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor00100PoseTable table;
     Actor00100PoseRow*  row;
@@ -1785,8 +1785,8 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
 
-    if (arg2->from.key == 0x109) {
-        kind = arg2->command;
+    if (request->context.key == 0x109) {
+        kind = request->command;
         switch (kind) {
             case 1:
                 work->field_C26 = 0x5A;
@@ -1810,12 +1810,12 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
         }
         return 1;
     } else {
-        work->field_C0C = arg2->from.loc.stage;
-        work->field_C0D = arg2->from.loc.area;
-        work->field_C0E = (u8)arg2->command;
-        if (arg2->from.key == 0x104) {
+        work->field_C0C = request->context.loc.stage;
+        work->field_C0D = request->context.loc.area;
+        work->field_C0E = (u8)request->command;
+        if (request->context.key == 0x104) {
             table = Actor00100_D00004;
-            cmd   = arg2->command;
+            cmd   = request->command;
             switch (cmd) {
                 case 0:
                     work->field_0 = 0;
@@ -1862,8 +1862,8 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
                     break;
             }
         }
-        if (arg2->from.key == 0x1602) {
-            sub = arg2->command;
+        if (request->context.key == 0x1602) {
+            sub = request->command;
             switch (sub) {
                 case 0:
                     work->field_0 = 0;
@@ -1885,8 +1885,8 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
                     break;
             }
         }
-        if (arg2->from.key == 0x202) {
-            req = arg2->command;
+        if (request->context.key == 0x202) {
+            req = request->command;
             switch (req) {
                 case 0:
                     work->field_0 = 0;

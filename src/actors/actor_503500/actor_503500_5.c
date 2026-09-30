@@ -156,7 +156,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -213,7 +213,7 @@ extern TmdSource    D_actor_503500_80175DC8;
 s32                 func_actor_503500_8014652C(Task*, s32, AnimationPlayRequest*);
 s32                 func_actor_503500_80146664(Task*, s32, GpXformArg*);
 s32                 func_actor_503500_801466E0(Task*, s32, s32);
-s32                 func_actor_503500_801467C0(Task*, s32, GpCmdArg*);
+s32                 func_actor_503500_801467C0(Task*, s32, ActorCommand* msg);
 void                func_actor_503500_801463C0(Task*);
 
 extern AnimationSet D_actor_503500_8016FC80;
@@ -225,7 +225,7 @@ Actor5035003MsgEntry D_actor_503500_8016EA2C[5] = {
     { 2003, { .call0 = func_actor_503500_80135950 } },
     { 2004, { .call2 = func_actor_503500_80137088 } },
     { 2005, { .call3 = func_actor_503500_80137158 } },
-    { 2011, { .call1 = func_actor_503500_80135B74 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_80135B74 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1119,7 +1119,7 @@ Actor5035005MsgEntry D_actor_503500_80176530[5] = {
     { 2003, { .call0 = func_actor_503500_8014652C } },
     { 2004, { .call2 = func_actor_503500_80146664 } },
     { 2005, { .call3 = func_actor_503500_801466E0 } },
-    { 2011, { .call1 = func_actor_503500_801467C0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_801467C0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1974,7 +1974,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_503500_801467C0(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_503500_801467C0(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor503500Effect4CC* work;
 

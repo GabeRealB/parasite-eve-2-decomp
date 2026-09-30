@@ -54,8 +54,8 @@ extern AnimationPlayRequest D_mist_parking_801908A0;
 extern AnimationPlayRequest D_mist_parking_801908B4;
 extern AnimationPlayRequest D_mist_parking_80190944;
 extern AnimationPlayRequest D_mist_parking_801909F8;
-extern GpCmdArg             D_mist_parking_80190BA4;
-extern GpCmdArg             D_mist_parking_80190BA8;
+extern ActorCommand         D_mist_parking_80190BA4;
+extern ActorCommand         D_mist_parking_80190BA8;
 
 void func_mist_parking_80184408(s32);
 void func_mist_parking_80184428(s32);
@@ -258,9 +258,9 @@ AnimationPlayRequest D_mist_parking_80190A0C[20] = {
 
 GpOverrideArg D_mist_parking_80190B9C = { 0, 0x10000 };
 
-GpCmdArg D_mist_parking_80190BA4 = { { .loc = { 0, 0 } }, 2 };
+ActorCommand D_mist_parking_80190BA4 = { { .loc = { 0, 0 } }, 2 };
 
-GpCmdArg D_mist_parking_80190BA8 = { { .loc = { 0, 0 } }, 3 };
+ActorCommand D_mist_parking_80190BA8 = { { .loc = { 0, 0 } }, 3 };
 
 AnimationPlayRequest D_mist_parking_80190BAC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -285,7 +285,7 @@ AnimationPlayRequest D_mist_parking_80190C60 = { { .index = 0 }, 9, ANIMATION_BL
 GpEvsCmd D_mist_parking_80190C74[10] = {
     { 13, { .callbackNoArg = func_mist_parking_8018459C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_80190BA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_80190BA4 } }, { .value = 0 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908A0 }, { .value = 0 } },
@@ -304,7 +304,7 @@ GpEvsCmd D_mist_parking_80190D64[12] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mist_parking_801845D0 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_80190BA8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_80190BA8 } }, { .value = 0 } },
     { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

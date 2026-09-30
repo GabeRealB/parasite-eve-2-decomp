@@ -76,7 +76,7 @@ extern u8      D_actor_341700_801760FC[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -97,7 +97,7 @@ extern TmdSource D_actor_341700_80175F38;
 static void      func_actor_341700_8016D32C(Task*);
 
 s32 func_actor_341700_8016CE28(Task*, s32, s32);
-s32 func_actor_341700_8016CEB4(Task*, s32, GpCmdArg*);
+s32 func_actor_341700_8016CEB4(Task*, s32, ActorCommand* cmd);
 s32 func_actor_341700_8016CF48(Task*, s32, GpXformArg*);
 
 #include "../../shared/actor_contacts.h"
@@ -136,7 +136,7 @@ TmdSource D_actor_341700_80175F38 = {
 
 Actor3417002MessageEntry D_actor_341700_80175F5C[4] = {
     { 2005, { .call2 = func_actor_341700_8016CE28 } },
-    { 2011, { .call0 = func_actor_341700_8016CEB4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341700_8016CEB4 } },
     { 2004, { .call1 = func_actor_341700_8016CF48 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1098,15 +1098,15 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
 /// so the case list keeps three nodes and GCC's decision tree balances around
 /// `case 1`; dropping `case 2` makes `case 0` the root and the emitted branches
 /// come out in a different order.
-s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, GpCmdArg* cmd)
+s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd)
 {
     Actor341700SubWork* work = (Actor341700SubWork*)task->work;
 
-    work->field_18 = cmd->from.loc.stage;
-    work->field_19 = cmd->from.loc.area;
+    work->field_18 = cmd->context.loc.stage;
+    work->field_19 = cmd->context.loc.area;
     work->field_1A = (u8)cmd->command;
 
-    if (cmd->from.key == 0x2704) {
+    if (cmd->context.key == 0x2704) {
         switch (cmd->command) {
             case 0:
                 work->field_0 = 0;

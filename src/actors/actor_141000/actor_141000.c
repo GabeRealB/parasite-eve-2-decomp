@@ -140,7 +140,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, GpXformArg*, Actor141000SpawnAnim*);
         s32 (*call4)(Task*, s32, s32);
@@ -248,7 +248,7 @@ s32                 func_actor_141000_801336DC(Task*, s32, GpXformArg*, Actor141
 s32                 func_actor_141000_80133CD8(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_141000_80133E10(Task*, s32, GpXformArg*);
 s32                 func_actor_141000_80133E8C(Task*, s32, s32);
-s32                 func_actor_141000_80133F6C(Task*, s32, GpCmdArg*);
+s32                 func_actor_141000_80133F6C(Task*, s32, ActorCommand* msg);
 s32                 func_actor_141000_80133FA8(Task*, s32, s32);
 void                func_actor_141000_801338C0(Task*);
 
@@ -1888,7 +1888,7 @@ Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2004, { .call2 = func_actor_141000_80133E10 } },
     { 2005, { .call4 = func_actor_141000_80133E8C } },
     { 2013, { .call3 = func_actor_141000_801336DC } },
-    { 2011, { .call1 = func_actor_141000_80133F6C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_141000_80133F6C } },
     { 2016, { .call4 = func_actor_141000_80133FA8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2864,7 +2864,7 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_141000_80133F6C(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor141000Work* work;
 

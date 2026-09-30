@@ -232,7 +232,7 @@ extern Actor521100FireRow D_actor_521100_8015F80C[2][17];
 
 s32 func_actor_521100_80135D10(Task*, s32, s32);
 
-s32 func_actor_521100_80135D58(Task*, s32, GpCmdArg*);
+s32 func_actor_521100_80135D58(Task*, s32, ActorCommand* request);
 
 s32 func_actor_521100_80135D9C(Task*);
 

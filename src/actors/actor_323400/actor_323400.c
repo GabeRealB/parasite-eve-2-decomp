@@ -69,7 +69,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call2)(Task*, s32, GpCmdArg*, s32);
+        s32  (*call2)(Task*, s32, ActorCommand* request, s32);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -125,7 +125,7 @@ extern TmdSource D_actor_323400_80169878;
 s32              func_actor_323400_80164764(Task*, s32, s32);
 s32              func_actor_323400_80164824(Task*);
 s32              func_actor_323400_80164874(Task*, s32, GpXformArg*);
-s32              func_actor_323400_80164974(Task*, s32, GpCmdArg*, s32);
+s32              func_actor_323400_80164974(Task*, s32, ActorCommand* msg, s32);
 s32              func_actor_323400_80164A50(Task*, s32, AnimationPlayRequest*, s32);
 void             func_actor_323400_8016475C(void);
 void             func_actor_323400_80164CEC(Task*);
@@ -3010,7 +3010,7 @@ Actor323400MessageEntry D_actor_323400_801711D4[7] = {
     { 2005, { .call4 = func_actor_323400_80164764 } },
     { 2006, { .call0 = func_actor_323400_80164824 } },
     { 2004, { .call3 = func_actor_323400_80164874 } },
-    { 2011, { .call2 = func_actor_323400_80164974 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
     { 2003, { .call1 = func_actor_323400_80164A50 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -3832,18 +3832,18 @@ s32 func_actor_323400_80164874(Task* task, s32 arg1, GpXformArg* placement)
 /// 1 moves the root coordinate to (0x4330, 1, 0xA8C), marks it for rebuilding
 /// and starts state 2; 0 and 2 restart state 0; any other mode only stores the
 /// bytes.
-s32 func_actor_323400_80164974(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
+s32 func_actor_323400_80164974(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor323000Work* work;
     u16              mode;
 
     work = (Actor323000Work*)task->work;
 
-    work->field_91C = msg->from.loc.stage;
-    work->field_91D = msg->from.loc.area;
+    work->field_91C = msg->context.loc.stage;
+    work->field_91D = msg->context.loc.area;
     work->field_91E = (u8)msg->command;
 
-    if (msg->from.key == 0x1602) {
+    if (msg->context.key == 0x1602) {
         mode = msg->command;
         switch (mode) {
             case 1:

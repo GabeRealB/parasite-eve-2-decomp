@@ -113,7 +113,7 @@ extern u8 D_actor_123200_80137154[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -141,7 +141,7 @@ extern TmdSource D_actor_123200_80135AF0;
 void             func_actor_123200_801341A8(Task*);
 
 s32 func_actor_123200_80133E30(Task*, s32, s32);
-s32 func_actor_123200_80133EDC(Task*, s32, GpCmdArg*);
+s32 func_actor_123200_80133EDC(Task*, s32, ActorCommand* msg);
 s32 func_actor_123200_80133F90(Task*, s32, GpXformArg*);
 
 #include "../../shared/actor_contacts.h"
@@ -601,7 +601,7 @@ u8 D_actor_123200_80137154[192] = {
 
 Actor123200MessageEntry D_actor_123200_80137214[4] = {
     { 2005, { .call2 = func_actor_123200_80133E30 } },
-    { 2011, { .call0 = func_actor_123200_80133EDC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_123200_80133EDC } },
     { 2004, { .call1 = func_actor_123200_80133F90 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1092,18 +1092,18 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
 /// commands: 1 selects display mode 2, at full scale when the top nibble of
 /// the enemy's `placeKey` is 1 and at quarter scale otherwise; 2 selects mode 1
 /// at full scale; 3 selects mode 0. Always returns 0.
-s32 func_actor_123200_80133EDC(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor123200Work* work;
     GpEnemy*         enemy;
 
     work            = (Actor123200Work*)task->work;
     enemy           = (GpEnemy*)task->spawnArg2.pointer;
-    work->field_194 = msg->from.loc.stage;
-    work->field_195 = msg->from.loc.area;
+    work->field_194 = msg->context.loc.stage;
+    work->field_195 = msg->context.loc.area;
     work->field_196 = (u8)msg->command;
-    if (msg->from.key == 0xB02) {
-        switch ((s32)msg->command) {
+    if (msg->context.key == 0xB02) {
+        switch (msg->command) {
             case 1:
                 if ((enemy->placeKey >> 12) == 1) {
                     work->field_21C = 0x1000;

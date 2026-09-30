@@ -218,7 +218,7 @@ typedef struct {
     union {
         s32  (*call0)(void);
         s32  (*call1)(Task*);
-        s32  (*call2)(Task*, s32, GpCmdArg*);
+        s32  (*call2)(Task*, s32, ActorCommand* request);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -239,7 +239,7 @@ extern Actor403200SpawnRec D_actor_403200_8015F888[9];
 extern Task* D_actor_403200_8015F8F0;
 
 /// Shared 0x7DA payload buffer.
-extern GpCmdArg D_actor_403200_8015F8F4;
+extern ActorCommand D_actor_403200_8015F8F4;
 
 /// View-space point the launch tick clears and fills from the host's fourth
 /// model part on a state change; the spinner enemies home on it.
@@ -374,7 +374,7 @@ void                func_actor_403200_80141778(Task*);
 void                func_actor_403200_80141868(Task*);
 
 s32  func_actor_403200_80138468(Task*, s32, s32);
-s32  func_actor_403200_80138748(Task*, s32, GpCmdArg*);
+s32  func_actor_403200_80138748(Task*, s32, ActorCommand* msg);
 s32  func_actor_403200_80141974(Task*);
 s32  func_actor_403200_801419C4(Task*, s32, GpXformArg*);
 s32  func_actor_403200_80141A94(Task*, s32, s32);
@@ -2809,7 +2809,7 @@ Actor403200MessageEntry D_actor_403200_8015F770[8] = {
     { 2005, { .call4 = func_actor_403200_80138468 } },
     { 2006, { .call1 = func_actor_403200_80141974 } },
     { 2004, { .call3 = func_actor_403200_801419C4 } },
-    { 2011, { .call2 = func_actor_403200_80138748 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403200_80138748 } },
     { 5108, { .call4 = func_actor_403200_80141A94 } },
     { 2014, { .call0 = func_actor_403200_80141B30 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -2852,7 +2852,7 @@ SVECTOR D_actor_403200_8015F8E8 = { 0, 0, 0, 0 };
 
 Task* D_actor_403200_8015F8F0 = NULL;
 
-GpCmdArg D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
+ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
 
 SVECTOR D_actor_403200_8015F8F8 = { 0, 0, 0, 0 };
 
@@ -5806,7 +5806,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
 
 /// Handles message 0x7DB: records the payload and dispatches the sender's
 /// action to reset the escorts, select an attack, or finish the return pose.
-s32 func_actor_403200_80138748(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor403200Work* work;
     Actor403200Work* escorts;
@@ -5821,11 +5821,11 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, GpCmdArg* msg)
     work       = (Actor403200Work*)task->work;
     temp_enemy = (GpEnemy*)task->spawnArg2.pointer;
 
-    work->field_EC4 = msg->from.loc.stage;
-    work->field_EC5 = msg->from.loc.area;
+    work->field_EC4 = msg->context.loc.stage;
+    work->field_EC5 = msg->context.loc.area;
     work->field_EC6 = (u8)msg->command;
 
-    if (msg->from.key == 0x2704) {
+    if (msg->context.key == 0x2704) {
         action = msg->command;
         switch (action) {
             case 0:
@@ -5909,7 +5909,7 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, GpCmdArg* msg)
         }
     }
 
-    if (msg->from.key == 0x2804) {
+    if (msg->context.key == 0x2804) {
         switch (msg->command) {
             case 0:
                 work->field_0 = 0;
@@ -6216,10 +6216,10 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     func_actor_403200_80133DD8(task);
 
-    D_actor_403200_8015F8F4.from.loc.stage = 0;
-    D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-    D_actor_403200_8015F8F4.command        = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
+    D_actor_403200_8015F8F4.context.loc.stage = 0;
+    D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+    D_actor_403200_8015F8F4.command           = 0;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
 
     work->field_E94 = work->field_E96 = 0x9C4;
     work->field_E98                   = 0x190;
@@ -7301,10 +7301,10 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         D_actor_403200_8015F8F8.vy = 0;
         D_actor_403200_8015F8F8.vx = 0;
         actorLocalToView(&arg0->extra.tmd->coords[3], &D_actor_403200_8015F8F8);
-        D_actor_403200_8015F8F4.from.loc.stage = 0;
-        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-        D_actor_403200_8015F8F4.command        = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
+        D_actor_403200_8015F8F4.context.loc.stage = 0;
+        D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command           = 2;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         {
             s16 armed               = 1;
             work->field_E96         = 0xC80;
@@ -7516,10 +7516,10 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     }
 
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
-        D_actor_403200_8015F8F4.from.loc.stage = 0;
-        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-        D_actor_403200_8015F8F4.command        = 3;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
+        D_actor_403200_8015F8F4.context.loc.stage = 0;
+        D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command           = 3;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         D_actor_403200_80141C5A = 0;
         work->field_7F2         = 0;
         work->field_0           = 0xA;
@@ -7590,10 +7590,10 @@ static void func_actor_403200_8013C84C(Task* arg0)
     task  = gameGetPtrSlot(3);
     cfg   = &Player_Status;
     if (work->field_4 != 0) {
-        D_actor_403200_8015F8F4.from.loc.stage = 0;
-        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-        D_actor_403200_8015F8F4.command        = 3;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
+        D_actor_403200_8015F8F4.context.loc.stage = 0;
+        D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command           = 3;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         D_actor_403200_80141C5A = 0;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
         work->field_7B3        = 0xF;
@@ -7643,12 +7643,12 @@ static void func_actor_403200_8013C84C(Task* arg0)
                 goto wrapDown;
             }
         }
-        work->field_7C4                        = yaw;
-        D_actor_403200_8015F8E0[0]             = 0;
-        D_actor_403200_8015F8F4.from.loc.stage = 0;
-        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-        D_actor_403200_8015F8F4.command        = 3;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
+        work->field_7C4                           = yaw;
+        D_actor_403200_8015F8E0[0]                = 0;
+        D_actor_403200_8015F8F4.context.loc.stage = 0;
+        D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command           = 3;
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_E96         = 0x9C4;
         D_actor_403200_80141C5A = 0;
         Gp_StateC08.field_6    |= 1;
@@ -8813,9 +8813,9 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             sc->i = 1;
         dispatch:
             if (work->field_EE8[sc->i] != NULL) {
-                D_actor_403200_8015F8F4.from.loc.stage = 0;
-                D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-                sel                                    = work->field_F08;
+                D_actor_403200_8015F8F4.context.loc.stage = 0;
+                D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+                sel                                       = work->field_F08;
                 if (sel == 1) {
                     goto L_case1;
                 }
@@ -8869,7 +8869,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 rnd                               = (Gp_LcgState * 5) + 0x71357911;
                 D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
                 Gp_LcgState                       = rnd;
-                Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, 0x7DB, &D_actor_403200_8015F8F4, 0);
+                Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
             }
         }
     out:
@@ -9220,11 +9220,11 @@ after_mode:
             arg0->hp = 1;
         }
         if (arg0->hp <= 0 && D_actor_403200_80141C50 == 0) {
-            D_actor_403200_80141C50                = 1;
-            D_actor_403200_8015F8F4.from.loc.stage = 0;
-            D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
-            D_actor_403200_8015F8F4.command        = 3;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
+            D_actor_403200_80141C50                   = 1;
+            D_actor_403200_8015F8F4.context.loc.stage = 0;
+            D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+            D_actor_403200_8015F8F4.command           = 3;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
             D_actor_403200_80141C5A = 0;
         }
     }

@@ -32,8 +32,8 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventM
 s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 extern AnimationPlayRequest D_dryfield_night_junk_yard_80180584;
-extern GpCmdArg             D_dryfield_night_junk_yard_80180598;
-extern GpCmdArg             D_dryfield_night_junk_yard_8018059C;
+extern ActorCommand         D_dryfield_night_junk_yard_80180598;
+extern ActorCommand         D_dryfield_night_junk_yard_8018059C;
 void                        func_dryfield_night_junk_yard_8017D894(u8);
 
 GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
@@ -46,9 +46,9 @@ GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
 
 AnimationPlayRequest D_dryfield_night_junk_yard_80180584 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpCmdArg D_dryfield_night_junk_yard_80180598 = { { .loc = { 3, 26 } }, 0 };
+ActorCommand D_dryfield_night_junk_yard_80180598 = { { .loc = { 3, 26 } }, 0 };
 
-GpCmdArg D_dryfield_night_junk_yard_8018059C = { { .loc = { 3, 26 } }, 1 };
+ActorCommand D_dryfield_night_junk_yard_8018059C = { { .loc = { 3, 26 } }, 1 };
 
 s32 D_dryfield_night_junk_yard_801805A0 = 0x21A03;
 
@@ -57,7 +57,7 @@ GpEvsCmd D_dryfield_night_junk_yard_801805A4[17] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_junk_yard_80180584 }, { .value = 0 } },
     { 41, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_junk_yard_80180598 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_junk_yard_80180598 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 19, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -66,7 +66,7 @@ GpEvsCmd D_dryfield_night_junk_yard_801805A4[17] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_junk_yard_8018059C }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_junk_yard_8018059C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

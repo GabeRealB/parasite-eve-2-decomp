@@ -59,7 +59,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, GpXformArg*, Actor317000SpawnAnim*);
         s32 (*call4)(Task*, s32, s32, s32);
@@ -109,7 +109,7 @@ s32              func_actor_317000_80162458(Task*, s32, GpXformArg*, Actor317000
 s32              func_actor_317000_80162A10(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_317000_80162B48(Task*, s32, GpXformArg*);
 s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
-s32              func_actor_317000_80162CA0(Task*, s32, GpCmdArg*);
+s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
 void             func_actor_317000_80162624(Task*);
 
 TmdBone D_actor_317000_80162D64[19] = {
@@ -343,7 +343,7 @@ Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
     { 2004, { .call2 = func_actor_317000_80162B48 } },
     { 2005, { .call4 = func_actor_317000_80162BC4 } },
     { 2013, { .call3 = func_actor_317000_80162458 } },
-    { 2011, { .call1 = func_actor_317000_80162CA0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_317000_80162CA0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 }; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `step` is
@@ -917,7 +917,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// `Gp_ExtractEuler` derives from its rotation matrix (`"rot"`) through
 /// `GPU_printf`, both under the `"%s=(%d,%d,%d)\n"` format. Returns 0
 /// either way.
-s32 func_actor_317000_80162CA0(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor317000Work* work;
     GfxCoord*        coord;

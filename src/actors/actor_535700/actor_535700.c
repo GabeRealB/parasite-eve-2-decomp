@@ -67,7 +67,7 @@ typedef struct {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
         s32 (*call2)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call3)(Task*, s32, GpCmdArg*);
+        s32 (*call3)(Task*, s32, ActorCommand* request);
         s32 (*call4)(Task*, s32, GpXformArg*);
         s32 (*call5)(Task*, s32, VECTOR*);
         s32 (*call6)(Task*, s32, VECTOR*, s32);
@@ -109,7 +109,7 @@ void             func_actor_535700_80132478(Task*);
 s32 func_actor_535700_801327BC(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_535700_8013284C(Task*, s32, s32);
 s32 func_actor_535700_80132894(Task*, s32, GpXformArg*);
-s32 func_actor_535700_80132910(Task*, s32, GpCmdArg*);
+s32 func_actor_535700_80132910(Task*, s32, ActorCommand* msg);
 s32 func_actor_535700_80132960(Task*, s32, VECTOR*, s32);
 
 extern TmdSource D_actor_535700_80142E58;
@@ -140,7 +140,7 @@ extern AnimationPlayRequest D_actor_535700_80133580;
 extern AnimationPlayRequest D_actor_535700_80133594;
 extern AnimationPlayRequest D_actor_535700_801335A8;
 extern AnimationPlayRequest D_actor_535700_80133684;
-extern GpCmdArg             D_actor_535700_8013348C;
+extern ActorCommand         D_actor_535700_8013348C;
 extern GpXformArg           D_actor_535700_80133698;
 extern GpXformArg           D_actor_535700_801336B0;
 extern GpXformArg           D_actor_535700_801336C8;
@@ -167,7 +167,7 @@ TaskDesc D_actor_535700_8013346C = { 0, 192, func_actor_535700_80131E24, { .mode
 
 AnimationPlayRequest D_actor_535700_80133478 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_actor_535700_8013348C = { { .loc = { 3, 8 } }, 0 };
+ActorCommand D_actor_535700_8013348C = { { .loc = { 3, 8 } }, 0 };
 
 AnimationPlayRequest D_actor_535700_80133490 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -310,7 +310,7 @@ GpEvsCmd D_actor_535700_80133898[99] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_actor_535700_80133710 }, { .value = 1 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_535700_801334CC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_535700_8013348C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_535700_8013348C } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_535700_80133580 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_actor_535700_80133728 }, { .value = 0 } },
@@ -763,7 +763,7 @@ Actor535700MsgEntry D_actor_535700_8013DAAC[6] = {
     { 2003, { .call2 = func_actor_535700_801327BC } },
     { 2005, { .call7 = func_actor_535700_8013284C } },
     { 2004, { .call4 = func_actor_535700_80132894 } },
-    { 2011, { .call3 = func_actor_535700_80132910 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_535700_80132910 } },
     { 2013, { .call6 = func_actor_535700_80132960 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1472,7 +1472,7 @@ s32 func_actor_535700_80132894(Task* task, s32 arg1, GpXformArg* placement)
 /// Message handler of the first enemy: message 0 arms the turn countdown
 /// `turnFrames` at 0x14 frames, message 1 sets `footsteps`, which turns the
 /// footsteps on. Anything else does nothing.
-s32 func_actor_535700_80132910(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
 {
     s32 kind;
 

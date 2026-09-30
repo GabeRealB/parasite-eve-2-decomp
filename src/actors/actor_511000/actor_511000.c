@@ -223,7 +223,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, ActorCommand* request);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, s32);
     } handler;
@@ -284,7 +284,7 @@ extern TmdSource D_actor_511000_80142C90;
 s32              func_actor_511000_80132604(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_511000_80132724(Task*, s32, GpXformArg*);
 s32              func_actor_511000_801327A0(Task*, s32, s32);
-s32              func_actor_511000_8013287C(Task*, s32, GpCmdArg*);
+s32              func_actor_511000_8013287C(Task*, s32, ActorCommand* msg);
 s32              func_actor_511000_80132904(Task*, s32, s32);
 void             func_actor_511000_80132150(Task*);
 void             func_actor_511000_8013222C(Task*);
@@ -1273,7 +1273,7 @@ Actor511000MessageEntry D_actor_511000_8014730C[6] = {
     { 2003, { .call1 = func_actor_511000_80132604 } },
     { 2004, { .call3 = func_actor_511000_80132724 } },
     { 2005, { .call4 = func_actor_511000_801327A0 } },
-    { 2011, { .call2 = func_actor_511000_8013287C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_511000_8013287C } },
     { 2016, { .call4 = func_actor_511000_80132904 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2490,7 +2490,7 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
 /// falling through the hide block: retail's single epilogue is only reached
 /// that way, the hide block and the shared return merging into one block whose
 /// first label sits on the value store.
-s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, GpCmdArg* msg)
+s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg)
 {
     Actor511000Work2* work;
     Task*             child;

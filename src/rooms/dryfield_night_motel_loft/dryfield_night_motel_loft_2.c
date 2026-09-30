@@ -115,9 +115,9 @@ TaskDesc D_dryfield_night_motel_loft_8017EB4C[1] = {
 
 AnimationPlayRequest D_dryfield_night_motel_loft_8017EB58 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpCmdArg D_dryfield_night_motel_loft_8017EB6C = { { .loc = { 3, 31 } }, 0 };
+ActorCommand D_dryfield_night_motel_loft_8017EB6C = { { .loc = { 3, 31 } }, 0 };
 
-GpCmdArg D_dryfield_night_motel_loft_8017EB70[2] = {
+ActorCommand D_dryfield_night_motel_loft_8017EB70[2] = {
     { { .loc = { 3, 31 } }, 1 },
     { { .loc = { 3, 31 } }, 2 },
 };
@@ -127,7 +127,7 @@ GpEvsCmd D_dryfield_night_motel_loft_8017EB78[17] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_motel_loft_8017EB58 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackU8 = func_dryfield_night_motel_loft_8017D7EC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_night_motel_loft_8017EB6C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_motel_loft_8017EB6C } }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x531F0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

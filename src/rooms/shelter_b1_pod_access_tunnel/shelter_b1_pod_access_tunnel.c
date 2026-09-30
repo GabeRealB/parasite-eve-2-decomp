@@ -429,9 +429,9 @@ GpXformArg D_shelter_b1_pod_access_tunnel_80182FB4 = { { 6930, 0, 3710, 0 }, { 0
 
 GpXformArg D_shelter_b1_pod_access_tunnel_80182FCC = { { 1760, 0, -4100, 0 }, { 0, 0, 0, 0 } };
 
-GpCmdArg D_shelter_b1_pod_access_tunnel_80182FE4 = { { .loc = { 4, 17 } }, 1 };
+ActorCommand D_shelter_b1_pod_access_tunnel_80182FE4 = { { .loc = { 4, 17 } }, 1 };
 
-GpCmdArg D_shelter_b1_pod_access_tunnel_80182FE8 = { { .loc = { 4, 17 } }, 2 };
+ActorCommand D_shelter_b1_pod_access_tunnel_80182FE8 = { { .loc = { 4, 17 } }, 2 };
 
 GpSpawnAnimArg D_shelter_b1_pod_access_tunnel_80182FEC = { 10, 3 };
 
@@ -461,7 +461,7 @@ GpEvsCmd D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182FE4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b1_pod_access_tunnel_80182FE4 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182F3C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182FCC }, { .storage = &D_shelter_b1_pod_access_tunnel_80182FEC } },
     { 4, { .value = 110 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -476,7 +476,7 @@ GpEvsCmd D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182F54 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182ED8 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182FE8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b1_pod_access_tunnel_80182FE8 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182F6C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182F84 }, { .value = 0 } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

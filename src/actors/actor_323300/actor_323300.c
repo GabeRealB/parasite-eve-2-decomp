@@ -104,7 +104,7 @@ typedef struct {
         s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
         s32 (*placement)(Task*, s32, GpXformArg*, s32);
         s32 (*mode)(Task*, s32, s32, s32);
-        s32 (*command)(Task*, s32, GpCmdArg*, GpXformArg*);
+        s32 (*command)(Task*, s32, ActorCommand* request, GpXformArg*);
     } handler; // Callback with the argument views required by that message
 } _Actor323300MessageEntry;
 STATIC_ASSERT_SIZEOF(_Actor323300MessageEntry, 8);
@@ -169,7 +169,7 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
 } };
 
 s32 func_actor_323300_80162208(Task*, s32, s32, s32);
-s32 func_actor_323300_80162360(Task*, s32, GpCmdArg*, GpXformArg*);
+s32 func_actor_323300_80162360(Task*, s32, ActorCommand* msg, GpXformArg*);
 s32 func_actor_323300_801628B8(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_323300_801629F0(Task*, s32, GpXformArg*, s32);
 
@@ -334,7 +334,7 @@ _Actor323300MessageEntry D_actor_323300_80172574[5] = {
     { 2003, { .animation = func_actor_323300_801628B8 } },
     { 2004, { .placement = func_actor_323300_801629F0 } },
     { 2005, { .mode = func_actor_323300_80162208 } },
-    { 2011, { .command = func_actor_323300_80162360 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_323300_80162360 } },
     { 0x7FFFFFFF, { .animation = NULL } },
 };
 
@@ -616,7 +616,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// the child at `field_4B8`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
 /// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
-s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* place)
+s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, GpXformArg* place)
 {
     Actor323300Work*      w;
     Actor323300Work*      work;

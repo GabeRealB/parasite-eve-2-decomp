@@ -41,7 +41,7 @@ extern TaskDesc D_801575F0; // absolute, spawned by func_actor_342400_80162DA0
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call0)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor342400MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor342400MessageEntry, 8);
@@ -77,10 +77,10 @@ static void func_actor_342400_801632D4(Task* arg0);
 
 void func_actor_342400_80162748(Task*);
 
-void func_actor_342400_801626AC(Task*, s32, GpCmdArg*);
+void func_actor_342400_801626AC(Task*, s32, ActorCommand* request);
 
 Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
-    { 2011, { .call0 = func_actor_342400_801626AC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342400_801626AC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -333,7 +333,7 @@ static void func_actor_342400_801621D8(Task* arg0)
     GpEnemy*                  enemy;
     Task*                     task;
     GfxCoord*                 coord;
-    GpCmdArg                  msg;
+    ActorCommand              msg;
 
     if (work->enemy0 != NULL) {
         enemy = work->enemy0;
@@ -342,10 +342,10 @@ static void func_actor_342400_801621D8(Task* arg0)
         if (enemy->hp <= 0) {
             work->enemy0 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-            msg.from.loc.stage = 0;
-            msg.from.loc.area  = 0;
-            msg.command        = 5;
-            Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+            msg.context.loc.stage = 0;
+            msg.context.loc.area  = 0;
+            msg.command           = 5;
+            Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             work->enemy0 = NULL;
         }
     } else {
@@ -358,10 +358,10 @@ static void func_actor_342400_801621D8(Task* arg0)
         if (enemy->hp <= 0) {
             work->enemy1 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-            msg.from.loc.stage = 0;
-            msg.from.loc.area  = 0;
-            msg.command        = 5;
-            Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+            msg.context.loc.stage = 0;
+            msg.context.loc.area  = 0;
+            msg.command           = 5;
+            Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             work->enemy1 = NULL;
         }
     } else {
@@ -435,10 +435,10 @@ static s16 func_actor_342400_801624A4(void)
     return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
 }
 
-void func_actor_342400_801626AC(Task* arg0, s32 arg1, GpCmdArg* arg2)
+void func_actor_342400_801626AC(Task* arg0, s32 arg1, ActorCommand* request)
 {
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
-    u16                       id   = arg2->command;
+    u16                       id   = request->command;
 
     if (id == 4) {
         work->stop = id;
@@ -629,7 +629,7 @@ static void func_actor_342400_80162C10(Task* arg0)
     GpEnemy*                    enemy;
     Task*                       task;
     TmdObject*                  obj;
-    GpCmdArg                    msg;
+    ActorCommand                msg;
 
     enemy = work->enemy;
     task  = enemy->task;
@@ -638,10 +638,10 @@ static void func_actor_342400_80162C10(Task* arg0)
         obj->clutRowOffset     = 2;
         obj->texturePageOffset = 0;
         enemy->workType        = 0x900;
-        msg.from.loc.stage     = 0;
-        msg.from.loc.area      = 0x2C;
+        msg.context.loc.stage  = 0;
+        msg.context.loc.area   = 0x2C;
         msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         arg0->state++;
     }
 }
@@ -657,7 +657,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
     GpEnemy*                    enemy;
     Task*                       task;
     GfxCoord*                   coord;
-    GpCmdArg                    msg;
+    ActorCommand                msg;
 
     enemy = work->enemy;
     task  = enemy->task;
@@ -668,10 +668,10 @@ static void func_actor_342400_80162CBC(Task* arg0)
         return;
     }
     if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0x2C;
-        msg.command        = 5;
-        Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+        msg.context.loc.stage = 0;
+        msg.context.loc.area  = 0x2C;
+        msg.command           = 5;
+        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
@@ -708,7 +708,7 @@ static void func_actor_342400_80162E6C(Task* arg0)
     GpEnemy*                    enemy;
     Task*                       task;
     TmdObject*                  obj;
-    GpCmdArg                    msg;
+    ActorCommand                msg;
 
     enemy = work->enemy;
     task  = enemy->task;
@@ -717,10 +717,10 @@ static void func_actor_342400_80162E6C(Task* arg0)
         obj->texturePageOffset = 2;
         obj->clutRowOffset     = 4;
         enemy->workType        = 0x900;
-        msg.from.loc.stage     = 0;
-        msg.from.loc.area      = 0x2A;
+        msg.context.loc.stage  = 0;
+        msg.context.loc.area   = 0x2A;
         msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         arg0->state++;
     }
 }
@@ -736,7 +736,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
     GpEnemy*                    enemy;
     Task*                       task;
     GfxCoord*                   coord;
-    GpCmdArg                    msg;
+    ActorCommand                msg;
 
     enemy = work->enemy;
     task  = enemy->task;
@@ -747,10 +747,10 @@ static void func_actor_342400_80162F1C(Task* arg0)
         return;
     }
     if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0;
-        msg.command        = 5;
-        Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+        msg.context.loc.stage = 0;
+        msg.context.loc.area  = 0;
+        msg.command           = 5;
+        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
@@ -767,7 +767,7 @@ static void func_actor_342400_80163010(Task* arg0)
     GpEnemy*                  enemy;
     Task*                     task;
     TmdObject*                obj;
-    GpCmdArg                  msg;
+    ActorCommand              msg;
 
     enemy = work->enemy0;
     if (enemy != NULL) {
@@ -776,10 +776,10 @@ static void func_actor_342400_80163010(Task* arg0)
         obj->texturePageOffset = 3;
         obj->clutRowOffset     = 5;
         enemy->workType        = 0x900;
-        msg.from.loc.stage     = 0;
-        msg.from.loc.area      = 0x2E;
+        msg.context.loc.stage  = 0;
+        msg.context.loc.area   = 0x2E;
         msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     work->frames = 0;
     arg0->state++;
@@ -791,7 +791,7 @@ static void func_actor_342400_801630A4(Task* arg0)
     GpEnemy*                  enemy;
     Task*                     task;
     TmdObject*                obj;
-    GpCmdArg                  msg;
+    ActorCommand              msg;
 
     enemy = work->enemy1;
     func_actor_342400_801632D4(arg0);
@@ -804,10 +804,10 @@ static void func_actor_342400_801630A4(Task* arg0)
         obj->texturePageOffset = 3;
         obj->clutRowOffset     = 5;
         enemy->workType        = 0x900;
-        msg.from.loc.stage     = 0;
-        msg.from.loc.area      = 0x2E;
+        msg.context.loc.stage  = 0;
+        msg.context.loc.area   = 0x2E;
         msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
+        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     work->frames = 0;
     arg0->state++;

@@ -60,7 +60,7 @@ typedef struct {
     s32 id;
     union {
         s16 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor105300MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor105300MsgEntry, 8);
@@ -93,10 +93,10 @@ void                func_actor_105300_801337DC(Task*);
 void                func_actor_105300_801339A4(Task*);
 
 s16 Actor05300_Fn01B70(Task*);
-s32 func_actor_105300_8013391C(Task*, s32, GpCmdArg*);
+s32 func_actor_105300_8013391C(Task*, s32, ActorCommand* msg);
 
 Actor105300MsgEntry D_actor_105300_80133A00[3] = {
-    { 2011, { .call1 = func_actor_105300_8013391C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_105300_8013391C } },
     { 2006, { .call0 = Actor05300_Fn01B70 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1147,7 +1147,7 @@ static void func_actor_105300_80133838(GpEnemy* arg0, Task* arg1)
 /// selector names into the work block's `field_33A` (1, 2 or both for
 /// selector 3; 0 is a no-op). Bit 1 releases the death handler from its wait,
 /// bit 2 lets it run its `Gp_ReleaseStateF0Add` call.
-s32 func_actor_105300_8013391C(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_actor_105300_8013391C(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor05300Work* work;
 

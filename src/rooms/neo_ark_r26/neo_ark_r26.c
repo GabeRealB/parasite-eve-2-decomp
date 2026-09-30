@@ -58,14 +58,14 @@ extern AnimationPlayRequest D_neo_ark_r26_8017D864;
 extern AnimationPlayRequest D_neo_ark_r26_8017D904;
 extern AnimationPlayRequest D_neo_ark_r26_8017D918;
 extern AnimationPlayRequest D_neo_ark_r26_8017D9CC;
-extern GpCmdArg             D_neo_ark_r26_8017D798;
+extern ActorCommand         D_neo_ark_r26_8017D798;
 void                        func_neo_ark_r26_8017D5D0(void);
 
 AnimationPlayRequest D_neo_ark_r26_8017D780 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_neo_ark_r26_8017D794 = { { .loc = { 4, 36 } }, 0 };
+ActorCommand D_neo_ark_r26_8017D794 = { { .loc = { 4, 36 } }, 0 };
 
-GpCmdArg D_neo_ark_r26_8017D798 = { { .loc = { 4, 36 } }, 1 };
+ActorCommand D_neo_ark_r26_8017D798 = { { .loc = { 4, 36 } }, 1 };
 
 AnimationPlayRequest D_neo_ark_r26_8017D79C[2] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -136,7 +136,7 @@ GpEvsCmd D_neo_ark_r26_8017DA74[57] = {
     { 35, { .value = 0 }, { .value = 1 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_r26_8017D780 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_neo_ark_r26_8017DA44 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_neo_ark_r26_8017D798 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_r26_8017D798 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_neo_ark_r26_8017DA5C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_neo_ark_r26_8017D7C4 }, { .value = 0 } },

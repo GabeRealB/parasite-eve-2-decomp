@@ -57,7 +57,7 @@
 /// `in_struct`".
 extern s16 D_neo_ark_woodland_path_8018498E;
 
-extern GpCmdArg D_neo_ark_woodland_path_80184A5C;
+extern ActorCommand D_neo_ark_woodland_path_80184A5C;
 
 /// The room's five spawn slots: `func_neo_ark_woodland_path_8018046C` fills the
 /// first free one with a countdown and `func_neo_ark_woodland_path_80180B18`
@@ -173,7 +173,7 @@ static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 ar
 static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 arg2);
 
-s32  func_neo_ark_woodland_path_80180B18(Task*, s32, GpCmdArg*, GpMessageArg);
+s32  func_neo_ark_woodland_path_80180B18(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_woodland_path_80181474(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_woodland_path_8018147C(Task*, s32, u8*, GpMessageArg);
 s32  func_neo_ark_woodland_path_8018154C(Task*, s32, GpMessageArg, GpMessageArg);
@@ -269,7 +269,7 @@ s16 D_neo_ark_woodland_path_801849F0 = 0;
 GpMsgEntry D_neo_ark_woodland_path_801849F4[4] = {
     { 5103, func_neo_ark_woodland_path_80181568 },
     { 5108, func_neo_ark_woodland_path_8018154C },
-    { 2011, func_neo_ark_woodland_path_80180B18 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_woodland_path_80180B18 },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -293,7 +293,7 @@ TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
     { 0, 32, func_neo_ark_woodland_path_801814E8, { .model = NULL } },
 };
 
-GpCmdArg D_neo_ark_woodland_path_80184A5C = { { .loc = { 0, 0 } }, 0 };
+ActorCommand D_neo_ark_woodland_path_80184A5C = { { .loc = { 0, 0 } }, 0 };
 
 u16 D_neo_ark_woodland_path_80184A60[5];
 
@@ -1037,9 +1037,9 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
         gGameSession->field_126         = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
-        D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
-        D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0x1D;
-        D_neo_ark_woodland_path_80184A5C.command        = 0xB;
+        D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
+        D_neo_ark_woodland_path_80184A5C.context.loc.area  = 0x1D;
+        D_neo_ark_woodland_path_80184A5C.command           = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -1060,7 +1060,7 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_woodland_path_80184A5C, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_woodland_path_80184A5C, 0);
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].x;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].z;
@@ -1082,27 +1082,27 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpMessageArg msg, GpMessageArg arg3)
 {
     s32      result;
     u16      cmd;
     GpEnemy* obj;
 
     result = 0;
-    if (msg->from.key == 0xB05) {
-        cmd = msg->command;
+    if (msg.command->context.key == 0xB05) {
+        cmd = msg.command->command;
         switch (cmd) {
             case 0:
                 D_neo_ark_woodland_path_8018498E = -1;
                 result                           = 0;
                 return result;
             case 2:
-                D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
-                D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0xB;
-                D_neo_ark_woodland_path_80184A5C.command        = 0xC;
-                result                                          = 1;
+                D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
+                D_neo_ark_woodland_path_80184A5C.context.loc.area  = 0xB;
+                D_neo_ark_woodland_path_80184A5C.command           = 0xC;
+                result                                             = 1;
                 if (Gp_LookupSlot4(0) != 0) {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB,
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY,
                                       &D_neo_ark_woodland_path_80184A5C, 0);
                     obj                                              = Gp_LookupSlot4(0)->spawnArg2.pointer;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
@@ -1224,9 +1224,9 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         gGameSession->field_126         = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
-        D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
-        D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0xB;
-        D_neo_ark_woodland_path_80184A5C.command        = 0xB;
+        D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
+        D_neo_ark_woodland_path_80184A5C.context.loc.area  = 0xB;
+        D_neo_ark_woodland_path_80184A5C.command           = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -1247,7 +1247,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_woodland_path_80184A5C, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_woodland_path_80184A5C, 0);
                     switch ((s16)(D_neo_ark_woodland_path_80184992 - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;

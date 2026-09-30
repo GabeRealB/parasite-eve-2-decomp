@@ -86,7 +86,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
@@ -150,7 +150,7 @@ extern TmdSource D_actor_143900_8014960C;
 s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_143900_80133254(Task*, s32, s32);
 s32              func_actor_143900_801332E4(Task*, s32, GpXformArg*);
-s32              func_actor_143900_80133360(Task*, s32, GpCmdArg*);
+s32              func_actor_143900_80133360(Task*, s32, ActorCommand* msg);
 s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
 void             func_actor_143900_80132DEC(Task*);
 void             func_actor_143900_80132FB0(Task*);
@@ -158,7 +158,7 @@ void             func_actor_143900_80132FB0(Task*);
 s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_143900_801326B4(Task*, s32, s32);
 s32  func_actor_143900_801326FC(Task*, s32, GpXformArg*);
-s32  func_actor_143900_80132778(Task*, s32, GpCmdArg*);
+s32  func_actor_143900_80132778(Task*, s32, ActorCommand* msg);
 s32  func_actor_143900_8013279C(Task*, s32, VECTOR*, s32);
 void func_actor_143900_80132324(Task*);
 
@@ -704,7 +704,7 @@ Actor143900MsgEntry D_actor_143900_801413BC[6] = {
     { 2003, { .call0 = func_actor_143900_80132624 } },
     { 2005, { .call4 = func_actor_143900_801326B4 } },
     { 2004, { .call2 = func_actor_143900_801326FC } },
-    { 2011, { .call1 = func_actor_143900_80132778 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80132778 } },
     { 2013, { .call3 = func_actor_143900_8013279C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1116,7 +1116,7 @@ Actor143900MsgEntry D_actor_143900_80149634[6] = {
     { 2003, { .call0 = func_actor_143900_801331C4 } },
     { 2005, { .call4 = func_actor_143900_80133254 } },
     { 2004, { .call2 = func_actor_143900_801332E4 } },
-    { 2011, { .call1 = func_actor_143900_80133360 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80133360 } },
     { 2013, { .call3 = func_actor_143900_801333C4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1476,7 +1476,7 @@ s32 func_actor_143900_801326FC(Task* task, s32 arg1, GpXformArg* placement)
 /// Message 0x7DB handler of the first variant: when the payload's halfword at
 /// 0x2 is zero, starts a 0x14-step turn, which the update performs while the
 /// model plays animation 3.
-s32 func_actor_143900_80132778(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_143900_80132778(Task* task, s32 arg1, ActorCommand* msg)
 {
     if (msg->command == 0) {
         D_actor_143900_801496B8->turnFrames = 0x14;
@@ -1843,7 +1843,7 @@ s32 func_actor_143900_801332E4(Task* task, s32 arg1, GpXformArg* placement)
 /// picks which of the two helper tasks' models is shown - 0 shows the second
 /// (`helper2`) and hides the first, 1 the reverse; any other value leaves
 /// both.
-s32 func_actor_143900_80133360(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg)
 {
     TmdObject* first;
     TmdObject* second;

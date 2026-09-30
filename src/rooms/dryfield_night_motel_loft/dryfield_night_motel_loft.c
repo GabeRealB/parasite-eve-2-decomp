@@ -33,7 +33,7 @@
 extern GpObj4C D_dryfield_night_motel_loft_801803F4[14];
 
 /// The room's 0x7DB payload buffer.
-extern GpCmdArg D_dryfield_night_motel_loft_8018092C;
+extern ActorCommand D_dryfield_night_motel_loft_8018092C;
 
 extern GpAreaTmdRec D_dryfield_night_motel_loft_8018081C[2];
 extern GpAreaTmdRec D_dryfield_night_motel_loft_80180834[3];
@@ -188,7 +188,7 @@ GpRoomParamRec* D_dryfield_night_motel_loft_8018090C[8] = {
     D_dryfield_night_motel_loft_801808FC,
 };
 
-GpCmdArg D_dryfield_night_motel_loft_8018092C = { 0 };
+ActorCommand D_dryfield_night_motel_loft_8018092C = { 0 };
 
 static void func_dryfield_night_motel_loft_8017D808(Task* arg0);
 static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0);
@@ -294,7 +294,7 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x96) != 0) {
         D_dryfield_night_motel_loft_8018092C.command = 1;
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_motel_loft_8018092C, 0);
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
     }
     func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
     arg0->state = (s32)(arg0->state + 1);

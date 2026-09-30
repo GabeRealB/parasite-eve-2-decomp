@@ -1027,7 +1027,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(Task* task, s32 msgId, GpMessageArg arg2
 /// `func_800E8634`; elsewhere it sends message 0x7DB to the slot-4 task.
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 {
-    GpCmdArg msg;
+    ActorCommand msg;
 
     arg0->msgTable = D_shelter_b2_pod_bottom_80181C6C;
     Game_SetPtrSlot(arg0, 7);
@@ -1035,10 +1035,10 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
         func_80162B0C(0);
         func_800E8634(&D_80165F48, 0, &D_80166848);
     } else {
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0;
-        msg.command        = 7;
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &msg, 0);
+        msg.context.loc.stage = 0;
+        msg.context.loc.area  = 0;
+        msg.command           = 7;
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     arg0->state++;
 }

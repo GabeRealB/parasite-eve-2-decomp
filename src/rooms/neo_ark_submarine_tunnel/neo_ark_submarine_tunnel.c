@@ -164,11 +164,11 @@ AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47,
 
 AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { 5, 12 } }, 0 };
+ActorCommand D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { 5, 12 } }, 0 };
 
-GpCmdArg D_neo_ark_submarine_tunnel_80181AB4 = { { .loc = { 5, 12 } }, 1 };
+ActorCommand D_neo_ark_submarine_tunnel_80181AB4 = { { .loc = { 5, 12 } }, 1 };
 
-GpCmdArg D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
+ActorCommand D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
 
 AnimationPlayRequest D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -191,7 +191,7 @@ GpEvsCmd D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_neo_ark_submarine_tunnel_80181AB4 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_neo_ark_submarine_tunnel_80181AB4 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181A88 }, { .value = 0 } },
@@ -201,7 +201,7 @@ GpEvsCmd D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 34, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_neo_ark_submarine_tunnel_80181AB8 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_neo_ark_submarine_tunnel_80181AB8 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
     { 13, { .callback = func_neo_ark_submarine_tunnel_8017F318 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

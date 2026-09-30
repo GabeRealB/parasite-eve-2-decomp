@@ -215,7 +215,7 @@ typedef struct ActorShared801511c8Work {
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor07000RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor07000RecoveredMsgEntry, 8);
@@ -354,8 +354,8 @@ extern AnimationSet Actor07000_D07D1C;
 extern AnimationSet Actor07000_D07E64;
 extern AnimationSet Actor07000_D08008;
 extern TmdSource    Actor07000_D079C8;
-s32                 Actor07000_Fn01FF8(Task*, s32, GpCmdArg*);
-s32                 Actor07000_Fn05AB8(Task*, s32, GpCmdArg*);
+s32                 Actor07000_Fn01FF8(Task*, s32, ActorCommand* request);
+s32                 Actor07000_Fn05AB8(Task*, s32, ActorCommand* request);
 void                Actor07000_Fn02548(Task*);
 void                Actor07000_Fn02D10(Task*);
 void                Actor07000_Fn05E6C(Task*);
@@ -477,7 +477,7 @@ AnimationSet Actor07000_D08008 = {
 };
 
 Actor07000RecoveredMsgEntry Actor07000_D08030[2] = {
-    { 2011, { .call0 = Actor07000_Fn01FF8 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor07000_Fn01FF8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -916,7 +916,7 @@ SVECTOR Actor07000_D0D7B0 = { 0, 0, -120, 0 };
 SVECTOR Actor07000_D0D7B8 = { 0, -300, 0, 0 };
 
 Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
-    { 2011, { .call0 = Actor07000_Fn05AB8 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor07000_Fn05AB8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -2201,7 +2201,7 @@ static void Actor07000_Fn01EB0(Task* arg0)
     SCRATCH_POP_BYTES(0x48);
 }
 
-s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -2222,7 +2222,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
     work  = (Actor107000Work*)arg0->work;
     coord = obj->coords;
     if (state == 1) {
-        mode = arg2->command;
+        mode = request->command;
         if (mode == 4) {
             Gp_SpawnEff(0x60080, coord, 0x400, &Actor07000_D08070);
             work->field_2B8 = 1;
@@ -2241,26 +2241,26 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
             return 0;
         }
     }
-    word = arg2->command & 0xFF;
+    word = request->command & 0xFF;
     if ((word & 0xFF) == 1) {
         if ((u32)(arg0->state - 1) >= 2U) {
             if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
-                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].heading;
+                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].z;
+                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
+                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
+                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
-                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].heading;
+                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].z;
+                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
+                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
+                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
             heading         = rot.vy;
             work->field_2B0 = heading;
@@ -3947,7 +3947,7 @@ static void Actor07000_Fn0595C(Task* arg0)
 /// the model is turned to the spawn point's heading. Low byte 3 is the hide:
 /// the two bits and the pose flag go the other way, both nodes are hidden, the
 /// model's translation and rotation are zeroed, and the task moves to state 4.
-s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor107000Spawn2Work* work;
     GpEnemy*               enemy;
@@ -3959,7 +3959,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
     s32                    sound;
     s32                    pan;
 
-    word  = arg2->command;
+    word  = request->command;
     obj   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
     work  = (Actor107000Spawn2Work*)arg0->work;
@@ -3982,21 +3982,21 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
         if ((u32)(arg0->state - 1) >= 2U) {
             if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
-                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].heading;
+                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].z;
+                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
+                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
+                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
-                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].heading;
+                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].z;
+                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
+                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
+                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
             arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;

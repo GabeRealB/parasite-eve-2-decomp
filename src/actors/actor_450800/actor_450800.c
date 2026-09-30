@@ -102,7 +102,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpCmdArg*, s32);
+        s32 (*call2)(Task*, s32, ActorCommand* request, s32);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, VECTOR*);
         s32 (*call5)(Task*, s32, VECTOR*, s32);
@@ -162,7 +162,7 @@ void             func_actor_450800_80132958(Task*);
 s32 func_actor_450800_80132B44(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_450800_80132BB0(Task*, s32, s32);
 s32 func_actor_450800_80132C68(Task*, s32, GpXformArg*);
-s32 func_actor_450800_80132CE0(Task*, s32, GpCmdArg*, s32);
+s32 func_actor_450800_80132CE0(Task*, s32, ActorCommand* msg, s32);
 s32 func_actor_450800_80132D74(Task*, s32, VECTOR*, s32);
 
 extern TmdSource D_actor_450800_80150024;
@@ -199,8 +199,8 @@ extern AnimationPlayRequest D_actor_450800_801398A8;
 extern AnimationPlayRequest D_actor_450800_8013ADEC;
 extern AnimationPlayRequest D_actor_450800_8013AE00;
 extern AnimationPlayRequest D_actor_450800_8013AE14;
-extern GpCmdArg             D_actor_450800_801398E0;
-extern GpCmdArg             D_actor_450800_801398E4;
+extern ActorCommand         D_actor_450800_801398E0;
+extern ActorCommand         D_actor_450800_801398E4;
 extern GpCopyArg            D_actor_450800_801398D0;
 extern GpCopyArg            D_actor_450800_801398D8;
 extern GpXformArg           D_actor_450800_8013AE30;
@@ -990,11 +990,11 @@ GpCopyArg D_actor_450800_801398D0 = { { .words = D_actor_450800_801394BC.words }
 
 GpCopyArg D_actor_450800_801398D8 = { { .words = D_actor_450800_80139310.words }, 32 };
 
-GpCmdArg D_actor_450800_801398E0 = { { .loc = { 5, 22 } }, 0 };
+ActorCommand D_actor_450800_801398E0 = { { .loc = { 5, 22 } }, 0 };
 
-GpCmdArg D_actor_450800_801398E4 = { { .loc = { 5, 22 } }, 1 };
+ActorCommand D_actor_450800_801398E4 = { { .loc = { 5, 22 } }, 1 };
 
-GpCmdArg D_actor_450800_801398E8 = { { .loc = { 5, 22 } }, 2 };
+ActorCommand D_actor_450800_801398E8 = { { .loc = { 5, 22 } }, 2 };
 
 GpXformArg D_actor_450800_801398EC = { { 5650, 0, 2400, 0 }, { 0, -1024, 0, 0 } };
 
@@ -1013,7 +1013,7 @@ GpEvsCmd D_actor_450800_80139964[105] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_450800_801398D8 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_450800_801398D0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_450800_80139628 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_450800_801398E8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E8 } }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139894 }, { .value = 0 } },
     { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398BC }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1329,8 +1329,8 @@ GpEvsCmd D_actor_450800_8013AF8C[117] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_450800_801398E4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_actor_450800_801398E4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E4 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E4 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_450800_8013AE90 }, { .value = 0 } },
@@ -1354,17 +1354,17 @@ GpEvsCmd D_actor_450800_8013AF8C[117] = {
     { 14, { .padCommands = D_actor_450800_8013AF70 }, { .padRecords = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_450800_8013981C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_450800_801398E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
     { 13, { .callbackNoArg = func_actor_450800_80132108 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_450800_801320E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 14, { .padCommands = D_actor_450800_8013AF70 }, { .padRecords = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_450800_8013981C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_450800_801398E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
     { 14, { .padCommands = D_actor_450800_8013AF70 }, { .padRecords = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_450800_8013981C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_450800_801398E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
     { 14, { .padCommands = D_actor_450800_8013AF70 }, { .padRecords = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_450800_801397CC }, { .value = 0 } },
@@ -2271,7 +2271,7 @@ Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
     { 2003, { .call1 = func_actor_450800_80132B44 } },
     { 2005, { .call6 = func_actor_450800_80132BB0 } },
     { 2004, { .call3 = func_actor_450800_80132C68 } },
-    { 2011, { .call2 = func_actor_450800_80132CE0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_450800_80132CE0 } },
     { 2013, { .call5 = func_actor_450800_80132D74 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -3130,7 +3130,7 @@ s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpXformArg* placement)
 /// in `Actor450800Work::field_4F8`. Both pointers, and `field_8` of the helper's
 /// model, are resolved before the switch: the ROM reads them there, and a
 /// scheduler pass cannot lift the loads into the entry block on its own.
-s32 func_actor_450800_80132CE0(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
+s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor450800Work* work  = (Actor450800Work*)task->work;
     TmdObject*       obj   = work->field_4F8->extra.tmd;

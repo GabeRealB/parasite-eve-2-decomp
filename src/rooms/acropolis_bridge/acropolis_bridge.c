@@ -179,7 +179,7 @@ static void func_acropolis_bridge_8017DC68(Task* arg0);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, s32);
     } handler;
 } AcropolisBridgeMessageEntry;
@@ -383,7 +383,7 @@ extern AcropolisBridgeStorage1780 D_acropolis_bridge_80191780;
 
 extern s32 D_acropolis_bridge_80190BE8[3];
 extern s32 D_acropolis_bridge_80190BF4[3];
-s32        func_acropolis_bridge_801856E0(Task*, s32, GpCmdArg*);
+s32        func_acropolis_bridge_801856E0(Task*, s32, ActorCommand* msg);
 s32        func_acropolis_bridge_80187BD0(Task*, s32, s32);
 void       func_acropolis_bridge_80185F28(Task*);
 void       func_acropolis_bridge_801861A0(Task*);
@@ -2432,7 +2432,7 @@ u8* D_acropolis_bridge_80191720[9] = {
 };
 
 AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
-    { 2011, { .call0 = func_acropolis_bridge_801856E0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_acropolis_bridge_801856E0 } },
     { 2005, { .call1 = func_acropolis_bridge_80187BD0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2704,7 +2704,7 @@ static void func_acropolis_bridge_8017DC1C(Task* arg0)
 
 static void func_acropolis_bridge_8017DC68(Task* arg0)
 {
-    GpCmdArg msg = { { { 1, 0xB } }, 1 };
+    ActorCommand msg = { { { 1, 0xB } }, 1 };
 
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
@@ -2713,7 +2713,7 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
             arg0->state                       = (s32)(arg0->state + 1);
         } else {
             Mc_SaveData[0].state.at4.loc.view = 9;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             arg0->state = (s32)(arg0->state + 1);
         }
     }
@@ -3581,9 +3581,9 @@ static void func_acropolis_bridge_8017F544(Task* task)
         work->field_A = 0;
         task->state   = 7;
     } else {
-        GpCmdArg msg = { { { 1, 0xE } }, 2 };
+        ActorCommand msg = { { { 1, 0xE } }, 2 };
 
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
         task->state = 6;
     }
@@ -5774,7 +5774,7 @@ static void func_acropolis_bridge_8018532C(OverlayWalker* walker)
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
 /// the default flag set. Always reports success.
-s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
     GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2.pointer;
@@ -5782,7 +5782,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, GpCmdArg* msg)
     s32                       variant;
     u16                       sub;
 
-    if (msg->from.key == 0xB01 && msg->command == 1) {
+    if (msg->context.key == 0xB01 && msg->command == 1) {
         variant = enemy->placeKey >> 12;
         switch (variant) {
             case 0:
@@ -5792,7 +5792,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, GpCmdArg* msg)
                 break;
         }
     }
-    if (msg->from.key == 0xE01) {
+    if (msg->context.key == 0xE01) {
         sub = msg->command;
         if (sub == 2) {
             variant = enemy->placeKey >> 12;

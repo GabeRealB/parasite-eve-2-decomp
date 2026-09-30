@@ -121,7 +121,7 @@ extern AnimationSet* Actor01200_D06F98[19]; // animation bank handed to `func_80
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -142,7 +142,7 @@ extern TmdSource Actor01200_D05934;
 void             Actor01200_Fn03FD4(Task*);
 
 s32 Actor01200_Fn03A00(Task*, s32, s32);
-s32 Actor01200_Fn03ABC(Task*, s32, GpCmdArg*);
+s32 Actor01200_Fn03ABC(Task*, s32, ActorCommand* request);
 s32 Actor01200_Fn03B70(Task*, s32, GpXformArg*);
 
 GpU16Pair Actor01200_D04030[1] = {
@@ -558,7 +558,7 @@ u8 Actor01200_D06FE4[116] = {
 
 Actor01200RecoveredMsgEntry Actor01200_D07058[4] = {
     { 2005, { .call2 = Actor01200_Fn03A00 } },
-    { 2011, { .call0 = Actor01200_Fn03ABC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor01200_Fn03ABC } },
     { 2004, { .call1 = Actor01200_Fn03B70 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1798,18 +1798,18 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor01200Work* work;
     GpEnemy*        ctx;
 
     work            = arg0->work;
     ctx             = arg0->spawnArg2.pointer;
-    work->field_194 = arg2->from.loc.stage;
-    work->field_195 = arg2->from.loc.area;
-    work->field_196 = (u8)arg2->command;
-    if (arg2->from.key == 0xB02) {
-        switch (arg2->command) {
+    work->field_194 = request->context.loc.stage;
+    work->field_195 = request->context.loc.area;
+    work->field_196 = (u8)request->command;
+    if (request->context.key == 0xB02) {
+        switch (request->command) {
             case 0:
                 work->field_0 = 0;
                 break;

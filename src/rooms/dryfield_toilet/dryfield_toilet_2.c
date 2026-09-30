@@ -101,15 +101,15 @@ AnimationPlayRequest D_dryfield_toilet_80180BDC = { { .index = 1 }, 9, ANIMATION
 
 GpXformArg D_dryfield_toilet_80180BF0 = { { -1664, 0, 135, 0 }, { 0, -2047, 0, 0 } };
 
-GpCmdArg D_dryfield_toilet_80180C08 = { { .loc = { 2, 16 } }, 1 };
+ActorCommand D_dryfield_toilet_80180C08 = { { .loc = { 2, 16 } }, 1 };
 
-GpCmdArg D_dryfield_toilet_80180C0C = { { .loc = { 2, 16 } }, 2 };
+ActorCommand D_dryfield_toilet_80180C0C = { { .loc = { 2, 16 } }, 2 };
 
-GpCmdArg D_dryfield_toilet_80180C10 = { { .loc = { 2, 16 } }, 10 };
+ActorCommand D_dryfield_toilet_80180C10 = { { .loc = { 2, 16 } }, 10 };
 
-GpCmdArg D_dryfield_toilet_80180C14 = { { .loc = { 2, 16 } }, 11 };
+ActorCommand D_dryfield_toilet_80180C14 = { { .loc = { 2, 16 } }, 11 };
 
-GpCmdArg D_dryfield_toilet_80180C18[2] = {
+ActorCommand D_dryfield_toilet_80180C18[2] = {
     { { .loc = { 2, 16 } }, 12 },
     { { .loc = { 2, 16 } }, 13 },
 };
@@ -127,12 +127,12 @@ GpEvsCmd D_dryfield_toilet_80180C58[31] = {
     { 13, { .callbackNoArg = func_dryfield_toilet_8017DC50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_toilet_80180B8C.data.copy }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BB4 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_dryfield_toilet_80180C08 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C08 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BC8 }, { .value = 0 } },
     { 4, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_toilet_80180C10 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C10 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { 16, { .value = 0x52100006 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -144,10 +144,10 @@ GpEvsCmd D_dryfield_toilet_80180C58[31] = {
     { 4, { .value = 64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_toilet_8017DCD0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_toilet_80180C14 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C14 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_toilet_80180BF0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_dryfield_toilet_80180C0C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C0C } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { 13, { .callback = func_dryfield_toilet_8017DA3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_toilet_8017DC90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -161,12 +161,12 @@ GpEvsCmd D_dryfield_toilet_80180F40[20] = {
     { 13, { .callbackNoArg = func_dryfield_toilet_8017DCB0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_toilet_80180C14 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C14 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_toilet_80180BF0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_toilet_80180B8C.data.copy }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BDC }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_dryfield_toilet_80180C0C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C0C } }, { .value = 0 } },
     { 13, { .callback = func_dryfield_toilet_8017DA3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 48, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

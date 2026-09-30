@@ -40,7 +40,7 @@ extern u8 D_actor_312200_80169F44[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, GpXformArg*);
         s32 (*call2)(Task*, s32, s32);
     } handler;
@@ -149,7 +149,7 @@ static void func_actor_312200_801637CC(Task* task);
 extern TmdSource D_actor_312200_80168148;
 s32              func_actor_312200_80163510(Task*, s32, s32);
 s32              func_actor_312200_801635CC(Task*, s32, GpXformArg*);
-s32              func_actor_312200_801636CC(Task*, s32, GpCmdArg*);
+s32              func_actor_312200_801636CC(Task*, s32, ActorCommand* msg);
 void             func_actor_312200_80163854(Task*);
 
 TmdBone D_actor_312200_801638B0[19] = {
@@ -303,7 +303,7 @@ u8 D_actor_312200_80169F44[24] = {
 
 Actor312200MessageEntry D_actor_312200_80169F5C[4] = {
     { 2005, { .call2 = func_actor_312200_80163510 } },
-    { 2011, { .call0 = func_actor_312200_801636CC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_312200_801636CC } },
     { 2004, { .call1 = func_actor_312200_801635CC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -877,17 +877,17 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpXformArg* placement)
 /// 1 takes state 2, actions 2, 3 and 4 take state 1, and the action itself is
 /// latched in the 0x892 timer. Either way the actor's `field_0` state word is
 /// raised to 1.
-s32 func_actor_312200_801636CC(Task* task, s32 msgId, GpCmdArg* msg)
+s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg)
 {
     Actor312200Work* work;
     s32              action;
 
     work            = (Actor312200Work*)task->work;
-    work->field_8B4 = msg->from.loc.stage;
-    work->field_8B6 = msg->from.loc.area;
+    work->field_8B4 = msg->context.loc.stage;
+    work->field_8B6 = msg->context.loc.area;
     work->field_8B8 = msg->command;
 
-    if (msg->from.key == 0x301) {
+    if (msg->context.key == 0x301) {
         action = msg->command;
         switch (action) {
             case 1:

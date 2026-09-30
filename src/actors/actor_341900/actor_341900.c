@@ -934,7 +934,7 @@ static void func_actor_341900_80162AD4(Task* arg0)
 /// otherwise runs the two child dispatchers.
 void func_actor_341900_80162EFC(Task* arg0)
 {
-    GpCmdArg         sp10;
+    ActorCommand     request;
     Actor341900Work* work;
     Actor341900Work* seqWork;
     u8               sessionIdLo;
@@ -955,11 +955,11 @@ void func_actor_341900_80162EFC(Task* arg0)
                                     gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))
                                     ->field_0;
             }
-            sp10.from.loc.stage = gGameSession->at4.loc.stage;
-            sessionIdLo         = gGameSession->at4.loc.area;
-            sp10.command        = 0;
-            sp10.from.loc.area  = sessionIdLo;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &sp10, 0x7DB);
+            request.context.loc.stage = gGameSession->at4.loc.stage;
+            sessionIdLo               = gGameSession->at4.loc.area;
+            request.command           = 0;
+            request.context.loc.area  = sessionIdLo;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
             seqWork          = (Actor341900Work*)arg0->work;
             seqWork->field_8 = Task_SpawnFromTable(D_actor_341900_80164190, 2, 0, arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
@@ -1076,12 +1076,12 @@ void func_actor_341900_8016332C(void)
 /// 0x7DB reply.
 void func_actor_341900_80163334(s16 arg0)
 {
-    GpCmdArg msg;
+    ActorCommand msg;
 
-    msg.from.loc.stage = gGameSession->at4.loc.stage;
-    msg.from.loc.area  = gGameSession->at4.loc.area;
-    msg.command        = arg0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+    msg.context.loc.stage = gGameSession->at4.loc.stage;
+    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.command           = arg0;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
 void func_actor_341900_80163388(s32 arg0)

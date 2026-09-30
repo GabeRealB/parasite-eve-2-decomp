@@ -62,7 +62,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -90,7 +90,7 @@ extern TmdSource D_actor_213000_8015144C;
 s32              func_actor_213000_8014A70C(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_213000_8014A828(Task*, s32, GpXformArg*);
 s32              func_actor_213000_8014A8A4(Task*, s32, s32);
-s32              func_actor_213000_8014A980(Task*, s32, GpCmdArg*);
+s32              func_actor_213000_8014A980(Task*, s32, ActorCommand* msg);
 void             func_actor_213000_8014A084(Task*);
 void             func_actor_213000_8014A160(Task*);
 void             func_actor_213000_8014A520(Task*);
@@ -502,7 +502,7 @@ Actor213000MsgEntry D_actor_213000_80157E1C[5] = {
     { 2003, { .call0 = func_actor_213000_8014A70C } },
     { 2004, { .call2 = func_actor_213000_8014A828 } },
     { 2005, { .call3 = func_actor_213000_8014A8A4 } },
-    { 2011, { .call1 = func_actor_213000_8014A980 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_213000_8014A980 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 }; /// Spawn handler: allocates the work block, seeds its animation bytes and
 
@@ -1006,7 +1006,7 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
 /// arm is only the `lw` plus a jump while modes 0 and 2 each keep their own
 /// `& 0xFF7F` copy. Which tails jump2 merges is decided by which jumps share a
 /// target label, not by how alike the bodies are.
-s32 func_actor_213000_8014A980(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_213000_8014A980(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor213000Work* work;
     Task*            child;

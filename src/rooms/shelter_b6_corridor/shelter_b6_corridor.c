@@ -105,8 +105,8 @@ static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 // Indexed views below share one contiguous table.
 extern AnimationPlayRequest D_shelter_b6_corridor_8017F27C;
-extern GpCmdArg             D_shelter_b6_corridor_8017F34C;
-extern GpCmdArg             D_shelter_b6_corridor_8017F350;
+extern ActorCommand         D_shelter_b6_corridor_8017F34C;
+extern ActorCommand         D_shelter_b6_corridor_8017F350;
 extern GpCopyArg            D_shelter_b6_corridor_8017F260;
 void                        func_shelter_b6_corridor_8017E19C(s32);
 void                        func_shelter_b6_corridor_8017E204(void);
@@ -184,15 +184,15 @@ GpXformArg D_shelter_b6_corridor_8017F30C = { { 7800, 0, 0, 0 }, { 0, 1024, 0, 0
 
 GpXformArg D_shelter_b6_corridor_8017F324 = { { 0x4E20, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
-GpCmdArg D_shelter_b6_corridor_8017F33C = { { .loc = { 5, 24 } }, 1 };
+ActorCommand D_shelter_b6_corridor_8017F33C = { { .loc = { 5, 24 } }, 1 };
 
-GpCmdArg D_shelter_b6_corridor_8017F340 = { { .loc = { 5, 24 } }, 2 };
+ActorCommand D_shelter_b6_corridor_8017F340 = { { .loc = { 5, 24 } }, 2 };
 
 GpSpawnAnimArg D_shelter_b6_corridor_8017F344 = { 3, 4 };
 
-GpCmdArg D_shelter_b6_corridor_8017F34C = { { .loc = { 5, 24 } }, 1 };
+ActorCommand D_shelter_b6_corridor_8017F34C = { { .loc = { 5, 24 } }, 1 };
 
-GpCmdArg D_shelter_b6_corridor_8017F350 = { { .loc = { 5, 24 } }, 1 };
+ActorCommand D_shelter_b6_corridor_8017F350 = { { .loc = { 5, 24 } }, 1 };
 
 GpEvsCmd D_shelter_b6_corridor_8017F354[34] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b6_corridor_8017F260 }, { .value = 0 } },
@@ -204,17 +204,17 @@ GpEvsCmd D_shelter_b6_corridor_8017F354[34] = {
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F34C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F34C } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F350 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F350 } }, { .value = 0 } },
     { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F33C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F33C } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_shelter_b6_corridor_8017F2F4 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_corridor_8017F30C }, { .storage = &D_shelter_b6_corridor_8017F344 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x55180004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F340 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F340 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_corridor_8017F324 }, { .value = 0 } },
     { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -239,9 +239,9 @@ GpEvsCmd D_shelter_b6_corridor_8017F684[18] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b6_corridor_8017F260 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F34C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F34C } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F350 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F350 } }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

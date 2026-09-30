@@ -113,9 +113,9 @@ void func_shelter_b2_septic_tank_8017EA50(Task*);
 
 extern AnimationPlayRequest D_shelter_b2_septic_tank_80182F80;
 extern AnimationPlayRequest D_shelter_b2_septic_tank_80182FC0;
-extern GpCmdArg             D_shelter_b2_septic_tank_80182FA0;
-extern GpCmdArg             D_shelter_b2_septic_tank_80182FA4;
-extern GpCmdArg             D_shelter_b2_septic_tank_80182FA8;
+extern ActorCommand         D_shelter_b2_septic_tank_80182FA0;
+extern ActorCommand         D_shelter_b2_septic_tank_80182FA4;
+extern ActorCommand         D_shelter_b2_septic_tank_80182FA8;
 extern GpCopyArg            D_shelter_b2_septic_tank_80182F78;
 extern GpXformArg           D_shelter_b2_septic_tank_80182FD4;
 extern GpXformArg           D_shelter_b2_septic_tank_80182FEC;
@@ -170,17 +170,17 @@ GpCopyArg D_shelter_b2_septic_tank_80182F78 = { { .sets = D_shelter_b2_septic_ta
 
 AnimationPlayRequest D_shelter_b2_septic_tank_80182F80 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpCmdArg D_shelter_b2_septic_tank_80182F94[3] = {
+ActorCommand D_shelter_b2_septic_tank_80182F94[3] = {
     { { .loc = { 4, 34 } }, 0 },
     { { .loc = { 4, 34 } }, 1 },
     { { .loc = { 4, 34 } }, 2 },
 };
 
-GpCmdArg D_shelter_b2_septic_tank_80182FA0 = { { .loc = { 4, 34 } }, 3 };
+ActorCommand D_shelter_b2_septic_tank_80182FA0 = { { .loc = { 4, 34 } }, 3 };
 
-GpCmdArg D_shelter_b2_septic_tank_80182FA4 = { { .loc = { 4, 34 } }, 4 };
+ActorCommand D_shelter_b2_septic_tank_80182FA4 = { { .loc = { 4, 34 } }, 4 };
 
-GpCmdArg D_shelter_b2_septic_tank_80182FA8 = { { .loc = { 4, 34 } }, 5 };
+ActorCommand D_shelter_b2_septic_tank_80182FA8 = { { .loc = { 4, 34 } }, 5 };
 
 AnimationPlayRequest D_shelter_b2_septic_tank_80182FAC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -196,7 +196,7 @@ GpEvsCmd D_shelter_b2_septic_tank_80183004[11] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b2_septic_tank_80182F80 }, { .value = 0 } },
     { 41, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_shelter_b2_septic_tank_80182FA0 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_shelter_b2_septic_tank_80182FA0 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -212,12 +212,12 @@ GpEvsCmd D_shelter_b2_septic_tank_8018310C[18] = {
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 29, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_shelter_b2_septic_tank_80182FA4 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_shelter_b2_septic_tank_80182FA4 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_shelter_b2_septic_tank_80182FA8 }, { .value = 2011 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_shelter_b2_septic_tank_80182FA8 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b2_septic_tank_80182FD4 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

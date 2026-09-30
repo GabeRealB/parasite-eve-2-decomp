@@ -67,7 +67,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*, s32);
+        s32 (*call1)(Task*, s32, ActorCommand* request, s32);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
@@ -117,12 +117,12 @@ static void func_actor_461800_80133B98(Task* task);
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80132E14(Task*, s32, s32);
 s32  func_actor_461800_80132EA4(Task*, s32, GpXformArg*);
-s32  func_actor_461800_80132F20(Task*, s32, GpCmdArg*, s32);
+s32  func_actor_461800_80132F20(Task*, s32, ActorCommand* request, s32);
 s32  func_actor_461800_80132F44(Task*, s32, VECTOR*, s32);
 s32  func_actor_461800_80133898(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80133928(Task*, s32, s32);
 s32  func_actor_461800_80133970(Task*, s32, GpXformArg*);
-s32  func_actor_461800_801339EC(Task*, s32, GpCmdArg*, s32);
+s32  func_actor_461800_801339EC(Task*, s32, ActorCommand* msg, s32);
 s32  func_actor_461800_80133A3C(Task*, s32, VECTOR*, s32);
 void func_actor_461800_801329B0(Task*);
 void func_actor_461800_80132B74(Task*);
@@ -423,7 +423,7 @@ Actor461800MessageEntry D_actor_461800_80139F5C[6] = {
     { 2003, { .call0 = func_actor_461800_80132D84 } },
     { 2005, { .call4 = func_actor_461800_80132E14 } },
     { 2004, { .call2 = func_actor_461800_80132EA4 } },
-    { 2011, { .call1 = func_actor_461800_80132F20 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_80132F20 } },
     { 2013, { .call3 = func_actor_461800_80132F44 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -833,7 +833,7 @@ Actor461800MessageEntry D_actor_461800_801437BC[6] = {
     { 2003, { .call0 = func_actor_461800_80133898 } },
     { 2005, { .call4 = func_actor_461800_80133928 } },
     { 2004, { .call2 = func_actor_461800_80133970 } },
-    { 2011, { .call1 = func_actor_461800_801339EC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_801339EC } },
     { 2013, { .call3 = func_actor_461800_80133A3C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1377,9 +1377,9 @@ s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpXformArg* placement)
     return 0;
 }
 
-s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, GpCmdArg* arg2, s32 arg3)
+s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
-    if (arg2->command == 0) {
+    if (request->command == 0) {
         D_actor_461800_80143894->turnFrames = 0x14;
     }
     return 0;
@@ -1697,7 +1697,7 @@ s32 func_actor_461800_80133970(Task* task, s32 arg1, GpXformArg* placement)
 /// Message handler: the message id selects how the second work block is
 /// reseeded -- 0 arms the reset argument, 1 remembers the id in the byte the
 /// seeding loop reads. Anything else does nothing.
-s32 func_actor_461800_801339EC(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
+s32 func_actor_461800_801339EC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     s32 id;
 

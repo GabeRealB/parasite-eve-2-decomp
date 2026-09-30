@@ -260,7 +260,7 @@ AnimationPlayRequest D_actor_341300_8016531C = { { .index = 0 }, 2, ANIMATION_BL
 
 GpXformArg D_actor_341300_80165330 = { { 2090, -3480, 1440, 0 }, { 0, 0, 2047, 0 } };
 
-GpCmdArg D_actor_341300_80165348 = { { .loc = { 4, 30 } }, 1 };
+ActorCommand D_actor_341300_80165348 = { { .loc = { 4, 30 } }, 1 };
 
 GpOverlayIds D_actor_341300_8016534C = { 4, 13, 11 };
 
@@ -311,7 +311,7 @@ GpEvsCmd D_actor_341300_80165354[52] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165260 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_341300_801652DC }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_341300_80165348 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_341300_80165348 } }, { .value = 0 } },
     { 13, { .callbackNoArg = func_actor_341300_801623DC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 18, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -327,7 +327,7 @@ GpEvsCmd D_actor_341300_80165834[21] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_341300_80165244 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165260 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_341300_80165348 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_341300_80165348 } }, { .value = 0 } },
     { 13, { .callbackS16 = func_actor_341300_80162588 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackS16 = func_actor_341300_80162588 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackS16 = func_actor_341300_80162588 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

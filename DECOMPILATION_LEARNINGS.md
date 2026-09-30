@@ -49117,7 +49117,7 @@ separate `zero_extendhisi2/1` (`andi`) instead of the target's single
 the field itself so the load keeps one use:
 
 ```c
-s32 func_actor_361100_80163750(Task* task, s32 msgId, GpCmdArg* msg) {
+s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg) {
     work = (Actor361100Work*)task->work;
     switch (msg->command) { ...; default: task->exitCallback(task); }
     return 0;
@@ -63517,10 +63517,10 @@ stack pointer, and the scheduler places `sw $ra` wherever its own priority puts
 it — here between the `0x11` and `0x10` stores:
 
 ```c
-GpCmdArg msg;
+ActorCommand msg;
 
-msg.from.loc.stage = 0;
-msg.from.loc.area  = 0x2C;
+msg.context.loc.stage = 0;
+msg.context.loc.area  = 0x2C;
 msg.command        = 3;
 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 ```
@@ -68259,7 +68259,7 @@ address it passes, `&sp10`, belongs to a *different* local. The score is
 `stack=0 branch=0 regs=0 reorder=0 insert=0 delete=1` at 93.33% - a single
 instruction short, the `sh` gone, `stack_accesses` 2 against the target's 3, and
 the frame identical. A clean frame with one missing store is still this cause
-and not a pass artifact: write `GpCmdArg msg; msg.command = index;` and the
+and not a pass artifact: write `ActorCommand msg; msg.command = index;` and the
 missing store returns with no other change.
 
 **Which dump shows it.** `.rtl` — the first one — not `.flow`. Expansion itself
@@ -75380,7 +75380,7 @@ call's first argument does not change that: the store still expands first.
 
 ```c
 Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-GpCmdArg         msg;
+ActorCommand         msg;
 
 msg.command = arg0;
 Gp_DispatchMsg(work->field_24, 0x7DB, (s32)&msg, 0);
@@ -82431,7 +82431,7 @@ with every instruction matching but one: the payload load reads
 `lhu $v0, 0x2($a1)` where the target has `$a2`, so the missing parameter is in
 the *middle*, not leading. The function is a 0x7DB message handler sitting in
 the same overlay as the already-matched
-`func_actor_205200_8014C9A0(Actor205200*, s32 value, GpCmdArg*)`, and
+`func_actor_205200_8014C9A0(Actor205200*, s32 value, ActorCommand*)`, and
 the message table `D_actor_205200_8014CA78` lists it under the same opcode with
 the same payload. Borrowing the sibling's signature is the entire fix; the
 unused `value` then shifts the payload from `$a1` to `$a2` and the function is
@@ -82958,7 +82958,7 @@ case 1:
 
 The rest of the m2c body was wrong in the same direction: it had dropped the
 unused third argument, so `$a2` became a `move` of `$a0` and the payload came
-out of `$a1`. The signature is `(Task* task, s32 value, GpCmdArg* msg)`,
+out of `$a1`. The signature is `(Task* task, s32 value, ActorCommand* msg)`,
 and the `default` arm calls `task->exitCallback(task)` — `$a0` is never
 reloaded, which is what distinguishes it from the twin
 `func_actor_361100_80163750`, whose work pointer lives in `$v1` for the same
@@ -85207,7 +85207,7 @@ ignores the ones before it:
     s32 func(void* arg0, void* arg2) { ... }
 
     /* 100.000%, msg lands in $a2 */
-    s32 func(Task* task, s32 msgId, GpCmdArg* msg) { ... }
+    s32 func(Task* task, s32 msgId, ActorCommand* msg) { ... }
 
 The unused name costs nothing at -O2; leaving it out costs the payload
 register. `src/actors/actor_444000/actor_444000_6.c` shows the same 3-of-4
@@ -85630,7 +85630,7 @@ actually reads - was allocated `$a0`. Declaring the full arity was the whole fix
 
 ```c
 /* m2c seed: func(void *arg2)                     -> lhu v0,2(a0) */
-s32 func_actor_451100_8013268C(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 {
     if (msg->command == 0) {
         ActorsShared80131f9cWork->field_4B4 = 0x14;
@@ -89152,7 +89152,7 @@ cse's dead-store pass' earlier sibling, and it runs before every dump you would
 normally look at, which is why `.cse` and `.flow` both already look clean.
 
 Give the payload its type and pass `&msg` as the tree already does
-everywhere else (the record is now `GpCmdArg` in `include/gameplay/message.h`;
+everywhere else (the record is now `ActorCommand` in `include/gameplay/message.h`;
 the example below predates it):
 
 ```c
@@ -98997,14 +98997,14 @@ GCC 2.8.1 does not narrow a halfword load to the width actually used, so a
 plain `{ u16 code; u16 mode; }` payload does not produce those byte loads:
 `work->field_91C = msg->code;` compiles to `lhu` plus `srl 8` where the target
 has `lbu 1(a2)` (measured 92.15%, `insert=2 delete=1`). The source read bytes,
-so the type needs a byte view. `GpCmdArg` (`include/gameplay/message.h`) gives
-the first two bytes through its `from.loc` union, and the third byte, the low
+so the type needs a byte view. `ActorCommand` (`include/gameplay/message.h`) gives
+the first two bytes through its `context.loc` union, and the third byte, the low
 half of `command`, needs no view at all: a truncating cast of the halfword does
 narrow the load, so `(u8)msg->command` compiles to `lbu 2(a2)`:
 
 ```c
-work->field_91C = msg->from.loc.stage;
-work->field_91D = msg->from.loc.area;
+work->field_91C = msg->context.loc.stage;
+work->field_91D = msg->context.loc.area;
 work->field_91E = (u8)msg->command;
 ```
 
@@ -99140,7 +99140,7 @@ the complementary cause. Where that entry's single local aliased one struct
 field, here a *group* of stores has one addressable member.
 
 The fix is the project's dispatch-payload idiom: declare the record as a named
-four-byte struct (`GpCmdArg`, `include/gameplay/message.h`) and take `&msg`
+four-byte struct (`ActorCommand`, `include/gameplay/message.h`) and take `&msg`
 once.
 Every field is then addressable, the stores survive, and the same edit also
 settled the register penalty: with no ADDRESSOF pseudo to keep alive across the
@@ -99836,16 +99836,16 @@ saves and the `s1` home of the work pointer.
 
 Only `sp10`'s address is taken. `sp11` and `sp12` stay non-addressable, so their
 stores are dead and `flow` deletes them; nothing downstream can put them back.
-The fix is the ordinary record the matched siblings use (`GpCmdArg`) — one
+The fix is the ordinary record the matched siblings use (`ActorCommand`) — one
 address-taken 4-byte struct, which is also what makes the payload's fields live:
 
 ```c
     Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-    GpCmdArg          msg;
+    ActorCommand          msg;
 
     if (work->field_E == 0) {
-        msg.from.loc.stage = gGameSession->at4.loc.stage;
-        msg.from.loc.area  = gGameSession->at4.loc.area;
+        msg.context.loc.stage = gGameSession->at4.loc.stage;
+        msg.context.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 9;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
@@ -101172,7 +101172,7 @@ i.e. `s32 f(Task*, s32, Msg*, s32)`.
 Evidence: scratch `nonmatchings/func_actor_312200_801636CC-vacuum/`; `base_1.c`
 (52.302%) and `base_2.c` (100.000%); `include/actors/actor_312200.h` gained
 `field_0`, `field_8B4`/`field_8B6`/`field_8B8` (cut out of `pad_898`) and the
-payload union (now `GpCmdArg`, whose `from.loc` bytes and `from.key` /
+payload union (now `ActorCommand`, whose `context.loc` bytes and `context.key` /
 `command` halfwords) is what makes the two byte loads and the two halfword
 loads of the same four payload bytes come out as the target's
 `lbu`/`lbu`/`lhu`/`lhu`.
@@ -125856,7 +125856,7 @@ Worth doing before writing any C, because it settles what the empty caller list
 raises: a `GpMsgEntry` handler is called as `(Task*, s32 msgId, s32 arg2, s32
 arg3)` (`GpMsgHandler`), and the overlay's neighbouring handler is the house
 spelling of the last two arguments —
-`s32 func_actor_317000_80162CA0(Task* task, s32 value, GpCmdArg* msg)`.
+`s32 func_actor_317000_80162CA0(Task* task, s32 value, ActorCommand* msg)`.
 
 The body then came straight from the family's already-matched near-twin,
 `func_actor_141000_801336DC` (`overlay_dup_index.py similar` ranks it 1.00 on

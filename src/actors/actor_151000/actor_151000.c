@@ -76,7 +76,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
@@ -102,7 +102,7 @@ void             func_actor_151000_801323F4(Task*);
 s32 func_actor_151000_80132738(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_151000_801327C8(Task*, s32, s32);
 s32 func_actor_151000_80132810(Task*, s32, GpXformArg*);
-s32 func_actor_151000_8013288C(Task*, s32, GpCmdArg*);
+s32 func_actor_151000_8013288C(Task*, s32, ActorCommand* msg);
 s32 func_actor_151000_801328DC(Task*, s32, VECTOR*, s32);
 
 extern AnimationPlayRequest D_actor_151000_801333F0;
@@ -194,7 +194,7 @@ AnimationPlayRequest D_actor_151000_80133440 = { { .index = 0 }, 15, ANIMATION_B
 
 AnimationPlayRequest D_actor_151000_80133454 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_actor_151000_80133468 = { { .loc = { 5, 15 } }, 1 };
+ActorCommand D_actor_151000_80133468 = { { .loc = { 5, 15 } }, 1 };
 
 GpXformArg D_actor_151000_8013346C = { { -7700, 0, -0x46B4, 0 }, { 0, 0, 0, 0 } };
 
@@ -214,7 +214,7 @@ GpEvsCmd D_actor_151000_801334EC[47] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_151000_801334E4 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_151000_8013346C }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_151000_8013349C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_151000_80133468 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_151000_80133468 } }, { .value = 0 } },
     { 13, { .callback = func_actor_151000_80131EE0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
@@ -666,7 +666,7 @@ Actor151000MsgEntry D_actor_151000_8013D2B0[6] = {
     { 2003, { .call0 = func_actor_151000_80132738 } },
     { 2005, { .call4 = func_actor_151000_801327C8 } },
     { 2004, { .call2 = func_actor_151000_80132810 } },
-    { 2011, { .call1 = func_actor_151000_8013288C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_151000_8013288C } },
     { 2013, { .call3 = func_actor_151000_801328DC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1145,7 +1145,7 @@ s32 func_actor_151000_80132810(Task* task, s32 arg1, GpXformArg* placement)
 
 /// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
 /// frames, message 1 sets `footsteps`, which turns the footsteps on. Anything else does nothing.
-s32 func_actor_151000_8013288C(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg)
 {
     s32 kind;
 

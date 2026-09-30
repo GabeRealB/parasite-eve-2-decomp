@@ -704,29 +704,29 @@ GpXformArg D_mine_cavern_80187C14 = { { 7550, 0, 7360, 0 }, { 0, -455, 0, 0 } };
 
 GpXformArg D_mine_cavern_80187C2C = { { 1410, 0, 3000, 0 }, { 0, 910, 0, 0 } };
 
-GpCmdArg D_mine_cavern_80187C44 = { { .loc = { 4, 2 } }, 0 };
+ActorCommand D_mine_cavern_80187C44 = { { .loc = { 4, 2 } }, 0 };
 
-GpCmdArg D_mine_cavern_80187C48 = { { .loc = { 4, 2 } }, 1 };
+ActorCommand D_mine_cavern_80187C48 = { { .loc = { 4, 2 } }, 1 };
 
-GpCmdArg D_mine_cavern_80187C4C = { { .loc = { 4, 2 } }, 2 };
+ActorCommand D_mine_cavern_80187C4C = { { .loc = { 4, 2 } }, 2 };
 
-GpCmdArg D_mine_cavern_80187C50 = { { .loc = { 4, 2 } }, 3 };
+ActorCommand D_mine_cavern_80187C50 = { { .loc = { 4, 2 } }, 3 };
 
-GpCmdArg D_mine_cavern_80187C54 = { { .loc = { 4, 2 } }, 4 };
+ActorCommand D_mine_cavern_80187C54 = { { .loc = { 4, 2 } }, 4 };
 
-GpCmdArg D_mine_cavern_80187C58 = { { .loc = { 4, 2 } }, 5 };
+ActorCommand D_mine_cavern_80187C58 = { { .loc = { 4, 2 } }, 5 };
 
-GpCmdArg D_mine_cavern_80187C5C = { { .loc = { 4, 2 } }, 6 };
+ActorCommand D_mine_cavern_80187C5C = { { .loc = { 4, 2 } }, 6 };
 
-GpCmdArg D_mine_cavern_80187C60 = { { .loc = { 4, 2 } }, 7 };
+ActorCommand D_mine_cavern_80187C60 = { { .loc = { 4, 2 } }, 7 };
 
-GpCmdArg D_mine_cavern_80187C64 = { { .loc = { 4, 2 } }, 10 };
+ActorCommand D_mine_cavern_80187C64 = { { .loc = { 4, 2 } }, 10 };
 
-GpCmdArg D_mine_cavern_80187C68 = { { .loc = { 4, 2 } }, 11 };
+ActorCommand D_mine_cavern_80187C68 = { { .loc = { 4, 2 } }, 11 };
 
-GpCmdArg D_mine_cavern_80187C6C = { { .loc = { 4, 2 } }, 12 };
+ActorCommand D_mine_cavern_80187C6C = { { .loc = { 4, 2 } }, 12 };
 
-GpCmdArg D_mine_cavern_80187C70 = { { .loc = { 4, 2 } }, 13 };
+ActorCommand D_mine_cavern_80187C70 = { { .loc = { 4, 2 } }, 13 };
 
 GpEvsCmd D_mine_cavern_80187C74[41] = {
     { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -734,7 +734,7 @@ GpEvsCmd D_mine_cavern_80187C74[41] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B34 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C44 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C44 } }, { .value = 0 } },
     { 3, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1010 }, { .storage = &D_mine_cavern_80187B4C }, { .storage = &D_mine_cavern_80187BC4 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
@@ -751,22 +751,22 @@ GpEvsCmd D_mine_cavern_80187C74[41] = {
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A1C }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C64 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C64 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BCC }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A30 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C48 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C48 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BE4 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C4C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C4C } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BFC }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BFC }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -779,7 +779,7 @@ GpEvsCmd D_mine_cavern_8018804C[19] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B4C }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C4C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C4C } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BFC }, { .value = 0 } },
     { 13, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -790,7 +790,7 @@ GpEvsCmd D_mine_cavern_8018804C[19] = {
     { 13, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
@@ -806,7 +806,7 @@ GpEvsCmd D_mine_cavern_80188214[60] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C14 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C58 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C58 } }, { .value = 0 } },
     { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -817,7 +817,7 @@ GpEvsCmd D_mine_cavern_80188214[60] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A80 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C50 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C50 } }, { .value = 0 } },
     { 15, { .value = 0x401E0013 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187AA8 }, { .value = 0 } },
@@ -831,7 +831,7 @@ GpEvsCmd D_mine_cavern_80188214[60] = {
     { 3, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B94 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C54 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C54 } }, { .value = 0 } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 15, { .value = 0x401E0014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -853,7 +853,7 @@ GpEvsCmd D_mine_cavern_80188214[60] = {
     { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
@@ -865,10 +865,10 @@ GpEvsCmd D_mine_cavern_801887B4[27] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B94 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C14 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C58 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C50 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C54 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C58 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C50 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C54 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
     { 13, { .callback = func_mine_cavern_8017DFAC }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 48, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -898,7 +898,7 @@ GpEvsCmd D_mine_cavern_80188A3C[31] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C2C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C70 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C70 } }, { .value = 0 } },
     { 3, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -915,7 +915,7 @@ GpEvsCmd D_mine_cavern_80188A3C[31] = {
     { 3, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_mine_cavern_8017DFAC }, { .value = 95 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mine_cavern_8017E15C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C60 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C60 } }, { .value = 0 } },
     { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -931,8 +931,8 @@ GpEvsCmd D_mine_cavern_80188D24[24] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C2C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C70 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C60 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C70 } }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C60 } }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mine_cavern_8017E330 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_mine_cavern_8017E358 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

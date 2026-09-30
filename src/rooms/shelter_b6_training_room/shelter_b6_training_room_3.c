@@ -249,13 +249,13 @@ GpXformArg D_shelter_b6_training_room_80183B70 = { { 3250, 0, 9500, 0 }, { 0, 10
 
 GpXformArg D_shelter_b6_training_room_80183B88 = { { 5000, 0, 0x2710, 0 }, { 0, 1024, 0, 0 } };
 
-GpCmdArg D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
+ActorCommand D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
 
-GpCmdArg D_shelter_b6_training_room_80183BA4 = { { .loc = { 5, 24 } }, 2 };
+ActorCommand D_shelter_b6_training_room_80183BA4 = { { .loc = { 5, 24 } }, 2 };
 
 GpSpawnAnimArg D_shelter_b6_training_room_80183BA8 = { 3, 4 };
 
-GpCmdArg D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
+ActorCommand D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
 
 GpEvsCmd D_shelter_b6_training_room_80183BB4[58] = {
     { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -280,7 +280,7 @@ GpEvsCmd D_shelter_b6_training_room_80183BB4[58] = {
     { 13, { .callbackNoArg = func_shelter_b6_training_room_8017D940 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839F8 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183A78 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b6_training_room_80183BA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_training_room_80183BA4 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_training_room_80183B70 }, { .storage = &D_shelter_b6_training_room_80183BA8 } },
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -168,7 +168,7 @@ typedef struct {
     s32 id;
     union {
         void (*call0)(Task*, s16, VECTOR3*);
-        void (*call1)(Task*, s32, GpCmdArg*);
+        void (*call1)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor04400RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04400RecoveredMsgEntry, 8);
@@ -327,7 +327,7 @@ static const TaskFuncTable6 Actor04400_D001AC;
 extern TmdSource Actor04400_D0D2F0;
 void             Actor04400_Fn06658(Task*);
 
-void Actor04400_Fn0648C(Task*, s32, GpCmdArg*);
+void Actor04400_Fn0648C(Task*, s32, ActorCommand* request);
 void Actor04400_Fn064EC(Task*, s16, VECTOR3*);
 void Actor04400_Fn06658(Task*);
 void Actor04400_Fn066DC(Task*);
@@ -910,7 +910,7 @@ AnimationSet* Actor04400_D10778[21] = {
 
 Actor04400RecoveredMsgEntry Actor04400_D107CC[3] = {
     { 2004, { .call0 = Actor04400_Fn064EC } },
-    { 2011, { .call1 = Actor04400_Fn0648C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor04400_Fn0648C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -3849,26 +3849,26 @@ static s32 Actor04400_Fn063E4(Task* arg0)
 /// cross-jumped into one, but only separate bodies keep the jump table; a
 /// single `case 1 ... 5` becomes a range test. `arg1` is the dispatch's
 /// handler index and is unused here.
-void Actor04400_Fn0648C(Task* arg0, s32 arg1, GpCmdArg* arg2)
+void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
-    if (arg2->from.key == 0x2C00) {
-        switch (arg2->command & 0xF) {
+    if (request->context.key == 0x2C00) {
+        switch (request->command & 0xF) {
             case 1:
-                work->field_44C = arg2->command;
+                work->field_44C = request->command;
                 break;
             case 2:
-                work->field_44C = arg2->command;
+                work->field_44C = request->command;
                 break;
             case 3:
-                work->field_44C = arg2->command;
+                work->field_44C = request->command;
                 break;
             case 4:
-                work->field_44C = arg2->command;
+                work->field_44C = request->command;
                 break;
             case 5:
-                work->field_44C = arg2->command;
+                work->field_44C = request->command;
                 break;
         }
     }

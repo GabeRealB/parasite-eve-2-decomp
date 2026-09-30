@@ -216,10 +216,10 @@ extern AnimationPlayRequest                D_dryfield_trailer_coach_80185340;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_80185354;
 extern AnimationSet                        D_dryfield_trailer_coach_80184C28;
 extern AnimationSet                        D_dryfield_trailer_coach_80184F54;
-extern GpCmdArg                            D_dryfield_trailer_coach_8018518C;
-extern GpCmdArg                            D_dryfield_trailer_coach_80185190;
-extern GpCmdArg                            D_dryfield_trailer_coach_80185194;
-extern GpCmdArg                            D_dryfield_trailer_coach_80185198;
+extern ActorCommand                        D_dryfield_trailer_coach_8018518C;
+extern ActorCommand                        D_dryfield_trailer_coach_80185190;
+extern ActorCommand                        D_dryfield_trailer_coach_80185194;
+extern ActorCommand                        D_dryfield_trailer_coach_80185198;
 extern GpGridParams                        D_dryfield_trailer_coach_801876B4[1];
 extern GpObj4C                             D_dryfield_trailer_coach_80189254[4];
 extern GpObj4C                             D_dryfield_trailer_coach_80189384[12];
@@ -378,13 +378,13 @@ AnimationPlayRequest D_dryfield_trailer_coach_80185164 = { { .index = 1 }, 53, A
 
 AnimationPlayRequest D_dryfield_trailer_coach_80185178 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_dryfield_trailer_coach_8018518C = { { .loc = { 2, 27 } }, 0 };
+ActorCommand D_dryfield_trailer_coach_8018518C = { { .loc = { 2, 27 } }, 0 };
 
-GpCmdArg D_dryfield_trailer_coach_80185190 = { { .loc = { 2, 27 } }, 1 };
+ActorCommand D_dryfield_trailer_coach_80185190 = { { .loc = { 2, 27 } }, 1 };
 
-GpCmdArg D_dryfield_trailer_coach_80185194 = { { .loc = { 2, 27 } }, 2 };
+ActorCommand D_dryfield_trailer_coach_80185194 = { { .loc = { 2, 27 } }, 2 };
 
-GpCmdArg D_dryfield_trailer_coach_80185198 = { { .loc = { 2, 27 } }, 3 };
+ActorCommand D_dryfield_trailer_coach_80185198 = { { .loc = { 2, 27 } }, 3 };
 
 AnimationPlayRequest D_dryfield_trailer_coach_8018519C = { 0 };
 
@@ -478,15 +478,15 @@ GpEvsCmd D_dryfield_trailer_coach_801853F4[58] = {
     { 4, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_trailer_coach_80185200 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_trailer_coach_80185190 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_trailer_coach_80185190 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_801850C4 }, { .value = 0 } },
     { 4, { .value = 64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_8018513C }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_trailer_coach_80185194 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_trailer_coach_80185194 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_trailer_coach_8018518C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_trailer_coach_8018518C } }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -682,7 +682,7 @@ GpEvsCmd D_dryfield_trailer_coach_8018681C[25] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_trailer_coach_801851B0 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_trailer_coach_80185198 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_trailer_coach_80185198 } }, { .value = 0 } },
     { 15, { .value = 0x521B000E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_trailer_coach_80185304 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -690,7 +690,7 @@ GpEvsCmd D_dryfield_trailer_coach_8018681C[25] = {
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_trailer_coach_8018518C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_trailer_coach_8018518C } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_trailer_coach_801851EC }, { .value = 0 } },
     { 4, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

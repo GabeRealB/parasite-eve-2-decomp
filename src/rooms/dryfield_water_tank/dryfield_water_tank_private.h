@@ -13,7 +13,7 @@
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call0)(Task*, s32, ActorCommand* request);
         void (*call1)(Task*, s32, GpXformArg*);
         void (*call2)(Task*, s32, s32);
     } handler;
@@ -136,6 +136,6 @@ void func_dryfield_water_tank_8017E0B4(Task*, s32, s32);
 
 void func_dryfield_water_tank_8017E0E8(Task*, s32, GpXformArg*);
 
-void func_dryfield_water_tank_8017E174(Task*, s32, GpCmdArg*);
+void func_dryfield_water_tank_8017E174(Task*, s32, ActorCommand* msg);
 
 #endif // SRC_ROOMS_DRYFIELD_WATER_TANK_DRYFIELD_WATER_TANK_PRIVATE_H

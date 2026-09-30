@@ -90,7 +90,7 @@ extern SVECTOR D_actor_205200_801567B4[2];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
         s32 (*call1)(Task*, s32, s32);
     } handler;
 } Actor2052002MessageEntry;
@@ -128,7 +128,7 @@ extern AnimationSet D_actor_205200_80155F74;
 extern AnimationSet D_actor_205200_80156788;
 
 s32         func_actor_205200_8014C980(Task*, s32, s32);
-s32         func_actor_205200_8014C9A0(Task*, s32, GpCmdArg*);
+s32         func_actor_205200_8014C9A0(Task*, s32, ActorCommand* request);
 static void func_actor_205200_8014C540(Task*);
 
 AnimationPackedPose D_actor_205200_80151810[29] = {
@@ -321,7 +321,7 @@ TaskDesc D_actor_205200_801567C4 = { 1, 96, func_actor_205200_8014C540, { .model
 
 Actor2052002MessageEntry D_actor_205200_801567D0[3] = {
     { 2005, { .call1 = func_actor_205200_8014C980 } },
-    { 2011, { .call0 = func_actor_205200_8014C9A0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_205200_8014C9A0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -855,12 +855,12 @@ s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2)
 /// 0x7D5 one. A non-zero payload halfword sets `Actor205200Work.field_594`, the
 /// flag `func_actor_205200_8014C59C` tests to push the actor to state 2.
 /// Nothing reads the opcode itself, hence `arg1`.
-s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor205200Work* work;
 
     work = arg0->work;
-    if (arg2->command != 0) {
+    if (request->command != 0) {
         work->field_594 = 1;
     }
     return 0;

@@ -61,9 +61,9 @@ extern GpRoomCoordSet D_dryfield_underpass_80181114[1];
 
 extern AnimationPlayRequest D_dryfield_underpass_8017E870;
 extern AnimationPlayRequest D_dryfield_underpass_8017E884;
-extern GpCmdArg             D_dryfield_underpass_8017E8A0;
-extern GpCmdArg             D_dryfield_underpass_8017E8A4;
-extern GpCmdArg             D_dryfield_underpass_8017E8A8;
+extern ActorCommand         D_dryfield_underpass_8017E8A0;
+extern ActorCommand         D_dryfield_underpass_8017E8A4;
+extern ActorCommand         D_dryfield_underpass_8017E8A8;
 extern GpCopyArg            D_dryfield_underpass_8017E868;
 void                        func_dryfield_underpass_8017DA08(void);
 
@@ -143,15 +143,15 @@ AnimationPlayRequest D_dryfield_underpass_8017E870 = { { .index = 1 }, 47, ANIMA
 
 AnimationPlayRequest D_dryfield_underpass_8017E884 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpCmdArg D_dryfield_underpass_8017E898 = { { .loc = { 5, 11 } }, 0 };
+ActorCommand D_dryfield_underpass_8017E898 = { { .loc = { 5, 11 } }, 0 };
 
 s32 D_dryfield_underpass_8017E89C = 0x10B05;
 
-GpCmdArg D_dryfield_underpass_8017E8A0 = { { .loc = { 5, 11 } }, 2 };
+ActorCommand D_dryfield_underpass_8017E8A0 = { { .loc = { 5, 11 } }, 2 };
 
-GpCmdArg D_dryfield_underpass_8017E8A4 = { { .loc = { 5, 11 } }, 3 };
+ActorCommand D_dryfield_underpass_8017E8A4 = { { .loc = { 5, 11 } }, 3 };
 
-GpCmdArg D_dryfield_underpass_8017E8A8 = { { .loc = { 5, 11 } }, 4 };
+ActorCommand D_dryfield_underpass_8017E8A8 = { { .loc = { 5, 11 } }, 4 };
 
 AnimationPlayRequest D_dryfield_underpass_8017E8AC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -163,15 +163,15 @@ GpEvsCmd D_dryfield_underpass_8017E8D8[21] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_underpass_8017E884 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_underpass_8017E8A0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A0 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_underpass_8017E870 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_underpass_8017E8A4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A4 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_underpass_8017E8C0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_dryfield_underpass_8017E8A8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A8 } }, { .value = 0 } },
     { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callbackNoArg = func_dryfield_underpass_8017DA08 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

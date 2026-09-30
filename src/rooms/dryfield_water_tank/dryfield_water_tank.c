@@ -1273,7 +1273,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
 void func_dryfield_water_tank_8017DEA4(Task* arg0)
 {
     DwtScriptWork* work;
-    GpCmdArg       msg;
+    ActorCommand   msg;
     Task**         owner;
 
     work = (DwtScriptWork*)arg0->work;
@@ -1315,7 +1315,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->owner, 0x3F3, 0, 0);
             Gp_DispatchMsg(work->child, 0x7D5, 1, 0);
             msg.command = 2;
-            Gp_DispatchMsgPtr(work->child, 0x7DB, &msg, 0);
+            Gp_DispatchMsgPtr(work->child, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         case 2:
             Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(3);
@@ -1375,7 +1375,7 @@ void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placeme
 /// Message 0x7DB handler of the model task: restarts its script, clearing the
 /// script state and `field_54` in its work block and moving the task to the
 /// state the payload carries.
-void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, GpCmdArg* msg)
+void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, ActorCommand* msg)
 {
     DwtColorMtx* work;
     s32          state;

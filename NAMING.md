@@ -331,7 +331,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
 | `padInput`, `padScript` | Gameplay input mapping and scripted input | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
 | `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
-| `scene` | Scene tasks and runtime coordination | `scene_runtime.c` | `include/gameplay/scene_runtime.h`, `src/gameplay/scene_runtime.h` |
+| `scene` | Scene tasks, actor-command routing and runtime coordination | `scene_runtime.c` | `include/gameplay/scene_runtime.h`, `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
 | `ending` | Ending sequence control | `ending.c` | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
 
 This is not a blanket assignment of every symbol in those files. For example,

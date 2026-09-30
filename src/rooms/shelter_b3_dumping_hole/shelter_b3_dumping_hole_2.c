@@ -354,7 +354,7 @@ extern s32 D_shelter_b3_dumping_hole_8018F4D8;
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call0)(Task*, s32, ActorCommand* request);
         void (*call1)(Task*, s32, GpXformArg*);
         void (*call2)(Task*, s32, s32);
     } handler;
@@ -460,7 +460,7 @@ extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018AFF4;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B008;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B01C;
-extern GpCmdArg                            D_shelter_b3_dumping_hole_8018B078;
+extern ActorCommand                        D_shelter_b3_dumping_hole_8018B078;
 extern GpScriptCmd                         D_shelter_b3_dumping_hole_8018AFAC[2];
 extern GpScriptRec                         D_shelter_b3_dumping_hole_8018AFB4[2];
 extern GpXformArg                          D_shelter_b3_dumping_hole_8018B030;
@@ -475,7 +475,7 @@ extern GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1];
 extern GpObj4C      D_shelter_b3_dumping_hole_8018E88C[8];
 extern GpObj4C      D_shelter_b3_dumping_hole_8018EF9C[8];
 
-void func_shelter_b3_dumping_hole_80183530(Task*, s32, GpCmdArg*);
+void func_shelter_b3_dumping_hole_80183530(Task*, s32, ActorCommand* request);
 void func_shelter_b3_dumping_hole_80183550(Task*);
 void func_shelter_b3_dumping_hole_801835C8(Task*);
 void func_shelter_b3_dumping_hole_80183620(Task*);
@@ -938,13 +938,13 @@ GpXformArg D_shelter_b3_dumping_hole_8018B048 = { { 0x2904, -100, -3300, 0 }, { 
 
 GpXformArg D_shelter_b3_dumping_hole_8018B060 = { { 8800, 0, -6000, 0 }, { 0, 1024, 0, 0 } };
 
-GpCmdArg D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
+ActorCommand D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
 
-GpCmdArg D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
+ActorCommand D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
 
 GpEvsCmd D_shelter_b3_dumping_hole_8018B080[39] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b3_dumping_hole_8018AFC8.data.copy }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b3_dumping_hole_8018B078 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018AFF4 }, { .value = 0 } },
     { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -986,7 +986,7 @@ GpEvsCmd D_shelter_b3_dumping_hole_8018B080[39] = {
 
 GpEvsCmd D_shelter_b3_dumping_hole_8018B428[14] = {
     { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b3_dumping_hole_8018B078 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
     { 16, { .value = 0x54270001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 16, { .value = 0x54270002 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1048,7 +1048,7 @@ ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
 };
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
-    { 2011, { .call0 = func_shelter_b3_dumping_hole_80183530 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_shelter_b3_dumping_hole_80183530 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -2537,7 +2537,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
     DumpingHoleEntity* work = (DumpingHoleEntity*)arg0->work;
     union {
         AnimationPlayRequest anim;
-        GpCmdArg             loc;
+        ActorCommand         loc;
     } msg;
     u8 area;
 
@@ -2609,10 +2609,10 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 5:
             switch (work->field_32) {
                 case 0:
-                    msg.loc.from.loc.stage = gGameSession->at4.loc.stage;
-                    area                   = gGameSession->at4.loc.area;
-                    msg.loc.command        = 1;
-                    msg.loc.from.loc.area  = area;
+                    msg.loc.context.loc.stage = gGameSession->at4.loc.stage;
+                    area                      = gGameSession->at4.loc.area;
+                    msg.loc.command           = 1;
+                    msg.loc.context.loc.area  = area;
                     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
                     work->field_34 = 0;
                     work->field_32++;
@@ -2665,7 +2665,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
 {
     DumpingHoleEntity*      work = (DumpingHoleEntity*)arg0->work;
-    GpCmdArg                msg;
+    ActorCommand            msg;
     DumpingHoleDebrisSeed   seed;
     DumpingHoleDebrisEntry* e;
     DumpingHoleDebrisEntry* p;
@@ -2688,11 +2688,11 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                         return;
                     }
                     Gp_DispatchMsg(((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_28, 0x7D5, 1, 0);
-                    msg.from.loc.stage = gGameSession->at4.loc.stage;
-                    area               = gGameSession->at4.loc.area;
-                    msg.command        = 2;
-                    msg.from.loc.area  = area;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+                    msg.context.loc.stage = gGameSession->at4.loc.stage;
+                    area                  = gGameSession->at4.loc.area;
+                    msg.command           = 2;
+                    msg.context.loc.area  = area;
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                     break;
                 default:
                     return;
@@ -2700,18 +2700,18 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
             break;
         case 2:
             Gp_DispatchMsgPtr(work->field_28, 0x7D4, work, 0);
-            msg.from.loc.stage = gGameSession->at4.loc.stage;
-            area               = gGameSession->at4.loc.area;
-            msg.command        = 3;
-            msg.from.loc.area  = area;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+            msg.context.loc.stage = gGameSession->at4.loc.stage;
+            area                  = gGameSession->at4.loc.area;
+            msg.command           = 3;
+            msg.context.loc.area  = area;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
         case 4:
-            msg.from.loc.stage = gGameSession->at4.loc.stage;
-            area               = gGameSession->at4.loc.area;
-            msg.command        = 5;
-            msg.from.loc.area  = area;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+            msg.context.loc.stage = gGameSession->at4.loc.stage;
+            area                  = gGameSession->at4.loc.area;
+            msg.command           = 5;
+            msg.context.loc.area  = area;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
         case 5:
             Gp_DispatchMsgPtr(work->field_2C, 0x7D4, &D_shelter_b3_dumping_hole_801881E4, 0);
@@ -2905,12 +2905,12 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
 /// the same body.
 void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
 {
-    GpCmdArg msg;
+    ActorCommand msg;
 
-    msg.from.loc.stage = gGameSession->at4.loc.stage;
-    msg.from.loc.area  = gGameSession->at4.loc.area;
-    msg.command        = arg0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+    msg.context.loc.stage = gGameSession->at4.loc.stage;
+    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.command           = arg0;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
 void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
@@ -3179,17 +3179,17 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
     OverlayMat*         ident;
     OverlayMat*         ident2;
     u16                 i;
-    GpCmdArg*           loc3;
-    GpCmdArg*           loc5;
+    ActorCommand*       command3;
+    ActorCommand*       command5;
     s32*                p;
     union {
-        s32      words[5];
-        GpCmdArg loc;
-        SVECTOR  vec[4];
+        s32          words[5];
+        ActorCommand loc;
+        SVECTOR      vec[4];
     } buf;
     union {
-        SVECTOR  vec;
-        GpCmdArg loc;
+        SVECTOR      vec;
+        ActorCommand loc;
     } buf2;
     s32 words[5];
 
@@ -3205,10 +3205,10 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             buf.words[4]         = 0;
             /* The message ABI carries this object address in one 32-bit word. */
             Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)buf.words, 0);
-            buf.loc.from.loc.stage = gGameSession->at4.loc.stage;
-            buf.loc.from.loc.area  = gGameSession->at4.loc.area;
-            buf.loc.command        = 0xA;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf.loc, 0x7DB);
+            buf.loc.context.loc.stage = gGameSession->at4.loc.stage;
+            buf.loc.context.loc.area  = gGameSession->at4.loc.area;
+            buf.loc.command           = 0xA;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.loc, ACTOR_COMMAND_MESSAGE_APPLY);
             work->state = 0;
             return;
         case 2:
@@ -3345,11 +3345,11 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             D_shelter_b3_dumping_hole_8018F4B0_value = 0;
             work->field_96                           = 1;
             Gp_PulseState1C();
-            buf2.loc.from.loc.stage = gGameSession->at4.loc.stage;
-            buf2.loc.from.loc.area  = gGameSession->at4.loc.area;
-            loc3                    = &buf2.loc;
-            loc3->command           = 0xB;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, loc3, 0x7DB);
+            buf2.loc.context.loc.stage = gGameSession->at4.loc.stage;
+            buf2.loc.context.loc.area  = gGameSession->at4.loc.area;
+            command3                   = &buf2.loc;
+            command3->command          = 0xB;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command3, ACTOR_COMMAND_MESSAGE_APPLY);
             displaySetShakeY(0);
             work->state = 0;
             return;
@@ -3362,11 +3362,11 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             work->field_96 = 1;
             Gp_PulseState1C();
-            buf2.loc.from.loc.stage = gGameSession->at4.loc.stage;
-            buf2.loc.from.loc.area  = gGameSession->at4.loc.area;
-            loc5                    = &buf2.loc;
-            loc5->command           = 0xC;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, loc5, 0x7DB);
+            buf2.loc.context.loc.stage = gGameSession->at4.loc.stage;
+            buf2.loc.context.loc.area  = gGameSession->at4.loc.area;
+            command5                   = &buf2.loc;
+            command5->command          = 0xC;
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command5, ACTOR_COMMAND_MESSAGE_APPLY);
             p        = words;
             words[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
             p[1]     = 1;
@@ -3422,7 +3422,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
 void func_shelter_b3_dumping_hole_80181430(void)
 {
     DumpingHoleEntity4* ent;
-    GpCmdArg            desc;
+    ActorCommand        request;
     s32                 desc3[5];
     s32*                p3;
 
@@ -3436,10 +3436,10 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_PulseState1C();
 
     D_shelter_b3_dumping_hole_8018F4B0_value = 0;
-    desc.from.loc.stage                      = gGameSession->at4.loc.stage;
-    desc.from.loc.area                       = gGameSession->at4.loc.area;
-    desc.command                             = 0x13;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &desc, 0x7DB);
+    request.context.loc.stage                = gGameSession->at4.loc.stage;
+    request.context.loc.area                 = gGameSession->at4.loc.area;
+    request.command                          = 0x13;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
     displaySetShakeY(0);
     Gp_DispatchMsg(ent->field_84, 0x7D5, 1, 0);
@@ -3747,11 +3747,11 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, GpCmdArg* arg2)
+void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, ActorCommand* request)
 {
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
-    if (arg2->command == 4) {
-        ent->stop = arg2->command;
+    if (request->command == 4) {
+        ent->stop = request->command;
     }
 }
 
@@ -3921,20 +3921,20 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
-    GpCmdArg                    desc;
+    ActorCommand                request;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    t0  = ent->enemy;
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x2E) {
-        TmdObject* p         = t00->extra.tmd;
-        p->clutRowOffset     = 2;
-        p->texturePageOffset = 0;
-        t0->workType         = 0x900;
-        desc.from.loc.stage  = 0;
-        desc.from.loc.area   = 0x2C;
-        desc.command         = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
+        TmdObject* p              = t00->extra.tmd;
+        p->clutRowOffset          = 2;
+        p->texturePageOffset      = 0;
+        t0->workType              = 0x900;
+        request.context.loc.stage = 0;
+        request.context.loc.area  = 0x2C;
+        request.command           = arg0->spawnArg1.value;
+        Gp_DispatchMsgPtr(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         arg0->state += 1;
     }
 }
@@ -3970,20 +3970,20 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
-    GpCmdArg                    desc;
+    ActorCommand                request;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    t0  = ent->enemy;
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x3D) {
-        TmdObject* p         = t00->extra.tmd;
-        p->texturePageOffset = 2;
-        p->clutRowOffset     = 4;
-        t0->workType         = 0x900;
-        desc.from.loc.stage  = 0;
-        desc.from.loc.area   = 0x2A;
-        desc.command         = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
+        TmdObject* p              = t00->extra.tmd;
+        p->texturePageOffset      = 2;
+        p->clutRowOffset          = 4;
+        t0->workType              = 0x900;
+        request.context.loc.stage = 0;
+        request.context.loc.area  = 0x2A;
+        request.command           = arg0->spawnArg1.value;
+        Gp_DispatchMsgPtr(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         arg0->state += 1;
     }
 }
@@ -4004,20 +4004,20 @@ static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
-    GpCmdArg                  desc;
+    ActorCommand              request;
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  t0  = ent->enemy0;
 
     if (t0 != NULL) {
-        Task*      t00       = t0->task;
-        TmdObject* p         = t00->extra.tmd;
-        p->texturePageOffset = 3;
-        p->clutRowOffset     = 5;
-        t0->workType         = 0x900;
-        desc.from.loc.stage  = 0;
-        desc.from.loc.area   = 0x2E;
-        desc.command         = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
+        Task*      t00            = t0->task;
+        TmdObject* p              = t00->extra.tmd;
+        p->texturePageOffset      = 3;
+        p->clutRowOffset          = 5;
+        t0->workType              = 0x900;
+        request.context.loc.stage = 0;
+        request.context.loc.area  = 0x2E;
+        request.command           = arg0->spawnArg1.value;
+        Gp_DispatchMsgPtr(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
     }
     ent->frames  = 0;
     arg0->state += 1;
@@ -4034,16 +4034,16 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             return;
         }
         {
-            Task*      t00 = ent->enemy1->task;
-            TmdObject* p   = t00->extra.tmd;
-            GpCmdArg   desc;
-            p->texturePageOffset = 3;
-            p->clutRowOffset     = 5;
-            t->workType          = 0x900;
-            desc.from.loc.stage  = 0;
-            desc.from.loc.area   = 0x2E;
-            desc.command         = arg0->spawnArg1.value;
-            Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
+            Task*        t00 = ent->enemy1->task;
+            TmdObject*   p   = t00->extra.tmd;
+            ActorCommand request;
+            p->texturePageOffset      = 3;
+            p->clutRowOffset          = 5;
+            t->workType               = 0x900;
+            request.context.loc.stage = 0;
+            request.context.loc.area  = 0x2E;
+            request.command           = arg0->spawnArg1.value;
+            Gp_DispatchMsgPtr(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         }
     }
     ent->frames  = 0;

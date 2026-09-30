@@ -374,7 +374,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*);
         s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call2)(Task*, s32, GpCmdArg*);
+        s32  (*call2)(Task*, s32, ActorCommand* request);
         s32  (*call3)(Task*, s32, GpXformArg*);
         s32  (*call4)(Task*, s32, s32);
         void (*call5)(void);
@@ -497,7 +497,7 @@ extern AnimationSet D_actor_421600_8014D430;
 extern AnimationSet D_actor_421600_8014D6E4;
 extern AnimationSet D_actor_421600_8014DA04;
 extern TmdSource    D_actor_421600_80143A54;
-s32                 func_actor_421600_80132A00(Task*, s32, GpCmdArg*);
+s32                 func_actor_421600_80132A00(Task*, s32, ActorCommand* request);
 s32                 func_actor_421600_8013E42C(Task*, s32, s32);
 s32                 func_actor_421600_8013E4EC(Task*);
 s32                 func_actor_421600_8013E52C(Task*, s32, GpXformArg*);
@@ -2088,7 +2088,7 @@ Actor421600MessageEntry D_actor_421600_80151118[8] = {
     { 2005, { .call4 = func_actor_421600_8013E42C } },
     { 2006, { .call0 = func_actor_421600_8013E4EC } },
     { 2004, { .call3 = func_actor_421600_8013E52C } },
-    { 2011, { .call2 = func_actor_421600_80132A00 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
     { 2003, { .call1 = func_actor_421600_8013E62C } },
     { 5108, { .call0 = func_actor_421600_8013E654 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -2384,7 +2384,7 @@ static s32 func_actor_421600_8013285C(GfxCoord* coord, WorldCollisionContact* mo
 /// sub-command, the placement mode in `placeKey` and the progress counter
 /// `D_actor_421600_80151268`, the actor is dropped at a fixed spot with a new
 /// state. Returns 1 when the message was handled.
-s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor421600Work* work;
     GpEnemy*         enemy;
@@ -2394,8 +2394,8 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, GpCmdArg* arg2)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
 
-    if (arg2->from.key == 0x109) {
-        switch (arg2->command) {
+    if (request->context.key == 0x109) {
+        switch (request->command) {
             case 1:
                 work->field_EAA = work->field_EA8;
                 break;
@@ -2413,15 +2413,15 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, GpCmdArg* arg2)
         return 1;
     }
 
-    work->field_E90.bytes[0] = arg2->from.loc.stage;
-    work->field_E90.bytes[1] = arg2->from.loc.area;
-    work->field_E90.bytes[2] = (u8)arg2->command;
+    work->field_E90.bytes[0] = request->context.loc.stage;
+    work->field_E90.bytes[1] = request->context.loc.area;
+    work->field_E90.bytes[2] = (u8)request->command;
 
-    if (arg2->from.key != 0x1402) {
+    if (request->context.key != 0x1402) {
         return 0;
     }
 
-    switch (arg2->command) {
+    switch (request->command) {
         case 0:
             enemy->hp = D_actor_421600_8013EF38.hpMax;
             if ((enemy->placeKey >> 12) == 0) {

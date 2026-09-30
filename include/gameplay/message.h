@@ -39,7 +39,7 @@ enum {
 
 struct GpXformArg;
 struct AnimationPlayRequest;
-struct GpCmdArg;
+struct ActorCommand;
 struct AnimationSet;
 
 struct _GpMsg13EF;
@@ -54,7 +54,7 @@ typedef union GpMessageArg {
     VECTOR*                      vector;
     struct GpXformArg*           transform;
     struct AnimationPlayRequest* animation;
-    struct GpCmdArg*             command;
+    struct ActorCommand*         command;
     RoomEventMsg*                location;
     struct _GpMsg13EF*           direction;
     RoomEventMsg*                roomEvent;
@@ -158,23 +158,37 @@ typedef struct GpDelayArg {
 } GpDelayArg;
 STATIC_ASSERT_SIZEOF(GpDelayArg, 0x18);
 
-/// A command to an actor, the payload of message 0x7DB. A sender hands it to
-/// one actor directly, or as message 0x7DA to the actor manager in pointer
-/// slot 4, which passes it on to its actors as 0x7DB. `from` says who the
-/// command is from, usually the stage and area of the room sending it; a
-/// receiver tests the two bytes together as one halfword before it acts on
-/// `command`.
-typedef struct GpCmdArg {
+/// Actor-command delivery and the scene manager's general actor-message broadcast.
+enum {
+    ACTOR_COMMAND_MESSAGE_APPLY       = 0x7DB,
+    SCENE_MESSAGE_BROADCAST_TO_ACTORS = 0x7DA,
+};
+
+/// A borrowed command interpreted in an actor's stage/area command namespace.
+///
+/// `ACTOR_COMMAND_MESSAGE_APPLY` delivers the record directly. The scene
+/// manager's `SCENE_MESSAGE_BROADCAST_TO_ACTORS` forwards it synchronously to
+/// its type-9 children when the second payload is `ACTOR_COMMAND_MESSAGE_APPLY`.
+/// Keep the complete record live through dispatch; event scripts borrow their
+/// command records until the corresponding instruction executes.
+///
+/// Context tags usually come from the active location, but synthetic namespaces
+/// also occur, including stage 0/area 44 and stage 9/area 1. Handlers may ignore
+/// the context. Commands select receiver-specific actions or states, and some
+/// receivers split the word into an opcode and parameters or a table index.
+/// Initialize every component the selected handler reads and use values valid
+/// for that handler. The record occupies four bytes with two-byte alignment.
+typedef struct ActorCommand {
     union {
         struct {
-            u8 stage;
-            u8 area;
+            u8 stage; // Stage tag of the command namespace; may be synthetic
+            u8 area;  // Area tag within that command namespace
         } loc;
-        u16 key; // `loc` read as one halfword, area in the high byte
-    } from;
-    u16 command; // What the receiver is to do: a state to enter or a request number
-} GpCmdArg;
-STATIC_ASSERT_SIZEOF(GpCmdArg, 4);
+        u16 key;      // Packed context: stage in bits 0-7, area in bits 8-15
+    } context;        // Command namespace, usually the sender's stage and area
+    u16 command;      // Receiver-specific action, state or packed parameters
+} ActorCommand;
+STATIC_ASSERT_SIZEOF(ActorCommand, 4);
 
 /// The payload of message 0x3FE, which moves the receiver by a displacement:
 /// `x`, `y` and `z` are added onto its coordinate. With `field_10` 7 the move

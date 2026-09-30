@@ -65,7 +65,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, s32);
     } handler;
@@ -104,8 +104,8 @@ static void func_actor_161500_801329C4(Task* task);
 extern AnimationPlayRequest D_actor_161500_80133F7C;
 extern AnimationPlayRequest D_actor_161500_80134020;
 extern AnimationPlayRequest D_actor_161500_80134034;
-extern GpCmdArg             D_actor_161500_80133F74;
-extern GpCmdArg             D_actor_161500_80133F78;
+extern ActorCommand         D_actor_161500_80133F74;
+extern ActorCommand         D_actor_161500_80133F78;
 extern GpCopyArg            D_actor_161500_80134048;
 void                        func_actor_161500_80131F50(s32);
 void                        func_actor_161500_801320B4(void);
@@ -140,7 +140,7 @@ extern GpCopyArg            D_actor_161500_80136E08;
 s32                         func_actor_161500_80132A28(Task*, s32, AnimationPlayRequest*);
 s32                         func_actor_161500_80132A94(Task*, s32, s32);
 s32                         func_actor_161500_80132B10(Task*, s32, GpXformArg*);
-s32                         func_actor_161500_80132B88(Task*, s32, GpCmdArg*);
+s32                         func_actor_161500_80132B88(Task*, s32, ActorCommand* args);
 s32                         func_actor_161500_80132BA0(Task*, s32, GpXformArg*);
 void                        func_actor_161500_80132210(void);
 void                        func_actor_161500_80132294(u8);
@@ -279,9 +279,9 @@ AnimationSet D_actor_161500_80133F4C = {
     { NULL, D_actor_161500_80133BBC, NULL, NULL, D_actor_161500_80133BE0, NULL, NULL, NULL },
 };
 
-GpCmdArg D_actor_161500_80133F74 = { { .loc = { 5, 4 } }, 1 };
+ActorCommand D_actor_161500_80133F74 = { { .loc = { 5, 4 } }, 1 };
 
-GpCmdArg D_actor_161500_80133F78 = { { .loc = { 5, 4 } }, 0 };
+ActorCommand D_actor_161500_80133F78 = { { .loc = { 5, 4 } }, 0 };
 
 AnimationPlayRequest D_actor_161500_80133F7C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -298,11 +298,11 @@ GpEvsCmd D_actor_161500_80134050[13] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[2] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -314,9 +314,9 @@ GpEvsCmd D_actor_161500_80134188[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -328,9 +328,9 @@ GpEvsCmd D_actor_161500_80134290[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -342,9 +342,9 @@ GpEvsCmd D_actor_161500_80134398[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -356,13 +356,13 @@ GpEvsCmd D_actor_161500_801344A0[15] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 34 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[2] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[5] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -374,9 +374,9 @@ GpEvsCmd D_actor_161500_80134608[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 35 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -388,9 +388,9 @@ GpEvsCmd D_actor_161500_80134710[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 36 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -402,9 +402,9 @@ GpEvsCmd D_actor_161500_80134818[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 37 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -428,12 +428,12 @@ GpEvsCmd D_actor_161500_80134940[15] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[3] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_actor_161500_80133F90.data.arguments }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[1] }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -446,9 +446,9 @@ GpEvsCmd D_actor_161500_80134AA8[12] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[3] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -460,11 +460,11 @@ GpEvsCmd D_actor_161500_80134BC8[13] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 16 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[3] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -476,9 +476,9 @@ GpEvsCmd D_actor_161500_80134D00[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -491,9 +491,9 @@ GpEvsCmd D_actor_161500_80134E08[12] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[3] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -506,9 +506,9 @@ GpEvsCmd D_actor_161500_80134F28[12] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[3] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -520,11 +520,11 @@ GpEvsCmd D_actor_161500_80135048[13] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 40 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[4] }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -536,9 +536,9 @@ GpEvsCmd D_actor_161500_80135180[11] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 41 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -561,7 +561,7 @@ GpEvsCmd D_actor_161500_801352A8[22] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 50 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F90.data.arguments[3] }, { .value = 0 } },
@@ -575,7 +575,7 @@ GpEvsCmd D_actor_161500_801352A8[22] = {
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -586,7 +586,7 @@ GpEvsCmd D_actor_161500_801354B8[18] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 51 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -596,7 +596,7 @@ GpEvsCmd D_actor_161500_801354B8[18] = {
     { 1, { .value = 4 }, { .value = 3 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 13, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -606,7 +606,7 @@ GpEvsCmd D_actor_161500_80135668[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 24 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -616,7 +616,7 @@ GpEvsCmd D_actor_161500_80135668[16] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
@@ -663,7 +663,7 @@ GpEvsCmd D_actor_161500_80135AE8[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 27 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_actor_161500_80134048 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F74 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F74 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -673,7 +673,7 @@ GpEvsCmd D_actor_161500_80135AE8[16] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_161500_80134020 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_161500_80133F78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
@@ -1357,7 +1357,7 @@ Actor161500MessageEntry D_actor_161500_80140180[6] = {
     { 2003, { .call0 = func_actor_161500_80132A28 } },
     { 2005, { .call3 = func_actor_161500_80132A94 } },
     { 2004, { .call2 = func_actor_161500_80132B10 } },
-    { 2011, { .call1 = func_actor_161500_80132B88 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_161500_80132B88 } },
     { 2013, { .call2 = func_actor_161500_80132BA0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1860,7 +1860,7 @@ s32 func_actor_161500_80132B10(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: sets the work block's `turnUp`, which selects whether the
 /// per-frame body turns the actor's head toward the player or away, to the
 /// payload.
-s32 func_actor_161500_80132B88(Task* task, s32 arg1, GpCmdArg* args)
+s32 func_actor_161500_80132B88(Task* task, s32 arg1, ActorCommand* args)
 {
     ((Actor161500Work*)task->work)->turnUp = args->command;
     return 0;

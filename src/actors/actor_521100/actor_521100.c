@@ -58,7 +58,7 @@ typedef struct {
         s16 (*call0)(Task*);
         s32 (*call1)(Task*);
         s32 (*call2)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call3)(Task*, s32, GpCmdArg*);
+        s32 (*call3)(Task*, s32, ActorCommand* request);
         s32 (*call4)(Task*, s32, GpXformArg*);
         s32 (*call5)(Task*, s32, s32);
     } handler;
@@ -1606,7 +1606,7 @@ Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {
     { 2003, { .call2 = func_actor_521100_80135C14 } },
     { 2004, { .call4 = func_actor_521100_80135CAC } },
     { 2005, { .call5 = func_actor_521100_80135D10 } },
-    { 2011, { .call3 = func_actor_521100_80135D58 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_521100_80135D58 } },
     { 2007, { .call1 = func_actor_521100_80135D9C } },
     { 2006, { .call0 = func_actor_521100_80135DC8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },

@@ -64,7 +64,7 @@ typedef struct {
     union {
         s32 (*call0)(void);
         s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpCmdArg*);
+        s32 (*call2)(Task*, s32, ActorCommand* request);
         s32 (*call3)(Task*, s32, GpXformArg*);
         s32 (*call4)(Task*, s32, VECTOR*);
         s32 (*call5)(Task*, s32, VECTOR*, s32);
@@ -109,7 +109,7 @@ s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*);
 s32  func_actor_451100_80132538(Task*, s32, AnimationPlayRequest*);
 s32  func_actor_451100_801325C8(Task*, s32, s32);
 s32  func_actor_451100_80132610(Task*, s32, GpXformArg*);
-s32  func_actor_451100_8013268C(Task*, s32, GpCmdArg*);
+s32  func_actor_451100_8013268C(Task*, s32, ActorCommand* msg);
 s32  func_actor_451100_801326B0(Task*, s32, VECTOR*, s32);
 void func_actor_451100_801322D4(Task*);
 
@@ -902,7 +902,7 @@ Actor451100MsgEntry D_actor_451100_8013F704[6] = {
     { 2003, { .call1 = func_actor_451100_80132538 } },
     { 2005, { .call6 = func_actor_451100_801325C8 } },
     { 2004, { .call3 = func_actor_451100_80132610 } },
-    { 2011, { .call2 = func_actor_451100_8013268C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_451100_8013268C } },
     { 2013, { .call5 = func_actor_451100_801326B0 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1715,7 +1715,7 @@ s32 func_actor_451100_80132610(Task* task, s32 arg1, GpXformArg* placement)
 /// Message 0x7DB handler of `D_actor_451100_8013F704`: a zero payload
 /// halfword sets the published block's `turnFrames` to 0x14, the count of frames
 /// the step routine turns the model while clip 3 plays.
-s32 func_actor_451100_8013268C(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 {
     if (msg->command == 0) {
         D_actor_451100_8014E744->turnFrames = 0x14;

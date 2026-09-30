@@ -164,7 +164,7 @@ extern u32 Actor04600_D0417C[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor04600RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04600RecoveredMsgEntry, 8);
@@ -225,7 +225,7 @@ extern AnimationSet Actor04600_D05554;
 extern AnimationSet Actor04600_D0569C;
 extern AnimationSet Actor04600_D05840;
 extern TmdSource    Actor04600_D05200;
-s32                 Actor04600_Fn01F54(Task*, s32, GpCmdArg*);
+s32                 Actor04600_Fn01F54(Task*, s32, ActorCommand* request);
 void                Actor04600_Fn024A4(Task*);
 void                Actor04600_Fn02C6C(Task*);
 void                Actor04600_Fn03B80(Task*);
@@ -345,7 +345,7 @@ AnimationSet Actor04600_D05840 = {
 };
 
 Actor04600RecoveredMsgEntry Actor04600_D05868[2] = {
-    { 2011, { .call0 = Actor04600_Fn01F54 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor04600_Fn01F54 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1425,7 +1425,7 @@ static void Actor04600_Fn01E0C(Task* arg0)
 /// -0x800..0x800, the model's buffers are allocated and shown, the bodies are
 /// re-armed and the drop begins at the live stage. Mode 3 hides the model,
 /// disarms the bodies, resets the root and returns the task to state 3.
-s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -1446,7 +1446,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
     work  = (Actor104600Work*)arg0->work;
     coord = obj->coords;
     if (state == 1) {
-        mode = arg2->command;
+        mode = request->command;
         if (mode == 4) {
             Gp_SpawnEff(0x60080, coord, 0x400, &Actor04600_D058A8);
             work->field_2B8 = 1;
@@ -1465,26 +1465,26 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
             return 0;
         }
     }
-    word = arg2->command & 0xFF;
+    word = request->command & 0xFF;
     if ((word & 0xFF) == 1) {
         if ((u32)(arg0->state - 1) >= 2U) {
             if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
-                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].heading;
+                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[arg2->command >> 8].z;
+                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
+                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
+                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
-                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].heading;
+                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].z;
+                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
+                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
+                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
             heading         = rot.vy;
             work->field_2B0 = heading;

@@ -212,7 +212,7 @@ static void func_actor_403600_8013F608(Task* arg0);
 static void func_actor_403600_801417A8(Task* arg0, s32 arg1);
 static s32  func_actor_403600_80141840(Task* arg0);
 static void func_actor_403600_80141B60(Task* arg0);
-s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
+s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request);
 static void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1);
 
@@ -232,7 +232,7 @@ extern Actor403600DamageRow D_actor_403600_8016066C[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, GpCmdArg*);
+        s32 (*call0)(Task*, s32, ActorCommand* request);
     } handler;
 } Actor4036002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor4036002MessageEntry, 8);
@@ -278,13 +278,13 @@ static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141E78(GpEnemy* arg0, Task* arg1);
 
-s32  func_actor_403600_801406A4(Task*, s32, GpCmdArg*);
+s32  func_actor_403600_801406A4(Task*, s32, ActorCommand* request);
 void func_actor_403600_80141180(Task*);
 void func_actor_403600_80141BE0(Task*);
 void func_actor_403600_80141CD4(Task*);
 
 Actor4036002MessageEntry D_actor_403600_80160504[2] = {
-    { 2011, { .call0 = func_actor_403600_801406A4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_403600_801406A4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -4335,7 +4335,7 @@ static inline void _actor403600ResetState(Task* task)
     work->field_7AC = 0;
 }
 
-s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
+s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
 {
     SVECTOR          angles;
     u16              message;
@@ -4344,7 +4344,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
     Actor403600Work* childWork;
     TmdObject*       childObject;
 
-    message = arg2->command;
+    message = request->command;
     work    = arg0->work;
     enemy   = arg0->spawnArg2.pointer;
     switch (message) {
@@ -4460,8 +4460,8 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
 {
     SVECTOR             offset;
     GfxCoord            view;
-    GpCmdArg            startMsg;
-    GpCmdArg            stopMsg;
+    ActorCommand        startMsg;
+    ActorCommand        stopMsg;
     Actor403600ViewKey* key;
     s32                 i;
     s32                 transparency;
@@ -4499,10 +4499,10 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
     }
     if (work->field_730 != 0xD) {
         if (work->field_77C == 1) {
-            startMsg.from.loc.stage = 4;
-            startMsg.from.loc.area  = 0x16;
-            startMsg.command        = 0;
-            Gp_DispatchMsgPtr(D_actor_403600_801606B0, 0x7DB, &startMsg, 0);
+            startMsg.context.loc.stage = 4;
+            startMsg.context.loc.area  = 0x16;
+            startMsg.command           = 0;
+            Gp_DispatchMsgPtr(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &startMsg, 0);
             gDisplayState.screenDistance = 0x149;
             gte_SetGeomScreen(gDisplayState.screenDistance);
             gte_SetGeomOffset(0, 0);
@@ -4528,10 +4528,10 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
             Gp_SpawnEff(0x601C0, &view, 0x300, &offset);
         }
         if (work->field_73A == 0x15E) {
-            stopMsg.from.loc.stage = 4;
-            stopMsg.from.loc.area  = 0x16;
-            stopMsg.command        = 1;
-            Gp_DispatchMsgPtr(D_actor_403600_801606B0, 0x7DB, &stopMsg, 0);
+            stopMsg.context.loc.stage = 4;
+            stopMsg.context.loc.area  = 0x16;
+            stopMsg.command           = 1;
+            Gp_DispatchMsgPtr(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &stopMsg, 0);
         }
     } else {
         if (work->field_73A >= 0x258) {

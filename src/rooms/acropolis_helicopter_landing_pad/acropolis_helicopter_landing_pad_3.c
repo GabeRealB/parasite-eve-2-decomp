@@ -216,9 +216,9 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839AC = { { .index = 
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839C0 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpCmdArg D_acropolis_helicopter_landing_pad_801839D4 = { { .loc = { 1, 16 } }, 0 };
+ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = { { .loc = { 1, 16 } }, 0 };
 
-GpCmdArg D_acropolis_helicopter_landing_pad_801839D8 = { { .loc = { 1, 16 } }, 1 };
+ActorCommand D_acropolis_helicopter_landing_pad_801839D8 = { { .loc = { 1, 16 } }, 1 };
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_801839DC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -411,7 +411,7 @@ GpEvsCmd D_acropolis_helicopter_landing_pad_8018467C[69] = {
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 1 }, { .value = 1001 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_8018391C }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_helicopter_landing_pad_801839D8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_helicopter_landing_pad_801839D8 } }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801838CC }, { .value = 0 } },
     { 4, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

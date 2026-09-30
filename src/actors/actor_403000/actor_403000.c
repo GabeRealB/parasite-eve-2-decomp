@@ -576,7 +576,7 @@ extern Actor403000DelayStorage D_actor_403000_80158DD0;
 extern SVECTOR D_actor_403000_80158DF0[18];
 extern s8      D_actor_403000_80158364[];
 
-extern GpCmdArg D_actor_403000_80158D8C;
+extern ActorCommand D_actor_403000_80158D8C;
 
 /// Integer part of the last movement step `func_actor_403000_80132348`
 /// applied to the actor's root coordinate.
@@ -3534,7 +3534,7 @@ SVECTOR D_actor_403000_80158D64[4] = {
 
 SVECTOR D_actor_403000_80158D84 = { 0 };
 
-GpCmdArg D_actor_403000_80158D8C = { 0 };
+ActorCommand D_actor_403000_80158D8C = { 0 };
 
 Actor403000Storage8D90 D_actor_403000_80158D90;
 
@@ -5062,10 +5062,10 @@ static void func_actor_403000_80134F44(Task* arg0)
                 } else {
                     work->field_0 = 0x11;
                 }
-                D_actor_403000_80158D8C.from.loc.stage = 9;
-                D_actor_403000_80158D8C.from.loc.area  = 1;
-                D_actor_403000_80158D8C.command        = 3;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403000_80158D8C, 0x7DB);
+                D_actor_403000_80158D8C.context.loc.stage = 9;
+                D_actor_403000_80158D8C.context.loc.area  = 1;
+                D_actor_403000_80158D8C.command           = 3;
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403000_80158D8C, ACTOR_COMMAND_MESSAGE_APPLY);
                 if (arg0->extra.tmd->texturePageOffset == 0) {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
                 } else {

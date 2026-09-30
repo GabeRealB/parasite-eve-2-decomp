@@ -3457,18 +3457,18 @@ void Actor04000_Fn06E4C(Task* task)
 
 void Actor04000_Fn06EA8(Task* arg0)
 {
-    GpCmdArg msg;
-    s16      i;
+    ActorCommand msg;
+    s16          i;
 
     for (i = 0; i < 6; i++) {
         Actor04000_D0C718[i] = NULL;
     }
-    Actor04000_D0C710[1] = NULL;
-    msg.from.loc.stage   = 3;
-    msg.from.loc.area    = 0x10;
-    Actor04000_D0C710[0] = NULL;
-    msg.command          = 1;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+    Actor04000_D0C710[1]  = NULL;
+    msg.context.loc.stage = 3;
+    msg.context.loc.area  = 0x10;
+    Actor04000_D0C710[0]  = NULL;
+    msg.command           = 1;
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     arg0->state++;
 }
 

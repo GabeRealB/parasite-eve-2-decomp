@@ -1108,18 +1108,18 @@ void func_actor_342100_80163408(void)
 void func_actor_342100_80163454(s32 arg0)
 {
     Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
-    GpCmdArg         msg;
+    ActorCommand     msg;
 
     if (arg0 == 0) {
         SndEvt_EnqueueType6(0x54270005, 0, 0);
         Gp_PulseState1C();
-        msg.from.loc.area  = 0x2C;
-        msg.from.loc.stage = 0;
-        msg.command        = 4;
-        /* The message ABI carries this object address in one 32-bit word. */
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        msg.context.loc.area  = 0x2C;
+        msg.context.loc.stage = 0;
+        msg.command           = 4;
+        // The message ABI carries the borrowed record's address in one word.
+        Gp_DispatchMsg(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (s32)&msg, ACTOR_COMMAND_MESSAGE_APPLY);
         if (work->field_30 != NULL) {
-            Gp_DispatchMsgPtr(work->field_30, 0x7DB, &msg, 0);
+            Gp_DispatchMsgPtr(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         }
         work->field_38 = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
         return;

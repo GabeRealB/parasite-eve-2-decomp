@@ -396,7 +396,7 @@ extern Actor100400AreaConfig Actor00400_D15F20[];
 typedef struct {
     s32 id;
     union {
-        void (*call0)(Task*, s32, GpCmdArg*);
+        void (*call0)(Task*, s32, ActorCommand* request);
         void (*call1)(Task*, s32, s32);
     } handler;
 } Actor00400RecoveredMsgEntry;
@@ -440,7 +440,7 @@ extern AnimationSet Actor00400_D15EF8;
 extern TmdSource    Actor00400_D0DD54;
 void                Actor00400_Fn076E8(Task*);
 void                Actor00400_Fn08004(Task*);
-void                Actor00400_Fn0805C(Task*, s32, GpCmdArg*);
+void                Actor00400_Fn0805C(Task*, s32, ActorCommand* request);
 void                Actor00400_Fn08354(Task*, s32, s32);
 void                Actor00400_Fn08948(Task*);
 
@@ -1109,7 +1109,7 @@ Actor100400AreaConfig Actor00400_D15F20[12] = {
 };
 
 Actor00400RecoveredMsgEntry Actor00400_D16010[3] = {
-    { 2011, { .call0 = Actor00400_Fn0805C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor00400_Fn0805C } },
     { 2005, { .call1 = Actor00400_Fn08354 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -4945,7 +4945,7 @@ static const TaskFuncTable7 Actor00400_D00178 = { {
     Actor00400_Fn09FDC,
 } };
 
-void Actor00400_Fn0805C(Task* arg0, s32 arg1, GpCmdArg* arg2)
+void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor100400Work* work;
     GpEnemy*         obj;
@@ -4955,7 +4955,7 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, GpCmdArg* arg2)
     work  = arg0->work;
     obj   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    switch (arg2->command) {
+    switch (request->command) {
         case 1:
             work->field_65E = 1;
             break;

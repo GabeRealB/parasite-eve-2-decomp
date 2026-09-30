@@ -75,7 +75,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call1)(Task*, s32, GpCmdArg*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
         s32 (*call2)(Task*, s32, GpXformArg*);
         s32 (*call3)(Task*, s32, VECTOR*, s32);
         s32 (*call4)(Task*, s32, s32);
@@ -123,7 +123,7 @@ void             func_actor_260400_8014A6F8(Task*);
 s32 func_actor_260400_8014A908(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_260400_8014A998(Task*, s32, s32);
 s32 func_actor_260400_8014AA28(Task*, s32, GpXformArg*);
-s32 func_actor_260400_8014AAA4(Task*, s32, GpCmdArg*);
+s32 func_actor_260400_8014AAA4(Task*, s32, ActorCommand* msg);
 s32 func_actor_260400_8014AB50(Task*, s32, VECTOR*, s32);
 
 extern AnimationPlayRequest D_actor_260400_8014C4D8;
@@ -367,9 +367,9 @@ GpXformArg D_actor_260400_8014C750 = { { 1210, 0, 5610, 0 }, { 0, -227, 0, 0 } }
 
 GpXformArg D_actor_260400_8014C768 = { { 860, 0, 6180, 0 }, { 0, 0, 0, 0 } };
 
-GpCmdArg D_actor_260400_8014C780 = { { .loc = { 5, 4 } }, 1 };
+ActorCommand D_actor_260400_8014C780 = { { .loc = { 5, 4 } }, 1 };
 
-GpCmdArg D_actor_260400_8014C784 = { { .loc = { 5, 4 } }, 2 };
+ActorCommand D_actor_260400_8014C784 = { { .loc = { 5, 4 } }, 2 };
 
 GpEvsCmd D_actor_260400_8014C788[82] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -397,13 +397,13 @@ GpEvsCmd D_actor_260400_8014C788[82] = {
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_260400_8014C5B4 }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_260400_8014C780 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_260400_8014C780 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_260400_8014C738 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_260400_8014C708 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_260400_8014C500 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260400_8014C5DC }, { .value = 0 } },
     { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_260400_8014C784 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_260400_8014C784 } }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_260400_8014C750 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260400_8014C5F0 }, { .value = 0 } },
@@ -469,7 +469,7 @@ GpEvsCmd D_actor_260400_8014CF38[20] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_260400_8014C4D8 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_actor_260400_8014C768 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_actor_260400_8014C784 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_260400_8014C784 } }, { .value = 0 } },
     { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_actor_260400_80149F5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -890,7 +890,7 @@ Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
     { 2003, { .call0 = func_actor_260400_8014A908 } },
     { 2005, { .call4 = func_actor_260400_8014A998 } },
     { 2004, { .call2 = func_actor_260400_8014AA28 } },
-    { 2011, { .call1 = func_actor_260400_8014AAA4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260400_8014AAA4 } },
     { 2013, { .call3 = func_actor_260400_8014AB50 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1344,7 +1344,7 @@ s32 func_actor_260400_8014AA28(Task* task, s32 arg1, GpXformArg* placement)
 /// starts a turn of 0x14 steps; case 1 enables and shows the helper's model,
 /// but only while `func_800B7420(0x88)` returns 0; case 2 disables it and
 /// hides the model again (flags 0x84).
-s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg)
 {
     TmdObject* obj;
     s32        mode;

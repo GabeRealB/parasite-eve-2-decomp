@@ -272,7 +272,7 @@ TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
     { 0, 32, func_shelter_b4_reservoir_8017E0AC, { .model = NULL } },
 };
 
-GpCmdArg D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
+ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
 
 TaskDesc D_shelter_b4_reservoir_80184920[1] = {
     { 257, 32, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
@@ -324,7 +324,7 @@ GpEvsCmd D_shelter_b4_reservoir_80184948[48] = {
     { 13, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b4_reservoir_8018491C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b4_reservoir_8018491C } }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -345,7 +345,7 @@ GpEvsCmd D_shelter_b4_reservoir_80184DC8[18] = {
     { 13, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 13, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b4_reservoir_8018491C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b4_reservoir_8018491C } }, { .value = 0 } },
     { 13, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
