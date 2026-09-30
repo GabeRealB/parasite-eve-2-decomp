@@ -1248,7 +1248,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
@@ -1363,7 +1363,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomShaftScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 

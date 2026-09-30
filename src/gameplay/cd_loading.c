@@ -999,7 +999,7 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
         }
     }
 
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 void Gp_PumpTmdStream(Task* task)

@@ -1141,7 +1141,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 Gp_AddTpageShift(prim, 1, block->otz);
             }
         }
-        SCRATCH_POP_BYTES(0x18);
+        SCRATCH_STACK_RELEASE_BYTES(0x18);
     }
 }
 

@@ -692,7 +692,7 @@ static void func_shelter_1f_bulwark_8017DF00(SVECTOR* worldPoint, s32 radiusScal
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }
 
 void func_shelter_1f_bulwark_8017E2A4(Task* arg0)

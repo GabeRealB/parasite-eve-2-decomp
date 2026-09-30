@@ -2463,7 +2463,7 @@ static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -3336,7 +3336,7 @@ found:
     }
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->recE0);
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// Second state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`

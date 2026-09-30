@@ -1351,7 +1351,7 @@ static void Actor01500_Fn011B0(Task* actor)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Faces the actor toward the player on the XZ plane and raises `field_378`
@@ -1504,7 +1504,7 @@ done:
     sc->rot.vy = work->field_374;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor01500_Fn01988(Task* arg0)
@@ -1835,7 +1835,7 @@ static void Actor01500_Fn020D8(Task* arg0)
         work->field_364 = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF;
         Gp_ArmStateF0(1);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Runs the task's current state handler from `Actor01500_D00004`, copying

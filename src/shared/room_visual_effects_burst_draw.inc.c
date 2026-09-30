@@ -197,5 +197,5 @@ static void RoomFx_DrawGround2Quad(GfxCoord* arg0, s32 arg1)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }

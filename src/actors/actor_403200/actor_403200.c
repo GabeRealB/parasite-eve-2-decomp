@@ -2987,7 +2987,7 @@ static __inline__ void Actor403200_StepForward(GfxCoord* coord)
     coord->coord.t[2]  += dir->vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
@@ -3025,7 +3025,7 @@ static __inline__ void Actor403200_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// The same rebuild at a uniform half scale.
@@ -3056,7 +3056,7 @@ static __inline__ void Actor403200_ShrinkRotation(GfxCoord* coord)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, into `out`.
@@ -3095,7 +3095,7 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
 
     work->field_0          = 0;
     task->extra.tmd->flags = 0;
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
@@ -3801,7 +3801,7 @@ static void func_actor_403200_80134044(GfxCoord* coord, s32 id)
             break;
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor403200EffScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200EffScratch));
 }
 
 s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
@@ -4459,7 +4459,7 @@ static void func_actor_403200_80134D40(Task* arg0)
         work->field_F06 = 8;
     }
 
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Spawn state of the enemy dispatched through `D_actor_403200_80131E90`:
@@ -4630,7 +4630,7 @@ static void func_actor_403200_801354A4(GpEnemy* enemy, Task* task)
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// State handlers of the enemy stood up on the host's first escort: spawn,
@@ -6386,7 +6386,7 @@ found:
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
@@ -6602,7 +6602,7 @@ hit:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 3, 4 and 5 -- `func_actor_403200_80139E94`
@@ -6823,7 +6823,7 @@ stored:
     work->field_7C8 = 0;
     work->field_7C4 = 0;
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
@@ -7043,7 +7043,7 @@ stored:
     work->field_7C8 = 0;
     work->field_7C4 = 0;
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// Reset handler: pushes the host model's `field_C` onto each of the seven
@@ -7214,7 +7214,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
         }
     }
     work->field_7C4 = ang;
-    SCRATCH_POP_BYTES(sizeof(Actor403200TurnScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200TurnScratch));
 }
 
 /// Spawns up to nine enemies in a randomly selected formation, stopping when
@@ -7532,7 +7532,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         work->field_F06 = 2;
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor403200DragScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200DragScratch));
 }
 
 /// State-change reset for the enemy's launch state, and the tick that walks it
@@ -7726,7 +7726,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
         work->field_7CA = 0;
     }
-    SCRATCH_POP_BYTES(0x3C);
+    SCRATCH_STACK_RELEASE_BYTES(0x3C);
 }
 
 /// State-change reset for the enemy's stand-up, plus the swipe tick that runs
@@ -7963,7 +7963,7 @@ scanned:
         work->field_F06 = 4;
     }
 
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 /// State-change reset for the enemy's stand-up, and the height servo that runs
@@ -8515,7 +8515,7 @@ static void func_actor_403200_8013E9C0(Task* arg0)
     if (work->field_6 >= 0x15) {
         work->field_F06 = 0;
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// State-selecting tick of the enemy's approach: on the tick the dispatcher has
@@ -8669,7 +8669,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
             work->field_0 = 0xF;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(Actor403200ApproachScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200ApproachScratch));
 }
 
 /// Escort-spawn tick of the arena fight. While `D_actor_403200_80141C50` is 1
@@ -8873,7 +8873,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             }
         }
     out:
-        SCRATCH_POP_BYTES(sizeof(Actor403200SpawnScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200SpawnScratch));
     }
 }
 
@@ -9406,7 +9406,7 @@ after_mode:
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor403200TickScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200TickScratch));
 }
 
 static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)

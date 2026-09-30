@@ -329,7 +329,7 @@ void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     } else {
         arg1->vz = -1;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
@@ -345,7 +345,7 @@ void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
     arg1->vx = arg0->coord->workm.t[0] + vec->vx;
     arg1->vy = arg0->coord->workm.t[1] + vec->vy;
     arg1->vz = arg0->coord->workm.t[2] + vec->vz;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
@@ -374,7 +374,7 @@ void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
     block->vec.vy = arg1[0].vy - arg1[1].vy;
     block->vec.vz = arg1[0].vz - arg1[1].vz;
     VectorNormalS(&block->vec, arg2);
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 void Gp_ClearPendingObj4C(void)
@@ -489,7 +489,7 @@ s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
             arg1->vz.w += (s->acc[1].vz / s->count) << 4;
         }
 
-        SCRATCH_POP_BYTES(0x34);
+        SCRATCH_STACK_RELEASE_BYTES(0x34);
         return ret;
     }
 }
@@ -580,7 +580,7 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
         arg1->vz.w = (s->acc[1].vz + s->acc[2].vz) << 4;
     }
 
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
     return ret;
 }
 
@@ -638,7 +638,7 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
         index++;
     }
 
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
     return best;
 }
 
@@ -1085,5 +1085,5 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
     gte_rtir();
     gte_stclmv(&arg1->m[0][2]);
 
-    SCRATCH_POP_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BYTES(0x4C);
 }

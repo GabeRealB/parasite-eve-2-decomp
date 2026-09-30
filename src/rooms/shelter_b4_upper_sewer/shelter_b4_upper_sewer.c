@@ -1142,7 +1142,7 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// The room's water task: runs its state (`func_shelter_b4_upper_sewer_8017E55C`
@@ -1374,7 +1374,7 @@ static void func_shelter_b4_upper_sewer_8017EA0C(GfxCoord* arg0, s32 arg1, s32 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Particle task drawn as the spinning sprite of
@@ -1746,7 +1746,7 @@ static void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 ar
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

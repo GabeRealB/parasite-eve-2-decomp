@@ -1531,7 +1531,7 @@ static void Actor05600_Fn000A4(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_4B4);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// Idle approach handler, entry 1 of `Actor05600_D16540`. State 0 drains the
@@ -1617,7 +1617,7 @@ void Actor05600_Fn00B18(Task* arg0)
         Gp_ArmStateF0(1);
     }
 
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Proximity check: measures the player's horizontal distance from the root
@@ -1666,7 +1666,7 @@ static void Actor05600_Fn00CFC(Task* arg0)
             work->field_6A8 = 1;
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Entry 0xB of `Actor05600_D16540`: state 0 picks the pose from `field_6AA`
@@ -2007,7 +2007,7 @@ done:
     rot->vy = work->field_6A2;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Applies the work block's decaying tilt (`field_688`) to the fourth
@@ -2064,7 +2064,7 @@ static void Actor05600_Fn016C4(Task* arg0)
     if (active == 0) {
         work->field_6B4 = 0;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Plays the actor's "appear"/"disappear" cue when the animation record's
@@ -2215,7 +2215,7 @@ static void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Approach-cycle state machine, entry 6 of `Actor05600_D16540` for the
@@ -2382,7 +2382,7 @@ void Actor05600_Fn01E1C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Runs the animation's mark events: measures `field_698` against the three
@@ -2433,7 +2433,7 @@ void Actor05600_Fn023A0(Task* arg0)
         work->field_6A8 = 2;
         work->field_694 = 4;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Converts the root coordinate's world matrix into the frame of part 7 and
@@ -2483,7 +2483,7 @@ static void Actor05600_Fn02548(Task* arg0)
     work->field_63C.end0.vz = scratch->pos.vz;
     work->field_61C.flags  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     if (work->field_6AE == 0) {
-        SCRATCH_POP_BYTES(0x40);
+        SCRATCH_STACK_RELEASE_BYTES(0x40);
         return;
     }
     gte_SetRotMatrix(&self->workm);
@@ -2522,7 +2522,7 @@ static void Actor05600_Fn02548(Task* arg0)
     scratch->vec.vy = work->field_63C.end1.vy;
     scratch->vec.vz = work->field_63C.end1.vz;
     Actor05600_Fn02950(arg0, &scratch->rot, &scratch->vec);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// Draws the aim beam from `arg2` to `arg1` in eight projected steps. Each
@@ -2632,7 +2632,7 @@ static void Actor05600_Fn02950(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
         s->prev  = s->cur;
         s->prevZ = s->curZ;
     }
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
 /// Places a fresh body block for the actor: allocates the 0xF0-byte work
@@ -2759,7 +2759,7 @@ static void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
     pan   = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
 
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Per-frame state of the effect child set up by `Actor05600_Fn031B0`, entry
@@ -2838,7 +2838,7 @@ static void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
             Gp_SpawnPadLerp(0xA, 0xFF, 8);
         }
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// Spawn handler of the approach cycle: allocates the 0x6E4-byte work block,
@@ -3305,7 +3305,7 @@ void Actor05600_Fn041E4(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Tests the segment from `arg0` to `arg1` against the collision faces on the

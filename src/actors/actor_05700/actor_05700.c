@@ -1628,7 +1628,7 @@ static void Actor05700_Fn000B0(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_4B4);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// Per-frame tick of the approach cycle, sharing the `field_6A8` state with
@@ -1717,7 +1717,7 @@ void Actor05700_Fn00B24(Task* arg0)
         Gp_ArmStateF0(1);
     }
 
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Proximity cue; the same body as `Actor02000_Fn00CD0` of `actor_102000`
@@ -1769,7 +1769,7 @@ static void Actor05700_Fn00D08(Task* arg0)
             work->field_6A8 = 1;
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// The approach-cycle driver: state 0 picks the side from `field_6AA`, states
@@ -2118,7 +2118,7 @@ done:
     rot->vy = work->field_6A2;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Applies the work block's decaying tilt (`field_688`) to the root
@@ -2175,7 +2175,7 @@ static void Actor05700_Fn016D0(Task* arg0)
     if (active == 0) {
         work->field_6B4 = 0;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Plays the actor's "appear"/"disappear" cue when the animation record's
@@ -2327,7 +2327,7 @@ static void Actor05700_Fn01A58(GpEnemy* arg0, Task* arg1)
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// `field_6A8` state machine that aims at the player: states 2 and 3 measure the
@@ -2489,7 +2489,7 @@ void Actor05700_Fn01E28(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// State handlers of the model child hung off the actor's part 7 - spawn,
@@ -2548,7 +2548,7 @@ void Actor05700_Fn023AC(Task* arg0)
         work->field_6A8 = 2;
         work->field_694 = 4;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Converts the root coordinate's world matrix into the frame of part 7 and
@@ -2598,7 +2598,7 @@ static void Actor05700_Fn02554(Task* arg0)
     work->field_63C.end0.vz = scratch->pos.vz;
     work->field_61C.flags  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     if (work->field_6AE == 0) {
-        SCRATCH_POP_BYTES(0x40);
+        SCRATCH_STACK_RELEASE_BYTES(0x40);
         return;
     }
     gte_SetRotMatrix(&self->workm);
@@ -2637,7 +2637,7 @@ static void Actor05700_Fn02554(Task* arg0)
     scratch->vec.vy = work->field_63C.end1.vy;
     scratch->vec.vz = work->field_63C.end1.vz;
     Actor05700_Fn0295C(arg0, &scratch->rot, &scratch->vec);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// Draws the aim beam from `arg2` to `arg1` in eight projected steps. Each
@@ -2747,7 +2747,7 @@ static void Actor05700_Fn0295C(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
         s->prev  = s->cur;
         s->prevZ = s->curZ;
     }
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
 static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
@@ -2867,7 +2867,7 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     pan   = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
 
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Per-frame tick of the placed effect body from `Actor05700_Fn031BC`.
@@ -2944,7 +2944,7 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
             Gp_SpawnPadLerp(0xA, 0xFF, 8);
         }
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// Four-step burst sequence driven by `field_6A8`: 0 spawns the effect and cue
@@ -3033,7 +3033,7 @@ void Actor05700_Fn03930(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// `actorTintModel` for a spawned enemy's model.
@@ -3251,7 +3251,7 @@ static __inline__ void Actor105700_SpawnDust(Task* actor)
         rot->vy         = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF);
         Gp_SpawnEff(0x600E0, &actor->extra.tmd->coords[3], 0x100, rot);
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Takes a pending reaction: while `field_6B8` is 0, bit 1 of the spawn
@@ -3540,7 +3540,7 @@ void Actor05700_Fn04714(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Tests the segment from `arg0` to `arg1` against the collision faces on the

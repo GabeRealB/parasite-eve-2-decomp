@@ -1452,7 +1452,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 

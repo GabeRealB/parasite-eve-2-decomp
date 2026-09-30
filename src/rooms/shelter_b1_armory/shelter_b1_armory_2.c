@@ -717,7 +717,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws a glowing disc at `worldPoint`: the point is projected and, when it lies
@@ -807,7 +807,7 @@ static void func_shelter_b1_armory_8018111C(SVECTOR* worldPoint, s32 radiusScale
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }
 
 /// Draws a tinted, flickering disc at `arg0`: when projecting the point raises
@@ -962,5 +962,5 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }

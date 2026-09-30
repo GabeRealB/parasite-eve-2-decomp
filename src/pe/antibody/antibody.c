@@ -479,7 +479,7 @@ static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws one antibody mote as a semi-transparent raw-tex `POLY_FT4`
@@ -546,7 +546,7 @@ static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GpFxQuadScratch));
 }
 
 /// Draws the antibody arc between the effect and the player as one
@@ -630,7 +630,7 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(AntibodyArcScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(AntibodyArcScratch));
 }
 
 /// Draws one wedge of the drain funnel as a Gouraud triangle. `arg0`'s origin
@@ -685,5 +685,5 @@ static void func_antibody_801308D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

@@ -1569,7 +1569,7 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Same strip renderer as `func_shelter_b4_reservoir_8017EA00`, driven by
@@ -1641,7 +1641,7 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
@@ -1715,7 +1715,7 @@ static void func_shelter_b4_reservoir_8017F23C(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
@@ -1791,7 +1791,7 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 void func_shelter_b4_reservoir_8017FADC(Task* task)
@@ -2068,7 +2068,7 @@ static void func_shelter_b4_reservoir_80180530(GfxCoord* arg0, s32 arg1, s32 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Particle effect task, drawn as the spinning sprite of
@@ -2576,7 +2576,7 @@ static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a star-shaped glow at the world point `arg0`, projected through
@@ -2732,7 +2732,7 @@ static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)

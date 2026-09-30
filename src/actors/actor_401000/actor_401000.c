@@ -1524,7 +1524,7 @@ static s32 func_actor_401000_80132824(Task* arg0)
     s->from.vy += gGfxViewCoord.workm.t[1];
     s->from.vz += gGfxViewCoord.workm.t[2];
     s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     return s->hit;
 }
 
@@ -2138,7 +2138,7 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
     work->field_8B8.spawnArgHi = 2;
     work->field_8C0            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->field_8C0, &work->field_8B8);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_401000_80133D50(Task* arg0)
@@ -2491,7 +2491,7 @@ static void func_actor_401000_80133D50(Task* arg0)
                 }
             }
         }
-        SCRATCH_POP_BYTES(0x54);
+        SCRATCH_STACK_RELEASE_BYTES(0x54);
     }
 }
 
@@ -4725,7 +4725,7 @@ static void func_actor_401000_8013D044(GpEnemy* enemy, Task* actor)
     work->field_C2C[work->field_C7C].vy = scratch->pos.vy;
     work->field_C2C[work->field_C7C].vz = scratch->pos.vz;
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     work->field_C7C = (u16)work->field_C7C + 1;
     if (work->field_C7C == 7) {
         work->field_C7C = 0;

@@ -4578,7 +4578,7 @@ void func_acropolis_plaza_801802C0(Task* task)
         }
     }
     work->yaw = (work->yaw - 0x80) & 0xFFF;
-    SCRATCH_POP_BYTES(0x60);
+    SCRATCH_STACK_RELEASE_BYTES(0x60);
 }
 
 void func_acropolis_plaza_801811D0(Task* task)
@@ -4754,7 +4754,7 @@ void func_acropolis_plaza_801811D0(Task* task)
         }
     }
     work->yaw = (work->yaw - 0x80) & 0xFFF;
-    SCRATCH_POP_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BYTES(0x4C);
 }
 
 void func_acropolis_plaza_80182054(Task* task)

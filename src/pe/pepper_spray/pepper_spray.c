@@ -175,7 +175,7 @@ static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /* Every scratch vector address is computed off `head`, not off `blk`, so the
@@ -281,5 +281,5 @@ static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(OverlayFlaggedQuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayFlaggedQuadScratch));
 }

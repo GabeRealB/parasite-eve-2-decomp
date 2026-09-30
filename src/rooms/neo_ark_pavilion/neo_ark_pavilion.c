@@ -1790,7 +1790,7 @@ void func_neo_ark_pavilion_8017E2B4(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// The room's own event task, spawned by its message handler. State 0 runs
@@ -2049,7 +2049,7 @@ static void func_neo_ark_pavilion_8017ED98(GfxCoord* arg0, s32 arg1, s32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// `Gp_State1C` effect task that plays an eight-frame sprite animation. The

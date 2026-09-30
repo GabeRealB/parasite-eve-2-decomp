@@ -300,7 +300,7 @@ static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2)
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when

@@ -4362,7 +4362,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the world point `arg0`, projected through
@@ -4654,7 +4654,7 @@ static void func_shelter_b3_dumping_hole_8018596C(GfxCoord* arg0, u16 arg1, s16 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a spinning textured sprite at the world position of `arg0`,
@@ -4722,7 +4722,7 @@ static void func_shelter_b3_dumping_hole_80185DCC(GfxCoord* arg0, u16 arg1, s16 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Per-frame update of an effect task drawn with

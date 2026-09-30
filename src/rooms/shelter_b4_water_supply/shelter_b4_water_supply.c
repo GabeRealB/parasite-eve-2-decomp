@@ -1204,7 +1204,7 @@ static void func_shelter_b4_water_supply_8017DE74(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Draws each surface in `D_shelter_b4_water_supply_8018265C` at height
@@ -1341,7 +1341,7 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// The water task: runs its current state - `func_shelter_b4_water_supply_8017ED90`
@@ -1587,7 +1587,7 @@ static void func_shelter_b4_water_supply_8017F3A0(GfxCoord* arg0, s32 arg1, s32 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Per-frame driver of a particle, drawn as the spinning sprite of
@@ -1955,7 +1955,7 @@ static void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

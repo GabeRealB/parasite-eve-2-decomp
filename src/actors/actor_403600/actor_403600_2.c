@@ -2691,7 +2691,7 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
         temp_s4->field_6F0.vx = temp_v1_10->x;
     } while (0);
     temp_s4->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x258;
-    SCRATCH_POP_BYTES(0x24);
+    SCRATCH_STACK_RELEASE_BYTES(0x24);
     temp_s4->field_6F0.vz = temp_v1_10->z;
 }
 
@@ -3278,7 +3278,7 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         Gfx_MatrixCol2(temp_s0_4, (SVECTOR*)temp_v1_2);
     }
     temp_s4->field_748 = ratan2((s16)temp_v1_2->angles[0], (s16)temp_v1_2->angles[2]);
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
     return temp_s5;
 }
 
@@ -3318,7 +3318,7 @@ static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
     z                    = Player_Status.coordMtx->t[2] - arg0->coord.t[2];
     scratch->toPlayer.vz = z;
     *arg1                = SquareRoot0((x * x) + (z * z));
-    SCRATCH_POP_BYTES(sizeof(Actor403600BearingScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600BearingScratch));
 }
 
 static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
@@ -3345,7 +3345,7 @@ static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor403600BearingScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600BearingScratch));
     return result;
 }
 
@@ -4620,7 +4620,7 @@ static void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
     SCRATCH_STACK_CURSOR(VECTOR) = block;
     block->vz                    = work->field_4B8.workm.t[2];
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Turns coordinate 2 by the twist in `field_700`, then eases the twist back

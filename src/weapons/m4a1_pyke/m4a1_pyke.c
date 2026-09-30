@@ -271,7 +271,7 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
@@ -487,7 +487,7 @@ static void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws the dart's ground splash: the unit quad `D_80111E38` scaled to
@@ -562,7 +562,7 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
@@ -719,5 +719,5 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }

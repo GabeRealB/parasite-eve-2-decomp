@@ -2196,7 +2196,7 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// The water task: runs its state, first
@@ -2415,7 +2415,7 @@ static void func_shelter_b2_main_corridor_8017F078(GfxCoord* arg0, s32 arg1, s32
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 void func_shelter_b2_main_corridor_8017F3AC(Task* task)
@@ -2794,7 +2794,7 @@ static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws a flickering glow sprite at the world-space point `arg0`. The point

@@ -321,7 +321,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 void func_80109FC4(Task* arg0)
@@ -850,7 +850,7 @@ void func_8010AD64(Task* arg0)
             _gpResumeBaseState(arg0);
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_8010AE98(Task* arg0)
@@ -1419,7 +1419,7 @@ s32 func_8010BC70(GfxCoord* arg0)
     SCRATCH_STACK_CURSOR(VECTOR3) = vec;
     func_80103C74(arg0, (VECTOR3*)(extra->coords)->coord.t, vec);
     ret = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
 
@@ -1435,7 +1435,7 @@ s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     actor  = arg0->work;
     func_80103C74(coords, arg1, vec);
     ret = func_80103E7C(actor->field_52, ratan2(vec->vx, vec->vz));
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
 
@@ -1461,7 +1461,7 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
         vec->angle = -0x40;
     }
     actor->field_52 = (actor->field_52 + vec->angle) & 0xFFF;
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 void func_8010BE5C(Task* task, VECTOR3* targetPoint)

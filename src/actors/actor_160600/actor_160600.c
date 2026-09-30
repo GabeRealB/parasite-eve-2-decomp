@@ -1359,7 +1359,7 @@ static void func_actor_160600_80132378(Task* task)
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_POP_BYTES(0x18);
+        SCRATCH_STACK_RELEASE_BYTES(0x18);
     }
 }
 

@@ -225,7 +225,7 @@ static void func_gunblade_8011D70C(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GunbladeBeamScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GunbladeBeamScratch));
 }
 
 /// Charge-up / blast flash for the gunblade's three shot grades

@@ -319,7 +319,7 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
@@ -488,7 +488,7 @@ static void func_combustion_8012FB14(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Links one frame of the combustion flame at `arg0`'s world position. The
@@ -550,7 +550,7 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws one billboard quad of a combustion flame. The coordinate's world
@@ -692,7 +692,7 @@ static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 void func_combustion_801308E0(Task* arg0)

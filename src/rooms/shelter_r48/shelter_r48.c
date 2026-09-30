@@ -2657,7 +2657,7 @@ static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
 /// Per-frame update of an effect task drawn with `func_shelter_r48_8017FB7C`
@@ -3106,7 +3106,7 @@ static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
@@ -3172,7 +3172,7 @@ static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_shelter_r48_801810B0(Task* task)
@@ -3589,7 +3589,7 @@ static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 co
             }
         }
     }
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
 /// Projects `arg0` through `gGfxViewCoord.workm` and, when the GTE flag is
@@ -3751,5 +3751,5 @@ static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }

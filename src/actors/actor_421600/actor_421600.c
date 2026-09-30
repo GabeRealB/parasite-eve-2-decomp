@@ -2328,7 +2328,7 @@ static s32 func_actor_421600_80132310(GfxCoord* coord, WorldCollisionContact* re
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -2613,7 +2613,7 @@ static void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJo
             setRGB0(poly, shade, shade, shade);
             addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -2795,7 +2795,7 @@ static s32 func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* re
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor421600AvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor421600AvoidScratch));
     return s->blocked != 0;
 }
 
@@ -3604,7 +3604,7 @@ static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
     work->field_890.spawnArgHi = 2;
     work->field_898            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->field_898, &work->field_890);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static __inline__ s32 Actor421600_FindDamageHit(WorldCollisionContact* records,
@@ -3914,7 +3914,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 }
             }
         }
-        SCRATCH_POP_BYTES(0x30);
+        SCRATCH_STACK_RELEASE_BYTES(0x30);
     }
 }
 
@@ -7190,7 +7190,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
     enemy->bodyPos.vy = (s32)scratch->pos.vy;
     enemy->bodyPos.vz = (s32)scratch->pos.vz;
     enemy->coord      = &gGfxViewCoord;
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     func_actor_421600_80133444(actor->extra.tmd->coords);
 }
 

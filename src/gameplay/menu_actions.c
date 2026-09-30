@@ -1177,7 +1177,7 @@ static void func_800D0614(Task* arg0)
     p->x1 = p->x3 = pos->x + 0x7F;
     p->y2 = p->y3 = pos->y + 0x68;
     addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue + 2], p);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 
     sprt           = gGpuPrimCursor;
     gGpuPrimCursor = sprt + 1;

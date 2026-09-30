@@ -375,7 +375,7 @@ void Gp_UpdateRoomCoords(Task* task)
         }
     }
 
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
@@ -613,7 +613,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
                 }
             }
         }
-        SCRATCH_POP_BYTES(0x10);
+        SCRATCH_STACK_RELEASE_BYTES(0x10);
     }
 }
 
@@ -1030,7 +1030,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         } while (i < 4);
     }
 
-    SCRATCH_POP_BYTES(0x7C);
+    SCRATCH_STACK_RELEASE_BYTES(0x7C);
 }
 
 /// Fills a light colour matrix so all three lights share one colour: every
@@ -1769,7 +1769,7 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
     pos->vx = (obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
     pos->vy = (obj->coord)->workm.t[1] + vec->vy;
     pos->vz = (obj->coord)->workm.t[2] + vec->vz;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.

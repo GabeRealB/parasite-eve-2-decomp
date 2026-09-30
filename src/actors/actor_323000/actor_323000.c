@@ -3785,7 +3785,7 @@ static void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vy = scratch->local.vy;
     enemy->bodyPos.vz = scratch->local.vz;
     enemy->coord      = &gGfxViewCoord;
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Handler for message 0x7DF: does nothing.

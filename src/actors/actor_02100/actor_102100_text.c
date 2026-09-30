@@ -706,7 +706,7 @@ static void Actor02100_Fn004C4(Task* arg0)
     }
 
     Gp_ClearRec18Occupied(&work->field_98);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Stops the looping effect, clears the offset vector and starts the tail
@@ -955,7 +955,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
         }
     }
 
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 static void Actor02100_Fn011C4(Task* arg0)
@@ -1096,7 +1096,7 @@ case2:
     result = 1;
 
 cleanup:
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     return result;
 }
 
@@ -1177,7 +1177,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     gte_rtv0();
     gte_stsv(&nextWork2->field_B0);
     nextWork2->field_E8 = nextWork2->field_B0;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Rewrites the far vector: a fixed 0x2710 offset rotated by the facing matrix
@@ -1402,7 +1402,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             break;
     }
 
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
 /// Points the actor at its stored target. Rotates a fixed forward offset by the
@@ -1785,7 +1785,7 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
         segment += 1;
     } while (segment < 8);
 
-    SCRATCH_POP_BYTES(0x3C);
+    SCRATCH_STACK_RELEASE_BYTES(0x3C);
 }
 
 static void Actor02100_Fn03168(Task* arg0)
@@ -1947,7 +1947,7 @@ static void Actor02100_Fn034E0(Task* arg0)
         work->field_190[i] = y;
         work->field_194[i] = scratch->sz;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)

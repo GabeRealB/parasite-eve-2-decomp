@@ -363,5 +363,5 @@ static void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }

@@ -411,7 +411,7 @@ static s32 func_actor_311500_80162180(GfxCoord* coord, WorldCollisionContact* re
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 

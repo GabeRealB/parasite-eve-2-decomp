@@ -1894,7 +1894,7 @@ mode_end:
         }
     }
 release:
-    SCRATCH_POP_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BYTES(0x4C);
     return;
 }
 
@@ -2378,7 +2378,7 @@ static void Actor01600_Fn017BC(Task* actor)
         default:
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void Actor01600_Fn020F8(Task* actor)
@@ -4684,7 +4684,7 @@ static void Actor01600_Fn06880(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 /// Steps the attachment coordinate `distance` units along the model's facing:
@@ -4757,7 +4757,7 @@ static void Actor01600_Fn06A84(Task* arg0)
             work->field_4CC = (u16)work->field_4CC - 0x20;
         }
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 static s32 Actor01600_Fn06C1C(Task* arg0)

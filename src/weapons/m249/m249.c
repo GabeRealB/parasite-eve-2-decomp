@@ -98,5 +98,5 @@ static void func_m249_8011D1DC(Task* arg0)
             break;
     }
     Gp_TrackLockTarget(arg0);
-    SCRATCH_POP_BYTES(0x68);
+    SCRATCH_STACK_RELEASE_BYTES(0x68);
 }

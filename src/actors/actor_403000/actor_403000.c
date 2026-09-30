@@ -3933,7 +3933,7 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
         scratch->prevSxy.w = scratch->sxy.w;
         scratch->prevFlag  = scratch->flag;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor403000TrailScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403000TrailScratch));
 }
 
 static void func_actor_403000_801330D4(GfxCoord* parent)

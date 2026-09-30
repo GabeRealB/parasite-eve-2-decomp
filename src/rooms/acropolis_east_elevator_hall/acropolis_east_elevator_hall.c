@@ -845,7 +845,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 

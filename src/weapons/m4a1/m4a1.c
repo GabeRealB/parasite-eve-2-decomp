@@ -119,5 +119,5 @@ static void func_m4a1_8011D1C4(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }

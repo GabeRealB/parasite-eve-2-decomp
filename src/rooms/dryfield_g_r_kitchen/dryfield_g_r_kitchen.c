@@ -606,7 +606,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SV
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// The same tapered light beam as `func_dryfield_g_r_kitchen_8017D9FC`,
@@ -742,7 +742,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// Draws two light beams under the task's coordinate in `arg0->extra.coordBody->coord`,

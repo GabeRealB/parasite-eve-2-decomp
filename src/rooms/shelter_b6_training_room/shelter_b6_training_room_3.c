@@ -615,7 +615,7 @@ static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the world point `arg0`: projected through
@@ -949,7 +949,7 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
             }
         }
     }
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
 /// Draws a glowing capsule between the ground points under `from` and `to`.
@@ -1085,7 +1085,7 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
             }
         }
     }
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
 void func_shelter_b6_training_room_80180DB4(Task* task)
@@ -1324,7 +1324,7 @@ static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GfxCoord* coo
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x78);
+    SCRATCH_STACK_RELEASE_BYTES(0x78);
 }
 
 void func_shelter_b6_training_room_80181930(Task* task)
@@ -1455,7 +1455,7 @@ static void func_shelter_b6_training_room_80181BAC(GfxCoord* coord, s16 arg1, s1
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a textured `POLY_FT4` strip between the world positions of two
@@ -1530,7 +1530,7 @@ static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 void func_shelter_b6_training_room_8018245C(Task* task)

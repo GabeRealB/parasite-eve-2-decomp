@@ -2146,7 +2146,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
     if (mem->angle + 0x3C < mem->age) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -2330,7 +2330,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     }
     coord->coord.t[0] += mem->move.vx;
     coord->coord.t[1] += mem->move.vy;
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
     coord->coord.t[2] += mem->move.vz;
     Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2456,7 +2456,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
 }
 

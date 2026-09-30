@@ -195,7 +195,7 @@ static s32 ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 

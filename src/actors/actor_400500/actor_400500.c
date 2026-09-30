@@ -3104,7 +3104,7 @@ static __inline__ VECTOR* push_color(GfxCoord* coord)
 
 static __inline__ void pop_scratch(s32 n)
 {
-    SCRATCH_POP_BYTES(n);
+    SCRATCH_STACK_RELEASE_BYTES(n);
 }
 
 static __inline__ u8* push_proj(void)
@@ -5771,7 +5771,7 @@ static inline void _actor400500UpdateColor(Task* arg0, GfxCoord* coord, TmdObjec
     } else {
         Gp_SetObjTrans(obj, 0x400, 0x1000, 0x400);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_400500_8013A700(Task* arg0)

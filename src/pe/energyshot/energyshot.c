@@ -328,7 +328,7 @@ static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws the energy shot's beam: an inner ring of radius `arg1 + 0x400` sunk
@@ -418,7 +418,7 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
 void func_energyshot_8012FFB8(Task* arg0)

@@ -2220,7 +2220,7 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 void func_shelter_b3_garbage_incinerator_80182368(Task* task)
@@ -2436,7 +2436,7 @@ static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 static void func_shelter_b3_garbage_incinerator_80182F18(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
@@ -2497,7 +2497,7 @@ static void func_shelter_b3_garbage_incinerator_80182F18(GfxCoord* arg0, u16 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_shelter_b3_garbage_incinerator_80183364(Task* task)
@@ -2791,7 +2791,7 @@ static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
@@ -2940,7 +2940,7 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 static void func_shelter_b3_garbage_incinerator_80184D7C(void)

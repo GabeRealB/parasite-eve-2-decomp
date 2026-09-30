@@ -3455,7 +3455,7 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
         coords[j].coord.t[1] = s->pos.vy;
         coords[j].coord.t[2] = s->pos.vz;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor503500ChainScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor503500ChainScratch));
 }
 
 /// Same cubic Bezier evaluation as `func_actor_503500_8013A7B0`: control points

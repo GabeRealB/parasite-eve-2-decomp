@@ -778,7 +778,7 @@ static void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// An animated sprite effect, drawn through
@@ -999,7 +999,7 @@ static void func_shelter_b2_pod_access_tunnel_8017ED5C(GfxCoord* arg0, u16 arg1,
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// The same sprite drawer as `func_shelter_b2_pod_access_tunnel_8017ED5C` for
@@ -1063,7 +1063,7 @@ static void func_shelter_b2_pod_access_tunnel_8017F1BC(GfxCoord* arg0, u16 arg1,
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

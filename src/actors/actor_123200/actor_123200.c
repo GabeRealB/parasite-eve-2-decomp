@@ -859,7 +859,7 @@ static __inline__ void Actor123200_StepForward(GfxCoord* coord)
     coord->coord.t[2]  += dir->vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// Display mode 1 handler (entry 1 of `D_actor_123200_80131E24`). On the frame
@@ -900,7 +900,7 @@ static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
         Actor123200_StepForward(coord);
     }
     func_actor_123200_801332E0(task);
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

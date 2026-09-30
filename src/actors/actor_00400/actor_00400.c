@@ -1614,7 +1614,7 @@ static void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16
             setRGB0(poly, shade, shade, shade);
             addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -2590,7 +2590,7 @@ done:
         work->field_64A                      = scratch->bestIndex;
         work->field_608[work->field_64A].pad = 1;
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Finds the nearest eligible waypoint record in `field_608` and returns its
@@ -2635,7 +2635,7 @@ loop:
         scratch->index = scratch->index + 1;
         goto loop;
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Projects the four `corner` vertices through the view matrix and queues one
@@ -2667,7 +2667,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
         setRGB0(poly, shade >> 1, shade, shade);
         addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
-    SCRATCH_POP_BYTES(sizeof(Actor100400TextQuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor100400TextQuadScratch));
 }
 
 /// Re-aim one joint by `yaw` about Y in world space: build the joint's
@@ -3056,7 +3056,7 @@ static __inline__ void Actor00400_UpdateColor(Task* arg0, GfxCoord* coord,
     if (work->field_65F != 0) {
         Gp_SetObjTrans(ctx, 0, 0, 0);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// States `Actor00400_Fn040DC` dispatches on `Actor100400Work.field_638`.

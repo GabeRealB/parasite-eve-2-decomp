@@ -929,7 +929,7 @@ static void func_dryfield_cellar_8017D7DC(GfxCoord* arg0, SVECTOR* arg1, s32 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 /// Per-frame effect on a coordinate task: once event nibble 0x52 is 1, draws a glow

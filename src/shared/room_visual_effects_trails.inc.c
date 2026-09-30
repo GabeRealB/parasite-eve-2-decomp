@@ -106,5 +106,5 @@ static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

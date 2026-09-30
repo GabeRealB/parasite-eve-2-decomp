@@ -720,5 +720,5 @@ static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, 
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }

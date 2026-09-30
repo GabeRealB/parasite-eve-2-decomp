@@ -141824,7 +141824,7 @@ block->vec.vx = arg0->workm.t[0];      /* ...vy, vz */
 gte_stsxy(&block->sx);
 gte_stflg(&block->flag);
 if (block->flag >= 0) { ... for (ang = 0; ang < 0x1000; ang += 0x200) { ... } }
-SCRATCH_POP_BYTES(0x18);
+SCRATCH_STACK_RELEASE_BYTES(0x18);
 ```
 
 Try the plain spelling on the other copies before porting their pins.
@@ -145358,7 +145358,7 @@ share one cause.
 **Shape.** A slot search nested in a face loop gives the scratch block back
 and returns from two exits. The target materialises `lui/ori 0x1F8003FC`
 once, in the inner loop's preheader, *after* the copy of the outer loop's
-`i * 12` giv. A bare `SCRATCH_POP_BYTES` at each exit is hoisted out of
+`i * 12` giv. A bare `SCRATCH_STACK_RELEASE_BYTES` at each exit is hoisted out of
 both loops (a compiler temporary is movable even when conditional); one
 function-scope `head = SCRATCH_HEAD_ADDR` before the inner loop is not
 moved at all, so it lands *ahead* of the loop-moved giv copy.

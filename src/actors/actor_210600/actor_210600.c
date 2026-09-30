@@ -483,7 +483,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
     m22                  = (u16)blk->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_STACK_RELEASE_BYTES(0x34);
 }
 
 /// Update state of the actor. While `Actor210600Work::field_890` is clear it

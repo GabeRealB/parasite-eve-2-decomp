@@ -427,7 +427,7 @@ static void Pad_TickEventBanks(PadState* pad)
         pad->actuatorCommand[1] = 0;
     }
 
-    SCRATCH_POP_BYTES(4);
+    SCRATCH_STACK_RELEASE_BYTES(4);
 }
 
 void Pad_PollControllers(void)

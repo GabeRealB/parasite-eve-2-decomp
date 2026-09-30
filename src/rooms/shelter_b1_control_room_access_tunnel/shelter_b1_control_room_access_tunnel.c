@@ -265,7 +265,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Projects `arg0` through `gGfxViewCoord.workm` and, when its OTZ is above 0x10,

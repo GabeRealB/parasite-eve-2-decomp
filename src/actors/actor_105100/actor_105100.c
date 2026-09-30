@@ -1894,7 +1894,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(ActorAttackScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorAttackScratch));
 }
 
 static void func_actor_105100_80134130(Task* arg0)
@@ -2693,7 +2693,7 @@ done:
     RotMatrix(&sc->rot, &coord->coord);
     coord->coord.t[0] += (coord->coord.m[0][2] * 0xF) >> 0xA;
     coord->coord.t[2] += (coord->coord.m[2][2] * 0xF) >> 0xA;
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Unless the player is in an event, draws from the gameplay LCG and on one

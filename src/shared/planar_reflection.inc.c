@@ -407,7 +407,7 @@ static void Reflection_UpdatePlayer(Task* task)
             }
         }
         work->field_C = extra->flags;
-        SCRATCH_POP_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BYTES(0x70);
     }
 
     copyPending = work->field_4;
@@ -630,7 +630,7 @@ static void Reflection_UpdatePlayer(Task* task)
             } else {
                 extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            SCRATCH_POP_BYTES(0x34);
+            SCRATCH_STACK_RELEASE_BYTES(0x34);
         }
     }
 

@@ -265,7 +265,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
 
-    SCRATCH_POP_BYTES(0x60);
+    SCRATCH_STACK_RELEASE_BYTES(0x60);
 }
 
 void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)

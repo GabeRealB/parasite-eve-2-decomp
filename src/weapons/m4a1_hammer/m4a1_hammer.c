@@ -291,7 +291,7 @@ static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3)
         prim->y2    = block->sy + (u16)block->dy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
@@ -396,7 +396,7 @@ static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
         prim->y2    = block->sy + (u16)block->dy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Handwritten GTE routine. Draws one semi-transparent `POLY_FT4` stretched
@@ -470,5 +470,5 @@ static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, 
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }

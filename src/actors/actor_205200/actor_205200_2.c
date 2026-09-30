@@ -475,7 +475,7 @@ end:
         }
         Gp_ClearRec18Occupied(&work->field_504);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Charge-handler sub-state machine. States 0 and 3 share a random roll: every
@@ -642,7 +642,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(ActorAttackScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorAttackScratch));
 }
 
 /// Update of the actor's own task: runs the handler of

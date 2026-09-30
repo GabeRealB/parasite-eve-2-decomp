@@ -171,5 +171,5 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }

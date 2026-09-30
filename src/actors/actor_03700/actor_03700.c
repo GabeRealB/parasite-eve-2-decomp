@@ -963,7 +963,7 @@ move_done:
         coord->coord.t[2] += (push * scratch->dir.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->records);
-    SCRATCH_POP_BYTES(0x58);
+    SCRATCH_STACK_RELEASE_BYTES(0x58);
 }
 
 /// The tick's mode dispatcher: runs the handler for the work block's mode
@@ -1378,7 +1378,7 @@ static void Actor03700_Fn011B4(Task* task)
             break;
     }
     Actor03700_Fn032BC(task, 0, 14);
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 static void Actor03700_Fn01550(Task* task)
@@ -1452,7 +1452,7 @@ static void Actor03700_Fn01550(Task* task)
             break;
     }
     Actor03700_Fn032BC(task, 1, 14);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 static void Actor03700_Fn018C8(Task* task)
@@ -1576,7 +1576,7 @@ static void Actor03700_Fn01C94(Task* task)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(AnimationPlayRequest));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(AnimationPlayRequest));
 }
 
 /// Tests whether the actor has noticed the player: true when the player is
@@ -1616,7 +1616,7 @@ static s32 Actor03700_Fn01DFC(Task* task)
         pan       = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(coord));
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
     return ret;
 }
 
@@ -1697,7 +1697,7 @@ done:
     rot->vy = work->field_246;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Relights the actor for the world position of its root coordinate.
@@ -1966,7 +1966,7 @@ static void Actor03700_Fn027DC(Task* task)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor103700SteerScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor103700SteerScratch));
 }
 
 static void Actor03700_Fn029C0(Task* task)
@@ -2157,7 +2157,7 @@ static s32 Actor03700_Fn03130(Task* task)
             ret             = 1;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(Actor103700HoldScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor103700HoldScratch));
     return ret;
 }
 

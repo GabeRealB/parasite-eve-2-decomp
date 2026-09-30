@@ -1034,7 +1034,7 @@ static void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Projects the world point `arg0` through `gGfxViewCoord.workm` and, when its OTZ

@@ -1860,7 +1860,7 @@ static void Actor00300_Fn00E54(Task* arg0)
         work->field_6A0--;
     }
     Gp_ClearRec18Occupied(&work->rec4A0[1]);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 static void Actor00300_Fn01678(Task* arg0)
@@ -1948,7 +1948,7 @@ static void Actor00300_Fn01678(Task* arg0)
         Gp_ArmStateF0(1);
         Gp_StateF0.field_28 = 0;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor00300_Fn019C0(Task* arg0)
@@ -2055,7 +2055,7 @@ static void Actor00300_Fn019C0(Task* arg0)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor00300_Fn01D60(Task* arg0)
@@ -2101,7 +2101,7 @@ static void Actor00300_Fn01D60(Task* arg0)
             work->field_686 = 0;
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor00300_Fn01F9C(Task* arg0)
@@ -2278,7 +2278,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor00300_Fn02620(Task* arg0)
@@ -2352,7 +2352,7 @@ static void Actor00300_Fn02620(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor00300_Fn028D0(Task* arg0)
@@ -2751,7 +2751,7 @@ done:
     sc->rot.vy = work->field_67E;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Turns the model's fourth coordinate by the angles in `field_65C`, then
@@ -3304,7 +3304,7 @@ static void Actor00300_Fn04528(Task* arg0)
     sc->rot.vy = cur;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Unless an event is running, draws from the gameplay LCG and on one call in

@@ -2679,7 +2679,7 @@ static __inline__ void actorUpdateColor(GpEnemy* enemy, GfxCoord* coord)
     block->vz                    = coord->workm.t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = block;
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Relights the enemy of `arg0` for the world position of its model's second
@@ -2791,7 +2791,7 @@ static __inline__ s32 actorOutOfReach(SVECTOR* gap)
     v->vx                         = v->vx * v->vx;
     v->vy                         = v->vy * v->vy;
     v->vz                         = v->vz * v->vz;
-    SCRATCH_POP_BYTES(sizeof(VECTOR3));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR3));
 
     return v->vx + v->vy >= v->vz;
 }

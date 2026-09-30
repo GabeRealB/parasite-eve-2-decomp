@@ -1884,7 +1884,7 @@ static void func_shelter_b2_laboratory_80180AB4(SVECTOR* arg0, s32 arg1, s32 arg
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -1978,7 +1978,7 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -2116,7 +2116,7 @@ static void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 static void func_shelter_b2_laboratory_801820F4(s16 arg0)

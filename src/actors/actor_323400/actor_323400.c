@@ -3743,7 +3743,7 @@ static void func_actor_323400_801644C4(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vy = scratch->local.vy;
     enemy->bodyPos.vz = scratch->local.vz;
     enemy->coord      = &gGfxViewCoord;
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_actor_323400_8016475C(void)

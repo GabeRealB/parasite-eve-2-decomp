@@ -1024,7 +1024,7 @@ static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_shelter_b6_corridor_8017EBA4(Task* task)

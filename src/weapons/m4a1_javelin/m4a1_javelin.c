@@ -470,7 +470,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     } else {
         D_m4a1_javelin_8012EB64 = 1;
     }
-    SCRATCH_POP_BYTES(sizeof(OverlayPointPairScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
 
 /// Draws the javelin launcher's targeting reticle: a `LINE_F2` between the two
@@ -615,7 +615,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
 fail:
     D_m4a1_javelin_8012EB66 = 1;
 done:
-    SCRATCH_POP_BYTES(sizeof(OverlayPointPairScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
 
 /* `otz0` is taken before the branch on purpose: the address is the same one
@@ -667,7 +667,7 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
             Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(M4a1JavelinLineScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1JavelinLineScratch));
 }
 
 /// Links the billboarded muzzle-flare quad for one javelin launch frame into
@@ -729,7 +729,7 @@ static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg
         prim->y2  = block->sy + (u16)block->dy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GpFxQuadScratch));
 }
 
 static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
@@ -937,5 +937,5 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x58);
+    SCRATCH_STACK_RELEASE_BYTES(0x58);
 }

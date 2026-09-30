@@ -852,7 +852,7 @@ static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// `Gp_State1C` effect task drawing a growing, fading quad through
@@ -970,7 +970,7 @@ static void func_neo_ark_bridge_8017F0C4(GfxCoord* arg0, s32 arg1, s32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Per-frame update of an effect task drawn with `func_neo_ark_bridge_8017F8B4`

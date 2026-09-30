@@ -299,7 +299,7 @@ static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Message 0x7D3 handler: starts the animation the payload names, storing its

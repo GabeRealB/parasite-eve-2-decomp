@@ -926,7 +926,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
     }
     dest->parent       = &gGfxViewCoord;
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
     return arg0;
 }
 
@@ -1705,7 +1705,7 @@ static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     if ((s16)*arg0 < 0 || (s16)*arg1 < 0) {
         *arg3 = packed | 0x8000;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Full-screen fade quad. Ramps a 0x140x0xF0 `TILE` from black to

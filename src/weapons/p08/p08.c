@@ -92,5 +92,5 @@ static void func_p08_8011D1D8(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }

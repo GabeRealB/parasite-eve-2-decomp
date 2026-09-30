@@ -233,5 +233,5 @@ static void func_gunblade_8011E040(Task* arg0)
     coord->coord.t[0] += blk->step.vx;
     coord->coord.t[1] += blk->step.vy;
     coord->coord.t[2] += blk->step.vz;
-    SCRATCH_POP_BYTES(sizeof(GunbladeScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GunbladeScratch));
 }

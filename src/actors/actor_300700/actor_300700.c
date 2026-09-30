@@ -461,7 +461,7 @@ static void func_actor_300700_801622B4(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_154);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Sweeps the actor's spare rotation on the scratchpad: every 16th frame rolls
@@ -515,7 +515,7 @@ static void func_actor_300700_8016252C(Task* arg0)
     coord2                = arg0->extra.tmd->coords;
     RotMatrix(sc, &coord2[3].coord);
     coord2[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_300700_801626C0(Task* arg0)
@@ -587,7 +587,7 @@ static void func_actor_300700_801626C0(Task* arg0)
     sc->rot.vy = work->field_2DC;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void func_actor_300700_801628C8(Task* arg0)
@@ -784,7 +784,7 @@ static void func_actor_300700_80162EFC(Task* arg0)
     gte_stsxy(&sc->sxy);
     gte_stszotz(&sc->otz);
     if (sc->otz < 20) {
-        SCRATCH_POP_BYTES(0x28);
+        SCRATCH_STACK_RELEASE_BYTES(0x28);
         return;
     }
     if (work->field_2E0 == 1) {
@@ -843,7 +843,7 @@ static void func_actor_300700_80162EFC(Task* arg0)
     prim->x3    = sc->v[3].vx;
     prim->y3    = sc->v[3].vy;
     addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 /// The first variant's state handlers, dispatched by `func_actor_300700_8016335C`
 /// on the task's state: spawn, per-frame update, and the handler for state 2.

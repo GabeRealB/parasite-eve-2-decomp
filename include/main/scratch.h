@@ -89,8 +89,22 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// Takes `n` bytes off the stack.
 #define SCRATCH_PUSH_BYTES(n) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - (n))
 
-/// Gives `n` bytes back to the stack.
-#define SCRATCH_POP_BYTES(n) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + (n))
+/// Releases `byteCount` bytes from the downward-growing scratch stack.
+///
+/// `byteCount` is the byte length of the reservation being released. The
+/// shared cursor in `SCRATCH_STACK_CURSOR_SLOT` advances by that many bytes.
+/// Reservations must be released in reverse order, whichever helper reserved
+/// them. The cursor must be initialized, and the update must stay within the
+/// stack storage, at or below its empty position at the cursor slot. No bounds
+/// or alignment checks are performed.
+///
+/// Returns the updated cursor as `void*`, rather than the released bytes.
+/// The result may point to an enclosing reservation or to the empty-stack
+/// slot. It is a pointer value, not a writable cursor lvalue. The slot is
+/// read and written once. Released bytes are untouched, but become available
+/// for reuse by subsequent reservations. `byteCount` is evaluated once. This
+/// expression captures no caller variables.
+#define SCRATCH_STACK_RELEASE_BYTES(byteCount) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + (byteCount))
 
 /// The address of the stack pointer, for a function that keeps it in a local
 /// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
@@ -103,7 +117,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 
 #define SCRATCH_POP_AT(head, type) (*(type**)(head) += 1)
 
-/// `SCRATCH_PUSH_BYTES` / `SCRATCH_POP_BYTES` through such a local.
+/// `SCRATCH_PUSH_BYTES` / `SCRATCH_STACK_RELEASE_BYTES` through such a local.
 #define SCRATCH_PUSH_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) - (n))
 
 #define SCRATCH_POP_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) + (n))

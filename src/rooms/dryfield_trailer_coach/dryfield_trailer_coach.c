@@ -2132,7 +2132,7 @@ static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, 
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 /// Draws a pulsing glow at `data` in `coord`'s space: the point is projected

@@ -345,5 +345,5 @@ static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

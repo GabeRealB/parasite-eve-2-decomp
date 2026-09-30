@@ -691,7 +691,7 @@ static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws a fan of four gouraud quads around the view-space point `worldPoint` when
@@ -781,7 +781,7 @@ static void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* worldPoint, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, if
@@ -883,7 +883,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

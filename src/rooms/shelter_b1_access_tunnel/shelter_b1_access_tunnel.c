@@ -985,5 +985,5 @@ static void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }

@@ -3744,7 +3744,7 @@ static void func_actor_444000_80134688(GfxCoord* coord, s32 id)
             break;
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor403200EffScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200EffScratch));
 }
 
 /// Walk `coord` a fixed 0x32/0x1000 of its own forward axis (column 2 of its
@@ -3773,7 +3773,7 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
     coord->coord.t[2]  += dir->vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// The run-out / turn / run-back pass, stepped by `Actor403200Work::field_F08`.
@@ -4003,7 +4003,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor444000RunScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000RunScratch));
 }
 
 /// Rebuild `coord`'s rotation around the yaw it already faces, left at full
@@ -4040,7 +4040,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// State 0x12, the death sequence: the boss collapses, each of its escort
@@ -4694,7 +4694,7 @@ static void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
@@ -4731,7 +4731,7 @@ static __inline__ void Actor444000_ShrinkRotation(GfxCoord* coord)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Entry state of the enemy dispatched through `D_actor_444000_80131F0C`:
@@ -4901,7 +4901,7 @@ static __inline__ void Actor444000_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Rise state of the enemy dispatched through `D_actor_444000_80131EA8`: for
@@ -6013,7 +6013,7 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
     Gp_UpdateCoord(task->extra.tmd->coords);
 }
 
@@ -6120,7 +6120,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* wo
 
     work->field_0          = 1;
     task->extra.tmd->flags = 0;
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Spawn state of the arena boss: allocate its `Actor403200Work`, wire the host
@@ -6578,7 +6578,7 @@ found:
         enemy->hp -= sc->damage;
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
@@ -6761,7 +6761,7 @@ hit:
         }
     }
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 3, 4 and 5 -- `func_actor_444000_8013C4B0`
@@ -6960,7 +6960,7 @@ stored:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
@@ -7167,7 +7167,7 @@ stored:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// Reset/teardown handler: when the work block is asking for a reset, arm the
@@ -7220,7 +7220,7 @@ static void func_actor_444000_8013D810(Task* arg0)
 /// accesses, so a release written straight into the caller does not match.
 static __inline__ void Actor444000_ReleaseRotScratch(void)
 {
-    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Rebuilds one model's root coordinate around the yaw it already faces and
@@ -7592,7 +7592,7 @@ static void func_actor_444000_8013E058(Task* task)
         }
     }
     work->field_F1C = 0;
-    SCRATCH_POP_BYTES(sizeof(Actor444000DragScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000DragScratch));
 }
 
 /// Escort-order tick of the arena fight: the state the boss runs while it has
@@ -7890,7 +7890,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor444000WarpScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000WarpScratch));
 }
 
 /// Tick of the arena fight that runs the boss' two swipes and keeps the player
@@ -8166,7 +8166,7 @@ scanned:
         }
     }
 
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 /// Per-tick state of the arena fight once it is under way. A reset request
@@ -8495,7 +8495,7 @@ static void func_actor_444000_8014105C(Task* arg0)
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
         work->field_0 = 0xA;
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Idle/approach tick of the arena fight: re-arms the block on request, keeps
@@ -8646,7 +8646,7 @@ static void func_actor_444000_801411C8(Task* arg0)
     } else {
         work->field_0 = 3;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// Escort-spawn tick of the arena fight: re-arms the block on request and, on
@@ -8847,7 +8847,7 @@ static void func_actor_444000_80141618(Task* task)
         Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.value, 0);
     }
 out:
-    SCRATCH_POP_BYTES(sizeof(Actor403200SpawnScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200SpawnScratch));
 }
 
 /// Gives `model` the texture page and palette of the third placement in the
@@ -9407,7 +9407,7 @@ static void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         func_actor_444000_8013A77C(task);
     }
 
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Per-frame tail of the arena fight: keeps the camera pulled back far enough

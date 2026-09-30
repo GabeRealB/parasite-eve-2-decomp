@@ -1989,7 +1989,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             enemy->hp = 1;
         }
     }
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
 static void func_actor_521100_80132958(Task* arg0)
@@ -2092,7 +2092,7 @@ static void func_actor_521100_80132958(Task* arg0)
         }
     }
     work->field_6AE = 0;
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Asks the player for the hold (message 0x3F8, range 0x19) once the actor has
@@ -2144,7 +2144,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
             Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     return ret;
 }
 static void func_actor_521100_80132DE8(Task* arg0)
@@ -2249,7 +2249,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
             func_actor_521100_801335B4(arg0);
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// The scratch head is taken through `ActorScratchStack` rather than as
@@ -2564,7 +2564,7 @@ static void func_actor_521100_801335B4(Task* arg0)
             work->field_6AE = 0;
             break;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void func_actor_521100_801339B0(Task* arg0)
@@ -2862,7 +2862,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x54);
+    SCRATCH_STACK_RELEASE_BYTES(0x54);
 }
 
 /// Step-4 body of the burn-out sequence, the fourth of the ones the dispatcher
@@ -3054,7 +3054,7 @@ static void func_actor_521100_80134774(Task* arg0)
             work->field_6BC = 0;
             break;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 /// Steers the actor's heading towards the work block's `field_698` at up to
 /// `field_69C` of turn per frame, then builds the result into the attach
@@ -3134,7 +3134,7 @@ done:
     sc->rot.vy = work->field_696;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 /// Plays the actor's footstep cues: while the animation record the cue body
 /// reads carries `flags` bit 0x20 (or 0x10), a sound is queued on the frame
@@ -3217,7 +3217,7 @@ static void func_actor_521100_80134EDC(Task* arg0)
         scratch->local.vz = 0x200;
     }
     Gp_OrientAlong(&scratch->local, &head->coord, 0);
-    SCRATCH_POP_BYTES(sizeof(ActorAimScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorAimScratch));
 }
 /// Untwists the coordinate at `field_8[3]`, which `func_actor_521100_801322F8`
 /// left rotated by the random residual in `Actor521100Work::field_678` on the
@@ -3291,7 +3291,7 @@ static void func_actor_521100_80135024(Task* arg0)
     if (active == 0) {
         work->field_680 = 0;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 /// The burn-out tick `func_actor_521100_80135414` runs while the sequence state
 /// `field_68C` is non-zero. `field_68E` counts the frames since the last effect

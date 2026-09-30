@@ -3650,7 +3650,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when

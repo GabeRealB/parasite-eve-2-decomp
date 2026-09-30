@@ -1440,7 +1440,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
                                                              GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
 }
 

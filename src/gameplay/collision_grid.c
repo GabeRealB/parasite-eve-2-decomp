@@ -178,7 +178,7 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
     pos->vx = (obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
     pos->vy = (obj->coord)->workm.t[1] + vec->vy;
     pos->vz = (obj->coord)->workm.t[2] + vec->vz;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 void func_800DD940(WorldCollisionBody* arg0)
@@ -226,7 +226,7 @@ void func_800DD940(WorldCollisionBody* arg0)
             block->seg[0].vz      = block->ray[1].vz;
         }
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
 
 static void func_800DDC2C(WorldCollisionBody* arg0)
@@ -350,7 +350,7 @@ static void func_800DE150(WorldCollisionBody* arg0)
         block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
     }
     func_800DE2C0(block->pos, 1);
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
 
 static void func_800DE2C0(VECTOR* arg0, s32 arg1)
@@ -440,7 +440,7 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
         }
     }
 
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
@@ -509,7 +509,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
         block->from.vz = block->hit.vz;
         ret            = 1;
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
     return ret;
 }
 
@@ -546,7 +546,7 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
         block->pos1.vz = (s16)(block->out.vz + p->field_18 - p->field_0->coord.t[2]);
     }
     func_800DE2C0((VECTOR*)(head - 0x20), 0);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)

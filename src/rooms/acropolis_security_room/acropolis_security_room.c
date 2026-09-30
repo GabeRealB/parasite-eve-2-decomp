@@ -3773,7 +3773,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 2, ((AsrBeamScratch*)(head - 0x14))->otz);
         }
-        SCRATCH_POP_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
 }
 

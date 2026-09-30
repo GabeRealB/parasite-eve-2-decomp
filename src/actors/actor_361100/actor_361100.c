@@ -1339,7 +1339,7 @@ static void func_actor_361100_80161FF8(Task* arg0)
             }
             y += 1;
         } while (y < 0xF0);
-        SCRATCH_POP_BYTES(sizeof(OverlayRippleScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayRippleScratch));
     }
 }
 

@@ -916,7 +916,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// State handlers of the room task `func_neo_ark_submarine_tunnel_8017F434`

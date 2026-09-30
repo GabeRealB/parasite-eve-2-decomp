@@ -1576,7 +1576,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
             prim->y2         = xy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
-        SCRATCH_POP_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
 }
 

@@ -805,7 +805,7 @@ move_done:
             work->field_150 = 0;
         }
     }
-    SCRATCH_POP_BYTES(0x58);
+    SCRATCH_STACK_RELEASE_BYTES(0x58);
 }
 
 /// The projectile's state handlers, run by `Actor02400_Fn03358` for the task's
@@ -1312,7 +1312,7 @@ done:
     sc->rot.vy = work->field_144;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Every 25 frames plays the body's idle sound, panned and placed from the

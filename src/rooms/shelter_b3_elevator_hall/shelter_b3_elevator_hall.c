@@ -631,7 +631,7 @@ static void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

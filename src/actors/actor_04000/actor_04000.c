@@ -1264,7 +1264,7 @@ static s32 Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -1815,7 +1815,7 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
             }
         }
     }
-    SCRATCH_POP_BYTES(sizeof(Actor104000AimScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor104000AimScratch));
 }
 
 /// Turns `coord` to face along its own Z axis in the XZ plane and scales the
@@ -2104,7 +2104,7 @@ static void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
             work->field_0 = 0xA;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(ActorTurnScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorTurnScratch));
 }
 
 /// Frames 0x28 onward of the collapse: steps the effects keyed on `field_6`,
@@ -2414,7 +2414,7 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     work->eff.spawnArgHi = 1;
     work->eff.coord      = coord;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->effOfs, &work->eff);
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// Applies the first type-2 hit in `work->hits`: computes its damage, turns the
@@ -2492,7 +2492,7 @@ found:
             work->field_496 = 0;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(ActorHitTakenScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorHitTakenScratch));
 }
 
 /// Patrol state: restarts the actor when `field_4` is set; otherwise turns the
@@ -2576,7 +2576,7 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
             work->field_0 = 1;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(ActorTurnScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorTurnScratch));
 }
 
 /// Walking state: restarts the actor when `field_4` is set; otherwise turns the
@@ -2645,7 +2645,7 @@ static void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
             work->field_0 = 4;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(ActorTurnScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorTurnScratch));
 }
 
 /// Restarts the actor when `field_4` is set; otherwise waits 50 frames, then

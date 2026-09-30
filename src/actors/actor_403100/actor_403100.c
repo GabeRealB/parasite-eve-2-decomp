@@ -4166,7 +4166,7 @@ static inline void _actor403100UpdateColor(Task* task, GfxCoord* coord)
     pos->vz                      = coord->workm.t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = pos;
     Gp_UpdateActorColor(task->spawnArg2.pointer, pos, 0, 0);
-    SCRATCH_POP_BYTES(sizeof(VECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
 static void func_actor_403100_801339EC(Task* arg0)

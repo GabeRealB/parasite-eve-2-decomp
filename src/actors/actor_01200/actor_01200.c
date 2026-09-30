@@ -674,7 +674,7 @@ static s16 Actor01200_Fn00130(GfxCoord* coord, WorldCollisionContact* recs, s16 
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -1452,7 +1452,7 @@ static void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
     work->eff1A8.coord      = coord;
     work->effOfs            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->effOfs, &work->eff1A8);
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// Hit check: finds the first type-2 record among the five in `jointContacts`, and
@@ -1519,7 +1519,7 @@ found:
             work->field_0    = 6;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(ActorHitTakenScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorHitTakenScratch));
 }
 
 /// Patrol between the two `patrol` points: turn at most 0x20 toward the current

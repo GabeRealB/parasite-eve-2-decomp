@@ -291,7 +291,7 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Draws each surface in `D_shelter_b4_lower_sewer_80181E90` as a strip of 8
@@ -378,7 +378,7 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// The room's water task: runs its state (`func_shelter_b4_lower_sewer_8017E33C`

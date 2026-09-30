@@ -798,7 +798,7 @@ void Gp_EffSprTask34(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -882,7 +882,7 @@ void Gp_EffSprTask72(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -981,7 +981,7 @@ void Gp_EffLineTaskA3(Task* arg0)
                 Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             }
         }
-        SCRATCH_POP_BYTES(0x20);
+        SCRATCH_STACK_RELEASE_BYTES(0x20);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1043,7 +1043,7 @@ static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void Gp_EffSprTask35(Task* arg0)
@@ -1140,7 +1140,7 @@ void Gp_EffSprTask35(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1246,7 +1246,7 @@ void Gp_EffSprTask6F(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1699,7 +1699,7 @@ void Gp_EffTileTaskA4(Task* arg0)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
     mem->age++;
     if (mem->age >= 8) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -1805,7 +1805,7 @@ static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void Gp_EffSprTask5C(Task* arg0)
@@ -1941,7 +1941,7 @@ void Gp_EffSprTask5C(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -2211,7 +2211,7 @@ void Gp_EffSprTask76(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     mem->age++;
     if (mem->age >= 4) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -2329,7 +2329,7 @@ void Gp_EffSprTask7C(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
@@ -2699,7 +2699,7 @@ void Gp_EffLineTask92(Task* arg0)
             mem->pos.vz = (u16)coord->workm.t[2];
         }
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
     mem->age++;
     if (mem->age > mem->scale * 8 - 1) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -2926,7 +2926,7 @@ void Gp_EffSprTask9E(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
     mem->age++;
     if (mem->angle < mem->age) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -3032,7 +3032,7 @@ void Gp_EffSprTask54(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     if (Gp_State1C->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         coord->coord.t[0]  += mem->move.vx;
         coord->coord.t[1]  += mem->move.vy;
@@ -3107,7 +3107,7 @@ void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
@@ -3175,7 +3175,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x38);
+        SCRATCH_STACK_RELEASE_BYTES(0x38);
     }
 }
 

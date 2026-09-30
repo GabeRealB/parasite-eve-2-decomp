@@ -993,7 +993,7 @@ static void func_actor_800200_80162088(Task* arg0)
     scratch->vy                 = -0x100;
     scratch->vz                 = 0x200;
     Gp_BindActorD4(arg0, scratch, 0x600);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_800200_801622B0(Task* arg0)
@@ -1085,7 +1085,7 @@ static void func_actor_800200_801622B0(Task* arg0)
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, Gp_State1C->groundShadowShade);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void func_actor_800200_80162694(Task* arg0)
@@ -1204,7 +1204,7 @@ static void func_actor_800200_80162750(Task* arg0)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_800200_80162990(Task* arg0)
@@ -2077,7 +2077,7 @@ static void func_actor_800200_80164180(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_800200_8016436C(Task* arg0)
@@ -2299,7 +2299,7 @@ static void func_actor_800200_801647A8(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_800200_801649D8(Task* arg0)

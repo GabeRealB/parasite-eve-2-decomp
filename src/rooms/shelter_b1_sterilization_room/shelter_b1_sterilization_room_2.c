@@ -1605,7 +1605,7 @@ static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1,
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a gouraud disc of four wedges around the projection of `pos`; `size`
@@ -1761,7 +1761,7 @@ static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1,
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -1899,5 +1899,5 @@ static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }

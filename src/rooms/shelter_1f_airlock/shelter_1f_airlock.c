@@ -619,7 +619,7 @@ static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a glow at a world-space point: projects `worldPoint` through
@@ -711,5 +711,5 @@ static void func_shelter_1f_airlock_8017E0F0(SVECTOR* worldPoint, s32 radiusScal
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }

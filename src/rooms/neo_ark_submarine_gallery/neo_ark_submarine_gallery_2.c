@@ -1111,7 +1111,7 @@ static void func_neo_ark_submarine_gallery_8017F3DC(GfxCoord* arg0, s32 arg1, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Per-frame driver of a particle effect task, drawn as the spinning sprite of
@@ -1507,7 +1507,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when

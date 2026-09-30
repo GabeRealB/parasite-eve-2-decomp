@@ -3978,7 +3978,7 @@ static void func_actor_503500_8013A470(SVECTOR* pts, GfxCoord* coords, s32 phase
             coords[j].coord.t[2] = (s->pos.vz * scale) >> 12;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(Actor503500ChainScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor503500ChainScratch));
 }
 
 /// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points

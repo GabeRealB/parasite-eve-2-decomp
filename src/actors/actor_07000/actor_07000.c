@@ -1464,7 +1464,7 @@ static void Actor07000_Fn00654(Task* arg0)
         }
         Actor07000_Fn027D0(arg0);
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Per-frame handler of the caged specimen, dispatched on the reaction stage in
@@ -1713,7 +1713,7 @@ contact_loop:
         work->field_1D2 = (u16)((u16)work->field_1D2 & 0x7FFF);
         Gp_ClearRec18Occupied(effectRec);
     }
-    SCRATCH_POP_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BYTES(0x4C);
 }
 
 /// Damage reaction of the caged specimen. `arg1` is taken off the context's
@@ -1817,7 +1817,7 @@ static void Actor07000_Fn0107C(Task* arg0)
     sc->rot.vy = work->field_2B0;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Teardown handler of the caged specimen, run once the task has moved to its
@@ -2198,7 +2198,7 @@ static void Actor07000_Fn01EB0(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_154[0]);
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
 s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
@@ -2484,7 +2484,7 @@ static void Actor07000_Fn02984(Task* task)
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
     Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Scales the rotation of `arg1`'s matrix by the specimen's scale factor
@@ -3202,7 +3202,7 @@ static void Actor07000_Fn03E08(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->field_24C);
     Gp_ClearRec18Occupied(work->field_2CC);
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Hit reaction of the specimen. `arg1` comes off the context's HP countdown
@@ -3775,7 +3775,7 @@ static __inline__ void update_color(GpEnemy* enemy, GfxCoord* coord)
     block->vy                    = coord->workm.t[1];
     block->vz                    = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 static __inline__ void rotate_parts(Task* arg0)
 {
@@ -3822,7 +3822,7 @@ static __inline__ void rotate_parts(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Per-frame handler of the specimen's second form while it drops into place,
@@ -3927,7 +3927,7 @@ static void Actor07000_Fn0595C(Task* arg0)
     }
     Gp_ClearRec18Occupied(&work->field_24C[0]);
     Gp_ClearRec18Occupied(&work->field_2CC);
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BYTES(0x38);
 }
 
 /// Message 0x7DB handler of the second form's table (`Actor07000_D0D7C0`,
@@ -4266,7 +4266,7 @@ static void Actor07000_Fn06390(Task* arg0)
             work->rotation.vx = (u16)work->rotation.vx - 0x20;
         }
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Per-frame reaction handler: folds the generic hit flags into the enemy's

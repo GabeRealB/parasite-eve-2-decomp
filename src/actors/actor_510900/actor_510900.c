@@ -1520,7 +1520,7 @@ void func_actor_510900_80132D4C(Task* arg0)
                 Gp_DrawEffSprite7C(&hit, mem->scale >> 1, col);
             }
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1963,7 +1963,7 @@ void func_actor_510900_80134284(Task* arg0)
             Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz0 + block->otz1) >> 1);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(Actor510900TrailScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900TrailScratch));
     eff->move.vy += 6;
     count         = eff->age + 1;
     eff->age      = count;

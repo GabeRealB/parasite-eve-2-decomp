@@ -779,7 +779,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// State handlers of the room's entry task, indexed by its state through

@@ -754,7 +754,7 @@ static void Actor04600_Fn005B0(Task* arg0)
         }
         Actor04600_Fn0272C(arg0);
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Live handler of the first enemy, dispatched on its stage `field_2C8`.
@@ -957,7 +957,7 @@ static void Actor04600_Fn00978(Task* arg0)
         work->obj1B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(effectRec);
     }
-    SCRATCH_POP_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BYTES(0x4C);
 }
 
 /// Damage reaction of the first enemy: `arg1` comes off its HP and goes
@@ -1052,7 +1052,7 @@ static void Actor04600_Fn00FD8(Task* arg0)
     sc->rot.vy = work->field_2B0;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Death-state handler of the first enemy, under the `Gp_StateF0.field_4` mode byte:
@@ -1413,7 +1413,7 @@ static void Actor04600_Fn01E0C(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->rec154[0]);
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
 /// Message handler of the first enemy. While the task is in state 1, modes 4
@@ -1706,7 +1706,7 @@ static void Actor04600_Fn028E0(Task* task)
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
     Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Scales the rotation of `arg1`'s matrix by the first enemy's scale factor
@@ -2062,7 +2062,7 @@ static void Actor04600_Fn030A8(Task* arg0)
             work->field_290 = 0;
         }
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Per-frame hit handler. Applies the `func_800E0C10` push-back from the four

@@ -1513,7 +1513,7 @@ static __inline__ void Actor405800_RebuildRotation(Task* arg0)
     dst->m[1][2] = m->m[1][2];
     dst->m[2][0] = m->m[2][0];
     dst->m[2][1] = m->m[2][1];
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
     dst->m[2][2] = m->m[2][2];
 }
 
@@ -1832,7 +1832,7 @@ static void func_actor_405800_801329C8(Task* task, s16 firstJoint, s16 secondJoi
             setRGB0(poly, shade, shade, shade);
             addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -5397,7 +5397,7 @@ static void func_actor_405800_80139FC4(Task* arg0)
     dst->m[1][2] = m->m[1][2];
     dst->m[2][0] = m->m[2][0];
     dst->m[2][1] = m->m[2][1];
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
     dst->m[2][2] = m->m[2][2];
 }
 

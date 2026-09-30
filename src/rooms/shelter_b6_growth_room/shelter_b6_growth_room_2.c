@@ -775,7 +775,7 @@ static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
@@ -904,5 +904,5 @@ static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }

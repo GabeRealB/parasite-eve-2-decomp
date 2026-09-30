@@ -1536,7 +1536,7 @@ static void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 static void func_actor_800100_801631C8(Task* arg0)
@@ -1681,7 +1681,7 @@ static void func_actor_800100_80163214(Task* arg0)
     scratch->vz = 0;
     Gp_BindActorD4(arg0, scratch, 0x1000);
     func_8010BF7C(arg0, 0x3C, 0x7F);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_800100_801635F4(Task* arg0)
@@ -1796,7 +1796,7 @@ static void func_actor_800100_801635F4(Task* arg0)
             Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, Gp_State1C->groundShadowShade);
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Texture-upload state of the actor: runs two independent sequences, each a
@@ -1865,7 +1865,7 @@ static void func_actor_800100_80163A58(Task* arg0)
         }
     }
 
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_800100_80163BF8(Task* arg0)
@@ -2579,7 +2579,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
 tail:
     func_8010BD88(arg0, &block->lock);
     func_8010BE5C(arg0, &block->lock);
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 static void func_actor_800100_80164E60(Task* arg0)
@@ -3630,7 +3630,7 @@ static void func_actor_800100_801668C0(GfxCoord* arg0)
     prim->y3 = sy;
 
     addPrim(&gGpuCurrentOt[blk->otz >> 4], prim);
-    SCRATCH_POP_BYTES(sizeof(Actor800100QuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor800100QuadScratch));
 }
 
 static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)

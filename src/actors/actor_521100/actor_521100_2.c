@@ -815,7 +815,7 @@ static void func_actor_521100_801368B0(Task* task)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 /// Starts the actor's scripted animation selected by the request.
 s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args)

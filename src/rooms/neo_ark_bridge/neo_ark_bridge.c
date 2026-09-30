@@ -766,7 +766,7 @@ void func_neo_ark_bridge_8017E28C(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 s32 func_neo_ark_bridge_8017E82C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

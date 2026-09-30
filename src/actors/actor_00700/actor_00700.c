@@ -1229,7 +1229,7 @@ case2:
     work->field_38E = 0;
     work->field_394 = 0;
 pop:
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor00700_Fn00F20(Task* arg0)
@@ -1445,7 +1445,7 @@ done:
     sc->rot.vy = work->field_388;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1)
@@ -2075,7 +2075,7 @@ static void Actor00700_Fn02414(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_154);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor00700_Fn0268C(Task* arg0)
@@ -2122,7 +2122,7 @@ static void Actor00700_Fn0268C(Task* arg0)
     coord2                = arg0->extra.tmd->coords;
     RotMatrix(sc, &coord2[3].coord);
     coord2[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void Actor00700_Fn02820(Task* arg0)
@@ -2194,7 +2194,7 @@ static void Actor00700_Fn02820(Task* arg0)
     sc->rot.vy = work->field_2DC;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor00700_Fn02A28(Task* arg0)
@@ -2391,7 +2391,7 @@ static void Actor00700_Fn0305C(Task* arg0)
     gte_stsxy(&sc->sxy);
     gte_stszotz(&sc->otz);
     if (sc->otz < 20) {
-        SCRATCH_POP_BYTES(0x28);
+        SCRATCH_STACK_RELEASE_BYTES(0x28);
         return;
     }
     if (work->field_2E0 == 1) {
@@ -2450,7 +2450,7 @@ static void Actor00700_Fn0305C(Task* arg0)
     prim->x3    = sc->v[3].vx;
     prim->y3    = sc->v[3].vy;
     addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 static void Actor00700_Fn034BC(Task* arg0)

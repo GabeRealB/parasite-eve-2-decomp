@@ -1649,7 +1649,7 @@ static s32 Actor00100_Fn00508(GfxCoord* coord, WorldCollisionContact* recs, s16 
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -1741,7 +1741,7 @@ static s32 Actor00100_Fn00BF8(Task* arg0)
     s->from.vy += gGfxViewCoord.workm.t[1];
     s->from.vz += gGfxViewCoord.workm.t[2];
     s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     return s->hit;
 }
 
@@ -2000,7 +2000,7 @@ static s32 Actor00100_Fn01388(GfxCoord* coord, WorldCollisionContact* recs, s16 
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor00100AvoidScratch16));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor00100AvoidScratch16));
     return s->blocked != 0;
 }
 
@@ -2081,7 +2081,7 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
             setRGB0(poly, shade, shade, shade);
             addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -2928,7 +2928,7 @@ static void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
     work->field_890.spawnArgHi = 2;
     work->field_8A0            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->field_8A0, &work->field_890);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void Actor00100_Fn0375C(Task* arg0)
@@ -5080,7 +5080,7 @@ static void Actor00100_Fn09724(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -5177,7 +5177,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
 
             break;
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 /// Per-state handlers the per-frame update calls, indexed by the work block's
@@ -5516,7 +5516,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
     enemy->bodyPos.vy = (s32)scratch->vy;
     enemy->bodyPos.vz = (s32)scratch->vz;
     enemy->coord      = &gGfxViewCoord;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// The task's handlers, indexed by `Task::state`: set-up, the per-frame state

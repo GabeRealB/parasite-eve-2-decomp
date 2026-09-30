@@ -1286,7 +1286,7 @@ static void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Garage room draw: sweeps the glowing strip the current visit

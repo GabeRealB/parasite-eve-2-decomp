@@ -198,7 +198,7 @@ static void func_p229_8011D464(GfxCoord* arg0, s16 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((OverlaySpriteScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(OverlaySpriteScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlaySpriteScratch));
 }
 
 /// Draws a gun's muzzle flash as one Gouraud quad: three corners on a 0x100
@@ -301,7 +301,7 @@ static void func_p229_8011D860(GfxCoord* arg0, s16 arg1, s16 arg2)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((WeaponQuadScratch*)(head - 0x24))->otz);
     }
-    SCRATCH_POP_BYTES(sizeof(WeaponQuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponQuadScratch));
 }
 
 /// Per-frame firing state machine for the P229. State 0 arms the shot and
@@ -409,5 +409,5 @@ static void func_p229_8011DDA0(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(0x50);
 }

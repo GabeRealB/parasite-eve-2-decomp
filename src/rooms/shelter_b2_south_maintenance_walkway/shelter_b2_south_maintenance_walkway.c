@@ -920,7 +920,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017DEC4(SVECTOR* arg0, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Projects `arg0` through `gGfxViewCoord.workm` and, when its OTZ is above 0x10,

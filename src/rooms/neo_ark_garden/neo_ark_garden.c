@@ -833,7 +833,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

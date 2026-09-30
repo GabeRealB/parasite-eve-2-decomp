@@ -995,7 +995,7 @@ static void func_actor_510900_80135744(Task* arg0)
         }
         Gp_ClearRec18Occupied(work->rec524);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// State 0 (animations 0xA/8/0x19): the idle-to-walk start. Sub-state 0 queues
@@ -1926,7 +1926,7 @@ static void func_actor_510900_80137868(Task* arg0)
             break;
     }
 
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_510900_80137E20(Task* arg0)
@@ -2380,7 +2380,7 @@ static void func_actor_510900_80138BF0(Task* arg0)
         scratch->local.vz = 0x200;
     }
     Gp_OrientAlong(&scratch->local, &head->coord, 0);
-    SCRATCH_POP_BYTES(sizeof(ActorAimScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorAimScratch));
 }
 
 /// Yaws the head coordinate (`coords[3]`) by the residual rotation in
@@ -2450,7 +2450,7 @@ static void func_actor_510900_80138D38(Task* arg0)
     if (active == 0) {
         work->field_584 = 0;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Rebuilds the three collision faces this actor occupies in the grid, at the
@@ -2513,7 +2513,7 @@ static void func_actor_510900_80138F44(Task* arg0)
         gte_stsv(&normals[i]);
     }
 
-    SCRATCH_POP_BYTES(sizeof(Actor510900GridScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900GridScratch));
 }
 
 /// Message 0x7D7 handler (entry in `D_actor_510900_80167A6C`). `arg2` picks
@@ -2652,7 +2652,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
     return 0;
 }
 
@@ -2740,7 +2740,7 @@ static void func_actor_510900_801395AC(GpEnemy* enemy, Task* task)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Spawn state of the child effect task: allocates its `Actor510900ChildFx`
@@ -2853,7 +2853,7 @@ static void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     work->obj78.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     arg1->state = 1;
-    SCRATCH_POP_BYTES(sizeof(Actor105600PlaceScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor105600PlaceScratch));
 }
 
 /// Per-frame handler of the effect child while it is alive: spins the object by
@@ -2969,7 +2969,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         task->state            = 2;
         work->field_CA         = 3;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor510900ChildFxTickScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900ChildFxTickScratch));
 }
 
 /// Frame handler of the effect child task: state 0 fades the object in over
@@ -3119,7 +3119,7 @@ static void func_actor_510900_8013A310(Task* task)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor510900HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900HitScratch));
 }
 
 /// Spawn handler of the child task: allocates the animation work block, seeds
@@ -3198,7 +3198,7 @@ static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     work->obj2F4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback  = func_actor_510900_8013C380;
     task->state         = 1;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Frame handler (state 1) of the child task. Mode 1 of `Gp_StateF0.field_4` only

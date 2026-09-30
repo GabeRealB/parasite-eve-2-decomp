@@ -1477,7 +1477,7 @@ static void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Draws a star-shaped glow at the world point `arg0`, projected through
@@ -1614,7 +1614,7 @@ static void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 void func_shelter_b6_nursery_80181314(Task* task)
@@ -1914,7 +1914,7 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
@@ -1975,7 +1975,7 @@ static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_shelter_b6_nursery_80182730(Task* task)

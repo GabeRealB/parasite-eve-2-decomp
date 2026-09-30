@@ -1592,7 +1592,7 @@ static void func_actor_402200_80132688(Task* arg0)
                             gte_stlvnl(&sc->out);
                             work->field_6A4 = Player_Status.coordMtx->t[0] + sc->out.vx;
                             work->field_6A8 = Player_Status.coordMtx->t[1];
-                            SCRATCH_POP_BYTES(sizeof(Actor402200BoxScratch));
+                            SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
                             work->field_6AC  = Player_Status.coordMtx->t[2] + sc->out.vz;
                             work->field_5BA |= 0x4000;
                             work->field_5DA |= 0x4000;
@@ -1608,7 +1608,7 @@ static void func_actor_402200_80132688(Task* arg0)
                             work->field_6CE = 0;
                             work->field_70E = 3;
                             work->field_708 = i;
-                            SCRATCH_POP_BYTES(sizeof(Actor402200BoxScratch));
+                            SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
                             return;
                         }
                         break;
@@ -1626,7 +1626,7 @@ static void func_actor_402200_80132688(Task* arg0)
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200BoxScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
 }
 
 /// State machine on `field_6CE`: 0 rolls a `field_6D4` wait, 1 counts it
@@ -1834,7 +1834,7 @@ static void func_actor_402200_80132E34(Task* arg0)
         work->field_6AC  = Player_Status.coordMtx->t[2] + sc->in.vz;
         work->field_5BA |= 0x4000;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
 }
 
 /// Runs the actor's hold sequence on the player (the same 0x3F8 / 0x3FF
@@ -2100,7 +2100,7 @@ static void func_actor_402200_8013314C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200GrabScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200GrabScratch));
 }
 
 /// Runs the actor's approach-and-strike sequence. State 0 aims the display
@@ -2291,7 +2291,7 @@ static void func_actor_402200_80133AEC(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
 }
 
 /// Runs the actor's approach sequence off the box it last hit. State 0 plants
@@ -2457,7 +2457,7 @@ static void func_actor_402200_80134194(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
 }
 
 /// Rolls the actor's cue countdown. State 0 puts the slot set on animation
@@ -2508,7 +2508,7 @@ static void func_actor_402200_801347F4(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Runs the actor's fade sequence off `field_6DA`. States 1 / 3 fade the
@@ -2754,7 +2754,7 @@ static void func_actor_402200_80134968(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Runs the actor's animation-reseed sequence. State 0 puts the slot set on
@@ -3210,7 +3210,7 @@ static void func_actor_402200_80135D5C(Task* arg0)
         }
         func_actor_402200_80136184(arg0);
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200AimScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200AimScratch));
 }
 
 /// Draws the red trail between the two points `func_actor_402200_80135D5C`
@@ -3414,7 +3414,7 @@ static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
     Gp_UpdateCoord(coord);
     actor402200UpdateTint(arg1);
     Actor402200_DrawShadow(arg1);
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
 /// Queues at ordering-table depth `otz` a pass over the frame buffer: two
@@ -4051,7 +4051,7 @@ static void func_actor_402200_80138208(GfxCoord* arg0, s32 arg1)
     }
     block->otz = (block->otz >> 4) + arg1;
     func_actor_402200_80136D9C(block->otz);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 /// Runs the enemy task's current state handler from
 /// `D_actor_402200_80131F18`, copying the table onto the stack first.

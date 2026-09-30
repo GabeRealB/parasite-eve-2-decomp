@@ -949,7 +949,7 @@ static void func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoi
             setRGB0(poly, shade, shade, shade);
             addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        SCRATCH_POP_BYTES(sizeof(ActorsShared80163354Scratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorsShared80163354Scratch));
     }
 }
 
@@ -1280,7 +1280,7 @@ static __inline__ void update_color(void* enemy, GfxCoord* coord)
     SCRATCH_STACK_CURSOR(VECTOR) = block;
     block->vz                    = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Message 0x2C00 (see `field_44C`) consumes the message and restarts the
@@ -1346,7 +1346,7 @@ static __inline__ void update_rotation(Task* arg0)
     dst->m[1][2] = m->m[1][2];
     dst->m[2][0] = m->m[2][0];
     dst->m[2][1] = m->m[2][1];
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
     dst->m[2][2] = m->m[2][2];
 }
 
@@ -2028,7 +2028,7 @@ static void func_actor_342400_801653DC(Task* arg0, s16 arg1)
         coord->coord.t[2]  += actorPickStep(stepZ, maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Runs the animation request in `field_414` on animation slots 1..8: kind 1

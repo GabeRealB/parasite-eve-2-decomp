@@ -1501,7 +1501,7 @@ s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
         arg1->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
 
@@ -1541,7 +1541,7 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
             ret = 1;
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
 

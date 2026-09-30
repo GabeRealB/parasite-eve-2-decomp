@@ -1172,7 +1172,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             prim->y2  = (u16)block->sxy.vy + (u16)block->dy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            SCRATCH_POP_BYTES(0x18);
+            SCRATCH_STACK_RELEASE_BYTES(0x18);
             if (coord->coord.t[2] > 0xB00) {
                 coord->coord.t[2] += work->move.vz;
             } else {

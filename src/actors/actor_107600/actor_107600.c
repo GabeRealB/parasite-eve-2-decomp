@@ -805,7 +805,7 @@ static void func_actor_107600_80131F10(Task* arg0)
         if ((arg0->spawnArg1.value & 0xF000) != 0x2000) {
             ((MistShootingGalleryWork*)arg0->parent->work)->field_0E--;
         }
-        SCRATCH_POP_BYTES(0x10);
+        SCRATCH_STACK_RELEASE_BYTES(0x10);
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
@@ -1204,7 +1204,7 @@ static void func_actor_107600_80132B7C(Task* arg0)
     RotMatrixX((s16)work->pitch, m);
     RotMatrixY((s16)work->yaw, m);
     func_actor_107600_80132C4C(m, &coord->coord);
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Copies the 3x3 rotation of the scratch matrix `func_actor_107600_80132B7C`
@@ -1424,7 +1424,7 @@ static void func_actor_107600_80133024(Task* arg0)
             func_actor_107600_80134248(coord, v);
         }
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Sub-state machine in `field_15A`: once `Task::spawnArg1` bit 0x10 is set,
@@ -1816,7 +1816,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->rec18);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Corner offsets of the quad `func_actor_107600_80133FA8` draws.
@@ -1860,7 +1860,7 @@ static void func_actor_107600_80133FA8(GfxCoord* coord, SVECTOR* pos)
     gte_stszotz(&s->otz);
     s->otz -= 0xA0;
     if (s->otz < 0x40) {
-        SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
         return;
     }
     p->x0 = s->sxy[0];
@@ -1872,7 +1872,7 @@ static void func_actor_107600_80133FA8(GfxCoord* coord, SVECTOR* pos)
     p->x3 = s->sxy[3];
     p->y3 = s->sxy[3] >> 16;
     addPrim(&gGpuCurrentOt[s->otz >> 4], p);
-    SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
 }
 
 /// Corner offsets of the quad `func_actor_107600_80134248` draws; the
@@ -1919,7 +1919,7 @@ static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
     gte_stszotz(&s->otz);
     s->otz -= 0x40;
     if (s->otz < 0x40) {
-        SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
         return;
     }
     p->x0 = s->sxy[0];
@@ -1931,7 +1931,7 @@ static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
     p->x3 = s->sxy[3];
     p->y3 = s->sxy[3] >> 16;
     addPrim(&gGpuCurrentOt[s->otz >> 4], p);
-    SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
 }
 
 /// Mode 1 collapses each column of `m` to one weighted value plus a
@@ -2120,7 +2120,7 @@ static void func_actor_107600_80134A50(Task* arg0)
     Gfx_RotMatrixX(m, (s16)work->field_50, 0);
     Gfx_RotMatrixY(m, (s16)work->field_52, 0);
     func_actor_107600_80134B2C(m, &coord->coord);
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row

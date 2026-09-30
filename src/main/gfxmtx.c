@@ -294,7 +294,7 @@ void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
     vector->vy = ratan2(block->rotation.m[0][2], block->rotation.m[2][2]);
     vector->vz = ratan2(block->rotation.m[1][0], block->rotation.m[1][1]);
 
-    SCRATCH_POP_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
+    SCRATCH_STACK_RELEASE_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
 }
 
 static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1)

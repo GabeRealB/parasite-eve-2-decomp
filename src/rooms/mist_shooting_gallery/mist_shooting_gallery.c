@@ -2837,7 +2837,7 @@ static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through

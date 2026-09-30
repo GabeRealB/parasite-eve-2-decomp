@@ -646,7 +646,7 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
     }
 
 done:
-    SCRATCH_POP_BYTES(0x88);
+    SCRATCH_STACK_RELEASE_BYTES(0x88);
 }
 
 void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
@@ -820,7 +820,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     }
 
 done:
-    SCRATCH_POP_BYTES(0x88);
+    SCRATCH_STACK_RELEASE_BYTES(0x88);
 }
 
 s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3)
@@ -860,12 +860,12 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     denom = (block->normal.vx * ray[0].vx + block->normal.vy * ray[0].vy + block->normal.vz * ray[0].vz) >> 12;
 
     if (denom >= 0) {
-        SCRATCH_POP_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BYTES(0x70);
         return 0;
     }
     if ((((block->normal.vx * seg[1].vx + block->normal.vy * seg[1].vy + block->normal.vz * seg[1].vz) >> 12) -
          faceDot) <= 0) {
-        SCRATCH_POP_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BYTES(0x70);
         return 0;
     }
     t = -(((((block->normal.vx * seg[0].vx + block->normal.vy * seg[0].vy + block->normal.vz * seg[0].vz) >> 12) -
@@ -873,7 +873,7 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
            << 12)) /
         denom;
     if (t >= 0) {
-        SCRATCH_POP_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BYTES(0x70);
         return 0;
     }
 
@@ -914,10 +914,10 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
             limit = 10;
         }
         if ((s16)val - limit > 0) {
-            SCRATCH_POP_BYTES(0x70);
+            SCRATCH_STACK_RELEASE_BYTES(0x70);
             return 0;
         }
     }
-    SCRATCH_POP_BYTES(0x70);
+    SCRATCH_STACK_RELEASE_BYTES(0x70);
     return 1;
 }

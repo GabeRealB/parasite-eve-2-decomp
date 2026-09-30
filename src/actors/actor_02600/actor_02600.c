@@ -1720,7 +1720,7 @@ done:
     sc->rot.vy = work->field_3A2;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Switches the work's animation id, resetting the slots to the blend value the

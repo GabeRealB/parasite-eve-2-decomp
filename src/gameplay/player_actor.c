@@ -3351,7 +3351,7 @@ static void func_800FCD00(Task* arg0)
         }
     }
 
-    SCRATCH_POP_BYTES(0x78);
+    SCRATCH_STACK_RELEASE_BYTES(0x78);
 }
 
 void Gp_EffSprTaskA7(Task* arg0)
@@ -3815,7 +3815,7 @@ void Gp_EffSprTask80(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x18);
+        SCRATCH_STACK_RELEASE_BYTES(0x18);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -4223,7 +4223,7 @@ void Gp_EffSprTaskE0(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -4326,7 +4326,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_STACK_RELEASE_BYTES(0x1C);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -4454,7 +4454,7 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Puts `obj`, one of the player's bodies, on the object list: a sphere of
@@ -4701,7 +4701,7 @@ static void func_8010133C(void)
         s->field_8 = 0x37A78;
         s->field_E = 8;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Gp_PlayerWorkState2(Task* arg0)
@@ -5758,7 +5758,7 @@ static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3
     vec->vz                      = 0;
     ApplyMatrixLV(&arg0->coord, vec, vec);
     arg3->vx = arg2->vx - (arg0->coord.t[0] + ((VECTOR*)(head - 0x10))->vx);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     arg3->vy = arg2->vy - (arg0->coord.t[1] + vec->vy);
     arg3->vz = arg2->vz - (arg0->coord.t[2] + vec->vz);
 }
@@ -5793,7 +5793,7 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
     vx                            = vx * vx;
     SCRATCH_STACK_CURSOR(VECTOR3) = vec;
     vx                            = SquareRoot0(vx + absz);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     return vx;
 }
 
@@ -6408,7 +6408,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
         mode = 5;
     }
     Gp_AnimPlayChildSlots(arg0, mode, 0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
     return 0;
 }
 
@@ -8030,7 +8030,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
 void Gp_PlayerMode2State4(Task* arg0)
@@ -9107,7 +9107,7 @@ static void func_80109844(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_80109A1C(Task* arg0)

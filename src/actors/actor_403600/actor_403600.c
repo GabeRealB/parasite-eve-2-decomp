@@ -1281,7 +1281,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
         addPrim(gGpuCurrentOt - 1, draw_mode);
     }
     func_actor_403600_801320F8(0);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Rotates `in` by `m` into `out`.
@@ -1479,7 +1479,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 i++;
             } while (i < 2);
         }
-        SCRATCH_POP_BYTES(sizeof(Actor403600ChainScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600ChainScratch));
     }
 }
 
@@ -2221,7 +2221,7 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
         j++;
     } while (j < 12);
     func_actor_403600_801320F8(scratch->maxOtz + 1);
-    SCRATCH_POP_BYTES(0x78);
+    SCRATCH_STACK_RELEASE_BYTES(0x78);
 }
 
 static const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
@@ -3193,7 +3193,7 @@ static u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* s
         ws->primWrite = (u8*)poly;
         gte_SetTransVector(&sc->trans);
         gte_SetRotMatrix(&sc->savedRot);
-        SCRATCH_POP_BYTES(sizeof(_Actor403600TriScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600TriScratch));
         return stream;
     }
     return tmdDrawStreamGt3(ws, flags, stream);
@@ -3285,7 +3285,7 @@ static u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* s
         ws->primWrite = (u8*)poly;
         gte_SetTransVector(&sc->trans);
         gte_SetRotMatrix(&sc->savedRot);
-        SCRATCH_POP_BYTES(sizeof(_Actor403600QuadScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600QuadScratch));
         return stream;
     }
     return tmdDrawStreamGt4(ws, flags, stream);
@@ -3353,7 +3353,7 @@ static u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* s
         }
         gte_SetTransVector(&sc->trans);
         gte_SetRotMatrix(&sc->savedRot);
-        SCRATCH_POP_BYTES(sizeof(_Actor403600TriScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600TriScratch));
         return stream;
     }
     return tmdXformStreamVerts(ws, flags, stream);

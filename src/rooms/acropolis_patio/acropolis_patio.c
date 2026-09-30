@@ -2068,7 +2068,7 @@ void func_acropolis_patio_8017E324(Task* task)
             prim->y2         = xy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
-        SCRATCH_POP_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
 }
 
@@ -2182,6 +2182,6 @@ void func_acropolis_patio_8017E730(Task* task)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 0, sc->otz);
         }
-        SCRATCH_POP_BYTES(0xC);
+        SCRATCH_STACK_RELEASE_BYTES(0xC);
     }
 }

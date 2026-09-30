@@ -2601,7 +2601,7 @@ static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x24);
+    SCRATCH_STACK_RELEASE_BYTES(0x24);
 }
 
 /// Draws a tapered beam between two points of `coord`'s local space. `arg1`
@@ -2732,5 +2732,5 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }

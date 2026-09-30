@@ -831,5 +831,5 @@ static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

@@ -176,7 +176,7 @@ static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)
     v->vy = blk->vec.vy;
     v->vz = blk->vec.vz;
 
-    SCRATCH_POP_BYTES(sizeof(OverlayWalkScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayWalkScratch));
 }
 
 /// Carries `v` into world space, reserving the scratch block after copying
@@ -208,7 +208,7 @@ static __inline__ void overlayToWorld2(GfxCoord* coord, SVECTOR* v)
     v->vy = blk->vec.vy;
     v->vz = blk->vec.vz;
 
-    SCRATCH_POP_BYTES(sizeof(OverlayWalkScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayWalkScratch));
 }
 
 /// The scratch-pad block of an in-radius test on the XZ plane: the two

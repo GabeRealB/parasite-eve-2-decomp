@@ -1703,7 +1703,7 @@ static s32 func_actor_401300_80132FF4(Task* arg0)
     s->from.vy += gGfxViewCoord.workm.t[1];
     s->from.vz += gGfxViewCoord.workm.t[2];
     s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     return s->hit;
 }
 
@@ -1994,7 +1994,7 @@ static void func_actor_401300_80133834(Task* arg0, s16 arg1)
              ((D_actor_401300_80158A08[0].vz - D_actor_401300_80158A08[1].vz) * (0x200 - arg1)) / 512;
     RotMatrix_gte(sc, &arg0->extra.tmd->coords[8].coord);
     arg0->extra.tmd->coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
     arg0->extra.tmd->coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -2588,7 +2588,7 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
     work->field_910.spawnArgLo = 0x300;
     work->field_910.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &work->field_910);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_401300_80134F90(Task* arg0)
@@ -4680,7 +4680,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
     if (work->field_6C & 0x100) {
         work->field_0 = 6;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_401300_8013D6C4(Task* arg0)
@@ -4755,7 +4755,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
     if (work->field_6C & 0x100) {
         work->field_0 = 6;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// `actorRescaleYaw` at 0x1964 on the actor's root coordinate, with
@@ -5866,7 +5866,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
     work->field_D28[work->field_D78].vy = scratch->pos.vy;
     work->field_D28[work->field_D78].vz = scratch->pos.vz;
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     work->field_D78 = (u16)work->field_D78 + 1;
     if (work->field_D78 == 7) {
         work->field_D78 = 0;

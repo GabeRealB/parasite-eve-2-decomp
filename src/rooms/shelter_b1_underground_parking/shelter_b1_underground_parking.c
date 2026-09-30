@@ -3299,7 +3299,7 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Projects the world-space point `worldPoint` through `gGfxViewCoord.workm` and, if
@@ -3391,7 +3391,7 @@ static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }
 
 static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color)
@@ -3541,7 +3541,7 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -3679,7 +3679,7 @@ static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 static void func_shelter_b1_underground_parking_80186890(s16 arg0)

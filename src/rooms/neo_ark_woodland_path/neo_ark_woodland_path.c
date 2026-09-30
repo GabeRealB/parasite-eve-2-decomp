@@ -1470,7 +1470,7 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

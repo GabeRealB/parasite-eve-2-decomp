@@ -144,7 +144,7 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     work                          = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec                           = blk;
     if (work == NULL) {
-        SCRATCH_POP_BYTES(8);
+        SCRATCH_STACK_RELEASE_BYTES(8);
         taskKill(arg0);
         return;
     }
@@ -210,7 +210,7 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.recs, 1, 0);
     work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Flight state of the projectile. Detonates when the shot
@@ -270,7 +270,7 @@ static void func_grenade_pistol_8011D6FC(Task* arg0)
         }
         work->field_88.w = clip;
         work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        SCRATCH_POP_BYTES(sizeof(WeaponGrenadeScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
         work->obj.radius = D_grenade_pistol_8012B430[blk->sfx - 0xA];
         return;
     }
@@ -333,7 +333,7 @@ move:
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
-    SCRATCH_POP_BYTES(sizeof(WeaponGrenadeScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
 }
 
 /// Flight state: steps the `field_88` flight timer down and moves the task to

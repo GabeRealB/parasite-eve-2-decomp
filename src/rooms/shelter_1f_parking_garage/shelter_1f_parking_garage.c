@@ -907,7 +907,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws a round glow at the world point `worldPoint`: projected through
@@ -998,7 +998,7 @@ static void func_shelter_1f_parking_garage_8017E868(SVECTOR* worldPoint, s32 rad
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
 }
 
 #include "../../shared/room_visual_effects.inc.c"

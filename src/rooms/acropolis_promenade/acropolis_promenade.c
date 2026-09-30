@@ -2120,7 +2120,7 @@ void func_acropolis_promenade_8017E634(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     Gp_ReleaseState1CMem(work, task);
 }
 
@@ -2211,7 +2211,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x24);
+    SCRATCH_STACK_RELEASE_BYTES(0x24);
     Gp_ReleaseState1CMem(work, task);
 }
 
@@ -2447,5 +2447,5 @@ static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }

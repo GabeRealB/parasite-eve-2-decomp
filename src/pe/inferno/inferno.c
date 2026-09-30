@@ -463,7 +463,7 @@ static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x70);
+    SCRATCH_STACK_RELEASE_BYTES(0x70);
 }
 
 /// Draws one ring of the inferno's ground fan. `kind` picks the row of
@@ -562,5 +562,5 @@ static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x70);
+    SCRATCH_STACK_RELEASE_BYTES(0x70);
 }

@@ -1246,7 +1246,7 @@ static __inline__ void Actor02300_SpawnDust(Task* actor)
         rot->vy         = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF);
         Gp_SpawnEff(0x600E0, &actor->extra.tmd->coords[3], 0x100, rot);
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
@@ -1557,7 +1557,7 @@ static void Actor02300_Fn00084(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_4B4);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 /// Approach-cycle state (entry 1 of `Actor02300_D15D38`). State 0 drains the
@@ -1644,7 +1644,7 @@ void Actor02300_Fn00AEC(Task* arg0)
         Gp_ArmStateF0(1);
     }
 
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Proximity check of the approach states. Measures the player's horizontal
@@ -1694,7 +1694,7 @@ static void Actor02300_Fn00CD0(Task* arg0)
             work->field_6A8 = 1;
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Entry 0xB of the `field_6A6` state table `Actor02300_D15D38`. State 0 picks
@@ -2043,7 +2043,7 @@ done:
     rot->vy = work->field_6A2;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Applies the decaying hit tilt `field_688` to part 3 of the model: the tilt's
@@ -2100,7 +2100,7 @@ static void Actor02300_Fn01698(Task* arg0)
     if (active == 0) {
         work->field_6B4 = 0;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Animation sound cues. While the enemy has a voice row (`field_6D6`), reads the
@@ -2250,7 +2250,7 @@ static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Per-frame tick for the enemy's charge, sharing `field_6A8` with the rest of
@@ -2559,7 +2559,7 @@ void Actor02300_Fn02518(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Spawn/setup state for this enemy. Allocates the 0x6E4 work block, wires the
@@ -3042,7 +3042,7 @@ void Actor02300_Fn0327C(Task* actor)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Tests the segment from `arg0` to `arg1` against the collision faces on the

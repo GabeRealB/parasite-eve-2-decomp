@@ -743,7 +743,7 @@ static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_pyrokinesis_80130C54(Task* arg0)
@@ -852,7 +852,7 @@ static void func_pyrokinesis_80130DC0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 void func_pyrokinesis_801311B8(Task* arg0)

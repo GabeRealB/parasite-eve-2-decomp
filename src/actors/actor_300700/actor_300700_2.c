@@ -834,7 +834,7 @@ case2:
     work->field_38E = 0;
     work->field_394 = 0;
 pop:
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Three-state launcher. State 0 arms the timer from `Gp_LcgState` and stores
@@ -1043,7 +1043,7 @@ done:
     sc->rot.vy = work->field_388;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1)

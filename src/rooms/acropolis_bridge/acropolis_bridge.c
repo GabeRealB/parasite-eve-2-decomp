@@ -4372,7 +4372,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     Gp_ReleaseState1CMem(work, task);
 }
 
@@ -5184,7 +5184,7 @@ static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 /// Reports whether the walker has reached the patrol node at `work->node`. It
@@ -5209,10 +5209,10 @@ static s16 func_acropolis_bridge_80184024(OverlayWalker* work)
 
     if (!overlayWalkerOutOfRange(d, work->field_5C * 4) ||
         !overlayWalkerOutOfRange(d, 300)) {
-        SCRATCH_POP_BYTES(0x8);
+        SCRATCH_STACK_RELEASE_BYTES(0x8);
         return 1;
     }
-    SCRATCH_POP_BYTES(0x8);
+    SCRATCH_STACK_RELEASE_BYTES(0x8);
     return 0;
 }
 
@@ -5287,7 +5287,7 @@ static u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
             block->nearest = block->node;
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     return block->nearest;
 }
 
@@ -5316,7 +5316,7 @@ static u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
             block->nearest = block->node;
         }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
     return block->nearest;
 }
 
@@ -5389,7 +5389,7 @@ static void func_acropolis_bridge_80184638(OverlayWalker* work, s16 actor)
         printf(D_acropolis_bridge_8017D6CC);
     }
     work->cursor += (u8)work->field_73;
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Steps the walker toward its current patrol node. `func_800E0C10` produces
@@ -5475,7 +5475,7 @@ static void func_acropolis_bridge_80184908(OverlayWalker* work)
     } else {
         work->moving = 0;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Pushes the walker away from the obstacles in its collision record table.
@@ -5631,7 +5631,7 @@ static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
     Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Runs the walker's per-frame step inside the 0x28-byte scratch frame
@@ -5691,7 +5691,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             if (func_acropolis_bridge_80184024(walker) != 0) {
                 walker->cursor += (u8)walker->field_73;
                 walker->node    = walker->nav->field_4[walker->cursor];
-                SCRATCH_POP_BYTES(4);
+                SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
         case 3:
@@ -5742,7 +5742,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             walker->moveStep    = *(SVECTOR*)(head2 - 8);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP_BYTES(8);
+        SCRATCH_STACK_RELEASE_BYTES(8);
     }
     if (walker->field_6C == 0) {
         func_acropolis_bridge_80184908(walker);
@@ -5762,7 +5762,7 @@ static void func_acropolis_bridge_8018532C(OverlayWalker* walker)
     block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
     walkerStep(walker, head, block);
     walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// Handles the room's 0x7DB broadcast for the bridge enemy. Message 0x0B01/1
@@ -6139,7 +6139,7 @@ static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* wo
         ((VECTOR*)(head - 0x10))->vx = amount;
         ScaleMatrix(&work->walker.scaleMtx, scale);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// The same matrix reset as `bridge_reset_scale_mtx_entry`, in the statement
@@ -6177,7 +6177,7 @@ static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* w
         ((VECTOR*)(head - 0x10))->vx = amount;
         ScaleMatrix(&work->walker.scaleMtx, scale);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Runs the bridge enemy's approach state. On the first frame (work block still
@@ -6276,7 +6276,7 @@ static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
         ((VECTOR*)(head - 0x10))->vx = amount;
         ScaleMatrix(&work->walker.scaleMtx, scale);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Reports whether the bridge enemy's hit box has recorded a contact: its
@@ -7013,7 +7013,7 @@ hitTaken:
             work->field_0 = 0;
         }
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
 
 /// Applies a visibility request to the bridge task's model flags: no request

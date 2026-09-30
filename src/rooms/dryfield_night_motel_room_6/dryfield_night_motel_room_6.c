@@ -1416,7 +1416,7 @@ static void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -1554,7 +1554,7 @@ static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 /// Draws the room's highlight for the current camera view: the diamond marker

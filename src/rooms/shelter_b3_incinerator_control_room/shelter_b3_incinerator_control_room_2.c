@@ -520,7 +520,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -615,7 +615,7 @@ static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
@@ -753,5 +753,5 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }

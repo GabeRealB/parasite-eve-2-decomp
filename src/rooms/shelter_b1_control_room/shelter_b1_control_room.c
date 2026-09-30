@@ -581,7 +581,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     } else {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    SCRATCH_POP_BYTES(0x8C);
+    SCRATCH_STACK_RELEASE_BYTES(0x8C);
 }
 
 s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

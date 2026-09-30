@@ -1260,10 +1260,10 @@ static s16 func_actor_110600_80132470(OverlayWalker* walker)
 
     if (!overlayWalkerOutOfRange(d, walker->field_5C * 4) ||
         !overlayWalkerOutOfRange(d, 300)) {
-        SCRATCH_POP_BYTES(0x8);
+        SCRATCH_STACK_RELEASE_BYTES(0x8);
         return 1;
     }
-    SCRATCH_POP_BYTES(0x8);
+    SCRATCH_STACK_RELEASE_BYTES(0x8);
     return 0;
 }
 
@@ -1332,7 +1332,7 @@ static u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
             block->nearest = block->node;
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     return block->nearest;
 }
 
@@ -1361,7 +1361,7 @@ static u8 func_actor_110600_80132958(OverlayWalker* work)
             block->nearest = block->node;
         }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
     return block->nearest;
 }
 
@@ -1434,7 +1434,7 @@ static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
         printf(D_actor_110600_80131E24);
     }
     work->cursor += (u8)work->field_73;
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 static void func_actor_110600_80132D54(OverlayWalker* work)
@@ -1513,7 +1513,7 @@ static void func_actor_110600_80132D54(OverlayWalker* work)
     } else {
         work->moving = 0;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void func_actor_110600_80132FE0(OverlayWalker* work)
@@ -1662,7 +1662,7 @@ static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
     Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
@@ -1706,7 +1706,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
         work->route->nodes[blk->i] = blk->i;
     }
     work->route->nodes[blk->i] = 0xFF;
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
 /// The walker's per-tick body, open on the scratch frame `func_actor_110600_80133A94`
@@ -1763,7 +1763,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
             if (func_actor_110600_80132470(walker) != 0) {
                 walker->cursor += (u8)walker->field_73;
                 walker->node    = walker->nav->field_4[walker->cursor];
-                SCRATCH_POP_BYTES(4);
+                SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
         case 3:
@@ -1812,7 +1812,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
             walker->moveStep    = *(SVECTOR*)(head2 - 8);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP_BYTES(8);
+        SCRATCH_STACK_RELEASE_BYTES(8);
     }
     if (walker->field_6C == 0) {
         func_actor_110600_80132D54(walker);
@@ -1838,7 +1838,7 @@ static void func_actor_110600_80133A94(OverlayWalker* walker)
     block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
     Actor110600_WalkerStep(walker, head, block);
     walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
@@ -1881,7 +1881,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
     coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2]                  = m22;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_STACK_RELEASE_BYTES(0x34);
 }
 
 /// Placement opcode: drops the model's root coordinate onto `placement` (the
@@ -2980,7 +2980,7 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     D_actor_110600_80148698.spawnArgLo = 0x100;
     D_actor_110600_80148698.spawnArgHi = 3;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &D_actor_110600_80148698);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static __inline__ s32 Actor110600_FindHit(SVECTOR* point, WorldCollisionContact* recs, s16 count)
@@ -3134,7 +3134,7 @@ static void func_actor_110600_80136210(Task* arg0)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 /// Timer stage that walks between the two long `field_892` values. Entering on
@@ -3563,7 +3563,7 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
     m22                  = (u16)blk->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_STACK_RELEASE_BYTES(0x34);
 }
 
 static void func_actor_110600_801372CC(Task* arg0)

@@ -480,7 +480,7 @@ static void Actor02000_Fn00078(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_4B4);
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
 
 s16 Actor02000_D03784[32] = {
@@ -1558,7 +1558,7 @@ void Actor02000_Fn00AEC(Task* arg0)
         Gp_ArmStateF0(1);
     }
 
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor02000_Fn00CD0(Task* arg0)
@@ -1603,7 +1603,7 @@ static void Actor02000_Fn00CD0(Task* arg0)
             work->field_6A8 = 1;
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 void Actor02000_Fn00E0C(Task* arg0)
@@ -1929,7 +1929,7 @@ done:
     rot->vy = work->field_6A2;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Turns the model's fourth coordinate by the angles in `field_688`, then
@@ -1985,7 +1985,7 @@ static void Actor02000_Fn01698(Task* arg0)
     if (active == 0) {
         work->field_6B4 = 0;
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 static void Actor02000_Fn018A4(Task* arg0)
@@ -2126,7 +2126,7 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     pos.vy = rootB->workm.t[1];
     pos.vz = partA->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
     return;
 }
 
@@ -2787,7 +2787,7 @@ void Actor02000_Fn02D5C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)

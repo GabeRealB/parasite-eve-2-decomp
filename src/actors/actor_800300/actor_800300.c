@@ -1762,7 +1762,7 @@ static void func_actor_800300_80162064(Task* arg0)
             Gp_DrawEffGroundQuad((VECTOR3*)sc, 0x200, Gp_State1C->groundShadowShade);
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void func_actor_800300_801623F8(Task* arg0)
@@ -1824,7 +1824,7 @@ static void func_actor_800300_801623F8(Task* arg0)
         }
     }
 
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_800300_8016259C(Task* arg0)
@@ -2091,7 +2091,7 @@ static void func_actor_800300_80162A98(Task* arg0)
     }
     func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
     func_80105ED4(arg0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_800300_80162C2C(Task* arg0)
@@ -2181,7 +2181,7 @@ static void func_actor_800300_80162D74(Task* arg0)
     func_8010BD88(arg0, vec);
     func_8010BE5C(arg0, vec);
     func_80105ED4(arg0);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_800300_80162EEC(Task* arg0)

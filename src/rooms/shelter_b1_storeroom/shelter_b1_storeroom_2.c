@@ -832,7 +832,7 @@ static void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a flickering gouraud disc of four `POLY_G4` wedges at `arg0`,

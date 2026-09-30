@@ -3256,7 +3256,7 @@ static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
     }
     work->field_480++;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 /// Runs the enemy's current state handler, copying the table onto the stack

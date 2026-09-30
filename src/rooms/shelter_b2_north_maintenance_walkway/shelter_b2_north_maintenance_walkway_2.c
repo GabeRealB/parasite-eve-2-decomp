@@ -335,7 +335,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Projects `arg0` through `gGfxViewCoord.workm` and, when its OTZ is above 0x10,
@@ -543,7 +543,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

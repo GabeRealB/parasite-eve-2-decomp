@@ -1443,7 +1443,7 @@ static void Actor03800_Fn0166C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor03800_Fn01948(Task* arg0)
@@ -1814,7 +1814,7 @@ static void Actor03800_Fn021E4(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 /// State 12 of `Actor03800_Fn032D8`: pick and hold a turn direction while the
@@ -1945,7 +1945,7 @@ done:
     rot->vy = work->field_362;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void Actor03800_Fn02848(Task* arg0)

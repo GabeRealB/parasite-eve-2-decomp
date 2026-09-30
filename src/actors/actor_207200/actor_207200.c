@@ -422,7 +422,7 @@ static void func_actor_207200_8014A1C4(Task* arg0)
             work->field_290 = 0;
         }
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Per-frame hit handler. Applies the `func_800E0C10` push-back from the four

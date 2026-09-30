@@ -1209,7 +1209,7 @@ static s32 Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -3667,7 +3667,7 @@ static void Actor01100_Fn05E68(Task* task)
     obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     task->exitCallback = Actor01100_Fn073A8;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
     task->state += 1;
     Actor01100_Fn06198(task);
 }
@@ -3810,7 +3810,7 @@ void Actor01100_Fn06554(Task* task)
 
     scratch[0x64] = 0;
     sp.funcs[task->state](enemy, task, work, scratch);
-    SCRATCH_POP_BYTES(0x68);
+    SCRATCH_STACK_RELEASE_BYTES(0x68);
 }
 
 /// State handlers of the secondary task this entry spawns: set-up

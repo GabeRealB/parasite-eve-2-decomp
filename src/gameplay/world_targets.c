@@ -700,7 +700,7 @@ void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
     gte_ldlvl(&GP_NODE_ENEMY(arg0)->bodyPos);
     gte_rtirtr();
     gte_stlvl(out);
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
 static void Gp_ClearLockSlots(void)

@@ -2612,7 +2612,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* c
         if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
             s->moved = 1;
         }
-        SCRATCH_POP_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
 }
 

@@ -795,7 +795,7 @@ static void func_actor_207200_8014B628(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// Helper-slot state 1 of the enemy, stepped by `field_49A`. Stage 0 waits out
@@ -1704,7 +1704,7 @@ static void func_actor_207200_8014D77C(Task* task)
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
     Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Rebuilds the first coordinate node of the actor's model from the transform

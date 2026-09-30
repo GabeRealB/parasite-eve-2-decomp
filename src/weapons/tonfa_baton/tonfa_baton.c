@@ -238,7 +238,7 @@ static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(TonfaBeamScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(TonfaBeamScratch));
 }
 
 static void func_tonfa_baton_8011DA48(Task* task)
@@ -463,5 +463,5 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
     coord->coord.t[0] += swing->vx;
     coord->coord.t[1] += swing->vy;
     coord->coord.t[2] += swing->vz;
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

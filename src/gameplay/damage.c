@@ -378,7 +378,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
     return rand < chance;
 }
 

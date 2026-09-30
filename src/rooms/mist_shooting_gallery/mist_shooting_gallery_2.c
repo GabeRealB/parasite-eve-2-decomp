@@ -2163,7 +2163,7 @@ static void func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws one frame of the gallery's tracer beam: a semi-transparent
@@ -2237,7 +2237,7 @@ static void func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, 
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
 static void func_mist_shooting_gallery_80182B1C(Task* arg0)

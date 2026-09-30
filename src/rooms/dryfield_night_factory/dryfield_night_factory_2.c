@@ -1977,7 +1977,7 @@ static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
 /// Per-frame effect: refreshes the task's composed matrix, then draws

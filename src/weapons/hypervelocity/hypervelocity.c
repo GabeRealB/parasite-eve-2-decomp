@@ -672,7 +672,7 @@ static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 
         prim->y2  = block->sy + (u16)block->dy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GpFxQuadScratch));
 }
 
 /// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
@@ -1019,7 +1019,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
             RotMatrixX(coord->param.rot.vx, &coord->coord);
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_hypervelocity_8011F570(Task* arg0)
@@ -1184,5 +1184,5 @@ static void func_hypervelocity_8011F724(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

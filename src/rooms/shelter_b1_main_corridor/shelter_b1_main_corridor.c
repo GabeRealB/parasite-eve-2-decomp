@@ -1236,7 +1236,7 @@ static void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Draws one semi-transparent textured sprite centred on the view-space point

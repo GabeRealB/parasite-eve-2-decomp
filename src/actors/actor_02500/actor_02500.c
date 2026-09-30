@@ -898,7 +898,7 @@ static void Actor02500_Fn00494(Task* actor)
         Gp_ArmStateF0(1);
     }
     Gp_ClearRec18Occupied(work->field_18C);
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
 static void Actor02500_Fn00B18(Task* actor)
@@ -981,7 +981,7 @@ static void Actor02500_Fn00B18(Task* actor)
             break;
     }
     work->field_328 = (s16)Actor02500_D05B48[((GpEnemy*)actor->spawnArg2.pointer)->place->rowIndex];
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor02500_Fn00DD8(Task* actor)
@@ -1079,7 +1079,7 @@ static void Actor02500_Fn00DD8(Task* actor)
             break;
     }
     work->field_328 = (s16)Actor02500_D05B68[((GpEnemy*)actor->spawnArg2.pointer)->place->rowIndex];
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void Actor02500_Fn01144(Task* actor)
@@ -1228,7 +1228,7 @@ static void Actor02500_Fn012F0(Task* actor)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor02500_Fn016FC(Task* arg0)
@@ -1297,7 +1297,7 @@ done:
     sc->rot.vy = work->field_32C;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 static void Actor02500_Fn0184C(Task* arg0)

@@ -496,7 +496,7 @@ static void func_shelter_b2_pod_bottom_8017DECC(GfxCoord* arg0, u16 arg1, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
@@ -564,7 +564,7 @@ static void func_shelter_b2_pod_bottom_8017E334(GfxCoord* arg0, u16 arg1, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
 /// Draws a glowing band: two 16-vertex rings in the XZ plane, the inner of
@@ -656,7 +656,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
 /// State 0 resets the coordinate frame's rotation to identity and starts the
@@ -816,7 +816,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GfxCoord* coord
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
 /// State 0 resets the coordinate frame's rotation to identity, starts the
@@ -1166,7 +1166,7 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Per-frame driver of a rising sprite effect task.
@@ -1304,7 +1304,7 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
             }
         }
     }
-    SCRATCH_POP_BYTES(0x120);
+    SCRATCH_STACK_RELEASE_BYTES(0x120);
 }
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
@@ -1469,7 +1469,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
             }
         }
     }
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
 void func_shelter_b2_pod_bottom_80181940(Task* arg0)

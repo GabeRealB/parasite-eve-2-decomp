@@ -970,7 +970,7 @@ static s32 Actor01900_Fn016F0(Task* arg0)
     s->from.vy += gGfxViewCoord.workm.t[1];
     s->from.vz += gGfxViewCoord.workm.t[2];
     s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     return s->hit;
 }
 
@@ -1466,7 +1466,7 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     work->field_8B8.spawnArgLo = 0x300;
     work->field_8B8.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, &arg0->extra.tmd->coords[dir->pad], dir, &work->field_8B8);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 /// First `WorldCollisionContact` among the twelve at `records` whose id has high word 2,
@@ -3408,7 +3408,7 @@ static void Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor)
     work->field_C48[work->field_C98].vy = scratch->pos.vy;
     work->field_C48[work->field_C98].vz = scratch->pos.vz;
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     work->field_C98 = (u16)work->field_C98 + 1;
     if (work->field_C98 == 7) {
         work->field_C98 = 0;

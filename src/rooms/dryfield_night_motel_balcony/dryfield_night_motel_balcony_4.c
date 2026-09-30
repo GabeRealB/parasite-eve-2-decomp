@@ -3993,7 +3993,7 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
 /// Per-frame handler of a drifting room effect task. The first frame resets the

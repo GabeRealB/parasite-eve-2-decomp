@@ -1537,7 +1537,7 @@ static s32 func_actor_401800_80133918(Task* arg0)
     s->from.vy += gGfxViewCoord.workm.t[1];
     s->from.vz += gGfxViewCoord.workm.t[2];
     s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(0x1C);
     return s->hit;
 }
 
@@ -2085,7 +2085,7 @@ static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
     work->field_8B8.spawnArgLo = 0x300;
     work->field_8B8.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &work->field_8B8);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static void func_actor_401800_80134C94(Task* arg0)
@@ -2756,7 +2756,7 @@ static void func_actor_401800_80136560(Task* arg0)
     if (work->field_8C2 != 0) {
         work->field_8C2--;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 /// Chase body that steers the actor along its own local Z while the step
@@ -3148,7 +3148,7 @@ static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECT
     dir->vx = outp->vx - coord->coord.t[0];
     dir->vy = 0;
     dir->vz = outp->vz - coord->coord.t[2];
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
 static __inline__ void Actor401800_SetGrabAnim(void)
@@ -4591,7 +4591,7 @@ static void func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1)
     work->field_C24[work->field_C74].vy = scratch->pos.vy;
     work->field_C24[work->field_C74].vz = scratch->pos.vz;
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(0x18);
     work->field_C74 = (u16)work->field_C74 + 1;
     if (work->field_C74 == 7) {
         work->field_C74 = 0;

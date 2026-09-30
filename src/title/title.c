@@ -562,5 +562,5 @@ void Title_EnqueueDemoScene(s32 arg0)
     param2[2]              = 0;
     param2[1]              = 0;
     CdCmd_Enqueue(0x21, param1, param2);
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(8);
 }
