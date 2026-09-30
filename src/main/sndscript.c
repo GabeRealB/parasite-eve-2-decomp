@@ -283,8 +283,6 @@ static void Snd_ClearBusy(void);
 
 static void Snd_SetBusyFlag(s32 arg0);
 
-static s32 SndBank_RemapId(s32 arg0);
-
 static void SndVoice_SetPriority(s8 arg0);
 
 static void SndEvt_EnqueueTypeF(void);
@@ -628,21 +626,33 @@ void Snd_RegisterTickCallbacks(void)
     D_8008274C = 0;
 }
 
-// K&R definition so a missing argument stays legal (indeterminate a0).
-static s32 SndBank_RemapId(arg0)
-s32        arg0;
+/// Stamps the loaded type-1 script bank onto a request whose top nibble is 1.
+///
+/// Callers select that bank with type 1 in the top nibble and zero in the
+/// rest of the bank id. The low half (entry index and instance tag) is kept,
+/// and the loaded script image's bank id replaces the high half. Any other
+/// request is returned unchanged, including a type-1 request when no slot has
+/// a type-1 sample descriptor. The search reads that descriptor's type; the
+/// stamp reads `image->bankId`, so the slot must hold a completed script image.
+static s32 _sndScriptRemapType1Id(s32 requestId)
 {
-    s32          var_s0;
+    enum {
+        SOUND_SCRIPT_REQUEST_TYPE_1 = 0x10000000,
+        SOUND_SCRIPT_REQUEST_LOW    = 0xFFFF,
+        SOUND_BANK_TYPE_1           = 0x1000
+    };
+    s32          soundId;
     SndBankSlot* bankSlot;
 
-    var_s0 = arg0;
-    if ((var_s0 & 0xF0000000) == 0x10000000) {
-        bankSlot = _sndBankSlotFind(0x1000, SOUND_BANK_SLOT_MATCH_TYPE);
+    soundId = requestId;
+    // Bits 28..31 select the bank type.
+    if ((soundId & 0xF0000000) == SOUND_SCRIPT_REQUEST_TYPE_1) {
+        bankSlot = _sndBankSlotFind(SOUND_BANK_TYPE_1, SOUND_BANK_SLOT_MATCH_TYPE);
         if (bankSlot != NULL) {
-            var_s0 = (bankSlot->image->bankId << 0x10) + (var_s0 & 0xFFFF);
+            soundId = (bankSlot->image->bankId << 16) + (soundId & SOUND_SCRIPT_REQUEST_LOW);
         }
     }
-    return var_s0;
+    return soundId;
 }
 
 s32 Snd_ReverbWarmupCb(s32* arg0)
@@ -748,7 +758,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
             return -1;
         }
     }
-    arg0     = SndBank_RemapId(arg0);
+    arg0     = _sndScriptRemapType1Id(arg0);
     bankSlot = _sndBankSlotFind((u32)arg0 >> 16, SOUND_BANK_SLOT_MATCH_ID);
     if (bankSlot == NULL) {
         return -2;
@@ -798,7 +808,7 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
     if (event != NULL) {
         event->command    = SOUND_EVENT_SCRIPT_STOP;
         args              = &event->args.script;
-        args->soundId     = SndBank_RemapId(arg0);
+        args->soundId     = _sndScriptRemapType1Id(arg0);
         args->stopControl = arg1;
         sndEvtEnqueue(event);
     }
@@ -814,7 +824,7 @@ void SndEvt_EnqueueType8(s32 arg0)
         if (event != NULL) {
             event->command = SOUND_EVENT_SCRIPT_MUTE;
             args           = &event->args.script;
-            args->soundId  = SndBank_RemapId(arg0);
+            args->soundId  = _sndScriptRemapType1Id(arg0);
             sndEvtEnqueue(event);
         }
     }
@@ -830,7 +840,7 @@ void SndEvt_EnqueueType9(s32 arg0)
         if (event != NULL) {
             event->command = SOUND_EVENT_SCRIPT_UNMUTE;
             args           = &event->args.script;
-            args->soundId  = SndBank_RemapId(arg0);
+            args->soundId  = _sndScriptRemapType1Id(arg0);
             sndEvtEnqueue(event);
         }
     }
@@ -846,7 +856,7 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
         if (event != NULL) {
             event->command          = SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION;
             args                    = &event->args.script;
-            args->soundId           = SndBank_RemapId(arg0);
+            args->soundId           = _sndScriptRemapType1Id(arg0);
             args->panOffset         = arg1;
             args->level.attenuation = arg2;
             sndEvtEnqueue(event);
@@ -864,7 +874,7 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
         if (event != NULL) {
             event->command          = SOUND_EVENT_SCRIPT_SET_VOLUME;
             args                    = &event->args.script;
-            args->soundId           = SndBank_RemapId(arg0);
+            args->soundId           = _sndScriptRemapType1Id(arg0);
             args->level.volumeScale = arg1;
             if ((s8)arg1 < 0) {
                 args->level.volumeScale = SOUND_SCRIPT_VOLUME_UNITY;
@@ -891,7 +901,7 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
             if (event != NULL) {
                 event->command    = SOUND_EVENT_SCRIPT_STOP;
                 args              = &event->args.script;
-                args->soundId     = SndBank_RemapId(0x40000000);
+                args->soundId     = _sndScriptRemapType1Id(0x40000000);
                 args->stopControl = SOUND_EVENT_STOP_KEEP_RELEASE;
                 sndEvtEnqueue(event);
             }
@@ -906,7 +916,7 @@ static void SndVoice_SetPriority(s8 arg0)
 
 s32 SndVoice_HasActiveId(s32 arg0)
 {
-    return ~SndVoice_FindById(SndBank_RemapId(arg0)) != 0;
+    return ~SndVoice_FindById(_sndScriptRemapType1Id(arg0)) != 0;
 }
 
 void SndEvt_EnqueueTypeD(void)

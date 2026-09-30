@@ -8718,7 +8718,7 @@ semantically `x != -1`, but `x != -1` often compiles to a different compare
 sequence. `SndVoice_HasActiveId` is a one-liner that only matches with the `~` form:
 
 ```c
-return ~SndVoice_FindById(SndBank_RemapId()) != 0;
+return ~SndVoice_FindById(_sndScriptRemapType1Id(arg0)) != 0;
 ```
 
 ## Store-then-reload for prologue scheduling
@@ -11078,7 +11078,7 @@ source needed:
 
 ```c
 args->panOffset = arg1;      /* sb a1, 4(a0)     — same as evt->args.script.panOffset */
-args->soundId = SndBank_RemapId(arg0); /* sw v0, 4(s0) */
+args->soundId = _sndScriptRemapType1Id(arg0); /* sw v0, 4(s0) */
 ```
 
 The same reasoning makes a **union of named arms** the right declaration for a
@@ -11945,15 +11945,16 @@ Use an old-style K&R definition instead — it does **not** create a prototype,
 so the no-arg call stays legal and the callee still matches:
 
 ```c
-s32 SndBank_RemapId(arg0)
+s32 f(arg0)
 s32 arg0;
 {
     /* ... */
 }
 ```
 
-Keep the header declaration unprototyped too (`extern s32 SndBank_RemapId();`).
-`SndVoice_HasActiveId` → `SndBank_RemapId` is the reference.
+Keep the header declaration unprototyped too (`extern s32 f();`).
+`_sndScriptRemapType1Id` is prototyped: every caller passes the request, and
+`SndVoice_HasActiveId`'s delay slot is `nop` because `$a0` already holds it.
 
 ## A staged `(void)` stub taking `index`: unprototype the header, not the definition
 
@@ -26716,7 +26717,7 @@ child->resultValue = y;  /* sh v1 */
 
 ## Pass the id into `SndVoice_HasActiveId` so the load targets `$a0`
 
-`SndVoice_HasActiveId` remaps its argument via `SndBank_RemapId` and checks
+`SndVoice_HasActiveId` remaps its argument via `_sndScriptRemapType1Id` and checks
 for an active voice. A caller that only tests a global then calls
 `SndVoice_HasActiveId()` loads that global into `$v0`. Passing the same
 value as the argument forces `lw a0`:
