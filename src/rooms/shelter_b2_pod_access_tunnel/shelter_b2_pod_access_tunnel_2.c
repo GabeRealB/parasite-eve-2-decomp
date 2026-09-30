@@ -161,7 +161,7 @@ SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[32] = {
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
-    return RoomFx_HaloShades.entries;
+    return _gRoomEffectHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

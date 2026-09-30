@@ -20,7 +20,7 @@ D_mine_cavern_80188FBC = 0x80188FBC; // size:0x8 defined:True
 D_mine_cavern_80188FC4 = 0x80188FC4; // size:0x8 defined:True
 
 D_mine_cavern_8018EB58 = 0x8018EB58; // size:0x4 defined:True
-RoomFx_HaloShades = 0x80188FCC; // size:0x14 defined:True
+_gRoomEffectHaloShades = 0x80188FCC; // size:0x14 defined:True
 D_mine_cavern_80188FE0 = 0x80188FE0; // size:0x30 defined:True
 D_mine_cavern_80189010 = 0x80189010; // size:0x18 defined:True
 D_mine_cavern_80189028 = 0x80189028; // size:0x1C defined:True

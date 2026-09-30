@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b1_elevator_hall.
 D_shelter_b1_elevator_hall_801849F8 = 0x801849F8; // size:0x8 defined:True
 D_shelter_b1_elevator_hall_80182CF4 = 0x80182CF4; // size:0xE0 defined:True
-RoomFx_HaloShades = 0x80182DD4; // size:0x14 defined:True
+_gRoomEffectHaloShades = 0x80182DD4; // size:0x14 defined:True
 D_shelter_b1_elevator_hall_80182DF8 = 0x80182DF8; // size:0x8 defined:True
 D_shelter_b1_elevator_hall_80182E00 = 0x80182E00; // size:0x10 defined:True
 D_shelter_b1_elevator_hall_80182E10 = 0x80182E10; // size:0x4 defined:True

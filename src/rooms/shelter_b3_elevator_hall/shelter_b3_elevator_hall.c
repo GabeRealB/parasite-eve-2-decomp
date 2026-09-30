@@ -139,7 +139,7 @@ SVECTOR D_shelter_b3_elevator_hall_80182AF4[8] = {
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
-    return RoomFx_HaloShades.entries;
+    return _gRoomEffectHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

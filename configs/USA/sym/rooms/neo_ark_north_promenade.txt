@@ -43,7 +43,7 @@ D_map_neo_ark_8017B120 = 0x8017B120; // absolute:True
 D_map_neo_ark_8017B160 = 0x8017B160; // absolute:True
 RoomFx_TrailOffsets = 0x80181DA4; // size:0x10 defined:True
 D_neo_ark_north_promenade_80181D68 = 0x80181D68; // size:0x28 defined:True
-RoomFx_HaloShades = 0x80181D90; // size:0x14 defined:True
+_gRoomEffectHaloShades = 0x80181D90; // size:0x14 defined:True
 
 func_neo_ark_north_promenade_8017FDD4 = 0x8017FDD4; // type:func
 

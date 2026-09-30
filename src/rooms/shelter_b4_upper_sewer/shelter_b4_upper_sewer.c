@@ -105,9 +105,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_80186490[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864B0[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 
-/// Colour shifts per spawn variant: each channel is the fade level shifted
-/// right by the entry's value.
-RoomHaloShade RoomFx_HaloShades[];
+static RoomHaloShade _gRoomEffectHaloShades[3];
 
 /// The two points the trail is emitted from, relative to the effect's parent:
 /// the first positions the effect's own coordinate, the second is the other
@@ -249,7 +247,7 @@ SVECTOR D_shelter_b4_upper_sewer_801864F0[14] = {
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
-    return RoomFx_HaloShades;
+    return _gRoomEffectHaloShades;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

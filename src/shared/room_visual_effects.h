@@ -18,10 +18,11 @@
  * whole. A room with no task of the library may still use a helper fragment on
  * its own, as one uses _glow_quad.
  *
- * The tables have external linkage: some rooms define a table in one file and
- * use it from another. Include _halo_data, _trail_data and _disc_data for the
- * room's sections, at the tables' position in the data. The halo storage's
- * layout varies by room - RoomFx_GetHaloShades supplies a typed array view of
+ * Trail and disc tables have external linkage: some rooms define a table in
+ * one file and use it from another. Halo shades are private to each carrier.
+ * Include _halo_data, _trail_data and _disc_data for the room's sections, at
+ * the tables' position in the data. The halo storage's layout varies by room -
+ * RoomFx_GetHaloShades supplies a typed array view of
  * it, which may retain a trailing halfword - so the room sets
  * ROOM_FX_HALO_STORAGE_TYPE, _BOUND and _INITIALIZER before including
  * _halo_data and defines RoomFx_GetHaloShades where its halo code is.

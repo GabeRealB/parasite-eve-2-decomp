@@ -117,7 +117,7 @@ GpMsgEntry D_dryfield_motel_balcony_8018227C[6] = {
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
-    return RoomFx_HaloShades.entries;
+    return _gRoomEffectHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

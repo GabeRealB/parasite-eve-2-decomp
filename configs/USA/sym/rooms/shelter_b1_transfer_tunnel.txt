@@ -2,7 +2,7 @@
 D_shelter_b1_transfer_tunnel_801828E8 = 0x801828E8; // size:0x10 defined:True
 D_shelter_b1_transfer_tunnel_801828F8 = 0x801828F8; // size:0x38 defined:True
 D_shelter_b1_transfer_tunnel_801828C0 = 0x801828C0; // size:0x28 defined:True
-RoomFx_HaloShades = 0x80182930; // size:0x14 defined:True
+_gRoomEffectHaloShades = 0x80182930; // size:0x14 defined:True
 D_shelter_b1_transfer_tunnel_80182954 = 0x80182954; // size:0x4 defined:True
 D_shelter_b1_transfer_tunnel_80182958 = 0x80182958; // size:0x2 defined:True
 D_shelter_b1_transfer_tunnel_8018295C = 0x8018295C; // size:0x70 defined:True

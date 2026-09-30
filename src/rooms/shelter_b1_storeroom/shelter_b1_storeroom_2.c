@@ -55,7 +55,7 @@
 #define D_shelter_b1_storeroom_80184A98 (D_shelter_b1_storeroom_80184998 + 32)
 #define D_shelter_b1_storeroom_80184AB8 (D_shelter_b1_storeroom_80184998 + 36)
 
-RoomHaloShade RoomFx_HaloShades[];
+static RoomHaloShade _gRoomEffectHaloShades[3];
 
 static void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -134,7 +134,7 @@ SVECTOR D_shelter_b1_storeroom_80184998[49] = {
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
-    return RoomFx_HaloShades;
+    return _gRoomEffectHaloShades;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

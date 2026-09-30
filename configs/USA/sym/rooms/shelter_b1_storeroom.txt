@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b1_storeroom.
-RoomFx_HaloShades = 0x80184B20; // size:0x12 defined:True
+_gRoomEffectHaloShades = 0x80184B20; // size:0x12 defined:True
 D_shelter_b1_storeroom_80184998 = 0x80184998; // size:0x188 defined:True
 D_shelter_b1_storeroom_80184968 = 0x80184968; // size:0x30 defined:True
 RoomFx_DiscShades = 0x80184B44; // size:0xC defined:True

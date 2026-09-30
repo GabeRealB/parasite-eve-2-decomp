@@ -64,7 +64,7 @@ D_8015F400 = 0x8015F400; // absolute:True
 D_shelter_b3_elevator_hall_80184A00 = 0x80184A00; // size:0x8 defined:True
 D_shelter_b3_elevator_hall_80184A08 = 0x80184A08; // size:0x4 defined:True
 D_shelter_b3_elevator_hall_80184A0C = 0x80184A0C; // size:0x14 defined:True
-RoomFx_HaloShades = 0x80182B34; // size:0x14 defined:True
+_gRoomEffectHaloShades = 0x80182B34; // size:0x14 defined:True
 
 func_shelter_b3_elevator_hall_8017DE70 = 0x8017DE70; // type:func
 
