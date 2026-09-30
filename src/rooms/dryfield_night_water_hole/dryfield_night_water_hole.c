@@ -1824,7 +1824,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_night_water_hole_8017F3A8(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1952,7 +1952,7 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

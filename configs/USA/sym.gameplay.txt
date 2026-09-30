@@ -1214,7 +1214,7 @@ Gp_HurtAlly = 0x8010C8F0; // type:func
 func_8010C980 = 0x8010C980; // type:func
 
 
-// Gameplay naming pass 1 (TMD/disp2d, enemy, view, replay, strings)
+// Gameplay naming pass 1 (TMD/coordBody, enemy, view, replay, strings)
 gGpStrNewDisp2dNull         = 0x80093804;
 gGpColorGrey                = 0x8009381C; // size:0x4
 Gp_ColorOrange              = 0x80093820; // size:0x4

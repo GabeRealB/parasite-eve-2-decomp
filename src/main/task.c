@@ -96,16 +96,16 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
             extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, attachFlags);
             break;
         case TASK_BODY_DISP2D:
-            extra.disp2d = gpAttachDisp2d(task);
+            extra.coordBody = gpAttachDisp2d(task);
             break;
         case TASK_BODY_NONE:
         default:
-            extra.tmd = NULL;
+            extra.allocation = NULL;
             break;
     }
 
     // A descriptor that asks for a body gets no task when the body cannot be attached.
-    if ((desc->flags & 0xFF) == TASK_BODY_NONE || extra.tmd != NULL) {
+    if ((desc->flags & 0xFF) == TASK_BODY_NONE || extra.allocation != NULL) {
         task->callback     = desc->callback;
         priority           = desc->priority;
         task->exitCallback = taskKill;
@@ -198,7 +198,7 @@ void taskKill(Task* task)
         return;
 
     case2:
-        modelObjectUnlinkDisp2d(&task->extra.disp2d->link);
+        modelObjectUnlinkDisp2d(&task->extra.coordBody->link);
         task->killCountdown = 1;
         task->callback      = textNoopCallback;
         task->exitCallback  = textNoopCallback;
@@ -237,7 +237,7 @@ void taskKill(Task* task)
         goto cu_def;
 
     cu2:
-        gpFreeDisp2d(task->extra.disp2d);
+        gpFreeDisp2d(task->extra.coordBody);
 
     cu_def:
         task->spawnType = TASK_BODY_RELEASED;
@@ -259,8 +259,8 @@ imm1:
     goto imm_unlink;
 
 imm2:
-    modelObjectUnlinkDisp2d(&task->extra.disp2d->link);
-    gpFreeDisp2d(task->extra.disp2d);
+    modelObjectUnlinkDisp2d(&task->extra.coordBody->link);
+    gpFreeDisp2d(task->extra.coordBody);
 
 imm_unlink:
     saved           = gTaskActiveList;
@@ -659,7 +659,7 @@ void taskCountdownCallback(Task* task)
             task->spawnType = TASK_BODY_RELEASED;
             break;
         case TASK_BODY_DISP2D:
-            gpFreeDisp2d(task->extra.disp2d);
+            gpFreeDisp2d(task->extra.coordBody);
             task->spawnType = TASK_BODY_RELEASED;
             break;
         default:

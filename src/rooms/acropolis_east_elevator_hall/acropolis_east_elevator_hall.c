@@ -746,7 +746,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 {
     GfxCoord* coord;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     switch (task->state) {
         case 0:
             Task_Spawn(1, 0x25, 0, 0);
@@ -802,7 +802,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     s32               pulse;
     s32               level;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head               = SCRATCH_HEAD(void);

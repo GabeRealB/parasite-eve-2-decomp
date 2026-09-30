@@ -77,7 +77,7 @@ void func_mp5a5_8011D1E0(Task* task)
     s32           i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     base  = &Gp_RoomCoords[0];
     slot  = &base->light;
 

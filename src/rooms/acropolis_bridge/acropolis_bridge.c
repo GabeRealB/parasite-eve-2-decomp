@@ -3700,7 +3700,7 @@ void func_acropolis_bridge_8017F868(Task* task)
     u16        rnd;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     owner = gameGetPtrSlot(3);
     part  = owner->extra.tmd->coords;
     view  = Gp_GetViewIndex();
@@ -4293,7 +4293,7 @@ void func_acropolis_bridge_801812F4(Task* task)
     POLY_FT4*             prim;
     s32                   grey;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     work->age   = task->spawnArg1.value;
@@ -4399,7 +4399,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     s32                         i;
     u8                          col;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
@@ -4477,7 +4477,7 @@ void func_acropolis_bridge_80181D28(Task* task)
     s32                    grey;
     s32                    clut;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     blk         = SCRATCH_PUSH(RoomGlowSpriteScratch);
@@ -4593,7 +4593,7 @@ void func_acropolis_bridge_80182394(Task* task)
     GpEffWork*       work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
-    coord    = task->extra.disp2d->coord;
+    coord    = task->extra.coordBody->coord;
     head     = *scratch;
     block    = (RoomMoteScratch*)(head - 0xC);
     *scratch = block;
@@ -4648,7 +4648,7 @@ void func_acropolis_bridge_80182694(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -4773,7 +4773,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_acropolis_bridge_80182F8C(coord, work->index, work->scale, work->angle);
         if (Gp_State1C->eventState >= 4) {

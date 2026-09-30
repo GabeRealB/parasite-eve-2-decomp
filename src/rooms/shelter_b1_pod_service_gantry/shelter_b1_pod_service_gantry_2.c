@@ -109,7 +109,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
             func_shelter_b1_pod_service_gantry_8017DF70(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -409,7 +409,7 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -751,7 +751,7 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);

@@ -89,7 +89,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
     s32        flags;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);

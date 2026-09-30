@@ -3626,7 +3626,7 @@ void func_acropolis_security_room_801805A4(Task* task)
     s32        i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
 
     switch (task->state) {
         case 0: {
@@ -3727,7 +3727,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
     GfxCoord*       coord;
     LINE_F2*        prim;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.coordBody->coord;
     if ((0xC >> (gGameSession->at4.loc.view - 1)) & 1) {
         scratch   = (void**)G_SCRATCH_HEAD;
         head      = *scratch;
@@ -3792,7 +3792,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     u16        cx;
     u16        cy;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -3846,7 +3846,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
     SCRATCH_PUSH(RoomQuadScratch);
     blk   = SCRATCH_HEAD(RoomQuadScratch);
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
@@ -3984,7 +3984,7 @@ void func_acropolis_security_room_801817A4(Task* task)
     s16              green;
     s32              i;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     scratch       = SCRATCH_PUSH(AsrFlashScratch);

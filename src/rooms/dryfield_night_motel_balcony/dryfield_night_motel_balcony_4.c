@@ -2898,7 +2898,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     SVECTOR    ofs;
 
     work                    = task->spawnArg2.pointer;
-    coord                   = task->extra.disp2d->coord;
+    coord                   = task->extra.coordBody->coord;
     Gp_State1C->groundShade = 0xFF;
     hi                      = 0;
     if (gGameSession->at4.loc.view < 0x20) {
@@ -3257,7 +3257,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.disp2d->coord;
+    GfxCoord*  coord = task->extra.coordBody->coord;
     MATRIX*    m;
     s32        half;
     SVECTOR    delta;
@@ -3399,7 +3399,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
     }
 }
 
-/// Draws the task's model position as a rotated billboard `POLY_FT4`, taking
+/// Draws the task's coordinate-body position as a rotated billboard `POLY_FT4`, taking
 /// its texture frame from row `Task::spawnArg1` of the sprite table and column
 /// `index & 7`. The quad's half-extent is the frame width times `pos.vx`
 /// divided by the projected depth, rotated by `pos.vz`. A non-NULL `color`
@@ -3408,7 +3408,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
     GpEffWork*       work  = task->spawnArg2.pointer;
-    GfxCoord*        coord = task->extra.tmd->coords;
+    GfxCoord*        coord = task->extra.coordBody->coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
     s16              size;
@@ -3469,7 +3469,7 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
 void func_dryfield_night_motel_balcony_80180580(Task* task)
 {
     void*     work  = task->spawnArg2.pointer;
-    GfxCoord* coord = task->extra.disp2d->coord;
+    GfxCoord* coord = task->extra.coordBody->coord;
     s32       i;
 
     if (Gp_State1C->eventState != 0) {
@@ -3567,7 +3567,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 
     work  = task->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (flag >= 2) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -3652,7 +3652,7 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
     DisplayState*  ds;
     s16            xy;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
     SCRATCH_PUSH(GpRingScratch);
@@ -3723,7 +3723,7 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
 void func_dryfield_night_motel_balcony_80181024(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.disp2d->coord;
+    GfxCoord*  coord = task->extra.coordBody->coord;
     s32        lo;
     s32        arg;
 
@@ -3825,7 +3825,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
 void func_dryfield_night_motel_balcony_8018158C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.disp2d->coord;
+    GfxCoord*  coord = task->extra.coordBody->coord;
     MATRIX*    m;
     s32        half; // default drift length and the centre of the wide drift rolls
 
@@ -3941,7 +3941,7 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
     s16            xy;
     u16            vz;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
     head                                    = SCRATCH_HEAD(void);
@@ -4009,7 +4009,7 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.disp2d->coord;
+    GfxCoord*  coord = task->extra.coordBody->coord;
     MATRIX*    m;
     s32        seed;
     s16        tick;
@@ -4117,7 +4117,7 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
     s16            xy;
 
     frame = work->index % 10;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.coordBody->coord;
 
     SCRATCH_PUSH(GpRingScratch);
     block         = SCRATCH_HEAD(GpRingScratch);

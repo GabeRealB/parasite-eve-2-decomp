@@ -894,9 +894,9 @@ void Gp_EnemyTaskExit(Task* task)
 
 Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
 {
-    TmdObject* extra;
-    GfxCoord*  dest;
-    GfxCoord*  world;
+    ModelObjectCoordBody* body;
+    GfxCoord*             dest;
+    GfxCoord*             world;
 
     if (arg0 == NULL) {
         return NULL;
@@ -904,8 +904,8 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
 
     SCRATCH_PUSH_BYTES(8);
     world = &gGfxViewCoord;
-    extra = arg0->extra.tmd;
-    dest  = extra->coords;
+    body  = arg0->extra.coordBody;
+    dest  = body->coord;
     if (arg1->parent == world) {
         dest->coord = arg1->coord;
         gte_SetRotMatrix(&arg1->coord);

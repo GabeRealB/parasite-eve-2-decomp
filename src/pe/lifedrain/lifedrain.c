@@ -108,7 +108,7 @@ void func_lifedrain_8012EF48(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1.value != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
@@ -343,7 +343,7 @@ void func_lifedrain_8012F9A8(Task* arg0)
     u16        spawn;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
@@ -411,7 +411,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
     VECTOR     vec;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
@@ -685,7 +685,7 @@ void func_lifedrain_801308C0(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

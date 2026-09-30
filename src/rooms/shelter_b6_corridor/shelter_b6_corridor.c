@@ -1058,7 +1058,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 
     mem        = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
-    coord      = task->extra.disp2d->coord;
+    coord      = task->extra.coordBody->coord;
     if (eventState != 0) {
         if (eventState < 4) {
             return;

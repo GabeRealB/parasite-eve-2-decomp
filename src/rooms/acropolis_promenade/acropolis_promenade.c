@@ -1898,7 +1898,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
     s32        mask;
     s16        prev;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     view  = Gp_GetViewIndex();
     if (Gp_State1C->eventState >= 4) {
@@ -2040,7 +2040,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     POLY_FT4*             prim;
     s32                   grey;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     work->age   = task->spawnArg1.value;
@@ -2153,7 +2153,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
     s32              i;
     s32              grey;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     scratch   = (void**)G_SCRATCH_HEAD;
@@ -2238,7 +2238,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
     s32                    grey;
     s32                    clut;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     blk         = SCRATCH_PUSH(RoomGlowSpriteScratch);

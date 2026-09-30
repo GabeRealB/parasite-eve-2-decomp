@@ -603,7 +603,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2.pointer;
     s16                           ev    = Gp_State1C->eventState;
-    GfxCoord*                     coord = task->extra.disp2d->coord;
+    GfxCoord*                     coord = task->extra.coordBody->coord;
     SVECTOR                       step;
 
     if (ev < 4) {

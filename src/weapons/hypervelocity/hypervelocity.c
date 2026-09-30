@@ -172,7 +172,7 @@ void func_hypervelocity_8011D1E8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->light.head.u.coord;
     slot  = &base->light;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -355,7 +355,7 @@ void func_hypervelocity_8011D830(Task* task)
 
     beam  = (HyperBeam*)task->work;
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     base  = &Gp_RoomCoords[0];
     light = &base->light.head.u.coord;
     slot  = &base->light;
@@ -888,7 +888,7 @@ void func_hypervelocity_8011F168(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -926,7 +926,7 @@ void func_hypervelocity_8011F270(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

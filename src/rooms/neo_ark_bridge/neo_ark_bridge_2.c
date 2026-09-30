@@ -879,7 +879,7 @@ void func_neo_ark_bridge_8017EF70(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_neo_ark_bridge_8017F0C4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1002,7 +1002,7 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -1233,7 +1233,7 @@ void func_neo_ark_bridge_8017FF84(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1419,7 +1419,7 @@ void func_neo_ark_bridge_801809E8(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1619,7 +1619,7 @@ void func_neo_ark_bridge_801812D0(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

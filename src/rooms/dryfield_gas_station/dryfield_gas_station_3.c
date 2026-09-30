@@ -1090,7 +1090,7 @@ static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s
 
 /// Per-frame effect: draws the gas station's shaft with the task's own
 /// coordinate, then advances the room's `Gp_State1C`.
-/// `Task::extra.disp2d->coord` is the coordinate both draws share. The
+/// `Task::extra.coordBody->coord` is the coordinate both draws share. The
 /// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: bits 4, 6,
 /// 11 and 12 (`0x1850`) select `func_dryfield_gas_station_80180B4C` with the wide half-extent 0x80,
 /// and any other non-zero bit selects `func_dryfield_gas_station_80181058`
@@ -1101,7 +1101,7 @@ void func_dryfield_gas_station_80181A78(Task* arg0)
     GfxCoord* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (mask & 0x1850) {
         func_dryfield_gas_station_80180B4C(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
     } else if (mask != 0) {

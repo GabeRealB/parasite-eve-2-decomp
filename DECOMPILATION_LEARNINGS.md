@@ -26790,14 +26790,14 @@ case 1:
     /* walk coord */
     break;
 case 2:
-    coord = task->extra.disp2d->coord; /* lw v1, 8(v0) — not lw v0 */
+    coord = task->extra.coordBody->coord; /* lw v1, 8(v0) — not lw v0 */
     if (coord == targetCoord) {
         found = 1;
     }
     break;
 ```
 
-`_modelObjectFindTaskByCoord` is the example. `if (task->extra.disp2d->coord == targetCoord)`
+`_modelObjectFindTaskByCoord` is the example. `if (task->extra.coordBody->coord == targetCoord)`
 stuck at 99.8% with only that load dest different.
 
 ## Assign `one = 1` after the first global so LIM emits `lui t4` then `li t3`
@@ -46100,7 +46100,7 @@ Model tasks carry `TmdObject` (`include/main/tmd_types.h`) in `Task.extra.tmd`:
 `coords` points to the owned part array, `flags` is the u16 halfword whose
 `TMD_OBJECT_HIDDEN` bit `taskKill` sets, and `buffer` is the storage
 `Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. Coordinate-body tasks instead carry
-`ModelObjectCoordBody` in `Task.extra.disp2d`, with one node at `coord`.
+`ModelObjectCoordBody` in `Task.extra.coordBody`, with one node at `coord`.
 The shared pointer offset does not make these bodies interchangeable.
 
 In `GfxCoord`, `composeStamp` is 4 bytes followed by two 0x20-byte `MATRIX`es
@@ -52294,7 +52294,7 @@ model list uses `PARENT_OF(link, TmdObject, link)`.
 
 Which body a task's `extra` is, the task says, not the access path: `spawnType`
 is 1 for a model body and 2 for a coordinate body: `task->extra.tmd->coords` and
-`task->extra.disp2d->coord` select the matching body. A coordinate body's `coord`
+`task->extra.coordBody->coord` select the matching body. A coordinate body's `coord`
 points at a single coordinate embedded in the node, where a model body's points at the
 per-part array that follows it — and the task's own spawn type (or the
 descriptor that built it) is what decides which type is in hand.
@@ -54689,7 +54689,7 @@ A room's `Gp_State1C` effect task opens by unpacking three `Task` fields, and
 m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
 
 ```
-lw v0, 0x2C(s1)     # task->extra.disp2d
+lw v0, 0x2C(s1)     # task->extra.coordBody
 lw v1, 0x30(s1)     # task->state
 lw s0, 0x20(s1)     # task->spawnArg2
 lw s2, 0x8(v0)      # body->coord
@@ -54699,7 +54699,7 @@ m2c emits its temporaries in the order the *values are used*, so `state` comes
 first and the object dump opens `0x30, 0x2C, 0x20, 0x8(v0)`. The source order is
 
 ```c
-coord = task->extra.disp2d->coord;
+coord = task->extra.coordBody->coord;
 work  = task->spawnArg2;
 switch (task->state) { ... }
 ```
@@ -55611,7 +55611,7 @@ the guard clauses, instead of after them:
 
 ```c
 work  = task->spawnArg2;
-coord = task->extra.disp2d->coord;
+coord = task->extra.coordBody->coord;
 base  = &Gp_RoomCoords[1];
 light = &base->coord;                 /* not after the two `return`s */
 slot  = (GpCoordTail*)light;
@@ -91960,11 +91960,11 @@ first hypothesis), target
 ## A room coordinate-body task needs its `coord` in a local, because 2.8.1 will not CSE a load across a call (func_dryfield_night_dilapidated_house_8017E670, 2026-09-16)
 
 Rooms carry a per-frame task of a recurring shape: fetch the body's single coordinate
-out of `Task::extra.disp2d`, take the stage-visit byte as a bit index, refresh the
+out of `Task::extra.coordBody`, take the stage-visit byte as a bit index, refresh the
 world matrix, and draw the primitives whose visit set the current visit falls in.
 
 ```c
-coord = arg0->extra.disp2d->coord;
+coord = arg0->extra.coordBody->coord;
 mask  = 1 << gGameSession->at4.loc.view;
 Gp_UpdateCoord(coord);
 if (mask & 0x99C) {
@@ -91976,7 +91976,7 @@ if (mask & 0x998) {
 ```
 
 m2c seeds this body correctly - `M2C_FIELD(M2C_FIELD(index, void **, 0x2C), s32 *, 8)`
-is `index->extra.disp2d->coord` - so the retype to project structs is the
+is `index->extra.coordBody->coord` - so the retype to project structs is the
 whole job and it matches on the first build. The one thing to preserve while
 retyping is the **local**: the `coord` in a `GfxCoord*` local is what keeps
 the pointer in `$s1` across the four calls.
@@ -91984,9 +91984,9 @@ the pointer in `$s1` across the four calls.
 Writing the same expression inline at each call site is not equivalent:
 
 ```c
-Gp_UpdateCoord(arg0->extra.disp2d->coord);
+Gp_UpdateCoord(arg0->extra.coordBody->coord);
 if (mask & 0x99C) {
-    pose(arg0->extra.disp2d->coord, 0);
+    pose(arg0->extra.coordBody->coord, 0);
 }
 /* ... */
 ```

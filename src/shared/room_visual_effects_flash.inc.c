@@ -337,7 +337,7 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -372,7 +372,7 @@ static inline void RoomFx_FlashTask(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

@@ -1273,7 +1273,7 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_upper_sewer_8017EA0C(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1399,7 +1399,7 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

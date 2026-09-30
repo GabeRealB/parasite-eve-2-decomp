@@ -66,7 +66,7 @@ void func_gunblade_8011D1E4(Task* task)
     s32        i;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         keep = Gp_State1C->eventState < 4;
     } else {
@@ -245,7 +245,7 @@ void func_gunblade_8011DAA4(Task* task)
     u8         rgb[3];
     s32        i;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

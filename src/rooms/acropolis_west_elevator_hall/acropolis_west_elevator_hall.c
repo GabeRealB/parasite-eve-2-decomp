@@ -1114,7 +1114,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     SVECTOR   altPos;
     GfxCoord* coord;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     switch (task->state) {
         case 0:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;
@@ -1205,7 +1205,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
     s32               pulse;
     s32               level;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head               = SCRATCH_HEAD(void);
@@ -1321,7 +1321,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     POLY_FT4*         prim;
     u16               vz;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     scratch       = (void**)G_SCRATCH_HEAD;

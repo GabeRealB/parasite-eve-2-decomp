@@ -1110,7 +1110,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     s32 j;
     s32 idx;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
 
     if (task->state == 0) {
         switch (Gp_GetViewIndex() & 0xFF) {
@@ -1378,7 +1378,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     s32        base;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work->age++;
     switch (task->state) {
         case 0:

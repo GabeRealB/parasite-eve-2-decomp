@@ -22,7 +22,7 @@ s32        i;
 
 coords   = task->work;
 work     = (GpEffWork*)task->spawnArg2.pointer;
-objCoord = task->extra.disp2d->coord;
+objCoord = task->extra.coordBody->coord;
 
 if (Gp_State1C->eventState < 2) {
     work->age++;

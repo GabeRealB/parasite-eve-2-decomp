@@ -1576,7 +1576,7 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 void func_dryfield_main_street_8017E830(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.disp2d->coord;
+    GfxCoord*  coord = task->extra.coordBody->coord;
     s32        vz;
     s16        f2a;
     u32        rng2;
@@ -1728,7 +1728,7 @@ void func_dryfield_main_street_8017EEE8(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1912,7 +1912,7 @@ void func_dryfield_main_street_8017F94C(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2109,7 +2109,7 @@ void func_dryfield_main_street_80180234(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

@@ -16,12 +16,24 @@ enum {
     TASK_BODY_RELEASED = 0xFF
 };
 
-/// The body a task owns, whose kind its `spawnType` names: a model for 1, a
-/// coordinate body for 2, nothing for 0.
-typedef union TaskBody {
-    TmdObject*                   tmd;    // spawnType 1
-    struct ModelObjectCoordBody* disp2d; // spawnType 2
+/// One owned body allocation, interpreted according to `Task::spawnType`.
+///
+/// `TASK_BODY_TMD` selects `tmd`, whose coordinates have `partCount` elements;
+/// `TASK_BODY_DISP2D` selects `coordBody`, which owns exactly one coordinate.
+/// Their coordinate extents and release paths differ.
+/// `allocation` is the kind-independent pointer view used to test attachment
+/// success; NULL denotes no attached body at spawn time.
+///
+/// Attachment links the body into its kind's refresh/draw list. Unlink before
+/// releasing it. Copies of this pointer union borrow the allocation and do not
+/// transfer ownership. Teardown leaves the pointer unchanged, so
+/// `TASK_BODY_RELEASED` forbids dereferencing it even when it is non-NULL.
+typedef union {
+    TmdObject*                   tmd;        // TASK_BODY_TMD: model with owned part coordinates and optional primitive buffer
+    struct ModelObjectCoordBody* coordBody;  // TASK_BODY_DISP2D: single transform for tasks that emit their own primitives
+    void*                        allocation; // Kind-independent allocation pointer; NULL for no body at spawn time
 } TaskBody;
+STATIC_ASSERT_SIZEOF(TaskBody, 4);
 
 /// A task handler taking its live task as the only argument and returning nothing.
 ///

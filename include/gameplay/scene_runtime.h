@@ -33,7 +33,7 @@ void Gp_DestroyEnemy(GpEnemy* enemy, Task* task);
 
 void Gp_EnemyTaskExit(Task* task);
 
-/// Copies `arg1`'s matrix onto the coordinate at `Task::extra->field_8`,
+/// Copies `arg1`'s matrix onto the coordinate at `Task::extra.coordBody->coord`,
 /// adding `arg2` in that space. If `arg1->parent` is world (`gGfxViewCoord`),
 /// copies `coord` and transforms in place; otherwise computes `workm`
 /// via `Gp_UpdateCoord`, transforms there, and converts to local with

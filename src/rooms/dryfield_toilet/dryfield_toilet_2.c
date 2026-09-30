@@ -2525,7 +2525,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     GpEffWork* spawned;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState < 4) {
         if (Gp_StateF0.field_4 == 1) {
             return;
@@ -2578,7 +2578,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     s32                   t2;
     u16                   vx;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head = SCRATCH_HEAD(OverlaySpriteScratch);
@@ -2697,7 +2697,7 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
     u8         col[4];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -2813,7 +2813,7 @@ void func_dryfield_toilet_8017EBF4(Task* task)
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
-    coord  = task->extra.disp2d->coord;
+    coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -3039,7 +3039,7 @@ void func_dryfield_toilet_8017F854(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

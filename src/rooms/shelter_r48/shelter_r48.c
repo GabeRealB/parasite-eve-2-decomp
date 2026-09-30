@@ -2288,7 +2288,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     s32        i;
 
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_8017FF74(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (Gp_State1C->eventState >= 4) {
@@ -2345,7 +2345,7 @@ void func_shelter_r48_8017E704(Task* arg0)
     MATRIX*    m;
 
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
         if (Gp_State1C->eventState >= 4) {
@@ -2399,7 +2399,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
     MATRIX*    m;
 
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
         if (Gp_State1C->eventState >= 4) {
@@ -2451,7 +2451,7 @@ void func_shelter_r48_8017EC18(Task* task)
     u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -2537,7 +2537,7 @@ void func_shelter_r48_8017EFD8(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_8017F124(work, coord, 0);
         func_shelter_r48_8017F124(work, coord, 1);
@@ -2680,7 +2680,7 @@ void func_shelter_r48_8017F6C0(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -2922,7 +2922,7 @@ void func_shelter_r48_80180210(Task* task)
     s32        zero;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->spawnArg1.value < 0) {
             func_shelter_r48_80180C5C(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -3185,7 +3185,7 @@ void func_shelter_r48_801810B0(Task* task)
     s16        scale;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -3260,7 +3260,7 @@ void func_shelter_r48_8018147C(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_8017F124(work, coord, 3);
         func_shelter_r48_8017F124(work, coord, 4);
@@ -3336,7 +3336,7 @@ void func_shelter_r48_80181704(Task* task)
     s16        scale;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {

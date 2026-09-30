@@ -1687,7 +1687,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 
     mask   = 1 << gGameSession->at4.loc.view;
     eff    = task->spawnArg2.pointer;
-    coord  = task->extra.disp2d->coord;
+    coord  = task->extra.coordBody->coord;
     player = gameGetPtrSlot(3)->extra.tmd->coords;
     if (mask & 0x18) {
         func_dryfield_breezeway_8018034C(coord, D_dryfield_breezeway_80183164, 0x600, 0x80);
@@ -1992,7 +1992,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
 void func_dryfield_breezeway_80181264(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.disp2d->coord;
+    GfxCoord*  coord = task->extra.coordBody->coord;
     MATRIX*    m;
     SVECTOR    delta;
     SVECTOR    dir;
@@ -2125,22 +2125,22 @@ void func_dryfield_breezeway_80181264(Task* task)
 }
 
 /// Draws `task`'s effect as a camera-facing 16x16 `POLY_FT4` sprite at the
-/// translation of its model's coordinate, through a 0x1C-byte `G_SCRATCH_HEAD`
+/// translation of its body's single coordinate, through a 0x1C-byte `G_SCRATCH_HEAD`
 /// block. Nothing is drawn when the projection flags a negative result. The
 /// frame is `index & 7` along row 0xF0 of texture page 0x2B, and the quad's
 /// half extent is `pos.vx * 23 / otz`, rotated by the angle in `pos.vz`.
 /// A non-null `color` tints the sprite and makes it semi-transparent.
 static void func_dryfield_breezeway_80181938(Task* task, u8* color)
 {
-    TmdObject*       extra = task->extra.tmd;
-    GpEffWork*       work  = task->spawnArg2.pointer;
-    void**           scratch;
-    GfxCoord*        coord;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
+    ModelObjectCoordBody* body = task->extra.coordBody;
+    GpEffWork*            work = task->spawnArg2.pointer;
+    void**                scratch;
+    GfxCoord*             coord;
+    GpFxQuadScratch*      block;
+    POLY_FT4*             prim;
 
     scratch       = SCRATCH_HEAD_ADDR;
-    coord         = extra->coords;
+    coord         = body->coord;
     block         = SCRATCH_PUSH_AT(scratch, GpFxQuadScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];

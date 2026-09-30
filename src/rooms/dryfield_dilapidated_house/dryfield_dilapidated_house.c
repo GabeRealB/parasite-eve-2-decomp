@@ -3570,7 +3570,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     s32        i;
 
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -3742,7 +3742,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
     u8            rgb[3];
 
     work           = task->spawnArg2.pointer;
-    coord          = task->extra.disp2d->coord;
+    coord          = task->extra.coordBody->coord;
     tick           = work->field_22;
     tick1          = tick + 1;
     work->field_22 = tick1;
@@ -4105,7 +4105,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     s32       mask;
 
     mask  = 1 << gGameSession->at4.loc.view;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (mask & 0x84A9C) {
         func_dryfield_dilapidated_house_801815E8(coord, 0);
     }
@@ -4145,7 +4145,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
         mem->field_26 = 0x100;
         arg0->state   = 1;
     }
-    func_dryfield_dilapidated_house_80182A18(arg0->extra.disp2d->coord, mem->field_26, mem->field_24);
+    func_dryfield_dilapidated_house_80182A18(arg0->extra.coordBody->coord, mem->field_26, mem->field_24);
     angle         = (u16)mem->field_26;
     scale         = (u16)mem->field_24;
     angle        += 0x40;
@@ -4175,7 +4175,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

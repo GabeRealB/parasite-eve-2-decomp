@@ -1756,7 +1756,7 @@ void func_acropolis_square_801823DC(Task* task)
     GpEffWork* work;
     GfxCoord*  coord;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     switch (task->state) { /* irregular */
         case 0:
@@ -1816,7 +1816,7 @@ void func_acropolis_square_801825DC(Task* task)
     u32              tag;
     u_long*          ot;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     blk         = SCRATCH_PUSH(RoomGlowScratch);

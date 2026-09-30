@@ -1653,7 +1653,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     ctl       = gameGetPtrSlot(3);
     mask      = 1 << gGameSession->at4.loc.view;
     splash    = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.disp2d->coord;
+    coord     = arg0->extra.coordBody->coord;
     ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
@@ -1866,7 +1866,7 @@ void func_dryfield_water_hole_8017EC90(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_water_hole_8017EDE4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {

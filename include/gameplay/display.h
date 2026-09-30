@@ -21,7 +21,7 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 
 /// A task-owned coordinate body refreshed by the model draw passes.
 ///
-/// `Task::extra.disp2d` owns this body when `spawnType` is `TASK_BODY_DISP2D`.
+/// `Task::extra.coordBody` owns this body when `spawnType` is `TASK_BODY_DISP2D`.
 /// It supplies one transform for effects and other tasks that draw their own
 /// primitives. Attachment initializes an identity transform beneath
 /// `gGfxViewCoord`; tasks may change its local matrix and borrowed parent.

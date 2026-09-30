@@ -12,6 +12,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -947,7 +948,7 @@ static void func_actor_361100_80162B0C(void);
 ///
 /// State 0 allocates the `ActorEffectState` trail block into
 /// `Task::work`, seeds its `field_8E` / `field_E0` halfwords and ticks it 0x1E
-/// times, then resets the actor's root matrix to identity with the fixed
+/// times, then resets the body's coordinate matrix to identity with the fixed
 /// translation (0x1CA2, 0x712, 0x189C) and parks the view coordinate in its
 /// `parent` slot. A failed allocation takes the exit call and is *not* branched
 /// around: the block pointer is NULL for the rest of the state, as it was in
@@ -965,7 +966,7 @@ void func_actor_361100_80161E3C(Task* arg0)
 
     state   = (ActorEffectState*)arg0->work;
     modePtr = &gGameSession->at4.loc.view;
-    coord   = arg0->extra.tmd->coords;
+    coord   = arg0->extra.coordBody->coord;
     if (Fs_ChunkOutputSizes[2] != -1) {
         streamLeft  = 0x18000 - Fs_ChunkOutputSizes[2];
         streamLeft &= ~7;

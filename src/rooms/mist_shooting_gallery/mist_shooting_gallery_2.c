@@ -2049,7 +2049,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     u32        rand2;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState != 0) {
         func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);

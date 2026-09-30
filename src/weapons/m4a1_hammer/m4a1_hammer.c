@@ -95,7 +95,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     s32           j;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     base  = &Gp_RoomCoords[1];
     light = &base->light.head.u.coord;
     slot  = &base->light;
@@ -301,7 +301,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     GfxCoord*  parent;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem->age++;
     switch (arg0->state) {
         case 0:

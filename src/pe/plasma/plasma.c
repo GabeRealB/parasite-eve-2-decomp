@@ -90,7 +90,7 @@ void func_plasma_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }

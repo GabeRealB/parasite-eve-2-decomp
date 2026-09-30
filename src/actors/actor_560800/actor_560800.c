@@ -6896,7 +6896,7 @@ void func_actor_560800_801386D4(Task* task)
     work = (Actor560800PartsWork*)task->work;
     switch (task->state) {
         case 0:
-            root       = task->extra.disp2d->coord;
+            root       = task->extra.coordBody->coord;
             w          = (Actor560800PartsWork*)Mem_Malloc(0x4C, 0);
             task->work = (TaskIdMap*)w;
             if (w == NULL) {

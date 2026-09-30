@@ -1389,7 +1389,7 @@ void func_actor_160900_80132E80(Task* task)
     DR_TPAGE* tp;
     s16       i;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     verts = &((Actor160900ChildWork*)task->work)->field_0;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);

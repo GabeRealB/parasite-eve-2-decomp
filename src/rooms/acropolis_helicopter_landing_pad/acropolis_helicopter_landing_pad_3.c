@@ -979,7 +979,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
     s16               n;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState >= 2) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1119,7 +1119,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     s32           pan;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (arg0->state == 2) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1367,7 +1367,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     base  = &Gp_RoomCoords[4];
     slot  = &base->light;
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (arg0->state == 3) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -1439,7 +1439,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     u8                tmp;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState >= 2) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

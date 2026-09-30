@@ -1008,7 +1008,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
     s16              x;
     s16              y;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
@@ -1081,7 +1081,7 @@ void func_acropolis_observatory_8017E6F8(Task* task)
     SVECTOR*  vec;
     u16*      flags;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     mask  = 1 << Gp_GetViewIndex();
     if (Gp_State1C->eventState < 4) {
         i     = 0;

@@ -83,7 +83,7 @@ void func_healing_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         if (arg0->state == 0) {
             state->field_6 |= 8;
@@ -202,7 +202,7 @@ void func_healing_8012F494(Task* arg0)
     u16        spawn;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
@@ -250,7 +250,7 @@ void func_healing_8012F5E4(Task* arg0)
     GpEffWork* spawned;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
         coord->parent       = mem->parent;

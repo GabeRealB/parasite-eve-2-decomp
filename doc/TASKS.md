@@ -1,9 +1,9 @@
 # Parasite Eve 2 — task system (actor model)
 
 The game’s actors are cooperative **tasks**: a `Task` is a 0x48-byte object
-with a per-frame callback, optional parent/child links, and an optional 3D or
-2D body. There is no separate entity list. Enemies, UI, camera, memcard, title,
-and room overlays are all spawned the same way.
+with a per-frame callback, optional parent/child links, and an optional TMD model
+or single-coordinate body. There is no separate entity list. Enemies, UI, camera,
+memcard, title, and room overlays are all spawned the same way.
 
 Field-level layouts: [`include/main/task.h`](../include/main/task.h).
 Overlay RAM slots that many callbacks live in: [`OVERLAYS.md`](OVERLAYS.md).
@@ -77,8 +77,14 @@ Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
-| 1 | `Gp_AttachTmdFlags(task, arg.model, flags)` — 3D TMD | unlink + free TMD (often deferred 2 frames) |
-| 2 | `gpAttachDisp2d(task)` — coordinate body | unlink coordinate body (often deferred 1 frame) |
+| 1 | `Gp_AttachTmdFlags(task, arg.model, flags)` — `extra.tmd` | unlink + free TMD (normally deferred 2 frames) |
+| 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
+
+`TaskBody` holds one allocation pointer. Select its typed member using
+`spawnType`: a model owns `partCount` coordinates, while a coordinate body owns
+exactly one. `extra.allocation` supplies the kind-independent NULL check during
+spawn. A copy of this union borrows the body; teardown leaves the pointer bits
+unchanged, so `TASK_BODY_RELEASED` forbids further body access.
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
 defaults to `taskKill`.
@@ -108,9 +114,10 @@ Each node’s `callback` runs. Two early-outs:
 1. Detaches children and calls each child’s `exitCallback`.
 2. Unlinks from the parent ring.
 3. Frees `work` if set.
-4. Tears down `extra` according to `spawnType` (skipped when
-   `gDisplayState.skipTeardown` is set).
-5. Sets `spawnType = 0xFF` so the **next** exec pass frees the node.
+4. Tears down `extra` according to `spawnType`, releasing bodies immediately
+   when `gDisplayState.skipTeardown` is set.
+5. Normally sets `spawnType = 0xFF` for collection after the callback returns;
+   the immediate path also unlinks and frees the task during this call.
 
 Type 1 often swaps `callback` to `taskCountdownCallback` with
 `killCountdown = 2` instead of freeing immediately. Type 0/2 typically park

@@ -85,7 +85,7 @@ void func_combustion_8012EF34(Task* arg0)
     u8          rgb[3];
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
@@ -175,7 +175,7 @@ void func_combustion_8012F2BC(Task* arg0)
     s32         last;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
@@ -349,7 +349,7 @@ void func_combustion_8012F888(Task* arg0)
     s32        tmp2;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
@@ -703,7 +703,7 @@ void func_combustion_801308E0(Task* arg0)
         Gp_ReleaseState1CMem(arg0->spawnArg2.pointer, arg0);
         return;
     }
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
     Gp_SpawnEff(0x8006001B, coord, 1, 0);
     Gp_SpawnEff(0x8006001B, coord, -1, 0);

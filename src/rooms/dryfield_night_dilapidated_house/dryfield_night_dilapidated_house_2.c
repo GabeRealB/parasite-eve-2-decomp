@@ -2609,7 +2609,7 @@ void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
     GfxCoord* coord;
     s32       mask;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x99C) {

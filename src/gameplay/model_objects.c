@@ -284,21 +284,21 @@ ModelObjectCoordBody* gpAttachDisp2d(Task* task)
         node->field_C = 1;
         coord->parent = &gGfxViewCoord;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]   = 0;
-        coord->coord.t[1]   = 0;
-        coord->coord.t[0]   = 0;
-        coord->param.rot.vz = 0;
-        coord->param.rot.vy = 0;
-        coord->param.rot.vx = 0;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        list                = &gTmdDisp2dList;
-        last                = list->prev;
-        node->link.next     = last->next;
-        last->next          = &node->link;
-        node->link.prev     = last;
-        list->prev          = &node->link;
-        task->extra.disp2d  = node;
-        task->spawnType     = TASK_BODY_DISP2D;
+        coord->coord.t[2]     = 0;
+        coord->coord.t[1]     = 0;
+        coord->coord.t[0]     = 0;
+        coord->param.rot.vz   = 0;
+        coord->param.rot.vy   = 0;
+        coord->param.rot.vx   = 0;
+        coord->composeStamp   = GRAPHICS_COORD_DIRTY;
+        list                  = &gTmdDisp2dList;
+        last                  = list->prev;
+        node->link.next       = last->next;
+        last->next            = &node->link;
+        node->link.prev       = last;
+        list->prev            = &node->link;
+        task->extra.coordBody = node;
+        task->spawnType       = TASK_BODY_DISP2D;
     } else {
         printf("new_disp_2d ----> NULL\n");
     }
@@ -432,7 +432,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
                     }
                     break;
                 case TASK_BODY_DISP2D:
-                    coord = task->extra.disp2d->coord;
+                    coord = task->extra.coordBody->coord;
                     if (coord == targetCoord) {
                         found = 1;
                     }

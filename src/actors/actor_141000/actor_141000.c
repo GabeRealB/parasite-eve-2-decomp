@@ -2319,7 +2319,7 @@ void func_actor_141000_801330C0(Task* arg0)
     GpMtxWords* words;
     u16         count;
 
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (arg0->state == 0) {
         words               = (GpMtxWords*)&coord->coord;
         words->m00_m01      = 0x1000;

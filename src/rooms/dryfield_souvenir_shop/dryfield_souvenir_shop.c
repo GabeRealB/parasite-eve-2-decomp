@@ -549,10 +549,10 @@ static void func_dryfield_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1)
 }
 
 /// Per-frame effect on the room's coordinate task: both prisms are drawn under
-/// the single coordinate in `Task::extra.disp2d->coord`.
+/// the single coordinate in `Task::extra.coordBody->coord`.
 void func_dryfield_souvenir_shop_8017DFD4(Task* task)
 {
-    GfxCoord* coord = task->extra.disp2d->coord;
+    GfxCoord* coord = task->extra.coordBody->coord;
 
     func_dryfield_souvenir_shop_8017D6B4(coord, 0);
     func_dryfield_souvenir_shop_8017D6B4(coord, 8);

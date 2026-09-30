@@ -1966,7 +1966,7 @@ void func_neo_ark_pavilion_8017EC4C(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         func_neo_ark_pavilion_8017ED98(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -2090,7 +2090,7 @@ void func_neo_ark_pavilion_8017F0CC(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
             func_neo_ark_pavilion_8017F588(coord, (u16)work->index, work->scale, work->angle);
@@ -2347,7 +2347,7 @@ void func_neo_ark_pavilion_8017FCB0(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2532,7 +2532,7 @@ void func_neo_ark_pavilion_80180714(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2732,7 +2732,7 @@ void func_neo_ark_pavilion_80180FFC(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
@@ -2937,7 +2937,7 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
     u8         col[4];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -3052,7 +3052,7 @@ void func_neo_ark_pavilion_8018219C(Task* task)
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
-    coord  = task->extra.disp2d->coord;
+    coord  = task->extra.coordBody->coord;
     target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -3283,7 +3283,7 @@ void func_neo_ark_pavilion_80182DFC(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

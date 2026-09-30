@@ -999,7 +999,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     SVECTOR*   vec;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (task->state != 0) {
         return;
     }
@@ -1046,7 +1046,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     u16        rnd;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC == 0) {
         Gp_ReleaseState1CMem(work, task);
         return;
@@ -1099,7 +1099,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
     s32                   quot;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC != 0) {
         mode = gGameSession->at4.loc.view;
         if (mode == 9) {
@@ -1354,7 +1354,7 @@ void func_acropolis_cafeteria_8017F948(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1531,7 +1531,7 @@ void func_acropolis_cafeteria_801803AC(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1723,7 +1723,7 @@ void func_acropolis_cafeteria_80180C94(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

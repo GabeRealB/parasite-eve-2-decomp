@@ -1679,7 +1679,7 @@ void func_actor_503500_80132778(Task* task)
     SVECTOR*            pos;
     u8                  done;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         pos                 = &D_actor_503500_8014B97C[task->spawnArg1.value];
         coord->coord.t[0]   = pos->vx;

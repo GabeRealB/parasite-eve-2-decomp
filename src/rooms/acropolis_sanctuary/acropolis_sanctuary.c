@@ -1953,7 +1953,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
     GameLocationKey* sess;
     s32              i;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         for (i = 0; i < 6; i++) {
             Gp_SpawnEff(0x6008B, coord, i + 0x200, &D_acropolis_sanctuary_80182774[i]);
@@ -1992,7 +1992,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
     s32        idx;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (arg0->state != 0) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -2058,7 +2058,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].quad;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -2241,7 +2241,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     SVECTOR*          sv;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if (mem->age >= 0x3D || mem->index >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -2395,7 +2395,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
     s16               y;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;

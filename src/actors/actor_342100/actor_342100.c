@@ -749,7 +749,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     s32       vz;
 
     eff   = (GpEffArg*)arg0->work;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     switch (arg0->state) {
         case 0:
             arg0->work = (TaskIdMap*)Mem_Malloc(8, 0);
@@ -760,7 +760,7 @@ void func_actor_342100_80162AB0(Task* arg0)
             eff = (GpEffArg*)arg0->work;
             Mem_Set(eff, 0, 8);
             eff->spawnArgLo = 0x100;
-            eff->coord      = arg0->extra.disp2d->coord;
+            eff->coord      = arg0->extra.coordBody->coord;
             eff->spawnArgHi = 1;
             arg0->state++;
             return;

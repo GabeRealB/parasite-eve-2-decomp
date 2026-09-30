@@ -1249,7 +1249,7 @@ void func_800A8654(Task* task)
 
     i              = 0;
     c1             = &Gfx_ViewOffsetCoord;
-    body           = task->extra.disp2d;
+    body           = task->extra.coordBody;
     vec            = (VECTOR*)task->work;
     src            = body->coord;
     c1->coord.t[0] = vec->vx;

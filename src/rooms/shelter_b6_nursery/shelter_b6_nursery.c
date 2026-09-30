@@ -1732,7 +1732,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     work->age++;
     switch (task->state) {
         case 0:
@@ -1996,7 +1996,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
 
     work       = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
-    coord      = task->extra.disp2d->coord;
+    coord      = task->extra.coordBody->coord;
     if (eventState >= 2) {
         if (eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2113,7 +2113,7 @@ void func_shelter_b6_nursery_80182D28(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2294,7 +2294,7 @@ void func_shelter_b6_nursery_8018378C(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2491,7 +2491,7 @@ void func_shelter_b6_nursery_80184074(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.disp2d->coord;
+    objCoord = task->extra.coordBody->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

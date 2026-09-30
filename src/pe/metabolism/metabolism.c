@@ -91,7 +91,7 @@ void func_metabolism_8012EF34(Task* arg0)
     u8          rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.disp2d->coord;
+    coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -226,7 +226,7 @@ void func_metabolism_8012F5A0(Task* arg0)
     u16        roll;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.disp2d->coord;
+    coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:

@@ -580,13 +580,13 @@ static void func_dryfield_night_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1
 }
 
 /// Per-frame effect on the room's coordinate task: the composed matrix of
-/// `Task::extra.disp2d->coord` is updated,
+/// `Task::extra.coordBody->coord` is updated,
 /// then both of the room's prisms are drawn under that coordinate.
 void func_dryfield_night_souvenir_shop_8017DFF4(Task* task)
 {
     GfxCoord* coord;
 
-    coord = task->extra.disp2d->coord;
+    coord = task->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
     func_dryfield_night_souvenir_shop_8017D6B4(coord, 0);
     func_dryfield_night_souvenir_shop_8017D6B4(coord, 8);
