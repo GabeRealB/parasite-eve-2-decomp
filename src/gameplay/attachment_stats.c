@@ -366,32 +366,32 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                      \
-    {                                                                     \
-        req.x          = obj.panel.field_20.unsignedValue + (dx) + xBase; \
-        req.y          = (obj.panel.field_22.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.field_14.signedValue + 1;              \
-        req.field_8    = (color);                                         \
-        req.glyphTable = 5;                                               \
-        req.centerMode = 0;                                               \
-        req.field_E    = 1;                                               \
-        Text_DrawString(&req, (str));                                     \
+#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                            \
+    {                                                                           \
+        req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
+        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
+        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
+        req.field_8    = (color);                                               \
+        req.glyphTable = 5;                                                     \
+        req.centerMode = 0;                                                     \
+        req.field_E    = 1;                                                     \
+        Text_DrawString(&req, (str));                                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
-#define DRAW_PROMPT_COUNT(req, line, count)                               \
-    {                                                                     \
-        req.field_8    = 0x606060;                                        \
-        req.glyphTable = 5;                                               \
-        req.centerMode = 2;                                               \
-        req.field_E    = 0;                                               \
-        req.x          = obj.panel.field_20.unsignedValue + 0x94;         \
-        req.y          = (obj.panel.field_22.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.field_14.signedValue + 1;              \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));             \
-        if ((count) == 0) {                                               \
-            flag = 1;                                                     \
-        }                                                                 \
+#define DRAW_PROMPT_COUNT(req, line, count)                                     \
+    {                                                                           \
+        req.field_8    = 0x606060;                                              \
+        req.glyphTable = 5;                                                     \
+        req.centerMode = 2;                                                     \
+        req.field_E    = 0;                                                     \
+        req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
+        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
+        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));                   \
+        if ((count) == 0) {                                                     \
+            flag = 1;                                                           \
+        }                                                                       \
     }
 
 static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
@@ -434,13 +434,13 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         count2 = slot->secondaryQty;
     }
-    height                           = 0xE;
-    flag                             = 0;
-    obj.panel.field_20.unsignedValue = 0;
-    obj.panel.field_22.unsignedValue = 0;
-    obj.panel.field_14.signedValue   = -3;
-    obj.panel.field_8                = 0;
-    xBase                            = 0x5F;
+    height                                 = 0xE;
+    flag                                   = 0;
+    obj.panel.contentOriginX.unsignedValue = 0;
+    obj.panel.contentOriginY.unsignedValue = 0;
+    obj.panel.otIndex.signedValue          = -3;
+    obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+    xBase                                  = 0x5F;
     if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         height = 0x18;
     }
@@ -819,17 +819,17 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
             param <<= 1;
         }
 
-        s.obj.panel.field_14.signedValue   = -3;
-        s.u.text.req.x                     = arg1 + 7;
-        s.u.text.req.y                     = arg2 + 0x22;
-        s.u.text.req.otIndex               = -2;
-        s.obj.panel.field_20.unsignedValue = arg1;
-        s.obj.panel.field_22.unsignedValue = arg2;
-        s.obj.panel.field_8                = 0;
-        s.u.text.req.field_8               = 0x606060;
-        s.u.text.req.glyphTable            = 0;
-        s.u.text.req.centerMode            = 0;
-        s.u.text.req.field_E               = 1;
+        s.obj.panel.otIndex.signedValue          = -3;
+        s.u.text.req.x                           = arg1 + 7;
+        s.u.text.req.y                           = arg2 + 0x22;
+        s.u.text.req.otIndex                     = -2;
+        s.obj.panel.contentOriginX.unsignedValue = arg1;
+        s.obj.panel.contentOriginY.unsignedValue = arg2;
+        s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        s.u.text.req.field_8                     = 0x606060;
+        s.u.text.req.glyphTable                  = 0;
+        s.u.text.req.centerMode                  = 0;
+        s.u.text.req.field_E                     = 1;
         Text_DrawString(&s.u.text.req, Gp_GetItemText(item, 0, 0));
 
         ret   = getAttachWheelLevel(Gp_StateC08.field_B);
@@ -845,11 +845,11 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
 
         /* Lay the equipped attachments out on a circle; unused slots are
          * parked at the sentinel height so the selection below skips them. */
-        s.obj.panel.field_20.unsignedValue = 0x30;
-        s.obj.panel.field_22.unsignedValue = 0;
-        s.obj.panel.field_14.signedValue   = -3;
-        s.obj.panel.field_8                = 0;
-        pts                                = s.u.pts;
+        s.obj.panel.contentOriginX.unsignedValue = 0x30;
+        s.obj.panel.contentOriginY.unsignedValue = 0;
+        s.obj.panel.otIndex.signedValue          = -3;
+        s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        pts                                      = s.u.pts;
         for (i = 0; i < 12; i++) {
             if (i < count) {
                 angle = ((i * 4 + arg0->field_15) << 12) / (count * 4);
@@ -993,12 +993,12 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
         poly->y2 = poly->y3 = poly->y0 + 8;
         addPrim(gGpuCurrentOt - 2, poly);
 
-        cat                              = Gp_StateC08.field_5;
-        order                            = -3;
-        obj.panel.field_20.unsignedValue = 0;
-        obj.panel.field_22.unsignedValue = 0;
-        obj.panel.field_14.signedValue   = order;
-        obj.panel.field_8                = 0;
+        cat                                    = Gp_StateC08.field_5;
+        order                                  = -3;
+        obj.panel.contentOriginX.unsignedValue = 0;
+        obj.panel.contentOriginY.unsignedValue = 0;
+        obj.panel.otIndex.signedValue          = order;
+        obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
         Gp_DrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
 
         dr             = gGpuPrimCursor;

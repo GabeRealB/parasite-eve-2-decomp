@@ -37,32 +37,32 @@
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                      \
-    {                                                                     \
-        req.x          = obj.panel.field_20.unsignedValue + (dx) + xBase; \
-        req.y          = (obj.panel.field_22.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.field_14.signedValue + 1;              \
-        req.field_8    = (color);                                         \
-        req.glyphTable = 5;                                               \
-        req.centerMode = 0;                                               \
-        req.field_E    = 1;                                               \
-        Text_DrawString(&req, (str));                                     \
+#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                            \
+    {                                                                           \
+        req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
+        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
+        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
+        req.field_8    = (color);                                               \
+        req.glyphTable = 5;                                                     \
+        req.centerMode = 0;                                                     \
+        req.field_E    = 1;                                                     \
+        Text_DrawString(&req, (str));                                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
-#define DRAW_PROMPT_COUNT(req, line, count)                               \
-    {                                                                     \
-        req.field_8    = 0x606060;                                        \
-        req.glyphTable = 5;                                               \
-        req.centerMode = 2;                                               \
-        req.field_E    = 0;                                               \
-        req.x          = obj.panel.field_20.unsignedValue + 0x94;         \
-        req.y          = (obj.panel.field_22.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.field_14.signedValue + 1;              \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));             \
-        if ((count) == 0) {                                               \
-            flag = 1;                                                     \
-        }                                                                 \
+#define DRAW_PROMPT_COUNT(req, line, count)                                     \
+    {                                                                           \
+        req.field_8    = 0x606060;                                              \
+        req.glyphTable = 5;                                                     \
+        req.centerMode = 2;                                                     \
+        req.field_E    = 0;                                                     \
+        req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
+        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
+        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));                   \
+        if ((count) == 0) {                                                     \
+            flag = 1;                                                           \
+        }                                                                       \
     }
 
 /// 18-byte MATRIX rotation (3x3 s16). Assigned via unaligned lwl/lwr + lh/sh
@@ -404,11 +404,11 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         return;
     }
 
-    order                              = -3;
-    s.obj.panel.field_20.unsignedValue = 0;
-    s.obj.panel.field_22.unsignedValue = 0;
-    s.obj.panel.field_14.signedValue   = order;
-    s.obj.panel.field_8                = 0;
+    order                                    = -3;
+    s.obj.panel.contentOriginX.unsignedValue = 0;
+    s.obj.panel.contentOriginY.unsignedValue = 0;
+    s.obj.panel.otIndex.signedValue          = order;
+    s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
 
     req.x          = x + 4;
     req.y          = y + 8;
@@ -855,9 +855,9 @@ void Gp_DrawItemObtained(Task* arg0)
             obj->panel.bounds.unsignedRect.y += 9;
             arg0->state++;
         }
-        Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, 1, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, 1, 0);
     } else {
-        Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, 1, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, 1, 0);
     }
 }
 
@@ -868,7 +868,7 @@ void Gp_DrawItemTitle(Task* arg0)
     obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawTitle(&(obj)->panel, Gp_StrItem);
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             obj->field_2E = 6;
         }

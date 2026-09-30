@@ -222,9 +222,9 @@ void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
         if (val.unsignedValue > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);
             one   = 1;
-            Text_DrawPrompt(arg0, arg0->panel.field_1C.signedValue + 2, arg0->panel.field_18.signedValue + 0xF, val.pointer, color, one, 0);
+            Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, color, one, 0);
             text = Text_SkipLines(val.pointer, one);
-            Text_DrawPrompt(arg0, arg0->panel.field_1C.signedValue + 2, arg0->panel.field_18.signedValue + 0x1E, text, color, one, 0);
+            Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, color, one, 0);
         } else if ((u32)(val.value - 0x300) < 0x100U) {
             Gp_DrawCastCostLines(arg0, val.value);
         }

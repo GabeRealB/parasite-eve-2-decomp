@@ -110,7 +110,7 @@ static void Telephone_PlayDataTask(Task* task)
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
         obj->field_2E = 6;
     }
 }
@@ -128,10 +128,10 @@ static void Telephone_DrawGauge(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32
 
     if ((arg5 != 0) && (arg3 >= 2)) {
         prim           = gGpuPrimCursor;
-        x              = arg0->field_20.unsignedValue + arg1 + 1;
+        x              = arg0->contentOriginX.unsignedValue + arg1 + 1;
         prim->x2       = x;
         prim->x0       = x;
-        y              = arg0->field_22.unsignedValue;
+        y              = arg0->contentOriginY.unsignedValue;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 8);
         GPU_PRIMITIVE_COLOR_WORD(prim, 0) = arg5;
@@ -149,7 +149,7 @@ static void Telephone_DrawGauge(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32
         bottom   = y + arg4 - 1;
         prim->y3 = bottom;
         prim->y2 = bottom;
-        addPrim(gGpuCurrentOt + arg0->field_14.signedValue + 1, prim);
+        addPrim(gGpuCurrentOt + arg0->otIndex.signedValue + 1, prim);
     }
 }
 
@@ -165,9 +165,9 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
         SndEvt_EnqueueType6(0x16, 0, 0);
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->panel.field_0.w = 0;
-        obj->field_2E        = 6;
-        obj->owner->state    = sel;
+        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        obj->field_2E           = 6;
+        obj->owner->state       = sel;
     }
 }
 
@@ -179,9 +179,9 @@ static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CAC, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
+        obj->field_2E           = 6;
+        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        obj->owner->state       = 2;
     }
 }
 
@@ -194,9 +194,9 @@ static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
+        obj->field_2E           = 6;
+        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        obj->owner->state       = 2;
     }
 }
 
@@ -209,9 +209,9 @@ static void Telephone_PeDataRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 1, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
+        obj->field_2E           = 6;
+        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        obj->owner->state       = 2;
     }
 }
 

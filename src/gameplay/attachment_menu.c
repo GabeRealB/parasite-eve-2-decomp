@@ -148,7 +148,7 @@ static inline void _gpApplyChildResults(UiObject* obj, Task* task)
                     break;
                 case 6:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->panel.field_0.w = 1;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
             }
             head  = task->firstChild;
@@ -222,7 +222,7 @@ void Gp_AttachListTask(Task* task)
         if (menu->field_4 == 0) {
             task->state         = 2;
             task->killCountdown = 0xBC;
-            obj->panel.field_4 |= 2;
+            obj->panel.style   |= USER_INTERFACE_PANEL_TITLE_STYLE;
             if (task->spawnArg1.value & 0x10000) {
                 if (val != 0) {
                     slot = Gp_GetItemSlot(val);
@@ -246,7 +246,7 @@ void Gp_AttachListTask(Task* task)
             if (task->state != 2) {
                 Gp_SizeEquippedPanel(&(obj)->panel, val);
             }
-            obj->panel.field_16 = 9;
+            obj->panel.animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
             return;
         }
         if ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h < 0x47) {
@@ -258,7 +258,7 @@ void Gp_AttachListTask(Task* task)
     one = 1;
     if (state == one) {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->panel.field_0.w == one) {
+        if (obj->panel.control.word == one) {
             if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->field_2E = -1;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -281,7 +281,7 @@ void Gp_AttachListTask(Task* task)
                         break;
                     case 6:
                         Ui_TeardownTree(childObj, childObj->owner);
-                        obj->panel.field_0.w = 1;
+                        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                         break;
                 }
                 head  = task->firstChild;
@@ -298,13 +298,13 @@ void Gp_AttachListTask(Task* task)
     }
     if (state == 2) {
         Ui_DrawText(&(obj)->panel, Gp_StrNotice);
-        Text_DrawMultiLine(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, one, 0);
+        Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, one, 0);
     } else {
         Ui_DrawText(&(obj)->panel, Gp_StrEquip);
         func_800CF6E8(obj, val);
     }
     task->killCountdown--;
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
             return;
@@ -353,7 +353,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             Ui_SetState4(parent->spawnArg2.pointer, parent);
             Ui_SpawnFromDesc(&D_8010EC3C, 1, 0, 0x10, obj);
         }
-        Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, obj->panel.field_18.signedValue + 0x4A);
+        Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
         val = Gp_AttachListIds[menu->field_10];
         if (val != 0) {
             func_800C7DA8(obj, val, 1, 0);
@@ -363,7 +363,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             flags = 0x112;
             goto draw;
         }
-        if (((obj->panel.field_0.w >> 16) == state) || (obj->panel.field_0.w == state)) {
+        if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
             table = Gp_PreviewItems;
             if (val != table[2]) {
                 i = 0;
@@ -386,7 +386,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             flags |= 0x100;
         }
     draw:
-        func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, flags);
+        func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
     }
 }
 
@@ -403,7 +403,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
     s32         status;
 
     item   = _gpFindSpareArmor(arg0->field_8);
-    status = arg1->panel.field_0.w;
+    status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             if (item == 0) {
@@ -418,11 +418,11 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
     y     = arg0->field_1A;
     color = arg0->field_1C;
     one   = 1;
-    if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.unsignedValue + 0x11 + x;
-        baseY          = arg1->panel.field_22.unsignedValue - 6;
+    if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        req.x          = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
+        baseY          = arg1->panel.contentOriginY.unsignedValue - 6;
         req.y          = baseY + y;
-        req.otIndex    = arg1->panel.field_14.signedValue + 1;
+        req.otIndex    = arg1->panel.otIndex.signedValue + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -439,11 +439,11 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EF30, item, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
+            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
+            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
@@ -479,7 +479,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         arg0->state++;
     }
 
-    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, obj->panel.field_18.signedValue + 0x4A);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
 
     GP_FIND_SPARE_ARMOR(found, menu->field_10);
@@ -491,16 +491,16 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         flags = 0x112;
         goto draw;
     }
-    if (((obj->panel.field_0.w >> 16) == 1) || (obj->panel.field_0.w == 1)) {
+    if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
         GP_SET_PREVIEW_ITEM(item, 2);
     }
     if (CdCmd_IsIdle() == 0) {
         flags |= 0x100;
     }
 draw:
-    func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, flags);
+    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -592,19 +592,19 @@ void Gp_ReloadPromptTask(Task* arg0)
     } else if (arg0->state < 0x20) {
         text = Gp_GetItemText(lo, 0, 0);
         if (arg0->state < 0x10) {
-            Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrLoaded, 0x606060, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrLoaded, 0x606060, 1, 0);
         } else {
-            Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrRemoved, 0x606060, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemoved, 0x606060, 1, 0);
         }
         one   = 1;
-        width = Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0x1E, text, 0x37A78, one, 0);
+        width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, 0);
         color = 0x606060;
-        Text_DrawPrompt(obj, width, obj->panel.field_18.signedValue + 0x1E, Gp_StrDot, color, one, 0);
+        Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, 0);
     } else {
-        Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrRemovedAmmo, 0x606060, 1, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemovedAmmo, 0x606060, 1, 0);
     }
     arg0->killCountdown--;
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -632,7 +632,7 @@ void Gp_AttachPromptTask(Task* arg0)
         arg0->killCountdown            = 0xBC;
         arg0->state                    = arg0->state + 1;
     } else if (arg0->state == 1) {
-        if (obj->panel.field_8 == 2) {
+        if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
             SndEvt_EnqueueType6(0xA, 0, 0);
             arg0->state = arg0->state + 1;
         }
@@ -640,11 +640,11 @@ void Gp_AttachPromptTask(Task* arg0)
     Ui_DrawText(&(obj)->panel, Gp_StrAttach);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 6, 0, Gp_StrEquipped, color, one, 0);
-    width = Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 6, 0xE, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 0, Gp_StrEquipped, color, one, 0);
+    width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 0xE, text, 0x37A78, one, 0);
     Text_DrawPrompt(obj, width, 0xE, Gp_StrDot, color, one, 0);
     arg0->killCountdown--;
-    if (obj->panel.field_0.w == one) {
+    if (obj->panel.control.word == one) {
         if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -702,7 +702,7 @@ void Gp_EquipPromptTask(Task* arg0)
         arg0->killCountdown            = 0xBC;
         arg0->state                    = arg0->state + 1;
     } else if (arg0->state == 1) {
-        if (obj->panel.field_8 == 2) {
+        if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
             if ((u32)(arg0->spawnArg1.value - 0x80) < 0x20U) {
                 SndEvt_EnqueueType6(0xA, 0, 0);
             } else {
@@ -715,11 +715,11 @@ void Gp_EquipPromptTask(Task* arg0)
     text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrEquipped, color, one, 0);
-    width = Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0x1E, text, 0x37A78, one, 0);
-    Text_DrawPrompt(obj, width, obj->panel.field_18.signedValue + 0x1E, Gp_StrDot, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrEquipped, color, one, 0);
+    width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, 0);
     arg0->killCountdown--;
-    if (obj->panel.field_0.w == one) {
+    if (obj->panel.control.word == one) {
         if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -736,9 +736,9 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
     s32         val;
     s32         one;
 
-    req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.field_22.unsignedValue + (u16)arg0->field_1A;
-    req.otIndex    = arg1->panel.field_14.signedValue + 1;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -761,8 +761,8 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
             if (obj != NULL) {
                 Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
             }
-            arg1->panel.field_0.w = 0;
-            arg0->field_22        = 0x20;
+            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            arg0->field_22           = 0x20;
         }
     }
 }
@@ -776,9 +776,9 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
     s32         x;
     s32         y;
 
-    req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
-    req.y          = arg1->panel.field_22.unsignedValue + (u16)arg0->field_1A;
-    req.otIndex    = arg1->panel.field_14.signedValue + 1;
+    req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
+    req.y          = arg1->panel.contentOriginY.unsignedValue + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -809,8 +809,8 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
                 x                                = -8;
                 obj->panel.bounds.unsignedRect.x = x;
             }
-            arg1->panel.field_0.w = 0;
-            arg0->field_22        = 0x20;
+            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            arg0->field_22           = 0x20;
         }
     }
 }

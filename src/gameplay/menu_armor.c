@@ -130,10 +130,10 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
     TextDrawReq req;
     s32         temp;
 
-    if (obj->panel.field_8 != 5) {
-        req.x          = obj->panel.field_20.unsignedValue + 0x11 + x;
-        req.y          = obj->panel.field_22.unsignedValue + (y - 6);
-        req.otIndex    = obj->panel.field_14.signedValue + 1;
+    if (obj->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
+        req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
+        req.otIndex    = obj->panel.otIndex.signedValue + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -209,9 +209,9 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             color = prompt->field_1C;
             if ((u32)(item - 0xA0) < 0x20U) {
                 qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
-                req.x          = obj->panel.field_20.unsignedValue + 0x84 + x;
-                req.y          = obj->panel.field_22.unsignedValue + (y - 3);
-                req.otIndex    = obj->panel.field_14.signedValue + 1;
+                req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
+                req.y          = obj->panel.contentOriginY.unsignedValue + (y - 3);
+                req.otIndex    = obj->panel.otIndex.signedValue + 1;
                 req.field_8    = color;
                 req.glyphTable = 5;
                 req.centerMode = 2;
@@ -227,7 +227,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             _gpDrawItemName(prompt, obj, item, 1);
         }
 
-        if (((obj->panel.field_0.w >> 16) == 1 || obj->panel.field_0.w == 1) && prompt->field_10 == prompt->field_8) {
+        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->field_10 == prompt->field_8) {
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
@@ -258,21 +258,21 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
-                obj->panel.field_0.w = 0;
+                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
     } else {
-        if (((obj->panel.field_0.w >> 16) == 1 || obj->panel.field_0.w == 1) && prompt->field_10 == prompt->field_8) {
+        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->field_10 == prompt->field_8) {
             Ui_SetHolderParam(Gp_StrDetachArmorHelp, 0, 0);
         }
         {
             TextDrawReq req;
             s32         off;
 
-            req.x          = obj->panel.field_20.unsignedValue + prompt->field_18;
-            off            = obj->panel.field_22.unsignedValue - 6;
+            req.x          = obj->panel.contentOriginX.unsignedValue + prompt->field_18;
+            off            = obj->panel.contentOriginY.unsignedValue - 6;
             req.y          = prompt->field_1A + off;
-            req.otIndex    = obj->panel.field_14.signedValue + 1;
+            req.otIndex    = obj->panel.otIndex.signedValue + 1;
             req.field_8    = prompt->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -352,14 +352,14 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, obj->panel.field_18.signedValue + 0x4A);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
     rec = Gp_NthEquippableRec(&Mc_SaveData[0].state.carriedItems, menu->field_10, 0);
     if (rec != NULL) {
         val = rec->itemId;
     }
     Gp_ItemRowSelect(menu, obj, val, 2);
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {

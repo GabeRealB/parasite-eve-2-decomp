@@ -453,12 +453,12 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
     }
 
-    status                             = obj->panel.field_0.w;
-    obj->panel.field_0.w               = 0;
-    obj->panel.field_1A.unsignedValue -= 0x13;
+    status                                  = obj->panel.control.word;
+    obj->panel.control.word                 = USER_INTERFACE_PANEL_INACTIVE;
+    obj->panel.contentBottom.unsignedValue -= 0x13;
     Ui_UpdateListNoAnim(list, obj);
-    obj->panel.field_0.w               = status;
-    obj->panel.field_1A.unsignedValue += 0x13;
+    obj->panel.control.word                 = status;
+    obj->panel.contentBottom.unsignedValue += 0x13;
 
     state = arg0->state;
     if (state == 1) {
@@ -498,15 +498,15 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
     }
 
-    yOff = obj->panel.field_18.signedValue + 0xC;
-    xOff = obj->panel.field_1C.signedValue + 2;
-    Ui_DrawHBar(&(obj)->panel, xOff, obj->panel.field_1E.signedValue - 2, yOff);
+    yOff = obj->panel.contentTop.signedValue + 0xC;
+    xOff = obj->panel.contentLeft.signedValue + 2;
+    Ui_DrawHBar(&(obj)->panel, xOff, obj->panel.contentRight.signedValue - 2, yOff);
     color = 0x606060;
 
-    req.x          = obj->panel.field_20.unsignedValue + xOff;
-    req.y          = obj->panel.field_22.unsignedValue - 4;
+    req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
+    req.y          = obj->panel.contentOriginY.unsignedValue - 4;
     req.y         += yOff;
-    ot             = obj->panel.field_14.signedValue;
+    ot             = obj->panel.otIndex.signedValue;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -514,10 +514,10 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req.otIndex    = ot + 1;
     Text_DrawString(&req, D_replay_bonus_80115784);
 
-    req2.x          = obj->panel.field_20.unsignedValue - xOff;
-    req2.y          = obj->panel.field_22.unsignedValue - 4;
+    req2.x          = obj->panel.contentOriginX.unsignedValue - xOff;
+    req2.y          = obj->panel.contentOriginY.unsignedValue - 4;
     req2.y         += yOff;
-    ot2             = obj->panel.field_14.signedValue;
+    ot2             = obj->panel.otIndex.signedValue;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 2;
@@ -525,14 +525,14 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req2.otIndex    = ot2 + 1;
     Text_DrawString(&req2, D_replay_bonus_80115790);
 
-    t    = obj->panel.field_1A.signedValue;
+    t    = obj->panel.contentBottom.signedValue;
     yOff = t - 1;
-    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue + 2, obj->panel.field_1E.signedValue - 2, t - 0x10);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, t - 0x10);
 
-    req3.x          = obj->panel.field_20.unsignedValue + 0x70 + xOff;
-    req3.y          = obj->panel.field_22.unsignedValue - 6;
+    req3.x          = obj->panel.contentOriginX.unsignedValue + 0x70 + xOff;
+    req3.y          = obj->panel.contentOriginY.unsignedValue - 6;
     req3.y         += yOff;
-    ot3             = obj->panel.field_14.signedValue;
+    ot3             = obj->panel.otIndex.signedValue;
     req3.field_8    = color;
     req3.glyphTable = 5;
     req3.centerMode = 2;
@@ -542,7 +542,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
 
     sum = _replayBonusTotalBp(list, obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
-    if ((obj->panel.field_0.w == 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
         obj->field_2E = 6;
     }
 }
@@ -582,10 +582,10 @@ void func_replay_bonus_801166AC(Task* arg0)
         Ui_DrawText(&(obj)->panel, D_replay_bonus_801157B0);
     }
     color          = 0x606060;
-    xOff           = obj->panel.field_1C.signedValue + 2;
-    req.x          = obj->panel.field_20.unsignedValue + xOff;
-    req.y          = obj->panel.field_22.unsignedValue - 8;
-    ot             = obj->panel.field_14.signedValue;
+    xOff           = obj->panel.contentLeft.signedValue + 2;
+    req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
+    req.y          = obj->panel.contentOriginY.unsignedValue - 8;
+    ot             = obj->panel.otIndex.signedValue;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -598,9 +598,9 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
     negX = -xOff;
     Text_DrawPrompt(obj, negX, -2, Text_ItoaSigned(buf, value), color, 3, 2);
-    req2.x          = obj->panel.field_20.unsignedValue + xOff;
-    req2.y          = obj->panel.field_22.unsignedValue + 0xB;
-    ot2             = obj->panel.field_14.signedValue;
+    req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
+    req2.y          = obj->panel.contentOriginY.unsignedValue + 0xB;
+    ot2             = obj->panel.otIndex.signedValue;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 0;
@@ -618,14 +618,14 @@ void func_replay_bonus_801166AC(Task* arg0)
         if ((remaining << 0x10) <= 0) {
             if (arg0->spawnArg1.value == 0) {
                 Ui_SpawnFromDesc(&D_replay_bonus_801191A8, 1, 1, 1, obj);
-                obj->panel.field_0.w = 0;
-                arg0->state          = arg0->state + 1;
+                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                arg0->state             = arg0->state + 1;
             } else {
                 obj->field_2E = 6;
             }
         }
     }
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->field_2E = 6;
         }
@@ -669,7 +669,7 @@ void func_replay_bonus_80116964(Task* arg0)
         }
     }
     color = 0x606060;
-    Text_DrawMultiLine(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, D_replay_bonus_80119014, color, 1, 0);
+    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, D_replay_bonus_80119014, color, 1, 0);
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
@@ -785,10 +785,10 @@ void func_replay_bonus_80116D68(Task* arg0)
         arg0->state         = arg0->state + 1;
     }
     color          = 0x606060;
-    xOff           = obj->panel.field_1C.signedValue + 2;
-    req.x          = obj->panel.field_20.unsignedValue + xOff;
-    req.y          = obj->panel.field_22.unsignedValue;
-    ot             = obj->panel.field_14.signedValue;
+    xOff           = obj->panel.contentLeft.signedValue + 2;
+    req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
+    req.y          = obj->panel.contentOriginY.unsignedValue;
+    ot             = obj->panel.otIndex.signedValue;
     req.glyphTable = 5;
     req.field_8    = color;
     req.centerMode = 0;
@@ -798,7 +798,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, 2);
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (((remaining << 0x10) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
             obj->field_2E = 6;
         }

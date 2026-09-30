@@ -281,7 +281,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     }
 
     if (itemId == 0xFFFE) {
-        status = obj->panel.field_0.w;
+        status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->field_10 == prompt->field_8) {
                 Ui_SetHolderParam(Shop_Data_80181A20, 0, 0);
@@ -291,10 +291,10 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             prompt->field_1C = Ui_LookupTable(obj, 2);
             prompt->field_C  = 0;
         }
-        req.x          = obj->panel.field_20.unsignedValue + prompt->field_18;
-        y              = obj->panel.field_22.unsignedValue - 4;
+        req.x          = obj->panel.contentOriginX.unsignedValue + prompt->field_18;
+        y              = obj->panel.contentOriginY.unsignedValue - 4;
         req.y          = prompt->field_1A + y;
-        req.otIndex    = obj->panel.field_14.signedValue + 1;
+        req.otIndex    = obj->panel.otIndex.signedValue + 1;
         req.field_8    = prompt->field_1C;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -303,13 +303,13 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             Ui_SpawnFromDesc(&Shop_Data_80181BD8, 0, 1, 1, obj);
-            obj->panel.field_0.w = 0;
+            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
         return;
     }
 
     if (itemId == 0xFFFC) {
-        status = obj->panel.field_0.w;
+        status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->field_10 == prompt->field_8) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
@@ -325,7 +325,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child != NULL) {
                 Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
-                obj->panel.field_0.w = 0;
+                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
         return;
@@ -337,7 +337,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         prompt->field_1C = Ui_LookupTable(obj, 2);
     }
     if (prompt->field_22 != 0x41) {
-        status = obj->panel.field_0.w;
+        status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->field_10 == prompt->field_8) {
                 Gp_SetHolderItemText(itemId);
@@ -351,12 +351,12 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             if (child2 != NULL) {
                 SndEvt_EnqueueType6(0x16, 0, 0);
                 Ui_ClampDialogRect(&(child2)->panel, prompt, &(obj)->panel);
-                obj->panel.field_0.w = 0;
+                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, itemId, 1, 1, obj);
-            obj->panel.field_0.w = 0;
+            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
     Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, itemId, prompt->field_1C, 0);
@@ -580,20 +580,20 @@ static void Shop_ItemListTask(Task* task)
     }
     shop = (RoomShopList*)task->work;
     Ui_UpdateListNoAnim(shop, obj);
-    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, obj->panel.field_18.signedValue + 6);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 6);
 
-    x              = obj->panel.field_20.unsignedValue - 2;
-    req.x          = obj->panel.field_1E.unsignedValue + x;
-    y              = obj->panel.field_22.unsignedValue + 2;
-    req.y          = obj->panel.field_18.unsignedValue + y;
-    req.otIndex    = obj->panel.field_14.signedValue + 1;
+    x              = obj->panel.contentOriginX.unsignedValue - 2;
+    req.x          = obj->panel.contentRight.unsignedValue + x;
+    y              = obj->panel.contentOriginY.unsignedValue + 2;
+    req.y          = obj->panel.contentTop.unsignedValue + y;
+    req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
     Text_DrawString(&req, Shop_Data_8017D6D8);
 
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -612,7 +612,7 @@ static void Shop_ItemListTask(Task* task)
             if (code != -1) {
                 if (code == 6) {
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->panel.field_0.w = 1;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
                 obj->field_2E = code;
@@ -670,7 +670,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     one2 = 1;
     Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, text, prompt->field_1C, one2, 0);
 
-    status = obj->panel.field_0.w;
+    status = obj->panel.control.word;
     if (((status >> 16) == one2) || (status == one2)) {
         if (prompt->field_10 == prompt->field_8) {
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
@@ -680,7 +680,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&Shop_Data_80181B4C, obj->owner->spawnArg1, 1, 1, obj);
-        obj->panel.field_0.w = 0;
+        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
 
@@ -715,7 +715,7 @@ static void Shop_CategoryListTask(Task* task)
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
         obj->field_2E = -1;
     }
 
@@ -729,7 +729,7 @@ static void Shop_CategoryListTask(Task* task)
             if (code != -1) {
                 if (code == 6) {
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->panel.field_0.w = 1;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
                 Wip_UiHolder  = NULL;
@@ -761,13 +761,13 @@ static void Shop_BalanceTask(Task* task)
 
     obj = task->spawnArg2.pointer;
     cfg = &Player_Status;
-    x   = obj->panel.field_1C.signedValue + 2;
-    col = obj->panel.field_1E.signedValue - 2;
-    y   = obj->panel.field_18.signedValue;
+    x   = obj->panel.contentLeft.signedValue + 2;
+    col = obj->panel.contentRight.signedValue - 2;
+    y   = obj->panel.contentTop.signedValue;
 
-    req0.x          = obj->panel.field_20.unsignedValue + x;
-    req0.y          = obj->panel.field_22.unsignedValue + y + 9;
-    req0.otIndex    = obj->panel.field_14.signedValue + 1;
+    req0.x          = obj->panel.contentOriginX.unsignedValue + x;
+    req0.y          = obj->panel.contentOriginY.unsignedValue + y + 9;
+    req0.otIndex    = obj->panel.otIndex.signedValue + 1;
     req0.field_8    = 0x606060;
     req0.glyphTable = 5;
     req0.centerMode = 0;
@@ -778,9 +778,9 @@ static void Shop_BalanceTask(Task* task)
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
 
     y2              = y + 0x28;
-    req1.x          = obj->panel.field_20.unsignedValue + x;
-    req1.y          = obj->panel.field_22.unsignedValue + (y2 - 6);
-    req1.otIndex    = obj->panel.field_14.signedValue + 1;
+    req1.x          = obj->panel.contentOriginX.unsignedValue + x;
+    req1.y          = obj->panel.contentOriginY.unsignedValue + (y2 - 6);
+    req1.otIndex    = obj->panel.otIndex.signedValue + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 0;
@@ -817,9 +817,9 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
 
     itemId = obj->owner->spawnArg1.value;
 
-    req.x          = obj->panel.field_20.unsignedValue + (u16)prompt->field_18;
-    req.y          = obj->panel.field_22.unsignedValue + (u16)prompt->field_1A;
-    req.otIndex    = obj->panel.field_14.signedValue + 1;
+    req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
+    req.y          = obj->panel.contentOriginY.unsignedValue + (u16)prompt->field_1A;
+    req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.field_8    = prompt->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -839,12 +839,12 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
                 } else {
                     Ui_SpawnFromDesc(&Shop_Data_80181BA0, 1, 1, 1, obj);
                 }
-                obj->panel.field_0.w = 0;
+                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&Shop_Data_80181C10, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
-                    obj->panel.field_0.w = 0;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else {
                 cfg->bp -= price;
@@ -853,7 +853,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
             }
         } else {
             Ui_SpawnFromDesc(&Shop_Data_80181BA0, 0, 1, 1, obj);
-            obj->panel.field_0.w = 0;
+            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
@@ -888,9 +888,9 @@ static void Shop_NoticeTask(Task* task)
         task->killCountdown = 0xBC;
         task->state        += 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, text, 0x606060, 1, 0);
+    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, 1, 0);
     task->killCountdown -= gDisplayState.frameTicks;
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
             return;
@@ -966,19 +966,19 @@ static void Shop_ChargeTask(Task* task)
         Shop_Data_80187628 = qty;
     }
 
-    y = obj->panel.field_18.signedValue;
-    Gp_DrawItemLabel(obj, obj->panel.field_1C.signedValue + 2, y + 0xF, curItem, 0x606060, 0);
-    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, y + 0x12);
-    Gp_DrawItemLabel(obj, obj->panel.field_1C.signedValue + 2, y + 0x23, relItem, 0x606060, 0);
-    Gp_DrawQty(obj, obj->panel.field_1C.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
-    h = obj->panel.field_1A.signedValue;
-    func_800C0E20(&(obj)->panel, obj->panel.field_1C.signedValue + 2, obj->panel.field_1E.signedValue - 2, h - 6, qty,
+    y = obj->panel.contentTop.signedValue;
+    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, curItem, 0x606060, 0);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, y + 0x12);
+    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, relItem, 0x606060, 0);
+    Gp_DrawQty(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
+    h = obj->panel.contentBottom.signedValue;
+    func_800C0E20(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, h - 6, qty,
                   Shop_Data_80187628, 0x1741F);
 
     if (task->state == 2) {
         countdown           = task->killCountdown - 1;
         task->killCountdown = countdown;
-        status              = obj->panel.field_0.w;
+        status              = obj->panel.control.word;
         if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
             task->state           = status;
             task->spawnArg1.value = task->spawnArg1.value + 1;
@@ -1026,16 +1026,16 @@ static void Shop_PreviewTask(Task* task)
     obj          = task->spawnArg2.pointer;
     task->status = 0;
     if ((CdCmd_IsIdle() & 0xFFFF) && Shop_Data_801819EC == Gp_GetPreviewItem()) {
-        func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, 0x20);
+        func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, 0x20);
     } else {
-        func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, 0x120);
+        func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, 0x120);
     }
-    y = obj->panel.field_18.signedValue + 0x50;
+    y = obj->panel.contentTop.signedValue + 0x50;
     if (item < 0x100) {
-        req.x          = obj->panel.field_1C.signedValue + (obj->panel.field_20.unsignedValue + 2);
-        ry             = obj->panel.field_22.unsignedValue - 6;
+        req.x          = obj->panel.contentLeft.signedValue + (obj->panel.contentOriginX.unsignedValue + 2);
+        ry             = obj->panel.contentOriginY.unsignedValue - 6;
         req.y          = ry + y;
-        req.otIndex    = obj->panel.field_14.signedValue + 1;
+        req.otIndex    = obj->panel.otIndex.signedValue + 1;
         req.glyphTable = 5;
         req.field_8    = 0x606060;
         req.centerMode = 0;
@@ -1043,7 +1043,7 @@ static void Shop_PreviewTask(Task* task)
         Text_DrawString(&req, Shop_Data_80181AC4);
         count = 0;
         count = Shop_AddItemCount(item, count);
-        Text_DrawPrompt(obj, obj->panel.field_1E.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
+        Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     }
 }
 
@@ -1106,9 +1106,9 @@ static void Shop_QuantityTask(Task* task)
         maxQty = afford;
     }
 
-    left = obj->panel.field_1C.signedValue;
+    left = obj->panel.contentLeft.signedValue;
     x    = left + 2;
-    top  = obj->panel.field_18.signedValue;
+    top  = obj->panel.contentTop.signedValue;
     y    = top + 0xF;
     Gp_DrawItemLabel(obj, x, y, itemId, 0x606060, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
@@ -1122,10 +1122,10 @@ static void Shop_QuantityTask(Task* task)
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
 
-    req.x          = obj->panel.field_20.unsignedValue - x;
+    req.x          = obj->panel.contentOriginX.unsignedValue - x;
     y              = top + 0x1A;
-    req.y          = obj->panel.field_22.unsignedValue + y;
-    req.otIndex    = obj->panel.field_14.signedValue + 1;
+    req.y          = obj->panel.contentOriginY.unsignedValue + y;
+    req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 2;
@@ -1134,7 +1134,7 @@ static void Shop_QuantityTask(Task* task)
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
 
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
             if (task->extraState.value < maxQty) {
@@ -1165,9 +1165,9 @@ static void Shop_MessageRow(UiList* prompt, UiObject* obj)
 {
     TextDrawReq req;
 
-    req.x          = obj->panel.field_20.unsignedValue + (u16)prompt->field_18;
-    req.y          = obj->panel.field_22.unsignedValue + (u16)prompt->field_1A;
-    req.otIndex    = obj->panel.field_14.signedValue + 1;
+    req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
+    req.y          = obj->panel.contentOriginY.unsignedValue + (u16)prompt->field_1A;
+    req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.field_8    = prompt->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -1199,7 +1199,7 @@ static void Shop_BuyPromptTask(Task* task)
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
             obj->field_2E = 6;
@@ -1215,7 +1215,7 @@ static void Shop_BuyPromptTask(Task* task)
         if (code != -1) {
             if (code == 6) {
                 Ui_TeardownTree(childObj, childObj->owner);
-                obj->panel.field_0.w = 1;
+                obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
         } else {
             obj->field_2E = -1;

@@ -366,8 +366,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         return;
     }
 
-    x = arg0->panel.field_1C.signedValue + 2;
-    y = arg0->panel.field_18.signedValue;
+    x = arg0->panel.contentLeft.signedValue + 2;
+    y = arg0->panel.contentTop.signedValue;
     Ui_DrawText(&(arg0)->panel, Gp_StrNotice2);
     color = 0x606060;
     one   = 1;
@@ -375,7 +375,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, one);
     Text_DrawPrompt(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, 0);
 
-    if (arg0->panel.field_0.w == one) {
+    if (arg0->panel.control.word == one) {
         arg1->killCountdown--;
         if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             arg0->field_2E      = 9;

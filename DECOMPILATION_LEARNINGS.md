@@ -5193,9 +5193,9 @@ tail, coalesces `high`+`lo_sum` into `$a1` in each arm, and the independent
 
 ```c
 if (arg0->spawnArg1 == 0) {
-    Ui_DrawText((UiPanel*)obj, D_replay_bonus_801157A8);
+    Ui_DrawText(&obj->panel, D_replay_bonus_801157A8);
 } else {
-    Ui_DrawText((UiPanel*)obj, D_replay_bonus_801157B0);
+    Ui_DrawText(&obj->panel, D_replay_bonus_801157B0);
 }
 ```
 
@@ -17181,7 +17181,9 @@ func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
 ```
 
 Changing the struct field to `s16` would break other matches that expect `lhu`
-(e.g. `Ui_DrawTextAtLayout` on `UiPanel::field_20`). `Ui_DrawTitle`.
+(e.g. `Ui_DrawTextAtLayout` on `UiPanel::contentOriginX.unsignedValue`).
+`UiPanel` now expresses both promotions through `UiHalf`, so `Ui_DrawTitle`
+uses `contentOriginX.signedValue` and `contentOriginY.signedValue` directly.
 
 ## `(u16)` cast on an `s16` field forces `lhu` without changing the struct
 
@@ -18481,7 +18483,7 @@ a1    = arg1;
 color = 0x1741F;
 asm("" : "+r"(color), "+r"(a1));
 /* only now may field loads begin */
-f14 = a1->field_14;
+f14 = a1->otIndex.unsignedValue;
 ```
 
 Pinning the object pointer in the same asm also locks the target's early
@@ -18490,48 +18492,38 @@ Pinning the object pointer in the same asm also locks the target's early
 ## Memory clobber to stop a later field load hoisting past a store
 
 Two distinct fields of the same object have no alias conflict, so GCC will
-happily load `field_1E` *before* storing `field_14 + 1` even when the target
-does the store first and reuses `$v0` for the subsequent `lh field_1E` (with a
+happily load `contentRight.signedValue` *before* storing `otIndex.unsignedValue + 1` even when the target
+does the store first and reuses `$v0` for the subsequent `lh contentRight` (with a
 load-delay `nop`). A memory clobber between the store and the next load
 restores the target order:
 
 ```c
-a1->field_14 = f14 + 1;
+a1->otIndex.unsignedValue = f14 + 1;
 asm("" ::: "memory");
-width = a1->field_1E - x1; /* lh into $v0, nop, subu */
+width = a1->contentRight.signedValue - x1; /* lh into $v0, nop, subu */
 ```
 
-## Signed layout overlay when the canonical struct is `u16` for other matches
+## Signed and unsigned views of panel layout halfwords
 
-`UiPanel.field_1C` / `field_1E` are `u16` so functions like `Ui_InsetLayout`
-emit `lhu`. A sibling draw helper that needs `lh` for the same offsets must not
-flip the canonical type (that breaks the other matches). Use a local overlay
-with `s16` at those offsets and cast once:
+`UiPanel.contentLeft` / `contentRight` use `UiHalf`: functions like
+`Ui_InsetLayout` select `unsignedValue` to emit `lhu`, while a sibling draw
+helper selects `signedValue` to emit `lh` for the same bits. Selecting the view
+before promotion preserves both matches without a separate layout overlay:
 
 ```c
-typedef struct {
-    u8  pad0[0x14];
-    u16 field_14;
-    u8  pad16[6];
-    s16 field_1C;
-    s16 field_1E;
-    u16 field_20;
-    u16 field_22;
-} GStruct30SignedLayout;
-
-a1 = (GStruct30SignedLayout*)arg1;
-x1 = a1->field_1C; /* lh */
+UiPanel* a1 = arg1;
+x1 = a1->contentLeft.signedValue; /* lh */
 ```
 
 ## Preload `y` and subtract height into `arg2` for TILE y0 delay-slot form
 
 For a TILE whose `y0 = base_y + arg2 - h + 1`, the target often does
 `subu a2,a2,t3` in the early-out branch delay slot, then later
-`addu v1,v1,a2; addiu v1,v1,1`. Mirror `Ui_AllocTile`'s `y = field_22` preload
+`addu v1,v1,a2; addiu v1,v1,1`. Mirror `Ui_AllocTile`'s `y = contentOriginY.unsignedValue` preload
 and write the adjust as an assignment on `arg2` inside the body:
 
 ```c
-y = a1->field_22;
+y = a1->contentOriginY.unsignedValue;
 ...
 arg2  = arg2 - h;       /* fills bnez delay slot */
 p->y0 = y + arg2 + 1;   /* addu + addiu, no separate subu of h */
@@ -18558,8 +18550,8 @@ is still live in `$v1` from the prologue).
 
 ## Pin OT base and `0xFF000000` for dual-use addPrim codegen
 
-Manual OT linking that reloads `field_14` twice (equivalent to
-`addPrim(ot + (s16)field_14 + 1, p)`) wants:
+Manual OT linking that reloads `otIndex.signedValue` twice (equivalent to
+`addPrim(ot + panel->otIndex.signedValue + 1, p)`) wants:
 
 ```
 lui  v1, %hi(gGpuCurrentOt)
@@ -18586,7 +18578,7 @@ Assign `ot` before `mask_hi` so the `lui %hi(gGpuCurrentOt)` precedes
 `lui a1,0xFF00`. `Ui_DrawFlatCaret` is the pure example.
 
 Do **not** also pin an earlier mid-function temporary to `asm("a1")` (e.g. a
-live `y = field_22` that the target keeps in `$a1` across a branch). Pinning
+live `y = contentOriginY.unsignedValue` that the target keeps in `$a1` across a branch). Pinning
 both forces the early value elsewhere and emits `lui a1,0xFF00` too early.
 Leave the early temp unpinned: with `mask_hi` reserved for the epilogue, GCC
 still naturally places the live-across-branch value in free `$a1`, and the late
@@ -18606,29 +18598,29 @@ gGpuPrimCursor = (u8*)p + sizeof(POLY_G3); /* +0x1C */
 
 Avoid raw `(u8*)p + 0x1C`.
 
-## Second arg as `s32` to reuse `$a1` after pointer loads
+## A signed height local to reuse `$a1` after pointer loads
 
 When the target loads several fields through `$a1`, then sign-extends a
 halfword into `$a1` itself and reuses that register for the rest of the
-function, declare the second parameter as `s32` and cast once to the real
-pointer type:
+function, retain the typed panel parameter and use a signed height local:
 
 ```c
-void func(UiList* arg0, s32 arg1)
+void func(UiList* arg0, UiPanel* arg1)
 {
-    UiPanel* a1 = (UiPanel*)arg1;
+    UiPanel* a1 = arg1;
     s16 temp;
+    s32 height;
 
     /* all loads from a1… */
-    temp = a1->field_1A - a1->field_18;
-    arg1 = temp;           /* sra a1, … — overwrites the pointer reg */
-    arg1 = arg1 - arg0->field_17;
-    /* further uses of arg1 as height */
+    temp = a1->contentBottom.unsignedValue - a1->contentTop.unsignedValue;
+    height = temp;         /* sra a1, … — overwrites the pointer reg */
+    height = height - arg0->field_17;
+    /* further uses of height */
 }
 ```
 
-A typed pointer parameter forces the compiler to spill `$a0` into `$a2` and
-put temps in `$a0`/`$a1`, scrambling the whole body. `Ui_ComputeVisibleRows`.
+The earlier integer parameter and cast were unnecessary: `Ui_ComputeVisibleRows`
+matches with a typed panel parameter and this signed narrowing before using height.
 
 ## Dead stack `RECT` kept with an `"m"` constraint
 
@@ -29250,7 +29242,7 @@ the callee still sees the new value:
 
 ```c
 obj->field_2E = 0;
-Ui_DrawText((UiPanel*)obj, text);
+Ui_DrawText(&obj->panel, text);
 ```
 
 `Gp_EquipSelectMenuTask` is the example. The store-after-call form stuck at
@@ -34259,12 +34251,12 @@ A 3-way title pick compiled as
 ```c
 if (arg0->spawnArg1 == 0) {
     if (arg0->status == 1) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrBattleField);
+        Ui_DrawText(&obj->panel, Gp_StrBattleField);
     } else {
-        Ui_DrawText((UiPanel*)obj, Gp_StrItemBox);
+        Ui_DrawText(&obj->panel, Gp_StrItemBox);
     }
 } else {
-    Ui_DrawText((UiPanel*)obj, Gp_StrPlayerItem);
+    Ui_DrawText(&obj->panel, Gp_StrPlayerItem);
 }
 ```
 
@@ -48888,7 +48880,7 @@ compiler will not emit as padding (it pads with zeros). Those two bytes belong
 to the literal:
 
 ```c
-Ui_DrawText((UiPanel*)obj, "Telephone\000\001");
+Ui_DrawText(&obj->panel, "Telephone\000\001");
 ```
 
 `Ui_DrawText` stops at the first NUL, so the trailing byte is inert at runtime,
@@ -61233,8 +61225,8 @@ and an `extern` array compiles to exactly the same two instructions, so
 replacing the literal with an alias is byte-for-byte free:
 
 ```c
-Ui_DrawText((UiPanel*)obj, "Telephone\000\001");   /* one room's bytes  */
-Ui_DrawText((UiPanel*)obj, RoomsShared8017ea68Title);  /* every room's */
+Ui_DrawText(&obj->panel, "Telephone\000\001");   /* one room's bytes  */
+Ui_DrawText(&obj->panel, RoomsShared8017ea68Title);  /* every room's */
 ```
 
 `RoomsShared8017ea68` is the worked case: nineteen rooms hold "Telephone\0"
@@ -63473,10 +63465,10 @@ the shorter span and the register:
 ```c
 l1 = (s16)obj->field_C + (s16)obj->field_10;
 r1 = (s16)obj->baseX + 5;
-Ui_DrawFlatCaret((UiPanel*)obj, l1 - r1, y1, 0x606060, 0);
+Ui_DrawFlatCaret(&obj->panel, l1 - r1, y1, 0x606060, 0);
 l2 = (s16)obj->field_C + (s16)obj->field_10;
 r2 = (s16)obj->baseX + 5;
-Ui_DrawFlatCaret((UiPanel*)obj, l2 - r2, y, 0x606060, one);
+Ui_DrawFlatCaret(&obj->panel, l2 - r2, y, 0x606060, one);
 ```
 
 Related: `obj` here takes `$s2` although `$s1` is free at function entry,
@@ -65388,7 +65380,7 @@ obj = task->spawnArg2;
 textIndex = task->spawnArg1;
 task->status = 0;
 menu = &lists[task->spawnArg1];
-Ui_DrawText((UiPanel*)obj, captions[textIndex]);
+Ui_DrawText(&obj->panel, captions[textIndex]);
 ```
 
 Reading both indices after the flags store allowed CSE to drop a load. Loading
@@ -144644,13 +144636,13 @@ Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shift
 
 ## A memory barrier holding a load below a store can stand for an inline helper's argument evaluation (Ui_DrawListHighlight, 2026-09-26)
 
-The target stored `panel->field_14 + 1` and only then loaded `field_1E`, one
+The target stored `panel->otIndex.unsignedValue + 1` and only then loaded `contentRight.signedValue`, one
 `nop` behind its use. Both go through the same base register at different
 offsets, so there is no alias edge and sched1 hoisted the load above the store;
 the seed held it with `SOFT_COMPILER_BARRIER()` and a register pin on the tile
 colour. `func_80046B34` in the same file builds the identical TILE (`x0 =
-field_20 + x + 1`, `w - 1`, `h - 1`, `if (w >= 2)`), and calling one
-`static inline` fill helper from both - with `field_1E - x1 - 1` and `arg2 - h`
+contentOriginX.unsignedValue + x + 1`, `w - 1`, `h - 1`, `if (w >= 2)`), and calling one
+`static inline` fill helper from both - with `contentRight.signedValue - x1 - 1` and `arg2 - h`
 as its arguments - matched with neither hack. The helper's parameters are
 separate pseudos (`w` and `w >= 2` rather than `(width - 1) >= 2`), which
 changes the block's insn list enough that sched1 picks the target's order with

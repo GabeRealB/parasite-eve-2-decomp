@@ -70,8 +70,8 @@ void McMenu_NoOpTask(Task* unused)
 static void McMenu_UpdateListCursor(void* arg0, UiPanel* panel)
 {
     Ui_UpdateListNoAnim(arg0, panel);
-    if (panel->field_0.w == 1) {
-        Ui_SmoothCursor(panel, panel->field_1C.signedValue + 2, 0);
+    if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        Ui_SmoothCursor(panel, panel->contentLeft.signedValue + 2, 0);
     }
 }
 
@@ -92,8 +92,8 @@ void McMenu_SelectList(Task* task)
         task->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->field_0.w == 1) {
-            Ui_SmoothCursor(obj, obj->field_1C.signedValue + 2, 0);
+        if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            Ui_SmoothCursor(obj, obj->contentLeft.signedValue + 2, 0);
         }
     }
 }
@@ -148,8 +148,8 @@ void McMenu_SelectListAlt(Task* task)
         task->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->field_0.w == 1) {
-            Ui_SmoothCursor(obj, obj->field_1C.signedValue + 2, 0);
+        if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            Ui_SmoothCursor(obj, obj->contentLeft.signedValue + 2, 0);
         }
     }
 }

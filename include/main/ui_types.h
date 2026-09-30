@@ -28,30 +28,85 @@ typedef union {
     s8 s;
 } UiByte;
 
-/// Panel shared by standalone drawing helpers and the task-owned UiObject.
-/// Its signed rectangle and unsigned layout view occupy the same eight bytes.
+/// Panel lifecycle indices used by the task dispatcher; storage remains s32.
+enum {
+    USER_INTERFACE_PANEL_INITIAL = 0,
+    USER_INTERFACE_PANEL_OPENING = 1,
+    USER_INTERFACE_PANEL_OPEN    = 2,
+    USER_INTERFACE_PANEL_CLOSING = 3,
+    USER_INTERFACE_PANEL_HIDING  = 4,
+    USER_INTERFACE_PANEL_HIDDEN  = 5
+};
+
+/// Common control modes; other values belong to the panel's content controller.
+enum {
+    USER_INTERFACE_PANEL_INACTIVE       = 0,
+    USER_INTERFACE_PANEL_ACTIVE         = 1,
+    USER_INTERFACE_PANEL_REQUEST_MIN    = 2,
+    USER_INTERFACE_PANEL_FOCUS_TRANSFER = 23
+};
+
+/// Style fields and flags in the panel's signed 32-bit style word.
+enum {
+    USER_INTERFACE_PANEL_TITLE_STYLE     = 2,
+    USER_INTERFACE_PANEL_DIMMED          = 0x10000,
+    USER_INTERFACE_PANEL_SCREEN_BRIGHTEN = 0x20000
+};
+
+/// Opening and closing counters span nine frame ticks; hidden delays add this bias.
+enum { USER_INTERFACE_PANEL_ANIMATION_TICKS = 9 };
+
+/// Unsigned sign-bit mask suppressing frame drawing while content still runs.
+#define USER_INTERFACE_PANEL_NO_FRAME 0x80000000
+
+/// A UI panel's drawing bounds, centered content coordinates and lifecycle.
+///
+/// Bounds and content coordinates are pixels relative to the screen center.
+/// Adding contentOriginX/Y maps a content coordinate to that screen coordinate
+/// system. Signed and unsigned halfword views select promotion before arithmetic;
+/// stores retain the low 16 bits. The ordering-table base counts tags, not bytes:
+/// generic drawing uses base..base+3, and specialized consumers use other offsets.
+/// Every resulting index must fit the table selected by `gGpuCurrentOt`.
+///
+/// The control word is 0 for inactive input, 1 for active input, or a content
+/// controller's request/status. Opening, hiding and hidden dispatch temporarily
+/// shift it into the upper halfword to suspend input while retaining the mode
+/// for drawing; a callback's changed word is preserved instead of restored.
+/// Animation ticks count elapsed frame ticks: opening counts 9 down to 0,
+/// closing/hiding count up to 9, and hidden delays count down to 9. A negative
+/// hidden counter waits for active input; the same sentinel ends closing/hiding.
+///
+/// Task-owned panels are embedded in `UiObject`; their required content callback
+/// borrows the owning task after layout/clipping. Standalone drawing helpers
+/// require only the fields they read and do not confer task ownership.
 typedef struct {
-    /* 0x00 */ union {
-        s32 w;
-        s16 h[2];
-    } field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ union {
-        RECT rect;
+    union {
+        s32 word;             // Complete input mode or controller request/status
         struct {
-            u16 x, y, w, h;
-        } unsignedRect;
-    } bounds;
-    /* 0x14 */ UiHalf field_14;
-    /* 0x16 */ s16    field_16;
-    /* 0x18 */ UiHalf field_18;
-    /* 0x1A */ UiHalf field_1A;
-    /* 0x1C */ UiHalf field_1C;
-    /* 0x1E */ UiHalf field_1E;
-    /* 0x20 */ UiHalf field_20;
-    /* 0x22 */ UiHalf field_22;
-    TaskFunc          contentCallback; // Panel content handler; receives the owning task after layout/clipping
+            s16 current;      // Low half: current mode, cleared while input is suspended
+            s16 suspended;    // High half: saved mode during suspended dispatch
+        } modes;              // Control modes before and during suspended dispatch
+    } control;                // Whole-word and halfword views of the input control
+    s32 style;                // Low nibble: 2 title, 4 pulse; high nibble: 1 scale full height; upper flag bits
+    s32 state;                // Lifecycle index (0 initial, 1 opening, 2 open, 3 closing, 4 hiding, 5 hidden)
+    union {
+        RECT rect;            // Full panel bounds in signed screen-centered pixels
+        struct {
+            u16 x;            // Zero-extended horizontal position bits
+            u16 y;            // Zero-extended vertical position bits
+            u16 w;            // Zero-extended width bits
+            u16 h;            // Zero-extended height bits
+        } unsignedRect;       // Unsigned views of the same rectangle halfwords
+    } bounds;                 // Unanimated outer rectangle
+    UiHalf   otIndex;         // Signed ordering-table base index, in tags
+    s16      animationTicks;  // State-dependent animation/delay counter in frame ticks; negative sentinel
+    UiHalf   contentTop;      // Top edge relative to the content center, in pixels
+    UiHalf   contentBottom;   // Bottom edge relative to the content center, in pixels
+    UiHalf   contentLeft;     // Left edge relative to the content center, in pixels
+    UiHalf   contentRight;    // Right edge relative to the content center, in pixels
+    UiHalf   contentOriginX;  // Horizontal translation from content to screen-centered pixels
+    UiHalf   contentOriginY;  // Vertical translation from content to screen-centered pixels
+    TaskFunc contentCallback; // Required task-owned content handler, called after layout/clipping
 } UiPanel;
 STATIC_ASSERT_SIZEOF(UiPanel, 0x28);
 
@@ -69,7 +124,7 @@ STATIC_ASSERT(OFFSET_OF(UiObject, owner) == 0x28, ui_object_owner_offset);
 
 /// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
 typedef struct {
-    /* 0x00 */ s32 field_0; // → UiObject.panel.field_4
+    /* 0x00 */ s32 field_0; // → UiObject.panel.style
     /* 0x04 */ u16 field_4; // → layout
     /* 0x06 */ u16 field_6;
     /* 0x08 */ u16 field_8;
@@ -92,7 +147,7 @@ typedef struct TextLineNode {
 /// Multi-line text block descriptor consumed by Ui_SpawnTextBlock to spawn a
 /// sized UiObject. field_0 is the line count; field_2 is cleared on return;
 /// field_4 is the head of a TextLineNode list; field_8 selects layout mode
-/// (0 forces UiObject::panel.field_4 = 3).
+/// (0 forces UiObject::panel.style = 3).
 typedef struct TextBlockDesc {
     /* 0x0 */ s16           count;
     /* 0x2 */ s16           field_2;

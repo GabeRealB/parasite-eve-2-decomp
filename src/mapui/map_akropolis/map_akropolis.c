@@ -199,7 +199,7 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
 
     item = D_map_akropolis_8017A9AC[arg0->field_8];
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, (u8*)Gp_GetItemText(item, 0, 0), arg0->field_1C, 1, 0);
-    if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
+    if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
         }
@@ -209,7 +209,7 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
+            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (item == 0x10C) {
                 D_map_akropolis_8017A9A8 = sel;
             }
@@ -240,7 +240,7 @@ static void func_map_akropolis_80179D78(Task* task)
         task->state          += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
         obj->field_2E = -1;
     }
     if (task->firstChild != NULL) {
@@ -249,7 +249,7 @@ static void func_map_akropolis_80179D78(Task* task)
         switch (result) {
             case 6:
                 Ui_TeardownTree(child, child->owner);
-                obj->panel.field_0.w = 1;
+                obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
             case -1:
                 obj->field_2E = result;

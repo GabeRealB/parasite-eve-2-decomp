@@ -2229,9 +2229,9 @@ void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
     }
 
     course              = &menu.lists[list][row];
-    menu.req.x          = obj->panel.field_20.unsignedValue + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->panel.field_22.unsignedValue;
-    menu.req.otIndex    = obj->panel.field_14.signedValue + 1;
+    menu.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
+    menu.req.y          = (prompt->field_1A - 3) + obj->panel.contentOriginY.unsignedValue;
+    menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
     menu.req.field_8    = prompt->field_1C;
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;
@@ -2339,13 +2339,13 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 if (Gp_IsDebugAttachRoom() == 0) {
                     gGameSession->flowFlags |= 3;
                 }
-                if (obj->panel.field_0.w != 1) {
+                if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
                     obj->field_2E = 6;
                 }
             }
         }
     }
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
             if (task->status != 0xFE) {
@@ -2353,7 +2353,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                     obj->field_2E = 6;
                 } else {
                     Ui_SetState4(obj, obj->owner);
-                    obj->panel.field_0.w = 0;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }
         }

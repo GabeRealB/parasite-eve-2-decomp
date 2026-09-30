@@ -524,7 +524,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
         arg0->state = arg0->state + 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->panel.field_0.w == 1) {
+        if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             sel = menu->field_22;
             if (sel != 0x20) {
                 if (sel == 0x23) {
@@ -547,7 +547,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
                     break;
                 case 6:
                     Ui_TeardownTree(child, child->owner);
-                    obj->panel.field_0.w = 1;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
                 case 9:
                     obj->field_2E = 6;
@@ -634,7 +634,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         arg1->state         = arg1->state + 1;
     }
     Gp_DrawHpMpStats(&(arg0)->panel, 0);
-    if (arg0->panel.field_0.w == 1) {
+    if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Gp_HpMpWork.field_0 == cfg->hp) {
             if (Gp_HpMpWork.field_4 == cfg->mp) {
                 arg1->killCountdown = arg1->killCountdown - 1;
@@ -820,17 +820,17 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         return;
     }
     color = 0x37A78;
-    y     = arg0->panel.field_18.signedValue + 0xF;
+    y     = arg0->panel.contentTop.signedValue + 0xF;
     work  = (GpUseCreateWork*)arg1->work;
-    x     = arg0->panel.field_1C.signedValue + 2;
+    x     = arg0->panel.contentLeft.signedValue + 2;
     Ui_DrawText(&(arg0)->panel, Gp_StrNotice);
-    hiddenMode = 5;
+    hiddenMode = USER_INTERFACE_PANEL_HIDDEN;
     item       = work->field_4;
-    if (arg0->panel.field_8 != hiddenMode) {
-        sp20.u.req.x          = arg0->panel.field_20.unsignedValue + 0x11 + x;
-        textY                 = arg0->panel.field_22.unsignedValue - 6;
+    if (arg0->panel.state != hiddenMode) {
+        sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
+        textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
-        sp20.u.req.otIndex    = arg0->panel.field_14.signedValue + 1;
+        sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
         sp20.u.req.field_8    = color;
         sp20.u.req.glyphTable = 0;
         sp20.u.req.centerMode = 0;
@@ -842,14 +842,14 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
         Gp_DrawItemIcon(arg0, x, y, item, 0);
     }
-    hiddenMode = 5;
+    hiddenMode = USER_INTERFACE_PANEL_HIDDEN;
     item       = work->field_0;
     y         += 0xF;
-    if (arg0->panel.field_8 != hiddenMode) {
-        sp20.u.req.x          = arg0->panel.field_20.unsignedValue + 0x11 + x;
-        textY                 = arg0->panel.field_22.unsignedValue - 6;
+    if (arg0->panel.state != hiddenMode) {
+        sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
+        textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
-        sp20.u.req.otIndex    = arg0->panel.field_14.signedValue + 1;
+        sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
         sp20.u.req.field_8    = color;
         sp20.u.req.glyphTable = 0;
         sp20.u.req.centerMode = 0;
@@ -863,14 +863,14 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     }
     y += 0xF;
     Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, 1, 0);
-    hiddenMode = 5;
+    hiddenMode = USER_INTERFACE_PANEL_HIDDEN;
     item       = work->field_8;
     y         += 0xF;
-    if (arg0->panel.field_8 != hiddenMode) {
-        sp20.u.req.x          = arg0->panel.field_20.unsignedValue + 0x11 + x;
-        textY                 = arg0->panel.field_22.unsignedValue - 6;
+    if (arg0->panel.state != hiddenMode) {
+        sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
+        textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
-        sp20.u.req.otIndex    = arg0->panel.field_14.signedValue + 1;
+        sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
         sp20.u.req.field_8    = color;
         sp20.u.req.glyphTable = 0;
         sp20.u.req.centerMode = 0;
@@ -885,11 +885,11 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     item = work->field_C;
     if (item != 0) {
         y += 0xF;
-        if (arg0->panel.field_8 != 5) {
-            sp20.u.req.x          = arg0->panel.field_20.unsignedValue + 0x11 + x;
-            textY                 = arg0->panel.field_22.unsignedValue - 6;
+        if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+            sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
+            textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
             sp20.u.req.y          = textY + y;
-            sp20.u.req.otIndex    = arg0->panel.field_14.signedValue + 1;
+            sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
             sp20.u.req.field_8    = color;
             sp20.u.req.glyphTable = 0;
             sp20.u.req.centerMode = 0;
@@ -904,11 +904,11 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         item = work->field_10;
         if (item != 0) {
             y += 0xF;
-            if (arg0->panel.field_8 != 5) {
-                sp20.u.req.x          = arg0->panel.field_20.unsignedValue + 0x11 + x;
-                textY                 = arg0->panel.field_22.unsignedValue - 6;
+            if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+                sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
+                textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
                 sp20.u.req.y          = textY + y;
-                sp20.u.req.otIndex    = arg0->panel.field_14.signedValue + 1;
+                sp20.u.req.otIndex    = arg0->panel.otIndex.signedValue + 1;
                 sp20.u.req.field_8    = color;
                 sp20.u.req.glyphTable = 0;
                 sp20.u.req.centerMode = 0;
@@ -923,7 +923,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
     }
     Text_DrawPrompt(arg0, x, y + 0xF, Gp_StrCreatedDot, 0x606060, 1, 0);
-    if (arg0->panel.field_0.w == 1) {
+    if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         cd                  = arg1->killCountdown - 1;
         arg1->killCountdown = cd;
         if ((((s32)(cd << 0x10)) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -980,11 +980,11 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     }
 
     Ui_DrawText(&(arg0)->panel, Gp_StrInvoke);
-    Text_DrawPrompt(arg0, arg0->panel.field_1C.signedValue + 2, arg0->panel.field_18.signedValue + 0xF, Gp_StrInvoked, 0x606060, 1, 0);
-    width = Text_DrawPrompt(arg0, arg0->panel.field_1C.signedValue + 2, arg0->panel.field_18.signedValue + 0x1E, text, 0x37A78, 1, 0);
-    Text_DrawPrompt(arg0, width, arg0->panel.field_18.signedValue + 0x1E, Gp_StrDot, 0x606060, 1, 0);
+    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, Gp_StrInvoked, 0x606060, 1, 0);
+    width = Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, 1, 0);
+    Text_DrawPrompt(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, 1, 0);
     arg1->killCountdown--;
-    if (arg0->panel.field_0.w == 1) {
+    if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             arg0->field_2E = -1;
         } else if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -1072,7 +1072,7 @@ void Gp_YesNoMenuTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     Ui_UpdateListNoAnim(menu, obj);
-    if (obj->panel.field_0.w == 1) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         sel = menu->field_22;
         if (sel == 6) {
             obj->field_2E = sel;
@@ -1115,53 +1115,53 @@ void Gp_PeListPanelTask(Task* arg0)
     }
     color          = 0x606060;
     cfg            = &Player_Status;
-    xOff           = obj->panel.field_1C.signedValue;
+    xOff           = obj->panel.contentLeft.signedValue;
     x              = xOff + 0x22;
-    y              = obj->panel.field_18.signedValue + 8;
-    req.x          = obj->panel.field_20.unsignedValue + x;
-    req.y          = obj->panel.field_22.unsignedValue + (y - 2);
-    req.otIndex    = obj->panel.field_14.signedValue + 1;
+    y              = obj->panel.contentTop.signedValue + 8;
+    req.x          = obj->panel.contentOriginX.unsignedValue + x;
+    req.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
+    req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
     Text_DrawString(&req, (u8*)Gp_StrExp);
-    req2.x          = obj->panel.field_20.unsignedValue + 0xA + x;
-    req2.y          = obj->panel.field_22.unsignedValue + y;
-    req2.otIndex    = obj->panel.field_14.signedValue + 1;
+    req2.x          = obj->panel.contentOriginX.unsignedValue + 0xA + x;
+    req2.y          = obj->panel.contentOriginY.unsignedValue + y;
+    req2.otIndex    = obj->panel.otIndex.signedValue + 1;
     req2.field_8    = color;
     req2.glyphTable = 0;
     req2.centerMode = 0;
     req2.field_E    = 3;
     Text_DrawString(&req2, Text_ItoaUnsigned(buf, cfg->exp));
     x               = xOff + 0x7A;
-    req3.x          = obj->panel.field_20.unsignedValue + x;
-    req3.y          = obj->panel.field_22.unsignedValue + (y - 2);
-    req3.otIndex    = obj->panel.field_14.signedValue + 1;
+    req3.x          = obj->panel.contentOriginX.unsignedValue + x;
+    req3.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
+    req3.otIndex    = obj->panel.otIndex.signedValue + 1;
     req3.field_8    = color;
     req3.glyphTable = 5;
     req3.centerMode = 2;
     req3.field_E    = 1;
     Text_DrawString(&req3, (u8*)Gp_StrMp);
-    req4.x          = obj->panel.field_20.unsignedValue + 0xA + x;
-    req4.y          = obj->panel.field_22.unsignedValue + y;
-    req4.otIndex    = obj->panel.field_14.signedValue + 1;
+    req4.x          = obj->panel.contentOriginX.unsignedValue + 0xA + x;
+    req4.y          = obj->panel.contentOriginY.unsignedValue + y;
+    req4.otIndex    = obj->panel.otIndex.signedValue + 1;
     req4.field_8    = color;
     req4.glyphTable = 0;
     req4.centerMode = 0;
     req4.field_E    = 3;
     Text_DrawString(&req4, Text_ItoaSigned(buf, cfg->mp));
-    req5.x          = obj->panel.field_20.unsignedValue + 0x25 + x;
-    req5.y          = obj->panel.field_22.unsignedValue + y;
-    req5.otIndex    = obj->panel.field_14.signedValue + 1;
+    req5.x          = obj->panel.contentOriginX.unsignedValue + 0x25 + x;
+    req5.y          = obj->panel.contentOriginY.unsignedValue + y;
+    req5.otIndex    = obj->panel.otIndex.signedValue + 1;
     req5.field_8    = color;
     req5.glyphTable = 0;
     req5.centerMode = 1;
     req5.field_E    = 3;
     Text_DrawString(&req5, (u8*)Gp_StrSlash);
-    req6.x          = obj->panel.field_20.unsignedValue + 0x2A + x;
-    req6.y          = obj->panel.field_22.unsignedValue + y;
-    req6.otIndex    = obj->panel.field_14.signedValue + 1;
+    req6.x          = obj->panel.contentOriginX.unsignedValue + 0x2A + x;
+    req6.y          = obj->panel.contentOriginY.unsignedValue + y;
+    req6.otIndex    = obj->panel.otIndex.signedValue + 1;
     req6.field_8    = color;
     req6.glyphTable = 0;
     req6.centerMode = 0;
@@ -1210,7 +1210,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
         Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
     }
-    yOff   = obj->panel.field_18.signedValue + 0xD;
+    yOff   = obj->panel.contentTop.signedValue + 0xD;
     buf[0] = D_800971A4;
     memset(&buf[1], 0, 0x1F);
     color = 0x606060;
@@ -1221,20 +1221,20 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     Text_Strcat(buf, (u8*)Gp_StrSlash);
     Text_ItoaUnsigned(buf2, cap);
     Text_Strcat(buf, buf2);
-    x              = obj->panel.field_20.unsignedValue - 2;
-    req.x          = obj->panel.field_1E.unsignedValue + x;
-    y              = obj->panel.field_22.unsignedValue - 3;
+    x              = obj->panel.contentOriginX.unsignedValue - 2;
+    req.x          = obj->panel.contentRight.unsignedValue + x;
+    y              = obj->panel.contentOriginY.unsignedValue - 3;
     req.y          = y + yOff;
-    req.otIndex    = obj->panel.field_14.signedValue + 1;
+    req.otIndex    = obj->panel.otIndex.signedValue + 1;
     req.field_8    = color;
     req.glyphTable = 0;
     req.centerMode = 2;
     req.field_E    = 3;
     Text_DrawString(&req, buf);
-    req2.x          = obj->panel.field_1C.unsignedValue + (obj->panel.field_20.unsignedValue + 2);
-    y2              = obj->panel.field_22.unsignedValue - 6;
+    req2.x          = obj->panel.contentLeft.unsignedValue + (obj->panel.contentOriginX.unsignedValue + 2);
+    y2              = obj->panel.contentOriginY.unsignedValue - 6;
     req2.y          = y2 + yOff;
-    req2.otIndex    = obj->panel.field_14.signedValue + 1;
+    req2.otIndex    = obj->panel.otIndex.signedValue + 1;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 0;
@@ -1285,7 +1285,7 @@ void Gp_PickupTask(Task* arg0)
             next     = child->nextSibling;
             if (flag != -1) {
                 if (flag == 6) {
-                    obj->panel.field_0.w = 1;
+                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     Ui_TeardownTree(childObj, childObj->owner);
                 }
             } else {
@@ -1338,7 +1338,7 @@ void func_800CCDC8(Task* arg0)
     if (arg0->state != 1) {
         flags |= 0x100;
     }
-    func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, flags);
+    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 }
 
 /// Body of `Gp_DrawQty`: prints the count `arg3` in colour `arg4` at row
@@ -1350,10 +1350,10 @@ static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 
     TextDrawReq req;
     u16         y;
 
-    req.x          = arg0->panel.field_20.unsignedValue + 0x84 + arg1;
-    y              = arg0->panel.field_22.unsignedValue - 3;
+    req.x          = arg0->panel.contentOriginX.unsignedValue + 0x84 + arg1;
+    y              = arg0->panel.contentOriginY.unsignedValue - 3;
     req.y          = y + arg2;
-    req.otIndex    = arg0->panel.field_14.signedValue + 1;
+    req.otIndex    = arg0->panel.otIndex.signedValue + 1;
     req.field_8    = arg4;
     req.glyphTable = 5;
     req.centerMode = 2;
@@ -1391,13 +1391,13 @@ void Gp_PickupTitleTask(Task* arg0)
         arg0->state++;
     }
     color = 0x606060;
-    x     = obj->panel.field_1C.signedValue + 2;
-    y     = obj->panel.field_18.signedValue + 0xF;
-    if (obj->panel.field_8 != 5) {
-        req.x          = obj->panel.field_20.unsignedValue + 0x11 + x;
-        textY          = obj->panel.field_22.unsignedValue - 6;
+    x     = obj->panel.contentLeft.signedValue + 2;
+    y     = obj->panel.contentTop.signedValue + 0xF;
+    if (obj->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
+        textY          = obj->panel.contentOriginY.unsignedValue - 6;
         req.y          = textY + y;
-        req.otIndex    = obj->panel.field_14.signedValue + 1;
+        req.otIndex    = obj->panel.otIndex.signedValue + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -1410,7 +1410,7 @@ void Gp_PickupTitleTask(Task* arg0)
         Gp_DrawItemIcon(obj, x, y, item, 0);
     }
     if ((u32)(item - 0xA0) < 0x20U) {
-        _gpDrawQty(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_PubItemQty, 0x606060);
+        _gpDrawQty(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_PubItemQty, 0x606060);
     }
 }
 
@@ -1430,17 +1430,17 @@ void Gp_PickupAskTask(Task* arg0)
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, obj);
         if (spawned != NULL) {
-            spawned->panel.bounds.unsignedRect.x = (obj->panel.field_20.unsignedValue + obj->panel.field_1E.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
-            spawned->panel.bounds.unsignedRect.y = obj->panel.field_22.unsignedValue + obj->panel.field_1A.unsignedValue;
+            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
+            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
             obj->field_2C                        = 0;
-            obj->panel.field_0.w                 = 0;
+            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         arg0->state = arg0->state + 1;
     }
     Ui_DrawTextColored(&(obj)->panel, Gp_StrMessage);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrPickupAsk, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrPickupAsk, color, one, 0);
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
@@ -1463,7 +1463,7 @@ void Gp_PickupAskTask(Task* arg0)
                     obj->field_2C = childObj->field_2C;
                     if (obj->field_2C == 0x33) {
                         Ui_SpawnFromDesc(&D_8010F080, (s32)(Gp_PubItemLoc), 1, 1, obj);
-                        obj->panel.field_0.w = 0;
+                        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                         Ui_TeardownTree(childObj, childObj->owner);
                         arg0->state = arg0->state + 1;
                     } else {
@@ -1492,17 +1492,17 @@ void Gp_PickupFullTask(Task* arg0)
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, obj);
         if (spawned != NULL) {
-            spawned->panel.bounds.unsignedRect.x = (obj->panel.field_20.unsignedValue + obj->panel.field_1E.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
-            spawned->panel.bounds.unsignedRect.y = obj->panel.field_22.unsignedValue + obj->panel.field_1A.unsignedValue;
+            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
+            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
             obj->field_2C                        = 0;
-            obj->panel.field_0.w                 = 0;
+            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         arg0->state = arg0->state + 1;
     }
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrInvFull, color, one, 0);
-    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0x1E, D_8010E588, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrInvFull, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, D_8010E588, color, one, 0);
     childTask = arg0->firstChild;
     if (childTask != NULL) {
         childObj = childTask->spawnArg2.pointer;
@@ -1540,12 +1540,12 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     }
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrObtained, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrObtained, color, one, 0);
     text = Gp_GetItemText(item, 0, 0);
-    temp = Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0x1E, text, 0x37A78, one, 0);
-    Text_DrawPrompt(obj, temp, obj->panel.field_18.signedValue + 0x1E, Gp_StrDot, color, one, 0);
+    temp = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, temp, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, 0);
     arg0->killCountdown--;
-    if (obj->panel.field_0.w == one) {
+    if (obj->panel.control.word == one) {
         if ((arg0->killCountdown <= 0) ||
             (((arg0->spawnArg1.value & 0x10000) == 0) &&
              (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
@@ -1561,10 +1561,10 @@ static UiObject* func_800CD704(UiObject* arg0)
 
     obj = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, arg0);
     if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.field_20.unsignedValue + arg0->panel.field_1E.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.field_22.unsignedValue + arg0->panel.field_1A.unsignedValue;
+        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
+        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
         arg0->field_2C                   = 0;
-        arg0->panel.field_0.w            = 0;
+        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
 }
@@ -1575,10 +1575,10 @@ static UiObject* func_800CD78C(UiObject* arg0)
 
     obj = Ui_SpawnFromDesc(&D_8010EA98, 2, 1, 2, arg0);
     if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.field_20.unsignedValue + arg0->panel.field_1E.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.field_22.unsignedValue + arg0->panel.field_1A.unsignedValue;
+        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
+        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
         arg0->field_2C                   = 0;
-        arg0->panel.field_0.w            = 0;
+        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
 }
@@ -1589,10 +1589,10 @@ UiObject* func_800CD814(UiObject* arg0)
 
     obj = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, arg0);
     if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.field_20.unsignedValue + arg0->panel.field_1E.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.field_22.unsignedValue + arg0->panel.field_1A.unsignedValue;
+        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
+        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
         arg0->field_2C                   = 0;
-        arg0->panel.field_0.w            = 0;
+        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
 }
@@ -1603,10 +1603,10 @@ UiObject* func_800CD89C(UiObject* arg0)
 
     obj = Ui_SpawnFromDesc(&D_8010EA98, 3, 1, 2, arg0);
     if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.field_20.unsignedValue + arg0->panel.field_1E.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.field_22.unsignedValue + arg0->panel.field_1A.unsignedValue;
+        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
+        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
         arg0->field_2C                   = 0;
-        arg0->panel.field_0.w            = 0;
+        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
     }
     return obj;
 }
@@ -1617,11 +1617,11 @@ void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s3
     s32         temp;
     s32         y;
 
-    if (arg0->panel.field_8 != 5) {
-        req.x          = arg0->panel.field_20.unsignedValue + 0x11 + arg1;
-        y              = arg0->panel.field_22.unsignedValue - 6;
+    if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + arg1;
+        y              = arg0->panel.contentOriginY.unsignedValue - 6;
         req.y          = y + arg2;
-        req.otIndex    = arg0->panel.field_14.signedValue + 1;
+        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
         req.field_8    = arg4;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -1648,11 +1648,11 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
         Ui_LayoutWithMode0(arg0, arg1, (arg2 - 0xE), 0xE, 0xE, 0x102010);
         return;
     }
-    if (arg0->panel.field_8 != 5) {
-        req.x          = arg0->panel.field_20.unsignedValue + 0x11 + arg1;
-        y              = arg0->panel.field_22.unsignedValue - 6;
+    if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + arg1;
+        y              = arg0->panel.contentOriginY.unsignedValue - 6;
         req.y          = y + arg2;
-        req.otIndex    = arg0->panel.field_14.signedValue + 1;
+        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
         req.field_8    = arg4;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -1685,10 +1685,10 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
     if (arg3 != NULL) {
         if ((u32)(arg3->itemId - 0xA0) < 0x20U) {
             count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg3->itemId);
-            req.x          = arg0->panel.field_20.unsignedValue + 0x84 + arg1;
-            y              = arg0->panel.field_22.unsignedValue - 3;
+            req.x          = arg0->panel.contentOriginX.unsignedValue + 0x84 + arg1;
+            y              = arg0->panel.contentOriginY.unsignedValue - 3;
             req.y          = y + arg2;
-            req.otIndex    = arg0->panel.field_14.signedValue + 1;
+            req.otIndex    = arg0->panel.otIndex.signedValue + 1;
             req.field_8    = arg4;
             req.glyphTable = 5;
             req.centerMode = 2;
@@ -1721,7 +1721,7 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
 
     flags = arg3 + 0x10;
     if (arg2 != 0) {
-        if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
+        if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
             _gpSetPreviewItem(arg2, arg3);
         }
         if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
@@ -1730,7 +1730,7 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
     } else {
         flags |= 0x100;
     }
-    func_800C7AE8(arg1, arg1->panel.field_1C.signedValue + 2, arg1->panel.field_18.signedValue + 2, flags);
+    func_800C7AE8(arg1, arg1->panel.contentLeft.signedValue + 2, arg1->panel.contentTop.signedValue + 2, flags);
 }
 
 void Gp_SetPreviewItem(s32 arg0, s32 arg1)
@@ -1760,7 +1760,7 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
         one = 1;
         SndEvt_EnqueueType6(3, 0, 0);
         Ui_SpawnFromDesc(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);
-        arg0->panel.field_0.w = 0;
+        arg0->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
 
