@@ -3,6 +3,4 @@
 
 #include "types.h"
 
-extern s16 D_shelter_b1_control_room_80181C64[2][3];
-
 #endif // SRC_ROOMS_SHELTER_B1_CONTROL_ROOM_SHELTER_B1_CONTROL_ROOM_PRIVATE_H

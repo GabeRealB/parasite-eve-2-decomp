@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b1_control_room.
 D_shelter_b1_control_room_80181BD4 = 0x80181BD4; // size:0x90 defined:True
 D_shelter_b1_control_room_80181B94 = 0x80181B94; // size:0x28 defined:True
-D_shelter_b1_control_room_80181C64 = 0x80181C64; // size:0xC defined:True
+RoomFx_DiscShades = 0x80181C64; // size:0xC defined:True
 D_shelter_b1_control_room_80181C70 = 0x80181C70; // size:0x4 defined:True
 D_shelter_b1_control_room_80181C74 = 0x80181C74; // size:0x2 defined:True
 D_shelter_b1_control_room_80181C78 = 0x80181C78; // size:0xA8 defined:True
@@ -62,3 +62,8 @@ func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func
 func_shelter_b1_control_room_801804D8 = 0x801804D8; // type:func
 
 func_shelter_b1_control_room_80181138 = 0x80181138; // type:func
+RoomFx_DrawFlyingSpark = 0x801806FC; // type:func
+RoomFx_DrawFlyingRing = 0x80180980; // type:func
+RoomFx_DrawFlyingDisc = 0x80180DA4; // type:func
+RoomFx_DrawBurst2Glow = 0x801812E4; // type:func
+RoomFx_DrawGround2Quad = 0x80181810; // type:func

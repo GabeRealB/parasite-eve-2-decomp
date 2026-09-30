@@ -44,6 +44,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_visual_effects.h"
 
 #define D_shelter_b1_control_room_80181C3C (D_shelter_b1_control_room_80181BD4 + 13)
 
@@ -83,10 +84,7 @@ SVECTOR D_shelter_b1_control_room_80181BD4[18] = {
     { 5180, -850, -2530, 0 },
 };
 
-s16 D_shelter_b1_control_room_80181C64[2][3] = {
-    { 1, 0, 0 },
-    { 0, 1, 0 },
-};
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 u8* D_shelter_b1_control_room_80181C70[1] = {
     D_8010CAF8,
