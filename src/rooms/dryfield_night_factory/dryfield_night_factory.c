@@ -208,7 +208,7 @@ GpRoomParamRec* D_dryfield_night_factory_8018A79C[8] = {
 
 PadScriptCmd gFactoryNightJoltCmds[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };
 
-GpScriptRec gFactoryNightJoltRecs[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
+PadScriptVibrationSegment gFactoryNightJoltRecs[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 

@@ -121,9 +121,9 @@ extern TaskDesc D_acropolis_promenade_80181148[];
 /// Per-frame path the promenade's streamed scene walks the player's matrix
 /// along, indexed backwards by `0x45 - gCdCmdQueue.movieFrame`, plus the script
 /// pair the scene runs.
-extern SVECTOR      D_acropolis_promenade_80181184[];
-extern PadScriptCmd D_acropolis_promenade_80186224[6];
-extern GpScriptRec  D_acropolis_promenade_8018623C[2];
+extern SVECTOR                   D_acropolis_promenade_80181184[];
+extern PadScriptCmd              D_acropolis_promenade_80186224[6];
+extern PadScriptVibrationSegment D_acropolis_promenade_8018623C[2];
 
 extern ApmGlowCorner D_acropolis_promenade_80181AE4[];
 
@@ -1450,7 +1450,7 @@ PadScriptCmd D_acropolis_promenade_80186224[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_promenade_8018623C[2] = {
+PadScriptVibrationSegment D_acropolis_promenade_8018623C[2] = {
     { 0, 0, 2, 0 },
     { 60, 60, 1, 0 },
 };

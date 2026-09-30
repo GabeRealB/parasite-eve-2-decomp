@@ -1288,7 +1288,7 @@ PadScriptCmd D_actor_450800_8013AF70[5] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_450800_8013AF84[2] = {
+PadScriptVibrationSegment D_actor_450800_8013AF84[2] = {
     { 210, 63, 9, 1 },
     { 0, 0, 2, 0 },
 };

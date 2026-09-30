@@ -41,17 +41,21 @@ typedef struct PadScriptCmd {
 } PadScriptCmd;
 STATIC_ASSERT_SIZEOF(PadScriptCmd, 4);
 
-/// 4-byte pad record. `GpState18::field_4` is an array of these, indexed by
-/// the operand of a `PAD_SCRIPT_PLAY` command. `field_2` is the delay copied to
-/// `field_10` / `field_11`; `field_0` / `field_1` are the variable-intensity
-/// lane's start and end.
-typedef struct _GpScriptRec {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2; // delay
-    /* 0x3 */ u8 field_3;
-} GpScriptRec;
-STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
+/// One timed vibration segment selected by a `PAD_SCRIPT_PLAY` operand.
+///
+/// The operand is a zero-based table index and must address a live entry.
+/// Both lanes wait for the duration; the on/off motor ignores the intensity
+/// endpoints, while the variable motor ramps toward the target in Q8 steps
+/// after script attenuation. Tables are borrowed for the script task's lifetime.
+/// A zero duration posts no vibration and wraps the byte-sized lane wait to
+/// 256 script frames. Stored tables use durations from 1 through 255.
+typedef struct PadScriptVibrationSegment {
+    u8 startIntensity; // Initial variable-motor intensity (0..255), before attenuation
+    u8 endIntensity;   // Target variable-motor intensity (0..255), before attenuation
+    u8 durationFrames; // Playback and lane wait in script frames (normally 1..255)
+    u8 field_3;        // Stored as 0 or 1; role unproven, with no interpreter read
+} PadScriptVibrationSegment;
+STATIC_ASSERT_SIZEOF(PadScriptVibrationSegment, 4);
 
 /// Serialized EVS operands and native pointers share the PS1 address word.
 typedef union GpScriptCmdAddress {
@@ -61,9 +65,9 @@ typedef union GpScriptCmdAddress {
 } GpScriptCmdAddress __attribute__((transparent_union));
 
 typedef union GpScriptRecAddress {
-    s32          address;
-    GpScriptRec* records;
-    void*        storage;
+    s32                        address;
+    PadScriptVibrationSegment* records;
+    void*                      storage;
 } GpScriptRecAddress __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(GpScriptCmdAddress, 4);
 STATIC_ASSERT_SIZEOF(GpScriptRecAddress, 4);

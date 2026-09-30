@@ -178,7 +178,7 @@ PadScriptCmd D_actor_223600_8014CFDC[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_223600_8014CFE8[3] = {
+PadScriptVibrationSegment D_actor_223600_8014CFE8[3] = {
     { 0, 0, 9, 0 },
     { 255, 255, 12, 1 },
     { 100, 50, 6, 1 },

@@ -277,9 +277,9 @@ extern GpRoomCoordSet             D_dryfield_dilapidated_house_801898FC[1];
 extern PadScriptCmd               D_dryfield_dilapidated_house_80189B30[2];
 extern PadScriptCmd               D_dryfield_dilapidated_house_80189B40[4];
 extern PadScriptCmd               D_dryfield_dilapidated_house_80189B5C[2];
-extern GpScriptRec                D_dryfield_dilapidated_house_80189B38[2];
-extern GpScriptRec                D_dryfield_dilapidated_house_80189B50[3];
-extern GpScriptRec                D_dryfield_dilapidated_house_80189B64[2];
+extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B38[2];
+extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B50[3];
+extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B64[2];
 extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
 s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -1643,7 +1643,7 @@ PadScriptCmd D_dryfield_dilapidated_house_80189B30[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_dryfield_dilapidated_house_80189B38[2] = {
+PadScriptVibrationSegment D_dryfield_dilapidated_house_80189B38[2] = {
     { 0, 0, 5, 0 },
     { 200, 255, 8, 1 },
 };
@@ -1655,7 +1655,7 @@ PadScriptCmd D_dryfield_dilapidated_house_80189B40[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_dryfield_dilapidated_house_80189B50[3] = {
+PadScriptVibrationSegment D_dryfield_dilapidated_house_80189B50[3] = {
     { 200, 255, 7, 1 },
     { 200, 90, 5, 1 },
     { 180, 60, 1, 0 },
@@ -1666,7 +1666,7 @@ PadScriptCmd D_dryfield_dilapidated_house_80189B5C[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 2) }
 };
 
-GpScriptRec D_dryfield_dilapidated_house_80189B64[2] = {
+PadScriptVibrationSegment D_dryfield_dilapidated_house_80189B64[2] = {
     { 0, 0, 5, 0 },
     { 200, 255, 8, 1 },
 };
@@ -2151,7 +2151,7 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
 {
     if (arg0 != 0) {
-        Gp_SpawnScript18(&D_80114A24, &D_80114A34);
+        Gp_SpawnScript18(&D_80114A24, D_80114A34);
         D_dryfield_dilapidated_house_80189B80.spawnArg = arg0;
         Task_SpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0,
                             &D_dryfield_dilapidated_house_80189B80.spawnArg);

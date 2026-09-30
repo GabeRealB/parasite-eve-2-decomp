@@ -113,8 +113,8 @@ extern EnemyParams  gBursterParams;
 
 /// The two script arguments the first enemy's death hands to
 /// `Gp_SpawnScript18`.
-extern PadScriptCmd gBursterBurstScriptA[];
-extern u32          gBursterBurstScriptB[];
+extern PadScriptCmd              gBursterBurstScriptA[];
+extern PadScriptVibrationSegment gBursterBurstScriptB[];
 
 /// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
 // Typed callback views for the task message dispatcher.
@@ -168,10 +168,10 @@ PadScriptCmd gBursterBurstScriptA[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
-u32 gBursterBurstScriptB[3] = {
-    0x90000,
-    0x10CFFFF,
-    0x1063264,
+PadScriptVibrationSegment gBursterBurstScriptB[3] = {
+    { 0, 0, 9, 0 },
+    { 255, 255, 12, 1 },
+    { 100, 50, 6, 1 },
 };
 
 TmdBone Actor04600_D04188[3] = {

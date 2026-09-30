@@ -224,8 +224,8 @@ extern SVECTOR    D_acropolis_bridge_80189A4C;
 
 /// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
 /// bridge cutscene starts.
-extern PadScriptCmd D_acropolis_bridge_80190B8C[6];
-extern GpScriptRec  D_acropolis_bridge_80190BA4[6];
+extern PadScriptCmd              D_acropolis_bridge_80190B8C[6];
+extern PadScriptVibrationSegment D_acropolis_bridge_80190BA4[6];
 
 extern s16 D_acropolis_bridge_801915E4[][6];
 
@@ -347,12 +347,12 @@ extern GpObj4C      D_acropolis_bridge_8018B6B8[4];
 extern GpObj4C      D_acropolis_bridge_8018B7E8[7];
 extern GpObj4C      D_acropolis_bridge_8018B9FC[7];
 
-extern GpRoomCoordSet D_acropolis_bridge_80190A0C[1];
-extern PadScriptCmd   D_acropolis_bridge_80190BBC[6];
-extern GpScriptRec    D_acropolis_bridge_80190BD4[5];
-void                  func_acropolis_bridge_8017D954(void);
-void                  func_acropolis_bridge_8017F2D0(s32);
-void                  func_acropolis_bridge_8017F358(s32);
+extern GpRoomCoordSet            D_acropolis_bridge_80190A0C[1];
+extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
+extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
+void                             func_acropolis_bridge_8017D954(void);
+void                             func_acropolis_bridge_8017F2D0(s32);
+void                             func_acropolis_bridge_8017F358(s32);
 
 extern SVECTOR D_acropolis_bridge_80187E04[171];
 extern TmdBone D_acropolis_bridge_80187DDC[1];
@@ -2041,7 +2041,7 @@ PadScriptCmd D_acropolis_bridge_80190B8C[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_bridge_80190BA4[6] = {
+PadScriptVibrationSegment D_acropolis_bridge_80190BA4[6] = {
     { 120, 110, 30, 1 },
     { 110, 150, 225, 1 },
     { 180, 180, 6, 1 },
@@ -2059,7 +2059,7 @@ PadScriptCmd D_acropolis_bridge_80190BBC[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 14) }
 };
 
-GpScriptRec D_acropolis_bridge_80190BD4[5] = {
+PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5] = {
     { 0, 0, 1, 0 },
     { 100, 200, 6, 1 },
     { 255, 255, 8, 1 },

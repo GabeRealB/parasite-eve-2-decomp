@@ -78,25 +78,25 @@ static const TaskFuncTable5 Gp_ScriptBStates;
 
 static void Gp_StepScriptA(Task* task)
 {
-    GpState18*    state;
-    PadScriptCmd* table;
-    GpScriptRec*  recs;
-    u16           cmd;
-    s32           opcode;
-    u8            tmp;
+    GpState18*                 state;
+    PadScriptCmd*              table;
+    PadScriptVibrationSegment* segments;
+    u16                        cmd;
+    s32                        opcode;
+    u8                         tmp;
 
-    state  = (GpState18*)task->work;
-    table  = state->field_0;
-    recs   = state->field_4;
-    cmd    = table[state->field_E].holdCommand;
-    opcode = cmd & 0xFF;
+    state    = (GpState18*)task->work;
+    table    = state->field_0;
+    segments = state->field_4;
+    cmd      = table[state->field_E].holdCommand;
+    opcode   = cmd & 0xFF;
     // The saved word's opcode is this lane's state until the next step.
     state->field_A.command = cmd;
 
     if (opcode != PAD_SCRIPT_STOP) {
         if (opcode == PAD_SCRIPT_PLAY) {
             state->field_12 = cmd >> 8;
-            state->field_10 = recs[state->field_12].field_2;
+            state->field_10 = segments[state->field_12].durationFrames;
             Gp_SpawnPadHold(state->field_10);
             state->field_E++;
         } else if (opcode == PAD_SCRIPT_WAIT) {
@@ -126,26 +126,26 @@ static void Gp_StepScriptA(Task* task)
 
 static void Gp_StepScriptB(Task* task)
 {
-    GpState18*    state;
-    PadScriptCmd* table;
-    GpScriptRec*  recs;
-    u16           cmd;
-    s32           opcode;
-    u8            tmp;
+    GpState18*                 state;
+    PadScriptCmd*              table;
+    PadScriptVibrationSegment* segments;
+    u16                        cmd;
+    s32                        opcode;
+    u8                         tmp;
 
-    state  = (GpState18*)task->work;
-    table  = state->field_0;
-    recs   = state->field_4;
-    cmd    = table[state->field_F].lerpCommand;
-    opcode = cmd & 0xFF;
+    state    = (GpState18*)task->work;
+    table    = state->field_0;
+    segments = state->field_4;
+    cmd      = table[state->field_F].lerpCommand;
+    opcode   = cmd & 0xFF;
     // The saved word's opcode is this lane's state until the next step.
     state->field_C.command = cmd;
 
     if (opcode != PAD_SCRIPT_STOP) {
         if (opcode == PAD_SCRIPT_PLAY) {
             state->field_13 = cmd >> 8;
-            state->field_11 = recs[state->field_13].field_2;
-            Gp_SpawnPadLerpScaled(state->field_11, recs[state->field_13].field_0, recs[state->field_13].field_1, state->field_8);
+            state->field_11 = segments[state->field_13].durationFrames;
+            Gp_SpawnPadLerpScaled(state->field_11, segments[state->field_13].startIntensity, segments[state->field_13].endIntensity, state->field_8);
             state->field_F++;
         } else if (opcode == PAD_SCRIPT_WAIT) {
             state->field_11 = cmd >> 8;

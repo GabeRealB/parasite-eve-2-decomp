@@ -204,45 +204,45 @@ void func_mine_mesa_8017DE38(Task*);
 void func_mine_mesa_8017DFC4(Task*);
 void func_mine_mesa_8017E024(Task*);
 
-extern AnimationPlayRequest D_mine_mesa_80184360;
-extern AnimationPlayRequest D_mine_mesa_80184374;
-extern AnimationPlayRequest D_mine_mesa_8018439C;
-extern AnimationPlayRequest D_mine_mesa_801844B4;
-extern AnimationPlayRequest D_mine_mesa_801844C8;
-extern AnimationPlayRequest D_mine_mesa_801844DC;
-extern AnimationPlayRequest D_mine_mesa_801844F0;
-extern AnimationPlayRequest D_mine_mesa_80184504;
-extern AnimationPlayRequest D_mine_mesa_8018452C;
-extern AnimationPlayRequest D_mine_mesa_80184540;
-extern AnimationPlayRequest D_mine_mesa_80184554;
-extern ActorCommand         D_mine_mesa_80184650;
-extern ActorCommand         D_mine_mesa_80184654;
-extern GpCopyArg            D_mine_mesa_80184344;
-extern GpCopyArg            D_mine_mesa_80184484;
-extern PadScriptCmd         D_mine_mesa_80189A80[4];
-extern GpScriptRec          D_mine_mesa_80189A90[3];
-extern ActorTransform       D_mine_mesa_801843C4;
-extern ActorTransform       D_mine_mesa_801843DC;
-extern ActorTransform       D_mine_mesa_80184590;
-extern ActorTransform       D_mine_mesa_801845A8;
-extern ActorTransform       D_mine_mesa_801845C0;
-void                        func_mine_mesa_8017DDF0(void);
-void                        func_mine_mesa_8017E5A0(void);
-void                        func_mine_mesa_8017E5C0(void);
-void                        func_mine_mesa_8017E5E0(void);
-void                        func_mine_mesa_8017E620(void);
-void                        func_mine_mesa_8017E650(void);
-void                        func_mine_mesa_8017E684(s32);
-void                        func_mine_mesa_8017E6D8(void);
-void                        func_mine_mesa_8017E70C(s32);
-void                        func_mine_mesa_8017E760(void);
-void                        func_mine_mesa_8017E91C(void);
-void                        func_mine_mesa_8017E93C(u8);
-void                        func_mine_mesa_8017E948(void);
-void                        func_mine_mesa_8017EA24(void);
-void                        func_mine_mesa_8017EA78(void);
-void                        func_mine_mesa_8017EAAC(void);
-void                        func_mine_mesa_8017EB54(s32);
+extern AnimationPlayRequest      D_mine_mesa_80184360;
+extern AnimationPlayRequest      D_mine_mesa_80184374;
+extern AnimationPlayRequest      D_mine_mesa_8018439C;
+extern AnimationPlayRequest      D_mine_mesa_801844B4;
+extern AnimationPlayRequest      D_mine_mesa_801844C8;
+extern AnimationPlayRequest      D_mine_mesa_801844DC;
+extern AnimationPlayRequest      D_mine_mesa_801844F0;
+extern AnimationPlayRequest      D_mine_mesa_80184504;
+extern AnimationPlayRequest      D_mine_mesa_8018452C;
+extern AnimationPlayRequest      D_mine_mesa_80184540;
+extern AnimationPlayRequest      D_mine_mesa_80184554;
+extern ActorCommand              D_mine_mesa_80184650;
+extern ActorCommand              D_mine_mesa_80184654;
+extern GpCopyArg                 D_mine_mesa_80184344;
+extern GpCopyArg                 D_mine_mesa_80184484;
+extern PadScriptCmd              D_mine_mesa_80189A80[4];
+extern PadScriptVibrationSegment D_mine_mesa_80189A90[3];
+extern ActorTransform            D_mine_mesa_801843C4;
+extern ActorTransform            D_mine_mesa_801843DC;
+extern ActorTransform            D_mine_mesa_80184590;
+extern ActorTransform            D_mine_mesa_801845A8;
+extern ActorTransform            D_mine_mesa_801845C0;
+void                             func_mine_mesa_8017DDF0(void);
+void                             func_mine_mesa_8017E5A0(void);
+void                             func_mine_mesa_8017E5C0(void);
+void                             func_mine_mesa_8017E5E0(void);
+void                             func_mine_mesa_8017E620(void);
+void                             func_mine_mesa_8017E650(void);
+void                             func_mine_mesa_8017E684(s32);
+void                             func_mine_mesa_8017E6D8(void);
+void                             func_mine_mesa_8017E70C(s32);
+void                             func_mine_mesa_8017E760(void);
+void                             func_mine_mesa_8017E91C(void);
+void                             func_mine_mesa_8017E93C(u8);
+void                             func_mine_mesa_8017E948(void);
+void                             func_mine_mesa_8017EA24(void);
+void                             func_mine_mesa_8017EA78(void);
+void                             func_mine_mesa_8017EAAC(void);
+void                             func_mine_mesa_8017EB54(s32);
 
 extern AnimationPlayRequest D_mine_mesa_80184360;
 extern AnimationPlayRequest D_mine_mesa_801843B0;
@@ -2518,7 +2518,7 @@ PadScriptCmd D_mine_mesa_80189A80[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_mine_mesa_80189A90[3] = {
+PadScriptVibrationSegment D_mine_mesa_80189A90[3] = {
     { 0, 0, 1, 0 },
     { 255, 66, 20, 1 },
     { 255, 255, 10, 1 },

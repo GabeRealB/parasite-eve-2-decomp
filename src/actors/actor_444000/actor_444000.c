@@ -232,17 +232,17 @@ extern EnemyParams D_actor_444000_80144A38;
 extern EnemyParams D_actor_444000_80144A48;
 extern EnemyParams D_actor_444000_80144A58;
 
-extern s16          gIncinBossEnded;
-extern s32          gIncinBossGrabActive;
-extern s16          gIncinBossLimbReach;
-extern s16          gIncinBossSpinnersReleased;
-extern PadScriptCmd D_actor_444000_80144A74[2];
-extern GpScriptRec  D_actor_444000_80144A7C[2];
-extern PadScriptCmd D_actor_444000_80144A84[2];
-extern GpScriptRec  D_actor_444000_80144A8C[2];
+extern s16                       gIncinBossEnded;
+extern s32                       gIncinBossGrabActive;
+extern s16                       gIncinBossLimbReach;
+extern s16                       gIncinBossSpinnersReleased;
+extern PadScriptCmd              D_actor_444000_80144A74[2];
+extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
+extern PadScriptCmd              D_actor_444000_80144A84[2];
+extern PadScriptVibrationSegment D_actor_444000_80144A8C[2];
 /// Script pair the drag tick spawns every `period` frames.
-extern PadScriptCmd D_actor_444000_80144A94[3];
-extern GpScriptRec  D_actor_444000_80144AA0[2];
+extern PadScriptCmd              D_actor_444000_80144A94[3];
+extern PadScriptVibrationSegment D_actor_444000_80144AA0[2];
 
 /// Animation-set tables: the host's two blocks, escort 0's two and escort 1's.
 extern AnimationSet* D_actor_444000_80161448[];
@@ -617,7 +617,7 @@ PadScriptCmd D_actor_444000_80144A74[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_444000_80144A7C[2] = {
+PadScriptVibrationSegment D_actor_444000_80144A7C[2] = {
     { 0, 0, 7, 0 },
     { 255, 53, 27, 1 },
 };
@@ -627,7 +627,7 @@ PadScriptCmd D_actor_444000_80144A84[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_444000_80144A8C[2] = {
+PadScriptVibrationSegment D_actor_444000_80144A8C[2] = {
     { 186, 74, 32, 1 },
     { 0, 0, 7, 0 },
 };
@@ -638,7 +638,7 @@ PadScriptCmd D_actor_444000_80144A94[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_444000_80144AA0[2] = {
+PadScriptVibrationSegment D_actor_444000_80144AA0[2] = {
     { 22, 109, 20, 1 },
     { 80, 31, 34, 1 },
 };

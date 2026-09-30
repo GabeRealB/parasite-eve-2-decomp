@@ -161,12 +161,12 @@ extern s16 gIncinBossSpinnersReleased;
 
 /// Script pairs spawned on the per-frame body's and the death sequence's cues,
 /// and on the frames the launch tick's phase selects.
-extern PadScriptCmd D_actor_403200_80141C5C[2];
-extern GpScriptRec  D_actor_403200_80141C64[2];
-extern PadScriptCmd D_actor_403200_80141C6C[2];
-extern GpScriptRec  D_actor_403200_80141C74[2];
-extern PadScriptCmd D_actor_403200_80141C7C[3];
-extern GpScriptRec  D_actor_403200_80141C88[2];
+extern PadScriptCmd              D_actor_403200_80141C5C[2];
+extern PadScriptVibrationSegment D_actor_403200_80141C64[2];
+extern PadScriptCmd              D_actor_403200_80141C6C[2];
+extern PadScriptVibrationSegment D_actor_403200_80141C74[2];
+extern PadScriptCmd              D_actor_403200_80141C7C[3];
+extern PadScriptVibrationSegment D_actor_403200_80141C88[2];
 
 /// Pair descriptors the host and its escorts publish as `Enemy::param`;
 /// `hpMax` is the hit-point pool each one starts with.
@@ -417,7 +417,7 @@ PadScriptCmd D_actor_403200_80141C5C[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_403200_80141C64[2] = {
+PadScriptVibrationSegment D_actor_403200_80141C64[2] = {
     { 0, 0, 7, 0 },
     { 255, 53, 27, 1 },
 };
@@ -427,7 +427,7 @@ PadScriptCmd D_actor_403200_80141C6C[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_403200_80141C74[2] = {
+PadScriptVibrationSegment D_actor_403200_80141C74[2] = {
     { 186, 74, 32, 1 },
     { 0, 0, 7, 0 },
 };
@@ -438,7 +438,7 @@ PadScriptCmd D_actor_403200_80141C7C[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_403200_80141C88[2] = {
+PadScriptVibrationSegment D_actor_403200_80141C88[2] = {
     { 22, 109, 20, 1 },
     { 80, 31, 34, 1 },
 };

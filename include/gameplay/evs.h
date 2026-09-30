@@ -8,7 +8,7 @@
 
 struct _GpEvsCmd;
 struct PadScriptCmd;
-struct _GpScriptRec;
+struct PadScriptVibrationSegment;
 
 /// Key an event script uses to select a scene/audio stream.
 ///
@@ -27,15 +27,15 @@ STATIC_ASSERT_SIZEOF(EvsSceneKey, 6);
 
 /// An event operand is either a value or an address, according to its opcode.
 typedef union GpEvsOperand {
-    s32                   value;
-    void*                 storage;
-    struct _GpEvsCmd*     commands;
-    AnimationPlayRequest* animation;
-    EvsSceneKey*          overlays;
-    struct PadScriptCmd*  padCommands;
-    struct _GpScriptRec*  padRecords;
-    TaskMessageArg        message;
-    TaskSpawnArg          spawn;
+    s32                               value;
+    void*                             storage;
+    struct _GpEvsCmd*                 commands;
+    AnimationPlayRequest*             animation;
+    EvsSceneKey*                      overlays;
+    struct PadScriptCmd*              padCommands;
+    struct PadScriptVibrationSegment* padRecords;
+    TaskMessageArg                    message;
+    TaskSpawnArg                      spawn;
     // The exported callback address uses the word-register event ABI. Some
     // callbacks ignore that register or consume only its low byte/halfword;
     // these members retain their source declarations in script initializers.

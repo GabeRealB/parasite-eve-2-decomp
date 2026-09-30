@@ -185,9 +185,9 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
 
-extern void         func_80143490(s32 arg0);
-extern PadScriptCmd D_80144A74[2];
-extern s32          D_80144A7C;
+extern void                      func_80143490(s32 arg0);
+extern PadScriptCmd              D_80144A74[2];
+extern PadScriptVibrationSegment D_80144A7C[2];
 
 /// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
 extern AnimationSet* D_actor_341900_801639A4[2];
@@ -696,13 +696,13 @@ void func_actor_341900_80162708(Task* arg0)
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x12) && (work->field_230 != frame)) {
                     Task_Reparent(arg0,
-                                  Gp_SpawnScript18(&D_80144A74, &D_80144A7C));
+                                  Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x18) && (work->field_230 != frame)) {
                     Task_Reparent(arg0,
-                                  Gp_SpawnScript18(&D_80144A74, &D_80144A7C));
+                                  Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 work->field_230 = work->field_66 & 0x3FF;

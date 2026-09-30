@@ -210,7 +210,7 @@ PadScriptCmd Actor04000_D07094[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec Actor04000_D070A0[3] = {
+PadScriptVibrationSegment Actor04000_D070A0[3] = {
     { 0, 0, 9, 0 },
     { 255, 255, 12, 1 },
     { 100, 50, 6, 1 },
@@ -1151,7 +1151,7 @@ extern AnimationPlayRequest Actor04000_D0C530;
 
 extern PadScriptCmd Actor04000_D07094[3];
 
-extern GpScriptRec Actor04000_D070A0[3];
+extern PadScriptVibrationSegment Actor04000_D070A0[3];
 
 extern AnimationSet* Actor04000_D0C510[4];
 

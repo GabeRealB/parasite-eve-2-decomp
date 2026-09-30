@@ -66,12 +66,12 @@ extern Task* D_acropolis_helicopter_landing_pad_80187F80;
 
 /// Three `Gp_SpawnScript18` argument pairs used by the state timeline in
 /// `func_acropolis_helicopter_landing_pad_8017DE78`, one pair per phase.
-extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2];
-extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D48[2];
-extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4];
-extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D60[2];
-extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4];
-extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D78[2];
+extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D40[2];
+extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D48[2];
+extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D50[4];
+extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D60[2];
+extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D68[4];
+extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2];
 
 static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
 static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
@@ -635,14 +635,14 @@ PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 5), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_helicopter_landing_pad_80187D3C = { 120, 70, 20, 1 };
+PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D3C = { 120, 70, 20, 1 };
 
 PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2] = {
+PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D48[2] = {
     { 0, 0, 20, 0 },
     { 255, 220, 25, 1 },
 };
@@ -654,7 +654,7 @@ PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2] = {
+PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D60[2] = {
     { 0, 0, 1, 0 },
     { 220, 180, 25, 1 },
 };
@@ -666,7 +666,7 @@ PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_helicopter_landing_pad_80187D78[2] = {
+PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2] = {
     { 0, 0, 1, 0 },
     { 150, 100, 25, 1 },
 };

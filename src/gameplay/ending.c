@@ -45,7 +45,7 @@ PadScriptCmd D_80114A24[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
-GpScriptRec D_80114A34[3] = {
+PadScriptVibrationSegment D_80114A34[3] = {
     { 200, 255, 7, 1 },
     { 170, 70, 7, 1 },
     { 180, 60, 1, 0 }
@@ -201,7 +201,7 @@ void Gp_EndingTask(Task* arg0)
             arg0->killCountdown = 0x5A;
         }
         SndEvt_EnqueueType6(0xB, 0, 0);
-        Gp_SpawnScript18(&D_80114A24, &D_80114A34);
+        Gp_SpawnScript18(&D_80114A24, D_80114A34);
         Gp_SetCurAreaFlag4();
     } else if (arg0->state == 1) {
         session = gGameSession;

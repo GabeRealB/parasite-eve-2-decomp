@@ -78,47 +78,47 @@ extern AnimationSet D_actor_503500_8014B174;
 extern AnimationSet D_actor_503500_8014B3C4;
 extern AnimationSet D_actor_503500_8014B930;
 
-extern AnimationPlayRequest D_actor_503500_8014B9E8;
-extern AnimationPlayRequest D_actor_503500_8014B9FC[10];
-extern AnimationPlayRequest D_actor_503500_8014BAC4;
-extern ActorCommand         D_actor_503500_8014BC14;
-extern ActorCommand         D_actor_503500_8014BC18[2];
-extern ActorCommand         D_actor_503500_8014BC20;
-extern ActorCommand         D_actor_503500_8014BC24;
-extern ActorCommand         D_actor_503500_8014BC28;
-extern GpCopyArg            D_actor_503500_8014B9CC;
-extern PadScriptCmd         D_actor_503500_8014D2F0[2];
-extern PadScriptCmd         D_actor_503500_8014D300[3];
-extern GpScriptRec          D_actor_503500_8014D2F8[2];
-extern GpScriptRec          D_actor_503500_8014D30C[3];
-extern ActorTransform       D_actor_503500_8014BAD8;
-extern ActorTransform       D_actor_503500_8014BAF0;
-extern ActorTransform       D_actor_503500_8014BB08;
-extern ActorTransform       D_actor_503500_8014BB20;
-extern ActorTransform       D_actor_503500_8014BB38;
-extern ActorTransform       D_actor_503500_8014BBB4[2];
-extern ActorTransform       D_actor_503500_8014BBE4;
-extern ActorTransform       D_actor_503500_8014BBFC;
-void                        func_actor_503500_80132B78(void);
-void                        func_actor_503500_80132B98(void);
-void                        func_actor_503500_80132BB8(void);
-void                        func_actor_503500_80132BD8(void);
-void                        func_actor_503500_80132BF8(void);
-void                        func_actor_503500_80132C40(s32);
-void                        func_actor_503500_80132C70(s32);
-void                        func_actor_503500_80132CA4(void);
-void                        func_actor_503500_80132CC4(s8);
-void                        func_actor_503500_80132D00(s32);
-void                        func_actor_503500_80132D60(void);
-void                        func_actor_503500_80132D7C(void);
-void                        func_actor_503500_80132D90(s32);
-void                        func_actor_503500_80132DB4(s32);
-void                        func_actor_503500_80132DD4(void);
-void                        func_actor_503500_80132DEC(void);
-void                        func_actor_503500_80132E7C(void);
-void                        func_actor_503500_80132EE8(u8);
-void                        func_actor_503500_80132EF4(void);
-void                        func_actor_503500_80132F28(void);
+extern AnimationPlayRequest      D_actor_503500_8014B9E8;
+extern AnimationPlayRequest      D_actor_503500_8014B9FC[10];
+extern AnimationPlayRequest      D_actor_503500_8014BAC4;
+extern ActorCommand              D_actor_503500_8014BC14;
+extern ActorCommand              D_actor_503500_8014BC18[2];
+extern ActorCommand              D_actor_503500_8014BC20;
+extern ActorCommand              D_actor_503500_8014BC24;
+extern ActorCommand              D_actor_503500_8014BC28;
+extern GpCopyArg                 D_actor_503500_8014B9CC;
+extern PadScriptCmd              D_actor_503500_8014D2F0[2];
+extern PadScriptCmd              D_actor_503500_8014D300[3];
+extern PadScriptVibrationSegment D_actor_503500_8014D2F8[2];
+extern PadScriptVibrationSegment D_actor_503500_8014D30C[3];
+extern ActorTransform            D_actor_503500_8014BAD8;
+extern ActorTransform            D_actor_503500_8014BAF0;
+extern ActorTransform            D_actor_503500_8014BB08;
+extern ActorTransform            D_actor_503500_8014BB20;
+extern ActorTransform            D_actor_503500_8014BB38;
+extern ActorTransform            D_actor_503500_8014BBB4[2];
+extern ActorTransform            D_actor_503500_8014BBE4;
+extern ActorTransform            D_actor_503500_8014BBFC;
+void                             func_actor_503500_80132B78(void);
+void                             func_actor_503500_80132B98(void);
+void                             func_actor_503500_80132BB8(void);
+void                             func_actor_503500_80132BD8(void);
+void                             func_actor_503500_80132BF8(void);
+void                             func_actor_503500_80132C40(s32);
+void                             func_actor_503500_80132C70(s32);
+void                             func_actor_503500_80132CA4(void);
+void                             func_actor_503500_80132CC4(s8);
+void                             func_actor_503500_80132D00(s32);
+void                             func_actor_503500_80132D60(void);
+void                             func_actor_503500_80132D7C(void);
+void                             func_actor_503500_80132D90(s32);
+void                             func_actor_503500_80132DB4(s32);
+void                             func_actor_503500_80132DD4(void);
+void                             func_actor_503500_80132DEC(void);
+void                             func_actor_503500_80132E7C(void);
+void                             func_actor_503500_80132EE8(u8);
+void                             func_actor_503500_80132EF4(void);
+void                             func_actor_503500_80132F28(void);
 
 extern TmdSource D_actor_503500_80154624;
 extern TmdSource D_actor_503500_80154C38;
@@ -763,7 +763,7 @@ PadScriptCmd D_actor_503500_8014D2F0[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_503500_8014D2F8[2] = {
+PadScriptVibrationSegment D_actor_503500_8014D2F8[2] = {
     { 255, 107, 20, 1 },
     { 0, 0, 8, 0 },
 };
@@ -774,7 +774,7 @@ PadScriptCmd D_actor_503500_8014D300[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_503500_8014D30C[3] = {
+PadScriptVibrationSegment D_actor_503500_8014D30C[3] = {
     { 0, 0, 8, 0 },
     { 254, 252, 8, 1 },
     { 255, 22, 11, 1 },

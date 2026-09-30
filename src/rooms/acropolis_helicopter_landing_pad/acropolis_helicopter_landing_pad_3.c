@@ -133,7 +133,7 @@ PadScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_helicopter_landing_pad_80183748[2] = {
+PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80183748[2] = {
     { 0, 0, 1, 0 },
     { 255, 255, 4, 1 },
 };

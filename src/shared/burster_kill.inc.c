@@ -32,7 +32,7 @@ void bursterKill(Task* arg0, u8 arg1)
         work->obj1EC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &gBursterBurstFxOffset);
-        Gp_SpawnScript18(&gBursterBurstScriptA, &gBursterBurstScriptB);
+        Gp_SpawnScript18(&gBursterBurstScriptA, gBursterBurstScriptB);
         work->field_2DA = 1;
     } else {
         if (work->field_2D6 != 0) {

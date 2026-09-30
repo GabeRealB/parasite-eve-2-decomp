@@ -839,7 +839,7 @@ PadScriptCmd D_acropolis_observatory_80183480[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_observatory_80183498[2] = {
+PadScriptVibrationSegment D_acropolis_observatory_80183498[2] = {
     { 0, 0, 2, 0 },
     { 60, 60, 1, 0 },
 };
@@ -853,7 +853,7 @@ PadScriptCmd D_acropolis_observatory_801834A0[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_observatory_801834B8[2] = {
+PadScriptVibrationSegment D_acropolis_observatory_801834B8[2] = {
     { 0, 0, 2, 0 },
     { 60, 60, 1, 0 },
 };

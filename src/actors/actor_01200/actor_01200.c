@@ -123,10 +123,10 @@ typedef struct Actor01200StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[10];
 } Actor01200StateTable;
 
-extern EnemyParams   Actor01200_D04034;
-extern PadScriptCmd  Actor01200_D04044[3];
-extern GpScriptRec   Actor01200_D04050[3];
-extern AnimationSet* Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
+extern EnemyParams               Actor01200_D04034;
+extern PadScriptCmd              Actor01200_D04044[3];
+extern PadScriptVibrationSegment Actor01200_D04050[3];
+extern AnimationSet*             Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
@@ -172,7 +172,7 @@ PadScriptCmd Actor01200_D04044[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec Actor01200_D04050[3] = {
+PadScriptVibrationSegment Actor01200_D04050[3] = {
     { 0, 0, 9, 0 },
     { 255, 255, 12, 1 },
     { 100, 50, 6, 1 },

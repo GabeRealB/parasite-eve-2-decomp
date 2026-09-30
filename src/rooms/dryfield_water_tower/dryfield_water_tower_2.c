@@ -278,12 +278,12 @@ extern ActorTransform D_dryfield_water_tower_80181AD0[2];
 /// spawn into `field_50`, and the sound each one queues: `0x52140006` with the
 /// extra `0x5214000C` for command 8, whose script `func_dryfield_water_tower_8017EB7C`
 /// and `func_dryfield_water_tower_8017F908` wait on through `field_78`.
-extern PadScriptCmd D_dryfield_water_tower_80187628[5];
-extern GpScriptRec  D_dryfield_water_tower_8018763C[4];
-extern PadScriptCmd D_dryfield_water_tower_8018764C[5];
-extern GpScriptRec  D_dryfield_water_tower_80187660[4];
-extern PadScriptCmd D_dryfield_water_tower_80187670[2];
-extern GpScriptRec  D_dryfield_water_tower_80187678;
+extern PadScriptCmd              D_dryfield_water_tower_80187628[5];
+extern PadScriptVibrationSegment D_dryfield_water_tower_8018763C[4];
+extern PadScriptCmd              D_dryfield_water_tower_8018764C[5];
+extern PadScriptVibrationSegment D_dryfield_water_tower_80187660[4];
+extern PadScriptCmd              D_dryfield_water_tower_80187670[2];
+extern PadScriptVibrationSegment D_dryfield_water_tower_80187678;
 
 /// Main-executable byte at 0x80114C11, read signed (`lb`), with no module
 /// header yet: the raise prop `func_dryfield_water_tower_8017E1DC` runs its
@@ -1735,7 +1735,7 @@ PadScriptCmd D_dryfield_water_tower_80187628[5] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_dryfield_water_tower_8018763C[4] = {
+PadScriptVibrationSegment D_dryfield_water_tower_8018763C[4] = {
     { 0, 0, 1, 0 },
     { 90, 120, 20, 1 },
     { 120, 120, 58, 1 },
@@ -1750,7 +1750,7 @@ PadScriptCmd D_dryfield_water_tower_8018764C[5] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_dryfield_water_tower_80187660[4] = {
+PadScriptVibrationSegment D_dryfield_water_tower_80187660[4] = {
     { 0, 0, 1, 0 },
     { 90, 120, 20, 1 },
     { 120, 120, 65, 1 },
@@ -1762,7 +1762,7 @@ PadScriptCmd D_dryfield_water_tower_80187670[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 5) }
 };
 
-GpScriptRec D_dryfield_water_tower_80187678 = { 90, 180, 60, 1 };
+PadScriptVibrationSegment D_dryfield_water_tower_80187678 = { 90, 180, 60, 1 };
 
 DwtwStep D_dryfield_water_tower_8018767C[4] = {
     { 0, 25 },

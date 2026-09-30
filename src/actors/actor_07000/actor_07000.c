@@ -372,10 +372,10 @@ PadScriptCmd Actor07000_D06938[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
-u32 Actor07000_D06944[3] = {
-    0x90000,
-    0x10CFFFF,
-    0x1063264,
+PadScriptVibrationSegment Actor07000_D06944[3] = {
+    { 0, 0, 9, 0 },
+    { 255, 255, 12, 1 },
+    { 100, 50, 6, 1 },
 };
 
 TmdBone Actor07000_D06950[3] = {
@@ -998,7 +998,7 @@ extern EnemyParams Actor07000_D06928;
 
 extern PadScriptCmd Actor07000_D06938[];
 
-extern u32 Actor07000_D06944[];
+extern PadScriptVibrationSegment Actor07000_D06944[];
 
 extern Actor07000RecoveredMsgEntry Actor07000_D08030[2];
 
@@ -1947,7 +1947,7 @@ static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
         work->field_20A |= 0x8000;
         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
-        Gp_SpawnScript18(&Actor07000_D06938, &Actor07000_D06944);
+        Gp_SpawnScript18(&Actor07000_D06938, Actor07000_D06944);
         work->field_2DA = 1;
     } else {
         if (work->field_2D6 != 0) {

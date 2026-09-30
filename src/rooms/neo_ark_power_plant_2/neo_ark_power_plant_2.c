@@ -187,7 +187,7 @@ PadScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_neo_ark_power_plant_2_801802A0[2] = {
+PadScriptVibrationSegment D_neo_ark_power_plant_2_801802A0[2] = {
     { 236, 77, 4, 1 },
     { 0, 0, 2, 0 },
 };

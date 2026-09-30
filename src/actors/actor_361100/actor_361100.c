@@ -90,8 +90,8 @@ extern Task* D_actor_361100_80171BE0;
 extern TaskDesc D_actor_361100_80165C58[];
 
 /// Script pair handed to `Gp_SpawnScript18` on every even frame of the blink.
-extern PadScriptCmd D_actor_361100_80166AD0[2];
-extern GpScriptRec  D_actor_361100_80166AD8;
+extern PadScriptCmd              D_actor_361100_80166AD0[2];
+extern PadScriptVibrationSegment D_actor_361100_80166AD8;
 
 extern AnimationSet*  D_actor_361100_8016BAD0[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -178,46 +178,46 @@ void                        func_actor_361100_8016297C(void);
 void                        func_actor_361100_801629D0(s32);
 void                        func_actor_361100_80162AEC(s32);
 
-extern AnimationPlayRequest D_actor_361100_80165CB4;
-extern AnimationPlayRequest D_actor_361100_80165CC8;
-extern AnimationPlayRequest D_actor_361100_80165CDC;
-extern AnimationPlayRequest D_actor_361100_80165CF0;
-extern AnimationPlayRequest D_actor_361100_80165D04;
-extern AnimationPlayRequest D_actor_361100_80165D18;
-extern AnimationPlayRequest D_actor_361100_80165D40;
-extern AnimationPlayRequest D_actor_361100_80165D54;
-extern AnimationPlayRequest D_actor_361100_80165DF0;
-extern AnimationPlayRequest D_actor_361100_80165E04;
-extern AnimationPlayRequest D_actor_361100_80165E18;
-extern AnimationPlayRequest D_actor_361100_80165E9C;
-extern AnimationPlayRequest D_actor_361100_80165EB0;
-extern AnimationPlayRequest D_actor_361100_80165EC4;
-extern AnimationPlayRequest D_actor_361100_80165ED8;
-extern ActorCommand         D_actor_361100_80165DD0;
-extern ActorCommand         D_actor_361100_80165DD8;
-extern ActorCommand         D_actor_361100_80165E78;
-extern ActorCommand         D_actor_361100_80165E7C;
-extern ActorCommand         D_actor_361100_80165E80;
-extern GpCopyArg            D_actor_361100_80165C98;
-extern GpOverrideArg        D_actor_361100_80165DC8;
-extern PadScriptCmd         D_actor_361100_80166AB8[3];
-extern GpScriptRec          D_actor_361100_80166AC4[3];
-extern ActorTransform       D_actor_361100_80165D68;
-extern ActorTransform       D_actor_361100_80165D80;
-extern ActorTransform       D_actor_361100_80165DB0;
-extern ActorTransform       D_actor_361100_80165E2C;
-extern ActorTransform       D_actor_361100_80165E5C;
-extern ActorTransform       D_actor_361100_80165EEC;
-extern ActorTransform       D_actor_361100_80165F04;
-extern ActorTransform       D_actor_361100_80165F1C;
-void                        func_actor_361100_8016291C(void);
-void                        func_actor_361100_8016293C(void);
-void                        func_actor_361100_8016295C(void);
-void                        func_actor_361100_8016297C(void);
-void                        func_actor_361100_8016299C(void);
-void                        func_actor_361100_801629D0(s32);
-void                        func_actor_361100_80162A24(s32);
-void                        func_actor_361100_80162AEC(s32);
+extern AnimationPlayRequest      D_actor_361100_80165CB4;
+extern AnimationPlayRequest      D_actor_361100_80165CC8;
+extern AnimationPlayRequest      D_actor_361100_80165CDC;
+extern AnimationPlayRequest      D_actor_361100_80165CF0;
+extern AnimationPlayRequest      D_actor_361100_80165D04;
+extern AnimationPlayRequest      D_actor_361100_80165D18;
+extern AnimationPlayRequest      D_actor_361100_80165D40;
+extern AnimationPlayRequest      D_actor_361100_80165D54;
+extern AnimationPlayRequest      D_actor_361100_80165DF0;
+extern AnimationPlayRequest      D_actor_361100_80165E04;
+extern AnimationPlayRequest      D_actor_361100_80165E18;
+extern AnimationPlayRequest      D_actor_361100_80165E9C;
+extern AnimationPlayRequest      D_actor_361100_80165EB0;
+extern AnimationPlayRequest      D_actor_361100_80165EC4;
+extern AnimationPlayRequest      D_actor_361100_80165ED8;
+extern ActorCommand              D_actor_361100_80165DD0;
+extern ActorCommand              D_actor_361100_80165DD8;
+extern ActorCommand              D_actor_361100_80165E78;
+extern ActorCommand              D_actor_361100_80165E7C;
+extern ActorCommand              D_actor_361100_80165E80;
+extern GpCopyArg                 D_actor_361100_80165C98;
+extern GpOverrideArg             D_actor_361100_80165DC8;
+extern PadScriptCmd              D_actor_361100_80166AB8[3];
+extern PadScriptVibrationSegment D_actor_361100_80166AC4[3];
+extern ActorTransform            D_actor_361100_80165D68;
+extern ActorTransform            D_actor_361100_80165D80;
+extern ActorTransform            D_actor_361100_80165DB0;
+extern ActorTransform            D_actor_361100_80165E2C;
+extern ActorTransform            D_actor_361100_80165E5C;
+extern ActorTransform            D_actor_361100_80165EEC;
+extern ActorTransform            D_actor_361100_80165F04;
+extern ActorTransform            D_actor_361100_80165F1C;
+void                             func_actor_361100_8016291C(void);
+void                             func_actor_361100_8016293C(void);
+void                             func_actor_361100_8016295C(void);
+void                             func_actor_361100_8016297C(void);
+void                             func_actor_361100_8016299C(void);
+void                             func_actor_361100_801629D0(s32);
+void                             func_actor_361100_80162A24(s32);
+void                             func_actor_361100_80162AEC(s32);
 
 void func_actor_361100_80161E3C(Task*);
 void func_actor_361100_801627D4(Task*);
@@ -661,7 +661,7 @@ PadScriptCmd D_actor_361100_80166AB8[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_361100_80166AC4[3] = {
+PadScriptVibrationSegment D_actor_361100_80166AC4[3] = {
     { 3, 255, 15, 1 },
     { 255, 107, 15, 1 },
     { 0, 0, 8, 0 },
@@ -672,7 +672,7 @@ PadScriptCmd D_actor_361100_80166AD0[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_actor_361100_80166AD8 = { 255, 255, 1, 1 };
+PadScriptVibrationSegment D_actor_361100_80166AD8 = { 255, 255, 1, 1 };
 
 TmdBone D_actor_361100_80166ADC[19] = {
 #include "assets/actor_361100_model_09498_skeleton.inc"

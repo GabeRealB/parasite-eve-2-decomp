@@ -121,7 +121,7 @@ PadScriptCmd D_neo_ark_power_plant_1_8017EB60[5] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_neo_ark_power_plant_1_8017EB74[2] = {
+PadScriptVibrationSegment D_neo_ark_power_plant_1_8017EB74[2] = {
     { 236, 77, 4, 1 },
     { 0, 0, 2, 0 },
 };

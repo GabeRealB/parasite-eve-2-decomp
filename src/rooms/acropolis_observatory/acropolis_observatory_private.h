@@ -19,10 +19,10 @@ extern TaskDesc D_acropolis_observatory_8017FE6C;
 
 extern PadScriptCmd D_acropolis_observatory_80183480[6];
 
-extern GpScriptRec D_acropolis_observatory_80183498[2];
+extern PadScriptVibrationSegment D_acropolis_observatory_80183498[2];
 
 extern PadScriptCmd D_acropolis_observatory_801834A0[6];
 
-extern GpScriptRec D_acropolis_observatory_801834B8[2];
+extern PadScriptVibrationSegment D_acropolis_observatory_801834B8[2];
 
 #endif // SRC_ROOMS_ACROPOLIS_OBSERVATORY_ACROPOLIS_OBSERVATORY_PRIVATE_H

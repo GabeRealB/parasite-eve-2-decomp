@@ -532,7 +532,7 @@ extern SVECTOR D_actor_503500_80171594;
 
 extern PadScriptCmd D_actor_503500_8017159C[2];
 
-extern GpScriptRec D_actor_503500_801715A4[2];
+extern PadScriptVibrationSegment D_actor_503500_801715A4[2];
 
 extern Actor503500UVec D_actor_503500_801715AC;
 

@@ -75,12 +75,12 @@
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
 /// The script pair the streamed scene runs.
-extern PadScriptCmd D_acropolis_forked_road_80185058[6];
-extern GpScriptRec  D_acropolis_forked_road_80185070[2];
+extern PadScriptCmd              D_acropolis_forked_road_80185058[6];
+extern PadScriptVibrationSegment D_acropolis_forked_road_80185070[2];
 
 /// The script pair the return ride runs.
-extern PadScriptCmd D_acropolis_forked_road_80185038[6];
-extern GpScriptRec  D_acropolis_forked_road_80185050[2];
+extern PadScriptCmd              D_acropolis_forked_road_80185038[6];
+extern PadScriptVibrationSegment D_acropolis_forked_road_80185050[2];
 
 /// The fourteen spawn offsets of the forked road's ambient effects, indexed
 /// 0..13 by the first-frame burst below.
@@ -1149,7 +1149,7 @@ PadScriptCmd D_acropolis_forked_road_80185038[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_forked_road_80185050[2] = {
+PadScriptVibrationSegment D_acropolis_forked_road_80185050[2] = {
     { 0, 0, 2, 0 },
     { 60, 60, 1, 0 },
 };
@@ -1163,7 +1163,7 @@ PadScriptCmd D_acropolis_forked_road_80185058[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-GpScriptRec D_acropolis_forked_road_80185070[2] = {
+PadScriptVibrationSegment D_acropolis_forked_road_80185070[2] = {
     { 0, 0, 2, 0 },
     { 60, 60, 1, 0 },
 };

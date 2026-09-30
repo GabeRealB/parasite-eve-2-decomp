@@ -158,16 +158,16 @@ extern FactoryControlMessageEntry gFactoryPanelMsgTable[2];
  * address; the code picks between the two by stage. FACTORY_NIGHT, defined by
  * the night package before it includes this header, selects which routines a
  * build defines. */
-extern TaskDesc     gFactoryDaySpawnTable[];
-extern TaskDesc     gFactoryNightSpawnTable[];
-extern TaskDesc     gFactoryDayPanelDesc[];
-extern TaskDesc     gFactoryNightPanelDesc[];
-extern GpGridParams gFactoryDayGrid;
-extern GpGridParams gFactoryNightGrid;
-extern PadScriptCmd gFactoryDayJoltCmds[3];
-extern PadScriptCmd gFactoryNightJoltCmds[3];
-extern GpScriptRec  gFactoryDayJoltRecs[3];
-extern GpScriptRec  gFactoryNightJoltRecs[3];
+extern TaskDesc                  gFactoryDaySpawnTable[];
+extern TaskDesc                  gFactoryNightSpawnTable[];
+extern TaskDesc                  gFactoryDayPanelDesc[];
+extern TaskDesc                  gFactoryNightPanelDesc[];
+extern GpGridParams              gFactoryDayGrid;
+extern GpGridParams              gFactoryNightGrid;
+extern PadScriptCmd              gFactoryDayJoltCmds[3];
+extern PadScriptCmd              gFactoryNightJoltCmds[3];
+extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];
+extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 
 void factoryDayShowView9Sprite(s32 show);
 void factoryNightShowView9Sprite(s32 show);
