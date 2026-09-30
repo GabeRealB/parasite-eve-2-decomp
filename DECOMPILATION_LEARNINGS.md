@@ -25958,8 +25958,9 @@ and inverts the work-type test (`!= 9` instead of `== 9`).
 
 **When not to reach for the union.** The remedy above reshapes the field, so it
 costs one rename per use site. On a shared, heavily-used struct that is not a
-trade worth making: `gGameSession` declares `u8 field_8; u8 field_9;` at 0x8 and
-63 + 29 sites read them as bytes (`field_8 == 4`, `field_9 == 1`, …), while
+trade worth making: `gGameSession->location.loc` declares `u8 warp; u8 variant;`
+at session offsets 0x8 and 0x9, and 63 + 29 sites read them as bytes
+(`warp == 4`, `variant == 1`, …), while
 `func_neo_ark_garden_8017E9B4` compares the halfword to `0x203`. A union there
 renames 92 matched use sites to gain one function.
 
@@ -25970,7 +25971,7 @@ through the **named** field — no magic offset, and it is already the idiom her
 accepts it:
 
 ```c
-if (*(u16*)&gGameSession->location.loc.field_4 == 0x203) {
+if (*(u16*)&gGameSession->location.loc.warp == 0x203) {
 ```
 
 The giveaway that the original read wider than the declaration is a **constant
@@ -89908,8 +89909,8 @@ Task **Gp_FindWorkById(s32, GameSession *);
 /* ... */ Gp_FindWorkById(/* id */, gGameSession);
 ```
 
-because the target loads `gGameSession` once into `$a1`, reads `field_6` and
-`field_7` through it, and reaches `jal Gp_FindWorkById` with `$a1` still
+because the target loads `gGameSession` once into `$a1`, reads `location.loc.area`
+and `location.loc.stage` through it, and reaches `jal Gp_FindWorkById` with `$a1` still
 holding it. That is not an argument setup: the pointer's live range ends at the
 call, so the allocator picks `$a1` for it unprompted, and no delay-slot store is
 involved.
@@ -118383,7 +118384,7 @@ not an unsigned-field bug.
 Worked example: `func_mine_mesa_8017E3E0` matched at 100% with no pins and one
 scratch build. It is `func_actor_503500_80132990` (`src/actors/actor_503500/`
 `actor_503500_2.c`, the `similar` hit the brief lists in three classes at once)
-minus that function's `D_801153F4` gate and minus the `gGameSession->field_5F`
+minus that function's `D_801153F4` gate and minus the `gGameSession->evtSkipped`
 term of its state-1 test; the tile/`DR_TPAGE` packet that follows is byte-for-byte
 the same. Reading the multi-class `similar` hit as a near-copy to be diffed
 rather than as a hint to re-derive got the function in one attempt.

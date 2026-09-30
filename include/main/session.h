@@ -33,7 +33,11 @@ struct Task;
 /// Selects the area and room-local view bytes of a packed location prefix.
 #define GAME_LOCATION_AREA_VIEW_MASK GAME_LOCATION_KEY(0, 0xFF, 0, 0xFF)
 
-/// Pointer to the live `GameSession`.
+/// Resident live world, input and script state shared by main and the overlays.
+///
+/// Always points to the same `GameSession`, whose storage survives heap resets
+/// and overlay replacement. New-game, load and reset paths clear the object in
+/// place. Consumers borrow this object and must not release its storage.
 extern GameSession* gGameSession;
 
 extern s32 D_8005ED68;

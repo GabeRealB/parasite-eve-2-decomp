@@ -158,7 +158,7 @@ void GameFlow_StateByField34(Task* task)
                 gDisplayState.spriteVariant = 1;
             }
             Title_RestoreDemoCard();
-            MEM_CLEAR(gGameSession, sizeof(GameSession));
+            MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 0;
             gGameSession->applySaveVariant               = 1;
@@ -177,7 +177,7 @@ void GameFlow_StateByField34(Task* task)
         Pad_SetCooldown(0);
         if (task->spawnArg1.value == 0) {
             saved = Mc_SaveData[0].state.vibration;
-            MEM_CLEAR(gGameSession, sizeof(GameSession));
+            MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 1;
             p->releasePauseBlockAfterFade                = 1;
@@ -187,7 +187,7 @@ void GameFlow_StateByField34(Task* task)
             Mc_SaveData[0].state.vibration = saved;
             task->state                    = task->state + 1;
         } else {
-            MEM_CLEAR(gGameSession, sizeof(GameSession));
+            MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.gameRunning                    = 1;
             gDisplayState.control.flags.pendingPlayerPos = 0;
             p->releasePauseBlockAfterFade                = 1;
@@ -233,7 +233,7 @@ void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
 void Game_ClearSession(void)
 {
 
-    MEM_CLEAR(gGameSession, sizeof(GameSession));
+    MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
 }
 
@@ -252,7 +252,7 @@ static void Game_ResetSessionAndBuffers(Task* task)
 
     p     = &CdCmd_Queue;
     saved = Mc_SaveData[0].state.vibration;
-    MEM_CLEAR(gGameSession, sizeof(GameSession));
+    MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                    = 1;
     p->releasePauseBlockAfterFade                = 1;
