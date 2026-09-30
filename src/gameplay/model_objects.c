@@ -362,6 +362,7 @@ void modelObjectUnlinkTmd(TmdListNode* node)
 
     next = node->next;
     if (next == NULL) {
+        // No successor holds the back-link, so retarget the sentinel's prev.
         prevSlot = &gTmdList.prev;
     } else {
         prevSlot = &next->prev;

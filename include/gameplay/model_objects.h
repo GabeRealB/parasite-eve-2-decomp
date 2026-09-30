@@ -43,11 +43,16 @@ ModelObjectCoordBody* gpAttachDisp2d(Task* task);
 
 TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
 
-/// Unlinks a model body from the model list (`gTmdList`).
+/// Unlinks an attached model from the live model list (`gTmdList`).
 ///
-/// `node` must be an element's link currently on this list, never the sentinel
-/// or an already detached link. The body stays allocated and its old links
-/// remain in place; release it with `modelObjectFreeTmd` after unlinking.
+/// `node` is that model's `link` and is on the live list. It is not the
+/// sentinel, a coordinate-body link, or a link already removed from the live
+/// list. A stashed chain still points back at this sentinel, but the live
+/// endpoints no longer name it, so a stashed link is not an argument.
+/// Neighbors are updated, and the sentinel's `prev` is updated when `node` is
+/// the tail. `node`'s own `next` and `prev` are left unchanged. The model
+/// stays allocated; release it with `modelObjectFreeTmd`. This does not change
+/// the owning task's body pointer or body kind.
 void modelObjectUnlinkTmd(TmdListNode* node);
 
 /// Releases a detached task-owned model and any primitive buffer it owns.
