@@ -59,6 +59,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
+#include "../../shared/follow_collision.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -124,8 +125,8 @@ extern GpMsgEntry D_neo_ark_observatory_801811B8[];
 /// `vy` is ever set.
 extern SVECTOR D_neo_ark_observatory_80181368;
 
-extern GpGridParams D_neo_ark_observatory_80181410;
-extern GpGridParams D_neo_ark_observatory_80181FA4;
+extern GpGridParams gFollowCollisionSource;
+extern GpGridParams gFollowCollisionGrid;
 extern SVECTOR      D_neo_ark_observatory_80181434[];
 extern SVECTOR      D_neo_ark_observatory_801814E4[];
 extern SVECTOR      D_neo_ark_observatory_801814F4[];
@@ -148,10 +149,9 @@ extern s16            D_neo_ark_observatory_80187A3C;
 static void func_neo_ark_observatory_8017F3FC(Task* task);
 #include "../../shared/planar_reflection.h"
 
-static void func_neo_ark_observatory_8017FE34(GfxCoord* coord, SVECTOR* offset);
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
-extern GpGridParams   D_neo_ark_observatory_80181FA4;
+extern GpGridParams   gFollowCollisionGrid;
 extern GpObj3A        D_neo_ark_observatory_801878D4[4];
 extern GpObj4C        D_neo_ark_observatory_80186ED4[18];
 extern GpObj4C        D_neo_ark_observatory_8018742C[14];
@@ -248,7 +248,7 @@ s16* D_neo_ark_observatory_8018140C[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_observatory_80181410 = { NULL, D_neo_ark_observatory_80181370, D_neo_ark_observatory_80181390, D_neo_ark_observatory_801813D0, D_neo_ark_observatory_8018140C, 399, 500, 1, 1, 4000, 4 };
+GpGridParams gFollowCollisionSource = { NULL, D_neo_ark_observatory_80181370, D_neo_ark_observatory_80181390, D_neo_ark_observatory_801813D0, D_neo_ark_observatory_8018140C, 399, 500, 1, 1, 4000, 4 };
 
 SVECTOR D_neo_ark_observatory_80181434[22] = {
     { 512, -5120, 8192, 0 },
@@ -325,8 +325,8 @@ SVECTOR D_neo_ark_observatory_8018157C[3] = {
 };
 
 GpRoomObjRec D_neo_ark_observatory_80181594[2] = {
-    { &D_neo_ark_observatory_80181FA4, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
-    { &D_neo_ark_observatory_80181FA4, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
+    { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
+    { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
 };
 
 GpRoomCoordRec D_neo_ark_observatory_801815B4[2] = {
@@ -399,7 +399,7 @@ s16* D_neo_ark_observatory_80181F54[20] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_observatory_80181FA4 = { NULL, D_neo_ark_observatory_80181690, D_neo_ark_observatory_80181760, D_neo_ark_observatory_80181AB0, D_neo_ark_observatory_80181F54, 0, 0, 4, 5, 4000, 48 };
+GpGridParams gFollowCollisionGrid = { NULL, D_neo_ark_observatory_80181690, D_neo_ark_observatory_80181760, D_neo_ark_observatory_80181AB0, D_neo_ark_observatory_80181F54, 0, 0, 4, 5, 4000, 48 };
 
 GpViewRec D_neo_ark_observatory_80181FC8[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x61A8, -8000 } }, 329 },
@@ -1700,7 +1700,7 @@ void func_neo_ark_observatory_8017FA98(s32 arg0)
     } else {
         D_neo_ark_observatory_80181368.vy = 0x2710;
     }
-    func_neo_ark_observatory_8017FE34(task->extra.tmd->coords, &D_neo_ark_observatory_80181368);
+    followCollisionRebuild(task->extra.tmd->coords, &D_neo_ark_observatory_80181368);
 }
 
 void func_neo_ark_observatory_8017FB1C(Task* task)
@@ -1815,64 +1815,7 @@ void func_neo_ark_observatory_8017FDDC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Rebuilds the working mesh from its source under `coord`: the first four
-/// vectors are rotated only, the eight after them rotated and translated and,
-/// when `offset` is non-NULL, shifted by it afterwards.
-static void func_neo_ark_observatory_8017FE34(GfxCoord* coord, SVECTOR* offset)
-{
-    MATRIX        m;
-    long          flag;
-    s32           i;
-    SVECTOR*      d;
-    SVECTOR*      s;
-    GpGridParams* dst = &D_neo_ark_observatory_80181FA4;
-    GpGridParams* src = &D_neo_ark_observatory_80181410;
-
-    for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
-    }
-
-    for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
-    }
-
-    m = coord->coord;
-
-    d = dst->field_4;
-    s = src->field_4;
-    for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&m);
-        gte_ldv0(s);
-        s++;
-        gte_rtv0();
-        gte_stsv(d);
-        d++;
-    }
-
-    gte_SetRotMatrix(&m);
-    gte_SetTransMatrix(&m);
-    d = dst->field_8;
-    s = src->field_8;
-    if (offset != NULL) {
-        for (i = 0; i < 8; i++) {
-            RotTransSV(s, d, &flag);
-            s++;
-            d->vx += offset->vx;
-            d->vy += offset->vy;
-            d->vz += offset->vz;
-            d++;
-        }
-    } else {
-        for (i = 0; i < 8; i++) {
-            RotTransSV(s++, d++, &flag);
-        }
-    }
-}
+#include "../../shared/follow_collision_rebuild.inc.c"
 
 void func_neo_ark_observatory_80180124(Task* task)
 {

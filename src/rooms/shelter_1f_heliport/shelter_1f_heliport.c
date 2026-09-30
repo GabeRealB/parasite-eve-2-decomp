@@ -57,6 +57,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+#include "../../shared/follow_collision.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -193,8 +194,8 @@ extern u8 D_shelter_1f_heliport_801811D4[][4];
 extern SVECTOR D_shelter_1f_heliport_80181204;
 
 /// The mesh's pristine source and the working copy rebuilt from it.
-extern GpGridParams D_shelter_1f_heliport_801812AC;
-extern GpGridParams D_shelter_1f_heliport_80181974;
+extern GpGridParams gFollowCollisionSource;
+extern GpGridParams gFollowCollisionGrid;
 
 /// Work pair of the charge panel `func_shelter_1f_heliport_8017F2D4`: the
 /// animated quantity in 24.8 fixed point, and the item map of the slot being
@@ -212,13 +213,12 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_shelter_1f_heliport_80180658(Task* task);
 static void func_shelter_1f_heliport_80180748(Task* task);
 static void func_shelter_1f_heliport_801807C0(void);
-static void func_shelter_1f_heliport_8018085C(GfxCoord* coord, SVECTOR* offset);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0" \
                                 "2"
 #include "../../shared/shop.h"
 
-extern GpGridParams               D_shelter_1f_heliport_80181974;
+extern GpGridParams               gFollowCollisionGrid;
 extern GpObj4C                    D_shelter_1f_heliport_80182178[12];
 extern GpObj4C                    D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
@@ -287,10 +287,10 @@ s16* D_shelter_1f_heliport_801812A8[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_heliport_801812AC = { NULL, D_shelter_1f_heliport_8018120C, D_shelter_1f_heliport_8018122C, D_shelter_1f_heliport_8018126C, D_shelter_1f_heliport_801812A8, 131, 227, 1, 1, 4000, 4 };
+GpGridParams gFollowCollisionSource = { NULL, D_shelter_1f_heliport_8018120C, D_shelter_1f_heliport_8018122C, D_shelter_1f_heliport_8018126C, D_shelter_1f_heliport_801812A8, 131, 227, 1, 1, 4000, 4 };
 
 GpRoomObjRec D_shelter_1f_heliport_801812D0[1] = {
-    { &D_shelter_1f_heliport_80181974, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
+    { &gFollowCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
 };
 
 GpRoomCoordRec D_shelter_1f_heliport_801812E0[1] = {
@@ -332,7 +332,7 @@ s16* D_shelter_1f_heliport_80181950[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_heliport_80181974 = { NULL, D_shelter_1f_heliport_80181360, D_shelter_1f_heliport_801813C0, D_shelter_1f_heliport_80181618, D_shelter_1f_heliport_80181950, 0, 2800, 3, 3, 4000, 40 };
+GpGridParams gFollowCollisionGrid = { NULL, D_shelter_1f_heliport_80181360, D_shelter_1f_heliport_801813C0, D_shelter_1f_heliport_80181618, D_shelter_1f_heliport_80181950, 0, 2800, 3, 3, 4000, 40 };
 
 GpViewRec D_shelter_1f_heliport_80181998[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },
@@ -689,7 +689,7 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     } else {
         D_shelter_1f_heliport_80181204.vy = 0x2710;
     }
-    func_shelter_1f_heliport_8018085C(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
+    followCollisionRebuild(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
 s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
@@ -846,64 +846,7 @@ static void func_shelter_1f_heliport_801807C0(void)
     }
 }
 
-/// Rebuilds the working mesh from its source under `coord`: the first four
-/// vectors are rotated only, the eight after them rotated and translated and,
-/// when `offset` is non-NULL, shifted by it afterwards.
-static void func_shelter_1f_heliport_8018085C(GfxCoord* coord, SVECTOR* offset)
-{
-    MATRIX        m;
-    long          flag;
-    s32           i;
-    SVECTOR*      d;
-    SVECTOR*      s;
-    GpGridParams* dst = &D_shelter_1f_heliport_80181974;
-    GpGridParams* src = &D_shelter_1f_heliport_801812AC;
-
-    for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
-    }
-
-    for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
-    }
-
-    m = coord->coord;
-
-    d = dst->field_4;
-    s = src->field_4;
-    for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&m);
-        gte_ldv0(s);
-        s++;
-        gte_rtv0();
-        gte_stsv(d);
-        d++;
-    }
-
-    gte_SetRotMatrix(&m);
-    gte_SetTransMatrix(&m);
-    d = dst->field_8;
-    s = src->field_8;
-    if (offset != NULL) {
-        for (i = 0; i < 8; i++) {
-            RotTransSV(s, d, &flag);
-            s++;
-            d->vx += offset->vx;
-            d->vy += offset->vy;
-            d->vz += offset->vz;
-            d++;
-        }
-    } else {
-        for (i = 0; i < 8; i++) {
-            RotTransSV(s++, d++, &flag);
-        }
-    }
-}
+#include "../../shared/follow_collision_rebuild.inc.c"
 
 void func_shelter_1f_heliport_80180B4C(Task* unused)
 {
