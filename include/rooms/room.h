@@ -92,13 +92,15 @@ typedef struct {
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
 
-/// A room's `gRoomEventLatched` when that symbol is sixteen bytes.
+/// Sixteen-byte storage for a room's latched staged event.
 ///
-/// `event` is the record the staged event task reads. The four bytes after
-/// it are zero wherever this extent occurs. Their role is unproven.
+/// Accepting a message replaces only `event`. The staged task reads it to
+/// run the CAP command, optional fade and stage sound before changing rooms.
+/// The four trailing bytes are initially zero and are not part of that copy;
+/// their role is unproven.
 typedef struct {
-    RoomLatchedEvent event;      // Event the staged task runs
-    u8               unknown[4]; // Role unproven; zero, with no recovered access
+    RoomLatchedEvent event;      // Latched event; copied as a complete twelve-byte record
+    u8               unknown[4]; // Uninterpreted trailing bytes; initially zero, role unproven
 } RoomLatchedEventStorage;
 STATIC_ASSERT_SIZEOF(RoomLatchedEventStorage, 0x10);
 
