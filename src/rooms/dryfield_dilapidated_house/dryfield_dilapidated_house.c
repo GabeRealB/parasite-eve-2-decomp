@@ -71,6 +71,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/screen_wave.h"
+#include "../../shared/bezier_curve.h"
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
@@ -246,12 +247,10 @@ static void func_dryfield_dilapidated_house_80180FB8(Task* task);
 static s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 static void func_dryfield_dilapidated_house_80181028(Task* task);
 static void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);
-static void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
 static void func_dryfield_dilapidated_house_8017E48C(void);
 static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0);
 static void func_dryfield_dilapidated_house_8017E014(Task* task);
-static void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
 static void func_dryfield_dilapidated_house_80180B84(Task* task);
 static void func_dryfield_dilapidated_house_80180F5C(Task* arg0);
 static void func_dryfield_dilapidated_house_8018118C(Task* arg0);
@@ -2353,7 +2352,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 
     mtx = &((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->mtx;
     for (i = 20; i >= 0; i--) {
-        func_dryfield_dilapidated_house_8017F418(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
+        bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
         vec.vx = out[0];
         vec.vy = out[1];
         vec.vz = out[2];
@@ -2396,7 +2395,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
         addPrim(gGpuCurrentOt + 10, line);
     }
     for (i = 20; i >= 0; i--) {
-        func_dryfield_dilapidated_house_8017F418(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, 20, i, out);
+        bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, 20, i, out);
         vec.vx = out[0];
         vec.vy = out[1];
         vec.vz = out[2];
@@ -2440,31 +2439,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
     }
 }
 
-/// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
-/// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`
-/// reaches `len`. Writes the X/Y/Z result to `out`.
-static void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
-{
-    SVECTOR  coeff[3];
-    SVECTOR* p1;
-    SVECTOR* p2;
-    s32      t;
-    s32      i;
-    s32*     o;
-
-    if (len != 0) {
-        t  = ((len - pos) * 0xFFFF) / len;
-        p1 = &pts[1];
-        p2 = &pts[2];
-        func_dryfield_dilapidated_house_80181290(pts->vx, p1->vx, p2->vx, p3->vx, &coeff[0]);
-        func_dryfield_dilapidated_house_80181290(pts->vy, p1->vy, p2->vy, p3->vy, &coeff[1]);
-        func_dryfield_dilapidated_house_80181290(pts->vz, p1->vz, p2->vz, p3->vz, &coeff[2]);
-        o = out;
-        for (i = 0; i < 3; i++) {
-            *o++ = ((((((coeff[i].vx * t) >> 16) + coeff[i].vy) * t >> 16) + coeff[i].vz) * t >> 16) + coeff[i].pad;
-        }
-    }
-}
+#include "../../shared/bezier_curve_evaluate.inc.c"
 
 static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2)
 {
@@ -3163,16 +3138,7 @@ static void func_dryfield_dilapidated_house_80181264(Task* arg0)
     func_dryfield_dilapidated_house_8017EE58(arg0);
 }
 
-/// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
-/// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
-/// `t` and the constant term.
-static void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
-{
-    coeff->vx  = -p0 + (p1 - p2) * 3 + p3;
-    coeff->vy  = (p0 + p2) * 3 - p1 * 6;
-    coeff->vz  = (-p0 + p1) * 3;
-    coeff->pad = p0;
-}
+#include "../../shared/bezier_curve_coefficients.inc.c"
 
 /// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D628`,
 /// copied onto the stack.

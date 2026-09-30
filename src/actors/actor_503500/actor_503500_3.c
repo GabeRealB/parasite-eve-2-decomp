@@ -56,6 +56,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_r48.h"
+#include "../../shared/bezier_curve.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -127,8 +128,6 @@ typedef struct Actor503500Work2EC {
     /* 0x2EB */ s8        field_2EB; // TMD buffer countdown
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
-
-static void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
 /// The boss work block, cleared by `func_actor_503500_80132F64`.
 // Only the leading value has established accesses. Preserve the following
@@ -228,7 +227,6 @@ static void func_actor_503500_80138898(Task* arg0);
 static void func_actor_503500_80138454(Task* arg0);
 static void func_actor_503500_80138490(Task* arg0, s32 arg1);
 static void func_actor_503500_80139EFC(Task* arg0);
-static void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out);
 static void func_actor_503500_8013AB38(Task* arg0);
 
 /// `Task::state` handlers `func_actor_503500_80137238` dispatches through.
@@ -3845,7 +3843,7 @@ static void func_actor_503500_80139EFC(Task* arg0)
 }
 
 /// Builds the chain polyline `pts[0..8]` from cubic Bezier segments
-/// (`func_actor_503500_8013A7B0`): a first curve runs from the root's world
+/// (`bezierCurveEvaluate`): a first curve runs from the root's world
 /// position, through a point 1000 units along its Z axis, to the parent-local
 /// `field_294` point raised in Y; `pts[1..5]` and `pts[6..8]` are then sampled
 /// from two curves re-seeded from that first one. `func_actor_503500_8013A470`
@@ -3893,7 +3891,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     ctrl[3].vy = tmp.vy - 2000;
     ctrl[3].vz = tmp.vz;
     for (i = 8; i >= 0; i--) {
-        func_actor_503500_8013A7B0(ctrl, &ctrl[3], 9, i, &out[i].vx);
+        bezierCurveEvaluate(ctrl, &ctrl[3], 9, i, &out[i].vx);
     }
     ctrl[0].vx = out[8].vx;
     ctrl[0].vy = out[8].vy;
@@ -3908,7 +3906,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     ctrl[3].vy = out[4].vy - 2000;
     ctrl[3].vz = out[4].vz;
     for (i = 4; i >= 0; i--) {
-        func_actor_503500_8013A7B0(ctrl, &ctrl[3], 5, i, &v.vx);
+        bezierCurveEvaluate(ctrl, &ctrl[3], 5, i, &v.vx);
         copyVector(&work->pts[5 - i], &v);
     }
     ctrl[0].vx = out[4].vx;
@@ -3924,7 +3922,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     ctrl[3].vy = tmp.vy;
     ctrl[3].vz = tmp.vz;
     for (i = 2; i >= 0; i--) {
-        func_actor_503500_8013A7B0(ctrl, &ctrl[3], 16, i + 12, &v.vx);
+        bezierCurveEvaluate(ctrl, &ctrl[3], 16, i + 12, &v.vx);
         copyVector(&work->pts[8 - i], &v);
     }
     func_actor_503500_8013A470(work->pts, arg0->extra.tmd->coords, work->phase);
@@ -3981,31 +3979,7 @@ static void func_actor_503500_8013A470(SVECTOR* pts, GfxCoord* coords, s32 phase
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor503500ChainScratch));
 }
 
-/// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
-/// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`
-/// reaches `len`. Writes the X/Y/Z result to `out`.
-static void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out)
-{
-    SVECTOR  coeff[3];
-    SVECTOR* p1;
-    SVECTOR* p2;
-    s32      t;
-    s32      i;
-    s32*     o;
-
-    if (len != 0) {
-        t  = ((len - pos) * 0xFFFF) / len;
-        p1 = &pts[1];
-        p2 = &pts[2];
-        func_actor_503500_8013AC6C(pts->vx, p1->vx, p2->vx, p3->vx, &coeff[0]);
-        func_actor_503500_8013AC6C(pts->vy, p1->vy, p2->vy, p3->vy, &coeff[1]);
-        func_actor_503500_8013AC6C(pts->vz, p1->vz, p2->vz, p3->vz, &coeff[2]);
-        o = out;
-        for (i = 0; i < 3; i++) {
-            *o++ = ((((((coeff[i].vx * t) >> 16) + coeff[i].vy) * t >> 16) + coeff[i].vz) * t >> 16) + coeff[i].pad;
-        }
-    }
-}
+#include "../../shared/bezier_curve_evaluate.inc.c"
 
 static void func_actor_503500_8013A900(Task* arg0)
 {
@@ -4118,16 +4092,7 @@ static void func_actor_503500_8013AB38(Task* arg0)
     }
 }
 
-/// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
-/// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
-/// `t` and the constant term.
-static void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
-{
-    coeff->vx  = -p0 + (p1 - p2) * 3 + p3;
-    coeff->vy  = (p0 + p2) * 3 - p1 * 6;
-    coeff->vz  = (-p0 + p1) * 3;
-    coeff->pad = p0;
-}
+#include "../../shared/bezier_curve_coefficients.inc.c"
 
 /// The 0x2EC block's counterpart of `func_actor_503500_80138490`: puts the
 /// block into sub-state `arg1`, clears the phase and frame counter that go with

@@ -53,6 +53,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/bezier_curve.h"
 
 /// Work block of the enemy whose state-0 init is
 /// `func_actor_503500_801423C8` (`Mem_Set(_, 0x224)`), viewed through its own
@@ -319,7 +320,6 @@ extern Actor503500WorkF4 D_actor_503500_80177A6C;
 
 extern Actor503500Work776A0 D_actor_503500_801776A0;
 
-static void func_actor_503500_80141A44(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out);
 static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes);
 
 extern Actor503500Work774C0 D_actor_503500_8017797C;
@@ -356,7 +356,6 @@ static void func_actor_503500_8013D990(Task* arg0);
 static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1);
 static void func_actor_503500_8013DC4C(Task* arg0);
 static void func_actor_503500_8013F8AC(Task* arg0);
-static void func_actor_503500_801422B8(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 static void func_actor_503500_801440F0(Task* arg0);
 static void func_actor_503500_8013BD88(Task* arg0);
 static void func_actor_503500_8013C558(Task* arg0);
@@ -3394,7 +3393,7 @@ static void func_actor_503500_80141448(Task* arg0)
     ctrl[3].vy = tmp.vy;
     ctrl[3].vz = tmp.vz;
     for (i = 8; i >= 0; i--) {
-        func_actor_503500_80141A44(ctrl, &ctrl[3], 9, i, &out[i].vx);
+        bezierCurveEvaluate(ctrl, &ctrl[3], 9, i, &out[i].vx);
         copyVector(&work->pts[8 - i], &out[i]);
     }
     func_actor_503500_8014176C(work->pts, arg0->extra.tmd->coords);
@@ -3458,31 +3457,7 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor503500ChainScratch));
 }
 
-/// Same cubic Bezier evaluation as `func_actor_503500_8013A7B0`: control points
-/// `pts[0..2]` and `p3`, `t` running from 1 (0xFFFF) down to 0 as `pos`
-/// reaches `len`. Writes the X/Y/Z result to `out`.
-static void func_actor_503500_80141A44(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out)
-{
-    SVECTOR  coeff[3];
-    SVECTOR* p1;
-    SVECTOR* p2;
-    s32      t;
-    s32      i;
-    s32*     o;
-
-    if (len != 0) {
-        t  = ((len - pos) * 0xFFFF) / len;
-        p1 = &pts[1];
-        p2 = &pts[2];
-        func_actor_503500_801422B8(pts->vx, p1->vx, p2->vx, p3->vx, &coeff[0]);
-        func_actor_503500_801422B8(pts->vy, p1->vy, p2->vy, p3->vy, &coeff[1]);
-        func_actor_503500_801422B8(pts->vz, p1->vz, p2->vz, p3->vz, &coeff[2]);
-        o = out;
-        for (i = 0; i < 3; i++) {
-            *o++ = ((((((coeff[i].vx * t) >> 16) + coeff[i].vy) * t >> 16) + coeff[i].vz) * t >> 16) + coeff[i].pad;
-        }
-    }
-}
+#include "../../shared/bezier_curve_evaluate.inc.c"
 
 /// The fade-level counterpart of `func_actor_503500_8013AB38`: while
 /// `field_3B2` is below 0x1000, blends parts 1..8 toward the 0x3D8 block's
@@ -3727,16 +3702,7 @@ static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
     }
 }
 
-/// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
-/// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
-/// `t` and the constant term.
-static void func_actor_503500_801422B8(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
-{
-    coeff->vx  = -p0 + (p1 - p2) * 3 + p3;
-    coeff->vy  = (p0 + p2) * 3 - p1 * 6;
-    coeff->vz  = (-p0 + p1) * 3;
-    coeff->pad = p0;
-}
+#include "../../shared/bezier_curve_coefficients.inc.c"
 
 static void func_actor_503500_80142310(Task* arg0, s32 arg1)
 {
