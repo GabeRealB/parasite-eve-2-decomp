@@ -77,6 +77,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/room_variants.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -346,7 +347,6 @@ extern SVECTOR D_shelter_b1_underground_parking_80187714[];
 extern SVECTOR D_shelter_b1_underground_parking_80187784[];
 extern SVECTOR D_shelter_b1_underground_parking_801877A4[];
 
-static s32  func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out);
 static void func_shelter_b1_underground_parking_80183810(Task* arg0);
 static void func_shelter_b1_underground_parking_80184304(Task* task);
 static void func_shelter_b1_underground_parking_801843F0(Task* task);
@@ -1951,7 +1951,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                     GameFlag_SetNibble(0x11F, 2);
                     Mc_SaveData[0].state.sceneEvent = 0x1B;
                 }
-                handler      = func_shelter_b1_underground_parking_80183124;
+                handler      = roomVariantResolveNeoArk;
                 rec.stage    = 5;
                 rec.area     = 1;
                 rec.room     = 1;
@@ -2027,67 +2027,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
     }
 }
 
-/// Answers the marker query for one Neo Ark map room; the Neo Ark area map
-/// carries the same body. Most rooms have no
-/// marker; the five that do read a GameFlag nibble, either straight (plus one,
-/// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
-static s32 func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out)
-{
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        switch (in->areaId) {
-            case 7:
-                out->room = GameFlag_GetNibble(0xE1) + 1;
-                break;
-            case 13:
-                out->room = GameFlag_GetNibble(0xD9) + 1;
-                break;
-            case 20:
-                out->room = 1;
-                if (GameFlag_GetNibble(0xDD) != 0) {
-                    if (GameFlag_GetNibble(0xDC) != 0) {
-                        out->room = 3;
-                    } else {
-                        out->room = 2;
-                    }
-                }
-                break;
-            case 21:
-                if (GameFlag_GetNibble(0xE9) != 0) {
-                    out->room = 4;
-                } else {
-                    out->room = 1;
-                }
-                break;
-            case 32:
-                out->room = GameFlag_GetNibble(0xDD) + 1;
-                break;
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-            case 19:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            default:
-                break;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_neo_ark.inc.c"
 
 /// The examine task's eight states, run by
 /// `func_shelter_b1_underground_parking_80184284`, from set-up to the closing

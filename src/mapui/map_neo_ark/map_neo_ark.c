@@ -152,66 +152,10 @@ static void func_map_neo_ark_801799BC(u8* arg0)
     gGameSession->field_7E = 0;
 }
 
-/// Fills in the marker state for one Neo Ark map room. Most rooms have no
-/// marker; the five that do read a GameFlag nibble, either straight (plus one,
-/// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
-s32 func_map_neo_ark_80179B14(RoomEventMsg* arg0, RoomEventMsg* arg1)
-{
-    if (arg0->queryOnly == ROOM_EVENT_EXECUTE) {
-        switch (arg0->areaId) {
-            case 7:
-                arg1->room = GameFlag_GetNibble(0xE1) + 1;
-                break;
-            case 13:
-                arg1->room = GameFlag_GetNibble(0xD9) + 1;
-                break;
-            case 20:
-                arg1->room = 1;
-                if (GameFlag_GetNibble(0xDD) != 0) {
-                    if (GameFlag_GetNibble(0xDC) != 0) {
-                        arg1->room = 3;
-                    } else {
-                        arg1->room = 2;
-                    }
-                }
-                break;
-            case 21:
-                if (GameFlag_GetNibble(0xE9) != 0) {
-                    arg1->room = 4;
-                } else {
-                    arg1->room = 1;
-                }
-                break;
-            case 32:
-                arg1->room = GameFlag_GetNibble(0xDD) + 1;
-                break;
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-            case 19:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            default:
-                break;
-        }
-    }
-    return 1;
-}
+/// The Neo Ark resolver, which rooms call by this name.
+#define roomVariantResolveNeoArk func_map_neo_ark_80179B14
+#include "../../shared/room_variants_neo_ark.inc.c"
+#undef roomVariantResolveNeoArk
 
 /// Music-volume hook the Midi driver calls for the Neo Ark map (via
 /// `func_80179BE4`, see `Midi_UpdateVoiceVolumes`). `arg1` is the cue type:

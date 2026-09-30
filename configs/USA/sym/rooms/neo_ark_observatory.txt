@@ -111,3 +111,4 @@ Reflection_HeldObjectTask = 0x8017F22C; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;
 glowDrawDisc = 0x80180A0C; // type:func
 roomDepartureTask = 0x8017F588; // type:func
+roomVariantResolveShelter = 0x8017F44C; // type:func

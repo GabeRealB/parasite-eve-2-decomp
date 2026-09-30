@@ -39,8 +39,9 @@
 
 #include "rooms/room.h"
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 
-/// Parameter block of `func_neo_ark_eve_access_tunnel_8017D6D4`, the room-local
+/// Parameter block of `roomVariantResolveShelter`, the room-local
 /// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
 /// both its input and its output.
 ///
@@ -419,102 +420,7 @@ RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
 RoomDeparture gRoomDeparture;
 
-static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1);
-
-/// Resolves the code in `arg0->field_0` into a state byte in `arg1->field_3`,
-/// unless `arg0->field_5` is set. Only six codes produce one, each from a
-/// game-flag nibble: codes 5, 41 and 45 take their nibble plus one, codes 2, 16
-/// and 20 fold theirs into a fixed set of states. Every other code leaves
-/// `arg1` untouched. Always returns 1.
-static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1)
-{
-    if (arg0->field_5 == 0) {
-        switch (arg0->field_0) {
-            case 2:
-                if (GameFlag_GetNibble(0x10F) != 0) {
-                    arg1->field_3 = 2;
-                }
-                if (GameFlag_GetNibble(0x11A) >= 2) {
-                    arg1->field_3 = 3;
-                }
-                break;
-            case 5:
-                arg1->field_3 = GameFlag_GetNibble(0xA4) + 1;
-                break;
-            case 16:
-                if (GameFlag_GetNibble(0x7A) >= 6) {
-                    arg1->field_3 = 3;
-                }
-                break;
-            case 20:
-                switch (GameFlag_GetNibble(0xF4)) {
-                    case 0:
-                        arg1->field_3 = 1;
-                        break;
-                    case 1:
-                        arg1->field_3 = 6;
-                        break;
-                    case 2:
-                        arg1->field_3 = 7;
-                        break;
-                    case 3:
-                        arg1->field_3 = 8;
-                        break;
-                    default:
-                        arg1->field_3 = 1;
-                        break;
-                }
-                break;
-            case 45:
-                arg1->field_3 = GameFlag_GetNibble(0xB7) + 1;
-                break;
-            case 41:
-                arg1->field_3 = GameFlag_GetNibble(0xB6) + 1;
-                break;
-            case 3:
-            case 4:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 17:
-            case 18:
-            case 19:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37:
-            case 38:
-            case 39:
-            case 40:
-            case 42:
-            case 43:
-            case 44:
-            default:
-                break;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_shelter.inc.c"
 
 #include "../../shared/room_event_departure_task.inc.c"
 
@@ -562,7 +468,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             RoomDeparture  work;
             NaetUtilParam  param;
             RoomDeparture* wp;
-            s32            (*resolve)(NaetUtilParam*, NaetUtilParam*) = func_neo_ark_eve_access_tunnel_8017D6D4;
+            s32            (*resolve)(NaetUtilParam*, NaetUtilParam*) = roomVariantResolveShelter;
 
             work.stage    = 4;
             work.area     = (u8)task->spawnArg1.value;

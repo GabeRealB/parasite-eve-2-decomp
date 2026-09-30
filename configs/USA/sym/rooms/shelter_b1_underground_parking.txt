@@ -318,3 +318,4 @@ glowDrawBeam = 0x80184C54; // type:func
 glowDrawBitDisc = 0x8018543C; // type:func
 roomDepartureTask = 0x80181FE4; // type:func
 roomCutsceneTask = 0x80182154; // type:func
+roomVariantResolveNeoArk = 0x80183124; // type:func

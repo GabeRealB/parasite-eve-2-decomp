@@ -56,6 +56,7 @@
 #define ROOM_DEPARTURE  gRoomDeparture.value
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -88,7 +89,6 @@ STATIC_ASSERT_SIZEOF(Shelter1fParkingGarageStorage1988, 16);
 extern Shelter1fParkingGarageStorage1988 gRoomDeparture;
 extern RoomLatchedEvent                  gRoomEventLatched;
 
-static s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
 static void func_shelter_1f_parking_garage_8017DF04(Task* task);
 static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -394,102 +394,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
     return 1;
 }
 
-/// Answers the progress query `in->msgId` in `out->room`, unless
-/// `in->queryOnly` is set. Six queries have an answer, each read from a
-/// game-flag nibble: 2 answers 2 once nibble 0x10F is set and 3 once nibble
-/// 0x11A reaches 2; 5, 41 and 45 answer nibbles 0xA4, 0xB6 and 0xB7 plus one;
-/// 16 answers 3 once nibble 0x7A reaches 6; and 20 maps nibble 0xF4's values
-/// 0-3 to 1, 6, 7 and 8 (1 otherwise). Any other query leaves `out`
-/// untouched. Always returns 1.
-static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out)
-{
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        switch (in->areaId) {
-            case 2:
-                if (GameFlag_GetNibble(0x10F) != 0) {
-                    out->room = 2;
-                }
-                if (GameFlag_GetNibble(0x11A) >= 2) {
-                    out->room = 3;
-                }
-                break;
-            case 5:
-                out->room = GameFlag_GetNibble(0xA4) + 1;
-                break;
-            case 16:
-                if (GameFlag_GetNibble(0x7A) >= 6) {
-                    out->room = 3;
-                }
-                break;
-            case 20:
-                switch (GameFlag_GetNibble(0xF4)) {
-                    case 0:
-                        out->room = 1;
-                        break;
-                    case 1:
-                        out->room = 6;
-                        break;
-                    case 2:
-                        out->room = 7;
-                        break;
-                    case 3:
-                        out->room = 8;
-                        break;
-                    default:
-                        out->room = 1;
-                        break;
-                }
-                break;
-            case 45:
-                out->room = GameFlag_GetNibble(0xB7) + 1;
-                break;
-            case 41:
-                out->room = GameFlag_GetNibble(0xB6) + 1;
-                break;
-            case 3:
-            case 4:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 17:
-            case 18:
-            case 19:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37:
-            case 38:
-            case 39:
-            case 40:
-            case 42:
-            case 43:
-            case 44:
-            default:
-                break;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_shelter.inc.c"
 
 #include "../../shared/room_event_departure_task.inc.c"
 
@@ -533,7 +438,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 if (GameFlag_GetNibble(0x4B) == 9) {
                     GameFlag_SetNibble(0x4B, 0xA);
                 }
-                handler      = func_shelter_1f_parking_garage_8017D6AC;
+                handler      = roomVariantResolveShelter;
                 rec.stage    = 4;
                 rec.area     = 0x14;
                 rec.room     = 1;

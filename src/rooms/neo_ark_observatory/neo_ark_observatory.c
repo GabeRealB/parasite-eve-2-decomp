@@ -58,6 +58,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -74,7 +75,7 @@ STATIC_ASSERT_SIZEOF(NeoArkObservatoryAnimStorage11E0, 224);
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
 
-/// Record the destination resolver `func_neo_ark_observatory_8017F44C` reads:
+/// Record the destination resolver `roomVariantResolveShelter` reads:
 /// `field_0` is the destination area and `field_5` must be 0 for it to act.
 typedef struct MapMarkerRec {
     u16  field_0;
@@ -147,7 +148,6 @@ extern s16            D_neo_ark_observatory_80187A3C;
 static void func_neo_ark_observatory_8017F3FC(Task* task);
 #include "../../shared/planar_reflection.h"
 
-static s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
 static void func_neo_ark_observatory_8017FE34(GfxCoord* coord, SVECTOR* offset);
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
@@ -1589,100 +1589,7 @@ static void func_neo_ark_observatory_8017F3FC(Task* task)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
-/// Picks the room a departure into area `arg0->field_0` lands in, for the
-/// areas whose room depends on story progress: areas 5, 41 and 45 take a
-/// flag nibble plus one, areas 2, 16 and 20 map flag nibbles to fixed rooms.
-/// Every other area leaves `arg1->field_3` unchanged. Nothing is done unless
-/// `arg0->field_5` is 0.
-static s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1)
-{
-    if (arg0->field_5 == 0) {
-        switch (arg0->field_0) {
-            case 2:
-                if (GameFlag_GetNibble(0x10F) != 0) {
-                    arg1->field_3 = 2;
-                }
-                if (GameFlag_GetNibble(0x11A) >= 2) {
-                    arg1->field_3 = 3;
-                }
-                break;
-            case 5:
-                arg1->field_3 = GameFlag_GetNibble(0xA4) + 1;
-                break;
-            case 16:
-                if (GameFlag_GetNibble(0x7A) >= 6) {
-                    arg1->field_3 = 3;
-                }
-                break;
-            case 20:
-                switch (GameFlag_GetNibble(0xF4)) {
-                    case 0:
-                        arg1->field_3 = 1;
-                        break;
-                    case 1:
-                        arg1->field_3 = 6;
-                        break;
-                    case 2:
-                        arg1->field_3 = 7;
-                        break;
-                    case 3:
-                        arg1->field_3 = 8;
-                        break;
-                    default:
-                        arg1->field_3 = 1;
-                        break;
-                }
-                break;
-            case 45:
-                arg1->field_3 = GameFlag_GetNibble(0xB7) + 1;
-                break;
-            case 41:
-                arg1->field_3 = GameFlag_GetNibble(0xB6) + 1;
-                break;
-            case 3:
-            case 4:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 17:
-            case 18:
-            case 19:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37:
-            case 38:
-            case 39:
-            case 40:
-            case 42:
-            case 43:
-            case 44:
-            default:
-                break;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_shelter.inc.c"
 
 #include "../../shared/room_event_departure_task.inc.c"
 
@@ -1724,7 +1631,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
                 desc.room     = temp;
                 desc.sndEvent = 0x55070005;
                 desc.facing   = 0x400;
-                resolve       = func_neo_ark_observatory_8017F44C;
+                resolve       = roomVariantResolveShelter;
                 Gp_MsgPlayerWeapon(0);
                 _neoArkObservatoryStageMarker(&desc, resolve);
                 gRoomDeparture = desc;
@@ -1738,7 +1645,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
         desc.warp     = 4;
         desc.sndEvent = 0x55070005;
         desc.facing   = 0x400;
-        resolve       = func_neo_ark_observatory_8017F44C;
+        resolve       = roomVariantResolveShelter;
         Gp_MsgPlayerWeapon(0);
         _neoArkObservatoryStageMarker(&desc, resolve);
         gRoomDeparture = desc;

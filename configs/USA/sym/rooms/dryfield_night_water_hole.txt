@@ -123,3 +123,4 @@ waterDrawSplash = 0x8017F3A8; // type:func
 roomDepartureTask = 0x8017D7E8; // type:func
 waterDrawSpinU16 = 0x8017FB98; // type:func
 waterDrawTileU16 = 0x8017FF84; // type:func
+roomVariantResolveShelter = 0x8017D6AC; // type:func

@@ -62,12 +62,13 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern s16 D_dryfield_night_water_hole_8018362C[2];
 
-/// Parameter block of `func_dryfield_night_water_hole_8017D6AC`, the room-local
+/// Parameter block of `roomVariantResolveShelter`, the room-local
 /// resolver `func_dryfield_night_water_hole_8017DC28` calls with one pointer as
 /// both its input and its output.
 ///
@@ -1070,105 +1071,10 @@ s16 D_dryfield_night_water_hole_8018362C[2] = {
 
 RoomDeparture gRoomDeparture;
 
-static s32  func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
 static void func_dryfield_night_water_hole_8017D958(Task* arg0);
 static void func_dryfield_night_water_hole_8017DF28(Task* task);
 
-/// Answers the code in `in->field_0` in `out->field_3`, unless `in->field_5`
-/// is set. Six codes have an answer, each from a progress nibble: 2 is 2 once
-/// nibble 0x10F is set and 3 once nibble 0x11A reaches 2; 5, 41 and 45 are
-/// nibbles 0xA4, 0xB6 and 0xB7 plus one; 16 is 3 once nibble 0x7A reaches 6;
-/// and 20 maps nibble 0xF4's values 0-3 to 1, 6, 7 and 8 (1 otherwise). Every
-/// other code leaves `out` untouched. Always returns 1.
-static s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out)
-{
-    if (in->field_5 == 0) {
-        switch (in->field_0) {
-            case 2:
-                if (GameFlag_GetNibble(0x10F) != 0) {
-                    out->field_3 = 2;
-                }
-                if (GameFlag_GetNibble(0x11A) >= 2) {
-                    out->field_3 = 3;
-                }
-                break;
-            case 5:
-                out->field_3 = GameFlag_GetNibble(0xA4) + 1;
-                break;
-            case 16:
-                if (GameFlag_GetNibble(0x7A) >= 6) {
-                    out->field_3 = 3;
-                }
-                break;
-            case 20:
-                switch (GameFlag_GetNibble(0xF4)) {
-                    case 0:
-                        out->field_3 = 1;
-                        break;
-                    case 1:
-                        out->field_3 = 6;
-                        break;
-                    case 2:
-                        out->field_3 = 7;
-                        break;
-                    case 3:
-                        out->field_3 = 8;
-                        break;
-                    default:
-                        out->field_3 = 1;
-                        break;
-                }
-                break;
-            case 45:
-                out->field_3 = GameFlag_GetNibble(0xB7) + 1;
-                break;
-            case 41:
-                out->field_3 = GameFlag_GetNibble(0xB6) + 1;
-                break;
-            case 3:
-            case 4:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 17:
-            case 18:
-            case 19:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37:
-            case 38:
-            case 39:
-            case 40:
-            case 42:
-            case 43:
-            case 44:
-            default:
-                break;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_shelter.inc.c"
 
 #include "../../shared/room_event_departure_task.inc.c"
 
@@ -1292,7 +1198,8 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
     if (arg2 == 2) {
         if (GameFlag_GetNibble(0xB8) != 0) {
             RoomDeparture* wp;
-            s32            (*resolve)(DnwhUtilParam*, DnwhUtilParam*) = func_dryfield_night_water_hole_8017D6AC;
+            s32            (*resolve)(DnwhUtilParam*, DnwhUtilParam*) =
+                (s32 (*)(DnwhUtilParam*, DnwhUtilParam*))roomVariantResolveShelter;
 
             work.stage    = 4;
             work.area     = 0x2E;
