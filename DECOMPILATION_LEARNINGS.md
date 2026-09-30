@@ -47027,12 +47027,12 @@ never "which field list looks more complete" — it is the one allocation site:
 
 ```
 Tmd_Create:  memCalloc(partCount * 0x50 + 0x34, 0)
-             sw (obj + 0x34), 0x8(obj)      # field_8 = the trailing array
+             sw (obj + 0x34), 0x8(obj)      # coords = the trailing array
              sh 0x80, 0xC(obj) / sw partCount, 0x30(obj)
 ```
 
 That single `memCalloc` says the object is 0x34 bytes followed by
-`partCount` × `GfxCoord` (0x50), and that `field_8` points at its own tail.
+`partCount` × `GfxCoord` (0x50), and that `obj->coords` points at its own tail.
 `Gp_AttachTmd` stores that pointer into `Task::extra` and sets
 `Task::spawnType = 1`, and `taskKill`'s type-1 branch pokes `field_C` on the
 same pointer — so "`Task::extra`" and "TMD model node" were never two things.
@@ -65054,8 +65054,8 @@ does not introduce that local. The final source is scratch `base_6.c`.
 ## Tmd_Create: an intervening field store changes pointer CSE and scheduling
 
 The unpinned typed implementation reached 98.170% with only `regs=5` and
-`reorder=3`. The permuter found that moving `obj->field_14 = 0` between
-`obj->field_8 = (GfxCoord*)(obj + 1)` and `coord = obj->field_8` fixes both.
+`reorder=3`. The permuter found that moving `obj->nextBufferHalf = 0` between
+`obj->coords = allocation->coords` and `coord = obj->coords` fixes both.
 In `.cse2`, the derived loop pointer changes from `obj + 0x80` to
 `coord + 0x4C`; initialization also keeps the field store before the pointer
 copy and gives the source part count `$v1`. No pins or empty asm are needed.
@@ -133920,17 +133920,18 @@ and names what sits there (a view of the model object's tail), or a truncation o
 a library type (a record standing for the first 0x24 bytes of `GfxCoord`).
 Folding one away means writing the owner's own member at that offset instead, and
 that is not free even though both spellings denote the same address -- the view's
-`&obj->field_34` is an address computation, the owner's pointer member is a load:
+`PARENT_OF(obj, TmdAllocation, object)->coords` is an address computation,
+the object's pointer member is a load:
 
 ```asm
-addiu $v0, $a2, 0x34     ; &obj->field_34, i.e. (GfxCoord*)(obj + 1)
+addiu $v0, $a2, 0x34     ; PARENT_OF(obj, TmdAllocation, object)->coords
 lw    $v0, 0x30($a2)     ; obj->partCount -- a scalar member, so a load either way
 lw    $v0, 0x8($a2)      ; obj->coords -- the pointer to that same array
 ```
 
-The last two are the trap. `obj->coords` is the honest name for the array the
-view addresses, and the array really is the object's -- the object's own
-constructor computes it as `(GfxCoord*)(obj + 1)` and stores it -- but the
+The last two are the trap. `obj->coords` points to the array the allocation
+contains, and the array really is the object's -- the object's own
+constructor computes it as `allocation->coords` and stores it -- but the
 original source did not read that member, so writing it fails the checksum with
 nothing in the C to suggest why. Read the initialiser in the target `.s` first
 and keep the form it uses.

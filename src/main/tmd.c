@@ -514,6 +514,7 @@ done:
 
 TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
 {
+    TmdAllocation* allocation;
     TmdObject*     obj;
     GfxCoord*      coord;
     const TmdBone* bone;
@@ -521,11 +522,12 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
     void*          buffer = NULL;
 
     Tmd_InitSourceStream(src);
-    obj = memCalloc((src->partCount * sizeof(GfxCoord)) + sizeof(TmdAllocation), 0);
+    allocation = memCalloc((src->partCount * sizeof(allocation->coords[0])) + sizeof(*allocation), 0);
+    obj        = allocation != NULL ? &allocation->object : NULL;
     if (obj != NULL) {
         obj->flags             = TMD_OBJECT_HIDDEN;
         obj->partCount         = src->partCount;
-        obj->coords            = PARENT_OF(obj, TmdAllocation, object)->coords;
+        obj->coords            = allocation->coords;
         obj->nextBufferHalf    = 0;
         coord                  = obj->coords;
         obj->bufferHalfBytes   = src->bufferHalfBytes;

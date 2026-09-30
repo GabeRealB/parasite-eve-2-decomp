@@ -149,14 +149,25 @@ enum {
 /// Unit blend value for `TmdObject.shading.colorBlend` (12 fractional bits).
 enum { TMD_OBJECT_COLOR_BLEND_ONE = 0x1000 };
 
-/// Tmd_Create allocates the object and its partCount coordinates as one block.
-/// The coordinate tail has no fixed capacity; its extent comes from the source.
+/// Primary-heap model allocation containing a runtime object and its part coordinates.
+///
+/// The object is the first member, so the pointer returned by `Tmd_Create`
+/// also addresses the complete allocation for release. Allocate
+/// `sizeof(TmdAllocation) + partCount * sizeof(GfxCoord)` bytes, where the
+/// nonnegative source part count remains unchanged while the object lives.
+/// `sizeof(TmdAllocation)` covers only the body; the GNU zero-length array
+/// marks a variable tail with no fixed capacity.
+///
+/// `object.coords` points to this tail. Animation contexts borrow the same
+/// array directly from the allocation; unlink the object and end those uses
+/// before releasing the block. The primitive buffer is a separate allocation.
 typedef struct {
-    TmdObject object;
-    GfxCoord  coords[0];
+    TmdObject object;    // Initial runtime body; also the allocation's release address
+    GfxCoord  coords[0]; // Owned mutable transforms: object.partCount entries, in source part order
 } TmdAllocation;
 STATIC_ASSERT_SIZEOF(TmdAllocation, 0x34);
-STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == 0x34, tmd_allocation_coords_offset);
+STATIC_ASSERT(OFFSET_OF(TmdAllocation, object) == 0, tmd_allocation_object_offset);
+STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == sizeof(TmdObject), tmd_allocation_coords_offset);
 
 /// One frame of the scratch a model's packet stream is walked in: what
 /// `tmdProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream
