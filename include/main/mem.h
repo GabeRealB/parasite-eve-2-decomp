@@ -43,8 +43,8 @@ void Mem_InitAux(void);
 
 /// Allocates a block of memory.
 ///
-/// Prior to allocating the data, it makes the heap it allocates from the
-/// active one. See `memSetActiveHeap` for more details.
+/// Prior to allocating the data, it selects the primary or configured auxiliary
+/// heap for the allocator.
 ///
 /// @param size Number of bytes to allocate.
 /// @param auxHeap If `true`, the block is allocated from the auxiliary heap,
@@ -58,8 +58,7 @@ void* Mem_Malloc(size_t size, bool auxHeap);
 /// fields before writing them. A failed allocation is reported and `NULL` is
 /// returned.
 ///
-/// An allocation is served from the active heap, so the heap `auxHeap` names is
-/// made the active one first; see `memSetActiveHeap`.
+/// The heap `auxHeap` names becomes active before allocation.
 ///
 /// @param size Number of bytes to allocate.
 /// @param auxHeap If `true`, the block is allocated from the auxiliary heap,

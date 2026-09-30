@@ -11,17 +11,7 @@
 /// Extent in bytes of the primary heap.
 #define G_HEAP_SIZE 0xFF80
 
-/// Selects the heap the allocation routines operate on.
-///
-/// `malloc3` and `free3` work inside one heap at a time, and a block has to be
-/// released to the heap it came from, so the heap in play is set before each
-/// operation rather than once at start-up. The primary heap is the fixed
-/// region at `gMemPrimaryHeapBase`; the auxiliary heap is the region
-/// `gMemActiveAuxHeap` currently points at.
-///
-/// @param auxHeap If `true`, the auxiliary heap becomes the active one,
-///                otherwise the primary heap.
-static void memSetActiveHeap(bool auxHeap);
+static void _memSetActiveHeap(bool auxHeap);
 
 // The rom contains an empty function that is never called.
 // Might have been a debug utility that is not present in
@@ -105,7 +95,7 @@ void* memCalloc(size_t size, bool auxHeap)
     u32 zero16;
     u32 zero32;
 
-    memSetActiveHeap(auxHeap);
+    _memSetActiveHeap(auxHeap);
     ptr = malloc3(size);
     if (ptr != NULL) {
         dest      = (u8*)ptr;
@@ -158,23 +148,22 @@ end:
     return ptr;
 }
 
-/// Selects the heap the allocation routines operate on.
+/// Selects the initialized heap3 ring for subsequent allocations and releases.
 ///
-/// `malloc3` and `free3` work inside one heap at a time, and a block has to be
-/// released to the heap it came from, so the heap in play is set before each
-/// operation rather than once at start-up. The primary heap is the fixed
-/// region at `gMemPrimaryHeapBase`; the auxiliary heap is the region
-/// `gMemActiveAuxHeap` currently points at.
+/// `auxHeap == true` selects `gMemActiveAuxHeap`; every other value selects
+/// `gMemPrimaryHeapBase`. The selected base must remain a member of its heap3
+/// free-block ring, initialized by `Mem_Init` or, for the auxiliary heap,
+/// `Mem_InitAux`.
 ///
-/// @param auxHeap If `true`, the auxiliary heap becomes the active one,
-///                otherwise the primary heap.
-static void memSetActiveHeap(bool auxHeap)
+/// Selection resets `_freep`, the allocator's search cursor, to that base and
+/// persists until another heap is selected. Releases must return blocks to
+/// their originating heap.
+static void _memSetActiveHeap(bool auxHeap)
 {
-    if (auxHeap == true) {
-        _freep = gMemActiveAuxHeap;
-    } else {
-        _freep = gMemPrimaryHeapBase;
-    }
+    void* heapBase;
+
+    heapBase = auxHeap == true ? gMemActiveAuxHeap : gMemPrimaryHeapBase;
+    _freep   = heapBase;
 }
 
 void* Mem_Malloc(size_t size, bool auxHeap)

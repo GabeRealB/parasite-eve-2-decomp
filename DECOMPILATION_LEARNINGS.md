@@ -108859,19 +108859,19 @@ front of then slides up by its size, so the image differs from that point on and
 the checksum fails naming a whole executable or overlay rather than the function
 that moved.
 
-`src/main/mem.c` is the worked example. `memSetActiveHeap` stands between
+`src/main/mem.c` is the worked example. `_memSetActiveHeap` stands between
 `memCalloc`, which `jal`s it, and `Mem_Malloc`, whose body carries the setter's
 code integrated; marking the setter's definition `inline` to integrate that call
 too reorders the object:
 
 ```
-000001fc 0000002c memSetActiveHeap     as the source has it: the setter stands
+000001fc 0000002c _memSetActiveHeap    as the source has it: the setter stands
 00000228 00000064 Mem_Malloc              between the two groups of callers
 
 000001fc 00000064 Mem_Malloc             with `inline` on the setter's definition:
 00000260 0000002c memFree                 the later callers slide up by its size
 0000028c 00000044 memFreeFromHeap          and the copy is emitted last
-000003a4 0000002c memSetActiveHeap
+000003a4 0000002c _memSetActiveHeap
 ```
 
 So a helper whose address stands between its callers was a plain function, and
@@ -132062,7 +132062,7 @@ objects are in `lib/libapi`, so this is readable rather than inferred, and it is
 the reason a wrapper takes the heap as a flag at all.
 
 The assignment appears in the wrappers in both shapes, and each wrapper's target
-decides which. `memCalloc` calls `memSetActiveHeap` and its target has the
+decides which. `memCalloc` calls `_memSetActiveHeap` and its target has the
 `jal`; `Mem_Malloc`, `memFree` and `memFreeFromHeap` write the assignment out,
 so theirs have the repeated `lui` / `lw` / `sw`, with `memFree` taking the
 primary branch alone. The three could not have called the setter and been

@@ -372,7 +372,7 @@ after a blank `///` line, so the summary can be read on its own:
 /// Allocates a block of memory.
 ///
 /// Prior to allocating the data, it sets the active heap.
-/// See `memSetActiveHeap` for more details.
+/// See `_memSetActiveHeap` for more details.
 ///
 /// @param size Number of bytes to allocate.
 /// @return Allocated block or `NULL`.
