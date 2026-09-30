@@ -27,14 +27,20 @@
 #include "gameplay/model_lighting.h"
 #include "gameplay/model_objects.h"
 
-/// A model-path stream command's handler: the function a command in a model's
-/// stream is resolved to, and the signature every handler of that stream shares.
+/// Callback for one TMD stream record during packet construction or drawing.
 ///
-/// A stream ships an opcode per command, and resolving a model's stream writes
-/// the address of the function that runs each command into the stream beside its
-/// opcode. A handler is given the walk's scratch frame, its flags and the cursor
-/// the command's data starts at, and returns the cursor the walk resumes from.
-typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// The caller sets `scratch->opcode`, `scratch->elemCount` and
+/// `scratch->elemStride` (in u32 words). `elements` starts just after the
+/// three-word record header; the handler returns the word after the payload,
+/// leaving any group or stream terminator for the caller to consume.
+/// `objectFlags` contains `TmdObject.flags` when drawing and is zero when
+/// constructing packets; record flags are part of `scratch->opcode` instead.
+///
+/// Scratch, elements, geometry and primitive buffers are borrowed for the call.
+/// Handlers may change scratch cursors and counters and must use only the fields
+/// initialized by their pass. Resolution stores draw callbacks in the stream;
+/// packet construction selects its callbacks directly from the opcode.
+typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* scratch, s32 objectFlags, u32* elements);
 
 /// A model-stream word is normally serialized data. Resolution writes a draw
 /// callback into the second word of each command, which Tmd_DispatchStream calls.
