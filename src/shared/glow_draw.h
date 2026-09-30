@@ -13,6 +13,8 @@
 
 #include <psyq/libgte.h>
 
+#include "overlay.h"
+
 void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawRedDisc(SVECTOR* arg0, s16 arg1);
 void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2);

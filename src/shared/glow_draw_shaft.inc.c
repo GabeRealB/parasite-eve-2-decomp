@@ -25,8 +25,8 @@ void glowDrawShaft(SVECTOR* arg0, s32 arg1)
     s32                      blend;
 
     p1 = arg0 + 1;
-    SCRATCH_PUSH(OverlayPointPairScratch);
-    block = SCRATCH_HEAD(OverlayPointPairScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
+    block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

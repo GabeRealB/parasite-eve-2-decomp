@@ -92,5 +92,5 @@ void glowDrawDiamond(SVECTOR* arg0, s32 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }

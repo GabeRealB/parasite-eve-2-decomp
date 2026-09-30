@@ -24,7 +24,7 @@ void screenWaveTask(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
     s32*            state;
 
-    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
        memory, which the scheduler lets rise above the store before it, and the
        original keeps the two in source order. */
@@ -82,7 +82,7 @@ void screenWaveTask(Task* arg0)
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
-                    if (gScreenWaveCtx->blend == ANIMATION_BLEND_RESET) {
+                    if (gScreenWaveCtx->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);

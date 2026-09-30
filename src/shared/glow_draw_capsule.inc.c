@@ -1,16 +1,13 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Projects the world-space points `arg0[0]` and `arg0[1]` through
-/// `gGfxViewCoord.workm` and, when both project, joins them with a capsule of
-/// gouraud `POLY_G4`s: a half-disc wedge fan around each point and a quad
-/// strip between them, three quads per 0x400 step of the angle between the
-/// two centres. `arg1` is a signed half-extent scaled by depth; the lit
-/// vertices take `arg2` as three 4-bit channels, blended with the frame
-/// counter's low bit, and the rim is black.
+/// Draws a glowing bar between the world points `arg0[0]` and `arg0[1]`,
+/// projected through `gGfxViewCoord.workm`; nothing is drawn when either
+/// projection flags an error. Each end gets a half-disc of gouraud wedges of
+/// radius `(s16)arg1 * 64` over its depth, joined by quads across the bar. The
+/// lit vertices take the colour packed in `arg2`, one nibble per channel in
+/// the high nibble, with bit 3 following the animation frame.
 void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    void**                   scratch;
-    u8*                      head;
     OverlayPointPairScratch* block;
     POLY_G4*                 prim;
     DisplayState*            ds;
@@ -26,33 +23,30 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32                      tr;
     s32                      tg;
     s32                      scaled;
-    s32                      conn;
+    s32                      side;
     u8                       r;
     u8                       g;
     u8                       b;
 
-    p1       = arg0 + 1;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x1C;
-    block    = (OverlayPointPairScratch*)(head - 0x1C);
+    p1    = arg0 + 1;
+    block = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&block->otz1);
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / block->otz0;
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
@@ -89,18 +83,18 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-                    conn           = angStart + ((ang - angStart) * 2);
                     prim           = gGpuPrimCursor;
+                    side           = angStart + (ang - angStart) * 2;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(side)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(side)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(side)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(side)) >> 12);
                     prim->x2 = block->sx0;
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
@@ -135,5 +129,5 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }

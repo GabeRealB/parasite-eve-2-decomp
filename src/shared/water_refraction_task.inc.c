@@ -261,8 +261,8 @@ void waterRefractionTask(Task* task)
     }
     sinArg = task->killCountdown * 2;
     cosArg = task->killCountdown;
-    SCRATCH_PUSH(OverlayRippleScratch);
-    scratch = SCRATCH_HEAD(OverlayRippleScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayRippleScratch);
+    scratch = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];

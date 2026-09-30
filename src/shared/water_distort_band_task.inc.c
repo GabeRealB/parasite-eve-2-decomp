@@ -208,5 +208,5 @@ void waterDistortBandTask(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(0x40);
 }

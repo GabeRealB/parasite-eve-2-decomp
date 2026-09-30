@@ -11,8 +11,8 @@ void waterDrawTile(GfxCoord* arg0, s16 arg1, s16 arg2)
     GpRingScratch* block;
     POLY_FT4*      prim;
 
-    SCRATCH_PUSH(GpRingScratch);
-    block         = SCRATCH_HEAD(GpRingScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
+    block         = SCRATCH_STACK_CURSOR(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
