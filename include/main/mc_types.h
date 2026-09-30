@@ -222,14 +222,25 @@ STATIC_ASSERT_SIZEOF(McSavePreview, 0x80);
 STATIC_ASSERT(OFFSET_OF(McSavePreview, location) == 4, McSavePreview_location);
 STATIC_ASSERT(OFFSET_OF(McSavePreview, remainingBytes) == 0x20, McSavePreview_remainingBytes);
 
-/// Full save image and its bounded cached-preview representation.
-/// Both records have the same initial fields through the checksum pair.
+/// One memory-card save image, also readable as its preview-sector prefix.
+///
+/// `state` is the complete record: the signed checksum of the 0x940-byte
+/// payload, then that payload, 0x944 bytes in all. `preview` is that same
+/// storage's first 128 bytes in `McSavePreview` layout. A header check written
+/// for a cached slot preview takes `&save->preview` and reads this resident
+/// prefix. Named fields agree through `headerChecksumComplement`. The following
+/// 0x60 bytes are `preview.remainingBytes` and the continuation of `state`.
+/// The union's size is the full image.
 typedef union {
-    McSaveState   state;
-    McSavePreview preview;
+    McSaveState   state;   // Complete save record
+    McSavePreview preview; // First 128 bytes, in preview-sector layout
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
+STATIC_ASSERT(sizeof(McSaveState) == sizeof(McSaveData), McSaveData_stateExtent);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.location) == 4, McSaveData_location);
+STATIC_ASSERT(OFFSET_OF(McSaveData, preview.location) == OFFSET_OF(McSaveData, state.location), McSaveData_sharedLocation);
+STATIC_ASSERT(OFFSET_OF(McSaveData, state.headerChecksumComplement) == OFFSET_OF(McSaveData, preview.headerChecksumComplement), McSaveData_sharedHeader);
+STATIC_ASSERT(OFFSET_OF(McSaveData, preview.remainingBytes) == 0x20, McSaveData_previewRemainder);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.playTime) == 0xC, McSaveData_playTime);
 
 #endif // MAIN_MC_TYPES_H
