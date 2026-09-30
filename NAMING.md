@@ -286,6 +286,7 @@ in a row identify different responsibilities in the same source group.
 | `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/main/text.h`, `src/main/text.h`, `src/main/text_types.h` |
 | `cdAudio` | CD audio playback | `cdaudio.c` | `include/main/cdaudio.h`, `include/main/cdaudio_types.h`, `src/main/cdaudio.h` |
 | `cdStream`, `cdReady` | CD-to-SPU streaming and ready queue | `cdstream.c` | `src/main/cdstream.h` |
+| `sndVolume` | Combined MIDI/script master-volume policies and their request gates | `sndscript.c`, `sndevt.c` | `src/main/sound.h` |
 | `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/main/sound.h`, `include/main/sound_types.h`, `src/main/sound.h` |
 | `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c` | `include/main/sound.h`, `src/main/sound.h`, `src/main/sound_types.h` |
 | `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/main/sound.h`, `src/main/sound.h` |

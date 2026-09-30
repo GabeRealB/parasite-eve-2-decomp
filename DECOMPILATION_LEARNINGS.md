@@ -11249,14 +11249,15 @@ sll  v0, v0, 16
 sra  v0, v0, 16
 ```
 
-Use a volatile load through the existing symbol rather than flipping its type
-(other matched sites may store through `s16`):
+Keep the signed halfword type and make its loads volatile. When the symbol is
+already declared `volatile s16`, read it directly:
 
 ```c
-if (*(volatile s16*)&D_800689EC == 1) { ... }
+if (gSndVolumeReducedMode == SOUND_VOLUME_MODE_REDUCED) { ... }
 ```
 
-`Midi_IsChannelFree` needs this form for `D_800689EC`.
+`Midi_IsChannelFree` gets this sequence from the declaration of
+`gSndVolumeReducedMode`; an address cast is redundant.
 
 ## Reuse formal parameters for live ranges that span early calls
 

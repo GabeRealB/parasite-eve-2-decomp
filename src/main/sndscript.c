@@ -675,11 +675,11 @@ void Snd_SetMutedVolumes(s32 arg0)
     s32 var_a0;
 
     if (arg0 == 0) {
-        D_800689EC = 0;
+        gSndVolumeReducedMode = SOUND_VOLUME_MODE_NORMAL;
         SndVoice_ApplyMasterVolume(0x7F);
         var_a0 = 0x40;
     } else {
-        D_800689EC = 1;
+        gSndVolumeReducedMode = SOUND_VOLUME_MODE_REDUCED;
         SndVoice_ApplyMasterVolume(0x28);
         var_a0 = 0;
     }
@@ -777,7 +777,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     }
     // A nonzero offset addresses the slot's oneC block within this loaded image.
     entry = (SndScriptEntryControls*)((u8*)header + offset);
-    if (D_800689EC != 0) {
+    if (gSndVolumeReducedMode != SOUND_VOLUME_MODE_NORMAL) {
         if ((entry->flags & SOUND_SCRIPT_REJECT_WHILE_MUTED) != 0) {
             return -5;
         }

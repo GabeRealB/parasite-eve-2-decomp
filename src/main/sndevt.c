@@ -373,10 +373,10 @@ static MidiHandler Midi_EventFns[] = {
     Midi_PitchBend,
     Midi_HandleMetaSysex,
 };
-volatile s32        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
-static volatile s32 D_800689E8     = 0;
-volatile s16        D_800689EC     = 0;
-static u8           D_800689F0[]   = {
+volatile s32        gSndLoadBankId        = SOUND_LOAD_BANK_NONE;
+static volatile s32 D_800689E8            = 0;
+volatile s16        gSndVolumeReducedMode = SOUND_VOLUME_MODE_NORMAL;
+static u8           D_800689F0[]          = {
     0x60,
     0x0,
     0x0,
@@ -982,7 +982,7 @@ s32 Midi_IsChannelFree(u8 arg0)
 {
     s32 i;
 
-    if (D_800689EC == 1) {
+    if (gSndVolumeReducedMode == SOUND_VOLUME_MODE_REDUCED) {
         return 0;
     }
     if (arg0 == 0xFF) {

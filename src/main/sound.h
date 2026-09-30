@@ -34,7 +34,23 @@ enum { SOUND_LOAD_BANK_NONE = 0xFF };
 /// Stopping the transfer any other way leaves the published id in place.
 extern volatile s32 gSndLoadBankId;
 
-extern volatile s16 D_800689EC;
+// States of the shared MIDI/script volume policy; the stored flag is a halfword.
+enum {
+    SOUND_VOLUME_MODE_NORMAL  = 0,
+    SOUND_VOLUME_MODE_REDUCED = 1
+};
+
+/// Reduced-volume policy shared by MIDI selection and sound-script requests.
+///
+/// Starts in `SOUND_VOLUME_MODE_NORMAL` (0). Entering
+/// `SOUND_VOLUME_MODE_REDUCED` (1) applies MIDI master volume 0 and script
+/// master volume 40/127; restoring normal mode applies 64 and 127/127.
+/// Reduced mode makes the sequence-selection eligibility query return false
+/// and refuses script starts marked `SOUND_SCRIPT_REJECT_WHILE_MUTED`.
+/// Demo entry enables it; main-loop initialization restores normal mode.
+/// The mode is stored before the master-volume updates. Other volume setters
+/// do not change it, so it records the policy rather than the current gains.
+extern volatile s16 gSndVolumeReducedMode;
 
 extern s32 D_80068A78;
 

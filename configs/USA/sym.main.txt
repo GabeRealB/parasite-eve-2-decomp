@@ -3272,3 +3272,4 @@ Gp_FlagBanks = 0x80060A30; // size:0x18
 
 D_80067634 = 0x80067634; // size:0x4 defined:True
 gSndLoadBankId = 0x800689E4; // size:0x4
+gSndVolumeReducedMode = 0x800689ec; // type:s16 size:0x2
