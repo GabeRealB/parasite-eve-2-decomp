@@ -131,7 +131,7 @@ void Gp_UpdatePadInput(void)
     register u16  pressedButtons asm("s2"); // pinned: global-alloc otherwise ranks `actor` just above %hi(gGameSession) and gives it $s2
     u16           releasedButtons;
 
-    pad  = &Pad_States[0];
+    pad  = &gPadStates[0];
     cfg  = &Player_Status;
     work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work == NULL) {

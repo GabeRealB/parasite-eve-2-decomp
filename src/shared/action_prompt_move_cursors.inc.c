@@ -44,7 +44,7 @@ void actionPromptMoveCursors(Task* task)
 
     for (port = first; port < count; port++) {
         prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
+        pad         = &gPadStates[port];
         inputFormat = pad->inputFormat;
         if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
             speed            = prompt->targetId;

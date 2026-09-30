@@ -60,7 +60,7 @@ static GameSession _gGameSessionState;
 /// Unreferenced.
 static u8 D_80071600[0x20];
 
-PadState Pad_States[2];
+PadState gPadStates[PAD_PORT_COUNT];
 
 #include "main/pad.h"
 
@@ -453,7 +453,7 @@ void Pad_PollControllers(void)
     port = 0;
     do {
         portId      = port * 0x10;
-        pad         = &Pad_States[port];
+        pad         = &gPadStates[port];
         work->port  = portId;
         state       = PadGetState(portId);
         work->state = state;
@@ -586,7 +586,7 @@ void Pad_UpdatePort0(void)
     scratch = SCRATCH_PUSH_AT(head, PadScratch);
 
     do {
-        pad = &Pad_States[i];
+        pad = &gPadStates[i];
         if (pad->inputBlockPolls == 0) {
             scratch->rawHi   = Pad_RawPorts[i].field_2;
             scratch->rawLo   = Pad_RawPorts[i].field_3;

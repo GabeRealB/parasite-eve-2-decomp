@@ -21,7 +21,7 @@ s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
     PadState* p;
     u16       val;
 
-    p = &Pad_States[arg0];
+    p = &gPadStates[arg0];
     switch (arg1) {
         case 1:
             val = p->pressedButtons;
@@ -48,7 +48,7 @@ void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                  durationPolls;
     u8                   idx;
 
-    p = &Pad_States[arg0];
+    p = &gPadStates[arg0];
     if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {
         return;
     }
@@ -84,7 +84,7 @@ void Pad_SetCooldown(s32 arg0)
 {
     volatile PadState* p;
 
-    p                  = &Pad_States[arg0];
+    p                  = &gPadStates[arg0];
     p->inputBlockPolls = PAD_INPUT_BLOCK_UPDATES;
 }
 
@@ -92,7 +92,7 @@ void Pad_ClearCooldown(s32 arg0)
 {
     volatile PadState* p;
 
-    p                  = &Pad_States[arg0];
+    p                  = &gPadStates[arg0];
     p->inputBlockPolls = 0;
 }
 
@@ -115,7 +115,7 @@ void Pad_ClearEvents(s32 arg0)
     s32                  bankByteOffset;
     PadVibrationRequest* requests;
 
-    p              = &Pad_States[arg0];
+    p              = &gPadStates[arg0];
     i              = 0;
     bankByteOffset = OFFSET_OF(PadState, vibrationRequests);
     for (; i < ARRAY_SIZE(p->vibrationRequests); i++) {
@@ -136,7 +136,7 @@ s32 Pad_CheckSpecialCombo(void)
     u16                val;
     s32                result;
 
-    p   = Pad_States;
+    p   = gPadStates;
     val = p->buttons;
     if (val == PAD_SOFT_RESET_COMBO) {
         result = D_8005ED8A == PAD_SOFT_RESET_COMBO;

@@ -2740,7 +2740,7 @@ _waitTime                   = 0x800714BC;
 //--- PA: 0x61CC0   VA: 0x800714C0   subsegment: bss
 //--------------------------------------------------------------------
 _gGameSessionState             = 0x800714C0; // type:GameSession size:0x13C
-Pad_States                  = 0x80071620; // type:PadState
+gPadStates                  = 0x80071620; // type:PadState
 _gTaskActiveList             = 0x800716D8;
 gTaskDefaultList            = 0x800716E0; // type:TaskNode
 

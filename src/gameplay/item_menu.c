@@ -1002,7 +1002,7 @@ void func_800BDF6C(Task* task)
     } else {
         repeatStep = 1;
     }
-    pad = Pad_States;
+    pad = gPadStates;
     if (pad->directionRepeatTicks != 0) {
         pad->directionRepeatTicks += gDisplayState.frameTicks * 2;
     }

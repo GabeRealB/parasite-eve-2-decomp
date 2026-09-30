@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+/// Number of controller ports indexed by resident pad APIs (ports 0 and 1).
+enum { PAD_PORT_COUNT = 2 };
+
 enum {
     PAD_VIBRATION_INACTIVE       = 0,
     PAD_VIBRATION_ACTIVE         = 1,
@@ -47,7 +50,7 @@ STATIC_ASSERT_SIZEOF(PadVibrationRequest, 0x4);
 
 /// Resident input, controller setup and vibration state for one controller port.
 ///
-/// `Pad_States` reserves two persistent entries. Controller setup, axes and
+/// `gPadStates` reserves two persistent entries. Controller setup, axes and
 /// vibration advance during VSync polling; button edges and input blocking
 /// advance during main-loop input updates. Both paths currently service port zero.
 /// Direction repeat adds held D-pad bits to `pressedButtons` while a UI is open.

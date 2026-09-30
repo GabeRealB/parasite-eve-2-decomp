@@ -7043,7 +7043,7 @@ s32 func_801060E0(Task* arg0)
         mask1 = 8;
         mask2 = 2;
     } else {
-        flags = Pad_States[0].buttons;
+        flags = gPadStates[0].buttons;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == mode) {
             mask1 = 0x80;
             mask2 = 0x10;

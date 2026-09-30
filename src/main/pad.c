@@ -27,36 +27,36 @@ void Pad_Init(void)
 {
     u16                  half;
     u8                   one;
-    volatile PadState*   base;
-    s32                  offset;
-    volatile PadState*   p;
-    u8*                  ptr;
-    u32                  i;
+    volatile PadState*   states;
+    s32                  stateByteOffset;
+    volatile PadState*   state;
+    u8*                  stateByte;
+    u32                  stateByteIndex;
     PadRawPort*          pad;
     volatile PadRawPort* vpad;
     u32                  j;
     u8                   ff;
-    s32                  stateAddress;
+    uintptr              statesAddress;
 
-    half         = PAD_INPUT_FORMAT_UNAVAILABLE;
-    one          = 1;
-    base         = Pad_States;
-    stateAddress = (s32)base;
-    p            = base;
-    offset       = 0;
+    half            = PAD_INPUT_FORMAT_UNAVAILABLE;
+    one             = 1;
+    states          = gPadStates;
+    statesAddress   = (uintptr)states;
+    state           = states;
+    stateByteOffset = 0;
     do {
         // Clear each complete state through its byte representation, then publish setup fields.
-        ptr = (u8*)(offset + stateAddress);
-        for (i = 0; i < sizeof(*p); i++) {
-            *ptr++ = 0;
+        stateByte = (u8*)(stateByteOffset + statesAddress);
+        for (stateByteIndex = 0; stateByteIndex < sizeof(*state); stateByteIndex++) {
+            *stateByte++ = 0;
         }
-        p->actuatorCommand[0] = 0;
-        p->actuatorCommand[1] = 0;
-        p->inputFormat        = half;
-        p->modeSetupPending   = one;
-        p++;
-        offset += sizeof(*p);
-    } while (p < base + ARRAY_SIZE(Pad_States));
+        state->actuatorCommand[0] = 0;
+        state->actuatorCommand[1] = 0;
+        state->inputFormat        = half;
+        state->modeSetupPending   = one;
+        state++;
+        stateByteOffset += sizeof(*state);
+    } while (state < states + ARRAY_SIZE(gPadStates));
 
     pad = Pad_RawPorts;
     PadInitDirect((u8*)pad, (u8*)(pad + 1));

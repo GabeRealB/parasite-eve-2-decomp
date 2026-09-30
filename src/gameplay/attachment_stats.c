@@ -1284,7 +1284,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.field_E != 0) {
         if (cdIdleIfF0Active_()) {
-            pad                        = &Pad_States[0];
+            pad                        = &gPadStates[0];
             mask                       = Pad_MaskConfirm;
             pad->pressedButtons       &= ~mask;
             gGameSession->padPressed  &= ~mask;

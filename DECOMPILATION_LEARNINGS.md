@@ -8564,11 +8564,11 @@ with a local pointer:
 
 ```c
 /* Wrong schedule: lui/addiu base, then i*stride */
-Pad_States[arg0].inputBlockPolls = 0;
+gPadStates[arg0].inputBlockPolls = 0;
 
 /* Right schedule: i*stride, then lui/addiu base */
 volatile PadState* p;
-p = &Pad_States[arg0];
+p = &gPadStates[arg0];
 p->inputBlockPolls = 0;
 ```
 
@@ -12744,7 +12744,7 @@ return -1;
 `SndVoice_FindById` is the pure example. Signed `i` + `do`/`while` also produces
 the target's `slti`/`bnez` count-up form.
 
-## Cast away `volatile` for switch delay-slot constant CSE
+## Nonvolatile switch loads permit delay-slot constant CSE
 
 When a `switch` is followed by a comparison against a small constant (e.g.
 `if (value == 2)`), GCC 2.8.1 can CSE that constant into the delay slot of the
@@ -12760,16 +12760,16 @@ case bodies use v0=2 for `if (value == 2)` without reloading on every path
 
 With `volatile PadState* p` (or a volatile global accessed directly), the
 loads pin scheduling and the `li 2` is emitted separately on each path
-(~93% match: correct control flow, wrong delay slots). Strip the qualifier:
+(~93% match: correct control flow, wrong delay slots). Use an unqualified pointer
+for the button masks; `inputBlockPolls` retains its own volatile qualifier:
 
 ```c
-/* Global stays volatile (other functions need it). */
 PadState* p;
-p = (PadState*)&Pad_States[arg0];
+p = &gPadStates[arg0];
 switch (arg1) {
-case 1: val = p->field_6; break;
-case 3: val = p->field_8; break;
-default: val = p->field_4; break;
+case 1: val = p->pressedButtons; break;
+case 3: val = p->releasedButtons; break;
+default: val = p->buttons; break;
 }
 if (arg1 == 2) {
     return (val & arg2) == arg2;
@@ -15237,45 +15237,45 @@ When the target opens a fixed-base + walking-pointer init as:
 
 ```
 lui    v0, %hi(arr)
-addiu  a3, v0, %lo(arr)   /* base */
-move   a1, a3             /* p = base */
-move   a2, zero           /* offset = 0 */
-addiu  t0, a1, 0xb8       /* end = p + n */
+addiu  a3, v0, %lo(arr)   /* states */
+move   a1, a3             /* state = states */
+move   a2, zero           /* stateByteOffset = 0 */
+addiu  t0, a1, 0xb8       /* end = state + n */
 …
-addu   a0, a2, a3         /* ptr = offset + base */
+addu   a0, a2, a3         /* stateByte = stateByteOffset + states */
 ```
 
 two coupled problems appear:
 
-1. **`offset = 0` between `base = arr` and `p = base`** forces the load into `$a3`
+1. **`stateByteOffset = 0` between `states = arr` and `state = states`** forces the load into `$a3`
    (needed so `addu a0, a2, a3` and `move a1, a3` match) but GCC hoists the
    independent `move a2, zero` *before* the `lui` of the array.
-2. **`p = base` immediately after the load** schedules `move a2, zero` correctly
-   but steals the load into `$a1` (p is the heavier user).
+2. **`state = states` immediately after the load** schedules `move a2, zero` correctly
+   but steals the load into `$a1` (state is the heavier user).
 
 Fix both with a live integer copy of the base as a scheduling barrier, then
-assign `p` and `offset`, and pin the offset register:
+assign `state` and `stateByteOffset`, and pin the offset register:
 
 ```c
-register s32 offset asm("a2");
-s32 stateAddress;
-volatile PadState* base;
-volatile PadState* p;
+register s32 stateByteOffset asm("a2");
+uintptr statesAddress;
+volatile PadState* states;
+volatile PadState* state;
 
-base   = Pad_States;
-stateAddress    = (s32)base;   /* barrier: completes base before p, load stays in $a3 */
-p      = base;
-offset = 0;           /* now after move a1, a3 — not hoisted before lui */
+states          = gPadStates;
+statesAddress   = (uintptr)states; /* barrier: completes states before state, load stays in $a3 */
+state           = states;
+stateByteOffset = 0;               /* now after move a1, a3 — not hoisted before lui */
 do {
-    ptr = (u8*)(offset + stateAddress); /* addu a0, a2, a3 */
-    /* clear sizeof(*p) bytes; set fields via p */
-    p++;
-    offset += sizeof(*p);
-} while (p < base + ARRAY_SIZE(Pad_States)); /* end materialises as addiu t0, a1, 0xb8 */
+    stateByte = (u8*)(stateByteOffset + statesAddress); /* addu a0, a2, a3 */
+    /* clear sizeof(*state) bytes; set fields via state */
+    state++;
+    stateByteOffset += sizeof(*state);
+} while (state < states + ARRAY_SIZE(gPadStates)); /* end materialises as addiu t0, a1, 0xb8 */
 ```
 
-`stateAddress` must stay live for the whole loop (used in `offset + stateAddress`) so it is not
-DCE'd as a dead store. Pinning `offset` to `$a2` keeps the zero and the
+`statesAddress` must stay live for the whole loop (used in `stateByteOffset + statesAddress`) so it is not
+DCE'd as a dead store. Pinning `stateByteOffset` to `$a2` keeps the zero and the
 `addiu …, 0x5C` on that register. `Pad_Init` is the pure example.
 
 ### Companion: non-volatile load, volatile stores for pad buffers
@@ -37318,7 +37318,7 @@ register (`$v0` vs `$v1`) each `lui` lands in is decided *before* scheduling, so
 it follows source order even though the final listing is reordered:
 
 ```c
-pad  = (PadState*)&Pad_States[0];   /* lui v0 ; addiu s1,v0 */
+pad  = &gPadStates[0];            /* lui v0 ; addiu s1,v0 */
 cfg  = &Player_Status;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
 work = gPlayerActorTasks[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
 ```
@@ -52099,7 +52099,7 @@ stick = pad->stickAxes[PAD_STICK_LEFT_X];                          /* lh */
 
 **Related:** A volatile `PadState` object's `s16` read into an `s32` compiles
 as `lhu` + `sll`/`sra` rather than `lh`. Current room consumers take a plain
-`PadState* pad = &Pad_States[port];` for the signed `lh` path; only the
+`PadState* pad = &gPadStates[port];` for the signed `lh` path; only the
 `inputBlockPolls` member remains volatile.
 
 ## Splitting a unit for a jump table by hand, without deleting the matched `src/`
@@ -65544,7 +65544,7 @@ bottom looks equivalent, but shrinks the loop before `loop.c` runs: the shorter
 form hoists a clamp/scaling constant and changes register allocation. The
 per-branch increments are later merged into the target's single common pointer
 increment. Read `.loop` before trying to fix the resulting register differences.
-Ordinary `Pad_States[port]` / `Pad_RawPorts[port]` indexing also lets GCC create
+Ordinary `gPadStates[port]` / `Pad_RawPorts[port]` indexing also lets GCC create
 the two byte-offset induction variables after the hoisted constants, matching
 the prologue order that manually initialized offsets missed.
 
