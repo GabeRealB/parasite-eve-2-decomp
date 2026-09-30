@@ -119,11 +119,17 @@ SndEvt* sndEvtAlloc(void);
 
 s32 Midi_IsChannelFree(u8 arg0);
 
-/// Appends an already-filled-in event to the pending queue, where a later
-/// processing pass runs the handler its command selects.
+/// Appends one reserved sound-event slot to the deferred-command FIFO.
 ///
-/// The queue takes the event as it stands, so the caller writes the arguments
-/// first; a `NULL` event is ignored.
+/// The caller sets `command` and every argument that command reads, then passes
+/// that slot once. The slot is linked in place. When nothing is queued it
+/// becomes both head and tail and `prev` is cleared; otherwise `prev` records
+/// the previous tail and that tail's `next` points at the slot. `next` is
+/// cleared either way.
+/// `allocated`, `command` and `args` are not written. A `NULL` argument is
+/// ignored and does not change the drain gate. Otherwise the audio interrupt's
+/// drain stays closed while those links are stored, then reopens. This call
+/// does not run the command handler.
 void sndEvtEnqueue(SndEvt* event);
 
 void Midi_SetMasterVolume(s32 arg0);

@@ -160,10 +160,10 @@ static SndEvt* _gSndEvtHead;
 ///
 /// Refers into `_gSndEvtPool`; the slot stays reserved through dispatch and its
 /// `next` link is `NULL` after an append completes. Saving this endpoint permits
-/// appending without traversing `_gSndEvtHead`. Interrupt processing is disabled
-/// while append links are updated. Draining earlier slots leaves the tail in
-/// place; releasing the last slot, reset and invalid-command recovery clear
-/// both endpoints.
+/// appending without traversing `_gSndEvtHead`. The audio interrupt's drain is
+/// held off while append links are updated. Draining earlier slots leaves the
+/// tail in place; releasing the last slot, reset and invalid-command recovery
+/// clear both endpoints.
 static SndEvt* _gSndEvtTail;
 
 /// Maximum number of simultaneous sound-event reservations, queued or unqueued.
@@ -565,7 +565,7 @@ void sndEvtEnqueue(SndEvt* event)
     SndEvt* previousTail;
 
     if (event != NULL) {
-        // Defer interrupt processing until the new tail is fully linked.
+        // Keep the audio interrupt from draining the queue until this slot is linked.
         _gSndEvtProcessEnabled = false;
         if (_gSndEvtHead == NULL) {
             _gSndEvtTail = event;
