@@ -36,6 +36,13 @@ extern volatile s32 gSndLoadBankId;
 
 // States of the shared MIDI/script volume policy; the stored flag is a halfword.
 enum {
+    /// Ordinary MIDI/script volume policy without reduced-mode request restrictions.
+    ///
+    /// The initial value of `gSndVolumeReducedMode`. MIDI selection and flagged
+    /// script starts still undergo their other eligibility checks.
+    /// `Snd_SetMutedVolumes(0)` stores this value before applying MIDI master
+    /// volume 64 and script master volume 127/127. Independent gain changes
+    /// leave the policy value unchanged.
     SOUND_VOLUME_MODE_NORMAL  = 0,
     SOUND_VOLUME_MODE_REDUCED = 1
 };
