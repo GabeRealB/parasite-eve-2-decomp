@@ -496,7 +496,7 @@ Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 
 | Table | VA | Count | `glyphTable` | `vBias` (`func_8002E53C`) |
 |---|---|---|---|---|
-| `Font_Glyphs0` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 | `0x26` |
+| `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 | `0x26` |
 | `Font_Glyphs1` | `0x8005FA30` | 224 | 1–4 | `0x80` |
 | `Font_Glyphs2` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 | `0` |
 

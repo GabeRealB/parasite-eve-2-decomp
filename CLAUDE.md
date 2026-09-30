@@ -617,7 +617,7 @@ placement. The known embedded ones:
 | Asset | Where | Note |
 |---|---|---|
 | Memory-card save header | `Mc_SaveHeaderMagic` + the block after it (main `.data`) | `"SC"` magic, Shift-JIS title, 16-colour CLUT, three 16x16 4bpp icon frames |
-| UI font glyph metrics | `Font_Glyphs0/1/2` (main `.data`) | 224/224/91 x `_FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
+| UI font glyph metrics | `_gFontGlyphsMedium`, `Font_Glyphs1`, `Font_Glyphs2` (main `.data`) | 224/224/91 x `_FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
 | Meshes and animation banks | gameplay `.data` trailing region and room/actor `.pe2pkg` overlays | no separate chunk type; see [`doc/OVERLAYS.md`](doc/OVERLAYS.md) |
 
 **Undecided - look at each case before moving it:** clip tables, and dialogue
@@ -642,7 +642,7 @@ small `.s` that `.incbin`s them back, so the build keeps matching. Where the
 asset sits inside a unit whose data is in C, the unit defines it itself: mark
 its `EMBEDDED_ASSETS` record `"include": True`, and the build turns the
 extracted file into `build/include/assets/<id>.inc` (`tools/gen_asset_inc.py`),
-which the definition includes as its initializer (`Font_Glyphs0` in
+which the definition includes as its initializer (`_gFontGlyphsMedium` in
 `src/main/textdraw.c`). For **inspection**, catalogue it by address in
 `asset_db.EMBEDDED_ASSETS` and it flows through the normal extract pipeline
 into `raw/{type}/` and the type directory, like any on-disc asset. See

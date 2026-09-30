@@ -12015,7 +12015,7 @@ body). Sparse multi-way selection matches as a `switch` instead:
 /* Target: beqz x, case0 / beq x,5,case5 / default then j continue */
 switch (arg0->field_C) {
 case 0:
-    table = Font_Glyphs0;
+    table = _gFontGlyphsMedium;
     break;
 case 5:
     table = Font_Glyphs2;

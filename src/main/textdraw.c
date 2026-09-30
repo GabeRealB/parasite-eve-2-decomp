@@ -48,9 +48,12 @@ enum {
     TEXT_GLYPH_V_BIAS_LARGE  = 0x80,
 };
 
+/// Records in the medium face: one per character byte from ' ' through 0xFF.
+enum { FONT_GLYPH_MEDIUM_COUNT = 0x100 - ' ' };
+
 /// Texture bounds and pen metrics for one encoded UI-font character.
 ///
-/// Tables are indexed by the character byte minus ' ': `Font_Glyphs0` and
+/// Tables are indexed by the character byte minus ' ': `_gFontGlyphsMedium` and
 /// `Font_Glyphs1` cover 0x20..0xFF, and `Font_Glyphs2` covers 0x20..0x7A.
 /// The texture origin is relative to a 4bpp page; the selected font supplies
 /// an additional V bias. Adjacent right/left kerning classes combine modulo
@@ -69,6 +72,7 @@ typedef struct {
     u8 field_A[2];        // Unread bytes; purpose unproven.
 } _FontGlyph;
 STATIC_ASSERT_SIZEOF(_FontGlyph, 0xC);
+STATIC_ASSERT(FONT_GLYPH_MEDIUM_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsMediumBytes);
 
 /// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
 static SPRT D_80071710;
@@ -77,7 +81,7 @@ static DR_TPAGE D_80071728;
 
 static TaskDesc D_8005EDA0[];
 
-static _FontGlyph Font_Glyphs0[];
+static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT];
 
 static _FontGlyph Font_Glyphs1[];
 
@@ -194,7 +198,14 @@ TaskDesc* gTaskDescBanks[15] = {
     D_80068B7C,
 };
 
-static _FontGlyph Font_Glyphs0[] = {
+/// Medium UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
+///
+/// `Text_DrawString` and `Text_MeasureAndCenter` select this face when
+/// `glyphTable` is `TEXT_GLYPH_TABLE_MEDIUM`. Drawing also selects it for an
+/// `\sM` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_MEDIUM`
+/// to each record's texture V. The initializer is the embedded `font_glyphs0`
+/// catalogue blob. Bytes below space are not records in this face.
+static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 #include "assets/font_glyphs0.inc"
 };
 static _FontGlyph Font_Glyphs1[] = {
@@ -411,7 +422,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     request->vBias            = 0;
     switch (request->glyphTable) {
         case TEXT_GLYPH_TABLE_MEDIUM:
-            table          = Font_Glyphs0;
+            table          = _gFontGlyphsMedium;
             request->vBias = TEXT_GLYPH_V_BIAS_MEDIUM;
             break;
         case TEXT_GLYPH_TABLE_SMALL:
@@ -510,7 +521,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                                 break;
                             case 'M':
                             case 'm':
-                                table          = Font_Glyphs0;
+                                table          = _gFontGlyphsMedium;
                                 request->vBias = TEXT_GLYPH_V_BIAS_MEDIUM;
                                 break;
                             case 'L':
@@ -774,7 +785,7 @@ void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
 
     switch (request->glyphTable) {
         case TEXT_GLYPH_TABLE_MEDIUM:
-            table = Font_Glyphs0;
+            table = _gFontGlyphsMedium;
             break;
         case TEXT_GLYPH_TABLE_SMALL:
             table = Font_Glyphs2;
