@@ -34,6 +34,7 @@
 #include "gameplay/view.h"
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
+#include "world_targets.h"
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
@@ -239,7 +240,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     cx = x + 0x23;
     cy = y + 0x23;
     func_800A63B4(cx, cy, 0);
-    node  = Gp_LinkList;
+    node  = gWorldTargetListHead;
     block = SCRATCH_STACK_RESERVE_BLOCK(GpXformScratch);
     mode  = func_800B9D80(0x400);
     if (node != NULL) {
@@ -593,7 +594,7 @@ void Gp_UpdateLinkXforms(void)
     GfxCoord*        player;
     GpXformScratch*  block;
 
-    node = Gp_LinkList;
+    node = gWorldTargetListHead;
     slot = gameGetPtrSlot(3);
     if (slot == NULL) {
         return;
@@ -818,7 +819,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
         if (actor != NULL) {
             target = actor->field_90C;
         }
-        node = Gp_LinkList;
+        node = gWorldTargetListHead;
         if (node != NULL) {
             do {
                 if (node == target) {

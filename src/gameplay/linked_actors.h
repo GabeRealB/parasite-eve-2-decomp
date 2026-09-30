@@ -5,14 +5,6 @@
 
 #include "attachment_state.h"
 
-#include "gameplay/world_targets_types.h"
-
-#include "main/session_types.h"
-
-/// Head of the list of enemies the lock-on system tracks; `Gp_ResetLinkState`
-/// empties it.
-extern WorldTargetNode* Gp_LinkList;
-
 void func_800A4904(s32 arg0);
 
 void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);

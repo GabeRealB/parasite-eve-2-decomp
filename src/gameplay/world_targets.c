@@ -24,7 +24,6 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "lighting_work.h"
-#include "linked_actors.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/scene.h"
 #include "gameplay/world_collision.h"
@@ -45,7 +44,7 @@
 /// 0x38-byte scratch from the scratch stack used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
 /// `gGfxViewCoord.workm` rotates it into `self`, the world-space aim origin.
-/// `node` is the candidate `Gp_LinkList` node's world position; both are
+/// `node` is the candidate `gWorldTargetListHead` node's world position; both are
 /// handed to `func_800E0308` as the line-of-sight segment.
 typedef struct _GpLockScanScratch {
     /* 0x00 */ SVECTOR self;
@@ -107,7 +106,7 @@ void Gp_DrawTargetCursor(void)
     s32                          u;
     s32                          v;
 
-    node = Gp_LinkList;
+    node = gWorldTargetListHead;
     if (Pad_RemapState->field_A != 0) {
         return;
     }
@@ -241,7 +240,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     bestAngle = 0x3000;
     bestDist  = 0x7FFFFFFF;
     dist      = 0;
-    for (node = Gp_LinkList; node != NULL; node = node->next) {
+    for (node = gWorldTargetListHead; node != NULL; node = node->next) {
         if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
@@ -396,7 +395,7 @@ static void Gp_UpdateLockSlots(void)
         if (obj == NULL) {
             goto empty;
         }
-        node  = Gp_LinkList;
+        node  = gWorldTargetListHead;
         found = 0;
         if (node != NULL) {
             do {
@@ -519,8 +518,8 @@ void Gp_UnlinkNode(WorldTargetNode* node)
     } while (i < 2);
 
     if (node->state.parts.onList == 1) {
-        list = &Gp_LinkList;
-        if (Gp_LinkList != node) {
+        list = &gWorldTargetListHead;
+        if (gWorldTargetListHead != node) {
             do {
                 if (*list == NULL) {
                     goto done;
@@ -542,7 +541,7 @@ void Gp_LinkNode(WorldTargetNode* node)
     WorldTargetNode** p;
 
     if (node->state.parts.onList == 0) {
-        p = &Gp_LinkList;
+        p = &gWorldTargetListHead;
         while (*p != NULL) {
             p = &(*p)->next;
         }
@@ -721,7 +720,7 @@ static void Gp_ClearLockSlots(void)
 
 void Gp_ResetLinkState(void)
 {
-    Gp_LinkList = NULL;
+    gWorldTargetListHead = NULL;
     Gp_ClearLockSlots();
     D_8010F9F0 = 0xFFF00000;
     D_8010F9EC = 0xFFF00000;

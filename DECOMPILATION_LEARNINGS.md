@@ -65309,7 +65309,7 @@ slot. Wrapping only the retry test did not have this effect.
 ## Reusing a pointer across disjoint blocks can inherit a call-argument register preference
 
 `func_800A5574` reached 99.580% with only `regs=12`: a local scratch-head
-address took `$v0`, its loaded head took `$v1`, and `Gp_LinkList`'s high address
+address took `$v0`, its loaded head took `$v1`, and `gWorldTargetListHead`'s high address
 took `$a0`. The target wanted `$a0`, `$v0`, `$v1`, respectively. Inlining the
 scratch address did not change the allocation.
 

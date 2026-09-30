@@ -3,7 +3,15 @@
 
 #include "types.h"
 
+#include "gameplay/world_targets_types.h"
+
 #include "main/mc_types.h"
+
+/// First node on the list of enemies the targeting passes track.
+///
+/// NULL when the list is empty. Lock-on, the reticle, the radar and the area
+/// scans walk from here through `next`.
+extern WorldTargetNode* gWorldTargetListHead;
 
 void Gp_DrawTargetCursor(void);
 

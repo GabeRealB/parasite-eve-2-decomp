@@ -19,6 +19,7 @@
 #include "hud_sprites.h"
 #include "gameplay/scene.h"
 #include "world_collision.h"
+#include "world_targets.h"
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
@@ -84,7 +85,8 @@ typedef struct _GpCircleScratch {
 } GpCircleScratch;
 STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
 
-WorldTargetNode* Gp_LinkList;
+// The image stores this head alone in the linked_actors BSS subsegment.
+WorldTargetNode* gWorldTargetListHead;
 
 static __inline__ void Gp_RingPointXZ(GpCircleScratch* sc, s32 ang);
 
@@ -109,7 +111,7 @@ void func_800A4904(s32 arg0)
     u16              val;
     s32              idx;
 
-    for (node = Gp_LinkList; node != NULL; node = node->next) {
+    for (node = gWorldTargetListHead; node != NULL; node = node->next) {
         if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
             enemy = GP_NODE_ENEMY(node);
             claim = enemy;
@@ -290,7 +292,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     arg1 += 0x64;
     ry2   = (arg2 * arg2) >> 8;
     rx2   = (arg1 * arg1) >> 8;
-    node  = Gp_LinkList;
+    node  = gWorldTargetListHead;
     SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec = SCRATCH_STACK_CURSOR(SVECTOR);
 
@@ -352,7 +354,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     arg1 += 0x64;
     arg2 += 0x64;
-    node  = Gp_LinkList;
+    node  = gWorldTargetListHead;
     SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec = SCRATCH_STACK_CURSOR(SVECTOR);
 
