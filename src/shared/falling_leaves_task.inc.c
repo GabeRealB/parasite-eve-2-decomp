@@ -1,13 +1,12 @@
 /* Part of the falling leaves library; see falling_leaves.h. */
 
-/// One drifting mote of the room's ambient effect. The first tick seeds it
-/// from `Gp_LcgState`: a size of 0x20, a random tilt pair (`period` /
-/// `step`) and a random drift in `move`. While it flies, the drift
-/// moves its coordinate frame and the tilt rotates it; each drift axis eases
-/// back towards zero by one a tick and re-rolls a fresh multiple of 8 when it
-/// gets there, and the tilt wanders by a random step. Once the frame has
-/// risen past the origin the mote fades in by 0x10 a tick up to 0x80, then
-/// fades back out and releases its work block.
+/// One falling leaf. The first tick seeds a size of 0x20, random tumble rates
+/// (`period` / `step`) and a random drift in `move`. While falling it moves and
+/// tumbles the coordinate, eases each drift axis back towards zero (re-rolling
+/// a multiple of 8 when it gets there) and jitters the tumble. Once it passes
+/// the ground plane (y > 0, since y grows downwards) it lies there opaque for
+/// eight ticks while `angle` counts up to 0x80, then fades out by 0x10 a tick
+/// and releases its work block.
 static inline void leafFallTask(Task* task)
 {
     GpEffWork* work;
