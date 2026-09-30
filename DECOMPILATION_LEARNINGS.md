@@ -11687,7 +11687,7 @@ does not match.
 
 `gte_MulMatrix0` from `gtemac.h` matches as-is once `gte.h` is included (its
 `gte_rtir` now emits `0x4A49E012`; the load/store helpers `gte_SetRotMatrix`,
-`gte_ldclmv`, `gte_stclmv` already emit real MIPS). `Gfx_MatrixToEuler` is the
+`gte_ldclmv`, `gte_stclmv` already emit real MIPS). `gfxMatrixToEuler` is the
 template.
 
 TMD POLY_FT3 draw (`func_8009D388`) uses the same header for RTPT / NCLIP /
@@ -21047,7 +21047,7 @@ vmat->m[2][2] = cos2;
 ```
 
 `volatile` on the destination matrix prevents the stores from being reordered
-around the move. `Gfx_MatrixToEuler` is the pure example (RotMatrixX-shaped block
+around the move. `gfxMatrixToEuler` is the pure example (RotMatrixX-shaped block
 on the scratch arena, then `gte_MulMatrix0` with `gte.h` included).
 
 ## An early typed queue local can occupy `$a1` when the second parameter is unused
@@ -22675,7 +22675,7 @@ block->vec.vz = cy;
 block->vec.vx = sy;
 ```
 
-Same family as the sin/cos `negu` barriers on `Gfx_MatrixToEuler`, but for a
+Same family as the sin/cos `negu` barriers on `gfxMatrixToEuler`, but for a
 register-to-register copy rather than a negate. Needed between `gte_rtir()`
 and `gte_stclmv` when the original interleaves next-vector setup in the GTE
 pipeline gap.
@@ -134818,7 +134818,7 @@ member the real type does declare is the one place to stop.
 ## A scratch block's type is the bytes its users agree on, not the largest reserve
 
 Routines that carve a block off `SCRATCH_STACK_CURSOR_SLOT` each write their own byte
-count, and one can reserve more than the block uses: `Gfx_MatrixToEuler`
+count, and one can reserve more than the block uses: `gfxMatrixToEuler`
 reserves 0x30 for the same `MATRIX`-plus-sine-and-cosine block that
 `Gfx_RotMatrixX`/`Y`/`Z` reserve 0x24 for. Sizing the type to the larger reserve
 - a trailing `pad` - asserts a boundary nothing pins, because the arithmetic is

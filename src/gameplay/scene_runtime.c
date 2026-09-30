@@ -1936,7 +1936,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
             RotMatrix_gte(&scratch->nextRotation, &scratch->nextMatrix);
             TransposeMatrix(&scratch->currentMatrix, &scratch->deltaMatrix);
             gte_MulMatrix0(&scratch->nextMatrix, &scratch->deltaMatrix, &scratch->deltaMatrix);
-            Gfx_MatrixToEuler(&scratch->deltaMatrix, &slot->bufferedRotationDelta);
+            gfxMatrixToEuler(&scratch->deltaMatrix, &slot->bufferedRotationDelta);
         }
         gte_lddp(scratch->nextWeight);
         gte_ldsv(&slot->bufferedRotationDelta);
@@ -1946,12 +1946,12 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
         if (request->unpackedDestination == NULL) {
             gte_MulMatrix0(&scratch->deltaMatrix, &scratch->currentMatrix, &coord->coord);
             if (request->encodedDestination != NULL) {
-                Gfx_MatrixToEuler(&coord->coord, &scratch->nextRotation);
+                gfxMatrixToEuler(&coord->coord, &scratch->nextRotation);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
             gte_MulMatrix0(&scratch->deltaMatrix, &scratch->currentMatrix, &scratch->deltaMatrix);
-            Gfx_MatrixToEuler(&scratch->deltaMatrix, &scratch->nextRotation);
+            gfxMatrixToEuler(&scratch->deltaMatrix, &scratch->nextRotation);
             request->unpackedDestination->rotation = scratch->nextRotation;
         }
     } else {
@@ -2833,7 +2833,7 @@ void Gp_SaveEnemyPose(Enemy* enemy)
     savedPose->y           = coord->coord.t[1];
     savedPose->z           = coord->coord.t[2];
     // Quantize the root's Euler angles to their high bytes.
-    Gfx_MatrixToEuler(&coord->coord, euler);
+    gfxMatrixToEuler(&coord->coord, euler);
     euler->vx        = euler->vx >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
     savedPose->pitch = euler->vx;
     euler->vy        = euler->vy >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;

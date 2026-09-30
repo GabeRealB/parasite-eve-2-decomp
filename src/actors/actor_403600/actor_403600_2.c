@@ -3199,7 +3199,7 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         temp_v1_2->angles[1] = 0x1000;
         temp_v1_2->angles[2] = 0;
         Gfx_OrthonormalBasis(&temp_s0->mat, temp_s2, (SVECTOR*)temp_v1_2);
-        Gfx_MatrixToEuler(&temp_s0->mat, (SVECTOR*)temp_v1_2);
+        gfxMatrixToEuler(&temp_s0->mat, (SVECTOR*)temp_v1_2);
         temp_s0_2            = &temp_s4->field_4B8.coord;
         temp_v1_2->angles[2] = (u16)(temp_v1_2->angles[2] + temp_s4->field_75E);
         Gfx_RotMatrixXYZ(temp_s0_2, (SVECTOR*)temp_v1_2, 1);
@@ -3217,8 +3217,8 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         temp_v1_2->angles[1] = 0x1000;
         temp_v1_2->angles[2] = 0;
         Gfx_OrthonormalBasis(&temp_s0_3->mat, temp_s1, (SVECTOR*)temp_v1_2);
-        Gfx_MatrixToEuler(&temp_s0_3->mat, (SVECTOR*)temp_v1_2);
-        Gfx_MatrixToEuler(&temp_s4->field_4B8.coord, temp_s1);
+        gfxMatrixToEuler(&temp_s0_3->mat, (SVECTOR*)temp_v1_2);
+        gfxMatrixToEuler(&temp_s4->field_4B8.coord, temp_s1);
         diff     = (temp_v1_2->angles[0] & 0xFFF) - (temp_v1_2->vector[0] & 0xFFF);
         turnDiff = diff;
         if (temp_s4->field_76E >= __builtin_abs(diff)) {
@@ -4786,7 +4786,7 @@ static void func_actor_403600_801417A8(Task* arg0, s32 arg1)
             work->field_75E = 0x1000 - angle;
         }
     }
-    Gfx_MatrixToEuler(&work->field_4B8.coord, &rotation);
+    gfxMatrixToEuler(&work->field_4B8.coord, &rotation);
     rotation.vz += work->field_75E;
     RotMatrix(&rotation, &work->field_4B8.coord);
 }

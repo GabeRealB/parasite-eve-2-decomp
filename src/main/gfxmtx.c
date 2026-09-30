@@ -261,23 +261,23 @@ static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     SCRATCH_STACK_RELEASE_BLOCK(ScratchRotZYX);
 }
 
-void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
+void gfxMatrixToEuler(MATRIX* matrix, SVECTOR* angles)
 {
-    /// Scratch-stack reservation in bytes for the inverse-X Euler intermediate.
-    ///
-    /// The 0x30-byte span holds a 0x24-byte `_GfxAxisRotationScratch`; the final
-    /// 0x0C bytes are unused. Allocation and release both use the full span.
+    // The inverse X rotation and its sine and cosine occupy 0x24 bytes.
+    // The reservation is 0x30; the tail is not read or written.
     enum { GRAPHICS_EULER_SCRATCH_BYTES = 0x30 };
 
     _GfxAxisRotationScratch* block;
-    s16                      angle;
+    s16                      angleX;
 
     block = SCRATCH_STACK_RESERVE_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
 
-    angle           = -ratan2(matrix->m[1][2], matrix->m[2][2]);
-    vector->vx      = angle;
-    block->angleSin = rsin(angle);
-    block->angleCos = rcos(vector->vx);
+    // X cancels m[1][2] against m[2][2]. Removing that Rx leaves Ry * Rz:
+    // Y is read from the product's column 2 and Z from its first row.
+    angleX          = -ratan2(matrix->m[1][2], matrix->m[2][2]);
+    angles->vx      = angleX;
+    block->angleSin = rsin(angleX);
+    block->angleCos = rcos(angles->vx);
 
     block->rotation.m[0][0] = ONE;
     block->rotation.m[0][1] = 0;
@@ -291,8 +291,8 @@ void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
 
     gte_MulMatrix0(&block->rotation, matrix, &block->rotation);
 
-    vector->vy = ratan2(block->rotation.m[0][2], block->rotation.m[2][2]);
-    vector->vz = ratan2(block->rotation.m[1][0], block->rotation.m[1][1]);
+    angles->vy = ratan2(block->rotation.m[0][2], block->rotation.m[2][2]);
+    angles->vz = ratan2(block->rotation.m[1][0], block->rotation.m[1][1]);
 
     SCRATCH_STACK_RELEASE_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
 }

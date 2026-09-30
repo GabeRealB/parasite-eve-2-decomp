@@ -62,7 +62,13 @@ void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace);
 
 void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag);
 
-void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector);
+/// Decomposes a rotation matrix into XYZ Euler angles.
+///
+/// `angles->vx`, `vy` and `vz` are the X, Y and Z angles, signed, with 4096
+/// units per turn, for the product Rx(x) * Ry(y) * Rz(z) built by
+/// `Gfx_RotMatrixXYZ`, `RotMatrix` and `RotMatrix_gte`. The fourth halfword
+/// is not written. Translation is not read.
+void gfxMatrixToEuler(MATRIX* matrix, SVECTOR* angles);
 
 void Gfx_MatrixCol0(MATRIX* matrix, SVECTOR* vector);
 
