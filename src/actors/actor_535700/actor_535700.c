@@ -84,15 +84,14 @@ extern u8                  gFootstepWalkAnims[];
 
 /// The second enemy's message table, the `TaskDesc` table its sub-model task
 /// comes from, and the animation data its work block's slots are seeded from.
-extern Actor535700MsgEntry D_actor_535700_801467E0[];
-extern TaskDesc            D_actor_535700_80146810[];
-extern u8                  D_actor_535700_80146828[];
+extern Actor535700MsgEntry gPairWalkMessages[];
+extern TaskDesc            gPairWalkTasks[];
+extern u8                  gPairWalkAnimParams[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task);
 static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task);
-static void func_actor_535700_80132FF8(Task* task);
 static void func_actor_535700_80133020(Task* task);
 
 extern TmdSource D_actor_535700_80139A6C;
@@ -104,7 +103,6 @@ s32 func_actor_535700_80132910(Task*, s32, ActorCommand* msg);
 extern TmdSource D_actor_535700_80142E58;
 extern TmdSource D_actor_535700_8014339C;
 s32              func_actor_535700_8013332C(void);
-s32              func_actor_535700_80133334(Task*, s32, VECTOR*);
 void             func_actor_535700_80132F20(Task*);
 
 void func_actor_535700_80131EF0(s32);
@@ -1072,21 +1070,21 @@ AnimationSet D_actor_535700_801467B8 = {
     { NULL, D_actor_535700_80145CB8, NULL, NULL, D_actor_535700_80145DF0, NULL, NULL, NULL },
 };
 
-Actor535700MsgEntry D_actor_535700_801467E0[6] = {
+Actor535700MsgEntry gPairWalkMessages[6] = {
     { 2003, { .call1 = pairWalkPlay } },
     { 2005, { .call7 = pairWalkSetVisibility } },
     { 2004, { .call4 = pairWalkPlace } },
     { 2011, { .call0 = func_actor_535700_8013332C } },
-    { 2013, { .call5 = func_actor_535700_80133334 } },
+    { 2013, { .call5 = pairWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_535700_80146810[2] = {
+TaskDesc gPairWalkTasks[2] = {
     { (TASK_BODY_TMD | 0x100), 96, func_actor_535700_80132F20, { .model = &D_actor_535700_80142E58 } },
     { (TASK_BODY_TMD | 0x100), 96, pairWalkSubModelTask, { .model = &D_actor_535700_8014339C } },
 };
 
-u8 D_actor_535700_80146828[24] = {
+u8 gPairWalkAnimParams[24] = {
     0,
     0,
     0,
@@ -1120,8 +1118,6 @@ Actor151000Work* gFootstepWalkWork;
 Task* gFootstepWalkTask;
 
 s16 gFootstepWalkMode;
-
-static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task);
 
 /// The fade task: while `D_actor_535700_80146840` is non-zero, draws a
 /// full-screen black `TILE` into ordering table slot 0xA; once it reaches zero
@@ -1259,100 +1255,17 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
 
 #include "../../shared/walker_shadow_shaded.inc.c"
 
-/// State 0 of the second enemy's task. Allocates its `Actor150400Work`,
-/// spawns its sub-model task from `D_actor_535700_80146810`, takes the
-/// sub-model's texture page and CLUT from the placement record the enemy's
-/// `placeKey` selects, makes the sub-model a child of this task, lights the
-/// model at its world position, starts the animation and runs the state
-/// machine `pairWalkUpdate` once.
-static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
-{
-    VECTOR           vec;
-    Actor150400Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    GpEnemy*         spawned;
+#include "../../shared/pair_walk_spawn.inc.c"
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    task->work = work = (Actor150400Work*)memCalloc(sizeof(Actor150400Work), false);
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_535700_80132FF8;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    work->enemy                      = enemy;
-    spawned                          = Gp_SpawnEnemyFromTable(D_actor_535700_80146810, 1, 0, enemy);
-    actorTintModel(spawned->task->extra.tmd, enemy);
-    Task_Reparent(task, spawned->task);
-    work->pairTask = spawned->task;
-    obj->lightMtx  = &work->light;
-    obj->colorMtx  = &work->color;
-    vec.vx         = coord->workm.t[0];
-    vec.vy         = coord->workm.t[1] - 0x320;
-    vec.vz         = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->rig.anim, D_actor_535700_80146828, obj,
-                  &work->rig.poses, work->rig.slots);
-    work->st.animId = 1;
-    work->st.state  = 2;
-    task->msgTable  = D_actor_535700_801467E0;
-    pairWalkUpdate(task);
-    task->state++;
-}
-
-/// The second enemy's animation state machine, run by its spawn and per-frame
-/// handlers. States 1 and 2 start the clip in `animId` through
-/// `pairWalkReseedAnim` or `pairWalkResetAnim` and advance to
-/// state 3. State 3 walks the model 12 units a frame while the walk clip (4)
-/// has `travel` left, dropping back to clip 1 with reset argument 0xA when it
-/// runs out, then ticks the slots.
-void pairWalkUpdate(Task* task)
-{
-    Actor150400Work* work;
-    s16              animId;
-
-    work = (Actor150400Work*)task->work;
-    if (work->st.state == 1) {
-        pairWalkReseedAnim(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        pairWalkResetAnim(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveModelForward(task, 0xC);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        pairWalkTickAnim(task);
-        return;
-    }
-}
+#include "../../shared/pair_walk_update_model.inc.c"
 
 /// The second enemy's task body: runs the handler for the task's state from a
-/// table built on the stack - the spawn handler `func_actor_535700_80132B58`,
+/// table built on the stack - the spawn handler `pairWalkSpawn`,
 /// then the per-frame `func_actor_535700_80132F74`.
 void func_actor_535700_80132F20(Task* task)
 {
     void (*fns[2])(GpEnemy*, Task*) = {
-        func_actor_535700_80132B58,
+        pairWalkSpawn,
         func_actor_535700_80132F74,
     };
 
@@ -1369,7 +1282,7 @@ void func_actor_535700_80132F20(Task* task)
 
 /// Exit callback the second enemy's spawn handler installs on its task: tears
 /// down the enemy the task was spawned for.
-static void func_actor_535700_80132FF8(Task* task)
+void pairWalkExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
@@ -1396,27 +1309,6 @@ s32 func_actor_535700_8013332C(void)
     return 0;
 }
 
-/// "Walk to" opcode of the second enemy: turns its root coordinate to face
-/// `target`, caching the yaw in `Actor150400Work::yaw`, and leaves the
-/// horizontal distance to it, in twelfths, in `travel` for the walk state to
-/// count down.
-s32 func_actor_535700_80133334(Task* task, s32 arg1, VECTOR* target)
-{
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
-    dx           = target->vx - coord->coord.t[0];
-    dz           = target->vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 12;
-    return 0;
-}
+#include "../../shared/pair_walk_to.inc.c"
 
 #include "../../shared/pair_walk_sub_model.inc.c"

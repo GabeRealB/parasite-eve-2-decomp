@@ -3,8 +3,12 @@
  * reseeds the 19-slot rig and walks while the walk clip has travel left, the
  * slot tick, reset and reseed it runs, the play-animation, placement and
  * visibility messages (visibility applies to both models), and the sub-model
- * task that hangs the second model off part 7 under the walker's lighting. A
- * package whose update differs defines pairWalkUpdate itself.
+ * task that hangs the second model off part 7 under the walker's lighting.
+ * pairWalkUpdate comes in two versions: pair_walk_update.inc.c, and
+ * pair_walk_update_model.inc.c, which walks the model 12 units a frame through
+ * actorMoveModelForward. The packages with the second version also share the
+ * spawn state (pair_walk_spawn.inc.c) and the walk-to message
+ * (pair_walk_to.inc.c), and define pairWalkExit themselves.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -27,5 +31,11 @@ s32  pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args);
 s32  pairWalkSetVisibility(Task* task, s32 arg1, s32 flags);
 s32  pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
 void pairWalkSubModelTask(Task* task);
+
+void pairWalkSpawn(GpEnemy* enemy, Task* task);
+s32  pairWalkTo(Task* task, s32 arg1, VECTOR* target);
+
+/* Defined by each package. */
+void pairWalkExit(Task* task);
 
 #endif /* SRC_SHARED_PAIR_WALK_H */
