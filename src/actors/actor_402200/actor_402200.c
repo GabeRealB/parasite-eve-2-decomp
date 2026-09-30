@@ -54,68 +54,62 @@
 
 #include "overlay.h"
 #include "../../shared/frame_capture.h"
+#include "../../shared/cloaked_stalker.h"
 
-/// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
+/// Per-animation-id value `stalkerTickAnim` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
-extern s16 D_actor_402200_801383AC[];
+extern s16 gStalkerAnimBlend[];
 
 extern Actor402200FrameStep D_actor_402200_801383D8[];
 
 /// Reacts to the damage just taken; see its definition.
-static void func_actor_402200_801324E8(Task* arg0, s32 arg1);
 
 /// Runs the one-shot vocal cue armed by `field_718`; see its definition.
-static void func_actor_402200_801380D8(Task* arg0);
 
 /// Aims the actor at the player; see its definition.
 static void func_actor_402200_80135D5C(Task* arg0);
 
 /// Parks the actor's target position off the player; see its definition.
-static void func_actor_402200_80132E34(Task* arg0);
 
 /// Reports whether the player stands in one of the kind-1 boxes; see its
 /// definition.
-static s32 func_actor_402200_80132D78(Task* arg0);
 
 /// Draws the red trail between the two projected points; see its definition.
-static void func_actor_402200_80136184(Task* arg0);
 
 /// Rebuilds the root part's scaled rotation; see its definition.
-static void func_actor_402200_80137CA4(Task* arg0);
 
 /// Projects a coordinate and queues the frame-buffer pass at its depth; see
 /// its definition.
-static void func_actor_402200_80138208(GfxCoord* arg0, s32 arg1);
 
-/// Per-roll wait lengths state 0 of `func_actor_402200_801329A4` scales by
+/// Per-roll wait lengths state 0 of `stalkerIdleSeq` scales by
 /// `16 - field_70C`, indexed by a 4-bit `Gp_LcgState` draw.
 extern s16 D_actor_402200_80153C38[];
 
 /// Per-roll state offsets state 0 adds to 2 when `field_6E8` is set.
 extern u16 D_actor_402200_80153C58[];
 
-/// Cue word `func_actor_402200_8013539C` and `func_actor_402200_801354B0`
+/// Cue word `stalkerLightFlinchSeq` and `stalkerHeavyFlinchSeq`
 /// queue, a separate `D_` symbol in the overlay's data 0x48 past the cue-id
-/// table `D_actor_402200_80138420`.
-extern s32 D_actor_402200_80138468;
+/// table `gStalkerAnimCues`.
+extern s32 gStalkerPainCue;
 
-/// Cue word the fade-out in `func_actor_402200_80134968` queues.
-extern s32 D_actor_402200_8013846C;
+/// Cue word the fade-out in `stalkerCloakFade` queues.
+extern s32 gStalkerFadeCue;
 
 /// Cue-id table: `Actor402200Work::field_712` picks two adjacent words,
 /// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
 /// for the 0x10 one.
-extern s32 D_actor_402200_80138420[];
+extern s32 gStalkerAnimCues[];
 
-/// Cue words `func_actor_402200_80134194` queues next to
-/// `D_actor_402200_80138468`.
-extern s32 D_actor_402200_80138464;
-extern s32 D_actor_402200_80138470;
+/// Cue words `stalkerBoxApproachSeq` queues next to
+/// `gStalkerPainCue`.
+extern s32 gStalkerApproachCue;
+extern s32 gStalkerStrikeCue;
 
 /// Base id of the actor's vocal cues: the `GpEnemy` work id's high nibble
 /// selects one of the four adjacent words here, picked up as bits 8-11 of the
 /// cue id.
-extern s32 D_actor_402200_80138474;
+extern s32 gStalkerHoldCue;
 
 /// The spawn's tables: the task's next handler record, the `DamageAttack`
 /// `Gp_PackPair` packs into the third collision object, the `EnemyParams` whose
@@ -131,7 +125,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor402200MessageEntry, 8);
 
 extern Actor402200MessageEntry D_actor_402200_8013839C[2];
-extern DamageAttack            D_actor_402200_80153BEC[4];
+extern DamageAttack            gStalkerAttacks[4];
 extern EnemyParams             D_actor_402200_80153BFC;
 extern Actor402200Spot         D_actor_402200_80153C78[];
 extern Actor402200Region*      D_actor_402200_80153FA8[];
@@ -143,7 +137,7 @@ extern s16 D_actor_402200_80153C0C[];
 
 /// Weighted 16-entry roll for `Actor402200Work::field_6E4`: indices 0-4 hold 0
 /// and 5-15 hold 1, so the short approach is taken about two thirds of the time.
-extern u16 D_actor_402200_80153C18[];
+extern u16 gStalkerApproachRoll[];
 
 /// Animation block the grab's 0x3FF messages hand the player.
 extern AnimationSet* D_actor_402200_8015415C[5];
@@ -153,7 +147,7 @@ extern EffectSpawnArg D_actor_402200_80154170;
 
 /// The two four-vertex index rows the trail's shaded quads take their corners
 /// from, into the scratch block's six-entry x / y runs.
-extern s16 D_actor_402200_80154178[2][4];
+extern s16 gStalkerBeamQuadCorners[2][4];
 
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.
@@ -161,15 +155,7 @@ extern s16 D_actor_402200_80154178[2][4];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1);
 static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1);
-static void func_actor_402200_80137A1C(GpEnemy* arg0, Task* arg1);
-static void func_actor_402200_80137B74(Task* arg0);
-static void func_actor_402200_80137D78(Task* arg0);
-static void func_actor_402200_80137E48(Task* arg0);
-static void func_actor_402200_80137EEC(Task* arg0);
-static void func_actor_402200_80137FB0(Task* arg0);
-static void func_actor_402200_8013806C(Task* arg0);
 
 s32 func_actor_402200_801381E0(Task*);
 
@@ -198,7 +184,7 @@ extern AnimationSet D_actor_402200_80151994;
 extern AnimationSet D_actor_402200_80151F28;
 extern AnimationSet D_actor_402200_80152988;
 extern AnimationSet D_actor_402200_80153BC4;
-extern DamageAttack D_actor_402200_80153BEC[4];
+extern DamageAttack gStalkerAttacks[4];
 extern TmdSource    D_actor_402200_8013DBD4;
 static void         func_actor_402200_80138340(Task*);
 
@@ -207,7 +193,7 @@ Actor402200MessageEntry D_actor_402200_8013839C[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-s16 D_actor_402200_801383AC[22] = {
+s16 gStalkerAnimBlend[22] = {
     0,
     0,
     0,
@@ -253,7 +239,7 @@ Actor402200FrameStep D_actor_402200_801383D8[18] = {
     { 109, 0xFFFA },
 };
 
-s32 D_actor_402200_80138420[17] = {
+s32 gStalkerAnimCues[17] = {
     0,
     0x40160001,
     0x40160002,
@@ -273,15 +259,15 @@ s32 D_actor_402200_80138420[17] = {
     0,
 };
 
-s32 D_actor_402200_80138464 = 0x40160007;
+s32 gStalkerApproachCue = 0x40160007;
 
-s32 D_actor_402200_80138468 = 0x40160008;
+s32 gStalkerPainCue = 0x40160008;
 
-s32 D_actor_402200_8013846C = 0x4016000F;
+s32 gStalkerFadeCue = 0x4016000F;
 
-s32 D_actor_402200_80138470 = 0x40160010;
+s32 gStalkerStrikeCue = 0x40160010;
 
-s32 D_actor_402200_80138474 = 0x40160011;
+s32 gStalkerHoldCue = 0x40160011;
 
 TmdBone D_actor_402200_80138478[19] = {
 #include "assets/actor_402200_model_0BDB4_skeleton.inc"
@@ -865,9 +851,9 @@ AnimationSet D_actor_402200_80153BC4 = {
     { NULL, D_actor_402200_801529B0, NULL, NULL, D_actor_402200_80152B54, NULL, NULL, NULL },
 };
 
-DamageAttack D_actor_402200_80153BEC[4] = { { 10, 3 }, { 36, 3 }, { 50, 3 }, { 999, 0 } };
+DamageAttack gStalkerAttacks[4] = { { 10, 3 }, { 36, 3 }, { 50, 3 }, { 999, 0 } };
 
-EnemyParams D_actor_402200_80153BFC = { D_actor_402200_80153BEC, 600, 300, 1000, 6, 100, 20, 0, 0 };
+EnemyParams D_actor_402200_80153BFC = { gStalkerAttacks, 600, 300, 1000, 6, 100, 20, 0, 0 };
 
 s16 D_actor_402200_80153C0C[6] = {
     6,
@@ -878,7 +864,7 @@ s16 D_actor_402200_80153C0C[6] = {
     0,
 };
 
-u16 D_actor_402200_80153C18[16] = {
+u16 gStalkerApproachRoll[16] = {
     0,
     0,
     0,
@@ -1251,7 +1237,7 @@ AnimationSet* D_actor_402200_8015415C[5] = {
 
 EffectSpawnArg D_actor_402200_80154170 = { NULL, 300, 1 };
 
-s16 D_actor_402200_80154178[2][4] = {
+s16 gStalkerBeamQuadCorners[2][4] = {
     { 0, 1, 2, 3 },
     { 0, 1, 4, 5 },
 };
@@ -1283,31 +1269,14 @@ AnimationSet* D_actor_402200_80154194[22] = {
     &D_actor_402200_801505C4,
 };
 
-static void        func_actor_402200_80131F54(Task* arg0);
-static void        func_actor_402200_80132688(Task* arg0);
-static void        func_actor_402200_801329A4(Task* arg0);
-static void        func_actor_402200_8013314C(Task* arg0);
-static void        func_actor_402200_80133AEC(Task* arg0);
-static void        func_actor_402200_80134194(Task* arg0);
-static void        func_actor_402200_801347F4(Task* arg0);
-static void        func_actor_402200_80134968(Task* arg0);
-static void        func_actor_402200_8013539C(Task* arg0);
-static void        func_actor_402200_801354B0(Task* arg0);
-static void        func_actor_402200_80135630(Task* arg0);
-static void        func_actor_402200_8013592C(Task* arg0);
-static void        func_actor_402200_80135A24(Task* arg0);
-static void        func_actor_402200_80135BE0(Task* arg0);
-static inline void Actor402200_ReseedAnim(Task* arg0);
-static inline void Actor402200_DrawShadow(Task* arg0);
-
 /// Per-frame hit handler: applies the `func_800E0C10` push-back from the
 /// `field_504` and (while bit 0x4000 of `field_49A` is set) `field_49C`
 /// record tables to the root coordinate, ticks the `field_6C6` flinch
 /// countdown, and for each kind-2 hit record in `field_49C` computes the
 /// damage from the distance to the player, applies it to the `GpEnemy`,
 /// spawns the hit sparks once per distinct id and hands the damage to
-/// `func_actor_402200_801324E8` unless the vocal cue is armed.
-static void func_actor_402200_80131F54(Task* arg0)
+/// `stalkerPickHitReaction` unless the vocal cue is armed.
+void stalkerTakeHits(Task* arg0)
 {
     s32                    lastId;
     Actor402200Work*       work;
@@ -1457,7 +1426,7 @@ static void func_actor_402200_80131F54(Task* arg0)
                     work->field_6EA = 2;
                 }
                 if (work->field_718 != 1) {
-                    func_actor_402200_801324E8(arg0, damage);
+                    stalkerPickHitReaction(arg0, damage);
                 } else {
                     work->field_6F4 = 2;
                 }
@@ -1472,168 +1441,15 @@ static void func_actor_402200_80131F54(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(Actor402200HitScratch);
 }
 
-/// Picks the damage reaction for the hit just taken, from the enemy's HP and
-/// the damage `arg1`: at or below zero HP it silences both queued sound events
-/// and enters the death sequence (9, or 10 while `field_6F0` is set); below a
-/// tenth of `hpMax` the low-HP sequence (7, or 8 while `field_6F0` is set);
-/// otherwise, when `field_6F2` is clear or `field_6EC` set, the flinch sequence
-/// 5 for damage below 0x50 and 6 above. A sequence change restarts its state
-/// and clears bit 0x8000 of `field_582`; the `field_6F0` variants leave a
-/// sequence already held by `field_6F2` running.
-static void func_actor_402200_801324E8(Task* arg0, s32 arg1)
-{
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    s16              hp    = enemy->hp;
-    Actor402200Work* work  = arg0->work;
-    u32              state = 0;
-    s32              max;
+#include "../../shared/cloaked_stalker_hit_reaction.inc.c"
 
-    if (hp <= 0) {
-        state = 6;
-        if (work->field_6F0 == 0) {
-            state = 5;
-        }
-        if (work->field_6B8 != 0) {
-            SndEvt_EnqueueType7(work->field_6B8, 1);
-            work->field_6B8 = 0;
-        }
-        if (work->field_6BC != 0) {
-            SndEvt_EnqueueType7(work->field_6BC, 1);
-            work->field_6BC = 0;
-        }
-    } else if (max = enemy->param->hpMax, hp < max / 10) {
-        state = 4;
-        if (work->field_6F0 == 0) {
-            state = 3;
-        }
-    } else if (work->field_6F2 == 0 || work->field_6EC != 0) {
-        work->field_6F2 = 0;
-        state           = 2;
-        if (arg1 < 0x50) {
-            state = 1;
-        }
-    }
-
-    switch (state) {
-        case 0:
-            break;
-        case 1:
-            work->field_6CC  = 5;
-            work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
-            break;
-        case 2:
-            work->field_6CC  = 6;
-            work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
-            break;
-        case 3:
-            work->field_6CC  = 7;
-            work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
-            break;
-        case 4:
-            if (work->field_6F2 == 0) {
-                work->field_6CC = 8;
-                work->field_6CE = 0;
-            }
-            break;
-        case 5:
-            work->field_6CC  = 9;
-            work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
-            break;
-        case 6:
-            if (work->field_6F2 == 0) {
-                work->field_6CC = 10;
-                work->field_6CE = 0;
-            }
-            break;
-    }
-}
-
-/// Sequence 0xB, the box scan. In state 0 it walks the `field_6FA` boxes at
-/// `field_6B4`: a kind-0 box whose radius `field_2` holds the player's planar
-/// offset from its centre (`field_4`, `field_6`) moves to state 1 and parks the
-/// target position 0x5AA behind the player, raising bit 0x4000 of `field_5BA`
-/// and `field_5DA`; a kind-1 box holding the player starts sequence 3 with
-/// `field_70E` at 3 and its index in `field_708`. State 1 enters sequence 1
-/// (and `field_70E` 1) unless the first record is occupied, clears the target
-/// flags and the record, and drops back to state 0.
-static void func_actor_402200_80132688(Task* arg0)
-{
-    u8*                    head;
-    Actor402200BoxScratch* sc;
-    Actor402200Work*       work;
-    GfxCoord*              coord;
-    s32                    i;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    work                     = arg0->work;
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200BoxScratch);
-    sc                       = (Actor402200BoxScratch*)(head - sizeof(Actor402200BoxScratch));
-    switch (work->field_6CE) {
-        case 0:
-            for (i = 0; i < work->field_6FA; i++) {
-                switch (work->field_6B4[i].field_0) {
-                    case 0:
-                        sc->out.vx = work->field_6B4[i].field_4 - Player_Status.coordMtx->t[0];
-                        sc->out.vz = work->field_6B4[i].field_6 - Player_Status.coordMtx->t[2];
-                        if (SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < work->field_6B4[i].field_2) {
-                            work->field_6CE = 1;
-                            coord           = gameGetPtrSlot(3)->extra.tmd->coords;
-                            work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-                            sc->in.vx       = 0;
-                            sc->in.vy       = 0;
-                            sc->in.vz       = -0x5AA;
-                            gte_SetRotMatrix(&coord->coord);
-                            gte_ldv0(&sc->in);
-                            gte_rtv0();
-                            gte_stlvnl(&sc->out);
-                            work->field_6A4 = Player_Status.coordMtx->t[0] + sc->out.vx;
-                            work->field_6A8 = Player_Status.coordMtx->t[1];
-                            SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
-                            work->field_6AC  = Player_Status.coordMtx->t[2] + sc->out.vz;
-                            work->field_5BA |= 0x4000;
-                            work->field_5DA |= 0x4000;
-                            return;
-                        }
-                        break;
-                    case 1:
-                        if (work->field_6B4[i].field_8 < Player_Status.coordMtx->t[0] &&
-                            Player_Status.coordMtx->t[0] < work->field_6B4[i].field_C &&
-                            Player_Status.coordMtx->t[2] < work->field_6B4[i].field_A &&
-                            work->field_6B4[i].field_E < Player_Status.coordMtx->t[2]) {
-                            work->field_6CC = 3;
-                            work->field_6CE = 0;
-                            work->field_70E = 3;
-                            work->field_708 = i;
-                            SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
-                            return;
-                        }
-                        break;
-                }
-            }
-            break;
-        case 1:
-            if (work->field_5F4.key.value == 0) {
-                work->field_6CC = 1;
-                work->field_70E = 1;
-            }
-            work->field_6CE  = 0;
-            work->field_5BA &= 0xBFFF;
-            work->field_5DA &= 0xBFFF;
-            Gp_ClearRec18Occupied(&work->field_5F4);
-            break;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
-}
+#include "../../shared/cloaked_stalker_box_scan.inc.c"
 
 /// State machine on `field_6CE`: 0 rolls a `field_6D4` wait, 1 counts it
 /// down, 2 picks state 3 or 4 from `field_70E` and an LCG draw offset by
-/// `field_710` (or 5 when `func_actor_402200_80132D78` reports a box hit), and 3-5
+/// `field_710` (or 5 when `stalkerPlayerInBox` reports a box hit), and 3-5
 /// settle the result, walking `field_70C` up to 12.
-static void func_actor_402200_801329A4(Task* arg0)
+void stalkerIdleSeq(Task* arg0)
 {
     Actor402200Work* work;
 
@@ -1647,7 +1463,7 @@ static void func_actor_402200_801329A4(Task* arg0)
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                 work->field_6CE = D_actor_402200_80153C58[(Gp_LcgState >> 16) & 0xF] + 2;
                 work->field_6EE = 1;
-                func_actor_402200_80132E34(arg0);
+                stalkerPlaceTarget(arg0);
                 work->field_6E4 = 0;
             } else if (work->field_6E4 == 0) {
                 work->field_6D4 = (D_actor_402200_80153C38[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF] * (0x10 - work->field_70C)) / 16;
@@ -1666,7 +1482,7 @@ static void func_actor_402200_801329A4(Task* arg0)
             }
             break;
         case 2:
-            if (work->field_70E != 3 && func_actor_402200_80132D78(arg0) != 0) {
+            if (work->field_70E != 3 && stalkerPlayerInBox(arg0) != 0) {
                 work->field_6CE = 5;
                 work->field_710 = 0;
                 break;
@@ -1694,7 +1510,7 @@ static void func_actor_402200_801329A4(Task* arg0)
                 work->field_6CE = ((Gp_LcgState >> 16) & 0xF) < 8 ? 3 : 4;
                 work->field_710 = 0;
             }
-            func_actor_402200_80132E34(arg0);
+            stalkerPlaceTarget(arg0);
             break;
         case 3:
             if (work->field_5F4.key.value == 0) {
@@ -1743,99 +1559,9 @@ static void func_actor_402200_801329A4(Task* arg0)
     }
 }
 
-/// Reports whether the player stands inside one of the actor's kind-1 boxes:
-/// walks the `field_6FA` entries at `field_6B4` and, on the first kind-1 entry
-/// whose box holds the player's world position (x between `field_8` and
-/// `field_C`, z between `field_E` and `field_A`), parks its index in
-/// `field_708` and answers 1. Otherwise it answers 0.
-static s32 func_actor_402200_80132D78(Task* arg0)
-{
-    Actor402200Work* work;
-    s16              count;
-    s32              i;
+#include "../../shared/cloaked_stalker_player_in_box.inc.c"
 
-    work  = arg0->work;
-    count = work->field_6FA;
-    for (i = 0; i < count; i++) {
-        if (work->field_6B4[i].field_0 == 1) {
-            if ((work->field_6B4[i].field_8 < Player_Status.coordMtx->t[0]) &&
-                (Player_Status.coordMtx->t[0] < work->field_6B4[i].field_C)) {
-                if ((Player_Status.coordMtx->t[2] < work->field_6B4[i].field_A) &&
-                    (work->field_6B4[i].field_E < Player_Status.coordMtx->t[2])) {
-                    work->field_708 = i;
-                    return 1;
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-/// Parks the actor's target position off the player (`gameGetPtrSlot(3)`).
-/// In state 3 it takes `field_6E6` from the player's heading and places the
-/// target 0x5AA behind the player, raising bit 0x4000 of `field_5BA` and
-/// `field_5DA`; in state 4 it rolls an angle from `Gp_LcgState` (anywhere, or
-/// within a quarter turn either side while `field_6E8` is clear), derives
-/// `field_5DC` / `field_5E0` from it, adds the player's heading and places the
-/// target 0x4B out along the result, raising bit 0x4000 of `field_5BA`.
-static void func_actor_402200_80132E34(Task* arg0)
-{
-    u8*                       head;
-    Actor402200OffsetScratch* sc;
-    Actor402200Work*          work;
-    GfxCoord*                 coord;
-    u32                       random;
-    s32                       angle;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200OffsetScratch);
-    sc                       = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
-    work                     = arg0->work;
-    if (work->field_6CE == 3) {
-        coord           = gameGetPtrSlot(3)->extra.tmd->coords;
-        work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-        sc->in.vz       = -0x5AA;
-        sc->in.vx       = 0;
-        sc->in.vy       = 0;
-        gte_SetRotMatrix(&coord->coord);
-        gte_ldv0(&sc->in);
-        gte_rtv0();
-        gte_stlvnl(&sc->out);
-        work->field_6A4  = Player_Status.coordMtx->t[0] + sc->out.vx;
-        work->field_6A8  = Player_Status.coordMtx->t[1];
-        work->field_6AC  = Player_Status.coordMtx->t[2] + sc->out.vz;
-        work->field_5DE  = -0x3E8;
-        work->field_5E0  = -0x7D0;
-        work->field_5DC  = 0;
-        work->field_5BA |= 0x4000;
-        work->field_5DA |= 0x4000;
-    } else if (work->field_6CE == 4) {
-        if (work->field_6E8 != 0) {
-            Gp_LcgState     = (Gp_LcgState * 5) + 0x71357911;
-            work->field_6E6 = (Gp_LcgState >> 16) & 0xFFF;
-        } else {
-            random      = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState = random;
-            angle       = (random >> 16) & 0x3FF;
-            if (!((random >> 16) & 0x400)) {
-                angle = -angle;
-            }
-            work->field_6E6 = angle;
-        }
-        work->field_5DC  = (u32)(rsin(work->field_6E6) * 0x7D) >> 8;
-        work->field_5DE  = -0x3E8;
-        work->field_5E0  = (u32)(rcos(work->field_6E6) * 0x7D) >> 8;
-        coord            = gameGetPtrSlot(3)->extra.tmd->coords;
-        work->field_6E6  = (work->field_6E6 + (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF)) & 0xFFF;
-        sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
-        sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;
-        work->field_6A4  = Player_Status.coordMtx->t[0] + sc->in.vx;
-        work->field_6A8  = Player_Status.coordMtx->t[1];
-        work->field_6AC  = Player_Status.coordMtx->t[2] + sc->in.vz;
-        work->field_5BA |= 0x4000;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
-}
+#include "../../shared/cloaked_stalker_place_target.inc.c"
 
 /// Runs the actor's hold sequence on the player (the same 0x3F8 / 0x3FF
 /// message pair `func_actor_103700_80134F50` uses to take a hold). State 0
@@ -1849,7 +1575,7 @@ static void func_actor_402200_80132E34(Task* arg0)
 /// ends it early. State 5 either reacts to `field_6F4` or, at frame 0x1A,
 /// spawns the spark, sends message 0x400 and clears `Player_Status.hp`; state 7
 /// then loads file 9/0x1E and queues cue 0x70010001 once the CD is idle.
-static void func_actor_402200_8013314C(Task* arg0)
+void stalkerGrabSeq(Task* arg0)
 {
     Actor402200Work*        work;
     GfxCoord*               coord;
@@ -1922,7 +1648,7 @@ static void func_actor_402200_8013314C(Task* arg0)
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
             work->field_6DE = 0x1E;
-            work->field_6B8 = D_actor_402200_80138464 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+            work->field_6B8 = gStalkerApproachCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             break;
         case 2:
@@ -1983,7 +1709,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                         Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x1E;
-                        Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_402200_80153BEC, 0), 0);
+                        Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(gStalkerAttacks, 0), 0);
                         work->field_6F6++;
                     }
                 }
@@ -2007,11 +1733,11 @@ static void func_actor_402200_8013314C(Task* arg0)
                         work->field_6DC = 0x4B;
                         work->field_71A = 0;
                         work->field_6DE = 0x1E;
-                        work->field_6BC = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                        work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                         SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     }
                 } else {
-                    func_actor_402200_801324E8(arg0, work->field_70A);
+                    stalkerPickHitReaction(arg0, work->field_70A);
                     work->field_71A = 0;
                 }
                 work->field_718               = 2;
@@ -2036,7 +1762,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                 work->field_6CC = 0;
                 work->field_6CE = 0;
             }
-            func_actor_402200_801380D8(arg0);
+            stalkerHoldCueTimer(arg0);
             break;
         case 5:
             if (work->field_6C4 < 0x1A) {
@@ -2054,7 +1780,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                     work->field_6DC = 0x4B;
                     work->field_6CE = 4;
                     work->field_6DE = 0x1E;
-                    work->field_6BC = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             } else if (work->field_6C4 == 0x1A) {
@@ -2074,7 +1800,7 @@ static void func_actor_402200_8013314C(Task* arg0)
             break;
         case 6:
             work->field_6C8 = -0xA;
-            func_actor_402200_801380D8(arg0);
+            stalkerHoldCueTimer(arg0);
             if (work->field_718 == 0) {
                 work->field_6C8 = 0;
                 work->field_6CC = 4;
@@ -2103,196 +1829,7 @@ static void func_actor_402200_8013314C(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200GrabScratch));
 }
 
-/// Runs the actor's approach-and-strike sequence. State 0 aims the display
-/// object along `field_6E6`, parks it at `field_6A4`..`field_6AC` and rolls
-/// `field_6E4`; a 1 with `field_6E8` clear parks the state at 1 with a
-/// 0xF..0x1E frame budget, otherwise the state goes to 3 with a 0x1E..0x2D
-/// budget, or to 4 when `field_6E8` is set, and the cue `field_6B8` is queued.
-/// The budget is split into `field_6DC` (two thirds) and `field_6DE` (the
-/// remainder), which the strike states consume in turn. States 1 to 4 and 6
-/// count `field_6D4` down: 1 rolls a 0x3C..0x4B wait into state 2, 2 splits a
-/// fresh budget into state 6 and releases the link node, 3 and 4 fall through
-/// to the next state when the budget runs out and abort back to state 0 while
-/// `field_70A` is positive, and 6 returns to state 0. State 5 reacts to the
-/// animation's `field_6C4`: 0x14 and 0x1C bind `field_56C` to a body part and
-/// queue the strike cue, and 0x23 ends the strike in state 6.
-static void func_actor_402200_80133AEC(Task* arg0)
-{
-    Actor402200OffsetScratch* sc;
-    Actor402200Work*          work;
-    GfxCoord*                 coord;
-    s32                       cue;
-    u32                       random;
-    u16                       delay;
-    s16                       part;
-    s16                       timer;
-
-    SCRATCH_PUSH_BYTES(sizeof(Actor402200OffsetScratch));
-    sc    = SCRATCH_STACK_CURSOR(Actor402200OffsetScratch);
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    switch (work->field_6CE) {
-        case 0:
-            work->field_6C0 = 4;
-            work->field_6E4 = D_actor_402200_80153C18[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-            sc->in.vx       = 0;
-            sc->in.vy       = (work->field_6E6 + 0x800) & 0xFFF;
-            sc->in.vz       = 0;
-            RotMatrix(&sc->in, &coord->coord);
-            coord->coord.t[0] = work->field_6A4;
-            coord->coord.t[1] = work->field_6A8;
-            coord->coord.t[2] = work->field_6AC;
-            if (work->field_6E4 == 1 && work->field_6E8 == 0) {
-                random          = Gp_LcgState * 5 + 0x71357911;
-                delay           = ((random >> 16) & 0xF) + 0xF;
-                work->field_6CE = 1;
-                work->field_6DA = 4;
-                Gp_LcgState     = random;
-                work->field_6D4 = delay;
-                part            = delay * 2 / 3;
-                work->field_6DC = part;
-                work->field_6DE = delay - part;
-            } else {
-                work->field_6E4 = 0;
-                if (work->field_6E8 == 0) {
-                    timer           = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 0x1E;
-                    work->field_6CE = 3;
-                    work->field_6D4 = timer;
-                    part            = timer * 2 / 3;
-                    work->field_6DC = part;
-                    work->field_6DE = work->field_6D4 - part;
-                } else {
-                    work->field_6CE = 4;
-                    work->field_6DC = 0x14;
-                    work->field_6D4 = 0;
-                    work->field_6DE = 0xA;
-                }
-                work->field_6DA = 1;
-                work->field_6B8 = D_actor_402200_80138464 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                work->field_70A = 0;
-                work->field_6F2 = 1;
-            }
-            work->field_6D6 = 1;
-            work->field_6E8 = 0;
-            break;
-        case 1:
-            if (work->field_6D6 != 0) {
-                if (work->field_6C6 == 0) {
-                    work->field_494  = 0;
-                    work->field_49A |= 0x8000;
-                }
-                work->field_6D6 = 0;
-            }
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0 || work->field_6E8 != 0) {
-                work->field_6CE = 2;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6D4 = ((Gp_LcgState >> 16) & 0xF) + 0x3C;
-            }
-            break;
-        case 2:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0 || work->field_6E8 != 0) {
-                work->field_6CE = 6;
-                work->field_6DA = 6;
-                if (work->field_6E8 != 0) {
-                    work->field_6DC = 5;
-                    work->field_6DE = 3;
-                    work->field_6D4 = work->field_6DC + work->field_6DE;
-                } else {
-                    work->field_6DC = 8;
-                    work->field_6DE = 8;
-                    work->field_6D4 = work->field_6DC + work->field_6DE;
-                }
-                Gp_ClearNodeSlots(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
-            }
-            break;
-        case 3:
-            if (work->field_6D6 != 0) {
-                if (work->field_6C6 == 0) {
-                    work->field_49A |= 0x8000;
-                    work->field_494  = work->field_716 | 0x30000;
-                }
-                work->field_6D6 = 0;
-            }
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                work->field_6CE = 4;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6D4 = (Gp_LcgState >> 16) & 0xF;
-            } else if (work->field_70A > 0) {
-                work->field_6CC = 4;
-                work->field_6CE = 0;
-                work->field_6DA = 7;
-                if (work->field_6B8 != 0) {
-                    SndEvt_EnqueueType7(work->field_6B8, 1);
-                    work->field_6B8 = 0;
-                }
-            }
-            break;
-        case 4:
-            if (work->field_6D6 != 0) {
-                if (work->field_6C6 == 0) {
-                    work->field_49A |= 0x8000;
-                    work->field_494  = work->field_716 | 0x30000;
-                }
-                work->field_6D6 = 0;
-            }
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                work->field_6C0 = 5;
-                work->field_6CE = 5;
-                work->field_6D4 = 0;
-            } else if (work->field_70A > 0) {
-                work->field_6CC = 4;
-                work->field_6CE = 0;
-                work->field_6DA = 7;
-            }
-            break;
-        case 5:
-            if (work->field_6C4 == 0x14) {
-                work->field_56C  = &arg0->extra.tmd->coords[8];
-                work->field_574  = 0;
-                work->field_576  = 0;
-                work->field_578  = 0;
-                work->field_580  = 0x12C;
-                work->field_57C  = Gp_PackPair(D_actor_402200_80153BEC, 1);
-                work->field_582 |= 0x8000;
-                cue              = D_actor_402200_80138470 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(cue, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            } else if (work->field_6C4 == 0x1C) {
-                work->field_56C = &arg0->extra.tmd->coords[12];
-                cue             = D_actor_402200_80138470 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(cue, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            }
-            if (work->field_6C4 == 0x23) {
-                work->field_6CE  = 6;
-                work->field_6D4  = 0x1E;
-                work->field_6DA  = 3;
-                work->field_6DC  = 0x14;
-                work->field_6DE  = 0xA;
-                work->field_582 &= 0x7FFF;
-                work->field_6BC  = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            }
-            break;
-        case 6:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                work->field_6CC = 0;
-                work->field_6CE = 0;
-                work->field_6F2 = 0;
-            }
-            break;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
-}
+#include "../../shared/cloaked_stalker_strike.inc.c"
 
 /// Runs the actor's approach sequence off the box it last hit. State 0 plants
 /// the display object on that box, faces it along the box heading and queues
@@ -2302,7 +1839,7 @@ static void func_actor_402200_80133AEC(Task* arg0)
 /// than 0x180 (state 4). State 3 steps `field_6C8` through the frame table
 /// `D_actor_402200_801383D8` and fires its per-frame events; state 4 counts
 /// `field_6D4` down back to state 0.
-static void func_actor_402200_80134194(Task* arg0)
+void stalkerBoxApproachSeq(Task* arg0)
 {
     u8*                       head;
     Actor402200OffsetScratch* sc;
@@ -2346,7 +1883,7 @@ static void func_actor_402200_80134194(Task* arg0)
             work->field_6DA = 1;
             work->field_6DC = 0x14;
             work->field_6DE = 0xA;
-            work->field_6B8 = D_actor_402200_80138464 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+            work->field_6B8 = gStalkerApproachCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             Gp_ArmStateF0(1);
             if (work->field_6C6 == 0) {
@@ -2404,7 +1941,7 @@ static void func_actor_402200_80134194(Task* arg0)
                     work->field_6F2  = 0;
                     work->field_6D4  = work->field_6DC + 0xA;
                     work->field_62A &= 0x3FFF;
-                    work->field_6BC  = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    work->field_6BC  = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
@@ -2421,7 +1958,7 @@ static void func_actor_402200_80134194(Task* arg0)
             }
             work->field_6C8 = D_actor_402200_801383D8[i].value;
             if (work->field_6C4 == 0x12) {
-                snd = D_actor_402200_80138470 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gStalkerStrikeCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             if (work->field_6C4 == 0x14) {
@@ -2430,7 +1967,7 @@ static void func_actor_402200_80134194(Task* arg0)
                 work->field_578  = 0x1F4;
                 work->field_574  = 0;
                 work->field_580  = 0x3E8;
-                work->field_57C  = Gp_PackPair(D_actor_402200_80153BEC, 2);
+                work->field_57C  = Gp_PackPair(gStalkerAttacks, 2);
                 work->field_582 |= 0x8000;
             }
             if (work->field_6C4 == 0x20) {
@@ -2443,7 +1980,7 @@ static void func_actor_402200_80134194(Task* arg0)
                 work->field_6DE = 0xA;
                 work->field_6CE = 4;
                 work->field_6D4 = work->field_6DC + 0xA;
-                work->field_6BC = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             break;
@@ -2467,7 +2004,7 @@ static void func_actor_402200_80134194(Task* arg0)
 /// the frame it runs out, arms the `field_6DA`/`field_6DC`/`field_6DE`/
 /// `field_6E0` timers, clears the state and `field_6CC`, and queues the actor's
 /// cue, panned and depth-attenuated from the display object.
-static void func_actor_402200_801347F4(Task* arg0)
+void stalkerRecoverSeq(Task* arg0)
 {
     Actor402200Work* work;
     GfxCoord*        coord;
@@ -2502,7 +2039,7 @@ static void func_actor_402200_801347F4(Task* arg0)
                 work->field_6CE = 0;
                 work->field_6DE = 5;
                 work->field_6E0 = 0;
-                work->field_6BC = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 pan             = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
             }
@@ -2511,509 +2048,15 @@ static void func_actor_402200_801347F4(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-/// Runs the actor's fade sequence off `field_6DA`. States 1 / 3 fade the
-/// display object's `field_2C` and the `field_6D8` / `field_6E2` shades up and
-/// down, releasing the queued cues as they finish; state 4 fades to 0xB00 and
-/// snapshots the root matrix into `field_674`, and state 6 winds `scale.vx` /
-/// `scale.vy` down before resetting the root matrix to identity. States 7-9
-/// flicker between two LCG-rolled timings, spawning effect 0x600E0 at the
-/// fourth part on odd animation frames.
-static void func_actor_402200_80134968(Task* arg0)
-{
-    SVECTOR*         sc;
-    Actor402200Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GpMtxWords*      m;
-    s32              snd;
-    s32              pan;
-    s32              v;
-    s32              w;
-    s32              sy;
-    s32              y;
-    u32              random;
-    s16              t;
+#include "../../shared/cloaked_stalker_cloak_fade.inc.c"
 
-    sc    = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    coord = obj->coords;
-    switch (work->field_6DA) {
-        case 0:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_6E2        = -1;
-            work->field_49A       &= 0x7FFF;
-            if (work->field_6B8 != 0) {
-                SndEvt_EnqueueType7(work->field_6B8, 1);
-                work->field_6B8 = 0;
-            }
-            if (work->field_6BC != 0) {
-                SndEvt_EnqueueType7(work->field_6BC, 1);
-                work->field_6BC = 0;
-            }
-            break;
-        case 1:
-            obj->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
-            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
-                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
-                t                       = work->field_6D8 - 0xFF / work->field_6DC;
-                work->field_6D8         = t;
-                if (t <= 0) {
-                    work->field_6D8 = 0;
-                    work->field_6DA = 2;
-                    if (work->field_6B8 != 0) {
-                        SndEvt_EnqueueType7(work->field_6B8, 1);
-                        work->field_6B8 = 0;
-                    }
-                }
-            }
-            t               = work->field_6E2 + 0x80 / work->field_6DC;
-            work->field_6E2 = t;
-            if (t >= 0x80) {
-                work->field_6E2 = 0x80;
-            }
-            break;
-        case 2:
-            work->field_6E2 = 0x80;
-            if (work->field_6B8 != 0) {
-                SndEvt_EnqueueType7(work->field_6B8, 1);
-                work->field_6B8 = 0;
-            }
-            if (work->field_6BC != 0) {
-                SndEvt_EnqueueType7(work->field_6BC, 1);
-                work->field_6BC = 0;
-            }
-            break;
-        case 3:
-            t               = work->field_6D8 + 0xFF / work->field_6DC;
-            work->field_6D8 = t;
-            if (t >= 0xFF) {
-                work->field_6D8          = 0xFF;
-                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
-                if (obj->shading.colorBlend <= 0) {
-                    obj->shading.colorBlend = 0;
-                    work->field_6DA         = 0;
-                    if (work->field_6BC != 0) {
-                        SndEvt_EnqueueType7(work->field_6BC, 1);
-                        work->field_6BC = 0;
-                    }
-                    snd = D_actor_402200_8013846C | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                    pan = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
-                }
-            }
-            t               = work->field_6E2 - 0x80 / work->field_6DC;
-            work->field_6E2 = t;
-            if (t < 0) {
-                work->field_6E2 = -1;
-            }
-            break;
-        case 4:
-            obj->shading.colorBlend += 0xB00 / work->field_6DE;
-            if (obj->shading.colorBlend >= 0xB00) {
-                obj->shading.colorBlend = 0xB00;
-                t                       = work->field_6D8 - 0xFF / work->field_6DC;
-                work->field_6D8         = t;
-                if (t <= 0) {
-                    work->field_6DA = 5;
-                    work->field_6D8 = 0;
-                    work->scale.vx  = 0x1000;
-                    work->scale.vy  = 0x1000;
-                    work->scale.vz  = 0x1000;
-                    work->field_674 = arg0->extra.tmd->coords[0].coord;
-                    work->field_6D0 = 0;
-                }
-            }
-            work->field_6E2 = -1;
-            break;
-        case 5:
-            work->field_6E2 = -1;
-            break;
-        case 6:
-            work->field_49A &= 0x7FFF;
-            switch (work->field_6D0) {
-                case 0:
-                    y = work->scale.vy;
-                    if (work->field_6E8 != 0) {
-                        sy = y - 0x400;
-                    } else {
-                        sy = y - 0x200;
-                    }
-                    work->scale.vy = sy;
-                    if (sy <= 0x800) {
-                        work->field_6D0 = 1;
-                    }
-                    break;
-                case 1:
-                    if (work->field_6E8 != 0) {
-                        v              = work->scale.vx - 0x200;
-                        w              = work->scale.vy + 0x400;
-                        work->scale.vx = v;
-                        work->scale.vy = w;
-                    } else {
-                        v              = work->scale.vx - 0x100;
-                        w              = work->scale.vy + 0x200;
-                        work->scale.vx = v;
-                        work->scale.vy = w;
-                    }
-                    if (work->scale.vx <= 0x800) {
-                        work->field_6D0 = 2;
-                    }
-                    break;
-            }
-            func_actor_402200_80137CA4(arg0);
-            t               = work->field_6D8 + 0xFF / work->field_6DC;
-            work->field_6D8 = t;
-            if (t >= 0xFF) {
-                work->field_6D8          = 0xFF;
-                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
-                if (obj->shading.colorBlend <= 0) {
-                    obj->shading.colorBlend = 0;
-                    work->field_6DA         = 0;
-                    m                       = (GpMtxWords*)&arg0->extra.tmd->coords[0].coord;
-                    m->m00_m01              = 0x1000;
-                    m->m02_m10              = 0;
-                    m->m11_m12              = 0x1000;
-                    m->m20_m21              = 0;
-                    m->m22                  = 0x1000;
-                    arg0->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                }
-            }
-            work->field_6E2 = -1;
-            break;
-        case 7:
-            work->field_6DA = 8;
-            work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
-            t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
-            work->field_6DC = t;
-            work->field_6DE = t;
-            break;
-        case 8:
-            t               = work->field_6D8 + 0xFF / work->field_6DC;
-            work->field_6D8 = t;
-            if (t >= 0x80) {
-                work->field_6D8          = 0x80;
-                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
-                if (obj->shading.colorBlend <= 0x800) {
-                    obj->shading.colorBlend = 0x800;
-                }
-            }
-            t               = work->field_6E2 - 0x80 / work->field_6DC;
-            work->field_6E2 = t;
-            if (t < 0) {
-                work->field_6E2 = -1;
-            }
-            t               = work->field_6E0 - 1;
-            work->field_6E0 = t;
-            if (t <= 0) {
-                work->field_6DA = 9;
-                work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
-                t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
-                work->field_6DC = t;
-                work->field_6DE = t;
-            }
-            if (work->field_6EA == 0) {
-                work->field_6EA = 1;
-            }
-            if (work->field_6C4 & 1) {
-                sc->vx = 0;
-                sc->vy = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF);
-                sc->vz = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF;
-                Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, sc);
-            }
-            break;
-        case 9:
-            obj->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
-            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
-                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
-                t                       = work->field_6D8 - 0xFF / work->field_6DC;
-                work->field_6D8         = t;
-                if (t <= 0) {
-                    work->field_6D8 = 0;
-                }
-            }
-            t               = work->field_6E2 + 0x80 / work->field_6DC;
-            work->field_6E2 = t;
-            if (t >= 0x80) {
-                work->field_6E2 = 0x80;
-            }
-            t               = work->field_6E0 - 1;
-            work->field_6E0 = t;
-            if (t <= 0) {
-                work->field_6DA = 8;
-                work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
-                t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
-                work->field_6DC = t;
-                work->field_6DE = t;
-            }
-            if (work->field_6C4 & 1) {
-                sc->vx = 0;
-                sc->vy = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF);
-                sc->vz = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF;
-                Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, sc);
-            }
-            break;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
+#include "../../shared/cloaked_stalker_light_flinch.inc.c"
 
-/// Runs the actor's animation-reseed sequence. State 0 puts the slot set on
-/// animation 8, clears `field_6C8` and drops the state to 1; unless the mode at
-/// `field_6EC` is already 1 it also arms the `field_6DA`/`field_6DC`/`field_6DE`
-/// timers and queues the actor's cue, panned and depth-attenuated from the
-/// display object. State 1 waits for the animation to reach 0x37 frames and
-/// then puts the state back to 0, flipping the mode to 2 and raising
-/// `field_6CC` if it was 1.
-static void func_actor_402200_8013539C(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              pan;
+#include "../../shared/cloaked_stalker_heavy_flinch.inc.c"
 
-    work  = arg0->work;
-    state = work->field_6CE;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            work->field_6C0 = 8;
-            work->field_6CE = 1;
-            work->field_6C8 = 0;
-            if (work->field_6EC != 1) {
-                work->field_6DA = 3;
-                work->field_6DC = 0x1E;
-                work->field_6DE = 0xF;
-                work->field_6BC = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan             = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
-                break;
-            }
-            break;
-        case 1:
-            if (work->field_6C4 >= 0x37) {
-                if (work->field_6EC == state) {
-                    work->field_6CC = 4;
-                    work->field_6EC = 2;
-                } else {
-                    work->field_6CC = 0;
-                }
-                work->field_6CE = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/cloaked_stalker_kneel.inc.c"
 
-/// Runs the actor's attack sequence. State 0 puts the slot set on animation 9
-/// or 0xA, whichever `field_6D2` selects, and parks the state at 1 or 2 to
-/// match; unless the mode at `field_6EC` is already 1 it also arms the
-/// `field_6DA`/`field_6DC`/`field_6DE` timers and queues the actor's cue,
-/// panned and depth-attenuated from the display object. States 1 and 2 wait out
-/// their own animation - `field_6C4` at 0x50 and 0x3B frames - and then put the
-/// state back to 0, flipping the mode to 2 and raising `field_6CC` when it was
-/// still 1.
-static void func_actor_402200_801354B0(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              pan;
-
-    work  = arg0->work;
-    state = work->field_6CE;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            if (work->field_6D2 == 1) {
-                work->field_6C0 = 9;
-                work->field_6CE = 1;
-            } else {
-                work->field_6C0 = 0xA;
-                work->field_6CE = 2;
-            }
-            work->field_6C8 = 0;
-            if (work->field_6EC != 1) {
-                work->field_6DA = 3;
-                work->field_6DC = 0x1E;
-                work->field_6DE = 0xF;
-                work->field_6BC = D_actor_402200_80138468 | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan             = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
-                break;
-            }
-            break;
-        case 1:
-            if (work->field_6C4 >= 0x50) {
-                if (work->field_6EC == state) {
-                    work->field_6CC = 4;
-                    work->field_6EC = 2;
-                } else {
-                    work->field_6CC = 0;
-                }
-                work->field_6CE = 0;
-            }
-            break;
-        case 2:
-            if (work->field_6C4 >= 0x3B) {
-                if (work->field_6EC == 1) {
-                    work->field_6CC = 4;
-                    work->field_6EC = state;
-                } else {
-                    work->field_6CC = 0;
-                }
-                work->field_6CE = 0;
-            }
-            break;
-    }
-}
-
-/// Runs the actor's branch sequence. State 0 puts the slot set on animation
-/// 0xD or 0x11, whichever `field_6D2` selects, and parks the state at 1 or 2 to
-/// match. States 1 and 2 queue the actor's cue at frame 0x2C / 0x19 and, once
-/// `field_6C4` reaches 0x42 / 0x31, move to state 3 with an LCG-rolled
-/// `field_6D4` countdown; states 3 and 4 then alternate on that countdown.
-static void func_actor_402200_80135630(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              snd;
-    s32              anim;
-    u32              random;
-    s16              timer;
-
-    work  = arg0->work;
-    state = work->field_6CE;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            if (work->field_6D2 == 0) {
-                work->field_6C0 = 0xD;
-                work->field_6CE = 1;
-                work->field_6F0 = 1;
-                work->field_490 = -0xA7;
-            } else {
-                work->field_6C0 = 0x11;
-                work->field_6CE = 2;
-                work->field_6F0 = 2;
-                work->field_490 = 0x109;
-            }
-            work->field_498  = 0x15E;
-            work->field_714  = 1;
-            work->field_6DA  = 7;
-            work->field_6F2  = 2;
-            work->field_6C8  = 0;
-            work->field_49A |= 0x4000;
-            work->field_502 &= 0xBFFF;
-            break;
-        case 1:
-            if (work->field_6C4 == 0x2C) {
-                snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            }
-            if (work->field_6C4 >= 0x42) {
-                work->field_6C0 = 0x10;
-                work->field_6CE = 3;
-                work->field_6F2 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
-                work->field_6D4 = (random >> 16) & 0x3F;
-            }
-            if (work->field_714 == 1) {
-                work->field_714 = 2;
-            }
-            break;
-        case 2:
-            if (work->field_6C4 == 0x19) {
-                snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-            }
-            if (work->field_6C4 >= 0x31) {
-                work->field_6C0 = 0x14;
-                work->field_6CE = 3;
-                work->field_6F2 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
-                work->field_6D4 = (random >> 16) & 0x3F;
-            }
-            if (work->field_714 == 1) {
-                work->field_714 = 2;
-            }
-            break;
-        case 3:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                anim = 0x13;
-                if (work->field_6F0 == 1) {
-                    anim = 0xF;
-                }
-                work->field_6D4 = 0xA;
-                work->field_6C0 = anim;
-                work->field_6CE = 4;
-            }
-            break;
-        case 4:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                anim = 0x14;
-                if (work->field_6F0 == 1) {
-                    anim = 0x10;
-                }
-                work->field_6C0 = anim;
-                work->field_6CE = 3;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
-                work->field_6D4 = (random >> 16) & 0x3F;
-            }
-            break;
-    }
-}
-
-/// Sequence 8, the low-HP turn: state 0 picks animation 0xE (and state 1) when
-/// `field_6F0` is 1, otherwise 0x12 and state 2; states 1 and 2 wait for the
-/// frame counter to reach 0x10 or 0x16, then switch to animation 0x10 or 0x14,
-/// enter sequence 7 at state 3 and arm the `field_6D4` countdown from the
-/// `Gp_LcgState` LCG (0..0x3F).
-static void func_actor_402200_8013592C(Task* arg0)
-{
-    Actor402200Work* work;
-    s16              state;
-    s32              next;
-
-    work  = arg0->work;
-    state = work->field_6CE;
-    switch (state) {
-        case 0:
-            next = work->field_6F0;
-            if (next == 1) {
-                work->field_6C0 = 0xE;
-                work->field_6CE = next;
-            } else {
-                work->field_6C0 = 0x12;
-                work->field_6CE = 2;
-            }
-            break;
-        case 1:
-            if (work->field_6C4 >= 0x10) {
-                work->field_6C0 = 0x10;
-                work->field_6CC = 7;
-                work->field_6CE = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6D4 = ((u32)Gp_LcgState >> 16) & 0x3F;
-            }
-            break;
-        case 2:
-            if (work->field_6C4 >= 0x16) {
-                work->field_6C0 = 0x14;
-                work->field_6CC = 7;
-                work->field_6CE = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6D4 = ((u32)Gp_LcgState >> 16) & 0x3F;
-            }
-            break;
-    }
-}
+#include "../../shared/cloaked_stalker_kneel_hit.inc.c"
 
 /// The enemy task's three state handlers, which `func_actor_402200_80138340`
 /// picks by `Task::state`: the spawn setup, the frame handler that runs the
@@ -3021,107 +2064,13 @@ static void func_actor_402200_8013592C(Task* arg0)
 /// before running its own short sequence.
 static const GpEnemyTaskFuncTable3 D_actor_402200_80131F18 = {
     func_actor_402200_80137444,
-    func_actor_402200_80137A1C,
-    func_actor_402200_801368E0,
+    stalkerFrameState,
+    stalkerDeadState,
 };
 
-static void func_actor_402200_80135A24(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              snd;
-    s32              pan;
-    s32              frames;
-    s16              timer;
+#include "../../shared/cloaked_stalker_collapse_death.inc.c"
 
-    work  = arg0->work;
-    state = work->field_6CE;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            if (work->field_6D2 == 0) {
-                work->field_6C0 = 0xD;
-                work->field_6CE = 1;
-                work->field_6F0 = 1;
-                work->field_6D4 = 0x42;
-                work->field_490 = -0xA7;
-            } else {
-                work->field_6C0 = 0x11;
-                work->field_6CE = 1;
-                work->field_6F0 = 2;
-                work->field_6D4 = 0x31;
-                work->field_490 = 0x109;
-            }
-            work->field_498  = 0x15E;
-            work->field_714  = 1;
-            work->field_6DA  = 1;
-            work->field_6DC  = 0x14;
-            work->field_6DE  = 0xA;
-            work->field_6F2  = 2;
-            work->field_6C8  = 0;
-            work->field_49A |= 0x4000;
-            work->field_502 &= 0xBFFF;
-            break;
-        case 1:
-            if (work->field_714 == state) {
-                work->field_714 = 2;
-            }
-            frames = 0x19;
-            if (work->field_6F0 == state) {
-                frames = 0x2C;
-            }
-            if (work->field_6C4 == frames) {
-                snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
-            }
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                arg0->state     = 2;
-                work->field_6CE = 0;
-                work->field_6F2 = 0;
-            }
-            break;
-    }
-}
-
-/// Fires the cue pair the work block's `field_712` selects: while the second
-/// animation slot carries `flags` bit 0x20 or 0x10, a sound is queued on the
-/// frame that bit has just dropped from `Actor402200Work::field_6CA`, panned
-/// and depth-attenuated from the actor's display object. The cue id is the
-/// matching word of `D_actor_402200_80138420` with the `GpEnemy` work id's high
-/// nibble in bits 8-11, and a zero `field_712` disarms the body. The record's
-/// two bits are latched for the next frame at the end.
-static void func_actor_402200_80135BE0(Task* arg0)
-{
-    s32                    snd;
-    s32                    pan;
-    s32                    pan2;
-    Actor402200Work*       work;
-    GfxCoord*              coord;
-    const AnimationRecord* rec;
-
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->field_712 != 0) {
-        rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
-        if (rec != NULL) {
-            if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_6CA & ANIMATION_RECORD_CUE_2)) {
-                snd = D_actor_402200_80138420[work->field_712 * 2 - 1] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
-            }
-            if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->field_6CA & ANIMATION_RECORD_CUE_1)) {
-                snd  = D_actor_402200_80138420[work->field_712 * 2] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                pan2 = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
-            }
-            work->field_6CA = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
-        }
-    }
-}
+#include "../../shared/cloaked_stalker_anim_cues.inc.c"
 
 /// Aims the actor off its fourth part. While `field_6D6` is positive the
 /// offset (-0x28, -0x78, 0xDC) through the root-to-part matrix lands in
@@ -3208,214 +2157,16 @@ static void func_actor_402200_80135D5C(Task* arg0)
             work->field_700[i] = sc->sxy >> 16;
             work->field_704[i] = sc->otz;
         }
-        func_actor_402200_80136184(arg0);
+        stalkerDrawAimBeam(arg0);
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200AimScratch));
 }
 
-/// Draws the red trail between the two points `func_actor_402200_80135D5C`
-/// projects into `field_6FC`..`field_704`: eight segments, each skipped while
-/// its interpolated depth is below 0x1E, and each drawn as two shaded quads
-/// offset along the screen normal, a centre line and a tpage.
-static void func_actor_402200_80136184(Task* arg0)
-{
-    Actor402200TrailScratch* sc;
-    Actor402200Work*         work;
-    POLY_G4*                 poly;
-    LINE_F2*                 line;
-    DR_TPAGE*                tp;
-    s32                      i;
-    s32                      j;
+#include "../../shared/cloaked_stalker_aim_beam.inc.c"
 
-    sc         = SCRATCH_STACK_RESERVE_BLOCK(Actor402200TrailScratch);
-    work       = arg0->work;
-    sc->dir.vx = work->field_6FC[1] - work->field_6FC[0];
-    sc->dir.vy = work->field_700[1] - work->field_700[0];
-    sc->dir.vz = 0;
-    VectorNormalS(&sc->dir, &sc->norm);
-    sc->norm.vy *= -1;
-    sc->dx       = (work->field_6FC[1] - work->field_6FC[0]) / 8;
-    sc->dy       = (work->field_700[1] - work->field_700[0]) / 8;
-    sc->dz       = (work->field_704[1] - work->field_704[0]) / 8;
-    for (i = 0; i < 8; i++) {
-        sc->z = sc->dz * (i + 1) + work->field_704[0];
-        if (sc->z < 0x1E) {
-            continue;
-        }
-        sc->x[0] = work->field_6FC[0] + sc->dx * i;
-        sc->x[1] = work->field_6FC[0] + sc->dx * (i + 1);
-        sc->x[2] = sc->x[0] + ((-(sc->norm.vy * 0x600) >> 12) / sc->z);
-        sc->x[3] = sc->x[1] + ((-(sc->norm.vy * 0x600) >> 12) / sc->z);
-        sc->x[4] = sc->x[0] + (((sc->norm.vy * 3) >> 3) / sc->z);
-        sc->x[5] = sc->x[1] + (((sc->norm.vy * 3) >> 3) / sc->z);
-        sc->y[0] = work->field_700[0] + sc->dy * i;
-        sc->y[1] = work->field_700[0] + sc->dy * (i + 1);
-        sc->y[2] = sc->y[0] + ((-(sc->norm.vx * 0x600) >> 12) / sc->z);
-        sc->y[3] = sc->y[1] + ((-(sc->norm.vx * 0x600) >> 12) / sc->z);
-        sc->y[4] = sc->y[0] + (((sc->norm.vx * 3) >> 3) / sc->z);
-        sc->y[5] = sc->y[1] + (((sc->norm.vx * 3) >> 3) / sc->z);
-        for (j = 0; j < 2; j++) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 8);
-            poly->code = 0x3A;
-            poly->x0   = sc->x[D_actor_402200_80154178[j][0]];
-            poly->y0   = sc->y[D_actor_402200_80154178[j][0]];
-            poly->x1   = sc->x[D_actor_402200_80154178[j][1]];
-            poly->y1   = sc->y[D_actor_402200_80154178[j][1]];
-            poly->x2   = sc->x[D_actor_402200_80154178[j][2]];
-            poly->y2   = sc->y[D_actor_402200_80154178[j][2]];
-            poly->x3   = sc->x[D_actor_402200_80154178[j][3]];
-            poly->y3   = sc->y[D_actor_402200_80154178[j][3]];
-            setRGB0(poly, 0xFF, 0, 0);
-            setRGB1(poly, 0xFF, 0, 0);
-            setRGB2(poly, 0, 0, 0);
-            setRGB3(poly, 0, 0, 0);
-            addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        line           = gGpuPrimCursor;
-        gGpuPrimCursor = line + 1;
-        setlen(line, 3);
-        line->code = 0x42;
-        line->x0   = sc->x[0];
-        line->y0   = sc->y[0];
-        line->x1   = sc->x[1];
-        line->y1   = sc->y[1];
-        setRGB0(line, 0xFF, 0, 0);
-        addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
-        tp             = gGpuPrimCursor;
-        gGpuPrimCursor = tp + 1;
-        setlen(tp, 1);
-        tp->code[0] = 0xE1000620;
-        addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), tp);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor402200TrailScratch);
-}
+#include "../../shared/cloaked_stalker_inlines.inc.c"
 
-/// Inlined copy of `func_actor_402200_80137EEC`: reseeds animation slots
-/// 1..0x12 when the animation id changes, otherwise ticks them a frame.
-static inline void Actor402200_ReseedAnim(Task* arg0)
-{
-    Actor402200Work* work;
-    s32              i;
-    s32              value;
-
-    work = arg0->work;
-    if (work->field_6C0 != work->field_6C2) {
-        work->field_6C2 = work->field_6C0;
-        work->field_6C4 = 0;
-        value           = D_actor_402200_801383AC[work->field_6C0];
-        for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_6C0, 0, value);
-        }
-    } else {
-        work->field_6C4++;
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-    }
-}
-
-/// Inlined copy of `func_actor_402200_8013806C`: draws the ground shadow quad.
-static inline void Actor402200_DrawShadow(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        sub;
-    VECTOR3          vec;
-
-    work  = arg0->work;
-    coord = &arg0->extra.tmd->coords[0];
-    sub   = &arg0->extra.tmd->coords[3];
-    if (work->field_6E2 == 0) {
-        work->field_6E2 = -1;
-    }
-    vec.vx = sub->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = sub->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
-}
-
-/// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
-/// coordinates, tint and shadow and mode 2 hides the model, both returning
-/// without giving back the 8-byte scratch stack block. Otherwise the
-/// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
-/// state 1 sprays a randomly angled effect every fourth frame, and state 2
-/// projects the actor before moving on to 3.
-static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
-{
-    u8*              head;
-    SVECTOR*         sc;
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              mode;
-    u32              random;
-    s16              anim;
-
-    work                     = arg1->work;
-    coord                    = &arg1->extra.tmd->coords[0];
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(SVECTOR);
-    sc                       = (SVECTOR*)(head - sizeof(SVECTOR));
-    mode                     = Gp_StateF0.field_4;
-    switch (mode) {
-        case 0:
-            arg1->extra.tmd->flags = 0;
-            break;
-        case 1:
-            coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
-            arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
-            actor402200UpdateTint(arg1);
-            Actor402200_DrawShadow(arg1);
-            return;
-        case 2:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-    switch (work->field_6CE) {
-        case 0:
-            arg0->recs = 0;
-            Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj((WorldCollisionBody*)work->field_4E4);
-            Gp_UnlinkObj((WorldCollisionBody*)work->field_47C);
-            Gp_UnlinkObj((WorldCollisionBody*)work->field_564);
-            Gp_ReleaseStateF0Add(arg1, work->field_716);
-            anim = 0x14;
-            if (work->field_6F0 == 1) {
-                anim = 0x10;
-            }
-            work->field_6C0  = anim;
-            work->field_6CE  = 1;
-            arg0->spawnState = work->field_6F0;
-            Gp_SaveEnemyPose(arg0);
-            break;
-        case 1:
-            if (!(work->field_6C4 & 3)) {
-                sc->vx      = 0;
-                sc->vz      = 0;
-                random      = Gp_LcgState * 5 + 0x71357911;
-                sc->vy      = -((random >> 16) & 0x1FF);
-                Gp_LcgState = random;
-                Gp_SpawnEff(0x600E0, &arg1->extra.tmd->coords[3], 0x400, sc);
-            }
-            break;
-        case 2:
-            func_actor_402200_80138208(&arg1->extra.tmd->coords[3], 0xC);
-            func_actor_402200_80134968(arg1);
-            func_8009EA50(work->field_6D8);
-            work->field_6CE = 3;
-            break;
-    }
-    func_actor_402200_801380D8(arg1);
-    Actor402200_ReseedAnim(arg1);
-    coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    actor402200UpdateTint(arg1);
-    Actor402200_DrawShadow(arg1);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
-}
+#include "../../shared/cloaked_stalker_dead.inc.c"
 
 #include "../../shared/frame_capture.inc.c"
 
@@ -3534,7 +2285,7 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
             work->field_574  = 0;
             work->field_576  = 0;
             work->field_578  = 0;
-            work->field_57C  = Gp_PackPair(D_actor_402200_80153BEC, 1);
+            work->field_57C  = Gp_PackPair(gStalkerAttacks, 1);
             work->field_580  = 0x12C;
             work->field_582  = 1;
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_564);
@@ -3616,282 +2367,36 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
     }
 }
 
-/// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
-/// tint and the ground shadow, and mode 2 hides the model; both return at once.
-/// Mode 0 shows the model again while the `field_6DA` timer runs and makes the
-/// enemy lockable only while a hit is pending (bit 0x8000 of `field_49A`).
-/// Then, once the box table is set, the frame runs: the hit handler, the
-/// sequence dispatch, the step forward, the animation reseed, the vocal cue,
-/// the coordinate refresh, the tint and shadow, the projection at depth +0xC,
-/// the fade and `func_8009EA50`.
-static void func_actor_402200_80137A1C(GpEnemy* arg0, Task* arg1)
-{
-    Actor402200Work* temp_s1;
-    TmdObject*       temp_a1;
-    GfxCoord*        temp_s2;
-    s32              state;
-    s32              one;
+#include "../../shared/cloaked_stalker_frame.inc.c"
 
-    temp_s1 = arg1->work;
-    temp_a1 = arg1->extra.tmd;
-    temp_s2 = temp_a1->coords;
-    state   = Gp_StateF0.field_4;
-    one     = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    if (temp_s1->field_6DA != 0) {
-        temp_a1->flags = 0;
-    }
-    arg0->node.state.parts.flags = (temp_s1->field_49A >> 0xF) ^ WORLD_TARGET_NOT_LOCKABLE;
-    goto default_body;
-case1:
-    func_actor_402200_80137FB0(arg1);
-    func_actor_402200_8013806C(arg1);
-    return;
-case2:
-    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
-    if (temp_s1->field_6B4 != 0) {
-        func_actor_402200_80131F54(arg1);
-        func_actor_402200_80137B74(arg1);
-        func_actor_402200_80137E48(arg1);
-        func_actor_402200_80137EEC(arg1);
-        func_actor_402200_80135BE0(arg1);
-        temp_s2->composeStamp                   = GRAPHICS_COORD_DIRTY;
-        arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(temp_s2);
-        func_actor_402200_80137FB0(arg1);
-        func_actor_402200_8013806C(arg1);
-        func_actor_402200_80138208(&arg1->extra.tmd->coords[3], 0xC);
-        func_actor_402200_80134968(arg1);
-        func_8009EA50(temp_s1->field_6D8);
-    }
-}
+#include "../../shared/cloaked_stalker_run_sequence.inc.c"
 
-/// Runs the sequence `field_6CC` names (0 to 0xB), then the vocal cue unless
-/// the sequence is 1.
-static void func_actor_402200_80137B74(Task* arg0)
-{
-    s16              temp_v1;
-    Actor402200Work* temp_s1;
+#include "../../shared/cloaked_stalker_apply_scale.inc.c"
 
-    temp_s1 = arg0->work;
-    temp_v1 = temp_s1->field_6CC;
-    switch (temp_v1) {
-        case 0:
-            func_actor_402200_801329A4(arg0);
-            break;
-        case 1:
-            func_actor_402200_8013314C(arg0);
-            break;
-        case 2:
-            func_actor_402200_80133AEC(arg0);
-            break;
-        case 3:
-            func_actor_402200_80134194(arg0);
-            break;
-        case 4:
-            func_actor_402200_801347F4(arg0);
-            break;
-        case 5:
-            func_actor_402200_8013539C(arg0);
-            break;
-        case 6:
-            func_actor_402200_801354B0(arg0);
-            break;
-        case 7:
-            func_actor_402200_80135630(arg0);
-            break;
-        case 8:
-            func_actor_402200_8013592C(arg0);
-            break;
-        case 9:
-            func_actor_402200_80135A24(arg0);
-            break;
-        case 10:
-            func_actor_402200_80137D78(arg0);
-            break;
-        case 11:
-            func_actor_402200_80132688(arg0);
-            break;
-    }
-    if (temp_s1->field_6CC != 1) {
-        func_actor_402200_801380D8(arg0);
-    }
-}
+#include "../../shared/cloaked_stalker_kneel_death.inc.c"
 
-/// Rebuilds the root part's rotation from the saved attach matrix
-/// `field_674`, scaled per axis by `scale`: the saved matrix is
-/// copied into the root coordinate, and an identity scaled in a scratchpad
-/// matrix is multiplied into it.
-static void func_actor_402200_80137CA4(Task* arg0)
-{
-    void**           scratch;
-    OverlayMat*      head;
-    OverlayMat*      m;
-    GfxCoord*        coord;
-    Actor402200Work* work;
-
-    scratch                              = SCRATCH_HEAD_ADDR;
-    head                                 = SCRATCH_HEAD_AT(scratch, OverlayMat);
-    m                                    = head - 1;
-    SCRATCH_HEAD_AT(scratch, OverlayMat) = m;
-    coord                                = &arg0->extra.tmd->coords[0];
-    work                                 = arg0->work;
-
-    coord->coord     = work->field_674;
-    m->ident.m00_m01 = 0x1000;
-    m->ident.m02_m10 = 0;
-    m->ident.m11_m12 = 0x1000;
-    m->ident.m20_m21 = 0;
-    m->ident.m22     = 0x1000;
-    ScaleMatrix(&m->mat, &work->scale);
-    MulMatrix(&coord->coord, &m->mat);
-    SCRATCH_POP_AT(scratch, OverlayMat);
-}
-
-/// Sequence 0xA, the entrance: state 0 picks animation 0xE (and state 1) when
-/// `field_6F0` is 1, otherwise 0x12 and state 2, and arms the timers
-/// `field_6DA`..`field_6DE`; states 1 and 2 wait for the frame counter to reach
-/// 0x10 or 0x16, then park 2 in the context's `field_30` and drop back to 0.
-static void func_actor_402200_80137D78(Task* arg0)
-{
-    Actor402200Work* work;
-    s16              state;
-    s32              next;
-
-    work  = arg0->work;
-    state = work->field_6CE;
-    switch (state) {
-        case 0:
-            next = work->field_6F0;
-            if (next == 1) {
-                work->field_6C0 = 0xE;
-                work->field_6CE = next;
-            } else {
-                work->field_6C0 = 0x12;
-                work->field_6CE = 2;
-            }
-            work->field_6DA = 1;
-            work->field_6DC = 0xA;
-            work->field_6DE = 5;
-            break;
-        case 1:
-            if (work->field_6C4 >= 0x10) {
-                arg0->state     = 2;
-                work->field_6CE = 0;
-            }
-            break;
-        case 2:
-            if (work->field_6C4 >= 0x16) {
-                arg0->state     = state;
-                work->field_6CE = 0;
-            }
-            break;
-    }
-}
-
-/// Saves the root's translation in `field_664`..`field_66C` and steps it
-/// `field_6C8` along the root's facing (its matrix's third column), adding
-/// 0x80 to its y while `field_714` is below 2.
-static void func_actor_402200_80137E48(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-
-    coord              = &arg0->extra.tmd->coords[0];
-    work               = arg0->work;
-    work->field_664    = coord->coord.t[0];
-    work->field_668    = coord->coord.t[1];
-    work->field_66C    = coord->coord.t[2];
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_6C8) >> 12;
-    if (work->field_714 < 2) {
-        coord->coord.t[1] += 0x80;
-    }
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_6C8) >> 12;
-}
+#include "../../shared/cloaked_stalker_step_forward.inc.c"
 
 /// 1BC.h keeps this out of scope on purpose: callers hand it a sign-extended
 /// animation id, which a `u16` prototype would zero-extend.
 /// Reseeds animation slots 1..0x12 when the actor's animation id changes,
 /// handing each slot the blend weight the id selects from
-/// `D_actor_402200_801383AC`; while the id is unchanged it instead ticks every
+/// `gStalkerAnimBlend`; while the id is unchanged it instead ticks every
 /// slot one frame and walks the id's frame counter up.
-static void func_actor_402200_80137EEC(Task* arg0)
+void stalkerTickAnim(Task* arg0)
 {
-    Actor402200_ReseedAnim(arg0);
+    stalkerTickAnimInline(arg0);
 }
 
 /// Out-of-line `actor402200UpdateTint`, for the callers after the inline one.
-static void func_actor_402200_80137FB0(Task* arg0)
+void stalkerUpdateTint(Task* arg0)
 {
     actor402200UpdateTint(arg0);
 }
 
-/// Draws the ground shadow quad, 0x300 across, under the fourth part's
-/// horizontal position at the root's height, shaded by `field_6E2` - which a
-/// zero turns into -1 first, so a shadow nothing has raised is not drawn.
-static void func_actor_402200_8013806C(Task* arg0)
-{
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        sub;
-    VECTOR3          vec;
+#include "../../shared/cloaked_stalker_shadow.inc.c"
 
-    work  = arg0->work;
-    coord = &arg0->extra.tmd->coords[0];
-    sub   = &arg0->extra.tmd->coords[3];
-    if (work->field_6E2 == 0) {
-        work->field_6E2 = -1;
-    }
-    vec.vx = sub->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = sub->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
-}
-
-static void func_actor_402200_801380D8(Task* arg0)
-{
-    Actor402200Work* work;
-    s16              timer;
-    s32              sound;
-    s32              pan;
-    Task*            slot;
-    GfxCoord*        coord;
-
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    slot  = gameGetPtrSlot(3);
-    if (work->field_718 != 0) {
-        if (work->field_71A == 0x14) {
-            sound = D_actor_402200_80138474 | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
-            pan   = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
-        }
-        timer           = (u16)work->field_71A + 1;
-        work->field_71A = timer;
-        if ((timer >= 0x5F) && (Gp_DispatchMsg(slot, 0x3ED, 0, 0) == 0)) {
-            Gp_DispatchMsg(slot, 0x3F1, 0, 0);
-            work->field_718 = 0;
-        }
-    }
-}
+#include "../../shared/cloaked_stalker_hold_cue.inc.c"
 
 /// Raises the actor's phase `field_6F4` to 1 while enemies remain.
 s32 func_actor_402200_801381E0(Task* task)
@@ -3902,38 +2407,7 @@ s32 func_actor_402200_801381E0(Task* task)
     return 0;
 }
 
-/// Projects the origin of `arg0` to find its ordering-table depth, adds
-/// `arg1`, and queues the frame-buffer pass `frameCaptureQueue` there
-/// (at depth `arg1` when the projection fails).
-static void func_actor_402200_80138208(GfxCoord* arg0, s32 arg1)
-{
-    u8*                  head;
-    ActorProjectScratch* block;
-    SVECTOR*             vec;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    block                                     = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
-    SCRATCH_STACK_CURSOR(ActorProjectScratch) = block;
-    block->vec.vx                             = 0;
-    block->vec.vy                             = 0;
-    block->vec.vz                             = 0;
-    Gp_UpdateCoord(arg0);
-    vec = &block->vec;
-    gte_SetRotMatrix(&arg0->workm);
-    gte_SetTransMatrix(&arg0->workm);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&block->sxy);
-    gte_stdp(&block->dp);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    if (block->flag < 0) {
-        block->otz = 0;
-    }
-    block->otz = (block->otz >> 4) + arg1;
-    frameCaptureQueue(block->otz);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/cloaked_stalker_frame_capture.inc.c"
 /// Runs the enemy task's current state handler from
 /// `D_actor_402200_80131F18`, copying the table onto the stack first.
 static void func_actor_402200_80138340(Task* task)

@@ -1,0 +1,23 @@
+/* Part of the cloaked stalker library; see cloaked_stalker.h. */
+
+/// Draws the ground shadow quad, 0x300 across, under the fourth part's
+/// horizontal position at the root's height, shaded by `field_6E2` - which a
+/// zero turns into -1 first, so a shadow nothing has raised is not drawn.
+void stalkerDrawShadow(Task* arg0)
+{
+    Actor402200Work* work;
+    GfxCoord*        coord;
+    GfxCoord*        sub;
+    VECTOR3          vec;
+
+    work  = arg0->work;
+    coord = &arg0->extra.tmd->coords[0];
+    sub   = &arg0->extra.tmd->coords[3];
+    if (work->field_6E2 == 0) {
+        work->field_6E2 = -1;
+    }
+    vec.vx = sub->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = sub->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
+}
